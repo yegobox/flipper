@@ -3487,24 +3487,26 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<String> subscribe({
-    required int businessId,
-    required int agentCode,
-    required HttpClientInterface flipperHttpClient,
-  }) async {
+  Future<({String url, int userId})> subscribe(
+      {required int businessId,
+      required int agentCode,
+      required HttpClientInterface flipperHttpClient,
+      required int amount}) async {
     String? renderableLink;
+    int? userId;
 
     // Get the user identifier (assumed to be the phone number)
-    String userIdentifier = "250783054888";
-    // String userIdentifier = ProxyService.box.getUserPhone()!;
+    String userIdentifier = ProxyService.box.getUserPhone()!;
 
     try {
       // Attempt to retrieve an existing PayStack customer
       PayStackCustomer customer = await _getCustomer(
           userIdentifier.toFlipperEmail(), flipperHttpClient);
       // Customer found, proceed to initiate a payment request
-      renderableLink =
-          await _initiatePayment(flipperHttpClient, customer.data.customerCode);
+      renderableLink = await _initiatePayment(
+          flipperHttpClient, customer.data.customerCode,
+          amount: amount);
+      userId = customer.data.id;
     } on CustomerNotFoundException {
       // Customer not found, create a new customer
       Business business = ProxyService.local.getBusiness();
@@ -3517,24 +3519,26 @@ class RealmAPI<M extends IJsonSerializable>
       );
       // New customer created, initiate a payment request
       renderableLink = await _initiatePayment(
-          flipperHttpClient, newCustomer.data.customerCode);
+          flipperHttpClient, newCustomer.data.customerCode,
+          amount: amount);
+      userId = newCustomer.data.id;
     } catch (e) {
       print('Error: $e');
       // Handle any other errors
     }
 
-    return "https://paystack.com/pay/${renderableLink}";
+    return (url: "https://paystack.com/pay/${renderableLink}", userId: userId!);
   }
 
   Future<String> _initiatePayment(
-      HttpClientInterface flipperHttpClient, String customerCode) async {
-    int amount = 100000; // Amount in kobo
+      HttpClientInterface flipperHttpClient, String customerCode,
+      {required int amount}) async {
     String dueDate = getDueDate();
     try {
       String paymentRequestResult = await _sendPaymentRequest(
         flipperHttpClient: flipperHttpClient,
         customerCode: customerCode,
-        amount: amount,
+        amount: amount * 100,
         dueDate: dueDate,
       );
       talker.warning("Renderable $paymentRequestResult");
@@ -3549,8 +3553,15 @@ class RealmAPI<M extends IJsonSerializable>
   Future<bool> hasActiveSubscription(
       {required int businessId,
       required HttpClientInterface flipperHttpClient}) async {
-    throw SubscriptionError(
-        term: "Please update the payment as payment has failed");
+    PaymentPlan? plan = getPaymentPlan(businessId: businessId);
+
+    /// paymentCompletedByUser is false when a user did not complete payment or there is due payment failed etc...
+    if (plan == null || !plan.paymentCompletedByUser!) {
+      throw SubscriptionError(
+          term: "Please update the payment as payment has failed");
+    }
+
+    return true;
   }
 
   @override
@@ -3560,6 +3571,7 @@ class RealmAPI<M extends IJsonSerializable>
     required int additionalDevices,
     required bool isYearlyPlan,
     required double totalPrice,
+    int? payStackUserId,
   }) {
     try {
       // Find the existing PaymentPlan or create a new one
@@ -3581,7 +3593,12 @@ class RealmAPI<M extends IJsonSerializable>
         paymentPlan.selectedPlan = selectedPlan;
         paymentPlan.additionalDevices = additionalDevices;
         paymentPlan.isYearlyPlan = isYearlyPlan;
+        paymentPlan.rule = isYearlyPlan ? 'yearly' : 'monthly';
         paymentPlan.totalPrice = totalPrice;
+        paymentPlan.paymentCompletedByUser = false;
+        if (payStackUserId != null) {
+          paymentPlan.payStackCustomerId = payStackUserId;
+        }
 
         // Save or update the payment plan in the Realm database
         realm!.add<PaymentPlan>(paymentPlan, update: true);
@@ -3604,5 +3621,40 @@ class RealmAPI<M extends IJsonSerializable>
   PaymentPlan? getPaymentPlan({required int businessId}) {
     return realm!
         .query<PaymentPlan>(r'businessId == $0', [businessId]).firstOrNull;
+  }
+
+  @override
+  FlipperSaleCompaign? getLatestCompaign() {
+    try {
+      return realm!
+          .query<FlipperSaleCompaign>('TRUEPREDICATE SORT(createdAt DESC)')
+          .firstOrNull;
+    } catch (e, s) {
+      talker.warning(e);
+      talker.error(s);
+      rethrow;
+    }
+  }
+
+  @override
+  Stream<PaymentPlan?> paymentPlanStream({required int businessId}) {
+    try {
+      if (realm == null) {
+        return Stream.value(null);
+      }
+
+      final query = realm!.query<PaymentPlan>(
+          r'businessId == $0 && paymentCompletedByUser == $1',
+          [businessId, true]);
+
+      return query.changes
+          .map((event) => event.results.isNotEmpty ? event.results.first : null)
+          .distinct()
+          .asBroadcastStream();
+    } catch (e, s) {
+      talker.warning(e);
+      talker.warning(s);
+      rethrow;
+    }
   }
 }

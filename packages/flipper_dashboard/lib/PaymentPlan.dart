@@ -1,19 +1,20 @@
+import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:talker_flutter/talker_flutter.dart';
 
-class PaymentPlan extends StatefulWidget {
+class PaymentPlanUI extends StatefulWidget {
   @override
-  _PaymentPlanState createState() => _PaymentPlanState();
+  _PaymentPlanUIState createState() => _PaymentPlanUIState();
 }
 
-class _PaymentPlanState extends State<PaymentPlan> {
+class _PaymentPlanUIState extends State<PaymentPlanUI> {
   String _selectedPlan = 'Mobile';
   int _additionalDevices = 0;
   bool _isYearlyPlan = false;
@@ -338,6 +339,14 @@ class _PaymentPlanState extends State<PaymentPlan> {
         print('Total Price: $totalPrice RWF');
 
         try {
+          /// create fake discount
+          // ProxyService.realm.realm!.write(() {
+          //   ProxyService.realm.realm!.add<FlipperSaleCompaign>(
+          //       FlipperSaleCompaign(ObjectId(),
+          //           discountRate: 80,
+          //           id: randomNumber(),
+          //           createdAt: DateTime.now()));
+          // });
           ProxyService.realm.saveOrUpdatePaymentPlan(
               businessId: ProxyService.box.getBusinessId()!,
               selectedPlan: selectedPlan,

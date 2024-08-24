@@ -608,7 +608,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     PaymentPlanRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.PaymentPlan(),
+        child: _i1.PaymentPlanUI(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -2316,7 +2316,7 @@ class QuickSellingViewArgs {
 }
 
 /// generated route for
-/// [_i1.PaymentPlan]
+/// [_i1.PaymentPlanUI]
 class PaymentPlanRoute extends _i4.PageRouteInfo<void> {
   const PaymentPlanRoute()
       : super(

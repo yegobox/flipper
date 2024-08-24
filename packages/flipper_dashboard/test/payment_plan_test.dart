@@ -8,7 +8,7 @@ void main() {
   group('PaymentPlan Widget Tests', () {
     testWidgets('Initial Price is Correct', (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(
-        home: PaymentPlan(),
+        home: PaymentPlanUI(),
       ));
 
       // Find the price summary text widget
@@ -19,7 +19,7 @@ void main() {
     testWidgets('Monthly Plan Price Updates Correctly',
         (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(
-        home: PaymentPlan(),
+        home: PaymentPlanUI(),
       ));
 
       // Tap on the 'Mobile' plan card
@@ -44,7 +44,7 @@ void main() {
 
     testWidgets('Additional Devices Input Works', (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(
-        home: PaymentPlan(),
+        home: PaymentPlanUI(),
       ));
 
       await tester.scrollUntilVisible(
@@ -93,7 +93,7 @@ void main() {
 
     testWidgets('Proceed Button is Tappable', (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(
-        home: PaymentPlan(),
+        home: PaymentPlanUI(),
       ));
 
       // Find the Proceed button
@@ -107,7 +107,7 @@ void main() {
     });
     testWidgets('All Plans Can Be Selected and Price Updates Correctly',
         (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(home: PaymentPlan()));
+      await tester.pumpWidget(MaterialApp(home: PaymentPlanUI()));
 
       // Define a map of plans and expected prices
       final plans = {
@@ -144,7 +144,7 @@ void main() {
     });
     testWidgets('Additional Devices Input Boundary Conditions',
         (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(home: PaymentPlan()));
+      await tester.pumpWidget(MaterialApp(home: PaymentPlanUI()));
 
       await tester.scrollUntilVisible(find.text('Custom'), 200.0,
           scrollable: find.byType(Scrollable));
@@ -171,7 +171,7 @@ void main() {
     });
     testWidgets('Toggle Between Monthly and Yearly Plans',
         (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(home: PaymentPlan()));
+      await tester.pumpWidget(MaterialApp(home: PaymentPlanUI()));
 
       final yearlyToggleFinder = find.text('Yearly (20% off)');
       final monthlyToggleFinder = find.text('Monthly');
@@ -189,7 +189,7 @@ void main() {
       expect(monthlyPriceFinder, findsWidgets);
     });
     testWidgets('Proceed Button Triggers Action', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(home: PaymentPlan()));
+      await tester.pumpWidget(MaterialApp(home: PaymentPlanUI()));
 
       final proceedButtonFinder =
           find.widgetWithText(ElevatedButton, 'Proceed to Payment');

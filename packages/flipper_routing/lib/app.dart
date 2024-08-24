@@ -67,7 +67,7 @@ import 'all_routes.dart';
     CustomRoute(page: AdminControl),
     CustomRoute(page: AddBranch),
     CustomRoute(page: QuickSellingView),
-    CustomRoute(page: PaymentPlan),
+    CustomRoute(page: PaymentPlanUI),
     CustomRoute(page: PaymentFinalize),
   ],
   dependencies: [

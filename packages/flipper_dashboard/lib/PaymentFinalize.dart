@@ -1,7 +1,15 @@
+import 'dart:async';
+
+import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class PaymentFinalize extends StatefulWidget {
   @override
@@ -76,12 +84,13 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
                 ),
                 Spacer(),
                 isLoading
-                    ? Center(child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.black.withOpacity(0.7)),
-                          strokeWidth: 3,
-                          backgroundColor: Colors.grey.shade300,
-                        ))
+                    ? Center(
+                        child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.black.withOpacity(0.7)),
+                        strokeWidth: 3,
+                        backgroundColor: Colors.grey.shade300,
+                      ))
                     : ElevatedButton(
                         child: Text('Complete Payment'),
                         style: ElevatedButton.styleFrom(
@@ -108,21 +117,58 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
       isLoading = true;
     });
 
+    /// TODO: implement agent model later.
     print(selectedCountry);
     print(selectedPaymentMethod);
-    if (selectedPaymentMethod == "Card") {
-      String _url = await ProxyService.realm.subscribe(
-          businessId: ProxyService.box.getBusinessId()!,
+    PaymentPlan paymentPlan = ProxyService.realm
+        .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!)!;
 
-          /// TODO: implement agent model later.
-          agentCode: 1,
-          flipperHttpClient: ProxyService.http);
-      setState(() {
-        isLoading = false;
-      });
-      if (!await launchUrl(Uri.parse(_url))) {
-        throw Exception('Could not launch $_url');
+    int finalPrice = 0;
+    //findout if there is ongoing compaign to apply discount
+    FlipperSaleCompaign? compaign = ProxyService.realm.getLatestCompaign();
+    if (compaign != null) {
+      finalPrice = (paymentPlan.totalPrice! -
+              ((paymentPlan.totalPrice! * compaign.discountRate!) / 100))
+          .toInt();
+    } else {
+      finalPrice = paymentPlan.totalPrice!.toInt();
+    }
+
+    if (selectedPaymentMethod == "Card") {
+      final (:url, :userId) = await ProxyService.realm.subscribe(
+        businessId: ProxyService.box.getBusinessId()!,
+        agentCode: 1,
+        flipperHttpClient: ProxyService.http,
+        amount: finalPrice,
+      );
+
+      ProxyService.realm.saveOrUpdatePaymentPlan(
+          businessId: paymentPlan.businessId!,
+          selectedPlan: paymentPlan.selectedPlan!,
+          additionalDevices: paymentPlan.additionalDevices!,
+          isYearlyPlan: paymentPlan.isYearlyPlan!,
+          totalPrice: paymentPlan.totalPrice!,
+          payStackUserId: userId);
+      if (!await launchUrl(Uri.parse(url))) {
+        throw Exception('Could not launch $url');
       }
+      bool keepLoop = true;
+      do {
+        /// force instant update from remote db
+        await ProxyService.realm.realm?.subscriptions.waitForSynchronization();
+        PaymentPlan? plan = ProxyService.realm
+            .getPaymentPlan(businessId: paymentPlan.businessId!);
+        if (plan != null && plan.paymentCompletedByUser!) {
+          talker.warning("A user has Completed payment");
+          keepLoop = false;
+          setState(() {
+            isLoading = false;
+          });
+          locator<RouterService>().navigateTo(FlipperAppRoute());
+        }
+      } while (keepLoop);
+
+      /// listen on stream to check if payment has been completed by a user
     } else {
       setState(() {
         isLoading = false;

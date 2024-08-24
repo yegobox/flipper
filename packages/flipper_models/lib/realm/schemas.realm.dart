@@ -7622,6 +7622,7 @@ class Computed extends _Computed
     double? totalStockValue = 0,
     double? totalStockSoldValue = 0,
     double? totalStockItems = 0,
+    DateTime? createdAt,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Computed>({
@@ -7640,6 +7641,7 @@ class Computed extends _Computed
     RealmObjectBase.set(this, 'totalStockValue', totalStockValue);
     RealmObjectBase.set(this, 'totalStockSoldValue', totalStockSoldValue);
     RealmObjectBase.set(this, 'totalStockItems', totalStockItems);
+    RealmObjectBase.set(this, 'createdAt', createdAt);
   }
 
   Computed._();
@@ -7694,6 +7696,13 @@ class Computed extends _Computed
       RealmObjectBase.set(this, 'totalStockItems', value);
 
   @override
+  DateTime? get createdAt =>
+      RealmObjectBase.get<DateTime>(this, 'createdAt') as DateTime?;
+  @override
+  set createdAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'createdAt', value);
+
+  @override
   Stream<RealmObjectChanges<Computed>> get changes =>
       RealmObjectBase.getChanges<Computed>(this);
 
@@ -7714,6 +7723,7 @@ class Computed extends _Computed
       'totalStockValue': totalStockValue.toEJson(),
       'totalStockSoldValue': totalStockSoldValue.toEJson(),
       'totalStockItems': totalStockItems.toEJson(),
+      'createdAt': createdAt.toEJson(),
     };
   }
 
@@ -7734,6 +7744,7 @@ class Computed extends _Computed
           totalStockSoldValue:
               fromEJson(ejson['totalStockSoldValue'], defaultValue: 0),
           totalStockItems: fromEJson(ejson['totalStockItems'], defaultValue: 0),
+          createdAt: fromEJson(ejson['createdAt']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -7755,6 +7766,7 @@ class Computed extends _Computed
           optional: true),
       SchemaProperty('totalStockItems', RealmPropertyType.double,
           optional: true),
+      SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
     ]);
   }();
 
@@ -7932,6 +7944,8 @@ class Access extends _Access with RealmEntity, RealmObjectBase, RealmObject {
 
 class PaymentPlan extends _PaymentPlan
     with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
   PaymentPlan(
     ObjectId realmId, {
     int? id,
@@ -7941,7 +7955,15 @@ class PaymentPlan extends _PaymentPlan
     bool? isYearlyPlan,
     double? totalPrice,
     DateTime? createdAt,
+    bool? paymentCompletedByUser = false,
+    int? payStackCustomerId,
+    String? rule,
   }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<PaymentPlan>({
+        'paymentCompletedByUser': false,
+      });
+    }
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
     RealmObjectBase.set(this, 'businessId', businessId);
@@ -7950,6 +7972,9 @@ class PaymentPlan extends _PaymentPlan
     RealmObjectBase.set(this, 'isYearlyPlan', isYearlyPlan);
     RealmObjectBase.set(this, 'totalPrice', totalPrice);
     RealmObjectBase.set(this, 'createdAt', createdAt);
+    RealmObjectBase.set(this, 'paymentCompletedByUser', paymentCompletedByUser);
+    RealmObjectBase.set(this, 'payStackCustomerId', payStackCustomerId);
+    RealmObjectBase.set(this, 'rule', rule);
   }
 
   PaymentPlan._();
@@ -8006,6 +8031,25 @@ class PaymentPlan extends _PaymentPlan
       RealmObjectBase.set(this, 'createdAt', value);
 
   @override
+  bool? get paymentCompletedByUser =>
+      RealmObjectBase.get<bool>(this, 'paymentCompletedByUser') as bool?;
+  @override
+  set paymentCompletedByUser(bool? value) =>
+      RealmObjectBase.set(this, 'paymentCompletedByUser', value);
+
+  @override
+  int? get payStackCustomerId =>
+      RealmObjectBase.get<int>(this, 'payStackCustomerId') as int?;
+  @override
+  set payStackCustomerId(int? value) =>
+      RealmObjectBase.set(this, 'payStackCustomerId', value);
+
+  @override
+  String? get rule => RealmObjectBase.get<String>(this, 'rule') as String?;
+  @override
+  set rule(String? value) => RealmObjectBase.set(this, 'rule', value);
+
+  @override
   Stream<RealmObjectChanges<PaymentPlan>> get changes =>
       RealmObjectBase.getChanges<PaymentPlan>(this);
 
@@ -8027,6 +8071,9 @@ class PaymentPlan extends _PaymentPlan
       'isYearlyPlan': isYearlyPlan.toEJson(),
       'totalPrice': totalPrice.toEJson(),
       'createdAt': createdAt.toEJson(),
+      'paymentCompletedByUser': paymentCompletedByUser.toEJson(),
+      'payStackCustomerId': payStackCustomerId.toEJson(),
+      'rule': rule.toEJson(),
     };
   }
 
@@ -8046,6 +8093,10 @@ class PaymentPlan extends _PaymentPlan
           isYearlyPlan: fromEJson(ejson['isYearlyPlan']),
           totalPrice: fromEJson(ejson['totalPrice']),
           createdAt: fromEJson(ejson['createdAt']),
+          paymentCompletedByUser:
+              fromEJson(ejson['paymentCompletedByUser'], defaultValue: false),
+          payStackCustomerId: fromEJson(ejson['payStackCustomerId']),
+          rule: fromEJson(ejson['rule']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -8065,6 +8116,118 @@ class PaymentPlan extends _PaymentPlan
           optional: true),
       SchemaProperty('isYearlyPlan', RealmPropertyType.bool, optional: true),
       SchemaProperty('totalPrice', RealmPropertyType.double, optional: true),
+      SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('paymentCompletedByUser', RealmPropertyType.bool,
+          optional: true),
+      SchemaProperty('payStackCustomerId', RealmPropertyType.int,
+          optional: true),
+      SchemaProperty('rule', RealmPropertyType.string, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
+class FlipperSaleCompaign extends _FlipperSaleCompaign
+    with RealmEntity, RealmObjectBase, RealmObject {
+  FlipperSaleCompaign(
+    ObjectId realmId, {
+    int? id,
+    int? compaignId,
+    int? discountRate,
+    DateTime? createdAt,
+  }) {
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'compaignId', compaignId);
+    RealmObjectBase.set(this, 'discountRate', discountRate);
+    RealmObjectBase.set(this, 'createdAt', createdAt);
+  }
+
+  FlipperSaleCompaign._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get compaignId => RealmObjectBase.get<int>(this, 'compaignId') as int?;
+  @override
+  set compaignId(int? value) => RealmObjectBase.set(this, 'compaignId', value);
+
+  @override
+  int? get discountRate =>
+      RealmObjectBase.get<int>(this, 'discountRate') as int?;
+  @override
+  set discountRate(int? value) =>
+      RealmObjectBase.set(this, 'discountRate', value);
+
+  @override
+  DateTime? get createdAt =>
+      RealmObjectBase.get<DateTime>(this, 'createdAt') as DateTime?;
+  @override
+  set createdAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'createdAt', value);
+
+  @override
+  Stream<RealmObjectChanges<FlipperSaleCompaign>> get changes =>
+      RealmObjectBase.getChanges<FlipperSaleCompaign>(this);
+
+  @override
+  Stream<RealmObjectChanges<FlipperSaleCompaign>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<FlipperSaleCompaign>(this, keyPaths);
+
+  @override
+  FlipperSaleCompaign freeze() =>
+      RealmObjectBase.freezeObject<FlipperSaleCompaign>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'compaignId': compaignId.toEJson(),
+      'discountRate': discountRate.toEJson(),
+      'createdAt': createdAt.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(FlipperSaleCompaign value) => value.toEJson();
+  static FlipperSaleCompaign _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
+    return switch (ejson) {
+      {
+        '_id': EJsonValue realmId,
+      } =>
+        FlipperSaleCompaign(
+          fromEJson(realmId),
+          id: fromEJson(ejson['id']),
+          compaignId: fromEJson(ejson['compaignId']),
+          discountRate: fromEJson(ejson['discountRate']),
+          createdAt: fromEJson(ejson['createdAt']),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(FlipperSaleCompaign._);
+    register(_toEJson, _fromEJson);
+    return const SchemaObject(
+        ObjectType.realmObject, FlipperSaleCompaign, 'FlipperSaleCompaign', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('compaignId', RealmPropertyType.int, optional: true),
+      SchemaProperty('discountRate', RealmPropertyType.int, optional: true),
       SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
     ]);
   }();
