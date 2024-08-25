@@ -142,12 +142,13 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
         amount: finalPrice,
       );
 
-      ProxyService.realm.saveOrUpdatePaymentPlan(
+      await ProxyService.realm.saveOrUpdatePaymentPlan(
           businessId: paymentPlan.businessId!,
           selectedPlan: paymentPlan.selectedPlan!,
           additionalDevices: paymentPlan.additionalDevices!,
           isYearlyPlan: paymentPlan.isYearlyPlan!,
           totalPrice: paymentPlan.totalPrice!,
+          flipperHttpClient: ProxyService.http,
           payStackUserId: userId);
       if (!await launchUrl(Uri.parse(url))) {
         throw Exception('Could not launch $url');

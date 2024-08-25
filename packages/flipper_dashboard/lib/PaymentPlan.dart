@@ -1,3 +1,5 @@
+import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:flipper_models/helperModels/paystack_customer.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -332,31 +334,26 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         bool isYearlyPlan = _isYearlyPlan;
         double totalPrice = _totalPrice;
 
-        // Use the values as needed
-        print('Selected Plan: $selectedPlan');
-        print('Additional Devices: $additionalDevices');
-        print('Is Yearly Plan: $isYearlyPlan');
-        print('Total Price: $totalPrice RWF');
-
         try {
-          /// create fake discount
-          // ProxyService.realm.realm!.write(() {
-          //   ProxyService.realm.realm!.add<FlipperSaleCompaign>(
-          //       FlipperSaleCompaign(ObjectId(),
-          //           discountRate: 80,
-          //           id: randomNumber(),
-          //           createdAt: DateTime.now()));
-          // });
+          String userIdentifier = ProxyService.box.getUserPhone()!;
+
+          PayStackCustomer customer = await ProxyService.realm
+              .getPayStackCustomer(
+                  userIdentifier.toFlipperEmail(), ProxyService.http);
+
           ProxyService.realm.saveOrUpdatePaymentPlan(
               businessId: ProxyService.box.getBusinessId()!,
               selectedPlan: selectedPlan,
+              flipperHttpClient: ProxyService.http,
               additionalDevices: additionalDevices,
               isYearlyPlan: isYearlyPlan,
+              payStackUserId: customer.data.id,
               totalPrice: totalPrice);
           locator<RouterService>().navigateTo(PaymentFinalizeRoute());
         } catch (e, s) {
-          talker.error(e);
+          talker.warning(e);
           talker.error(s);
+          rethrow;
         }
         // Proceed to payment action
       },

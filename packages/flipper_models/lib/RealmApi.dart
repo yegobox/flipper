@@ -3389,7 +3389,8 @@ class RealmAPI<M extends IJsonSerializable>
     ]).toList();
   }
 
-  Future<PayStackCustomer> _getCustomer(
+  @override
+  Future<PayStackCustomer> getPayStackCustomer(
       String customerCodeOrEmail, HttpClientInterface flipperHttpClient) async {
     try {
       final response = await flipperHttpClient.get(
@@ -3459,6 +3460,9 @@ class RealmAPI<M extends IJsonSerializable>
       "line_items": [
         {"name": "Flipper Subscription", "amount": amount}
       ],
+      "tax": [
+        {"name": "VAT", "amount": (amount * 18 / 118)}
+      ],
       "customer": customerCode,
       "due_date": dueDate
     });
@@ -3500,7 +3504,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     try {
       // Attempt to retrieve an existing PayStack customer
-      PayStackCustomer customer = await _getCustomer(
+      PayStackCustomer customer = await getPayStackCustomer(
           userIdentifier.toFlipperEmail(), flipperHttpClient);
       // Customer found, proceed to initiate a payment request
       renderableLink = await _initiatePayment(
@@ -3565,14 +3569,14 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  PaymentPlan saveOrUpdatePaymentPlan({
-    required int businessId,
-    required String selectedPlan,
-    required int additionalDevices,
-    required bool isYearlyPlan,
-    required double totalPrice,
-    int? payStackUserId,
-  }) {
+  Future<PaymentPlan> saveOrUpdatePaymentPlan(
+      {required int businessId,
+      required String selectedPlan,
+      required int additionalDevices,
+      required bool isYearlyPlan,
+      required double totalPrice,
+      required int payStackUserId,
+      required HttpClientInterface flipperHttpClient}) async {
     try {
       // Find the existing PaymentPlan or create a new one
       PaymentPlan paymentPlan = realm!.query<PaymentPlan>(
@@ -3596,9 +3600,8 @@ class RealmAPI<M extends IJsonSerializable>
         paymentPlan.rule = isYearlyPlan ? 'yearly' : 'monthly';
         paymentPlan.totalPrice = totalPrice;
         paymentPlan.paymentCompletedByUser = false;
-        if (payStackUserId != null) {
-          paymentPlan.payStackCustomerId = payStackUserId;
-        }
+
+        paymentPlan.payStackCustomerId = payStackUserId;
 
         // Save or update the payment plan in the Realm database
         realm!.add<PaymentPlan>(paymentPlan, update: true);
