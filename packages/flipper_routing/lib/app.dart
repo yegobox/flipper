@@ -12,7 +12,7 @@ import 'all_routes.dart';
     CustomRoute(page: StartUpView, initial: true),
     CustomRoute(page: SignUpView),
     CustomRoute(page: FlipperApp),
-
+    CustomRoute(page: FailedPayment),
     //Login Routes
     CustomRoute(page: LoginView),
     CustomRoute(page: Landing),

@@ -7958,6 +7958,7 @@ class PaymentPlan extends _PaymentPlan
     bool? paymentCompletedByUser = false,
     int? payStackCustomerId,
     String? rule,
+    String? paymentMethod,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<PaymentPlan>({
@@ -7975,6 +7976,7 @@ class PaymentPlan extends _PaymentPlan
     RealmObjectBase.set(this, 'paymentCompletedByUser', paymentCompletedByUser);
     RealmObjectBase.set(this, 'payStackCustomerId', payStackCustomerId);
     RealmObjectBase.set(this, 'rule', rule);
+    RealmObjectBase.set(this, 'paymentMethod', paymentMethod);
   }
 
   PaymentPlan._();
@@ -8050,6 +8052,13 @@ class PaymentPlan extends _PaymentPlan
   set rule(String? value) => RealmObjectBase.set(this, 'rule', value);
 
   @override
+  String? get paymentMethod =>
+      RealmObjectBase.get<String>(this, 'paymentMethod') as String?;
+  @override
+  set paymentMethod(String? value) =>
+      RealmObjectBase.set(this, 'paymentMethod', value);
+
+  @override
   Stream<RealmObjectChanges<PaymentPlan>> get changes =>
       RealmObjectBase.getChanges<PaymentPlan>(this);
 
@@ -8074,6 +8083,7 @@ class PaymentPlan extends _PaymentPlan
       'paymentCompletedByUser': paymentCompletedByUser.toEJson(),
       'payStackCustomerId': payStackCustomerId.toEJson(),
       'rule': rule.toEJson(),
+      'paymentMethod': paymentMethod.toEJson(),
     };
   }
 
@@ -8097,6 +8107,7 @@ class PaymentPlan extends _PaymentPlan
               fromEJson(ejson['paymentCompletedByUser'], defaultValue: false),
           payStackCustomerId: fromEJson(ejson['payStackCustomerId']),
           rule: fromEJson(ejson['rule']),
+          paymentMethod: fromEJson(ejson['paymentMethod']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -8122,6 +8133,7 @@ class PaymentPlan extends _PaymentPlan
       SchemaProperty('payStackCustomerId', RealmPropertyType.int,
           optional: true),
       SchemaProperty('rule', RealmPropertyType.string, optional: true),
+      SchemaProperty('paymentMethod', RealmPropertyType.string, optional: true),
     ]);
   }();
 

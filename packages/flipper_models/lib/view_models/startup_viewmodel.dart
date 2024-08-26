@@ -109,7 +109,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
       }
     } else if (e is SubscriptionError) {
-      _routerService.navigateTo(PaymentPlanRoute());
+      _routerService.navigateTo(PaymentPlanUIRoute());
+    } else if (e is FailedPaymentException) {
+      _routerService.navigateTo(FailedPaymentRoute());
     } else {
       // Handle other unexpected errors.
       await logOut();

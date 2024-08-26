@@ -1040,6 +1040,7 @@ class _PaymentPlan {
   int? payStackCustomerId;
   // this is the rule from which we will bill the customer again e.g monthly
   String? rule;
+  String? paymentMethod;
 }
 
 @RealmModel()

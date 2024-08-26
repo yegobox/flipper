@@ -98,3 +98,8 @@ class CustomerNotFoundException implements Exception {
   final String message;
   CustomerNotFoundException(this.message);
 }
+
+class FailedPaymentException implements Exception {
+  final String message;
+  FailedPaymentException(this.message);
+}

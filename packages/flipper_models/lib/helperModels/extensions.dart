@@ -58,6 +58,7 @@ extension CurrencyFormatExtension on num {
   }
 }
 
+
 extension DoubleExtension on double {
   double toPrecision(int fractionDigits) {
     final factor = pow(10, fractionDigits);

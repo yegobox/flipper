@@ -145,6 +145,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
       await ProxyService.realm.saveOrUpdatePaymentPlan(
           businessId: paymentPlan.businessId!,
           selectedPlan: paymentPlan.selectedPlan!,
+          paymentMethod: selectedPaymentMethod,
           additionalDevices: paymentPlan.additionalDevices!,
           isYearlyPlan: paymentPlan.isYearlyPlan!,
           totalPrice: paymentPlan.totalPrice!,

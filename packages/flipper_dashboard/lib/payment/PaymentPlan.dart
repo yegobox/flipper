@@ -1,14 +1,11 @@
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/helperModels/paystack_customer.dart';
-import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:realm/realm.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class PaymentPlanUI extends StatefulWidget {
@@ -344,6 +341,8 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           ProxyService.realm.saveOrUpdatePaymentPlan(
               businessId: ProxyService.box.getBusinessId()!,
               selectedPlan: selectedPlan,
+              paymentMethod:
+                  "Card", // set card as preferred, can be changed on finalization stage
               flipperHttpClient: ProxyService.http,
               additionalDevices: additionalDevices,
               isYearlyPlan: isYearlyPlan,

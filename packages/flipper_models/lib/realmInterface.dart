@@ -471,6 +471,7 @@ abstract class RealmApiInterface {
     required bool isYearlyPlan,
     required double totalPrice,
     required int payStackUserId,
+    required String paymentMethod,
     required HttpClientInterface flipperHttpClient,
   });
   PaymentPlan? getPaymentPlan({required int businessId});

@@ -3558,11 +3558,15 @@ class RealmAPI<M extends IJsonSerializable>
       {required int businessId,
       required HttpClientInterface flipperHttpClient}) async {
     PaymentPlan? plan = getPaymentPlan(businessId: businessId);
+    // await realm?.subscriptions.waitForSynchronization();
 
     /// paymentCompletedByUser is false when a user did not complete payment or there is due payment failed etc...
-    if (plan == null || !plan.paymentCompletedByUser!) {
+    if (plan == null) {
       throw SubscriptionError(
           term: "Please update the payment as payment has failed");
+    } else if (!plan.paymentCompletedByUser!) {
+      throw FailedPaymentException(
+          "payment Failed please re-activate your payment method");
     }
 
     return true;
@@ -3575,6 +3579,7 @@ class RealmAPI<M extends IJsonSerializable>
       required int additionalDevices,
       required bool isYearlyPlan,
       required double totalPrice,
+      required String paymentMethod,
       required int payStackUserId,
       required HttpClientInterface flipperHttpClient}) async {
     try {
@@ -3585,6 +3590,7 @@ class RealmAPI<M extends IJsonSerializable>
             ObjectId(),
             businessId: businessId,
             selectedPlan: selectedPlan,
+            paymentMethod: paymentMethod,
             additionalDevices: additionalDevices,
             isYearlyPlan: isYearlyPlan,
             totalPrice: totalPrice,
@@ -3599,6 +3605,7 @@ class RealmAPI<M extends IJsonSerializable>
         paymentPlan.isYearlyPlan = isYearlyPlan;
         paymentPlan.rule = isYearlyPlan ? 'yearly' : 'monthly';
         paymentPlan.totalPrice = totalPrice;
+        paymentPlan.paymentMethod = paymentMethod;
         paymentPlan.paymentCompletedByUser = false;
 
         paymentPlan.payStackCustomerId = payStackUserId;

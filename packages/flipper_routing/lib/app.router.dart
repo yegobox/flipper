@@ -60,6 +60,14 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    FailedPaymentRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.FailedPayment(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     LoginViewRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
@@ -605,7 +613,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
-    PaymentPlanRoute.name: (routeData) {
+    PaymentPlanUIRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.PaymentPlanUI(),
@@ -636,6 +644,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         _i4.RouteConfig(
           FlipperAppRoute.name,
           path: '/flipper-app',
+        ),
+        _i4.RouteConfig(
+          FailedPaymentRoute.name,
+          path: '/failed-payment',
         ),
         _i4.RouteConfig(
           LoginViewRoute.name,
@@ -838,8 +850,8 @@ class StackedRouterWeb extends _i4.RootStackRouter {
           path: '/quick-selling-view',
         ),
         _i4.RouteConfig(
-          PaymentPlanRoute.name,
-          path: '/payment-plan',
+          PaymentPlanUIRoute.name,
+          path: '/payment-plan-uI',
         ),
         _i4.RouteConfig(
           PaymentFinalizeRoute.name,
@@ -926,6 +938,18 @@ class FlipperAppRoute extends _i4.PageRouteInfo<void> {
         );
 
   static const String name = 'FlipperApp';
+}
+
+/// generated route for
+/// [_i1.FailedPayment]
+class FailedPaymentRoute extends _i4.PageRouteInfo<void> {
+  const FailedPaymentRoute()
+      : super(
+          FailedPaymentRoute.name,
+          path: '/failed-payment',
+        );
+
+  static const String name = 'FailedPayment';
 }
 
 /// generated route for
@@ -2317,14 +2341,14 @@ class QuickSellingViewArgs {
 
 /// generated route for
 /// [_i1.PaymentPlanUI]
-class PaymentPlanRoute extends _i4.PageRouteInfo<void> {
-  const PaymentPlanRoute()
+class PaymentPlanUIRoute extends _i4.PageRouteInfo<void> {
+  const PaymentPlanUIRoute()
       : super(
-          PaymentPlanRoute.name,
-          path: '/payment-plan',
+          PaymentPlanUIRoute.name,
+          path: '/payment-plan-uI',
         );
 
-  static const String name = 'PaymentPlan';
+  static const String name = 'PaymentPlanUI';
 }
 
 /// generated route for
@@ -2372,6 +2396,14 @@ extension RouterStateExtension on _i3.RouterService {
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const FlipperAppRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToFailedPayment(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const FailedPaymentRoute(),
       onFailure: onFailure,
     );
   }
@@ -3017,10 +3049,10 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> navigateToPaymentPlan(
+  Future<dynamic> navigateToPaymentPlanUI(
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
-      const PaymentPlanRoute(),
+      const PaymentPlanUIRoute(),
       onFailure: onFailure,
     );
   }
@@ -3065,6 +3097,14 @@ extension RouterStateExtension on _i3.RouterService {
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const FlipperAppRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithFailedPayment(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const FailedPaymentRoute(),
       onFailure: onFailure,
     );
   }
@@ -3710,10 +3750,10 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> replaceWithPaymentPlan(
+  Future<dynamic> replaceWithPaymentPlanUI(
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
-      const PaymentPlanRoute(),
+      const PaymentPlanUIRoute(),
       onFailure: onFailure,
     );
   }
