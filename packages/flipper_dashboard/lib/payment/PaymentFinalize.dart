@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-import 'dart:async';
-=======
-<<<<<<< HEAD
-=======
-import 'dart:async';
-
->>>>>>> 0bc957110 (Dev (#313))
->>>>>>> e65493d2c (Dev (#313))
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
