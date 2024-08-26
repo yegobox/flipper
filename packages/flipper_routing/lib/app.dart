@@ -12,7 +12,7 @@ import 'all_routes.dart';
     CustomRoute(page: StartUpView, initial: true),
     CustomRoute(page: SignUpView),
     CustomRoute(page: FlipperApp),
-
+    CustomRoute(page: FailedPayment),
     //Login Routes
     CustomRoute(page: LoginView),
     CustomRoute(page: Landing),
@@ -67,6 +67,8 @@ import 'all_routes.dart';
     CustomRoute(page: AdminControl),
     CustomRoute(page: AddBranch),
     CustomRoute(page: QuickSellingView),
+    CustomRoute(page: PaymentPlanUI),
+    CustomRoute(page: PaymentFinalize),
   ],
   dependencies: [
     LazySingleton(classType: BottomSheetService),

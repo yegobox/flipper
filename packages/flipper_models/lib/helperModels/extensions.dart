@@ -58,6 +58,7 @@ extension CurrencyFormatExtension on num {
   }
 }
 
+
 extension DoubleExtension on double {
   double toPrecision(int fractionDigits) {
     final factor = pow(10, fractionDigits);
@@ -206,5 +207,14 @@ extension PercentageFormatter on double {
   String toFormattedPercentage() {
     final formatter = NumberFormat.percentPattern();
     return formatter.format(this / 100); // Divide by 100 before formatting
+  }
+}
+
+extension StringExtension on String {
+  String toFlipperEmail() {
+    if (this.contains('@')) {
+      return this;
+    }
+    return this.replaceFirst('+', '') + '@flipper.rw';
   }
 }

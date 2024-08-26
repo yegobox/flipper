@@ -7,7 +7,7 @@ part of 'feature.dart';
 // **************************************************************************
 
 Feature _$FeatureFromJson(Map<String, dynamic> json) => Feature(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as int?,
       name: json['name'] as String,
     );
 

@@ -152,36 +152,25 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Branch value) => value.toEJson();
   static Branch _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
         'id': EJsonValue id,
-        'serverId': EJsonValue serverId,
-        'active': EJsonValue active,
-        'description': EJsonValue description,
-        'name': EJsonValue name,
-        'businessId': EJsonValue businessId,
-        'longitude': EJsonValue longitude,
-        'latitude': EJsonValue latitude,
-        'location': EJsonValue location,
-        'isDefault': EJsonValue isDefault,
-        'lastTouched': EJsonValue lastTouched,
-        'action': EJsonValue action,
-        'deletedAt': EJsonValue deletedAt,
       } =>
         Branch(
           fromEJson(id),
-          serverId: fromEJson(serverId),
-          active: fromEJson(active),
-          description: fromEJson(description),
-          name: fromEJson(name),
-          businessId: fromEJson(businessId),
-          longitude: fromEJson(longitude),
-          latitude: fromEJson(latitude),
-          location: fromEJson(location),
-          isDefault: fromEJson(isDefault),
-          lastTouched: fromEJson(lastTouched),
-          action: fromEJson(action),
-          deletedAt: fromEJson(deletedAt),
+          serverId: fromEJson(ejson['serverId']),
+          active: fromEJson(ejson['active']),
+          description: fromEJson(ejson['description']),
+          name: fromEJson(ejson['name']),
+          businessId: fromEJson(ejson['businessId']),
+          longitude: fromEJson(ejson['longitude']),
+          latitude: fromEJson(ejson['latitude']),
+          location: fromEJson(ejson['location']),
+          isDefault: fromEJson(ejson['isDefault'], defaultValue: false),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          action: fromEJson(ejson['action']),
+          deletedAt: fromEJson(ejson['deletedAt']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -190,7 +179,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Branch._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Branch, 'Branch', [
+    return const SchemaObject(ObjectType.realmObject, Branch, 'Branch', [
       SchemaProperty('id', RealmPropertyType.objectid, primaryKey: true),
       SchemaProperty('serverId', RealmPropertyType.int, optional: true),
       SchemaProperty('active', RealmPropertyType.bool, optional: true),
@@ -638,100 +627,57 @@ class Business extends _Business
 
   static EJsonValue _toEJson(Business value) => value.toEJson();
   static Business _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
         'id': EJsonValue id,
-        'serverId': EJsonValue serverId,
-        'name': EJsonValue name,
-        'currency': EJsonValue currency,
-        'categoryId': EJsonValue categoryId,
-        'latitude': EJsonValue latitude,
-        'longitude': EJsonValue longitude,
-        'userId': EJsonValue userId,
-        'timeZone': EJsonValue timeZone,
-        'country': EJsonValue country,
-        'businessUrl': EJsonValue businessUrl,
-        'hexColor': EJsonValue hexColor,
-        'imageUrl': EJsonValue imageUrl,
-        'type': EJsonValue type,
-        'active': EJsonValue active,
-        'chatUid': EJsonValue chatUid,
-        'metadata': EJsonValue metadata,
-        'role': EJsonValue role,
-        'lastSeen': EJsonValue lastSeen,
-        'firstName': EJsonValue firstName,
-        'lastName': EJsonValue lastName,
-        'createdAt': EJsonValue createdAt,
-        'deviceToken': EJsonValue deviceToken,
-        'backUpEnabled': EJsonValue backUpEnabled,
-        'subscriptionPlan': EJsonValue subscriptionPlan,
-        'nextBillingDate': EJsonValue nextBillingDate,
-        'previousBillingDate': EJsonValue previousBillingDate,
-        'isLastSubscriptionPaymentSucceeded': EJsonValue
-            isLastSubscriptionPaymentSucceeded,
-        'backupFileId': EJsonValue backupFileId,
-        'email': EJsonValue email,
-        'lastDbBackup': EJsonValue lastDbBackup,
-        'fullName': EJsonValue fullName,
-        'tinNumber': EJsonValue tinNumber,
-        'bhfId': EJsonValue bhfId,
-        'dvcSrlNo': EJsonValue dvcSrlNo,
-        'adrs': EJsonValue adrs,
-        'taxEnabled': EJsonValue taxEnabled,
-        'taxServerUrl': EJsonValue taxServerUrl,
-        'isDefault': EJsonValue isDefault,
-        'businessTypeId': EJsonValue businessTypeId,
-        'lastTouched': EJsonValue lastTouched,
-        'action': EJsonValue action,
-        'deletedAt': EJsonValue deletedAt,
-        'encryptionKey': EJsonValue encryptionKey,
       } =>
         Business(
           fromEJson(id),
-          serverId: fromEJson(serverId),
-          name: fromEJson(name),
-          currency: fromEJson(currency),
-          categoryId: fromEJson(categoryId),
-          latitude: fromEJson(latitude),
-          longitude: fromEJson(longitude),
-          userId: fromEJson(userId),
-          timeZone: fromEJson(timeZone),
-          country: fromEJson(country),
-          businessUrl: fromEJson(businessUrl),
-          hexColor: fromEJson(hexColor),
-          imageUrl: fromEJson(imageUrl),
-          type: fromEJson(type),
-          active: fromEJson(active),
-          chatUid: fromEJson(chatUid),
-          metadata: fromEJson(metadata),
-          role: fromEJson(role),
-          lastSeen: fromEJson(lastSeen),
-          firstName: fromEJson(firstName),
-          lastName: fromEJson(lastName),
-          createdAt: fromEJson(createdAt),
-          deviceToken: fromEJson(deviceToken),
-          backUpEnabled: fromEJson(backUpEnabled),
-          subscriptionPlan: fromEJson(subscriptionPlan),
-          nextBillingDate: fromEJson(nextBillingDate),
-          previousBillingDate: fromEJson(previousBillingDate),
+          serverId: fromEJson(ejson['serverId']),
+          name: fromEJson(ejson['name']),
+          currency: fromEJson(ejson['currency']),
+          categoryId: fromEJson(ejson['categoryId']),
+          latitude: fromEJson(ejson['latitude']),
+          longitude: fromEJson(ejson['longitude']),
+          userId: fromEJson(ejson['userId']),
+          timeZone: fromEJson(ejson['timeZone']),
+          country: fromEJson(ejson['country']),
+          businessUrl: fromEJson(ejson['businessUrl']),
+          hexColor: fromEJson(ejson['hexColor']),
+          imageUrl: fromEJson(ejson['imageUrl']),
+          type: fromEJson(ejson['type']),
+          active: fromEJson(ejson['active']),
+          chatUid: fromEJson(ejson['chatUid']),
+          metadata: fromEJson(ejson['metadata']),
+          role: fromEJson(ejson['role']),
+          lastSeen: fromEJson(ejson['lastSeen']),
+          firstName: fromEJson(ejson['firstName']),
+          lastName: fromEJson(ejson['lastName']),
+          createdAt: fromEJson(ejson['createdAt']),
+          deviceToken: fromEJson(ejson['deviceToken']),
+          backUpEnabled: fromEJson(ejson['backUpEnabled']),
+          subscriptionPlan: fromEJson(ejson['subscriptionPlan']),
+          nextBillingDate: fromEJson(ejson['nextBillingDate']),
+          previousBillingDate: fromEJson(ejson['previousBillingDate']),
           isLastSubscriptionPaymentSucceeded:
-              fromEJson(isLastSubscriptionPaymentSucceeded),
-          backupFileId: fromEJson(backupFileId),
-          email: fromEJson(email),
-          lastDbBackup: fromEJson(lastDbBackup),
-          fullName: fromEJson(fullName),
-          tinNumber: fromEJson(tinNumber),
-          bhfId: fromEJson(bhfId),
-          dvcSrlNo: fromEJson(dvcSrlNo),
-          adrs: fromEJson(adrs),
-          taxEnabled: fromEJson(taxEnabled),
-          taxServerUrl: fromEJson(taxServerUrl),
-          isDefault: fromEJson(isDefault),
-          businessTypeId: fromEJson(businessTypeId),
-          lastTouched: fromEJson(lastTouched),
-          action: fromEJson(action),
-          deletedAt: fromEJson(deletedAt),
-          encryptionKey: fromEJson(encryptionKey),
+              fromEJson(ejson['isLastSubscriptionPaymentSucceeded']),
+          backupFileId: fromEJson(ejson['backupFileId']),
+          email: fromEJson(ejson['email']),
+          lastDbBackup: fromEJson(ejson['lastDbBackup']),
+          fullName: fromEJson(ejson['fullName']),
+          tinNumber: fromEJson(ejson['tinNumber']),
+          bhfId: fromEJson(ejson['bhfId']),
+          dvcSrlNo: fromEJson(ejson['dvcSrlNo']),
+          adrs: fromEJson(ejson['adrs']),
+          taxEnabled: fromEJson(ejson['taxEnabled']),
+          taxServerUrl: fromEJson(ejson['taxServerUrl']),
+          isDefault: fromEJson(ejson['isDefault']),
+          businessTypeId: fromEJson(ejson['businessTypeId']),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          action: fromEJson(ejson['action']),
+          deletedAt: fromEJson(ejson['deletedAt']),
+          encryptionKey: fromEJson(ejson['encryptionKey']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -740,7 +686,7 @@ class Business extends _Business
   static final schema = () {
     RealmObjectBase.registerFactory(Business._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Business, 'Business', [
+    return const SchemaObject(ObjectType.realmObject, Business, 'Business', [
       SchemaProperty('id', RealmPropertyType.objectid, primaryKey: true),
       SchemaProperty('serverId', RealmPropertyType.int, optional: true),
       SchemaProperty('name', RealmPropertyType.string, optional: true),
@@ -908,28 +854,21 @@ class Category extends _Category
 
   static EJsonValue _toEJson(Category value) => value.toEJson();
   static Category _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'active': EJsonValue active,
-        'focused': EJsonValue focused,
-        'name': EJsonValue name,
-        'branchId': EJsonValue branchId,
-        'deletedAt': EJsonValue deletedAt,
-        'lastTouched': EJsonValue lastTouched,
-        'action': EJsonValue action,
       } =>
         Category(
           fromEJson(realmId),
-          id: fromEJson(id),
-          active: fromEJson(active),
-          focused: fromEJson(focused),
-          name: fromEJson(name),
-          branchId: fromEJson(branchId),
-          deletedAt: fromEJson(deletedAt),
-          lastTouched: fromEJson(lastTouched),
-          action: fromEJson(action),
+          id: fromEJson(ejson['id']),
+          active: fromEJson(ejson['active']),
+          focused: fromEJson(ejson['focused'], defaultValue: false),
+          name: fromEJson(ejson['name']),
+          branchId: fromEJson(ejson['branchId']),
+          deletedAt: fromEJson(ejson['deletedAt']),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          action: fromEJson(ejson['action']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -938,7 +877,7 @@ class Category extends _Category
   static final schema = () {
     RealmObjectBase.registerFactory(Category._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Category, 'Category', [
+    return const SchemaObject(ObjectType.realmObject, Category, 'Category', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -1069,28 +1008,21 @@ class PColor extends _PColor with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(PColor value) => value.toEJson();
   static PColor _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'name': EJsonValue name,
-        'colors': EJsonValue colors,
-        'branchId': EJsonValue branchId,
-        'active': EJsonValue active,
-        'lastTouched': EJsonValue lastTouched,
-        'action': EJsonValue action,
-        'deletedAt': EJsonValue deletedAt,
       } =>
         PColor(
           fromEJson(realmId),
-          id: fromEJson(id),
-          name: fromEJson(name),
-          colors: fromEJson(colors),
-          branchId: fromEJson(branchId),
-          active: fromEJson(active),
-          lastTouched: fromEJson(lastTouched),
-          action: fromEJson(action),
-          deletedAt: fromEJson(deletedAt),
+          id: fromEJson(ejson['id']),
+          name: fromEJson(ejson['name']),
+          colors: fromEJson(ejson['colors']),
+          branchId: fromEJson(ejson['branchId']),
+          active: fromEJson(ejson['active'], defaultValue: false),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          action: fromEJson(ejson['action']),
+          deletedAt: fromEJson(ejson['deletedAt']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -1099,7 +1031,7 @@ class PColor extends _PColor with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(PColor._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, PColor, 'PColor', [
+    return const SchemaObject(ObjectType.realmObject, PColor, 'PColor', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -1331,50 +1263,32 @@ class Conversation extends _Conversation
 
   static EJsonValue _toEJson(Conversation value) => value.toEJson();
   static Conversation _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'userName': EJsonValue userName,
-        'body': EJsonValue body,
-        'avatar': EJsonValue avatar,
-        'channelType': EJsonValue channelType,
-        'fromNumber': EJsonValue fromNumber,
-        'toNumber': EJsonValue toNumber,
-        'createdAt': EJsonValue createdAt,
-        'messageType': EJsonValue messageType,
-        'phoneNumberId': EJsonValue phoneNumberId,
-        'messageId': EJsonValue messageId,
-        'respondedBy': EJsonValue respondedBy,
-        'conversationId': EJsonValue conversationId,
-        'businessPhoneNumber': EJsonValue businessPhoneNumber,
-        'businessId': EJsonValue businessId,
-        'scheduledAt': EJsonValue scheduledAt,
-        'delivered': EJsonValue delivered,
-        'lastTouched': EJsonValue lastTouched,
-        'deletedAt': EJsonValue deletedAt,
       } =>
         Conversation(
           fromEJson(realmId),
-          id: fromEJson(id),
-          userName: fromEJson(userName),
-          body: fromEJson(body),
-          avatar: fromEJson(avatar),
-          channelType: fromEJson(channelType),
-          fromNumber: fromEJson(fromNumber),
-          toNumber: fromEJson(toNumber),
-          createdAt: fromEJson(createdAt),
-          messageType: fromEJson(messageType),
-          phoneNumberId: fromEJson(phoneNumberId),
-          messageId: fromEJson(messageId),
-          respondedBy: fromEJson(respondedBy),
-          conversationId: fromEJson(conversationId),
-          businessPhoneNumber: fromEJson(businessPhoneNumber),
-          businessId: fromEJson(businessId),
-          scheduledAt: fromEJson(scheduledAt),
-          delivered: fromEJson(delivered),
-          lastTouched: fromEJson(lastTouched),
-          deletedAt: fromEJson(deletedAt),
+          id: fromEJson(ejson['id']),
+          userName: fromEJson(ejson['userName']),
+          body: fromEJson(ejson['body']),
+          avatar: fromEJson(ejson['avatar']),
+          channelType: fromEJson(ejson['channelType']),
+          fromNumber: fromEJson(ejson['fromNumber']),
+          toNumber: fromEJson(ejson['toNumber']),
+          createdAt: fromEJson(ejson['createdAt']),
+          messageType: fromEJson(ejson['messageType']),
+          phoneNumberId: fromEJson(ejson['phoneNumberId']),
+          messageId: fromEJson(ejson['messageId']),
+          respondedBy: fromEJson(ejson['respondedBy']),
+          conversationId: fromEJson(ejson['conversationId']),
+          businessPhoneNumber: fromEJson(ejson['businessPhoneNumber']),
+          businessId: fromEJson(ejson['businessId']),
+          scheduledAt: fromEJson(ejson['scheduledAt']),
+          delivered: fromEJson(ejson['delivered']),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          deletedAt: fromEJson(ejson['deletedAt']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -1383,7 +1297,8 @@ class Conversation extends _Conversation
   static final schema = () {
     RealmObjectBase.registerFactory(Conversation._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Conversation, 'Conversation', [
+    return const SchemaObject(
+        ObjectType.realmObject, Conversation, 'Conversation', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -1526,30 +1441,22 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Counter value) => value.toEJson();
   static Counter _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'businessId': EJsonValue businessId,
-        'branchId': EJsonValue branchId,
-        'receiptType': EJsonValue receiptType,
-        'totRcptNo': EJsonValue totRcptNo,
-        'curRcptNo': EJsonValue curRcptNo,
-        'invcNo': EJsonValue invcNo,
-        'lastTouched': EJsonValue lastTouched,
-        'action': EJsonValue action,
       } =>
         Counter(
           fromEJson(realmId),
-          id: fromEJson(id),
-          businessId: fromEJson(businessId),
-          branchId: fromEJson(branchId),
-          receiptType: fromEJson(receiptType),
-          totRcptNo: fromEJson(totRcptNo),
-          curRcptNo: fromEJson(curRcptNo),
-          invcNo: fromEJson(invcNo),
-          lastTouched: fromEJson(lastTouched),
-          action: fromEJson(action),
+          id: fromEJson(ejson['id']),
+          businessId: fromEJson(ejson['businessId']),
+          branchId: fromEJson(ejson['branchId']),
+          receiptType: fromEJson(ejson['receiptType']),
+          totRcptNo: fromEJson(ejson['totRcptNo']),
+          curRcptNo: fromEJson(ejson['curRcptNo']),
+          invcNo: fromEJson(ejson['invcNo']),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          action: fromEJson(ejson['action']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -1558,7 +1465,7 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Counter._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Counter, 'Counter', [
+    return const SchemaObject(ObjectType.realmObject, Counter, 'Counter', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -1798,54 +1705,34 @@ class Customer extends _Customer
 
   static EJsonValue _toEJson(Customer value) => value.toEJson();
   static Customer _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'custNm': EJsonValue custNm,
-        'email': EJsonValue email,
-        'telNo': EJsonValue telNo,
-        'adrs': EJsonValue adrs,
-        'branchId': EJsonValue branchId,
-        'updatedAt': EJsonValue updatedAt,
-        'custNo': EJsonValue custNo,
-        'custTin': EJsonValue custTin,
-        'regrNm': EJsonValue regrNm,
-        'regrId': EJsonValue regrId,
-        'modrNm': EJsonValue modrNm,
-        'modrId': EJsonValue modrId,
-        'ebmSynced': EJsonValue ebmSynced,
-        'lastTouched': EJsonValue lastTouched,
-        'action': EJsonValue action,
-        'deletedAt': EJsonValue deletedAt,
-        'tin': EJsonValue tin,
-        'bhfId': EJsonValue bhfId,
-        'useYn': EJsonValue useYn,
-        'customerType': EJsonValue customerType,
       } =>
         Customer(
           fromEJson(realmId),
-          id: fromEJson(id),
-          custNm: fromEJson(custNm),
-          email: fromEJson(email),
-          telNo: fromEJson(telNo),
-          adrs: fromEJson(adrs),
-          branchId: fromEJson(branchId),
-          updatedAt: fromEJson(updatedAt),
-          custNo: fromEJson(custNo),
-          custTin: fromEJson(custTin),
-          regrNm: fromEJson(regrNm),
-          regrId: fromEJson(regrId),
-          modrNm: fromEJson(modrNm),
-          modrId: fromEJson(modrId),
-          ebmSynced: fromEJson(ebmSynced),
-          lastTouched: fromEJson(lastTouched),
-          action: fromEJson(action),
-          deletedAt: fromEJson(deletedAt),
-          tin: fromEJson(tin),
-          bhfId: fromEJson(bhfId),
-          useYn: fromEJson(useYn),
-          customerType: fromEJson(customerType),
+          id: fromEJson(ejson['id']),
+          custNm: fromEJson(ejson['custNm']),
+          email: fromEJson(ejson['email']),
+          telNo: fromEJson(ejson['telNo']),
+          adrs: fromEJson(ejson['adrs']),
+          branchId: fromEJson(ejson['branchId']),
+          updatedAt: fromEJson(ejson['updatedAt']),
+          custNo: fromEJson(ejson['custNo']),
+          custTin: fromEJson(ejson['custTin']),
+          regrNm: fromEJson(ejson['regrNm']),
+          regrId: fromEJson(ejson['regrId']),
+          modrNm: fromEJson(ejson['modrNm'], defaultValue: "284746303937"),
+          modrId: fromEJson(ejson['modrId']),
+          ebmSynced: fromEJson(ejson['ebmSynced'], defaultValue: false),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          action: fromEJson(ejson['action']),
+          deletedAt: fromEJson(ejson['deletedAt']),
+          tin: fromEJson(ejson['tin']),
+          bhfId: fromEJson(ejson['bhfId']),
+          useYn: fromEJson(ejson['useYn']),
+          customerType: fromEJson(ejson['customerType']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -1854,7 +1741,7 @@ class Customer extends _Customer
   static final schema = () {
     RealmObjectBase.registerFactory(Customer._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Customer, 'Customer', [
+    return const SchemaObject(ObjectType.realmObject, Customer, 'Customer', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -2038,38 +1925,26 @@ class Device extends _Device with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Device value) => value.toEJson();
   static Device _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'linkingCode': EJsonValue linkingCode,
-        'deviceName': EJsonValue deviceName,
-        'deviceVersion': EJsonValue deviceVersion,
-        'pubNubPublished': EJsonValue pubNubPublished,
-        'phone': EJsonValue phone,
-        'branchId': EJsonValue branchId,
-        'businessId': EJsonValue businessId,
-        'userId': EJsonValue userId,
-        'defaultApp': EJsonValue defaultApp,
-        'lastTouched': EJsonValue lastTouched,
-        'deletedAt': EJsonValue deletedAt,
-        'action': EJsonValue action,
       } =>
         Device(
           fromEJson(realmId),
-          id: fromEJson(id),
-          linkingCode: fromEJson(linkingCode),
-          deviceName: fromEJson(deviceName),
-          deviceVersion: fromEJson(deviceVersion),
-          pubNubPublished: fromEJson(pubNubPublished),
-          phone: fromEJson(phone),
-          branchId: fromEJson(branchId),
-          businessId: fromEJson(businessId),
-          userId: fromEJson(userId),
-          defaultApp: fromEJson(defaultApp),
-          lastTouched: fromEJson(lastTouched),
-          deletedAt: fromEJson(deletedAt),
-          action: fromEJson(action),
+          id: fromEJson(ejson['id']),
+          linkingCode: fromEJson(ejson['linkingCode']),
+          deviceName: fromEJson(ejson['deviceName']),
+          deviceVersion: fromEJson(ejson['deviceVersion']),
+          pubNubPublished: fromEJson(ejson['pubNubPublished']),
+          phone: fromEJson(ejson['phone']),
+          branchId: fromEJson(ejson['branchId']),
+          businessId: fromEJson(ejson['businessId']),
+          userId: fromEJson(ejson['userId']),
+          defaultApp: fromEJson(ejson['defaultApp']),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          deletedAt: fromEJson(ejson['deletedAt']),
+          action: fromEJson(ejson['action']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -2078,7 +1953,7 @@ class Device extends _Device with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Device._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Device, 'Device', [
+    return const SchemaObject(ObjectType.realmObject, Device, 'Device', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -2169,20 +2044,19 @@ class Discount extends _Discount
 
   static EJsonValue _toEJson(Discount value) => value.toEJson();
   static Discount _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
         'name': EJsonValue name,
-        'amount': EJsonValue amount,
         'branchId': EJsonValue branchId,
       } =>
         Discount(
           fromEJson(realmId),
           fromEJson(name),
           fromEJson(branchId),
-          id: fromEJson(id),
-          amount: fromEJson(amount),
+          id: fromEJson(ejson['id']),
+          amount: fromEJson(ejson['amount']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -2191,7 +2065,7 @@ class Discount extends _Discount
   static final schema = () {
     RealmObjectBase.registerFactory(Discount._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Discount, 'Discount', [
+    return const SchemaObject(ObjectType.realmObject, Discount, 'Discount', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -2433,54 +2307,34 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Drawers value) => value.toEJson();
   static Drawers _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
         '_id': EJsonValue realmId,
-        'id': EJsonValue id,
-        'openingBalance': EJsonValue openingBalance,
-        'closingBalance': EJsonValue closingBalance,
-        'openingDateTime': EJsonValue openingDateTime,
-        'closingDateTime': EJsonValue closingDateTime,
-        'csSaleCount': EJsonValue csSaleCount,
-        'tradeName': EJsonValue tradeName,
-        'totalNsSaleIncome': EJsonValue totalNsSaleIncome,
-        'totalCsSaleIncome': EJsonValue totalCsSaleIncome,
-        'nrSaleCount': EJsonValue nrSaleCount,
-        'nsSaleCount': EJsonValue nsSaleCount,
-        'trSaleCount': EJsonValue trSaleCount,
-        'psSaleCount': EJsonValue psSaleCount,
-        'incompleteSale': EJsonValue incompleteSale,
-        'otherTransactions': EJsonValue otherTransactions,
-        'paymentMode': EJsonValue paymentMode,
-        'cashierId': EJsonValue cashierId,
-        'open': EJsonValue open,
-        'deletedAt': EJsonValue deletedAt,
-        'businessId': EJsonValue businessId,
-        'branchId': EJsonValue branchId,
       } =>
         Drawers(
           fromEJson(realmId),
-          id: fromEJson(id),
-          openingBalance: fromEJson(openingBalance),
-          closingBalance: fromEJson(closingBalance),
-          openingDateTime: fromEJson(openingDateTime),
-          closingDateTime: fromEJson(closingDateTime),
-          csSaleCount: fromEJson(csSaleCount),
-          tradeName: fromEJson(tradeName),
-          totalNsSaleIncome: fromEJson(totalNsSaleIncome),
-          totalCsSaleIncome: fromEJson(totalCsSaleIncome),
-          nrSaleCount: fromEJson(nrSaleCount),
-          nsSaleCount: fromEJson(nsSaleCount),
-          trSaleCount: fromEJson(trSaleCount),
-          psSaleCount: fromEJson(psSaleCount),
-          incompleteSale: fromEJson(incompleteSale),
-          otherTransactions: fromEJson(otherTransactions),
-          paymentMode: fromEJson(paymentMode),
-          cashierId: fromEJson(cashierId),
-          open: fromEJson(open),
-          deletedAt: fromEJson(deletedAt),
-          businessId: fromEJson(businessId),
-          branchId: fromEJson(branchId),
+          id: fromEJson(ejson['id']),
+          openingBalance: fromEJson(ejson['openingBalance']),
+          closingBalance: fromEJson(ejson['closingBalance']),
+          openingDateTime: fromEJson(ejson['openingDateTime']),
+          closingDateTime: fromEJson(ejson['closingDateTime']),
+          csSaleCount: fromEJson(ejson['csSaleCount']),
+          tradeName: fromEJson(ejson['tradeName']),
+          totalNsSaleIncome: fromEJson(ejson['totalNsSaleIncome']),
+          totalCsSaleIncome: fromEJson(ejson['totalCsSaleIncome']),
+          nrSaleCount: fromEJson(ejson['nrSaleCount']),
+          nsSaleCount: fromEJson(ejson['nsSaleCount']),
+          trSaleCount: fromEJson(ejson['trSaleCount']),
+          psSaleCount: fromEJson(ejson['psSaleCount']),
+          incompleteSale: fromEJson(ejson['incompleteSale']),
+          otherTransactions: fromEJson(ejson['otherTransactions']),
+          paymentMode: fromEJson(ejson['paymentMode']),
+          cashierId: fromEJson(ejson['cashierId']),
+          open: fromEJson(ejson['open']),
+          deletedAt: fromEJson(ejson['deletedAt']),
+          businessId: fromEJson(ejson['businessId']),
+          branchId: fromEJson(ejson['branchId']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -2489,7 +2343,7 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Drawers._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Drawers, 'Drawers', [
+    return const SchemaObject(ObjectType.realmObject, Drawers, 'Drawers', [
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
       SchemaProperty('id', RealmPropertyType.int, optional: true),
@@ -2646,18 +2500,16 @@ class EBM extends _EBM with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(EBM value) => value.toEJson();
   static EBM _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
         'bhfId': EJsonValue bhfId,
         'tinNumber': EJsonValue tinNumber,
         'dvcSrlNo': EJsonValue dvcSrlNo,
         'userId': EJsonValue userId,
-        'taxServerUrl': EJsonValue taxServerUrl,
         'businessId': EJsonValue businessId,
         'branchId': EJsonValue branchId,
-        'lastTouched': EJsonValue lastTouched,
         'action': EJsonValue action,
       } =>
         EBM(
@@ -2669,9 +2521,9 @@ class EBM extends _EBM with RealmEntity, RealmObjectBase, RealmObject {
           fromEJson(businessId),
           fromEJson(branchId),
           fromEJson(action),
-          id: fromEJson(id),
-          taxServerUrl: fromEJson(taxServerUrl),
-          lastTouched: fromEJson(lastTouched),
+          id: fromEJson(ejson['id']),
+          taxServerUrl: fromEJson(ejson['taxServerUrl']),
+          lastTouched: fromEJson(ejson['lastTouched']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -2680,7 +2532,7 @@ class EBM extends _EBM with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(EBM._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, EBM, 'EBM', [
+    return const SchemaObject(ObjectType.realmObject, EBM, 'EBM', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -2796,26 +2648,20 @@ class Favorite extends _Favorite
 
   static EJsonValue _toEJson(Favorite value) => value.toEJson();
   static Favorite _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'favIndex': EJsonValue favIndex,
-        'productId': EJsonValue productId,
-        'branchId': EJsonValue branchId,
-        'lastTouched': EJsonValue lastTouched,
-        'action': EJsonValue action,
-        'deletedAt': EJsonValue deletedAt,
       } =>
         Favorite(
           fromEJson(realmId),
-          id: fromEJson(id),
-          favIndex: fromEJson(favIndex),
-          productId: fromEJson(productId),
-          branchId: fromEJson(branchId),
-          lastTouched: fromEJson(lastTouched),
-          action: fromEJson(action),
-          deletedAt: fromEJson(deletedAt),
+          id: fromEJson(ejson['id']),
+          favIndex: fromEJson(ejson['favIndex']),
+          productId: fromEJson(ejson['productId']),
+          branchId: fromEJson(ejson['branchId']),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          action: fromEJson(ejson['action']),
+          deletedAt: fromEJson(ejson['deletedAt']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -2824,7 +2670,7 @@ class Favorite extends _Favorite
   static final schema = () {
     RealmObjectBase.registerFactory(Favorite._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Favorite, 'Favorite', [
+    return const SchemaObject(ObjectType.realmObject, Favorite, 'Favorite', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -3092,58 +2938,36 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Product value) => value.toEJson();
   static Product _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'name': EJsonValue name,
-        'description': EJsonValue description,
-        'taxId': EJsonValue taxId,
-        'color': EJsonValue color,
-        'businessId': EJsonValue businessId,
-        'branchId': EJsonValue branchId,
-        'supplierId': EJsonValue supplierId,
-        'categoryId': EJsonValue categoryId,
-        'createdAt': EJsonValue createdAt,
-        'unit': EJsonValue unit,
-        'imageUrl': EJsonValue imageUrl,
-        'expiryDate': EJsonValue expiryDate,
-        'barCode': EJsonValue barCode,
-        'nfcEnabled': EJsonValue nfcEnabled,
-        'bindedToTenantId': EJsonValue bindedToTenantId,
-        'isFavorite': EJsonValue isFavorite,
-        'lastTouched': EJsonValue lastTouched,
-        'action': EJsonValue action,
-        'deletedAt': EJsonValue deletedAt,
-        'spplrNm': EJsonValue spplrNm,
-        'isComposite': EJsonValue isComposite,
-        'composites': EJsonValue composites,
       } =>
         Product(
           fromEJson(realmId),
-          id: fromEJson(id),
-          name: fromEJson(name),
-          description: fromEJson(description),
-          taxId: fromEJson(taxId),
-          color: fromEJson(color),
-          businessId: fromEJson(businessId),
-          branchId: fromEJson(branchId),
-          supplierId: fromEJson(supplierId),
-          categoryId: fromEJson(categoryId),
-          createdAt: fromEJson(createdAt),
-          unit: fromEJson(unit),
-          imageUrl: fromEJson(imageUrl),
-          expiryDate: fromEJson(expiryDate),
-          barCode: fromEJson(barCode),
-          nfcEnabled: fromEJson(nfcEnabled),
-          bindedToTenantId: fromEJson(bindedToTenantId),
-          isFavorite: fromEJson(isFavorite),
-          lastTouched: fromEJson(lastTouched),
-          action: fromEJson(action),
-          deletedAt: fromEJson(deletedAt),
-          spplrNm: fromEJson(spplrNm),
-          isComposite: fromEJson(isComposite),
-          composites: fromEJson(composites),
+          id: fromEJson(ejson['id']),
+          name: fromEJson(ejson['name']),
+          description: fromEJson(ejson['description']),
+          taxId: fromEJson(ejson['taxId']),
+          color: fromEJson(ejson['color'], defaultValue: "#e74c3c"),
+          businessId: fromEJson(ejson['businessId']),
+          branchId: fromEJson(ejson['branchId']),
+          supplierId: fromEJson(ejson['supplierId']),
+          categoryId: fromEJson(ejson['categoryId']),
+          createdAt: fromEJson(ejson['createdAt']),
+          unit: fromEJson(ejson['unit']),
+          imageUrl: fromEJson(ejson['imageUrl']),
+          expiryDate: fromEJson(ejson['expiryDate']),
+          barCode: fromEJson(ejson['barCode']),
+          nfcEnabled: fromEJson(ejson['nfcEnabled'], defaultValue: false),
+          bindedToTenantId: fromEJson(ejson['bindedToTenantId']),
+          isFavorite: fromEJson(ejson['isFavorite'], defaultValue: false),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          action: fromEJson(ejson['action']),
+          deletedAt: fromEJson(ejson['deletedAt']),
+          spplrNm: fromEJson(ejson['spplrNm']),
+          isComposite: fromEJson(ejson['isComposite'], defaultValue: false),
+          composites: fromEJson(ejson['composites'], defaultValue: const []),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -3152,7 +2976,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Product._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Product, 'Product', [
+    return const SchemaObject(ObjectType.realmObject, Product, 'Product', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -3378,48 +3202,31 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Receipt value) => value.toEJson();
   static Receipt _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'resultCd': EJsonValue resultCd,
-        'resultMsg': EJsonValue resultMsg,
-        'resultDt': EJsonValue resultDt,
-        'rcptNo': EJsonValue rcptNo,
-        'intrlData': EJsonValue intrlData,
-        'rcptSign': EJsonValue rcptSign,
-        'totRcptNo': EJsonValue totRcptNo,
-        'vsdcRcptPbctDate': EJsonValue vsdcRcptPbctDate,
-        'sdcId': EJsonValue sdcId,
-        'mrcNo': EJsonValue mrcNo,
-        'qrCode': EJsonValue qrCode,
-        'receiptType': EJsonValue receiptType,
-        'branchId': EJsonValue branchId,
-        'transactionId': EJsonValue transactionId,
-        'lastTouched': EJsonValue lastTouched,
-        'action': EJsonValue action,
-        'invcNo': EJsonValue invcNo,
       } =>
         Receipt(
           fromEJson(realmId),
-          id: fromEJson(id),
-          resultCd: fromEJson(resultCd),
-          resultMsg: fromEJson(resultMsg),
-          resultDt: fromEJson(resultDt),
-          rcptNo: fromEJson(rcptNo),
-          intrlData: fromEJson(intrlData),
-          rcptSign: fromEJson(rcptSign),
-          totRcptNo: fromEJson(totRcptNo),
-          vsdcRcptPbctDate: fromEJson(vsdcRcptPbctDate),
-          sdcId: fromEJson(sdcId),
-          mrcNo: fromEJson(mrcNo),
-          qrCode: fromEJson(qrCode),
-          receiptType: fromEJson(receiptType),
-          branchId: fromEJson(branchId),
-          transactionId: fromEJson(transactionId),
-          lastTouched: fromEJson(lastTouched),
-          action: fromEJson(action),
-          invcNo: fromEJson(invcNo),
+          id: fromEJson(ejson['id']),
+          resultCd: fromEJson(ejson['resultCd']),
+          resultMsg: fromEJson(ejson['resultMsg']),
+          resultDt: fromEJson(ejson['resultDt']),
+          rcptNo: fromEJson(ejson['rcptNo']),
+          intrlData: fromEJson(ejson['intrlData']),
+          rcptSign: fromEJson(ejson['rcptSign']),
+          totRcptNo: fromEJson(ejson['totRcptNo']),
+          vsdcRcptPbctDate: fromEJson(ejson['vsdcRcptPbctDate']),
+          sdcId: fromEJson(ejson['sdcId']),
+          mrcNo: fromEJson(ejson['mrcNo']),
+          qrCode: fromEJson(ejson['qrCode']),
+          receiptType: fromEJson(ejson['receiptType']),
+          branchId: fromEJson(ejson['branchId']),
+          transactionId: fromEJson(ejson['transactionId']),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          action: fromEJson(ejson['action']),
+          invcNo: fromEJson(ejson['invcNo']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -3428,7 +3235,7 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Receipt._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Receipt, 'Receipt', [
+    return const SchemaObject(ObjectType.realmObject, Receipt, 'Receipt', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -3691,54 +3498,35 @@ class Setting extends _Setting with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Setting value) => value.toEJson();
   static Setting _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'email': EJsonValue email,
-        'userId': EJsonValue userId,
-        'openReceiptFileOSaleComplete': EJsonValue openReceiptFileOSaleComplete,
-        'autoPrint': EJsonValue autoPrint,
-        'sendDailyReport': EJsonValue sendDailyReport,
-        'defaultLanguage': EJsonValue defaultLanguage,
-        'attendnaceDocCreated': EJsonValue attendnaceDocCreated,
-        'isAttendanceEnabled': EJsonValue isAttendanceEnabled,
-        'type': EJsonValue type,
-        'enrolledInBot': EJsonValue enrolledInBot,
-        'deviceToken': EJsonValue deviceToken,
-        'businessPhoneNumber': EJsonValue businessPhoneNumber,
-        'autoRespond': EJsonValue autoRespond,
-        'token': EJsonValue token,
-        'hasPin': EJsonValue hasPin,
-        'businessId': EJsonValue businessId,
-        'createdAt': EJsonValue createdAt,
-        'lastTouched': EJsonValue lastTouched,
-        'deletedAt': EJsonValue deletedAt,
-        'action': EJsonValue action,
       } =>
         Setting(
           fromEJson(realmId),
-          id: fromEJson(id),
-          email: fromEJson(email),
-          userId: fromEJson(userId),
-          openReceiptFileOSaleComplete: fromEJson(openReceiptFileOSaleComplete),
-          autoPrint: fromEJson(autoPrint),
-          sendDailyReport: fromEJson(sendDailyReport),
-          defaultLanguage: fromEJson(defaultLanguage),
-          attendnaceDocCreated: fromEJson(attendnaceDocCreated),
-          isAttendanceEnabled: fromEJson(isAttendanceEnabled),
-          type: fromEJson(type),
-          enrolledInBot: fromEJson(enrolledInBot),
-          deviceToken: fromEJson(deviceToken),
-          businessPhoneNumber: fromEJson(businessPhoneNumber),
-          autoRespond: fromEJson(autoRespond),
-          token: fromEJson(token),
-          hasPin: fromEJson(hasPin),
-          businessId: fromEJson(businessId),
-          createdAt: fromEJson(createdAt),
-          lastTouched: fromEJson(lastTouched),
-          deletedAt: fromEJson(deletedAt),
-          action: fromEJson(action),
+          id: fromEJson(ejson['id']),
+          email: fromEJson(ejson['email']),
+          userId: fromEJson(ejson['userId']),
+          openReceiptFileOSaleComplete:
+              fromEJson(ejson['openReceiptFileOSaleComplete']),
+          autoPrint: fromEJson(ejson['autoPrint']),
+          sendDailyReport: fromEJson(ejson['sendDailyReport']),
+          defaultLanguage: fromEJson(ejson['defaultLanguage']),
+          attendnaceDocCreated: fromEJson(ejson['attendnaceDocCreated']),
+          isAttendanceEnabled: fromEJson(ejson['isAttendanceEnabled']),
+          type: fromEJson(ejson['type']),
+          enrolledInBot: fromEJson(ejson['enrolledInBot']),
+          deviceToken: fromEJson(ejson['deviceToken']),
+          businessPhoneNumber: fromEJson(ejson['businessPhoneNumber']),
+          autoRespond: fromEJson(ejson['autoRespond']),
+          token: fromEJson(ejson['token']),
+          hasPin: fromEJson(ejson['hasPin'], defaultValue: false),
+          businessId: fromEJson(ejson['businessId']),
+          createdAt: fromEJson(ejson['createdAt']),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          deletedAt: fromEJson(ejson['deletedAt']),
+          action: fromEJson(ejson['action']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -3747,7 +3535,7 @@ class Setting extends _Setting with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Setting._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Setting, 'Setting', [
+    return const SchemaObject(ObjectType.realmObject, Setting, 'Setting', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -4000,50 +3788,34 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Stock value) => value.toEJson();
   static Stock _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'tin': EJsonValue tin,
-        'bhfId': EJsonValue bhfId,
-        'branchId': EJsonValue branchId,
-        'variantId': EJsonValue variantId,
-        'lowStock': EJsonValue lowStock,
-        'currentStock': EJsonValue currentStock,
-        'canTrackingStock': EJsonValue canTrackingStock,
-        'showLowStockAlert': EJsonValue showLowStockAlert,
-        'productId': EJsonValue productId,
-        'active': EJsonValue active,
-        'value': EJsonValue value,
-        'rsdQty': EJsonValue rsdQty,
-        'supplyPrice': EJsonValue supplyPrice,
-        'retailPrice': EJsonValue retailPrice,
-        'lastTouched': EJsonValue lastTouched,
-        'action': EJsonValue action,
-        'deletedAt': EJsonValue deletedAt,
-        'ebmSynced': EJsonValue ebmSynced,
       } =>
         Stock(
-          fromEJson(realmId),
-          id: fromEJson(id),
-          tin: fromEJson(tin),
-          bhfId: fromEJson(bhfId),
-          branchId: fromEJson(branchId),
-          variantId: fromEJson(variantId),
-          lowStock: fromEJson(lowStock),
-          currentStock: fromEJson(currentStock),
-          canTrackingStock: fromEJson(canTrackingStock),
-          showLowStockAlert: fromEJson(showLowStockAlert),
-          productId: fromEJson(productId),
-          active: fromEJson(active),
-          value: fromEJson(value),
-          rsdQty: fromEJson(rsdQty),
-          supplyPrice: fromEJson(supplyPrice),
-          retailPrice: fromEJson(retailPrice),
-          lastTouched: fromEJson(lastTouched),
-          action: fromEJson(action),
-          deletedAt: fromEJson(deletedAt),
-          ebmSynced: fromEJson(ebmSynced),
+          fromEJson(ejson['_id']),
+          id: fromEJson(ejson['id']),
+          tin: fromEJson(ejson['tin']),
+          bhfId: fromEJson(ejson['bhfId']),
+          branchId: fromEJson(ejson['branchId']),
+          variantId: fromEJson(ejson['variantId']),
+          lowStock: fromEJson(ejson['lowStock'], defaultValue: 0),
+          currentStock: fromEJson(ejson['currentStock'], defaultValue: 0.0),
+          canTrackingStock:
+              fromEJson(ejson['canTrackingStock'], defaultValue: true),
+          showLowStockAlert:
+              fromEJson(ejson['showLowStockAlert'], defaultValue: true),
+          productId: fromEJson(ejson['productId']),
+          active: fromEJson(ejson['active']),
+          value: fromEJson(ejson['value'], defaultValue: 0.0),
+          rsdQty: fromEJson(ejson['rsdQty'], defaultValue: 0.0),
+          supplyPrice: fromEJson(ejson['supplyPrice'], defaultValue: 0.0),
+          retailPrice: fromEJson(ejson['retailPrice'], defaultValue: 0.0),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          action: fromEJson(ejson['action']),
+          deletedAt: fromEJson(ejson['deletedAt']),
+          ebmSynced: fromEJson(ejson['ebmSynced'], defaultValue: false),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -4052,7 +3824,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Stock._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Stock, 'Stock', [
+    return const SchemaObject(ObjectType.realmObject, Stock, 'Stock', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', optional: true, primaryKey: true),
@@ -4603,116 +4375,65 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Variant value) => value.toEJson();
   static Variant _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'deletedAt': EJsonValue deletedAt,
-        'name': EJsonValue name,
-        'color': EJsonValue color,
-        'sku': EJsonValue sku,
-        'productId': EJsonValue productId,
-        'unit': EJsonValue unit,
-        'productName': EJsonValue productName,
-        'branchId': EJsonValue branchId,
-        'taxName': EJsonValue taxName,
-        'taxPercentage': EJsonValue taxPercentage,
-        'isTaxExempted': EJsonValue isTaxExempted,
-        'itemSeq': EJsonValue itemSeq,
-        'isrccCd': EJsonValue isrccCd,
-        'isrccNm': EJsonValue isrccNm,
-        'isrcRt': EJsonValue isrcRt,
-        'isrcAmt': EJsonValue isrcAmt,
-        'taxTyCd': EJsonValue taxTyCd,
-        'bcd': EJsonValue bcd,
-        'itemClsCd': EJsonValue itemClsCd,
-        'itemTyCd': EJsonValue itemTyCd,
-        'itemStdNm': EJsonValue itemStdNm,
-        'orgnNatCd': EJsonValue orgnNatCd,
-        'pkg': EJsonValue pkg,
-        'itemCd': EJsonValue itemCd,
-        'pkgUnitCd': EJsonValue pkgUnitCd,
-        'qtyUnitCd': EJsonValue qtyUnitCd,
-        'itemNm': EJsonValue itemNm,
-        'qty': EJsonValue qty,
-        'prc': EJsonValue prc,
-        'splyAmt': EJsonValue splyAmt,
-        'tin': EJsonValue tin,
-        'bhfId': EJsonValue bhfId,
-        'dftPrc': EJsonValue dftPrc,
-        'addInfo': EJsonValue addInfo,
-        'isrcAplcbYn': EJsonValue isrcAplcbYn,
-        'useYn': EJsonValue useYn,
-        'regrId': EJsonValue regrId,
-        'regrNm': EJsonValue regrNm,
-        'modrId': EJsonValue modrId,
-        'modrNm': EJsonValue modrNm,
-        'rsdQty': EJsonValue rsdQty,
-        'lastTouched': EJsonValue lastTouched,
-        'supplyPrice': EJsonValue supplyPrice,
-        'retailPrice': EJsonValue retailPrice,
-        'action': EJsonValue action,
-        'spplrItemClsCd': EJsonValue spplrItemClsCd,
-        'spplrItemCd': EJsonValue spplrItemCd,
-        'spplrItemNm': EJsonValue spplrItemNm,
-        'ebmSynced': EJsonValue ebmSynced,
-        'taxType': EJsonValue taxType,
-        'branchIds': EJsonValue branchIds,
       } =>
         Variant(
           fromEJson(realmId),
-          id: fromEJson(id),
-          deletedAt: fromEJson(deletedAt),
-          name: fromEJson(name),
-          color: fromEJson(color),
-          sku: fromEJson(sku),
-          productId: fromEJson(productId),
-          unit: fromEJson(unit),
-          productName: fromEJson(productName),
-          branchId: fromEJson(branchId),
-          taxName: fromEJson(taxName),
-          taxPercentage: fromEJson(taxPercentage),
-          isTaxExempted: fromEJson(isTaxExempted),
-          itemSeq: fromEJson(itemSeq),
-          isrccCd: fromEJson(isrccCd),
-          isrccNm: fromEJson(isrccNm),
-          isrcRt: fromEJson(isrcRt),
-          isrcAmt: fromEJson(isrcAmt),
-          taxTyCd: fromEJson(taxTyCd),
-          bcd: fromEJson(bcd),
-          itemClsCd: fromEJson(itemClsCd),
-          itemTyCd: fromEJson(itemTyCd),
-          itemStdNm: fromEJson(itemStdNm),
-          orgnNatCd: fromEJson(orgnNatCd),
-          pkg: fromEJson(pkg),
-          itemCd: fromEJson(itemCd),
-          pkgUnitCd: fromEJson(pkgUnitCd),
-          qtyUnitCd: fromEJson(qtyUnitCd),
-          itemNm: fromEJson(itemNm),
-          qty: fromEJson(qty),
-          prc: fromEJson(prc),
-          splyAmt: fromEJson(splyAmt),
-          tin: fromEJson(tin),
-          bhfId: fromEJson(bhfId),
-          dftPrc: fromEJson(dftPrc),
-          addInfo: fromEJson(addInfo),
-          isrcAplcbYn: fromEJson(isrcAplcbYn),
-          useYn: fromEJson(useYn),
-          regrId: fromEJson(regrId),
-          regrNm: fromEJson(regrNm),
-          modrId: fromEJson(modrId),
-          modrNm: fromEJson(modrNm),
-          rsdQty: fromEJson(rsdQty),
-          lastTouched: fromEJson(lastTouched),
-          supplyPrice: fromEJson(supplyPrice),
-          retailPrice: fromEJson(retailPrice),
-          action: fromEJson(action),
-          spplrItemClsCd: fromEJson(spplrItemClsCd),
-          spplrItemCd: fromEJson(spplrItemCd),
-          spplrItemNm: fromEJson(spplrItemNm),
-          ebmSynced: fromEJson(ebmSynced),
-          taxType: fromEJson(taxType),
-          branchIds: fromEJson(branchIds),
+          id: fromEJson(ejson['id']),
+          deletedAt: fromEJson(ejson['deletedAt']),
+          name: fromEJson(ejson['name']),
+          color: fromEJson(ejson['color']),
+          sku: fromEJson(ejson['sku']),
+          productId: fromEJson(ejson['productId']),
+          unit: fromEJson(ejson['unit']),
+          productName: fromEJson(ejson['productName']),
+          branchId: fromEJson(ejson['branchId']),
+          taxName: fromEJson(ejson['taxName'], defaultValue: ""),
+          taxPercentage: fromEJson(ejson['taxPercentage'], defaultValue: 0.0),
+          isTaxExempted: fromEJson(ejson['isTaxExempted'], defaultValue: false),
+          itemSeq: fromEJson(ejson['itemSeq']),
+          isrccCd: fromEJson(ejson['isrccCd'], defaultValue: ""),
+          isrccNm: fromEJson(ejson['isrccNm'], defaultValue: ""),
+          isrcRt: fromEJson(ejson['isrcRt'], defaultValue: 0),
+          isrcAmt: fromEJson(ejson['isrcAmt'], defaultValue: 0),
+          taxTyCd: fromEJson(ejson['taxTyCd'], defaultValue: "B"),
+          bcd: fromEJson(ejson['bcd'], defaultValue: ""),
+          itemClsCd: fromEJson(ejson['itemClsCd']),
+          itemTyCd: fromEJson(ejson['itemTyCd']),
+          itemStdNm: fromEJson(ejson['itemStdNm'], defaultValue: ""),
+          orgnNatCd: fromEJson(ejson['orgnNatCd'], defaultValue: ""),
+          pkg: fromEJson(ejson['pkg'], defaultValue: "1"),
+          itemCd: fromEJson(ejson['itemCd'], defaultValue: ""),
+          pkgUnitCd: fromEJson(ejson['pkgUnitCd'], defaultValue: "CT"),
+          qtyUnitCd: fromEJson(ejson['qtyUnitCd'], defaultValue: "BX"),
+          itemNm: fromEJson(ejson['itemNm']),
+          qty: fromEJson(ejson['qty'], defaultValue: 0.0),
+          prc: fromEJson(ejson['prc'], defaultValue: 0.0),
+          splyAmt: fromEJson(ejson['splyAmt'], defaultValue: 0.0),
+          tin: fromEJson(ejson['tin']),
+          bhfId: fromEJson(ejson['bhfId']),
+          dftPrc: fromEJson(ejson['dftPrc'], defaultValue: 0),
+          addInfo: fromEJson(ejson['addInfo'], defaultValue: ""),
+          isrcAplcbYn: fromEJson(ejson['isrcAplcbYn'], defaultValue: ""),
+          useYn: fromEJson(ejson['useYn'], defaultValue: ""),
+          regrId: fromEJson(ejson['regrId']),
+          regrNm: fromEJson(ejson['regrNm']),
+          modrId: fromEJson(ejson['modrId']),
+          modrNm: fromEJson(ejson['modrNm']),
+          rsdQty: fromEJson(ejson['rsdQty'], defaultValue: 0.0),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          supplyPrice: fromEJson(ejson['supplyPrice'], defaultValue: 0.0),
+          retailPrice: fromEJson(ejson['retailPrice'], defaultValue: 0.0),
+          action: fromEJson(ejson['action']),
+          spplrItemClsCd: fromEJson(ejson['spplrItemClsCd']),
+          spplrItemCd: fromEJson(ejson['spplrItemCd']),
+          spplrItemNm: fromEJson(ejson['spplrItemNm']),
+          ebmSynced: fromEJson(ejson['ebmSynced'], defaultValue: false),
+          taxType: fromEJson(ejson['taxType'], defaultValue: "B"),
+          branchIds: fromEJson(ejson['branchIds']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -4721,7 +4442,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Variant._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Variant, 'Variant', [
+    return const SchemaObject(ObjectType.realmObject, Variant, 'Variant', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -4889,26 +4610,20 @@ class StockRequest extends _StockRequest
 
   static EJsonValue _toEJson(StockRequest value) => value.toEJson();
   static StockRequest _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'mainBranchId': EJsonValue mainBranchId,
-        'subBranchId': EJsonValue subBranchId,
-        'createdAt': EJsonValue createdAt,
-        'status': EJsonValue status,
-        'items': EJsonValue items,
-        'updatedAt': EJsonValue updatedAt,
       } =>
         StockRequest(
           fromEJson(realmId),
-          id: fromEJson(id),
-          mainBranchId: fromEJson(mainBranchId),
-          subBranchId: fromEJson(subBranchId),
-          createdAt: fromEJson(createdAt),
-          status: fromEJson(status),
-          items: fromEJson(items),
-          updatedAt: fromEJson(updatedAt),
+          id: fromEJson(ejson['id']),
+          mainBranchId: fromEJson(ejson['mainBranchId']),
+          subBranchId: fromEJson(ejson['subBranchId']),
+          createdAt: fromEJson(ejson['createdAt']),
+          status: fromEJson(ejson['status']),
+          items: fromEJson(ejson['items']),
+          updatedAt: fromEJson(ejson['updatedAt']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -4917,7 +4632,8 @@ class StockRequest extends _StockRequest
   static final schema = () {
     RealmObjectBase.registerFactory(StockRequest._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, StockRequest, 'StockRequest', [
+    return const SchemaObject(
+        ObjectType.realmObject, StockRequest, 'StockRequest', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -5502,128 +5218,72 @@ class TransactionItem extends _TransactionItem
 
   static EJsonValue _toEJson(TransactionItem value) => value.toEJson();
   static TransactionItem _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'name': EJsonValue name,
-        'quantityRequested': EJsonValue quantityRequested,
-        'quantityApproved': EJsonValue quantityApproved,
-        'quantityShipped': EJsonValue quantityShipped,
-        'transactionId': EJsonValue transactionId,
-        'variantId': EJsonValue variantId,
-        'qty': EJsonValue qty,
-        'price': EJsonValue price,
-        'discount': EJsonValue discount,
-        'type': EJsonValue type,
-        'remainingStock': EJsonValue remainingStock,
-        'createdAt': EJsonValue createdAt,
-        'updatedAt': EJsonValue updatedAt,
-        'isTaxExempted': EJsonValue isTaxExempted,
-        'isRefunded': EJsonValue isRefunded,
-        'doneWithTransaction': EJsonValue doneWithTransaction,
-        'active': EJsonValue active,
-        'dcRt': EJsonValue dcRt,
-        'dcAmt': EJsonValue dcAmt,
-        'taxblAmt': EJsonValue taxblAmt,
-        'taxAmt': EJsonValue taxAmt,
-        'totAmt': EJsonValue totAmt,
-        'itemSeq': EJsonValue itemSeq,
-        'isrccCd': EJsonValue isrccCd,
-        'isrccNm': EJsonValue isrccNm,
-        'isrcRt': EJsonValue isrcRt,
-        'isrcAmt': EJsonValue isrcAmt,
-        'taxTyCd': EJsonValue taxTyCd,
-        'bcd': EJsonValue bcd,
-        'itemClsCd': EJsonValue itemClsCd,
-        'itemTyCd': EJsonValue itemTyCd,
-        'itemStdNm': EJsonValue itemStdNm,
-        'orgnNatCd': EJsonValue orgnNatCd,
-        'pkg': EJsonValue pkg,
-        'itemCd': EJsonValue itemCd,
-        'pkgUnitCd': EJsonValue pkgUnitCd,
-        'qtyUnitCd': EJsonValue qtyUnitCd,
-        'itemNm': EJsonValue itemNm,
-        'prc': EJsonValue prc,
-        'splyAmt': EJsonValue splyAmt,
-        'tin': EJsonValue tin,
-        'bhfId': EJsonValue bhfId,
-        'dftPrc': EJsonValue dftPrc,
-        'addInfo': EJsonValue addInfo,
-        'isrcAplcbYn': EJsonValue isrcAplcbYn,
-        'useYn': EJsonValue useYn,
-        'regrId': EJsonValue regrId,
-        'regrNm': EJsonValue regrNm,
-        'modrId': EJsonValue modrId,
-        'modrNm': EJsonValue modrNm,
-        'lastTouched': EJsonValue lastTouched,
-        'deletedAt': EJsonValue deletedAt,
-        'action': EJsonValue action,
-        'branchId': EJsonValue branchId,
-        'ebmSynced': EJsonValue ebmSynced,
-        'partOfComposite': EJsonValue partOfComposite,
-        'compositePrice': EJsonValue compositePrice,
       } =>
         TransactionItem(
           fromEJson(realmId),
-          id: fromEJson(id),
-          name: fromEJson(name),
-          quantityRequested: fromEJson(quantityRequested),
-          quantityApproved: fromEJson(quantityApproved),
-          quantityShipped: fromEJson(quantityShipped),
-          transactionId: fromEJson(transactionId),
-          variantId: fromEJson(variantId),
-          qty: fromEJson(qty),
-          price: fromEJson(price),
-          discount: fromEJson(discount),
-          type: fromEJson(type),
-          remainingStock: fromEJson(remainingStock),
-          createdAt: fromEJson(createdAt),
-          updatedAt: fromEJson(updatedAt),
-          isTaxExempted: fromEJson(isTaxExempted),
-          isRefunded: fromEJson(isRefunded),
-          doneWithTransaction: fromEJson(doneWithTransaction),
-          active: fromEJson(active),
-          dcRt: fromEJson(dcRt),
-          dcAmt: fromEJson(dcAmt),
-          taxblAmt: fromEJson(taxblAmt),
-          taxAmt: fromEJson(taxAmt),
-          totAmt: fromEJson(totAmt),
-          itemSeq: fromEJson(itemSeq),
-          isrccCd: fromEJson(isrccCd),
-          isrccNm: fromEJson(isrccNm),
-          isrcRt: fromEJson(isrcRt),
-          isrcAmt: fromEJson(isrcAmt),
-          taxTyCd: fromEJson(taxTyCd),
-          bcd: fromEJson(bcd),
-          itemClsCd: fromEJson(itemClsCd),
-          itemTyCd: fromEJson(itemTyCd),
-          itemStdNm: fromEJson(itemStdNm),
-          orgnNatCd: fromEJson(orgnNatCd),
-          pkg: fromEJson(pkg),
-          itemCd: fromEJson(itemCd),
-          pkgUnitCd: fromEJson(pkgUnitCd),
-          qtyUnitCd: fromEJson(qtyUnitCd),
-          itemNm: fromEJson(itemNm),
-          prc: fromEJson(prc),
-          splyAmt: fromEJson(splyAmt),
-          tin: fromEJson(tin),
-          bhfId: fromEJson(bhfId),
-          dftPrc: fromEJson(dftPrc),
-          addInfo: fromEJson(addInfo),
-          isrcAplcbYn: fromEJson(isrcAplcbYn),
-          useYn: fromEJson(useYn),
-          regrId: fromEJson(regrId),
-          regrNm: fromEJson(regrNm),
-          modrId: fromEJson(modrId),
-          modrNm: fromEJson(modrNm),
-          lastTouched: fromEJson(lastTouched),
-          deletedAt: fromEJson(deletedAt),
-          action: fromEJson(action),
-          branchId: fromEJson(branchId),
-          ebmSynced: fromEJson(ebmSynced),
-          partOfComposite: fromEJson(partOfComposite),
-          compositePrice: fromEJson(compositePrice),
+          id: fromEJson(ejson['id']),
+          name: fromEJson(ejson['name']),
+          quantityRequested: fromEJson(ejson['quantityRequested']),
+          quantityApproved: fromEJson(ejson['quantityApproved']),
+          quantityShipped: fromEJson(ejson['quantityShipped']),
+          transactionId: fromEJson(ejson['transactionId']),
+          variantId: fromEJson(ejson['variantId']),
+          qty: fromEJson(ejson['qty'], defaultValue: 0.0),
+          price: fromEJson(ejson['price'], defaultValue: 0.0),
+          discount: fromEJson(ejson['discount'], defaultValue: 0.0),
+          type: fromEJson(ejson['type']),
+          remainingStock: fromEJson(ejson['remainingStock'], defaultValue: 0.0),
+          createdAt: fromEJson(ejson['createdAt']),
+          updatedAt: fromEJson(ejson['updatedAt']),
+          isTaxExempted: fromEJson(ejson['isTaxExempted'], defaultValue: false),
+          isRefunded: fromEJson(ejson['isRefunded'], defaultValue: false),
+          doneWithTransaction: fromEJson(ejson['doneWithTransaction']),
+          active: fromEJson(ejson['active']),
+          dcRt: fromEJson(ejson['dcRt'], defaultValue: 0.0),
+          dcAmt: fromEJson(ejson['dcAmt'], defaultValue: 0.0),
+          taxblAmt: fromEJson(ejson['taxblAmt'], defaultValue: 0.0),
+          taxAmt: fromEJson(ejson['taxAmt'], defaultValue: 0.0),
+          totAmt: fromEJson(ejson['totAmt'], defaultValue: 0.0),
+          itemSeq: fromEJson(ejson['itemSeq']),
+          isrccCd: fromEJson(ejson['isrccCd']),
+          isrccNm: fromEJson(ejson['isrccNm'], defaultValue: ""),
+          isrcRt: fromEJson(ejson['isrcRt'], defaultValue: 0),
+          isrcAmt: fromEJson(ejson['isrcAmt'], defaultValue: 0),
+          taxTyCd: fromEJson(ejson['taxTyCd']),
+          bcd: fromEJson(ejson['bcd']),
+          itemClsCd: fromEJson(ejson['itemClsCd']),
+          itemTyCd: fromEJson(ejson['itemTyCd']),
+          itemStdNm: fromEJson(ejson['itemStdNm']),
+          orgnNatCd: fromEJson(ejson['orgnNatCd']),
+          pkg: fromEJson(ejson['pkg']),
+          itemCd: fromEJson(ejson['itemCd']),
+          pkgUnitCd: fromEJson(ejson['pkgUnitCd'], defaultValue: "CT"),
+          qtyUnitCd: fromEJson(ejson['qtyUnitCd'], defaultValue: "BX"),
+          itemNm: fromEJson(ejson['itemNm']),
+          prc: fromEJson(ejson['prc'], defaultValue: 0.0),
+          splyAmt: fromEJson(ejson['splyAmt'], defaultValue: 0.0),
+          tin: fromEJson(ejson['tin']),
+          bhfId: fromEJson(ejson['bhfId']),
+          dftPrc: fromEJson(ejson['dftPrc']),
+          addInfo: fromEJson(ejson['addInfo']),
+          isrcAplcbYn: fromEJson(ejson['isrcAplcbYn']),
+          useYn: fromEJson(ejson['useYn']),
+          regrId: fromEJson(ejson['regrId']),
+          regrNm: fromEJson(ejson['regrNm']),
+          modrId: fromEJson(ejson['modrId']),
+          modrNm: fromEJson(ejson['modrNm']),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          deletedAt: fromEJson(ejson['deletedAt']),
+          action: fromEJson(ejson['action']),
+          branchId: fromEJson(ejson['branchId']),
+          ebmSynced: fromEJson(ejson['ebmSynced'], defaultValue: false),
+          partOfComposite:
+              fromEJson(ejson['partOfComposite'], defaultValue: false),
+          compositePrice: fromEJson(ejson['compositePrice'], defaultValue: 0),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -5632,7 +5292,7 @@ class TransactionItem extends _TransactionItem
   static final schema = () {
     RealmObjectBase.registerFactory(TransactionItem._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(
+    return const SchemaObject(
         ObjectType.realmObject, TransactionItem, 'TransactionItem', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
@@ -5987,64 +5647,40 @@ class ITransaction extends _ITransaction
 
   static EJsonValue _toEJson(ITransaction value) => value.toEJson();
   static ITransaction _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'reference': EJsonValue reference,
-        'categoryId': EJsonValue categoryId,
-        'transactionNumber': EJsonValue transactionNumber,
-        'branchId': EJsonValue branchId,
-        'status': EJsonValue status,
-        'transactionType': EJsonValue transactionType,
-        'subTotal': EJsonValue subTotal,
-        'paymentType': EJsonValue paymentType,
-        'cashReceived': EJsonValue cashReceived,
-        'customerChangeDue': EJsonValue customerChangeDue,
-        'createdAt': EJsonValue createdAt,
-        'receiptType': EJsonValue receiptType,
-        'updatedAt': EJsonValue updatedAt,
-        'customerId': EJsonValue customerId,
-        'customerType': EJsonValue customerType,
-        'note': EJsonValue note,
-        'lastTouched': EJsonValue lastTouched,
-        'action': EJsonValue action,
-        'ticketName': EJsonValue ticketName,
-        'deletedAt': EJsonValue deletedAt,
-        'supplierId': EJsonValue supplierId,
-        'ebmSynced': EJsonValue ebmSynced,
-        'isIncome': EJsonValue isIncome,
-        'isExpense': EJsonValue isExpense,
-        'isRefunded': EJsonValue isRefunded,
       } =>
         ITransaction(
           fromEJson(realmId),
-          id: fromEJson(id),
-          reference: fromEJson(reference),
-          categoryId: fromEJson(categoryId),
-          transactionNumber: fromEJson(transactionNumber),
-          branchId: fromEJson(branchId),
-          status: fromEJson(status),
-          transactionType: fromEJson(transactionType),
-          subTotal: fromEJson(subTotal),
-          paymentType: fromEJson(paymentType),
-          cashReceived: fromEJson(cashReceived),
-          customerChangeDue: fromEJson(customerChangeDue),
-          createdAt: fromEJson(createdAt),
-          receiptType: fromEJson(receiptType),
-          updatedAt: fromEJson(updatedAt),
-          customerId: fromEJson(customerId),
-          customerType: fromEJson(customerType),
-          note: fromEJson(note),
-          lastTouched: fromEJson(lastTouched),
-          action: fromEJson(action),
-          ticketName: fromEJson(ticketName),
-          deletedAt: fromEJson(deletedAt),
-          supplierId: fromEJson(supplierId),
-          ebmSynced: fromEJson(ebmSynced),
-          isIncome: fromEJson(isIncome),
-          isExpense: fromEJson(isExpense),
-          isRefunded: fromEJson(isRefunded),
+          id: fromEJson(ejson['id']),
+          reference: fromEJson(ejson['reference']),
+          categoryId: fromEJson(ejson['categoryId']),
+          transactionNumber: fromEJson(ejson['transactionNumber']),
+          branchId: fromEJson(ejson['branchId']),
+          status: fromEJson(ejson['status']),
+          transactionType: fromEJson(ejson['transactionType']),
+          subTotal: fromEJson(ejson['subTotal'], defaultValue: 0.0),
+          paymentType: fromEJson(ejson['paymentType']),
+          cashReceived: fromEJson(ejson['cashReceived'], defaultValue: 0.0),
+          customerChangeDue:
+              fromEJson(ejson['customerChangeDue'], defaultValue: 0.0),
+          createdAt: fromEJson(ejson['createdAt']),
+          receiptType: fromEJson(ejson['receiptType']),
+          updatedAt: fromEJson(ejson['updatedAt']),
+          customerId: fromEJson(ejson['customerId']),
+          customerType: fromEJson(ejson['customerType']),
+          note: fromEJson(ejson['note']),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          action: fromEJson(ejson['action']),
+          ticketName: fromEJson(ejson['ticketName']),
+          deletedAt: fromEJson(ejson['deletedAt']),
+          supplierId: fromEJson(ejson['supplierId']),
+          ebmSynced: fromEJson(ejson['ebmSynced'], defaultValue: false),
+          isIncome: fromEJson(ejson['isIncome'], defaultValue: false),
+          isExpense: fromEJson(ejson['isExpense'], defaultValue: false),
+          isRefunded: fromEJson(ejson['isRefunded'], defaultValue: false),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -6053,7 +5689,8 @@ class ITransaction extends _ITransaction
   static final schema = () {
     RealmObjectBase.registerFactory(ITransaction._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, ITransaction, 'ITransaction', [
+    return const SchemaObject(
+        ObjectType.realmObject, ITransaction, 'ITransaction', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -6214,30 +5851,22 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(IUnit value) => value.toEJson();
   static IUnit _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'branchId': EJsonValue branchId,
-        'name': EJsonValue name,
-        'value': EJsonValue value,
-        'active': EJsonValue active,
-        'lastTouched': EJsonValue lastTouched,
-        'action': EJsonValue action,
-        'createdAt': EJsonValue createdAt,
-        'deletedAt': EJsonValue deletedAt,
       } =>
         IUnit(
           fromEJson(realmId),
-          id: fromEJson(id),
-          branchId: fromEJson(branchId),
-          name: fromEJson(name),
-          value: fromEJson(value),
-          active: fromEJson(active),
-          lastTouched: fromEJson(lastTouched),
-          action: fromEJson(action),
-          createdAt: fromEJson(createdAt),
-          deletedAt: fromEJson(deletedAt),
+          id: fromEJson(ejson['id']),
+          branchId: fromEJson(ejson['branchId']),
+          name: fromEJson(ejson['name']),
+          value: fromEJson(ejson['value']),
+          active: fromEJson(ejson['active'], defaultValue: false),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          action: fromEJson(ejson['action']),
+          createdAt: fromEJson(ejson['createdAt']),
+          deletedAt: fromEJson(ejson['deletedAt']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -6246,7 +5875,7 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(IUnit._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, IUnit, 'IUnit', [
+    return const SchemaObject(ObjectType.realmObject, IUnit, 'IUnit', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -6358,26 +5987,20 @@ class Voucher extends _Voucher with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Voucher value) => value.toEJson();
   static Voucher _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'value': EJsonValue value,
-        'interval': EJsonValue interval,
-        'used': EJsonValue used,
-        'createdAt': EJsonValue createdAt,
-        'usedAt': EJsonValue usedAt,
-        'descriptor': EJsonValue descriptor,
       } =>
         Voucher(
           fromEJson(realmId),
-          id: fromEJson(id),
-          value: fromEJson(value),
-          interval: fromEJson(interval),
-          used: fromEJson(used),
-          createdAt: fromEJson(createdAt),
-          usedAt: fromEJson(usedAt),
-          descriptor: fromEJson(descriptor),
+          id: fromEJson(ejson['id']),
+          value: fromEJson(ejson['value']),
+          interval: fromEJson(ejson['interval']),
+          used: fromEJson(ejson['used']),
+          createdAt: fromEJson(ejson['createdAt']),
+          usedAt: fromEJson(ejson['usedAt']),
+          descriptor: fromEJson(ejson['descriptor']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -6386,7 +6009,7 @@ class Voucher extends _Voucher with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Voucher._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Voucher, 'Voucher', [
+    return const SchemaObject(ObjectType.realmObject, Voucher, 'Voucher', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -6568,40 +6191,27 @@ class Tenant extends _Tenant with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Tenant value) => value.toEJson();
   static Tenant _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'name': EJsonValue name,
-        'phoneNumber': EJsonValue phoneNumber,
-        'email': EJsonValue email,
-        'nfcEnabled': EJsonValue nfcEnabled,
-        'businessId': EJsonValue businessId,
-        'userId': EJsonValue userId,
-        'imageUrl': EJsonValue imageUrl,
-        'lastTouched': EJsonValue lastTouched,
-        'deletedAt': EJsonValue deletedAt,
-        'pin': EJsonValue pin,
-        'sessionActive': EJsonValue sessionActive,
-        'isDefault': EJsonValue isDefault,
-        'isLongPressed': EJsonValue isLongPressed,
       } =>
         Tenant(
           fromEJson(realmId),
-          id: fromEJson(id),
-          name: fromEJson(name),
-          phoneNumber: fromEJson(phoneNumber),
-          email: fromEJson(email),
-          nfcEnabled: fromEJson(nfcEnabled),
-          businessId: fromEJson(businessId),
-          userId: fromEJson(userId),
-          imageUrl: fromEJson(imageUrl),
-          lastTouched: fromEJson(lastTouched),
-          deletedAt: fromEJson(deletedAt),
-          pin: fromEJson(pin),
-          sessionActive: fromEJson(sessionActive),
-          isDefault: fromEJson(isDefault),
-          isLongPressed: fromEJson(isLongPressed),
+          id: fromEJson(ejson['id']),
+          name: fromEJson(ejson['name']),
+          phoneNumber: fromEJson(ejson['phoneNumber']),
+          email: fromEJson(ejson['email']),
+          nfcEnabled: fromEJson(ejson['nfcEnabled'], defaultValue: false),
+          businessId: fromEJson(ejson['businessId']),
+          userId: fromEJson(ejson['userId']),
+          imageUrl: fromEJson(ejson['imageUrl']),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          deletedAt: fromEJson(ejson['deletedAt']),
+          pin: fromEJson(ejson['pin']),
+          sessionActive: fromEJson(ejson['sessionActive']),
+          isDefault: fromEJson(ejson['isDefault']),
+          isLongPressed: fromEJson(ejson['isLongPressed'], defaultValue: false),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -6610,7 +6220,7 @@ class Tenant extends _Tenant with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Tenant._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Tenant, 'Tenant', [
+    return const SchemaObject(ObjectType.realmObject, Tenant, 'Tenant', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -6719,24 +6329,19 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Pin value) => value.toEJson();
   static Pin _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'userId': EJsonValue userId,
-        'phoneNumber': EJsonValue phoneNumber,
-        'pin': EJsonValue pin,
-        'branchId': EJsonValue branchId,
-        'businessId': EJsonValue businessId,
       } =>
         Pin(
-          fromEJson(realmId),
-          id: fromEJson(id),
-          userId: fromEJson(userId),
-          phoneNumber: fromEJson(phoneNumber),
-          pin: fromEJson(pin),
-          branchId: fromEJson(branchId),
-          businessId: fromEJson(businessId),
+          fromEJson(ejson['_id']),
+          id: fromEJson(ejson['id']),
+          userId: fromEJson(ejson['userId']),
+          phoneNumber: fromEJson(ejson['phoneNumber']),
+          pin: fromEJson(ejson['pin']),
+          branchId: fromEJson(ejson['branchId']),
+          businessId: fromEJson(ejson['businessId']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -6745,7 +6350,7 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Pin._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Pin, 'Pin', [
+    return const SchemaObject(ObjectType.realmObject, Pin, 'Pin', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', optional: true, primaryKey: true),
@@ -6821,18 +6426,16 @@ class LPermission extends _LPermission
 
   static EJsonValue _toEJson(LPermission value) => value.toEJson();
   static LPermission _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'name': EJsonValue name,
-        'userId': EJsonValue userId,
       } =>
         LPermission(
-          fromEJson(realmId),
-          id: fromEJson(id),
-          name: fromEJson(name),
-          userId: fromEJson(userId),
+          fromEJson(ejson['_id']),
+          id: fromEJson(ejson['id']),
+          name: fromEJson(ejson['name']),
+          userId: fromEJson(ejson['userId']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -6841,7 +6444,8 @@ class LPermission extends _LPermission
   static final schema = () {
     RealmObjectBase.registerFactory(LPermission._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, LPermission, 'LPermission', [
+    return const SchemaObject(
+        ObjectType.realmObject, LPermission, 'LPermission', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', optional: true, primaryKey: true),
@@ -6960,28 +6564,21 @@ class Token extends _Token with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Token value) => value.toEJson();
   static Token _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'type': EJsonValue type,
-        'token': EJsonValue token,
-        'validFrom': EJsonValue validFrom,
-        'validUntil': EJsonValue validUntil,
-        'businessId': EJsonValue businessId,
-        'lastTouched': EJsonValue lastTouched,
-        'deletedAt': EJsonValue deletedAt,
       } =>
         Token(
-          fromEJson(realmId),
-          id: fromEJson(id),
-          type: fromEJson(type),
-          token: fromEJson(token),
-          validFrom: fromEJson(validFrom),
-          validUntil: fromEJson(validUntil),
-          businessId: fromEJson(businessId),
-          lastTouched: fromEJson(lastTouched),
-          deletedAt: fromEJson(deletedAt),
+          fromEJson(ejson['_id']),
+          id: fromEJson(ejson['id']),
+          type: fromEJson(ejson['type']),
+          token: fromEJson(ejson['token']),
+          validFrom: fromEJson(ejson['validFrom']),
+          validUntil: fromEJson(ejson['validUntil']),
+          businessId: fromEJson(ejson['businessId']),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          deletedAt: fromEJson(ejson['deletedAt']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -6990,7 +6587,7 @@ class Token extends _Token with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Token._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Token, 'Token', [
+    return const SchemaObject(ObjectType.realmObject, Token, 'Token', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', optional: true, primaryKey: true),
@@ -7080,20 +6677,18 @@ class UserActivity extends _UserActivity
 
   static EJsonValue _toEJson(UserActivity value) => value.toEJson();
   static UserActivity _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
         'id': EJsonValue id,
-        'timestamp': EJsonValue timestamp,
-        'lastTouched': EJsonValue lastTouched,
-        'userId': EJsonValue userId,
         'action': EJsonValue action,
       } =>
         UserActivity(
           fromEJson(id),
           fromEJson(action),
-          timestamp: fromEJson(timestamp),
-          lastTouched: fromEJson(lastTouched),
-          userId: fromEJson(userId),
+          timestamp: fromEJson(ejson['timestamp']),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          userId: fromEJson(ejson['userId']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -7102,7 +6697,8 @@ class UserActivity extends _UserActivity
   static final schema = () {
     RealmObjectBase.registerFactory(UserActivity._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, UserActivity, 'UserActivity', [
+    return const SchemaObject(
+        ObjectType.realmObject, UserActivity, 'UserActivity', [
       SchemaProperty('id', RealmPropertyType.objectid, primaryKey: true),
       SchemaProperty('timestamp', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
@@ -7229,30 +6825,22 @@ class UnversalProduct extends _UnversalProduct
 
   static EJsonValue _toEJson(UnversalProduct value) => value.toEJson();
   static UnversalProduct _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'itemClsCd': EJsonValue itemClsCd,
-        'itemClsNm': EJsonValue itemClsNm,
-        'itemClsLvl': EJsonValue itemClsLvl,
-        'taxTyCd': EJsonValue taxTyCd,
-        'mjrTgYn': EJsonValue mjrTgYn,
-        'useYn': EJsonValue useYn,
-        'businessId': EJsonValue businessId,
-        'branchId': EJsonValue branchId,
       } =>
         UnversalProduct(
           fromEJson(realmId),
-          id: fromEJson(id),
-          itemClsCd: fromEJson(itemClsCd),
-          itemClsNm: fromEJson(itemClsNm),
-          itemClsLvl: fromEJson(itemClsLvl),
-          taxTyCd: fromEJson(taxTyCd),
-          mjrTgYn: fromEJson(mjrTgYn),
-          useYn: fromEJson(useYn),
-          businessId: fromEJson(businessId),
-          branchId: fromEJson(branchId),
+          id: fromEJson(ejson['id']),
+          itemClsCd: fromEJson(ejson['itemClsCd']),
+          itemClsNm: fromEJson(ejson['itemClsNm']),
+          itemClsLvl: fromEJson(ejson['itemClsLvl']),
+          taxTyCd: fromEJson(ejson['taxTyCd']),
+          mjrTgYn: fromEJson(ejson['mjrTgYn']),
+          useYn: fromEJson(ejson['useYn']),
+          businessId: fromEJson(ejson['businessId']),
+          branchId: fromEJson(ejson['branchId']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -7261,7 +6849,7 @@ class UnversalProduct extends _UnversalProduct
   static final schema = () {
     RealmObjectBase.registerFactory(UnversalProduct._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(
+    return const SchemaObject(
         ObjectType.realmObject, UnversalProduct, 'UnversalProduct', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
@@ -7368,22 +6956,18 @@ class Configurations extends _Configurations
 
   static EJsonValue _toEJson(Configurations value) => value.toEJson();
   static Configurations _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'taxType': EJsonValue taxType,
-        'taxPercentage': EJsonValue taxPercentage,
-        'businessId': EJsonValue businessId,
-        'branchId': EJsonValue branchId,
       } =>
         Configurations(
           fromEJson(realmId),
-          id: fromEJson(id),
-          taxType: fromEJson(taxType),
-          taxPercentage: fromEJson(taxPercentage),
-          businessId: fromEJson(businessId),
-          branchId: fromEJson(branchId),
+          id: fromEJson(ejson['id']),
+          taxType: fromEJson(ejson['taxType'], defaultValue: "B"),
+          taxPercentage: fromEJson(ejson['taxPercentage'], defaultValue: 18.0),
+          businessId: fromEJson(ejson['businessId']),
+          branchId: fromEJson(ejson['branchId']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -7392,7 +6976,7 @@ class Configurations extends _Configurations
   static final schema = () {
     RealmObjectBase.registerFactory(Configurations._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(
+    return const SchemaObject(
         ObjectType.realmObject, Configurations, 'Configurations', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
@@ -7494,22 +7078,18 @@ class AppNotification extends _AppNotification
 
   static EJsonValue _toEJson(AppNotification value) => value.toEJson();
   static AppNotification _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'completed': EJsonValue completed,
-        'type': EJsonValue type,
-        'message': EJsonValue message,
-        'identifier': EJsonValue identifier,
       } =>
         AppNotification(
           fromEJson(realmId),
-          id: fromEJson(id),
-          completed: fromEJson(completed),
-          type: fromEJson(type),
-          message: fromEJson(message),
-          identifier: fromEJson(identifier),
+          id: fromEJson(ejson['id']),
+          completed: fromEJson(ejson['completed'], defaultValue: false),
+          type: fromEJson(ejson['type'], defaultValue: 'transaction'),
+          message: fromEJson(ejson['message']),
+          identifier: fromEJson(ejson['identifier']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -7518,7 +7098,7 @@ class AppNotification extends _AppNotification
   static final schema = () {
     RealmObjectBase.registerFactory(AppNotification._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(
+    return const SchemaObject(
         ObjectType.realmObject, AppNotification, 'AppNotification', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
@@ -7609,22 +7189,18 @@ class Assets extends _Assets with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Assets value) => value.toEJson();
   static Assets _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'branchId': EJsonValue branchId,
-        'businessId': EJsonValue businessId,
-        'assetName': EJsonValue assetName,
-        'productId': EJsonValue productId,
       } =>
         Assets(
           fromEJson(realmId),
-          id: fromEJson(id),
-          branchId: fromEJson(branchId),
-          businessId: fromEJson(businessId),
-          assetName: fromEJson(assetName),
-          productId: fromEJson(productId),
+          id: fromEJson(ejson['id']),
+          branchId: fromEJson(ejson['branchId']),
+          businessId: fromEJson(ejson['businessId']),
+          assetName: fromEJson(ejson['assetName']),
+          productId: fromEJson(ejson['productId']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -7633,7 +7209,7 @@ class Assets extends _Assets with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Assets._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Assets, 'Assets', [
+    return const SchemaObject(ObjectType.realmObject, Assets, 'Assets', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -7749,26 +7325,20 @@ class Composite extends _Composite
 
   static EJsonValue _toEJson(Composite value) => value.toEJson();
   static Composite _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'productId': EJsonValue productId,
-        'variantId': EJsonValue variantId,
-        'qty': EJsonValue qty,
-        'branchId': EJsonValue branchId,
-        'businessId': EJsonValue businessId,
-        'actualPrice': EJsonValue actualPrice,
       } =>
         Composite(
           fromEJson(realmId),
-          id: fromEJson(id),
-          productId: fromEJson(productId),
-          variantId: fromEJson(variantId),
-          qty: fromEJson(qty),
-          branchId: fromEJson(branchId),
-          businessId: fromEJson(businessId),
-          actualPrice: fromEJson(actualPrice),
+          id: fromEJson(ejson['id']),
+          productId: fromEJson(ejson['productId']),
+          variantId: fromEJson(ejson['variantId']),
+          qty: fromEJson(ejson['qty'], defaultValue: 1.0),
+          branchId: fromEJson(ejson['branchId']),
+          businessId: fromEJson(ejson['businessId']),
+          actualPrice: fromEJson(ejson['actualPrice'], defaultValue: 0),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -7777,7 +7347,7 @@ class Composite extends _Composite
   static final schema = () {
     RealmObjectBase.registerFactory(Composite._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Composite, 'Composite', [
+    return const SchemaObject(ObjectType.realmObject, Composite, 'Composite', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -7876,22 +7446,18 @@ class SKU extends _SKU with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(SKU value) => value.toEJson();
   static SKU _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'sku': EJsonValue sku,
-        'branchId': EJsonValue branchId,
-        'businessId': EJsonValue businessId,
-        'consumed': EJsonValue consumed,
       } =>
         SKU(
           fromEJson(realmId),
-          id: fromEJson(id),
-          sku: fromEJson(sku),
-          branchId: fromEJson(branchId),
-          businessId: fromEJson(businessId),
-          consumed: fromEJson(consumed),
+          id: fromEJson(ejson['id']),
+          sku: fromEJson(ejson['sku'], defaultValue: 1000),
+          branchId: fromEJson(ejson['branchId']),
+          businessId: fromEJson(ejson['businessId']),
+          consumed: fromEJson(ejson['consumed'], defaultValue: false),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -7900,7 +7466,7 @@ class SKU extends _SKU with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(SKU._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, SKU, 'SKU', [
+    return const SchemaObject(ObjectType.realmObject, SKU, 'SKU', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -8006,24 +7572,19 @@ class Report extends _Report with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Report value) => value.toEJson();
   static Report _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'branchId': EJsonValue branchId,
-        'businessId': EJsonValue businessId,
-        'filename': EJsonValue filename,
-        's3Url': EJsonValue s3Url,
-        'downloaded': EJsonValue downloaded,
       } =>
         Report(
           fromEJson(realmId),
-          id: fromEJson(id),
-          branchId: fromEJson(branchId),
-          businessId: fromEJson(businessId),
-          filename: fromEJson(filename),
-          s3Url: fromEJson(s3Url),
-          downloaded: fromEJson(downloaded),
+          id: fromEJson(ejson['id']),
+          branchId: fromEJson(ejson['branchId']),
+          businessId: fromEJson(ejson['businessId']),
+          filename: fromEJson(ejson['filename']),
+          s3Url: fromEJson(ejson['s3Url']),
+          downloaded: fromEJson(ejson['downloaded'], defaultValue: false),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -8032,7 +7593,7 @@ class Report extends _Report with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Report._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Report, 'Report', [
+    return const SchemaObject(ObjectType.realmObject, Report, 'Report', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -8061,6 +7622,7 @@ class Computed extends _Computed
     double? totalStockValue = 0,
     double? totalStockSoldValue = 0,
     double? totalStockItems = 0,
+    DateTime? createdAt,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Computed>({
@@ -8079,6 +7641,7 @@ class Computed extends _Computed
     RealmObjectBase.set(this, 'totalStockValue', totalStockValue);
     RealmObjectBase.set(this, 'totalStockSoldValue', totalStockSoldValue);
     RealmObjectBase.set(this, 'totalStockItems', totalStockItems);
+    RealmObjectBase.set(this, 'createdAt', createdAt);
   }
 
   Computed._();
@@ -8133,6 +7696,13 @@ class Computed extends _Computed
       RealmObjectBase.set(this, 'totalStockItems', value);
 
   @override
+  DateTime? get createdAt =>
+      RealmObjectBase.get<DateTime>(this, 'createdAt') as DateTime?;
+  @override
+  set createdAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'createdAt', value);
+
+  @override
   Stream<RealmObjectChanges<Computed>> get changes =>
       RealmObjectBase.getChanges<Computed>(this);
 
@@ -8153,31 +7723,28 @@ class Computed extends _Computed
       'totalStockValue': totalStockValue.toEJson(),
       'totalStockSoldValue': totalStockSoldValue.toEJson(),
       'totalStockItems': totalStockItems.toEJson(),
+      'createdAt': createdAt.toEJson(),
     };
   }
 
   static EJsonValue _toEJson(Computed value) => value.toEJson();
   static Computed _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
         '_id': EJsonValue id,
-        'branchId': EJsonValue branchId,
-        'businessId': EJsonValue businessId,
-        'grossProfit': EJsonValue grossProfit,
-        'netProfit': EJsonValue netProfit,
-        'totalStockValue': EJsonValue totalStockValue,
-        'totalStockSoldValue': EJsonValue totalStockSoldValue,
-        'totalStockItems': EJsonValue totalStockItems,
       } =>
         Computed(
           fromEJson(id),
-          branchId: fromEJson(branchId),
-          businessId: fromEJson(businessId),
-          grossProfit: fromEJson(grossProfit),
-          netProfit: fromEJson(netProfit),
-          totalStockValue: fromEJson(totalStockValue),
-          totalStockSoldValue: fromEJson(totalStockSoldValue),
-          totalStockItems: fromEJson(totalStockItems),
+          branchId: fromEJson(ejson['branchId']),
+          businessId: fromEJson(ejson['businessId']),
+          grossProfit: fromEJson(ejson['grossProfit'], defaultValue: 0),
+          netProfit: fromEJson(ejson['netProfit'], defaultValue: 0),
+          totalStockValue: fromEJson(ejson['totalStockValue'], defaultValue: 0),
+          totalStockSoldValue:
+              fromEJson(ejson['totalStockSoldValue'], defaultValue: 0),
+          totalStockItems: fromEJson(ejson['totalStockItems'], defaultValue: 0),
+          createdAt: fromEJson(ejson['createdAt']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -8186,7 +7753,7 @@ class Computed extends _Computed
   static final schema = () {
     RealmObjectBase.registerFactory(Computed._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Computed, 'Computed', [
+    return const SchemaObject(ObjectType.realmObject, Computed, 'Computed', [
       SchemaProperty('id', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),
@@ -8199,6 +7766,7 @@ class Computed extends _Computed
           optional: true),
       SchemaProperty('totalStockItems', RealmPropertyType.double,
           optional: true),
+      SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
     ]);
   }();
 
@@ -8329,32 +7897,23 @@ class Access extends _Access with RealmEntity, RealmObjectBase, RealmObject {
 
   static EJsonValue _toEJson(Access value) => value.toEJson();
   static Access _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
-        'branchId': EJsonValue branchId,
-        'businessId': EJsonValue businessId,
-        'userId': EJsonValue userId,
-        'featureName': EJsonValue featureName,
-        'userType': EJsonValue userType,
-        'accessLevel': EJsonValue accessLevel,
-        'createdAt': EJsonValue createdAt,
-        'expiresAt': EJsonValue expiresAt,
-        'status': EJsonValue status,
       } =>
         Access(
           fromEJson(realmId),
-          id: fromEJson(id),
-          branchId: fromEJson(branchId),
-          businessId: fromEJson(businessId),
-          userId: fromEJson(userId),
-          featureName: fromEJson(featureName),
-          userType: fromEJson(userType),
-          accessLevel: fromEJson(accessLevel),
-          createdAt: fromEJson(createdAt),
-          expiresAt: fromEJson(expiresAt),
-          status: fromEJson(status),
+          id: fromEJson(ejson['id']),
+          branchId: fromEJson(ejson['branchId']),
+          businessId: fromEJson(ejson['businessId']),
+          userId: fromEJson(ejson['userId']),
+          featureName: fromEJson(ejson['featureName']),
+          userType: fromEJson(ejson['userType']),
+          accessLevel: fromEJson(ejson['accessLevel']),
+          createdAt: fromEJson(ejson['createdAt']),
+          expiresAt: fromEJson(ejson['expiresAt']),
+          status: fromEJson(ejson['status']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -8363,7 +7922,7 @@ class Access extends _Access with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Access._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, Access, 'Access', [
+    return const SchemaObject(ObjectType.realmObject, Access, 'Access', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -8376,6 +7935,337 @@ class Access extends _Access with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('expiresAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('status', RealmPropertyType.string, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
+class PaymentPlan extends _PaymentPlan
+    with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
+  PaymentPlan(
+    ObjectId realmId, {
+    int? id,
+    int? businessId,
+    String? selectedPlan,
+    int? additionalDevices,
+    bool? isYearlyPlan,
+    double? totalPrice,
+    DateTime? createdAt,
+    bool? paymentCompletedByUser = false,
+    int? payStackCustomerId,
+    String? rule,
+    String? paymentMethod,
+    String? customerCode,
+    String? payStackPlanId,
+  }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<PaymentPlan>({
+        'paymentCompletedByUser': false,
+      });
+    }
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'selectedPlan', selectedPlan);
+    RealmObjectBase.set(this, 'additionalDevices', additionalDevices);
+    RealmObjectBase.set(this, 'isYearlyPlan', isYearlyPlan);
+    RealmObjectBase.set(this, 'totalPrice', totalPrice);
+    RealmObjectBase.set(this, 'createdAt', createdAt);
+    RealmObjectBase.set(this, 'paymentCompletedByUser', paymentCompletedByUser);
+    RealmObjectBase.set(this, 'payStackCustomerId', payStackCustomerId);
+    RealmObjectBase.set(this, 'rule', rule);
+    RealmObjectBase.set(this, 'paymentMethod', paymentMethod);
+    RealmObjectBase.set(this, 'customerCode', customerCode);
+    RealmObjectBase.set(this, 'payStackPlanId', payStackPlanId);
+  }
+
+  PaymentPlan._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  String? get selectedPlan =>
+      RealmObjectBase.get<String>(this, 'selectedPlan') as String?;
+  @override
+  set selectedPlan(String? value) =>
+      RealmObjectBase.set(this, 'selectedPlan', value);
+
+  @override
+  int? get additionalDevices =>
+      RealmObjectBase.get<int>(this, 'additionalDevices') as int?;
+  @override
+  set additionalDevices(int? value) =>
+      RealmObjectBase.set(this, 'additionalDevices', value);
+
+  @override
+  bool? get isYearlyPlan =>
+      RealmObjectBase.get<bool>(this, 'isYearlyPlan') as bool?;
+  @override
+  set isYearlyPlan(bool? value) =>
+      RealmObjectBase.set(this, 'isYearlyPlan', value);
+
+  @override
+  double? get totalPrice =>
+      RealmObjectBase.get<double>(this, 'totalPrice') as double?;
+  @override
+  set totalPrice(double? value) =>
+      RealmObjectBase.set(this, 'totalPrice', value);
+
+  @override
+  DateTime? get createdAt =>
+      RealmObjectBase.get<DateTime>(this, 'createdAt') as DateTime?;
+  @override
+  set createdAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'createdAt', value);
+
+  @override
+  bool? get paymentCompletedByUser =>
+      RealmObjectBase.get<bool>(this, 'paymentCompletedByUser') as bool?;
+  @override
+  set paymentCompletedByUser(bool? value) =>
+      RealmObjectBase.set(this, 'paymentCompletedByUser', value);
+
+  @override
+  int? get payStackCustomerId =>
+      RealmObjectBase.get<int>(this, 'payStackCustomerId') as int?;
+  @override
+  set payStackCustomerId(int? value) =>
+      RealmObjectBase.set(this, 'payStackCustomerId', value);
+
+  @override
+  String? get rule => RealmObjectBase.get<String>(this, 'rule') as String?;
+  @override
+  set rule(String? value) => RealmObjectBase.set(this, 'rule', value);
+
+  @override
+  String? get paymentMethod =>
+      RealmObjectBase.get<String>(this, 'paymentMethod') as String?;
+  @override
+  set paymentMethod(String? value) =>
+      RealmObjectBase.set(this, 'paymentMethod', value);
+
+  @override
+  String? get customerCode =>
+      RealmObjectBase.get<String>(this, 'customerCode') as String?;
+  @override
+  set customerCode(String? value) =>
+      RealmObjectBase.set(this, 'customerCode', value);
+
+  @override
+  String? get payStackPlanId =>
+      RealmObjectBase.get<String>(this, 'payStackPlanId') as String?;
+  @override
+  set payStackPlanId(String? value) =>
+      RealmObjectBase.set(this, 'payStackPlanId', value);
+
+  @override
+  Stream<RealmObjectChanges<PaymentPlan>> get changes =>
+      RealmObjectBase.getChanges<PaymentPlan>(this);
+
+  @override
+  Stream<RealmObjectChanges<PaymentPlan>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<PaymentPlan>(this, keyPaths);
+
+  @override
+  PaymentPlan freeze() => RealmObjectBase.freezeObject<PaymentPlan>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'businessId': businessId.toEJson(),
+      'selectedPlan': selectedPlan.toEJson(),
+      'additionalDevices': additionalDevices.toEJson(),
+      'isYearlyPlan': isYearlyPlan.toEJson(),
+      'totalPrice': totalPrice.toEJson(),
+      'createdAt': createdAt.toEJson(),
+      'paymentCompletedByUser': paymentCompletedByUser.toEJson(),
+      'payStackCustomerId': payStackCustomerId.toEJson(),
+      'rule': rule.toEJson(),
+      'paymentMethod': paymentMethod.toEJson(),
+      'customerCode': customerCode.toEJson(),
+      'payStackPlanId': payStackPlanId.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(PaymentPlan value) => value.toEJson();
+  static PaymentPlan _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
+    return switch (ejson) {
+      {
+        '_id': EJsonValue realmId,
+      } =>
+        PaymentPlan(
+          fromEJson(realmId),
+          id: fromEJson(ejson['id']),
+          businessId: fromEJson(ejson['businessId']),
+          selectedPlan: fromEJson(ejson['selectedPlan']),
+          additionalDevices: fromEJson(ejson['additionalDevices']),
+          isYearlyPlan: fromEJson(ejson['isYearlyPlan']),
+          totalPrice: fromEJson(ejson['totalPrice']),
+          createdAt: fromEJson(ejson['createdAt']),
+          paymentCompletedByUser:
+              fromEJson(ejson['paymentCompletedByUser'], defaultValue: false),
+          payStackCustomerId: fromEJson(ejson['payStackCustomerId']),
+          rule: fromEJson(ejson['rule']),
+          paymentMethod: fromEJson(ejson['paymentMethod']),
+          customerCode: fromEJson(ejson['customerCode']),
+          payStackPlanId: fromEJson(ejson['payStackPlanId']),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(PaymentPlan._);
+    register(_toEJson, _fromEJson);
+    return const SchemaObject(
+        ObjectType.realmObject, PaymentPlan, 'PaymentPlan', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('selectedPlan', RealmPropertyType.string, optional: true),
+      SchemaProperty('additionalDevices', RealmPropertyType.int,
+          optional: true),
+      SchemaProperty('isYearlyPlan', RealmPropertyType.bool, optional: true),
+      SchemaProperty('totalPrice', RealmPropertyType.double, optional: true),
+      SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('paymentCompletedByUser', RealmPropertyType.bool,
+          optional: true),
+      SchemaProperty('payStackCustomerId', RealmPropertyType.int,
+          optional: true),
+      SchemaProperty('rule', RealmPropertyType.string, optional: true),
+      SchemaProperty('paymentMethod', RealmPropertyType.string, optional: true),
+      SchemaProperty('customerCode', RealmPropertyType.string, optional: true),
+      SchemaProperty('payStackPlanId', RealmPropertyType.string,
+          optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
+class FlipperSaleCompaign extends _FlipperSaleCompaign
+    with RealmEntity, RealmObjectBase, RealmObject {
+  FlipperSaleCompaign(
+    ObjectId realmId, {
+    int? id,
+    int? compaignId,
+    int? discountRate,
+    DateTime? createdAt,
+  }) {
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'compaignId', compaignId);
+    RealmObjectBase.set(this, 'discountRate', discountRate);
+    RealmObjectBase.set(this, 'createdAt', createdAt);
+  }
+
+  FlipperSaleCompaign._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get compaignId => RealmObjectBase.get<int>(this, 'compaignId') as int?;
+  @override
+  set compaignId(int? value) => RealmObjectBase.set(this, 'compaignId', value);
+
+  @override
+  int? get discountRate =>
+      RealmObjectBase.get<int>(this, 'discountRate') as int?;
+  @override
+  set discountRate(int? value) =>
+      RealmObjectBase.set(this, 'discountRate', value);
+
+  @override
+  DateTime? get createdAt =>
+      RealmObjectBase.get<DateTime>(this, 'createdAt') as DateTime?;
+  @override
+  set createdAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'createdAt', value);
+
+  @override
+  Stream<RealmObjectChanges<FlipperSaleCompaign>> get changes =>
+      RealmObjectBase.getChanges<FlipperSaleCompaign>(this);
+
+  @override
+  Stream<RealmObjectChanges<FlipperSaleCompaign>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<FlipperSaleCompaign>(this, keyPaths);
+
+  @override
+  FlipperSaleCompaign freeze() =>
+      RealmObjectBase.freezeObject<FlipperSaleCompaign>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'compaignId': compaignId.toEJson(),
+      'discountRate': discountRate.toEJson(),
+      'createdAt': createdAt.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(FlipperSaleCompaign value) => value.toEJson();
+  static FlipperSaleCompaign _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
+    return switch (ejson) {
+      {
+        '_id': EJsonValue realmId,
+      } =>
+        FlipperSaleCompaign(
+          fromEJson(realmId),
+          id: fromEJson(ejson['id']),
+          compaignId: fromEJson(ejson['compaignId']),
+          discountRate: fromEJson(ejson['discountRate']),
+          createdAt: fromEJson(ejson['createdAt']),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(FlipperSaleCompaign._);
+    register(_toEJson, _fromEJson);
+    return const SchemaObject(
+        ObjectType.realmObject, FlipperSaleCompaign, 'FlipperSaleCompaign', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('compaignId', RealmPropertyType.int, optional: true),
+      SchemaProperty('discountRate', RealmPropertyType.int, optional: true),
+      SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
     ]);
   }();
 

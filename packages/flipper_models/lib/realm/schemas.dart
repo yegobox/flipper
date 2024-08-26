@@ -997,7 +997,7 @@ class _Computed {
   double? totalStockValue = 0;
   double? totalStockSoldValue = 0;
   double? totalStockItems = 0;
-  // DateTime? createdAt = DateTime.now();
+  DateTime? createdAt;
 }
 
 @RealmModel()
@@ -1016,4 +1016,44 @@ class _Access {
   DateTime? createdAt;
   DateTime? expiresAt; // Optional expiration date
   String? status; // e.g., 'active', 'pending', 'revoked'
+}
+
+@RealmModel()
+class _PaymentPlan {
+  int? id;
+
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  int? businessId;
+
+  // Add your new fields
+  String?
+      selectedPlan; // Stores the chosen plan (e.g., 'Mobile', 'Mobile + Desktop', etc.)
+  int?
+      additionalDevices; // Number of additional devices (relevant for 'More than 3 Devices')
+  bool? isYearlyPlan; // Indicates whether the user chose a yearly plan
+  double? totalPrice; // The total price based on selected options
+  DateTime? createdAt;
+  bool? paymentCompletedByUser = false;
+  int? payStackCustomerId;
+  // this is the rule from which we will bill the customer again e.g monthly
+  String? rule;
+  String? paymentMethod;
+  String? customerCode;
+  String? payStackPlanId;
+}
+
+@RealmModel()
+class _FlipperSaleCompaign {
+  int? id;
+
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  int? compaignId;
+  int? discountRate;
+  DateTime? createdAt;
 }

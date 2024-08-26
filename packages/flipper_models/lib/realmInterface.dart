@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flipper_models/helperModels/paystack_customer.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
@@ -230,7 +231,6 @@ abstract class RealmApiInterface {
       required bool partOfComposite});
 
   void emptySentMessageQueue();
-  bool suggestRestore();
 
   Future<int> userNameAvailable(
       {required String name, required HttpClientInterface flipperHttpClient});
@@ -240,16 +240,8 @@ abstract class RealmApiInterface {
 
   Future<Tenant?> getTenantBYPin({required int pin});
 
-  Future<void> syncProduct(
-      {required Product product,
-      required Variant variant,
-      required Stock stock});
   bool isSubscribed({required String feature, required int businessId});
-  bool subscribe({
-    required String feature,
-    required int businessId,
-    required int agentCode,
-  });
+
   Future<bool> checkIn({required String? checkInCode});
   Future<bool> enableAttendance(
       {required int businessId, required String email});
@@ -461,4 +453,31 @@ abstract class RealmApiInterface {
   Stream<List<StockRequest>> requestsStream({required int branchId});
   List<StockRequest> requests({required int branchId});
   Tenant getTenant({required int userId});
+
+  Future<({String url, int userId, String customerCode})> subscribe(
+      {required int businessId,
+      required int agentCode,
+      required HttpClientInterface flipperHttpClient,
+      required int amount});
+
+  Future<bool> hasActiveSubscription(
+      {required int businessId,
+      required HttpClientInterface flipperHttpClient});
+
+  Future<PaymentPlan> saveOrUpdatePaymentPlan({
+    required int businessId,
+    required String selectedPlan,
+    required int additionalDevices,
+    required bool isYearlyPlan,
+    required double totalPrice,
+    required int payStackUserId,
+    required String paymentMethod,
+    String? customerCode,
+    required HttpClientInterface flipperHttpClient,
+  });
+  PaymentPlan? getPaymentPlan({required int businessId});
+  FlipperSaleCompaign? getLatestCompaign();
+  Stream<PaymentPlan?> paymentPlanStream({required int businessId});
+  Future<PayStackCustomer> getPayStackCustomer(
+      String customerCodeOrEmail, HttpClientInterface flipperHttpClient);
 }

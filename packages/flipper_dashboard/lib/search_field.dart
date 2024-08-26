@@ -136,14 +136,14 @@ class SearchFieldState extends ConsumerState<SearchField>
   IconButton calc({required CoreViewModel model}) {
     return IconButton(
       onPressed: () => _handleShowingCustomAmountCalculator(model: model),
-      icon: Icon(Icons.calculate_outlined, color: Colors.grey),
+      icon: Icon(FluentIcons.calculator_20_regular, color: Colors.grey),
     );
   }
 
   IconButton incomingButton() {
     return IconButton(
       onPressed: _handlePurchaseImport,
-      icon: Icon(Icons.close_fullscreen_outlined, color: Colors.grey),
+      icon: Icon(FluentIcons.expand_up_right_16_regular, color: Colors.grey),
     );
   }
 
@@ -158,8 +158,8 @@ class SearchFieldState extends ConsumerState<SearchField>
         }
       },
       icon: ref.watch(toggleProvider)
-          ? Icon(Icons.search, color: Colors.blue)
-          : Icon(Icons.search_off, color: Colors.grey),
+          ? Icon(FluentIcons.search_16_regular, color: Colors.blue)
+          : Icon(FluentIcons.search_16_regular, color: Colors.grey),
     );
   }
 
@@ -167,8 +167,8 @@ class SearchFieldState extends ConsumerState<SearchField>
     return IconButton(
       onPressed: hasText ? _clearSearchText : _handleAddProduct,
       icon: hasText
-          ? Icon(FluentIcons.dismiss_24_regular)
-          : Icon(FluentIcons.add_20_regular),
+          ? Icon(FluentIcons.dismiss_24_regular, color: Colors.grey)
+          : Icon(FluentIcons.add_20_regular, color: Colors.grey),
     );
   }
 

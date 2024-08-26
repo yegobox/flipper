@@ -7,12 +7,12 @@ part of 'favorite.dart';
 // **************************************************************************
 
 Favorite _$FavoriteFromJson(Map<String, dynamic> json) => Favorite(
-      favIndex: (json['favIndex'] as num?)?.toInt(),
-      productId: (json['productId'] as num?)?.toInt(),
-      branchId: (json['branchId'] as num?)?.toInt(),
+      favIndex: json['favIndex'] as int?,
+      productId: json['productId'] as int?,
+      branchId: json['branchId'] as int?,
       action: json['action'] as String,
     )
-      ..id = (json['id'] as num?)?.toInt()
+      ..id = json['id'] as int?
       ..lastTouched = json['lastTouched'] == null
           ? null
           : DateTime.parse(json['lastTouched'] as String)

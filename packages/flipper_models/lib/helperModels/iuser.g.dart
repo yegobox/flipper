@@ -7,7 +7,7 @@ part of 'iuser.dart';
 // **************************************************************************
 
 IUser _$IUserFromJson(Map<String, dynamic> json) => IUser(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as int?,
       phoneNumber: json['phoneNumber'] as String,
       token: json['token'] as String,
       uid: json['uid'] as String?,
@@ -16,7 +16,7 @@ IUser _$IUserFromJson(Map<String, dynamic> json) => IUser(
           .toList(),
       channels:
           (json['channels'] as List<dynamic>).map((e) => e as String).toList(),
-      pin: (json['pin'] as num?)?.toInt(),
+      pin: json['pin'] as int?,
     );
 
 Map<String, dynamic> _$IUserToJson(IUser instance) => <String, dynamic>{

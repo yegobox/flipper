@@ -1,11 +1,19 @@
+import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:flipper_models/helperModels/paystack_customer.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
-class PaymentPlan extends StatefulWidget {
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
+
+class PaymentPlanUI extends StatefulWidget {
   @override
-  _PaymentPlanState createState() => _PaymentPlanState();
+  _PaymentPlanUIState createState() => _PaymentPlanUIState();
 }
 
-class _PaymentPlanState extends State<PaymentPlan> {
+class _PaymentPlanUIState extends State<PaymentPlanUI> {
   String _selectedPlan = 'Mobile';
   int _additionalDevices = 0;
   bool _isYearlyPlan = false;
@@ -48,7 +56,7 @@ class _PaymentPlanState extends State<PaymentPlan> {
           key: Key('Scrollable'),
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              padding: EdgeInsets.symmetric(horizontal: 300.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -68,11 +76,11 @@ class _PaymentPlanState extends State<PaymentPlan> {
             ),
             Expanded(
               child: GridView.count(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                padding: EdgeInsets.symmetric(horizontal: 300.0),
                 crossAxisCount: 2,
                 childAspectRatio: 1.1,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                crossAxisSpacing: 5,
+                mainAxisSpacing: 5,
                 children: [
                   _buildPlanCard(
                       'Mobile',
@@ -102,7 +110,7 @@ class _PaymentPlanState extends State<PaymentPlan> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              padding: EdgeInsets.symmetric(horizontal: 300.0),
               child: Column(
                 children: [
                   if (_selectedPlan == 'More than 3 Devices')
@@ -211,7 +219,7 @@ class _PaymentPlanState extends State<PaymentPlan> {
           ],
         ),
         child: Padding(
-          padding: EdgeInsets.all(12),
+          padding: EdgeInsets.all(4),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -316,7 +324,36 @@ class _PaymentPlanState extends State<PaymentPlan> {
 
   Widget _buildProceedButton() {
     return ElevatedButton(
-      onPressed: () {
+      onPressed: () async {
+        String selectedPlan = _selectedPlan;
+        int additionalDevices =
+            _selectedPlan == 'More than 3 Devices' ? _additionalDevices : 0;
+        bool isYearlyPlan = _isYearlyPlan;
+        double totalPrice = _totalPrice;
+
+        try {
+          String userIdentifier = ProxyService.box.getUserPhone()!;
+
+          PayStackCustomer customer = await ProxyService.realm
+              .getPayStackCustomer(
+                  userIdentifier.toFlipperEmail(), ProxyService.http);
+
+          ProxyService.realm.saveOrUpdatePaymentPlan(
+              businessId: ProxyService.box.getBusinessId()!,
+              selectedPlan: selectedPlan,
+              paymentMethod:
+                  "Card", // set card as preferred, can be changed on finalization stage
+              flipperHttpClient: ProxyService.http,
+              additionalDevices: additionalDevices,
+              isYearlyPlan: isYearlyPlan,
+              payStackUserId: customer.data.id,
+              totalPrice: totalPrice);
+          locator<RouterService>().navigateTo(PaymentFinalizeRoute());
+        } catch (e, s) {
+          talker.warning(e);
+          talker.error(s);
+          rethrow;
+        }
         // Proceed to payment action
       },
       child: Text('Proceed to Payment',

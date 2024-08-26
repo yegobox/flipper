@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flipper_models/Subcriptions.dart';
+import 'package:flipper_models/helperModels/paystack_customer.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:path/path.dart' as p;
@@ -1703,30 +1704,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  bool subscribe(
-      {required String feature,
-      required int businessId,
-      required int agentCode}) {
-    // TODO: implement subscribe
-    throw UnimplementedError();
-  }
-
-  @override
-  bool suggestRestore() {
-    // TODO: implement suggestRestore
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> syncProduct(
-      {required Product product,
-      required Variant variant,
-      required Stock stock}) {
-    // TODO: implement syncProduct
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<Tenant>> tenants({int? businessId}) async {
     if (businessId != null) {
       return realm!.query<Tenant>(r'businessId == $0', [businessId]).toList();
@@ -3410,5 +3387,294 @@ class RealmAPI<M extends IJsonSerializable>
       RequestStatus.pending,
       RequestStatus.partiallyApproved
     ]).toList();
+  }
+
+  @override
+  Future<PayStackCustomer> getPayStackCustomer(
+      String customerCodeOrEmail, HttpClientInterface flipperHttpClient) async {
+    try {
+      final response = await flipperHttpClient.get(
+          Uri.parse('https://api.paystack.co/customer/$customerCodeOrEmail'),
+          headers: {'Authorization': 'Bearer ${AppSecrets.payStackApiKey}'});
+
+      if (response.statusCode == 200) {
+        final customerData = json.decode(response.body);
+        return PayStackCustomer.fromJson(customerData);
+      } else {
+        final errorData = json.decode(response.body);
+        throw CustomerNotFoundException(errorData['message']);
+      }
+    } catch (e) {
+      if (e is CustomerNotFoundException) {
+        rethrow;
+      }
+      throw Exception('Error fetching customer: $e');
+    }
+  }
+
+  Future<PayStackCustomer> _createCustomer(
+      {required String email,
+      required String firstName,
+      required String lastName,
+      required String phone,
+      required HttpClientInterface flipperHttpClient}) async {
+    final url = Uri.parse('https://api.paystack.co/customer');
+    final headers = {
+      'Authorization': 'Bearer ${AppSecrets.payStackApiKey}',
+      'Content-Type': 'application/json',
+    };
+    final body = json.encode({
+      'email': email,
+      'first_name': firstName,
+      'last_name': lastName,
+      'phone': phone,
+    });
+
+    try {
+      final response =
+          await flipperHttpClient.post(url, headers: headers, body: body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final customerData = json.decode(response.body);
+        return PayStackCustomer.fromJson(customerData);
+      } else {
+        throw Exception('Failed to create customer: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error creating customer: $e');
+    }
+  }
+
+  Future<String> _sendPaymentRequest(
+      {required String customerCode,
+      required int amount,
+      required String dueDate,
+      required HttpClientInterface flipperHttpClient}) async {
+    final url = Uri.parse('https://api.paystack.co/paymentrequest');
+    final headers = {
+      'Authorization': 'Bearer ${AppSecrets.payStackApiKey}',
+      'Content-Type': 'application/json',
+    };
+    final body = json.encode({
+      "description": "Flipper Subscription",
+      "line_items": [
+        {"name": "Flipper Subscription", "amount": amount}
+      ],
+      "tax": [
+        {"name": "VAT", "amount": (amount * 18 / 118)}
+      ],
+      "customer": customerCode,
+      "due_date": dueDate
+    });
+
+    try {
+      final response =
+          await flipperHttpClient.post(url, headers: headers, body: body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        final requestCode = responseData['data']['request_code'] as String;
+        return requestCode;
+      } else {
+        throw Exception(
+            'Failed to send payment request: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error sending payment request: $e');
+    }
+  }
+
+  String getDueDate() {
+    final now = DateTime.now();
+    final dueDate = now.add(Duration(days: 30));
+    return dueDate.toIso8601String().split('T')[0];
+  }
+
+  @override
+  Future<({String url, int userId, String customerCode})> subscribe(
+      {required int businessId,
+      required int agentCode,
+      required HttpClientInterface flipperHttpClient,
+      required int amount}) async {
+    String? renderableLink;
+    int? userId;
+    String? customerCode;
+
+    // Get the user identifier (assumed to be the phone number)
+    String userIdentifier = ProxyService.box.getUserPhone()!;
+
+    try {
+      // Attempt to retrieve an existing PayStack customer
+      PayStackCustomer customer = await getPayStackCustomer(
+          userIdentifier.toFlipperEmail(), flipperHttpClient);
+      // Customer found, proceed to initiate a payment request
+      renderableLink = await _initiatePayment(
+          flipperHttpClient, customer.data.customerCode,
+          amount: amount);
+      userId = customer.data.id;
+      customerCode = customer.data.customerCode;
+    } on CustomerNotFoundException {
+      // Customer not found, create a new customer
+      Business business = ProxyService.local.getBusiness();
+      PayStackCustomer newCustomer = await _createCustomer(
+        flipperHttpClient: flipperHttpClient,
+        email: userIdentifier.toFlipperEmail(),
+        firstName: business.name!,
+        lastName: business.name!,
+        phone: userIdentifier.replaceAll("+", ""),
+      );
+      // New customer created, initiate a payment request
+      renderableLink = await _initiatePayment(
+          flipperHttpClient, newCustomer.data.customerCode,
+          amount: amount);
+      userId = newCustomer.data.id;
+      customerCode = newCustomer.data.customerCode;
+    } catch (e) {
+      print('Error: $e');
+      // Handle any other errors
+    }
+
+    return (
+      url: "https://paystack.com/pay/${renderableLink}",
+      userId: userId!,
+      customerCode: customerCode!
+    );
+  }
+
+  Future<String> _initiatePayment(
+      HttpClientInterface flipperHttpClient, String customerCode,
+      {required int amount}) async {
+    String dueDate = getDueDate();
+    try {
+      String paymentRequestResult = await _sendPaymentRequest(
+        flipperHttpClient: flipperHttpClient,
+        customerCode: customerCode,
+        amount: amount * 100,
+        dueDate: dueDate,
+      );
+      talker.warning("Renderable $paymentRequestResult");
+      return paymentRequestResult;
+    } catch (e) {
+      print('Payment Error: $e');
+      throw e; // Re-throw to be caught in the parent function
+    }
+  }
+
+  @override
+  Future<bool> hasActiveSubscription(
+      {required int businessId,
+      required HttpClientInterface flipperHttpClient}) async {
+    PaymentPlan? plan = getPaymentPlan(businessId: businessId);
+    // await realm?.subscriptions.waitForSynchronization();
+
+    /// paymentCompletedByUser is false when a user did not complete payment or there is due payment failed etc...
+    if (plan == null) {
+      throw SubscriptionError(
+          term: "Please update the payment as payment has failed");
+    } else if (!plan.paymentCompletedByUser!) {
+      throw FailedPaymentException(
+          "payment Failed please re-activate your payment method");
+    }
+
+    return true;
+  }
+
+  @override
+  Future<PaymentPlan> saveOrUpdatePaymentPlan(
+      {required int businessId,
+      required String selectedPlan,
+      required int additionalDevices,
+      required bool isYearlyPlan,
+      required double totalPrice,
+      String? customerCode,
+      required String paymentMethod,
+      required int payStackUserId,
+      required HttpClientInterface flipperHttpClient}) async {
+    try {
+      // Find the existing PaymentPlan or create a new one
+      PaymentPlan paymentPlan = realm!.query<PaymentPlan>(
+              r'businessId == $0', [businessId]).firstOrNull ??
+          PaymentPlan(
+            ObjectId(),
+            businessId: businessId,
+            selectedPlan: selectedPlan,
+            paymentMethod: paymentMethod,
+            additionalDevices: additionalDevices,
+            isYearlyPlan: isYearlyPlan,
+            customerCode: customerCode,
+            totalPrice: totalPrice,
+            createdAt: DateTime.now(),
+            id: randomNumber(),
+          );
+
+      // If the paymentPlan already exists, update its fields with the new values
+      realm!.write(() {
+        paymentPlan.customerCode = customerCode ?? paymentPlan.customerCode;
+        paymentPlan.selectedPlan = selectedPlan;
+        paymentPlan.additionalDevices = additionalDevices;
+        paymentPlan.isYearlyPlan = isYearlyPlan;
+        paymentPlan.rule = isYearlyPlan ? 'yearly' : 'monthly';
+        paymentPlan.totalPrice = totalPrice;
+        paymentPlan.paymentMethod = paymentMethod;
+        paymentPlan.paymentCompletedByUser = false;
+
+        paymentPlan.payStackCustomerId = payStackUserId;
+
+        // Save or update the payment plan in the Realm database
+        realm!.add<PaymentPlan>(paymentPlan, update: true);
+      });
+
+      // For debugging or confirmation
+      print('Saved PaymentPlan: $selectedPlan');
+      print('Additional Devices: $additionalDevices');
+      print('Is Yearly Plan: $isYearlyPlan');
+      print('Total Price: $totalPrice RWF');
+
+      // Return the PaymentPlan
+      return realm!.query<PaymentPlan>(r'businessId == $0', [businessId]).first;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  PaymentPlan? getPaymentPlan({required int businessId}) {
+    return realm!
+        .query<PaymentPlan>(r'businessId == $0', [businessId]).firstOrNull;
+  }
+
+  @override
+  FlipperSaleCompaign? getLatestCompaign() {
+    try {
+      return realm!
+          .query<FlipperSaleCompaign>('TRUEPREDICATE SORT(createdAt DESC)')
+          .firstOrNull;
+    } catch (e, s) {
+      talker.warning(e);
+      talker.error(s);
+      rethrow;
+    }
+  }
+
+  @override
+  Stream<PaymentPlan?> paymentPlanStream({required int businessId}) {
+    try {
+      if (realm == null) {
+        return Stream.value(null);
+      }
+
+      final query = realm!.query<PaymentPlan>(
+          r'businessId == $0 && paymentCompletedByUser == $1',
+          [businessId, true]);
+
+      return query.changes
+          .map((event) => event.results.isNotEmpty ? event.results.first : null)
+          .distinct()
+          .asBroadcastStream();
+    } catch (e, s) {
+      talker.warning(e);
+      talker.warning(s);
+      rethrow;
+    }
   }
 }

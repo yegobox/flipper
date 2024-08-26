@@ -60,6 +60,14 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    FailedPaymentRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.FailedPayment(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     LoginViewRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
@@ -605,6 +613,22 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    PaymentPlanUIRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.PaymentPlanUI(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    PaymentFinalizeRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.PaymentFinalize(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
   };
 
   @override
@@ -620,6 +644,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         _i4.RouteConfig(
           FlipperAppRoute.name,
           path: '/flipper-app',
+        ),
+        _i4.RouteConfig(
+          FailedPaymentRoute.name,
+          path: '/failed-payment',
         ),
         _i4.RouteConfig(
           LoginViewRoute.name,
@@ -821,6 +849,14 @@ class StackedRouterWeb extends _i4.RootStackRouter {
           QuickSellingViewRoute.name,
           path: '/quick-selling-view',
         ),
+        _i4.RouteConfig(
+          PaymentPlanUIRoute.name,
+          path: '/payment-plan-uI',
+        ),
+        _i4.RouteConfig(
+          PaymentFinalizeRoute.name,
+          path: '/payment-finalize',
+        ),
       ];
 }
 
@@ -902,6 +938,18 @@ class FlipperAppRoute extends _i4.PageRouteInfo<void> {
         );
 
   static const String name = 'FlipperApp';
+}
+
+/// generated route for
+/// [_i1.FailedPayment]
+class FailedPaymentRoute extends _i4.PageRouteInfo<void> {
+  const FailedPaymentRoute()
+      : super(
+          FailedPaymentRoute.name,
+          path: '/failed-payment',
+        );
+
+  static const String name = 'FailedPayment';
 }
 
 /// generated route for
@@ -2291,6 +2339,30 @@ class QuickSellingViewArgs {
   }
 }
 
+/// generated route for
+/// [_i1.PaymentPlanUI]
+class PaymentPlanUIRoute extends _i4.PageRouteInfo<void> {
+  const PaymentPlanUIRoute()
+      : super(
+          PaymentPlanUIRoute.name,
+          path: '/payment-plan-uI',
+        );
+
+  static const String name = 'PaymentPlanUI';
+}
+
+/// generated route for
+/// [_i1.PaymentFinalize]
+class PaymentFinalizeRoute extends _i4.PageRouteInfo<void> {
+  const PaymentFinalizeRoute()
+      : super(
+          PaymentFinalizeRoute.name,
+          path: '/payment-finalize',
+        );
+
+  static const String name = 'PaymentFinalize';
+}
+
 extension RouterStateExtension on _i3.RouterService {
   Future<dynamic> navigateToStartUpView({
     _i5.Key? key,
@@ -2324,6 +2396,14 @@ extension RouterStateExtension on _i3.RouterService {
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const FlipperAppRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToFailedPayment(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const FailedPaymentRoute(),
       onFailure: onFailure,
     );
   }
@@ -2969,6 +3049,22 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
+  Future<dynamic> navigateToPaymentPlanUI(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const PaymentPlanUIRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToPaymentFinalize(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const PaymentFinalizeRoute(),
+      onFailure: onFailure,
+    );
+  }
+
   Future<dynamic> replaceWithStartUpView({
     _i5.Key? key,
     bool? invokeLogin,
@@ -3001,6 +3097,14 @@ extension RouterStateExtension on _i3.RouterService {
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const FlipperAppRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithFailedPayment(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const FailedPaymentRoute(),
       onFailure: onFailure,
     );
   }
@@ -3642,6 +3746,22 @@ extension RouterStateExtension on _i3.RouterService {
         customerPhoneNumberController: customerPhoneNumberController,
         paymentTypeController: paymentTypeController,
       ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithPaymentPlanUI(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const PaymentPlanUIRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithPaymentFinalize(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const PaymentFinalizeRoute(),
       onFailure: onFailure,
     );
   }

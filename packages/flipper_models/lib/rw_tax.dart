@@ -11,6 +11,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/tax_api.dart';
+// ignore: unused_import
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;

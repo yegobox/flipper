@@ -7,7 +7,7 @@ part of 'tenant.dart';
 // **************************************************************************
 
 ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
-      id: (json['id'] as num).toInt(),
+      id: json['id'] as int,
       name: json['name'] as String,
       phoneNumber: json['phoneNumber'] as String,
       email: json['email'] as String?,
@@ -20,12 +20,12 @@ ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
       businesses: (json['businesses'] as List<dynamic>)
           .map((e) => IBusiness.fromJson(e as Map<String, dynamic>))
           .toList(),
-      businessId: (json['businessId'] as num).toInt(),
+      businessId: json['businessId'] as int,
       nfcEnabled: json['nfcEnabled'] as bool,
-      userId: (json['userId'] as num).toInt(),
+      userId: json['userId'] as int,
       isDefault: json['isDefault'] as bool,
       isLongPressed: json['isLongPressed'] as bool? ?? false,
-      pin: (json['pin'] as num?)?.toInt(),
+      pin: json['pin'] as int?,
     );
 
 Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{

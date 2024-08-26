@@ -11,7 +11,7 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer(
       email: json['email'] as String,
       telNo: json['telNo'] as String,
       adrs: json['adrs'] as String?,
-      branchId: (json['branchId'] as num).toInt(),
+      branchId: json['branchId'] as int,
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),
@@ -22,7 +22,7 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer(
       modrNm: json['modrNm'] as String,
       modrId: json['modrId'] as String,
       ebmSynced: json['ebmSynced'] as bool? ?? false,
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as int?,
       action: json['action'] as String,
       lastTouched: json['lastTouched'] == null
           ? null

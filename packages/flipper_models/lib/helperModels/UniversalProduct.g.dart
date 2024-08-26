@@ -10,13 +10,13 @@ UniversalProduct _$UniversalProductFromJson(Map<String, dynamic> json) =>
     UniversalProduct(
       itemClsCd: json['itemClsCd'] as String?,
       itemClsNm: json['itemClsNm'] as String?,
-      itemClsLvl: (json['itemClsLvl'] as num?)?.toInt(),
+      itemClsLvl: json['itemClsLvl'] as int?,
       mjrTgYn: json['mjrTgYn'] as String?,
       useYn: json['useYn'] as String?,
     )
       ..taxTyCd = json['taxTyCd'] as String?
-      ..businessId = (json['businessId'] as num?)?.toInt()
-      ..branchId = (json['branchId'] as num?)?.toInt();
+      ..businessId = json['businessId'] as int?
+      ..branchId = json['branchId'] as int?;
 
 Map<String, dynamic> _$UniversalProductToJson(UniversalProduct instance) =>
     <String, dynamic>{

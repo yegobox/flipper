@@ -7,10 +7,10 @@ part of 'token.dart';
 // **************************************************************************
 
 Token _$TokenFromJson(Map<String, dynamic> json) => Token(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as int?,
       type: json['type'] as String,
       token: json['token'] as String?,
-      businessId: (json['businessId'] as num).toInt(),
+      businessId: json['businessId'] as int,
       validFrom: json['validFrom'] == null
           ? null
           : DateTime.parse(json['validFrom'] as String),

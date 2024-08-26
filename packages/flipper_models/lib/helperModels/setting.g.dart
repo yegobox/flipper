@@ -7,10 +7,10 @@ part of 'setting.dart';
 // **************************************************************************
 
 Setting _$SettingFromJson(Map<String, dynamic> json) => Setting(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as int?,
       email: json['email'] as String?,
       hasPin: json['hasPin'] as String?,
-      userId: (json['userId'] as num?)?.toInt(),
+      userId: json['userId'] as int?,
       type: json['type'] as String?,
       autoPrint: json['autoPrint'] as bool?,
       openReceiptFileOSaleComplete:
@@ -23,7 +23,7 @@ Setting _$SettingFromJson(Map<String, dynamic> json) => Setting(
       deviceToken: json['deviceToken'] as String?,
       businessPhoneNumber: json['businessPhoneNumber'] as String?,
       autoRespond: json['autoRespond'] as bool?,
-      businessId: (json['businessId'] as num?)?.toInt(),
+      businessId: json['businessId'] as int?,
       createdAt: json['createdAt'] as String?,
       token: json['token'] as String?,
       deletedAt: json['deletedAt'] == null

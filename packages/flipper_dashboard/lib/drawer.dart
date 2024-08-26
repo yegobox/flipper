@@ -216,8 +216,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
       });
     }
     await logOut();
-    ProxyService.local.clearData(data: ClearData.Branch);
-    ProxyService.local.clearData(data: ClearData.Business);
+
     _routerService.navigateTo(LoginViewRoute());
   }
 
@@ -227,8 +226,6 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
       child: TextButton(
         key: const Key('logoutButton'),
         onPressed: () async {
-          ProxyService.local.clearData(data: ClearData.Branch);
-          ProxyService.local.clearData(data: ClearData.Business);
           await logOut();
           _routerService.navigateTo(LoginViewRoute());
         },
