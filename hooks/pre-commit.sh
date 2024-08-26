@@ -9,6 +9,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Check if a rebase is in progress
+if [ -d ".git/rebase-merge" ] || [ -d ".git/rebase-apply" ]; then
+  echo "Rebase in progress, skipping version increment..."
+  exit 0
+fi
+
 # Check if the lock file exists
 if [ -f "$LOCKFILE" ]; then
   echo "Script is already running. Exiting..."
