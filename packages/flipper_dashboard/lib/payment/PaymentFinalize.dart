@@ -117,9 +117,6 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
       isLoading = true;
     });
 
-    /// TODO: implement agent model later.
-    print(selectedCountry);
-    print(selectedPaymentMethod);
     PaymentPlan paymentPlan = ProxyService.realm
         .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!)!;
 
@@ -135,7 +132,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
     }
 
     if (selectedPaymentMethod == "Card") {
-      final (:url, :userId) = await ProxyService.realm.subscribe(
+      final (:url, :userId, :customerCode) = await ProxyService.realm.subscribe(
         businessId: ProxyService.box.getBusinessId()!,
         agentCode: 1,
         flipperHttpClient: ProxyService.http,
@@ -146,6 +143,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
           businessId: paymentPlan.businessId!,
           selectedPlan: paymentPlan.selectedPlan!,
           paymentMethod: selectedPaymentMethod,
+          customerCode: customerCode,
           additionalDevices: paymentPlan.additionalDevices!,
           isYearlyPlan: paymentPlan.isYearlyPlan!,
           totalPrice: paymentPlan.totalPrice!,

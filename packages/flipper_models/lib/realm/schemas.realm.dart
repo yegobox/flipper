@@ -7959,6 +7959,8 @@ class PaymentPlan extends _PaymentPlan
     int? payStackCustomerId,
     String? rule,
     String? paymentMethod,
+    String? customerCode,
+    String? payStackPlanId,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<PaymentPlan>({
@@ -7977,6 +7979,8 @@ class PaymentPlan extends _PaymentPlan
     RealmObjectBase.set(this, 'payStackCustomerId', payStackCustomerId);
     RealmObjectBase.set(this, 'rule', rule);
     RealmObjectBase.set(this, 'paymentMethod', paymentMethod);
+    RealmObjectBase.set(this, 'customerCode', customerCode);
+    RealmObjectBase.set(this, 'payStackPlanId', payStackPlanId);
   }
 
   PaymentPlan._();
@@ -8059,6 +8063,20 @@ class PaymentPlan extends _PaymentPlan
       RealmObjectBase.set(this, 'paymentMethod', value);
 
   @override
+  String? get customerCode =>
+      RealmObjectBase.get<String>(this, 'customerCode') as String?;
+  @override
+  set customerCode(String? value) =>
+      RealmObjectBase.set(this, 'customerCode', value);
+
+  @override
+  String? get payStackPlanId =>
+      RealmObjectBase.get<String>(this, 'payStackPlanId') as String?;
+  @override
+  set payStackPlanId(String? value) =>
+      RealmObjectBase.set(this, 'payStackPlanId', value);
+
+  @override
   Stream<RealmObjectChanges<PaymentPlan>> get changes =>
       RealmObjectBase.getChanges<PaymentPlan>(this);
 
@@ -8084,6 +8102,8 @@ class PaymentPlan extends _PaymentPlan
       'payStackCustomerId': payStackCustomerId.toEJson(),
       'rule': rule.toEJson(),
       'paymentMethod': paymentMethod.toEJson(),
+      'customerCode': customerCode.toEJson(),
+      'payStackPlanId': payStackPlanId.toEJson(),
     };
   }
 
@@ -8108,6 +8128,8 @@ class PaymentPlan extends _PaymentPlan
           payStackCustomerId: fromEJson(ejson['payStackCustomerId']),
           rule: fromEJson(ejson['rule']),
           paymentMethod: fromEJson(ejson['paymentMethod']),
+          customerCode: fromEJson(ejson['customerCode']),
+          payStackPlanId: fromEJson(ejson['payStackPlanId']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -8134,6 +8156,9 @@ class PaymentPlan extends _PaymentPlan
           optional: true),
       SchemaProperty('rule', RealmPropertyType.string, optional: true),
       SchemaProperty('paymentMethod', RealmPropertyType.string, optional: true),
+      SchemaProperty('customerCode', RealmPropertyType.string, optional: true),
+      SchemaProperty('payStackPlanId', RealmPropertyType.string,
+          optional: true),
     ]);
   }();
 

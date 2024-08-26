@@ -454,7 +454,7 @@ abstract class RealmApiInterface {
   List<StockRequest> requests({required int branchId});
   Tenant getTenant({required int userId});
 
-  Future<({String url, int userId})> subscribe(
+  Future<({String url, int userId, String customerCode})> subscribe(
       {required int businessId,
       required int agentCode,
       required HttpClientInterface flipperHttpClient,
@@ -472,6 +472,7 @@ abstract class RealmApiInterface {
     required double totalPrice,
     required int payStackUserId,
     required String paymentMethod,
+    String? customerCode,
     required HttpClientInterface flipperHttpClient,
   });
   PaymentPlan? getPaymentPlan({required int businessId});

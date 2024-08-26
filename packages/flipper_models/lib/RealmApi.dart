@@ -3491,13 +3491,14 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<({String url, int userId})> subscribe(
+  Future<({String url, int userId, String customerCode})> subscribe(
       {required int businessId,
       required int agentCode,
       required HttpClientInterface flipperHttpClient,
       required int amount}) async {
     String? renderableLink;
     int? userId;
+    String? customerCode;
 
     // Get the user identifier (assumed to be the phone number)
     String userIdentifier = ProxyService.box.getUserPhone()!;
@@ -3511,6 +3512,7 @@ class RealmAPI<M extends IJsonSerializable>
           flipperHttpClient, customer.data.customerCode,
           amount: amount);
       userId = customer.data.id;
+      customerCode = customer.data.customerCode;
     } on CustomerNotFoundException {
       // Customer not found, create a new customer
       Business business = ProxyService.local.getBusiness();
@@ -3526,12 +3528,17 @@ class RealmAPI<M extends IJsonSerializable>
           flipperHttpClient, newCustomer.data.customerCode,
           amount: amount);
       userId = newCustomer.data.id;
+      customerCode = newCustomer.data.customerCode;
     } catch (e) {
       print('Error: $e');
       // Handle any other errors
     }
 
-    return (url: "https://paystack.com/pay/${renderableLink}", userId: userId!);
+    return (
+      url: "https://paystack.com/pay/${renderableLink}",
+      userId: userId!,
+      customerCode: customerCode!
+    );
   }
 
   Future<String> _initiatePayment(
@@ -3579,6 +3586,7 @@ class RealmAPI<M extends IJsonSerializable>
       required int additionalDevices,
       required bool isYearlyPlan,
       required double totalPrice,
+      String? customerCode,
       required String paymentMethod,
       required int payStackUserId,
       required HttpClientInterface flipperHttpClient}) async {
@@ -3593,6 +3601,7 @@ class RealmAPI<M extends IJsonSerializable>
             paymentMethod: paymentMethod,
             additionalDevices: additionalDevices,
             isYearlyPlan: isYearlyPlan,
+            customerCode: customerCode,
             totalPrice: totalPrice,
             createdAt: DateTime.now(),
             id: randomNumber(),
@@ -3600,6 +3609,7 @@ class RealmAPI<M extends IJsonSerializable>
 
       // If the paymentPlan already exists, update its fields with the new values
       realm!.write(() {
+        paymentPlan.customerCode = customerCode ?? paymentPlan.customerCode;
         paymentPlan.selectedPlan = selectedPlan;
         paymentPlan.additionalDevices = additionalDevices;
         paymentPlan.isYearlyPlan = isYearlyPlan;

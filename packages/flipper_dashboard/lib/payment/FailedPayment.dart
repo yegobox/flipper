@@ -146,7 +146,8 @@ class FailedPayment extends HookConsumerWidget {
     if (plan.paymentMethod == "Card") {
       isLoading.value = true;
       try {
-        final (:url, :userId) = await ProxyService.realm.subscribe(
+        final (:url, :userId, :customerCode) =
+            await ProxyService.realm.subscribe(
           businessId: ProxyService.box.getBusinessId() ?? 0,
           agentCode: 1,
           flipperHttpClient: ProxyService.http,
@@ -174,18 +175,18 @@ class FailedPayment extends HookConsumerWidget {
   }
 
   Future<void> _waitForPaymentCompletion(PaymentPlan plan) async {
-    const maxAttempts = 10;
     const delayBetweenAttempts = Duration(seconds: 5);
 
-    for (int i = 0; i < maxAttempts; i++) {
+    while (true) {
       await ProxyService.realm.realm?.subscriptions.waitForSynchronization();
       PaymentPlan? planUpdated =
           ProxyService.realm.getPaymentPlan(businessId: plan.businessId ?? 0);
+
       if (planUpdated != null && planUpdated.paymentCompletedByUser == true) {
-        return;
+        return; // Exit the loop and complete the function once payment is completed
       }
-      await Future.delayed(delayBetweenAttempts);
+
+      await Future.delayed(delayBetweenAttempts); // Wait before checking again
     }
-    throw Exception('Payment completion timeout');
   }
 }
