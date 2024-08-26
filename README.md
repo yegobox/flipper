@@ -58,7 +58,7 @@ please see our [support guide](SUPPORT.md).
 
 ## Community
 
-<img src=".github/assets/Flipper-ducky.png" width=200 alt="Flipper's Mascot, Ducky,
+<img src=".github/assets/ente-ducky.png" width=200 alt="Flipper's Mascot, Ducky,
     inviting people to Flipper's source code repository" />
 
 Please visit our [community page](https://yegobox.com/community) for all the ways to
