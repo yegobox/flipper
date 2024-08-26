@@ -1,6 +1,6 @@
 <div align="cFlipperr">
 
-<img src=".github/assets/Flipper-rocketship.png" width="400"/>
+<img src=".github/assets/ente-ducky.png" width="400"/>
 
 A revolutionaly business software and more.
 
