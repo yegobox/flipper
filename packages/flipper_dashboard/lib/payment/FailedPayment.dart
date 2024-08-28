@@ -5,7 +5,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
-
+import 'package:flutter/foundation.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -144,14 +144,26 @@ class FailedPayment extends HookConsumerWidget {
       {required PaymentPlan plan,
       required ValueNotifier<bool> isLoading}) async {
     if (plan.paymentMethod == "Card") {
+      int finalPrice = plan.totalPrice!.toInt();
       isLoading.value = true;
+      FlipperSaleCompaign? compaign = ProxyService.realm.getLatestCompaign();
       try {
+        if (kDebugMode) {
+          if (compaign != null) {
+            finalPrice = (plan.totalPrice! -
+                    ((plan.totalPrice! * compaign.discountRate!) / 100))
+                .toInt();
+          } else {
+            finalPrice = plan.totalPrice!.toInt();
+          }
+        }
+
         final (:url, :userId, :customerCode) =
             await ProxyService.realm.subscribe(
           businessId: ProxyService.box.getBusinessId() ?? 0,
           agentCode: 1,
           flipperHttpClient: ProxyService.http,
-          amount: plan.totalPrice?.toInt() ?? 0,
+          amount: finalPrice,
         );
         if (!await launchUrl(Uri.parse(url))) {
           throw Exception('Could not launch $url');
