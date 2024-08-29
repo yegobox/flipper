@@ -337,7 +337,9 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
 
           PayStackCustomer customer = await ProxyService.realm
               .getPayStackCustomer(
-                  userIdentifier.toFlipperEmail(), ProxyService.http);
+                  business: ProxyService.local.getBusiness(),
+                  userIdentifier.toFlipperEmail(),
+                  ProxyService.http);
 
           ProxyService.realm.saveOrUpdatePaymentPlan(
               businessId: ProxyService.box.getBusinessId()!,

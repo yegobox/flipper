@@ -63,6 +63,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         businessId: ProxyService.box.getBusinessId()!,
         encryptionKey: ProxyService.box.encryptionKey(),
       );
+      await ProxyService.local.configureLocal(useInMemory: false);
     }
   }
 

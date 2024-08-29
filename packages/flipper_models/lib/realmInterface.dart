@@ -456,6 +456,7 @@ abstract class RealmApiInterface {
 
   Future<({String url, int userId, String customerCode})> subscribe(
       {required int businessId,
+      required Business business,
       required int agentCode,
       required HttpClientInterface flipperHttpClient,
       required int amount});
@@ -479,7 +480,8 @@ abstract class RealmApiInterface {
   FlipperSaleCompaign? getLatestCompaign();
   Stream<PaymentPlan?> paymentPlanStream({required int businessId});
   Future<PayStackCustomer> getPayStackCustomer(
-      String customerCodeOrEmail, HttpClientInterface flipperHttpClient);
+      String customerCodeOrEmail, HttpClientInterface flipperHttpClient,
+      {required Business business});
   Stream<List<TransactionItem>> transactionItemList(
       {DateTime? startDate, DateTime? endDate, bool? isPluReport});
 }

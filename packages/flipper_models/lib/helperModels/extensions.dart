@@ -58,7 +58,6 @@ extension CurrencyFormatExtension on num {
   }
 }
 
-
 extension DoubleExtension on double {
   double toPrecision(int fractionDigits) {
     final factor = pow(10, fractionDigits);
@@ -215,6 +214,8 @@ extension StringExtension on String {
     if (this.contains('@')) {
       return this;
     }
-    return this.replaceFirst('+', '') + '@flipper.rw';
+    // return a defaul email
+    return 'yegobox@gmail.com';
+    // return this.replaceFirst('+', '') + '@flipper.rw';
   }
 }

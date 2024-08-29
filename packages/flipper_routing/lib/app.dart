@@ -591,3 +591,6 @@ class App {}
 
 //TODO:Testing https://seniorturkmen.medium.com/managing-multi-package-flutter-projects-with-melos-a-leap-towards-efficient-development-a305e696fe73
 // https://medium.com/@meliksahcakirr/unit-tests-and-coverage-reports-in-multi-package-flutter-project-5b0ce47d2fc2
+
+// Have been looking to how I can build rust + flutter here is solution
+// https://github.com/AppFlowy-IO/AppFlowy/tree/main/frontend/rust-lib/flowy-ai

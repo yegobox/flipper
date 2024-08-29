@@ -3391,7 +3391,8 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<PayStackCustomer> getPayStackCustomer(
-      String customerCodeOrEmail, HttpClientInterface flipperHttpClient) async {
+      String customerCodeOrEmail, HttpClientInterface flipperHttpClient,
+      {required Business business}) async {
     try {
       final response = await flipperHttpClient.get(
           Uri.parse('https://api.paystack.co/customer/$customerCodeOrEmail'),
@@ -3401,10 +3402,19 @@ class RealmAPI<M extends IJsonSerializable>
         final customerData = json.decode(response.body);
         return PayStackCustomer.fromJson(customerData);
       } else {
-        final errorData = json.decode(response.body);
-        throw CustomerNotFoundException(errorData['message']);
+        // final errorData = json.decode(response.body);
+        // throw CustomerNotFoundException(errorData['message']);
+        PayStackCustomer customer = await _createCustomer(
+          flipperHttpClient: flipperHttpClient,
+          email: customerCodeOrEmail,
+          phone: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
+          firstName: business.firstName ?? "",
+          lastName: business.lastName ?? "",
+        );
+        return customer;
       }
-    } catch (e) {
+    } catch (e, s) {
+      talker.error(s);
       if (e is CustomerNotFoundException) {
         rethrow;
       }
@@ -3427,7 +3437,7 @@ class RealmAPI<M extends IJsonSerializable>
       'email': email,
       'first_name': firstName,
       'last_name': lastName,
-      'phone': phone,
+      'phone': phone.replaceAll("+", ""),
     });
 
     try {
@@ -3460,11 +3470,11 @@ class RealmAPI<M extends IJsonSerializable>
       "line_items": [
         {"name": "Flipper Subscription", "amount": amount}
       ],
-      "tax": [
-        {"name": "VAT", "amount": (amount * 18 / 118)}
-      ],
-      "customer": customerCode,
-      "due_date": dueDate
+      // FIXME: maybe adding this cause payment to fail
+      // "tax": [
+      //   {"name": "VAT", "amount": (amount * 18 / 118)}
+      // ],
+      "customer": customerCode
     });
 
     try {
@@ -3494,6 +3504,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<({String url, int userId, String customerCode})> subscribe(
       {required int businessId,
       required int agentCode,
+      required Business business,
       required HttpClientInterface flipperHttpClient,
       required int amount}) async {
     String? renderableLink;
@@ -3506,7 +3517,9 @@ class RealmAPI<M extends IJsonSerializable>
     try {
       // Attempt to retrieve an existing PayStack customer
       PayStackCustomer customer = await getPayStackCustomer(
-          userIdentifier.toFlipperEmail(), flipperHttpClient);
+          business: business,
+          userIdentifier.toFlipperEmail(),
+          flipperHttpClient);
       // Customer found, proceed to initiate a payment request
       renderableLink = await _initiatePayment(
           flipperHttpClient, customer.data.customerCode,
