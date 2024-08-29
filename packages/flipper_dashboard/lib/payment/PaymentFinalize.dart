@@ -9,6 +9,8 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+import 'package:flutter/foundation.dart' as foundation;
+
 class PaymentFinalize extends StatefulWidget {
   @override
   _PaymentFinalizeState createState() => _PaymentFinalizeState();
@@ -18,6 +20,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
   String selectedCountry = 'Other';
   String selectedPaymentMethod = 'Card';
   bool isLoading = false;
+  bool v1Active = true;
 
   @override
   Widget build(BuildContext context) {
@@ -129,49 +132,84 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
       finalPrice = paymentPlan.totalPrice!.toInt();
     }
 
-    if (selectedPaymentMethod == "Card") {
-      final (:url, :userId, :customerCode) = await ProxyService.realm.subscribe(
-        businessId: ProxyService.box.getBusinessId()!,
-        agentCode: 1,
-        flipperHttpClient: ProxyService.http,
-        amount: finalPrice,
-      );
-
-      await ProxyService.realm.saveOrUpdatePaymentPlan(
-          businessId: paymentPlan.businessId!,
-          selectedPlan: paymentPlan.selectedPlan!,
-          paymentMethod: selectedPaymentMethod,
-          customerCode: customerCode,
-          additionalDevices: paymentPlan.additionalDevices!,
-          isYearlyPlan: paymentPlan.isYearlyPlan!,
-          totalPrice: paymentPlan.totalPrice!,
-          flipperHttpClient: ProxyService.http,
-          payStackUserId: userId);
-      if (!await launchUrl(Uri.parse(url))) {
-        throw Exception('Could not launch $url');
+    /// 5K monthly: https://paystack.com/pay/jf6paowj7x
+    /// 15 monthly: https://paystack.com/pay/rupoifa1k0
+    /// 30k monthly: Flipper Subscription Monthly
+    /// 120K Monthly: https://paystack.com/pay/00jh5ns9ob
+    if (!foundation.kDebugMode) {
+      if (!await launchUrl(Uri.parse("https://paystack.com/pay/t7wr6d5z2h"))) {
+        throw Exception('Could not launch url');
       }
-      bool keepLoop = true;
-      do {
-        /// force instant update from remote db
-        await ProxyService.realm.realm?.subscriptions.waitForSynchronization();
-        PaymentPlan? plan = ProxyService.realm
-            .getPaymentPlan(businessId: paymentPlan.businessId!);
-        if (plan != null && plan.paymentCompletedByUser!) {
-          talker.warning("A user has Completed payment");
-          keepLoop = false;
-          setState(() {
-            isLoading = false;
-          });
-          locator<RouterService>().navigateTo(FlipperAppRoute());
+    }
+    if (v1Active && !foundation.kDebugMode) {
+      if (paymentPlan.totalPrice!.toInt() == 5000) {
+        if (!await launchUrl(
+            Uri.parse("https://paystack.com/pay/jf6paowj7x"))) {
+          throw Exception('Could not launch url');
         }
-      } while (keepLoop);
+      }
+      if (paymentPlan.totalPrice!.toInt() == 30000) {
+        if (!await launchUrl(
+            Uri.parse("https://paystack.com/pay/jf6paowj7x"))) {
+          throw Exception('Could not launch url');
+        }
+      }
+      if (paymentPlan.totalPrice!.toInt() == 120000) {
+        if (!await launchUrl(
+            Uri.parse("https://paystack.com/pay/jf6paowj7x"))) {
+          throw Exception('Could not launch url');
+        }
+      }
 
-      /// listen on stream to check if payment has been completed by a user
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      toast("Mobile Money payment coming soon, choose card payment");
+      /// this a more manual process, we use a hard coded subscription page but we will keep try to see if bellow other option is working
+    } else if (!v1Active) {
+      if (selectedPaymentMethod == "Card") {
+        final (:url, :userId, :customerCode) =
+            await ProxyService.realm.subscribe(
+          businessId: ProxyService.box.getBusinessId()!,
+          agentCode: 1,
+          // rule: paymentPlan.isYearlyPlan! ? 'annually' : 'monthly',
+          flipperHttpClient: ProxyService.http,
+          amount: finalPrice,
+        );
+
+        await ProxyService.realm.saveOrUpdatePaymentPlan(
+            businessId: paymentPlan.businessId!,
+            selectedPlan: paymentPlan.selectedPlan!,
+            paymentMethod: selectedPaymentMethod,
+            customerCode: customerCode,
+            additionalDevices: paymentPlan.additionalDevices!,
+            isYearlyPlan: paymentPlan.isYearlyPlan!,
+            totalPrice: paymentPlan.totalPrice!,
+            flipperHttpClient: ProxyService.http,
+            payStackUserId: userId);
+        if (!await launchUrl(Uri.parse(url))) {
+          throw Exception('Could not launch $url');
+        }
+        bool keepLoop = true;
+        do {
+          /// force instant update from remote db
+          await ProxyService.realm.realm?.subscriptions
+              .waitForSynchronization();
+          PaymentPlan? plan = ProxyService.realm
+              .getPaymentPlan(businessId: paymentPlan.businessId!);
+          if (plan != null && plan.paymentCompletedByUser!) {
+            talker.warning("A user has Completed payment");
+            keepLoop = false;
+            setState(() {
+              isLoading = false;
+            });
+            locator<RouterService>().navigateTo(FlipperAppRoute());
+          }
+        } while (keepLoop);
+
+        /// listen on stream to check if payment has been completed by a user
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        toast("Mobile Money payment coming soon, choose card payment");
+      }
     }
   }
 }

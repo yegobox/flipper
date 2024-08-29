@@ -160,6 +160,7 @@ class FailedPayment extends HookConsumerWidget {
 
         final (:url, :userId, :customerCode) =
             await ProxyService.realm.subscribe(
+          // rule: plan.isYearlyPlan! ? 'annually' : 'monthly',
           businessId: ProxyService.box.getBusinessId() ?? 0,
           agentCode: 1,
           flipperHttpClient: ProxyService.http,

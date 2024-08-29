@@ -3567,7 +3567,7 @@ class RealmAPI<M extends IJsonSerializable>
     PaymentPlan? plan = getPaymentPlan(businessId: businessId);
     // await realm?.subscriptions.waitForSynchronization();
 
-    /// paymentCompletedByUser is false when a user did not complete payment or there is due payment failed etc...
+    // / paymentCompletedByUser is false when a user did not complete payment or there is due payment failed etc...
     if (plan == null) {
       throw SubscriptionError(
           term: "Please update the payment as payment has failed");

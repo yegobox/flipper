@@ -75,7 +75,8 @@ class TransactionListState extends ConsumerState<TransactionList>
             )),
           ],
         ),
-        error: (error, stackTrace) => Center(child: Text('Error: $error')),
+        error: (error, stackTrace) =>
+            Center(child: Text('Error: $stackTrace')),
       ),
     );
   }

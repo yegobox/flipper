@@ -682,7 +682,7 @@ final transactionItemListProvider =
     return Stream.value([]);
   }
 
-  return ProxyService.local
+  return ProxyService.realm
       .transactionItemList(
     startDate: startDate,
     endDate: endDate,

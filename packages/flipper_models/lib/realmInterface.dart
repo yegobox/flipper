@@ -480,4 +480,6 @@ abstract class RealmApiInterface {
   Stream<PaymentPlan?> paymentPlanStream({required int businessId});
   Future<PayStackCustomer> getPayStackCustomer(
       String customerCodeOrEmail, HttpClientInterface flipperHttpClient);
+  Stream<List<TransactionItem>> transactionItemList(
+      {DateTime? startDate, DateTime? endDate, bool? isPluReport});
 }
