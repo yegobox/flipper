@@ -8174,12 +8174,14 @@ class FlipperSaleCompaign extends _FlipperSaleCompaign
     int? compaignId,
     int? discountRate,
     DateTime? createdAt,
+    String? couponCode,
   }) {
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
     RealmObjectBase.set(this, 'compaignId', compaignId);
     RealmObjectBase.set(this, 'discountRate', discountRate);
     RealmObjectBase.set(this, 'createdAt', createdAt);
+    RealmObjectBase.set(this, 'couponCode', couponCode);
   }
 
   FlipperSaleCompaign._();
@@ -8215,6 +8217,13 @@ class FlipperSaleCompaign extends _FlipperSaleCompaign
       RealmObjectBase.set(this, 'createdAt', value);
 
   @override
+  String? get couponCode =>
+      RealmObjectBase.get<String>(this, 'couponCode') as String?;
+  @override
+  set couponCode(String? value) =>
+      RealmObjectBase.set(this, 'couponCode', value);
+
+  @override
   Stream<RealmObjectChanges<FlipperSaleCompaign>> get changes =>
       RealmObjectBase.getChanges<FlipperSaleCompaign>(this);
 
@@ -8234,6 +8243,7 @@ class FlipperSaleCompaign extends _FlipperSaleCompaign
       'compaignId': compaignId.toEJson(),
       'discountRate': discountRate.toEJson(),
       'createdAt': createdAt.toEJson(),
+      'couponCode': couponCode.toEJson(),
     };
   }
 
@@ -8250,6 +8260,7 @@ class FlipperSaleCompaign extends _FlipperSaleCompaign
           compaignId: fromEJson(ejson['compaignId']),
           discountRate: fromEJson(ejson['discountRate']),
           createdAt: fromEJson(ejson['createdAt']),
+          couponCode: fromEJson(ejson['couponCode']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -8266,6 +8277,7 @@ class FlipperSaleCompaign extends _FlipperSaleCompaign
       SchemaProperty('compaignId', RealmPropertyType.int, optional: true),
       SchemaProperty('discountRate', RealmPropertyType.int, optional: true),
       SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('couponCode', RealmPropertyType.string, optional: true),
     ]);
   }();
 

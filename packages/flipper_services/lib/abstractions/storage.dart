@@ -47,4 +47,6 @@ abstract class LocalStorage {
   bool? isOrdersDefault();
   int? itemPerPage();
   bool? isOrdering();
+  String? couponCode();
+  double? discountRate();
 }

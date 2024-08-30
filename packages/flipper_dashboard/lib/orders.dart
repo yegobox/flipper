@@ -16,12 +16,16 @@ class Orders extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final suppliers = ref.watch(branchesProvider);
     final selectedSupplier = useState<Branch?>(null);
-
+// 357700118887948
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic other) {
-        if (didPop) return;
-        ProxyService.box.writeBool(key: 'isOrdering', value: false);
+        if (didPop) {
+          ProxyService.box.writeBool(key: 'isOrdering', value: false);
+        } else {
+          ProxyService.box.writeBool(key: 'isOrdering', value: true);
+        }
+
         ref.read(previewingCart.notifier).state = false;
         onWillPop(
           context: context,

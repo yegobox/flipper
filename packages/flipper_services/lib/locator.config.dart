@@ -41,7 +41,9 @@ import 'in_app_review.dart' as _i118;
 import 'keypad_service.dart' as _i150;
 import 'language_service.dart' as _i313;
 import 'local_notification_service.dart' as _i445;
+import 'PayStackService.dart' as _i918;
 import 'product_service.dart' as _i777;
+import 'RealmViaHttp.dart' as _i1019;
 import 'sentry_service.dart' as _i107;
 import 'services_module.dart' as _i205;
 import 'setting_service.dart' as _i290;
@@ -81,6 +83,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i445.LNotification>(() => servicesModule.notification);
     gh.lazySingleton<_i299.FlipperLocation>(() => servicesModule.location);
     gh.lazySingleton<_i843.HttpClientInterface>(() => servicesModule.http());
+    gh.lazySingleton<_i918.PayStackServiceInterface>(
+        () => servicesModule.payStack());
+    gh.lazySingleton<_i1019.RealmViaHttp>(() => servicesModule.realmHttp());
     gh.lazySingleton<_i172.Remote>(() => servicesModule.remote());
     gh.lazySingleton<_i107.SentryServiceInterface>(
         () => servicesModule.sentry());

@@ -13,7 +13,6 @@ export 'src/shared/ui_helpers.dart';
 
 export 'package:flipper_ui/toast.dart';
 
-
 // Basis
 export '/widget/flowy_tooltip.dart';
 export '/widget/separated_flex.dart';
@@ -31,10 +30,10 @@ export 'style_widget/button.dart';
 export 'style_widget/color_picker.dart';
 export 'style_widget/divider.dart';
 export 'style_widget/icon_button.dart';
+export 'style_widget/couponToggle.dart';
 export 'style_widget/primary_rounded_button.dart';
 export 'style_widget/scrollbar.dart';
 export 'style_widget/scrolling/styled_list.dart';
 export 'style_widget/scrolling/styled_scroll_bar.dart';
 export 'style_widget/text.dart';
 export 'style_widget/text_field.dart';
-

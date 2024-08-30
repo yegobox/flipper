@@ -12,6 +12,8 @@ import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/whatsapp.dart';
+import 'package:flipper_services/PayStackService.dart';
+import 'package:flipper_services/RealmViaHttp.dart';
 
 import 'package:http/http.dart' as httP;
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -160,6 +162,28 @@ abstract class ServicesModule {
       https = FlipperHttpClient(httP.Client());
     }
     return https;
+  }
+
+  @LazySingleton()
+  PayStackServiceInterface payStack() {
+    late PayStackServiceInterface payStack;
+    if ((const bool.fromEnvironment('FLUTTER_TEST_ENV') == true)) {
+      payStack = PayStackServiceMock();
+    } else {
+      payStack = PayStackService();
+    }
+    return payStack;
+  }
+
+  @LazySingleton()
+  RealmViaHttp realmHttp() {
+    late RealmViaHttp realmHttp;
+    if ((const bool.fromEnvironment('FLUTTER_TEST_ENV') == true)) {
+      realmHttp = RealmViaHttpServiceMock();
+    } else {
+      realmHttp = RealmViaHttpService();
+    }
+    return realmHttp;
   }
 
   // @preResolve

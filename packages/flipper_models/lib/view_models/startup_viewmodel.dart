@@ -30,7 +30,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         await appService.appInit();
       }
       // Ensure realm is initialized before proceeding.
-      await _ensureRealmInitialized();
+      await ensureRealmInitialized();
       await _hasActiveSubscription();
 
       // Handle navigation based on user state and app settings.
@@ -47,23 +47,6 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       talker.info("StartupViewModel ${e}");
       talker.error("StartupViewModel ${stackTrace}");
       await _handleStartupError(e, stackTrace);
-    }
-  }
-
-  /// Ensures that the Realm database is initialized and ready to use.
-  Future<void> _ensureRealmInitialized() async {
-    if (ProxyService.box.encryptionKey().isNotEmpty &&
-        ProxyService.realm.realm == null) {
-      await ProxyService.realm.configure(
-        useInMemoryDb: false,
-        useFallBack: false,
-        localRealm: ProxyService.local.localRealm,
-        branchId: ProxyService.box.getBranchId()!,
-        userId: ProxyService.box.getUserId()!,
-        businessId: ProxyService.box.getBusinessId()!,
-        encryptionKey: ProxyService.box.encryptionKey(),
-      );
-      await ProxyService.local.configureLocal(useInMemory: false);
     }
   }
 

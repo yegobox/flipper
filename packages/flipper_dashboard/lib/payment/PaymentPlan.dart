@@ -1,7 +1,9 @@
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/helperModels/paystack_customer.dart';
+import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flipper_routing/app.locator.dart';
@@ -52,79 +54,39 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          key: Key('Scrollable'),
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 300.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 10),
-                  Text(
-                    'Select the plan that works for you',
-                    style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black),
-                  ),
-                  SizedBox(height: 20),
-                  _buildDurationToggle(),
-                  SizedBox(height: 20),
-                ],
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Text('Payment Plan'),
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Select the plan that works for you',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-            ),
-            Expanded(
-              child: GridView.count(
-                padding: EdgeInsets.symmetric(horizontal: 300.0),
-                crossAxisCount: 2,
-                childAspectRatio: 1.1,
-                crossAxisSpacing: 5,
-                mainAxisSpacing: 5,
-                children: [
-                  _buildPlanCard(
-                      'Mobile',
-                      'Mobile only',
-                      _isYearlyPlan ? '48,000 RWF/year' : '5,000 RWF/month',
-                      Icons.phone_iphone),
-                  _buildPlanCard(
-                      'Mobile + Desktop',
-                      'Mobile + Desktop',
-                      _isYearlyPlan ? '288,000 RWF/year' : '30,000 RWF/month',
-                      Icons.devices),
-                  _buildPlanCard(
-                      '3 Devices',
-                      '3 Devices',
-                      _isYearlyPlan
-                          ? '1,152,000 RWF/year'
-                          : '120,000 RWF/month',
-                      Icons.device_hub),
-                  _buildPlanCard(
-                      'More than 3 Devices',
-                      'Custom',
-                      _isYearlyPlan
-                          ? '1,152,000+ RWF/year'
-                          : '120,000+ RWF/month',
-                      Icons.devices),
-                ],
+              SizedBox(height: 16),
+              _buildDurationToggle(),
+              SizedBox(height: 16),
+              _buildPlanCards(),
+              SizedBox(height: 16),
+              if (_selectedPlan == 'More than 3 Devices')
+                _buildAdditionalDevicesInput(),
+              SizedBox(height: 16),
+              _buildPriceSummary(),
+              SizedBox(height: 16),
+              CouponToggle(
+                
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 300.0),
-              child: Column(
-                children: [
-                  if (_selectedPlan == 'More than 3 Devices')
-                    _buildAdditionalDevicesInput(),
-                  SizedBox(height: 10),
-                  _buildPriceSummary(),
-                  SizedBox(height: 10),
-                  _buildProceedButton(),
-                  SizedBox(height: 10),
-                ],
-              ),
-            ),
-          ],
+              SizedBox(height: 16),
+              _buildProceedButton(),
+            ],
+          ),
         ),
       ),
     );
@@ -193,6 +155,36 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
     );
   }
 
+  Widget _buildPlanCards() {
+    return Column(
+      children: [
+        _buildPlanCard(
+            'Mobile',
+            'Mobile only',
+            _isYearlyPlan ? '48,000 RWF/year' : '5,000 RWF/month',
+            Icons.phone_iphone),
+        SizedBox(height: 8),
+        _buildPlanCard(
+            'Mobile + Desktop',
+            'Mobile + Desktop',
+            _isYearlyPlan ? '288,000 RWF/year' : '30,000 RWF/month',
+            Icons.devices),
+        SizedBox(height: 8),
+        _buildPlanCard(
+            '3 Devices',
+            '3 Devices',
+            _isYearlyPlan ? '1,152,000 RWF/year' : '120,000 RWF/month',
+            Icons.device_hub),
+        SizedBox(height: 8),
+        _buildPlanCard(
+            'More than 3 Devices',
+            'Custom',
+            _isYearlyPlan ? '1,152,000+ RWF/year' : '120,000+ RWF/month',
+            Icons.devices),
+      ],
+    );
+  }
+
   Widget _buildPlanCard(
       String value, String title, String price, IconData icon) {
     bool isSelected = _selectedPlan == value;
@@ -204,41 +196,38 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           _calculatePrice();
         });
       },
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 300),
+      child: Container(
         decoration: BoxDecoration(
           color: isSelected ? Colors.black : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
               color: isSelected ? Colors.transparent : Colors.grey.shade300),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 5,
-              offset: Offset(0, 2),
-            ),
-          ],
         ),
         child: Padding(
-          padding: EdgeInsets.all(4),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          padding: EdgeInsets.all(16),
+          child: Row(
             children: [
               Icon(icon,
-                  size: 32, color: isSelected ? Colors.white : Colors.black),
-              SizedBox(height: 8),
-              Text(title,
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white : Colors.black),
-                  textAlign: TextAlign.center),
-              SizedBox(height: 4),
-              Text(price,
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: isSelected ? Colors.white70 : Colors.black54),
-                  textAlign: TextAlign.center),
+                  size: 24, color: isSelected ? Colors.white : Colors.black),
+              SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: isSelected ? Colors.white : Colors.black)),
+                    SizedBox(height: 4),
+                    Text(price,
+                        style: TextStyle(
+                            fontSize: 14,
+                            color:
+                                isSelected ? Colors.white70 : Colors.black54)),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -335,7 +324,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         try {
           String userIdentifier = ProxyService.box.getUserPhone()!;
 
-          PayStackCustomer customer = await ProxyService.realm
+          PayStackCustomer customer = await ProxyService.payStack
               .getPayStackCustomer(
                   business: ProxyService.local.getBusiness(),
                   userIdentifier.toFlipperEmail(),

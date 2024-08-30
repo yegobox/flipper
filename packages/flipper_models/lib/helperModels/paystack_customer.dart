@@ -22,16 +22,17 @@ class PayStackCustomer {
 
 @JsonSerializable(explicitToJson: true)
 class CustomerData {
-  final List<dynamic> transactions;
-  final List<dynamic> subscriptions;
-  final List<dynamic> authorizations;
+  final List<dynamic>? transactions;
+  final List<dynamic>? subscriptions;
+  final List<dynamic>? authorizations;
   @JsonKey(name: 'first_name')
   final String firstName;
   @JsonKey(name: 'last_name')
   final String lastName;
   final String email;
   final String phone;
-  final Map<String, dynamic> metadata;
+  @JsonKey(fromJson: _convertMetadata)
+  final Map<String, dynamic>? metadata;
   final String domain;
   @JsonKey(name: 'customer_code')
   final String customerCode;
@@ -44,25 +45,25 @@ class CustomerData {
   @JsonKey(name: 'updatedAt')
   final DateTime updatedAt;
   @JsonKey(name: 'total_transactions')
-  final int? totalTransactions;  // Nullable
+  final int? totalTransactions;
   @JsonKey(name: 'total_transaction_value')
-  final List<dynamic>? totalTransactionValue;  // Nullable
+  final List<dynamic>? totalTransactionValue;
   @JsonKey(name: 'dedicated_account')
-  final dynamic dedicatedAccount;  // Nullable
+  final dynamic dedicatedAccount;
   @JsonKey(name: 'dedicated_accounts')
-  final List<dynamic>? dedicatedAccounts;  // Nullable
+  final List<dynamic>? dedicatedAccounts;
   final bool identified;
-  final dynamic identifications;  // Nullable
+  final dynamic identifications;
 
   CustomerData({
-    required this.transactions,
-    required this.subscriptions,
-    required this.authorizations,
+    this.transactions,
+    this.subscriptions,
+    this.authorizations,
     required this.firstName,
     required this.lastName,
     required this.email,
     required this.phone,
-    required this.metadata,
+    this.metadata,
     required this.domain,
     required this.customerCode,
     required this.riskAction,
@@ -82,4 +83,13 @@ class CustomerData {
       _$CustomerDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$CustomerDataToJson(this);
+
+  static Map<String, dynamic>? _convertMetadata(dynamic metadata) {
+    if (metadata == null) return null;
+    if (metadata is Map<String, dynamic>) return metadata;
+    if (metadata is Map) {
+      return metadata.map((key, value) => MapEntry(key.toString(), value));
+    }
+    return null;
+  }
 }

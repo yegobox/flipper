@@ -3395,111 +3395,6 @@ class RealmAPI<M extends IJsonSerializable>
     ]).toList();
   }
 
-  @override
-  Future<PayStackCustomer> getPayStackCustomer(
-      String customerCodeOrEmail, HttpClientInterface flipperHttpClient,
-      {required Business business}) async {
-    try {
-      final response = await flipperHttpClient.get(
-          Uri.parse('https://api.paystack.co/customer/$customerCodeOrEmail'),
-          headers: {'Authorization': 'Bearer ${AppSecrets.payStackApiKey}'});
-
-      if (response.statusCode == 200) {
-        final customerData = json.decode(response.body);
-        return PayStackCustomer.fromJson(customerData);
-      } else {
-        // final errorData = json.decode(response.body);
-        // throw CustomerNotFoundException(errorData['message']);
-        PayStackCustomer customer = await _createCustomer(
-          flipperHttpClient: flipperHttpClient,
-          email: customerCodeOrEmail,
-          phone: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
-          firstName: business.firstName ?? "",
-          lastName: business.lastName ?? "",
-        );
-        return customer;
-      }
-    } catch (e, s) {
-      talker.error(s);
-      if (e is CustomerNotFoundException) {
-        rethrow;
-      }
-      throw Exception('Error fetching customer: $e');
-    }
-  }
-
-  Future<PayStackCustomer> _createCustomer(
-      {required String email,
-      required String firstName,
-      required String lastName,
-      required String phone,
-      required HttpClientInterface flipperHttpClient}) async {
-    final url = Uri.parse('https://api.paystack.co/customer');
-    final headers = {
-      'Authorization': 'Bearer ${AppSecrets.payStackApiKey}',
-      'Content-Type': 'application/json',
-    };
-    final body = json.encode({
-      'email': email,
-      'first_name': firstName,
-      'last_name': lastName,
-      'phone': phone.replaceAll("+", ""),
-    });
-
-    try {
-      final response =
-          await flipperHttpClient.post(url, headers: headers, body: body);
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final customerData = json.decode(response.body);
-        return PayStackCustomer.fromJson(customerData);
-      } else {
-        throw Exception('Failed to create customer: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error creating customer: $e');
-    }
-  }
-
-  Future<String> _sendPaymentRequest(
-      {required String customerCode,
-      required int amount,
-      required String dueDate,
-      required HttpClientInterface flipperHttpClient}) async {
-    final url = Uri.parse('https://api.paystack.co/paymentrequest');
-    final headers = {
-      'Authorization': 'Bearer ${AppSecrets.payStackApiKey}',
-      'Content-Type': 'application/json',
-    };
-    final body = json.encode({
-      "description": "Flipper Subscription",
-      "line_items": [
-        {"name": "Flipper Subscription", "amount": amount}
-      ],
-      // FIXME: maybe adding this cause payment to fail
-      // "tax": [
-      //   {"name": "VAT", "amount": (amount * 18 / 118)}
-      // ],
-      "customer": customerCode
-    });
-
-    try {
-      final response =
-          await flipperHttpClient.post(url, headers: headers, body: body);
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = json.decode(response.body);
-        final requestCode = responseData['data']['request_code'] as String;
-        return requestCode;
-      } else {
-        throw Exception(
-            'Failed to send payment request: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error sending payment request: $e');
-    }
-  }
-
   String getDueDate() {
     final now = DateTime.now();
     final dueDate = now.add(Duration(days: 30));
@@ -3522,10 +3417,11 @@ class RealmAPI<M extends IJsonSerializable>
 
     try {
       // Attempt to retrieve an existing PayStack customer
-      PayStackCustomer customer = await getPayStackCustomer(
-          business: business,
-          userIdentifier.toFlipperEmail(),
-          flipperHttpClient);
+      PayStackCustomer customer = await ProxyService.payStack
+          .getPayStackCustomer(
+              business: business,
+              userIdentifier.toFlipperEmail(),
+              flipperHttpClient);
       // Customer found, proceed to initiate a payment request
       renderableLink = await _initiatePayment(
           flipperHttpClient, customer.data.customerCode,
@@ -3535,7 +3431,7 @@ class RealmAPI<M extends IJsonSerializable>
     } on CustomerNotFoundException {
       // Customer not found, create a new customer
       Business business = ProxyService.local.getBusiness();
-      PayStackCustomer newCustomer = await _createCustomer(
+      PayStackCustomer newCustomer = await ProxyService.payStack.createCustomer(
         flipperHttpClient: flipperHttpClient,
         email: userIdentifier.toFlipperEmail(),
         firstName: business.name!,
@@ -3565,7 +3461,8 @@ class RealmAPI<M extends IJsonSerializable>
       {required int amount}) async {
     String dueDate = getDueDate();
     try {
-      String paymentRequestResult = await _sendPaymentRequest(
+      String paymentRequestResult =
+          await ProxyService.payStack.sendPaymentRequest(
         flipperHttpClient: flipperHttpClient,
         customerCode: customerCode,
         amount: amount * 100,

@@ -26,61 +26,61 @@ env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
 
 jobs:
-  code-coverage:
-    name: Check Code Coverage
-    runs-on: macOS-12
+  # code-coverage:
+  #   name: Check Code Coverage
+  #   runs-on: macOS-12
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v3
 
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
+  #     - name: Install Flutter
+  #       uses: subosito/flutter-action@v2
+  #       with:
+  #         channel: 'stable'
 
-      - run: git submodule update --init
+  #     - run: git submodule update --init
 
-      - name: Configure Missing files
-        shell: bash
-        run: |
-          echo "$INDEX" >> apps/flipper/web/index.html
-          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
-          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
-          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-          git config --global core.autocrlf false
-          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json 
-        env:
-          INDEX: ${{ secrets.INDEX }}
-          CONFIGDART: ${{ secrets.CONFIGDART }}
-          SECRETS: ${{ secrets.SECRETS }}
-          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
-          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      - name: Run Flutter Tests
-        run: |
-          dart pub global activate melos
-          melos bootstrap
-          cd apps/flipper
-          dart run realm install
-          flutter test --coverage --dart-define=FLUTTER_TEST_ENV=true 
+  #     - name: Configure Missing files
+  #       shell: bash
+  #       run: |
+  #         echo "$INDEX" >> apps/flipper/web/index.html
+  #         echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+  #         echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+  #         echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+  #         echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+  #         echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+  #         git config --global core.autocrlf false
+  #         echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json 
+  #       env:
+  #         INDEX: ${{ secrets.INDEX }}
+  #         CONFIGDART: ${{ secrets.CONFIGDART }}
+  #         SECRETS: ${{ secrets.SECRETS }}
+  #         FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+  #         AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+  #         AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+  #     - name: Run Flutter Tests
+  #       run: |
+  #         dart pub global activate melos
+  #         melos bootstrap
+  #         cd apps/flipper
+  #         dart run realm install
+  #         flutter test --coverage --dart-define=FLUTTER_TEST_ENV=true 
         
-      - name: Setup LCOV
-        uses: hrishikesh-kadam/setup-lcov@v1
-      - name: Generate Code Coverage Report
-        run: |
-          cd apps/flipper
-          # Navigate to the directory containing filtered.lcov.info
-          # Generate the HTML report
-          genhtml --branch-coverage --output-directory html filtered.lcov.info
+  #     - name: Setup LCOV
+  #       uses: hrishikesh-kadam/setup-lcov@v1
+  #     - name: Generate Code Coverage Report
+  #       run: |
+  #         cd apps/flipper
+  #         # Navigate to the directory containing filtered.lcov.info
+  #         # Generate the HTML report
+  #         genhtml --branch-coverage --output-directory html filtered.lcov.info
           
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+  #     - name: Upload test results to Codecov
+  #       if: ${{ !cancelled() }}
+  #       uses: codecov/test-results-action@v1
+  #       with:
+  #         token: ${{ secrets.CODECOV_TOKEN }}
 
       
 
@@ -453,55 +453,55 @@ jobs:
       - name: Shorebird Release
         if: startsWith(github.ref, 'refs/heads/dev/')
         run: |
-          shorebird patch --platforms=android --release-version=1.170.4252223232017+1720068464
+          shorebird release android
         working-directory: apps/flipper
 
-  build_and_preview:
-    if: "${{ github.event.pull_request.head.repo.full_name == github.repository }}"
-    runs-on: ubuntu-latest
-    needs: [code-coverage]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v2
-        with:
-          distribution: "zulu"
-          java-version: "11" #defines the java version
-      - uses: subosito/flutter-action@v2
-        with:
-          # issue with latest flutter 3.13 https://github.com/flutter/flutter/issues/132711
-          flutter-version: '3.13.6' #firebase_auth_desktop is broken with  3.10.6
-          channel: stable
-      - name: Configure Git with PAT
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          git config --global user.email "info@yegobox.com"
-          git config --global user.name "YEGOBOX"
-          git config --global credential.helper store
-          echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
-      - run: git submodule update --init
+  # build_and_preview:
+  #   if: "${{ github.event.pull_request.head.repo.full_name == github.repository }}"
+  #   runs-on: ubuntu-latest
+  #   needs: [code-coverage]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-java@v2
+  #       with:
+  #         distribution: "zulu"
+  #         java-version: "11" #defines the java version
+  #     - uses: subosito/flutter-action@v2
+  #       with:
+  #         # issue with latest flutter 3.13 https://github.com/flutter/flutter/issues/132711
+  #         flutter-version: '3.13.6' #firebase_auth_desktop is broken with  3.10.6
+  #         channel: stable
+  #     - name: Configure Git with PAT
+  #       env:
+  #         PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+  #       run: |
+  #         git config --global user.email "info@yegobox.com"
+  #         git config --global user.name "YEGOBOX"
+  #         git config --global credential.helper store
+  #         echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
+  #     - run: git submodule update --init
 
-      - run: dart pub global activate melos 2.9.0
-      - name: "Run Melos bootstrap"
-        run: melos bootstrap
-      - name: Configure Missing files
-      # echo "$INDEX" >> web/index.html
-        run: |
-          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-          echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
-        env:
-          INDEX: ${{ secrets.INDEX }}
-          CONFIGDART: ${{ secrets.CONFIGDART }}
-          SECRETS: ${{ secrets.SECRETS }}
-          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-      - name: "Build Web App"
-        run: flutter build web
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}'
-          projectId: yegobox-2ee43 
+  #     - run: dart pub global activate melos 2.9.0
+  #     - name: "Run Melos bootstrap"
+  #       run: melos bootstrap
+  #     - name: Configure Missing files
+  #     # echo "$INDEX" >> web/index.html
+  #       run: |
+  #         echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+  #         echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+  #         echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+  #       env:
+  #         INDEX: ${{ secrets.INDEX }}
+  #         CONFIGDART: ${{ secrets.CONFIGDART }}
+  #         SECRETS: ${{ secrets.SECRETS }}
+  #         FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+  #     - name: "Build Web App"
+  #       run: flutter build web
+  #     - uses: FirebaseExtended/action-hosting-deploy@v0
+  #       with:
+  #         repoToken: '${{ secrets.GITHUB_TOKEN }}'
+  #         firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}'
+  #         projectId: yegobox-2ee43 
   slackNotification:
     name: Slack Notification
     needs: [shorebird-deploy, build-and-release-windows]

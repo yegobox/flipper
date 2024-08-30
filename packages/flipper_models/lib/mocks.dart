@@ -348,3 +348,38 @@ final branchMock = Branch(
   name: 'name',
   isDefault: false,
 );
+
+final businessMock = Business(
+  ObjectId(),
+  action: AppActions.created,
+  serverId: randomNumber(),
+  active: true,
+  latitude: '0',
+  longitude: '2',
+  name: 'name',
+  isDefault: true,
+);
+
+final payStackCustomer = {
+  "status": true,
+  "message": "Customer created",
+  "data": {
+    "transactions": [],
+    "subscriptions": [],
+    "authorizations": [],
+    "first_name": "Richard",
+    "last_name": "Muragijimana",
+    "email": "murag.richard@gmail.com",
+    "phone": "+250783054874",
+    "metadata": {},
+    "domain": "live",
+    "customer_code": "CUS_616yuumu6jiomwc",
+    "risk_action": "default",
+    "id": 165652769,
+    "integration": 1142892,
+    "createdAt": "2024-04-19T12:00:32.000Z",
+    "updatedAt": "2024-04-19T12:34:21.000Z",
+    "identified": false,
+    "identifications": null
+  }
+};

@@ -148,6 +148,7 @@ dev_dependencies:
   custom_lint:
   riverpod_generator: ^2.3.5
   riverpod_lint: ^2.3.7
+  mockito: ^5.4.4
   test:
   integration_test:
     sdk: flutter

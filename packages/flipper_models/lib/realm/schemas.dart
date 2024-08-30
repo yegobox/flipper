@@ -1056,4 +1056,5 @@ class _FlipperSaleCompaign {
   int? compaignId;
   int? discountRate;
   DateTime? createdAt;
+  String? couponCode;
 }

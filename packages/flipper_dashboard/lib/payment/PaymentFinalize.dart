@@ -121,10 +121,10 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
 
     int finalPrice = 0;
     //findout if there is ongoing compaign to apply discount
-    FlipperSaleCompaign? compaign = ProxyService.realm.getLatestCompaign();
-    if (compaign != null) {
+    if (ProxyService.box.couponCode() != null) {
       finalPrice = (paymentPlan.totalPrice! -
-              ((paymentPlan.totalPrice! * compaign.discountRate!) / 100))
+              ((paymentPlan.totalPrice! * ProxyService.box.discountRate()!) /
+                  100))
           .toInt();
     } else {
       finalPrice = paymentPlan.totalPrice!.toInt();

@@ -43,7 +43,9 @@ class SharedPreferenceStorage implements LocalStorage {
         'version',
         'UToken',
         'itemPerPage',
-        'isOrdering'
+        'isOrdering',
+        'couponCode',
+        'discountRate'
       },
     ));
     return this;
@@ -262,5 +264,15 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   bool? isOrdering() {
     return prefs.getBool('isOrdering') ?? false;
+  }
+
+  @override
+  String? couponCode() {
+    return prefs.getString('couponCode');
+  }
+
+  @override
+  double? discountRate() {
+    return prefs.getDouble('discountRate');
   }
 }

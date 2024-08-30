@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:flipper_models/states/productListProvider.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 
 class ProductListScreen extends StatefulHookConsumerWidget {
@@ -33,7 +34,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
   Widget build(BuildContext context) {
     final items = ref.watch(productFromSupplier);
     final isOrdering = ProxyService.box.isOrdering()!;
-    talker.warning("isOrdering: ${isOrdering}");
+    talker.warning("ProductListScreen:isOrdering: ${isOrdering}");
     final orders = ref
         .watch(transactionItemsProvider((isExpense: isOrdering)))
         .value!
@@ -91,22 +92,26 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
                     : "Preview Cart  (${orders})",
                 mode: SellingMode.forOrdering,
                 previewCart: () async {
-                  final transaction = ref.watch(
-                      pendingTransactionProviderNonStream((isOrdering
-                          ? (mode: TransactionType.cashOut, isExpense: true)
-                          : (mode: TransactionType.sale, isExpense: false))));
+                  if (orders > 0) {
+                    final transaction = ref.watch(
+                        pendingTransactionProviderNonStream((isOrdering
+                            ? (mode: TransactionType.cashOut, isExpense: true)
+                            : (mode: TransactionType.sale, isExpense: false))));
 
-                  /// now if we are not previewing we can place order
-                  await previewOrOrder(transaction: transaction);
+                    /// now if we are not previewing we can place order
+                    await previewOrOrder(transaction: transaction);
 
-                  await Future.delayed(Duration(microseconds: 600));
+                    await Future.delayed(Duration(microseconds: 600));
 
-                  /// refresh
-                  ref.refresh(pendingTransactionProviderNonStream((isOrdering
-                      ? (mode: TransactionType.cashOut, isExpense: true)
-                      : (mode: TransactionType.sale, isExpense: false))));
-                  ref.refresh(
-                      transactionItemsProvider((isExpense: isOrdering)));
+                    /// refresh
+                    ref.refresh(pendingTransactionProviderNonStream((isOrdering
+                        ? (mode: TransactionType.cashOut, isExpense: true)
+                        : (mode: TransactionType.sale, isExpense: false))));
+                    ref.refresh(
+                        transactionItemsProvider((isExpense: isOrdering)));
+                  } else {
+                    toast("The cart is empty");
+                  }
                 },
               ),
             ),

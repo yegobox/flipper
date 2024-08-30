@@ -30,7 +30,8 @@ void main() {
             json.decode(userResponse),
           ),
           localRealm: ProxyService.local.localRealm);
-      createAndSaveMockStockRequests(realm: ProxyService.realm.realm!);
+      CreateMockdata()
+          .createAndSaveMockStockRequests(realm: ProxyService.realm.realm!);
     });
     tearDownAll(() async {
       ProxyService.realm.realm!.write(() {

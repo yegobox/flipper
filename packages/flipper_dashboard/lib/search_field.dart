@@ -2,6 +2,7 @@
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
+import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
@@ -43,7 +44,7 @@ class SearchField extends StatefulHookConsumerWidget {
 }
 
 class SearchFieldState extends ConsumerState<SearchField>
-    with DateCoreWidget, HandleScannWhileSelling {
+    with DateCoreWidget, HandleScannWhileSelling, Refresh {
   final _textSubject = BehaviorSubject<String>();
 
   @override
@@ -183,6 +184,8 @@ class SearchFieldState extends ConsumerState<SearchField>
     final deviceType = _getDeviceType(context);
     ProxyService.box.writeBool(key: 'isOrdering', value: true);
 
+    /// before navigating refresh the pending transaction to not mix transaction
+    refreshPendingTransactionWithExpense();
     if (deviceType == 'Phone' || deviceType == 'Phablet') {
       _routerService.navigateTo(OrdersRoute());
     } else {

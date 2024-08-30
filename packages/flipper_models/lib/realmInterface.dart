@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
-import 'package:flipper_models/helperModels/paystack_customer.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
@@ -463,9 +462,7 @@ abstract class RealmApiInterface {
   PaymentPlan? getPaymentPlan({required int businessId});
   FlipperSaleCompaign? getLatestCompaign();
   Stream<PaymentPlan?> paymentPlanStream({required int businessId});
-  Future<PayStackCustomer> getPayStackCustomer(
-      String customerCodeOrEmail, HttpClientInterface flipperHttpClient,
-      {required Business business});
+
   Stream<List<TransactionItem>> transactionItemList(
       {DateTime? startDate, DateTime? endDate, bool? isPluReport});
 }

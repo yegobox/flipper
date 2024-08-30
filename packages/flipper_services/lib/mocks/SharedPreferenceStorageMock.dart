@@ -207,4 +207,14 @@ class SharedPreferenceStorageMock implements LocalStorage {
   bool? isOrdering() {
     return null;
   }
+
+  @override
+  String? couponCode() {
+    return "01";
+  }
+
+  @override
+  double? discountRate() {
+    return 1.0;
+  }
 }

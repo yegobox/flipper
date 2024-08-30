@@ -21,14 +21,14 @@ Map<String, dynamic> _$PayStackCustomerToJson(PayStackCustomer instance) =>
     };
 
 CustomerData _$CustomerDataFromJson(Map<String, dynamic> json) => CustomerData(
-      transactions: json['transactions'] as List<dynamic>,
-      subscriptions: json['subscriptions'] as List<dynamic>,
-      authorizations: json['authorizations'] as List<dynamic>,
+      transactions: json['transactions'] as List<dynamic>?,
+      subscriptions: json['subscriptions'] as List<dynamic>?,
+      authorizations: json['authorizations'] as List<dynamic>?,
       firstName: json['first_name'] as String,
       lastName: json['last_name'] as String,
       email: json['email'] as String,
       phone: json['phone'] as String,
-      metadata: json['metadata'] as Map<String, dynamic>,
+      metadata: CustomerData._convertMetadata(json['metadata']),
       domain: json['domain'] as String,
       customerCode: json['customer_code'] as String,
       riskAction: json['risk_action'] as String,

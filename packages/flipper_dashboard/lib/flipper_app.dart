@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flipper_dashboard/layout.dart';
+import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -29,7 +30,7 @@ class FlipperApp extends StatefulHookConsumerWidget {
 }
 
 class FlipperAppState extends ConsumerState<FlipperApp>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, Refresh {
   PageController page = PageController();
   final TextEditingController controller = TextEditingController();
   int tabSelected = 0;
@@ -120,6 +121,11 @@ class FlipperAppState extends ConsumerState<FlipperApp>
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) {
         _viewModelReadyLogic(model);
+
+        /// refresh transaction List
+        final transaction = ref.read(pendingTransactionProviderNonStream(
+            (mode: TransactionType.sale, isExpense: false)));
+        refreshTransactionItems(transactionId: transaction.id!);
       },
       builder: (context, model, child) {
         return _buildScaffold(context, model);

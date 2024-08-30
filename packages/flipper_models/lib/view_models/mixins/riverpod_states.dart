@@ -209,7 +209,7 @@ final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
         : (mode: TransactionType.sale, isExpense: false))));
 
     return TransactionItemsNotifier(
-      transactionId: transaction.id,
+      transactionId: transaction.isValid ? transaction.id : 0,
     );
   },
 );

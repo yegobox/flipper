@@ -5,6 +5,8 @@ import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
+import 'package:flipper_services/PayStackService.dart';
+import 'package:flipper_services/RealmViaHttp.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/abstractions/remote.dart';
@@ -69,7 +71,9 @@ final Status _status = getIt<Status>();
 final SentryServiceInterface _sentry = getIt<SentryServiceInterface>();
 final Device _device = getIt<Device>();
 final LocalRealmInterface _localRealm = getIt<LocalRealmInterface>();
+final PayStackServiceInterface _payStack = getIt<PayStackServiceInterface>();
 final HttpClientInterface _http = getIt<HttpClientInterface>();
+final RealmViaHttp _realmHttp = getIt<RealmViaHttp>();
 
 abstract class ProxyService {
   static LocalStorage get box => _box;
@@ -109,4 +113,6 @@ abstract class ProxyService {
   static Device get device => _device;
   static NotificationStream get notie => NotificationStream();
   static LocalRealmInterface get local => _localRealm;
+  static PayStackServiceInterface get payStack => _payStack;
+  static RealmViaHttp get realmHttp => _realmHttp;
 }
