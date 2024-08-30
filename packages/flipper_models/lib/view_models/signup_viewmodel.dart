@@ -141,8 +141,6 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<void> postRegistrationTasks(List<ITenant> tenants) async {
-    await pocketDbRegistration();
-
     if (businessType.id == "2") {
       await registerOnSocial();
     }
@@ -155,6 +153,8 @@ class SignupViewModel extends ReactiveViewModel {
     appService.appInit();
     await createDefaultCategory(branches);
     await createDefaultColor(branches);
+    // save default Access permission as admin on key features
+    _saveUserAccess();
     // await addDefaultUnits();
     ProxyService.forceDateEntry.dataBootstrapper();
 
@@ -227,55 +227,26 @@ class SignupViewModel extends ReactiveViewModel {
     ProxyService.realm.create<PColor>(data: color);
   }
 
-  Future<void> pocketDbRegistration() async {
-    throw UnimplementedError();
-    // String? pocketDbToken;
-    // if (found.kDebugMode) {
-    //   pocketDbToken = await ProxyService.remote.getToken(AppSecrets.apiUrlDebug,
-    //       AppSecrets.debugPassword, AppSecrets.debugEmail);
-    // } else {
-    //   pocketDbToken = await ProxyService.remote.getToken(
-    //       AppSecrets.apiUrlProd, AppSecrets.prodPassword, AppSecrets.prodEmail);
-    // }
-    // firebase.User? firebaseUser = firebase.FirebaseAuth.instance.currentUser;
-    // var headers = {
-    //   'Authorization':
-    //       'Bearer ' + (pocketDbToken ?? ''), // Ensure pocketDbToken is not null
-    // };
-    // var request = http.MultipartRequest(
-    //   'POST',
-    //   Uri.parse(AppSecrets.apiUrlDebug + '/api/collections/users/records'),
-    // );
+  void _saveUserAccess() {
+    int? branchId = ProxyService.box.getBranchId();
+    int? businessId = ProxyService.box.getBusinessId();
+    int userId = ProxyService.box.getUserId()!;
 
-    // String? userEmail = firebaseUser?.email;
-    // String? userPhoneNumber = firebaseUser?.phoneNumber;
-
-    // String? email;
-
-    // if (userEmail != null) {
-    //   email = userEmail;
-    // } else if (userPhoneNumber != null) {
-    //   email = userPhoneNumber.replaceAll(RegExp(r'[^0-9]'), '') + '@gmail.com';
-    // } else {
-    //   email = null; // Handle this case as needed
-    // }
-    // // Handle null cases and provide non-nullable values
-    // request.fields.addAll({
-    //   'password': firebaseUser?.email ?? firebaseUser?.phoneNumber ?? '',
-    //   'passwordConfirm': firebaseUser?.email ?? firebaseUser?.phoneNumber ?? '',
-    //   'email': email!,
-    //   'username': firebaseUser?.displayName ?? '',
-    //   'verified': 'true', // Assuming 'verified' is expected to be a string
-    // });
-
-    // request.headers.addAll(headers);
-
-    // http.StreamedResponse response = await request.send();
-
-    // if (response.statusCode == 200) {
-    //   print(await response.stream.bytesToString());
-    // } else {
-    //   print(response.reasonPhrase);
-    // }
+    ProxyService.realm.realm!.write(() {
+      for (var feature in features) {
+        ProxyService.realm.realm!.add<Access>(
+          Access(
+            ObjectId(),
+            featureName: feature,
+            userId: userId,
+            businessId: businessId,
+            branchId: branchId,
+            accessLevel: AccessLevel.ADMIN,
+            status: 'active',
+            userType: AccessLevel.ADMIN,
+          ),
+        );
+      }
+    });
   }
 }

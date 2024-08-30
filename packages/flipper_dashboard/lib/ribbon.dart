@@ -1,4 +1,3 @@
-
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -126,15 +125,12 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
                 isSelected: _isSelected[0],
               ),
             ),
-            ProxyService.realm
-                    .isTaxEnabled(business: ProxyService.local.getBusiness())
-                ? IconText(
-                    key: const Key('zreport_desktop'),
-                    icon: Icons.sync,
-                    text: 'Z Report',
-                    isSelected: _isSelected[1],
-                  )
-                : SizedBox.shrink(),
+            IconText(
+              key: const Key('zreport_desktop'),
+              icon: Icons.sync,
+              text: 'Z Report',
+              isSelected: _isSelected[1],
+            ),
             IconText(
               key: const Key('eod_desktop'),
               icon: Icons.payment,

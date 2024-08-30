@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'dart:io';
+import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -83,7 +84,7 @@ class RowItem extends StatefulHookConsumerWidget {
   _RowItemState createState() => _RowItemState();
 }
 
-class _RowItemState extends ConsumerState<RowItem> {
+class _RowItemState extends ConsumerState<RowItem> with Refresh {
   final _routerService = locator<RouterService>();
 
   @override
@@ -181,16 +182,23 @@ class _RowItemState extends ConsumerState<RowItem> {
       {required CoreViewModel model, required isOrdering}) async {
     try {
       ITransaction? pendingTransaction = null;
+      final branchId = ProxyService.box.getBranchId()!;
       if (isOrdering) {
         /// update is ordering to true
-        ProxyService.box.writeBool(key: 'isOrdering',value: true);
-        pendingTransaction = ref.watch(pendingTransactionProviderNonStream(
-            (mode: TransactionType.cashOut, isExpense: true)));
+        ProxyService.box.writeBool(key: 'isOrdering', value: true);
+        pendingTransaction = ProxyService.realm.manageTransaction(
+          transactionType: TransactionType.sale,
+          isExpense: true,
+          branchId: branchId,
+        );
       } else {
         /// update is ordering to true
-        ProxyService.box.writeBool(key: 'isOrdering',value: false);
-        pendingTransaction = ref.watch(pendingTransactionProviderNonStream(
-            (mode: TransactionType.sale, isExpense: false)));
+        ProxyService.box.writeBool(key: 'isOrdering', value: false);
+        pendingTransaction = ProxyService.realm.manageTransaction(
+          transactionType: TransactionType.sale,
+          isExpense: false,
+          branchId: branchId,
+        );
       }
 
       /// first check if this item is a composite
@@ -214,10 +222,11 @@ class _RowItemState extends ConsumerState<RowItem> {
             amountTotal: variant.retailPrice,
             customItem: false,
             currentStock: stock!.currentStock,
-            pendingTransaction: pendingTransaction!,
+            pendingTransaction: pendingTransaction,
             partOfComposite: true,
             compositePrice: composite.actualPrice,
           );
+          refreshTransactionItems(transactionId: pendingTransaction.id!);
         }
 
         await Future.delayed(Duration(microseconds: 1000));
@@ -236,12 +245,11 @@ class _RowItemState extends ConsumerState<RowItem> {
           amountTotal: widget.variant?.retailPrice ?? 0,
           customItem: false,
           currentStock: stockQty,
-          pendingTransaction: pendingTransaction!,
+          pendingTransaction: pendingTransaction,
           partOfComposite: false,
         );
 
-        await Future.delayed(Duration(microseconds: 1000));
-        ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
+        refreshTransactionItems(transactionId: pendingTransaction.id!);
       }
     } catch (e, s) {
       talker.warning("Error while clicking ${e}");

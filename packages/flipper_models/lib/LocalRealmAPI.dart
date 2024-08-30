@@ -978,6 +978,4 @@ class LocalRealmApi extends RealmAPI
       talker.error(s);
     }
   }
-
-  
 }

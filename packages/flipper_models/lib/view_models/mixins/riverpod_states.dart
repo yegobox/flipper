@@ -193,14 +193,7 @@ final freshtransactionItemsProviderByIdProvider =
     final (:transactionId) = params;
 
     return TransactionItemsNotifier(
-      getTransactionId: () {
-        try {
-          return transactionId;
-        } catch (e) {
-          talker.error("Error accessing transaction ID: $e");
-          return null;
-        }
-      },
+      transactionId: transactionId,
     );
   },
 );
@@ -216,36 +209,22 @@ final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
         : (mode: TransactionType.sale, isExpense: false))));
 
     return TransactionItemsNotifier(
-      getTransactionId: () {
-        try {
-          return transaction.id;
-        } catch (e) {
-          talker.error("Error accessing transaction ID: $e");
-          return null;
-        }
-      },
+      transactionId: transaction.id,
     );
   },
 );
 
 class TransactionItemsNotifier
     extends StateNotifier<AsyncValue<List<TransactionItem>>> {
-  final int? Function() getTransactionId;
+  final int? transactionId;
 
-  TransactionItemsNotifier({required this.getTransactionId})
+  TransactionItemsNotifier({required this.transactionId})
       : super(const AsyncValue.loading()) {
     _loadItems();
   }
 
   Future<void> _loadItems() async {
-    final currentTransaction = getTransactionId();
-    if (currentTransaction == null) {
-      // fail silen
-      // state = const AsyncValue.error(
-      //     "No transaction ID available", StackTrace.empty);
-      return;
-    }
-    await loadItems(currentTransaction: currentTransaction);
+    await loadItems(currentTransaction: transactionId ?? 0);
   }
 
   Future<List<TransactionItem>> loadItems(

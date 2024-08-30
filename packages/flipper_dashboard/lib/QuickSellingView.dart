@@ -89,15 +89,53 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   TableRow _buildTableRow(TransactionItem item, bool isOrdering) {
+    // Check if the item is valid before accessing its properties
+    if (!item.isValid) {
+      return TableRow(
+        children: [
+          _buildTableCell("Invalid Item"),
+          _buildTableCell(""),
+          _buildTableCell(""),
+          _buildTableCell(""),
+          _buildDeleteButton(item, isOrdering),
+        ],
+      );
+    }
+
+    // If the item is valid, proceed with building the row
     return TableRow(
       children: [
-        _buildTableCell(item.name?.extractNameAndNumber() ?? ""),
-        _buildTableCell(item.price.toStringAsFixed(0)),
+        _buildTableCell(_getItemName(item)),
+        _buildTableCell(_getItemPrice(item)),
         _buildQuantityCell(item, isOrdering),
-        _buildTableCell((item.price * item.qty).toStringAsFixed(0)),
+        _buildTableCell(_getItemTotal(item)),
         _buildDeleteButton(item, isOrdering),
       ],
     );
+  }
+
+// Helper function to safely get the item name
+  String _getItemName(TransactionItem item) {
+    if (item.isValid && item.name != null) {
+      return item.name!.extractNameAndNumber();
+    }
+    return "";
+  }
+
+// Helper function to safely get the item price
+  String _getItemPrice(TransactionItem item) {
+    if (item.isValid) {
+      return item.price.toStringAsFixed(0);
+    }
+    return "";
+  }
+
+// Helper function to safely calculate the total price
+  String _getItemTotal(TransactionItem item) {
+    if (item.isValid) {
+      return (item.price * item.qty).toStringAsFixed(0);
+    }
+    return "";
   }
 
   Widget _buildTableCell(String text) {
@@ -269,12 +307,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         deviceType == "Tablet";
 
     transactionItemsAsyncValue.whenData((items) {
-      if (items.isNotEmpty && !items.first.isValid) {
-        ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
+      try {
+        setState(() {
+          transactionItems = items.where((item) => item.isValid).toList();
+        });
+        if (items.isNotEmpty && !items.first.isValid) {
+          ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
+        }
+      } catch (e) {
+        talker.error(e);
       }
-      setState(() {
-        transactionItems = items.where((item) => item.isValid).toList();
-      });
     });
 
     return ViewModelBuilder.nonReactive(
@@ -602,7 +644,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             Row(
               children: [
                 IconButton(
-                  icon: Icon(Icons.copy), // Copy icon
+                  icon: Icon(Icons.copy),
                   onPressed: () {
                     if (kDebugMode) {
                       talker.info("We are adding dummy data in notification");

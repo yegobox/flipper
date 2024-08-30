@@ -54,17 +54,22 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
       onViewModelReady: (model) async {
-        if (await ProxyService.realm
-            .isTaxEnabled(business: ProxyService.local.getBusiness())) {
-          setState(() {
-            isTaxEnabled = true;
-          });
+        try {
+          final isTaxEnabledForBusiness = await ProxyService.realm
+              .isTaxEnabled(business: ProxyService.local.getBusiness());
+          if (isTaxEnabledForBusiness) {
+            setState(() {
+              isTaxEnabled = true;
+            });
+          }
+          Business? business = await ProxyService.local.getBusiness();
+          model.isEbmActive = business.tinNumber != null &&
+              ProxyService.box.bhfId() != null &&
+              business.dvcSrlNo != null &&
+              business.taxEnabled == true;
+        } catch (e, s) {
+          talker.warning(s);
         }
-        Business? business = await ProxyService.local.getBusiness();
-        model.isEbmActive = business.tinNumber != null &&
-            ProxyService.box.bhfId() != null &&
-            business.dvcSrlNo != null &&
-            business.taxEnabled == true;
       },
       builder: (context, model, child) {
         return Scaffold(

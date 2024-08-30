@@ -3,6 +3,7 @@
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -65,8 +66,9 @@ class TenantWidget extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
-        if (ProxyService.realm
-            .isAdmin(userId: ProxyService.box.getUserId() ?? 0))
+        if (ProxyService.realm.isAdmin(
+            userId: ProxyService.box.getUserId() ?? 0,
+            appFeature: AppFeature.Settings))
           Padding(
             padding: const EdgeInsets.only(right: 12.0),
             child: SizedBox(

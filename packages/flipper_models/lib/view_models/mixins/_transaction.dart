@@ -72,6 +72,7 @@ mixin TransactionMixin {
           item.taxblAmt = variation.retailPrice * quantity;
           item.totAmt = variation.retailPrice * quantity;
           item.splyAmt = variation.supplyPrice;
+          // item.doneWithTransaction = false;
           item.active = true;
           item.quantityRequested = ((item.qty) + quantity).toInt();
           item.quantityApproved = 0;
@@ -143,7 +144,7 @@ mixin TransactionMixin {
           modrNm: variation.modrNm,
           partOfComposite: partOfComposite,
         );
-
+// 428129618288376
         ProxyService.realm.addTransactionItem(
             transaction: pendingTransaction,
             item: newItem,
@@ -159,6 +160,7 @@ mixin TransactionMixin {
 
       markItemAsDoneWithTransaction(
           inactiveItems: inactiveItems, pendingTransaction: pendingTransaction);
+      updatePendingTransactionTotals(pendingTransaction);
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);
@@ -178,7 +180,6 @@ mixin TransactionMixin {
             inactiveItem.doneWithTransaction = true;
           }
         }
-        updatePendingTransactionTotals(pendingTransaction);
       });
     }
   }
@@ -190,10 +191,25 @@ mixin TransactionMixin {
       doneWithTransaction: false,
       active: true,
     );
-    pendingTransaction.subTotal =
-        items.fold(0, (a, b) => a + (b.price * b.qty));
-    pendingTransaction.updatedAt = DateTime.now().toIso8601String();
-    pendingTransaction.lastTouched = DateTime.now();
+
+    // Calculate the new values
+    double newSubTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+    String newUpdatedAt = DateTime.now().toIso8601String();
+    DateTime newLastTouched = DateTime.now();
+
+    // Check if we're already in a write transaction
+    if (ProxyService.realm.realm!.isInTransaction) {
+      // If we are, just update the values without starting a new transaction
+      pendingTransaction.subTotal = newSubTotal;
+      pendingTransaction.updatedAt = newUpdatedAt;
+      pendingTransaction.lastTouched = newLastTouched;
+    } else {
+      // If we're not in a transaction, start a new one
+      ProxyService.realm.realm!.write(() {
+        pendingTransaction.subTotal = newSubTotal;
+        pendingTransaction.updatedAt = newUpdatedAt;
+        pendingTransaction.lastTouched = newLastTouched;
+      });
+    }
   }
-  
 }

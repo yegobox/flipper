@@ -59,7 +59,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       await _createStockRequest(items);
       await _markItemsAsDone(items, transaction);
       _changeTransactionStatus(transaction: transaction);
-      await _refreshTransactionItems(transaction.id);
+      await _refreshTransactionItems(transactionId: transaction.id!);
 
       print("Order placed with ${items.length} items in basket");
     } catch (e, s) {
@@ -103,18 +103,24 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     );
   }
 
-  Future<void> _refreshTransactionItems(int? transactionId) async {
-    await Future.delayed(const Duration(milliseconds: 1000));
-    ref.refresh(freshtransactionItemsProviderByIdProvider(
-        (transactionId: transactionId!)));
-    await Future.delayed(const Duration(milliseconds: 200));
+  Future<void> _refreshTransactionItems({required int transactionId}) async {
     ref.refresh(freshtransactionItemsProviderByIdProvider(
         (transactionId: transactionId)));
+
+    ref.refresh(pendingTransactionProviderNonStream(
+        (isExpense: false, mode: TransactionType.sale)));
+
+    /// get new transaction id
+    ref.refresh(pendingTransactionProvider(
+        (mode: TransactionType.sale, isExpense: false)));
+
+    ref.refresh(transactionItemsProvider((isExpense: false)));
+    ref.read(loadingProvider.notifier).state = false;
   }
 
   void handleCompleteTransaction(
       ITransaction transaction, CoreViewModel model) {
-    if (transaction.subTotal == 0) {
+    if (transaction.subTotal != 0) {
       ref.read(loadingProvider.notifier).state = true;
       Customer? customer =
           ProxyService.realm.getCustomer(id: transaction.customerId);
@@ -131,6 +137,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
           amount: amount,
           discount: discount,
         );
+        _refreshTransactionItems(transactionId: transaction.id!);
       } else {
         confirmPayment(
           amount: amount,
@@ -139,6 +146,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
           paymentType: paymentTypeController.text,
           transaction: transaction,
         );
+        _refreshTransactionItems(transactionId: transaction.id!);
       }
     } else {
       showSimpleNotification(
@@ -169,17 +177,17 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       isIncome: true,
       directlyHandleReceipt: false,
     );
+    final taxExanbled = ProxyService.realm
+        .isTaxEnabled(business: ProxyService.local.getBusiness());
 
-    if (ProxyService.realm
-            .isTaxEnabled(business: ProxyService.local.getBusiness()) &&
-        ProxyService.box.getServerUrl() != null &&
-        ProxyService.box.bhfId() != null) {
+    final hasServerUrl = ProxyService.box.getServerUrl() != null;
+    final hasUser = ProxyService.box.bhfId() != null;
+    if (taxExanbled && hasServerUrl && hasUser) {
       await handleReceiptGeneration(
           transaction: trans, purchaseCode: purchaseCode);
+    } else {
+      talker.warning("No EBM receipt generated");
     }
-    ref.refresh(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false)));
-    ref.read(loadingProvider.notifier).state = false;
   }
 
   Future<void> handleReceiptGeneration(

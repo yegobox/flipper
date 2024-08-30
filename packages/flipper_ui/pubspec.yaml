@@ -5,7 +5,9 @@ version: 1.0.3
 repository: https://github.com/yegobox/packages
 
 environment:
-  sdk: ">=3.0.0"
+  flutter: ">=3.22.0"
+  sdk: ">=3.3.0 <4.0.0"
+
 
 dependencies:
   flutter:
@@ -15,6 +17,12 @@ dependencies:
   # adding this because I need constants from it,
   # maybe it is time to move all constants to its own package
   flipper_services: ^1.0.0-dev
+  easy_localization: ^3.0.7
+  flipper_infra: any
+  flowy_svg: any
+  animations: ^2.0.11
+  loading_indicator: ^3.1.0
+  styled_widget: ^0.4.1
   
   
 dependency_overrides:

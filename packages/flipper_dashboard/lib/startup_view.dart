@@ -62,7 +62,7 @@ class _StartUpViewState extends State<StartUpView> {
                     children: [
                       Text(
                         'A revolutionary business software...',
-                        style: GoogleFonts.roboto(
+                        style: GoogleFonts.poppins(
                           fontSize: 16,
                           color: Colors.grey.shade700,
                         ),

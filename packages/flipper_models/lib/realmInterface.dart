@@ -14,22 +14,6 @@ import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:realm/realm.dart';
 
-extension StringToIntList on String? {
-  List<int> toIntList() {
-    if (this == null) {
-      print('Input string is null');
-      return []; // Return an empty list if the input is null
-    }
-
-    return this!
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => int.tryParse(e) != null) // Filter out invalid elements
-        .map(int.parse)
-        .toList();
-  }
-}
-
 abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
   factory SyncReaml.create() => RealmAPI<M>();
 
@@ -235,7 +219,7 @@ abstract class RealmApiInterface {
   Future<int> userNameAvailable(
       {required String name, required HttpClientInterface flipperHttpClient});
 
-  Future<List<Tenant>> tenants({int? businessId});
+  Future<List<Tenant>> tenants({int? businessId, int? excludeUserId});
   Future<Tenant?> getTenantBYUserId({required int userId});
 
   Future<Tenant?> getTenantBYPin({required int pin});
@@ -446,7 +430,7 @@ abstract class RealmApiInterface {
       })> getReportData();
 
   /// determine if current running user is admin
-  bool isAdmin({required int userId});
+  bool isAdmin({required int userId, required String appFeature});
   Future<LPermission?> permission({required int userId});
   List<LPermission> permissions({required int userId});
   List<Access> access({required int userId});

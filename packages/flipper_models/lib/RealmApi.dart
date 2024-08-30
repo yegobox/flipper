@@ -218,6 +218,8 @@ class RealmAPI<M extends IJsonSerializable>
         realm!.add<TransactionItem>(updatedItem);
       }
     });
+
+    /// update transaction's subTotal
   }
 
   @override
@@ -1704,12 +1706,16 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<List<Tenant>> tenants({int? businessId}) async {
+  Future<List<Tenant>> tenants({int? businessId, int? excludeUserId}) async {
     if (businessId != null) {
-      return realm!.query<Tenant>(r'businessId == $0', [businessId]).toList();
-    } else {
-      return realm!.query<Tenant>(r'deletedAt == nil').toList();
+      if (excludeUserId != null) {
+        return realm!.query<Tenant>(r'businessId == $0 && userId != $1',
+            [businessId, excludeUserId]).toList();
+      } else {
+        return realm!.query<Tenant>(r'businessId == $0', [businessId]).toList();
+      }
     }
+    throw Exception('BusinessId is required');
   }
 
   @override
@@ -3329,15 +3335,15 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  bool isAdmin({required int userId}) {
+  bool isAdmin({required int userId, required String appFeature}) {
     try {
-      final Access? permission =
-          realm!.query<Access>(r'userId == $0', [userId]).firstOrNull;
+      final Access? permission = realm!.query<Access>(
+          r'userId == $0 && featureName == $1',
+          [userId, appFeature]).firstOrNull;
+      talker.warning(permission?.accessLevel?.toLowerCase());
       return permission?.accessLevel?.toLowerCase() == "admin";
     } catch (e) {
-      // Handle database errors here
-      print("Error checking admin status: $e");
-      return false; // Or handle the error differently based on your requirements
+      rethrow;
     }
   }
 
@@ -3578,15 +3584,18 @@ class RealmAPI<M extends IJsonSerializable>
       {required int businessId,
       required HttpClientInterface flipperHttpClient}) async {
     PaymentPlan? plan = getPaymentPlan(businessId: businessId);
-    // await realm?.subscriptions.waitForSynchronization();
 
-    // / paymentCompletedByUser is false when a user did not complete payment or there is due payment failed etc...
     if (plan == null) {
-      throw SubscriptionError(
-          term: "Please update the payment as payment has failed");
-    } else if (!plan.paymentCompletedByUser!) {
-      throw FailedPaymentException(
-          "payment Failed please re-activate your payment method");
+      throw SubscriptionError(term: PAYMENT_UPDATE_REQUIRED);
+    }
+
+    // If paymentCompletedByUser is false, sync again and check
+    if (!(plan.paymentCompletedByUser ?? false)) {
+      await realm?.subscriptions.waitForSynchronization();
+      plan = getPaymentPlan(businessId: businessId);
+      if (!(plan!.paymentCompletedByUser ?? false)) {
+        throw FailedPaymentException(PAYMENT_REACTIVATION_REQUIRED);
+      }
     }
 
     return true;

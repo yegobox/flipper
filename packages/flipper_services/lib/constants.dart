@@ -2,6 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+// Constants
+const String PAYMENT_UPDATE_REQUIRED =
+    "Please update the payment as payment has failed";
+const String PAYMENT_REACTIVATION_REQUIRED =
+    "Payment failed. Please re-activate your payment method";
+
+// Enums
+enum FilterType { CUSTOMER, TRANSACTION, NS, CS, NR, TS, PS }
+
+// Classes
 class RequestStatus {
   static const String pending = 'pending';
   static const String approved = 'approved';
@@ -10,18 +20,15 @@ class RequestStatus {
   static const String fulfilled = 'fulfilled';
 }
 
-const List<String> paymentTypes = ['Cash', 'MOMO MTN', 'Card', 'Credit'];
-List<String> features = [
-  'Sales',
-  'Tickets',
-  'Inventory',
-  'Reports',
-  'Settings',
-  "Custom Amount",
-  "Add Product",
-  "Orders",
+final features = [
+  AppFeature.Inventory,
+  AppFeature.Settings,
+  AppFeature.Reports,
+  AppFeature.Tickets,
+  AppFeature.Orders,
+  AppFeature.AddProduct,
+  AppFeature.CustomAmount,
 ];
-List<String> accessLevels = ['No Access', 'read', 'write', 'admin'];
 
 class AppFeature {
   static const String Sales = "Sales";
@@ -29,6 +36,9 @@ class AppFeature {
   static const String Reports = "Reports";
   static const String Settings = "Settings";
   static const String Tickets = "Tickets";
+  static const String AddProduct = "Add Product";
+  static const String Orders = "Orders";
+  static const String CustomAmount = "Custom Amount";
 }
 
 class AccessLevel {
@@ -36,29 +46,6 @@ class AccessLevel {
   static const String ADMIN = "admin";
   static const String READ = "read";
 }
-
-// String EBMURL = "http://localhost:8080/rra";
-// String EBMURL = "https://turbo.yegobox.com/rra";
-void showSnackBar(BuildContext context, String message,
-    {required Color textColor, required Color backgroundColor}) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      width: 400,
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: backgroundColor,
-      content: Text(
-        message,
-        style: GoogleFonts.poppins(
-          fontWeight: FontWeight.w400,
-          fontSize: 20,
-          color: textColor,
-        ),
-      ),
-    ),
-  );
-}
-
-enum FilterType { CUSTOMER, TRANSACTION, NS, CS, NR, TS, PS }
 
 class AppActions {
   static const String updated = "updated";
@@ -97,6 +84,35 @@ class NavigationPurpose {
   static String home = 'Home';
   static String back = 'Back';
 }
+
+// Lists
+const List<String> paymentTypes = ['Cash', 'MOMO MTN', 'Card', 'Credit'];
+
+List<String> accessLevels = ['No Access', 'read', 'write', 'admin'];
+
+// Functions
+void showSnackBar(BuildContext context, String message,
+    {required Color textColor, required Color backgroundColor}) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      width: 400,
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: backgroundColor,
+      content: Text(
+        message,
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.w400,
+          fontSize: 20,
+          color: textColor,
+        ),
+      ),
+    ),
+  );
+}
+
+// Variables
+// String EBMURL = "http://localhost:8080/rra";
+// String EBMURL = "https://turbo.yegobox.com/rra";
 
 const String defaultApp = 'defaultApp';
 const String PARKED = 'parked';
@@ -142,6 +158,8 @@ bool isWeb = UniversalPlatform.isWeb;
 bool isWindows = UniversalPlatform.isWindows;
 bool isLinux = UniversalPlatform.isLinux;
 bool isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
+
+// Styles
 ButtonStyle primaryButtonStyle = ButtonStyle(
   shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
     (states) => RoundedRectangleBorder(
@@ -162,6 +180,7 @@ ButtonStyle primaryButtonStyle = ButtonStyle(
     },
   ),
 );
+
 ButtonStyle secondaryButtonStyle = ButtonStyle(
   shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
     (states) => RoundedRectangleBorder(
@@ -182,6 +201,7 @@ ButtonStyle secondaryButtonStyle = ButtonStyle(
     },
   ),
 );
+
 ButtonStyle primary2ButtonStyle = ButtonStyle(
   shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) =>
       RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
@@ -233,10 +253,12 @@ ButtonStyle primary4ButtonStyle = ButtonStyle(
     },
   ),
 );
+
 TextStyle primaryTextStyle = GoogleFonts.poppins(
   fontSize: 16.0,
   fontWeight: FontWeight.w500,
 );
+
 const String kPackageId = 'rw.flipper';
 final Color activeColor = Colors.blue.withOpacity(0.04);
 
