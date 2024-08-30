@@ -26,7 +26,6 @@ jobs:
   # code-coverage:
   #   name: Check Code Coverage
   #   runs-on: macOS-12
-
   #   steps:
   #     - name: Checkout Repository
   #       uses: actions/checkout@v3
