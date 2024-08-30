@@ -455,7 +455,7 @@ jobs:
   #       working-directory: apps/flipper
   fastlane-deploy:
     name: "Google Deploy"
-    needs: [unit-testing, integration-testing-macos, android-integration-test]
+    needs: [unit-testing,android-integration-test, integration-testing-windows]
     if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'build')
     runs-on: ubuntu-22.04
     steps:
