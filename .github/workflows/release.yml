@@ -13,9 +13,6 @@ on:
           - beta
           - promote_to_production
           - production
-  
-  # push:
-  #   branches: [main, dev]
   pull_request:
     branches: 
       - main
@@ -94,10 +91,11 @@ jobs:
       #     github-token: ${{ secrets.ACCESS_TOKEN }}
   unit-testing:
     # runs-on: ubuntu-22.04
+    name: Unit Testing
     # runs-on: [self-hosted, macOS, richard]
     runs-on: windows-2022
     # if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
-    needs: [code-coverage]
+    # needs: [code-coverage]
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
@@ -140,7 +138,7 @@ jobs:
           dart pub global activate melos
           melos clean
           melos bootstrap
-          cd apps/flipper
+          cd packages/flipper_dashboard
           dart run realm install
           flutter test --dart-define=FLUTTER_TEST_ENV=true
 
