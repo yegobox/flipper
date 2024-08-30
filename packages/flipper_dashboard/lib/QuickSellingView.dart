@@ -296,7 +296,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   // Main build method
   @override
   Widget build(BuildContext context) {
-    final isOrdering = ProxyService.box.isOrdering()!;
+    final isOrdering = ProxyService.box.isOrdering() ?? false;
     final transactionItemsAsyncValue =
         ref.watch(transactionItemsProvider((isExpense: isOrdering)));
     final transactionAsyncValue = ref.watch(pendingTransactionProvider(
