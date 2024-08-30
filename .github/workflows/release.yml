@@ -590,7 +590,7 @@ jobs:
   #         projectId: yegobox-2ee43 
   slackNotification:
     name: Slack Notification
-    needs: [shorebird-deploy, build-and-release-windows]
+    needs: [fastlane-deploy, build-and-release-windows]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
