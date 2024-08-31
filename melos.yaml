@@ -24,7 +24,7 @@ scripts:
     run: melos run analyze && melos run format
     description: Run all static analysis checks.
   test:selective_unit_test:
-    exec: flutter test
+    exec: flutter test --dart-define=FLUTTER_TEST_ENV=true
     dir-exists: "test"
     fail-fast: true
     description: Run selective unit tests

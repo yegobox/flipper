@@ -276,26 +276,6 @@ final stockMock = Stock(ObjectId(),
   ..productId = 2
   ..active = false;
 
-// transaction mock
-ITransaction? TransactionFMock = ITransaction(
-  ObjectId(),
-  lastTouched: DateTime.now(),
-  action: AppActions.created,
-  id: randomNumber(),
-  supplierId: 1,
-  reference: "2333",
-  transactionNumber: "3333",
-  status: "pending",
-  transactionType: 'local',
-  subTotal: 0,
-  cashReceived: 0,
-  updatedAt: DateTime.now().toIso8601String(),
-  customerChangeDue: 0.0,
-  paymentType: 'Cash',
-  branchId: 11,
-  createdAt: DateTime.now().toIso8601String(),
-);
-
 final AppService _appService = getIt<AppService>();
 
 final customProductMock = Product(ObjectId(),

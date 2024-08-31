@@ -125,7 +125,8 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         /// refresh transaction List
         final transaction = ref.read(pendingTransactionProviderNonStream(
             (mode: TransactionType.sale, isExpense: false)));
-        refreshTransactionItems(transactionId: transaction.id!);
+        refreshTransactionItems(
+            transactionId: transaction.isValid ? transaction.id! : 0);
       },
       builder: (context, model, child) {
         return _buildScaffold(context, model);

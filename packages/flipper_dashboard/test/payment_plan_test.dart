@@ -1,11 +1,10 @@
 import 'package:flipper_dashboard/payment/PaymentPlan.dart';
+import 'package:flipper_mocks/flipper_mocks.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
-import 'helpers/bootstrapTestData.dart';
 
 // flutter test test/payment_plan_test.dart --dart-define=FLUTTER_TEST_ENV=true
 

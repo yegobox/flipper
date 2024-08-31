@@ -1,7 +1,8 @@
 // save them in realm db
+import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/mocks.dart';
 import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 
@@ -10,6 +11,40 @@ class CreateMockdata {
     local.write(() {
       local.add<Business>(businessMock);
     });
+  }
+
+  void mockTransactions({required Realm realm}) {
+    for (var i = 0; i < 1000; i++) {
+      realm.write(() {
+        realm.add<ITransaction>(ITransaction(
+          ObjectId(),
+          lastTouched: DateTime(2023, 10, 28),
+          action: AppActions.created,
+          id: randomNumber(),
+          supplierId: 1,
+          reference: "2333",
+          transactionNumber: "3333",
+          status: COMPLETE,
+          transactionType: 'local',
+          subTotal: 0,
+          cashReceived: 0,
+          updatedAt: DateTime(2023, 10, 28).toIso8601String(),
+          customerChangeDue: 0.0,
+          paymentType: 'Cash',
+          branchId: 1,
+          createdAt: DateTime(2023, 10, 28).toIso8601String(),
+          receiptType: "Standard",
+          customerId: 101,
+          customerType: "Regular",
+          note: "Initial transaction",
+          deletedAt: null,
+          ebmSynced: false,
+          isIncome: true,
+          isExpense: false,
+          isRefunded: false,
+        ));
+      });
+    }
   }
 
   Future<void> ensureRealmInitialized() async {

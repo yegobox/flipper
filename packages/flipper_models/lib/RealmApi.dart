@@ -15,7 +15,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
-import 'package:flipper_models/mocks.dart';
+import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/realmModels.dart';
@@ -1867,48 +1867,61 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  List<ITransaction> transactions(
-      {DateTime? startDate,
-      DateTime? endDate,
-      String? status,
-      String? transactionType,
-      int? branchId,
-      bool isExpense = false,
-      bool includePending = false}) {
+  List<ITransaction> transactions({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isExpense = false,
+    bool includePending = false,
+  }) {
     // Initialize query string
-    String queryString;
+    String queryString = r'''
+    status == $0
+    && branchId == $1
+  ''';
 
-    // Check if the transaction is an expense and dates are provided
-    if (isExpense && startDate != null && endDate != null) {
-      queryString = r'''status == $0
-          && isExpense == true && subTotal > 0 && branchId == $1
-          && lastTouched >= $2 && lastTouched <= $3
-          SORT(createdAt DESC)
-          ''';
-      return realm!.query<ITransaction>(queryString, [
-        status ?? COMPLETE,
-        branchId,
-        startDate.toUtc(),
-        endDate.add(Duration(days: 1)).toUtc()
-      ]).toList();
+    // Initialize parameters
+    List<dynamic> parameters = [status ?? COMPLETE, branchId];
+
+    // Add expense/income condition
+    if (isExpense) {
+      queryString += ' && isExpense == true && subTotal > 0 ';
+    } else {
+      queryString += ' && isIncome == true ';
     }
-    // Check if the transaction is an expense and dates are not provided
-    else if (isExpense && startDate == null && endDate == null) {
-      queryString = r'''status == $0
-          && isExpense == true && subTotal > 0 && branchId == $1
-          SORT(createdAt DESC)
-          ''';
-      return realm!.query<ITransaction>(
-          queryString, [status ?? COMPLETE, branchId]).toList();
+
+    // Handle date range
+    if (startDate != null && endDate != null) {
+      // Adjust endDate to cover the full day
+      final adjustedEndDate =
+          endDate.add(Duration(days: 1)).subtract(Duration(seconds: 1));
+      queryString += r' && lastTouched >= $2 && lastTouched <= $3 ';
+      parameters.addAll([startDate.toUtc(), adjustedEndDate.toUtc()]);
+      print("Both startDate and endDate provided.");
+    } else if (startDate != null) {
+      queryString += r' && lastTouched >= $2 ';
+      parameters.add(startDate.toUtc());
+      print("Only startDate provided.");
+    } else if (endDate != null) {
+      final adjustedEndDate =
+          endDate.add(Duration(days: 1)).subtract(Duration(seconds: 1));
+      // Adjust the query condition to include transactions ON the endDate
+      queryString += r' && lastTouched <= $2 ';
+      parameters.add(adjustedEndDate.toUtc());
+      print("Only endDate provided.");
     }
-    // For all other cases (income)
-    else {
-      queryString = r'''status == $0
-          && isIncome == true && branchId == $1
-          ''';
-      return realm!.query<ITransaction>(
-          queryString, [status ?? COMPLETE, branchId]).toList();
-    }
+
+    // Add sort condition
+    queryString += ' SORT(createdAt DESC) ';
+
+    // Log query and parameters for debugging
+    talker.warning('Query: $queryString');
+    talker.warning('Parameters: $parameters');
+
+    // Execute and return the query result
+    return realm!.query<ITransaction>(queryString, parameters).toList();
   }
 
   @override

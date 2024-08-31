@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/paystack_customer.dart';
-import 'package:flipper_models/mocks.dart';
+import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';

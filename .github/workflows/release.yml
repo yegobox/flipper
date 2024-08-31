@@ -72,7 +72,9 @@ jobs:
           dart run realm install
           cd ../..
           cd packages/flipper_dashboard
-         
+          flutter test --dart-define=FLUTTER_TEST_ENV=true
+          cd ..
+          cd flipper_models
           flutter test --dart-define=FLUTTER_TEST_ENV=true
 
   integration-testing-windows:

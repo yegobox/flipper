@@ -80,9 +80,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
               SizedBox(height: 16),
               _buildPriceSummary(),
               SizedBox(height: 16),
-              CouponToggle(
-                
-              ),
+              CouponToggle(),
               SizedBox(height: 16),
               _buildProceedButton(),
             ],
@@ -346,11 +344,11 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           talker.error(s);
           rethrow;
         }
-        // Proceed to payment action
       },
       child: Text('Proceed to Payment',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
       style: ElevatedButton.styleFrom(
+        splashFactory: InkSparkle.splashFactory,
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

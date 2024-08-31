@@ -1,0 +1,20 @@
+name: flipper_mocks
+description: "A new Flutter package project."
+version: 0.0.1
+
+environment:
+  sdk: ^3.5.0
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flipper_models: any
+  flipper_services: any
+  realm: ^3.4.1
+  # realm_dart: ^3.4.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0

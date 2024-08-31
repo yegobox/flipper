@@ -158,6 +158,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
   Widget _buildApproveButton(
       BuildContext context, WidgetRef ref, dynamic request) {
     return ElevatedButton(
+      key: Key("ApproveRequest"),
       onPressed: request.status == RequestStatus.approved
           ? null
           : () => _handleApproveRequest(context, ref, request),

@@ -18,11 +18,16 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
     if (args.value is PickerDateRange) {
       PickerDateRange date = args.value as PickerDateRange;
-      if (date.endDate != null) {
-        showSnackBar(context, "Date range selected",
+      if (date.startDate != null) {
+        showSnackBar(context, "Date selected",
             textColor: Colors.white, backgroundColor: Colors.purple);
         ref.read(dateRangeProvider.notifier).setStartDate(date.startDate!);
-        ref.read(dateRangeProvider.notifier).setEndDate(date.endDate!);
+        if (date.endDate != null) {
+          ref.read(dateRangeProvider.notifier).setEndDate(date.endDate!);
+        } else {
+          // If no end date is selected, set it to the same as the start date
+          ref.read(dateRangeProvider.notifier).setEndDate(date.startDate!);
+        }
         ref.refresh(transactionListProvider);
       }
     }

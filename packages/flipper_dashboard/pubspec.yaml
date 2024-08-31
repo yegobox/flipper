@@ -123,6 +123,7 @@ dependencies:
   demo_ui_components: 1.0.0
   lottie: ^3.1.2
   flipper_rw:
+  flipper_mocks: any
 
 dependency_overrides:
   http: ^1.2.1
