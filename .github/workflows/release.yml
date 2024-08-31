@@ -276,7 +276,7 @@ jobs:
   android-integration-test:
     name: integration on Android
     needs: [unit-testing]
-    runs-on: macOS-11
+    runs-on: macOS-12
     # runs-on: macos-latest
     strategy:
       matrix:
