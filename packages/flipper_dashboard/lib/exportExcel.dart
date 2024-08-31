@@ -171,47 +171,41 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   void _addPaymentMethodSheet(
       excel.Workbook workbook, ExportConfig config, ExcelStyler styler) {
-    final expenseSheet = workbook.worksheets.addWithName('Payment Methods');
+    final paymentMethodSheet =
+        workbook.worksheets.addWithName('Payment Methods');
     final headerStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
-    final balanceStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
+      fontColor: '#FFFFFF',
+      backColor: '#4472C4',
+      fontSize: 14,
+    );
 
-    expenseSheet.getRangeByIndex(1, 1).setText('Payment Type');
-    expenseSheet.getRangeByIndex(1, 2).setText('Amount Received');
-    expenseSheet.getRangeByIndex(1, 1, 1, 2).cellStyle = headerStyle;
+    paymentMethodSheet.getRangeByIndex(1, 1).setText('Payment Type');
+    paymentMethodSheet.getRangeByIndex(1, 2).setText('Amount Received');
+    paymentMethodSheet.getRangeByIndex(1, 1, 1, 2).cellStyle = headerStyle;
 
     // Group transactions by payment type and sum the amounts
     Map<String, double> paymentTypeTotals = {};
     for (var transaction in config.transactions) {
       if (transaction.paymentType != null) {
+        talker.warning(transaction.paymentType);
         paymentTypeTotals[transaction.paymentType!] =
             (paymentTypeTotals[transaction.paymentType!] ?? 0) +
-                transaction.cashReceived;
+                transaction.subTotal;
       }
     }
 
     int rowIndex = 2;
     paymentTypeTotals.forEach((paymentType, totalAmount) {
-      expenseSheet.getRangeByIndex(rowIndex, 1).setText(paymentType);
-      expenseSheet.getRangeByIndex(rowIndex, 2).setValue(totalAmount);
+      paymentMethodSheet.getRangeByIndex(rowIndex, 1).setText(paymentType);
+      paymentMethodSheet.getRangeByIndex(rowIndex, 2).setNumber(totalAmount);
+      paymentMethodSheet.getRangeByIndex(rowIndex, 2).numberFormat =
+          config.currencyFormat;
       rowIndex++;
     });
 
-    final lastDataRow = expenseSheet.getLastRow();
-
     for (int i = 1; i <= 2; i++) {
-      expenseSheet.autoFitColumn(i);
+      paymentMethodSheet.autoFitColumn(i);
     }
-
-    expenseSheet.getRangeByIndex(lastDataRow + 1, 1).setText('Total Received');
-
-    final totalReceivedCell = expenseSheet.getRangeByIndex(lastDataRow + 1, 2);
-    totalReceivedCell.setFormula('=SUM(B2:B$lastDataRow)');
-    totalReceivedCell.cellStyle = balanceStyle;
-    totalReceivedCell.numberFormat = config.currencyFormat;
-
-    workbook.names.add('TotalReceived', totalReceivedCell);
   }
 
   void _addExpensesSheet(excel.Workbook workbook, List<ITransaction> expenses,

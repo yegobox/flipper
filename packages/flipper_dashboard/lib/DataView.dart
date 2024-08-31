@@ -174,10 +174,17 @@ class DataViewState extends ConsumerState<DataView>
                                   isExpense: true,
                                   branchId: ProxyService.box.getBranchId());
 
+                              final nonExpense = ProxyService.realm
+                                  .transactions(
+                                      startDate: widget.startDate,
+                                      endDate: widget.endDate,
+                                      isExpense: false,
+                                      branchId: ProxyService.box.getBranchId());
+
                               /// categorize transactions
                               exportDataGridToExcel(
                                   config: ExportConfig(
-                                      transactions: widget.transactions ?? [],
+                                      transactions: nonExpense,
                                       endDate: widget.endDate,
                                       startDate: widget.startDate,
                                       grossProfit: widget.transactionItems!.fold<double>(
