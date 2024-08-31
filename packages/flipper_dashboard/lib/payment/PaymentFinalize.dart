@@ -21,6 +21,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
   bool v1Active = true;
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -29,83 +30,90 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
         elevation: 0,
       ),
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(200.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Select Country',
-                  style: Theme.of(context).textTheme.bodySmall,
-                  textAlign: TextAlign.left,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: constraints.maxWidth > 600 ? 200 : 20,
+                  vertical: 20,
                 ),
-                SizedBox(height: 10),
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'Rwanda', label: Text('Rwanda')),
-                    ButtonSegment(value: 'Other', label: Text('Other')),
-                  ],
-                  selected: {selectedCountry},
-                  onSelectionChanged: (Set<String> newSelection) {
-                    setState(() {
-                      selectedCountry = newSelection.first;
-                      if (selectedCountry == 'Other') {
-                        selectedPaymentMethod = 'Card';
-                      }
-                    });
-                  },
-                ),
-                SizedBox(height: 30),
-                Text(
-                  'Payment Method',
-                  style: Theme.of(context).textTheme.bodySmall,
-                  textAlign: TextAlign.left,
-                ),
-                SizedBox(height: 10),
-                SegmentedButton<String>(
-                  segments: selectedCountry == 'Rwanda'
-                      ? const [
-                          ButtonSegment(
-                              value: 'Mobile Money',
-                              label: Text('Mobile Money')),
-                          ButtonSegment(value: 'Card', label: Text('Card')),
-                        ]
-                      : const [
-                          ButtonSegment(value: 'Card', label: Text('Card')),
-                        ],
-                  selected: {selectedPaymentMethod},
-                  onSelectionChanged: (Set<String> newSelection) {
-                    setState(() {
-                      selectedPaymentMethod = newSelection.first;
-                    });
-                  },
-                ),
-                Spacer(),
-                isLoading
-                    ? Center(
-                        child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.black.withOpacity(0.7)),
-                        strokeWidth: 3,
-                        backgroundColor: Colors.grey.shade300,
-                      ))
-                    : ElevatedButton(
-                        child: Text('Complete Payment'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Select Country',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.left,
+                    ),
+                    SizedBox(height: 10),
+                    SegmentedButton<String>(
+                      segments: const [
+                        ButtonSegment(value: 'Rwanda', label: Text('Rwanda')),
+                        ButtonSegment(value: 'Other', label: Text('Other')),
+                      ],
+                      selected: {selectedCountry},
+                      onSelectionChanged: (Set<String> newSelection) {
+                        setState(() {
+                          selectedCountry = newSelection.first;
+                          if (selectedCountry == 'Other') {
+                            selectedPaymentMethod = 'Card';
+                          }
+                        });
+                      },
+                    ),
+                    SizedBox(height: 30),
+                    Text(
+                      'Payment Method',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.left,
+                    ),
+                    SizedBox(height: 10),
+                    SegmentedButton<String>(
+                      segments: selectedCountry == 'Rwanda'
+                          ? const [
+                              ButtonSegment(
+                                  value: 'Mobile Money',
+                                  label: Text('Mobile Money')),
+                              ButtonSegment(value: 'Card', label: Text('Card')),
+                            ]
+                          : const [
+                              ButtonSegment(value: 'Card', label: Text('Card')),
+                            ],
+                      selected: {selectedPaymentMethod},
+                      onSelectionChanged: (Set<String> newSelection) {
+                        setState(() {
+                          selectedPaymentMethod = newSelection.first;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 50),
+                    isLoading
+                        ? Center(
+                            child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.black.withOpacity(0.7)),
+                            strokeWidth: 3,
+                            backgroundColor: Colors.grey.shade300,
+                          ))
+                        : ElevatedButton(
+                            child: Text('Complete Payment'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              minimumSize: Size(double.infinity, 50),
+                            ),
+                            onPressed: _handlePayment,
                           ),
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          minimumSize: Size(double.infinity, 50),
-                        ),
-                        onPressed: _handlePayment,
-                      ),
-              ],
-            ),
-          ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
