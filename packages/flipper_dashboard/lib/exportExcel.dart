@@ -15,162 +15,48 @@ import 'package:syncfusion_flutter_datagrid_export/export.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:open_file/open_file.dart';
 
-mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
-    on ConsumerState<T> {
+mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final GlobalKey<SfDataGridState> workBookKey = GlobalKey<SfDataGridState>();
 
   Future<void> exportDataGridToExcel({
-    DateTime? startDate,
-    DateTime? endDate,
-    double? grossProfit,
-    double? netProfit,
+    required ExportConfig config,
     List<ITransaction>? expenses,
-    String currencySymbol = 'RF',
   }) async {
     try {
       ref.read(isProcessingProvider.notifier).startProcessing();
 
       final business = await ProxyService.local.getBusiness();
-      final tinNumber = business.tinNumber ?? 0;
-      final bhfId = ProxyService.box.bhfId() ?? "00";
       final drawer = await ProxyService.local
           .getDrawer(cashierId: ProxyService.box.getUserId()!);
 
       final excel.Workbook workbook =
           workBookKey.currentState!.exportToExcelWorkbook();
-
       final excel.Worksheet reportSheet = workbook.worksheets[0];
       reportSheet.name = 'Report';
 
-      final int columnCount = reportSheet.getLastColumn();
-
-      if (columnCount < 1) {
-        throw Exception('The worksheet must have at least one column');
-      }
-
-      final excel.Style headerStyle = _createStyle(workbook,
-          fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
-      final excel.Style infoStyle = _createStyle(workbook,
-          fontColor: '#000000', backColor: '#E7E6E6', fontSize: 12);
-      final excel.Style balanceStyle = _createStyle(workbook,
-          fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
-
-      final currencyFormat =
-          '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"';
-
+      final ExcelStyler styler = ExcelStyler(workbook);
       final Map<String, excel.Range> namedRanges = _addHeaderAndInfoRows(
-          reportSheet,
-          headerStyle,
-          infoStyle,
-          tinNumber,
-          bhfId,
-          startDate,
-          endDate,
-          drawer?.openingBalance ?? 0,
-          grossProfit ?? 0,
-          netProfit ?? 0,
-          columnCount,
-          currencyFormat,
-          workbook);
+        reportSheet: reportSheet,
+        styler: styler,
+        config: config,
+        business: business,
+        drawer: drawer,
+      );
 
-      _addClosingBalanceRow(
-          reportSheet, balanceStyle, columnCount, currencyFormat);
+      _addClosingBalanceRow(reportSheet, styler, config.currencyFormat);
 
-      // Apply currency formatting to gross profit and profit made columns
-      for (int row = 1; row <= reportSheet.getLastRow(); row++) {
-        reportSheet.getRangeByIndex(row, 9).numberFormat = currencyFormat;
-      }
-
-      for (int i = 1; i <= columnCount; i++) {
-        reportSheet.autoFitColumn(i);
-      }
+      _formatColumns(reportSheet, config.currencyFormat);
 
       if (expenses != null && expenses.isNotEmpty) {
-        final expenseSheet = workbook.worksheets.addWithName('Expenses');
-        final expenseHeaderStyle = _createStyle(workbook,
-            fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
-
-        // Add headers
-        expenseSheet.getRangeByIndex(1, 1).setText('Expense');
-        expenseSheet.getRangeByIndex(1, 2).setText('Amount');
-        expenseSheet.getRangeByIndex(1, 1, 1, 2).cellStyle = expenseHeaderStyle;
-
-        // Populate expense data
-        for (int i = 0; i < expenses.length; i++) {
-          final rowIndex = i + 2;
-          expenseSheet
-              .getRangeByIndex(rowIndex, 1)
-              .setText(expenses[i].transactionType);
-          expenseSheet
-              .getRangeByIndex(rowIndex, 2)
-              .setValue(expenses[i].subTotal);
-        }
-
-        final lastDataRow = expenseSheet.getLastRow();
-
-        // Create an instance of chart collection
-        // final ChartCollection charts = ChartCollection(expenseSheet);
-        // // Add the chart
-        // final Chart chart = charts.add();
-
-        // // Set Chart Type
-        // chart.chartType = ExcelChartType.pie;
-
-        // // Set data range in the worksheet (excluding headers)
-        // chart.dataRange = expenseSheet.getRangeByName('A1:B$lastDataRow');
-
-        // // Set charts to worksheet
-        // expenseSheet.charts = charts;
-
-        // // Customize chart
-        // chart.hasTitle = true;
-        // chart.chartTitle = 'Expense Distribution';
-        // chart.hasLegend = true;
-        // chart.legend!.position = ExcelLegendPosition.right;
-
-        // // Position the chart
-        // chart.topRow = 0;
-        // chart.leftColumn = 3;
-        // chart.bottomRow = 20;
-        // chart.rightColumn = 10;
-
-        // Auto-fit columns for the Expenses sheet
-        for (int i = 1; i <= 2; i++) {
-          expenseSheet.autoFitColumn(i);
-        }
-
-        // Add total expenses row
-        expenseSheet
-            .getRangeByIndex(lastDataRow + 1, 1)
-            .setText('Total Expenses');
-
-        final totalExpensesCell =
-            expenseSheet.getRangeByIndex(lastDataRow + 1, 2);
-        totalExpensesCell.setFormula('=SUM(B2:B$lastDataRow)');
-        totalExpensesCell.cellStyle = balanceStyle;
-        totalExpensesCell.numberFormat = currencyFormat;
-
-        workbook.names.add('TotalExpenses', totalExpensesCell);
-
-        final netProfitCell = namedRanges['NetProfit']!;
-        netProfitCell.setFormula(
-            '=${namedRanges['GrossProfit']!.addressGlobal} - TotalExpenses');
-        netProfitCell.numberFormat = currencyFormat;
+        _addExpensesSheet(workbook, expenses, styler, config.currencyFormat);
       }
+      _addPaymentMethodSheet(workbook, config, styler);
 
       final String filePath = await _saveExcelFile(workbook);
       workbook.dispose();
 
       ref.read(isProcessingProvider.notifier).stopProcessing();
-      if (Platform.isWindows || Platform.isMacOS) {
-        // await launchUrl(Uri.parse(filePath));
-        //Users/richard/Library/Containers/rw.flipper/Data/Documents/2024-08-31-Report.xlsx
-        OpenFile.open(filePath);
-      } else if (Platform.isAndroid || Platform.isIOS || Platform.isFuchsia) {
-        shareFileAsAttachment(filePath);
-      } else {
-        shareFileAsAttachment(filePath);
-      }
+      await _openOrShareFile(filePath);
     } catch (e, s) {
       ref.read(isProcessingProvider.notifier).stopProcessing();
       talker.error(e);
@@ -178,58 +64,36 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  int _styleCounter = 0;
+  Map<String, excel.Range> _addHeaderAndInfoRows({
+    required excel.Worksheet reportSheet,
+    required ExcelStyler styler,
+    required ExportConfig config,
+    required Business business,
+    required Drawers? drawer,
+  }) {
+    final headerStyle = styler.createStyle(
+        fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
+    final infoStyle = styler.createStyle(
+        fontColor: '#000000', backColor: '#E7E6E6', fontSize: 12);
 
-  excel.Style _createStyle(excel.Workbook workbook,
-      {required String fontColor,
-      required String backColor,
-      required double fontSize}) {
-    final styleName = 'customStyle${_styleCounter++}';
-    final style = workbook.styles.add(styleName);
-    style.fontName = 'Calibri';
-    style.bold = true;
-    style.fontSize = fontSize;
-    style.fontColor = fontColor;
-    style.backColor = backColor;
-    style.hAlign = excel.HAlignType.center;
-    style.vAlign = excel.VAlignType.center;
-    return style;
-  }
-
-  Map<String, excel.Range> _addHeaderAndInfoRows(
-      excel.Worksheet sheet,
-      excel.Style headerStyle,
-      excel.Style infoStyle,
-      int tinNumber,
-      String bhfId,
-      DateTime? startDate,
-      DateTime? endDate,
-      double openingBalance,
-      double grossProfit,
-      double netProfit,
-      int columnCount,
-      String currencyFormat,
-      excel.Workbook workbook) {
-    sheet.insertRow(1);
-    final titleRange =
-        sheet.getRangeByName('A1:${String.fromCharCode(64 + columnCount)}1');
+    reportSheet.insertRow(1);
+    final titleRange = reportSheet.getRangeByName(
+        'A1:${String.fromCharCode(64 + reportSheet.getLastColumn())}1');
     titleRange.merge();
     titleRange.setText('Sales Report');
     titleRange.cellStyle = headerStyle;
 
-    // Assume tax rate is provided in D1, you can adjust as per your requirement
-
     final taxRate = 18;
-    final taxAmount = (grossProfit * taxRate) / 118;
+    final taxAmount = (config.grossProfit * taxRate) / 118;
 
     final infoData = [
-      ['TIN Number', tinNumber.toString()],
-      ['BHF ID', bhfId],
-      ['Start Date', startDate?.toIso8601String() ?? "-"],
-      ['End Date', endDate?.toIso8601String() ?? "-"],
-      ['Opening Balance', openingBalance],
-      ['Gross Profit', grossProfit],
-      ['Net Profit', netProfit],
+      ['TIN Number', business.tinNumber?.toString() ?? ''],
+      ['BHF ID', ProxyService.box.bhfId() ?? '00'],
+      ['Start Date', config.startDate?.toIso8601String() ?? '-'],
+      ['End Date', config.endDate?.toIso8601String() ?? '-'],
+      ['Opening Balance', drawer?.openingBalance ?? 0],
+      ['Gross Profit', config.grossProfit],
+      ['Net Profit', config.netProfit],
       ['Tax Rate', taxRate],
       ['Tax Amount', taxAmount],
     ];
@@ -238,28 +102,29 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
 
     for (var i = 0; i < infoData.length; i++) {
       final rowIndex = i + 2;
-      sheet.insertRow(rowIndex);
-      sheet.getRangeByName('A$rowIndex').setText(infoData[i][0].toString());
+      reportSheet.insertRow(rowIndex);
+      reportSheet
+          .getRangeByName('A$rowIndex')
+          .setText(infoData[i][0].toString());
 
       final value = infoData[i][1];
-      final cell = sheet.getRangeByName('B$rowIndex');
+      final cell = reportSheet.getRangeByName('B$rowIndex');
       if (value is num) {
         cell.setValue(value);
-        cell.numberFormat = currencyFormat;
+        cell.numberFormat = config.currencyFormat;
       } else {
         cell.setText(value.toString());
       }
 
-      final infoRange = sheet.getRangeByName(
-          'A$rowIndex:${String.fromCharCode(64 + columnCount)}$rowIndex');
+      final infoRange = reportSheet.getRangeByName(
+          'A$rowIndex:${String.fromCharCode(64 + reportSheet.getLastColumn())}$rowIndex');
       infoRange.cellStyle = infoStyle;
 
-      // Name ranges for easier reference
       if (infoData[i][0] == 'Gross Profit') {
-        workbook.names.add('GrossProfit', cell);
+        reportSheet.workbook.names.add('GrossProfit', cell);
         namedRanges['GrossProfit'] = cell;
       } else if (infoData[i][0] == 'Net Profit') {
-        workbook.names.add('NetProfit', cell);
+        reportSheet.workbook.names.add('NetProfit', cell);
         namedRanges['NetProfit'] = cell;
       }
     }
@@ -267,8 +132,10 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
     return namedRanges;
   }
 
-  void _addClosingBalanceRow(excel.Worksheet sheet, excel.Style style,
-      int columnCount, String currencyFormat) {
+  void _addClosingBalanceRow(
+      excel.Worksheet sheet, ExcelStyler styler, String currencyFormat) {
+    final balanceStyle = styler.createStyle(
+        fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
     final firstDataRow = _getFirstDataRow(sheet);
     final lastDataRow = sheet.getLastRow();
     final closingBalanceRow = lastDataRow + 1;
@@ -276,20 +143,116 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
     sheet.insertRow(closingBalanceRow);
 
     sheet.getRangeByName('A$closingBalanceRow').setText('Closing Balance');
-    sheet.getRangeByName('A$closingBalanceRow').cellStyle = style;
+    sheet.getRangeByName('A$closingBalanceRow').cellStyle = balanceStyle;
 
-    final lastColumnLetter = String.fromCharCode(64 + columnCount);
+    final lastColumnLetter = String.fromCharCode(64 + sheet.getLastColumn());
     final closingBalanceCell =
         sheet.getRangeByName('$lastColumnLetter$closingBalanceRow');
     closingBalanceCell.setFormula(
         '=SUM($lastColumnLetter$firstDataRow:$lastColumnLetter$lastDataRow)');
-    closingBalanceCell.cellStyle = style;
+    closingBalanceCell.cellStyle = balanceStyle;
     closingBalanceCell.numberFormat = currencyFormat;
 
     sheet
         .getRangeByName(
             'A$closingBalanceRow:$lastColumnLetter$closingBalanceRow')
-        .cellStyle = style;
+        .cellStyle = balanceStyle;
+  }
+
+  void _formatColumns(excel.Worksheet sheet, String currencyFormat) {
+    for (int row = 1; row <= sheet.getLastRow(); row++) {
+      sheet.getRangeByIndex(row, 9).numberFormat = currencyFormat;
+    }
+
+    for (int i = 1; i <= sheet.getLastColumn(); i++) {
+      sheet.autoFitColumn(i);
+    }
+  }
+
+  void _addPaymentMethodSheet(
+      excel.Workbook workbook, ExportConfig config, ExcelStyler styler) {
+    final expenseSheet = workbook.worksheets.addWithName('Payment Methods');
+    final headerStyle = styler.createStyle(
+        fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
+    final balanceStyle = styler.createStyle(
+        fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
+
+    expenseSheet.getRangeByIndex(1, 1).setText('Payment Type');
+    expenseSheet.getRangeByIndex(1, 2).setText('Amount Received');
+    expenseSheet.getRangeByIndex(1, 1, 1, 2).cellStyle = headerStyle;
+
+    // Group transactions by payment type and sum the amounts
+    Map<String, double> paymentTypeTotals = {};
+    for (var transaction in config.transactions) {
+      if (transaction.paymentType != null) {
+        paymentTypeTotals[transaction.paymentType!] =
+            (paymentTypeTotals[transaction.paymentType!] ?? 0) +
+                transaction.cashReceived;
+      }
+    }
+
+    int rowIndex = 2;
+    paymentTypeTotals.forEach((paymentType, totalAmount) {
+      expenseSheet.getRangeByIndex(rowIndex, 1).setText(paymentType);
+      expenseSheet.getRangeByIndex(rowIndex, 2).setValue(totalAmount);
+      rowIndex++;
+    });
+
+    final lastDataRow = expenseSheet.getLastRow();
+
+    for (int i = 1; i <= 2; i++) {
+      expenseSheet.autoFitColumn(i);
+    }
+
+    expenseSheet.getRangeByIndex(lastDataRow + 1, 1).setText('Total Received');
+
+    final totalReceivedCell = expenseSheet.getRangeByIndex(lastDataRow + 1, 2);
+    totalReceivedCell.setFormula('=SUM(B2:B$lastDataRow)');
+    totalReceivedCell.cellStyle = balanceStyle;
+    totalReceivedCell.numberFormat = config.currencyFormat;
+
+    workbook.names.add('TotalReceived', totalReceivedCell);
+  }
+
+  void _addExpensesSheet(excel.Workbook workbook, List<ITransaction> expenses,
+      ExcelStyler styler, String currencyFormat) {
+    final expenseSheet = workbook.worksheets.addWithName('Expenses');
+    final expenseHeaderStyle = styler.createStyle(
+        fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
+    final balanceStyle = styler.createStyle(
+        fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
+
+    expenseSheet.getRangeByIndex(1, 1).setText('Expense');
+    expenseSheet.getRangeByIndex(1, 2).setText('Amount');
+    expenseSheet.getRangeByIndex(1, 1, 1, 2).cellStyle = expenseHeaderStyle;
+
+    for (int i = 0; i < expenses.length; i++) {
+      final rowIndex = i + 2;
+      expenseSheet
+          .getRangeByIndex(rowIndex, 1)
+          .setText(expenses[i].transactionType);
+      expenseSheet.getRangeByIndex(rowIndex, 2).setValue(expenses[i].subTotal);
+    }
+
+    final lastDataRow = expenseSheet.getLastRow();
+
+    for (int i = 1; i <= 2; i++) {
+      expenseSheet.autoFitColumn(i);
+    }
+
+    expenseSheet.getRangeByIndex(lastDataRow + 1, 1).setText('Total Expenses');
+
+    final totalExpensesCell = expenseSheet.getRangeByIndex(lastDataRow + 1, 2);
+    totalExpensesCell.setFormula('=SUM(B2:B$lastDataRow)');
+    totalExpensesCell.cellStyle = balanceStyle;
+    totalExpensesCell.numberFormat = currencyFormat;
+
+    workbook.names.add('TotalExpenses', totalExpensesCell);
+
+    final netProfitCell = workbook.names['NetProfit'].refersToRange;
+    netProfitCell.setFormula(
+        '=${workbook.names['GrossProfit'].refersToRange.addressGlobal} - TotalExpenses');
+    netProfitCell.numberFormat = currencyFormat;
   }
 
   int _getFirstDataRow(excel.Worksheet sheet) {
@@ -303,12 +266,27 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
 
   Future<String> _saveExcelFile(excel.Workbook workbook) async {
     final List<int> bytes = workbook.saveAsStream();
-    final formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final formattedDate =
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+
     final Directory tempDir = await getApplicationDocumentsDirectory();
     final String filePath = '${tempDir.path}/${formattedDate}-Report.xlsx';
     final File file = File(filePath);
     await file.writeAsBytes(bytes);
     return filePath;
+  }
+
+  Future<void> _openOrShareFile(String filePath) async {
+    if (Platform.isWindows || Platform.isMacOS) {
+      try {
+        final response = await OpenFile.open(filePath);
+        talker.warning(response);
+      } catch (e) {
+        talker.error(e);
+      }
+    } else {
+      await shareFileAsAttachment(filePath);
+    }
   }
 
   Future<void> shareFileAsAttachment(String filePath) async {
@@ -352,4 +330,48 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
     'xls': 'application/vnd.ms-excel',
     'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   };
+}
+
+class ExcelStyler {
+  final excel.Workbook workbook;
+  int _styleCounter = 0;
+
+  ExcelStyler(this.workbook);
+
+  excel.Style createStyle({
+    required String fontColor,
+    required String backColor,
+    required double fontSize,
+  }) {
+    final styleName = 'customStyle${_styleCounter++}';
+    final style = workbook.styles.add(styleName);
+    style.fontName = 'Calibri';
+    style.bold = true;
+    style.fontSize = fontSize;
+    style.fontColor = fontColor;
+    style.backColor = backColor;
+    style.hAlign = excel.HAlignType.center;
+    style.vAlign = excel.VAlignType.center;
+    return style;
+  }
+}
+
+class ExportConfig {
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final double grossProfit;
+  final double netProfit;
+  final String currencySymbol;
+  final String currencyFormat;
+  final List<ITransaction> transactions;
+
+  ExportConfig({
+    this.startDate,
+    this.endDate,
+    required this.grossProfit,
+    required this.netProfit,
+    this.currencySymbol = 'RF',
+    required this.transactions,
+  }) : currencyFormat =
+            '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"';
 }

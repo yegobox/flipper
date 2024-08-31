@@ -45,7 +45,7 @@ class DataView extends StatefulHookConsumerWidget {
 }
 
 class DataViewState extends ConsumerState<DataView>
-    with BaseCoreWidgetMixin, DateCoreWidget, Headers {
+    with ExcelExportMixin, DateCoreWidget, Headers {
   static const double dataPagerHeight = 60;
   DataGridSource? _dataGridSource;
   int pageIndex = 0;
@@ -173,39 +173,40 @@ class DataViewState extends ConsumerState<DataView>
                                   endDate: widget.endDate,
                                   isExpense: true,
                                   branchId: ProxyService.box.getBranchId());
-                              talker.info("Exporting data to Excel");
+
+                              /// categorize transactions
                               exportDataGridToExcel(
-                                  endDate: widget.endDate,
-                                  startDate: widget.startDate,
-                                  grossProfit: widget.transactionItems!.fold<double>(
-                                      0.0,
-                                      (sum, item) =>
-                                          sum +
-                                          (((item.qty * item.price) -
-                                                  (item.qty * item.splyAmt)) -
-                                              (((item.qty * item.price) - (item.qty * item.splyAmt)) *
-                                                  18 /
-                                                  118))),
-                                  netProfit: (
-                                      // Gross profit calculation
-                                      widget.transactionItems!.fold<double>(
-                                              0.0,
-                                              (sum, item) =>
-                                                  sum +
-                                                  ((item.qty * item.price) -
+                                  config: ExportConfig(
+                                      transactions: widget.transactions ?? [],
+                                      endDate: widget.endDate,
+                                      startDate: widget.startDate,
+                                      grossProfit: widget.transactionItems!.fold<double>(
+                                          0.0,
+                                          (sum, item) =>
+                                              sum +
+                                              (((item.qty * item.price) -
                                                       (item.qty *
-                                                          item.splyAmt)))
-                                          // Subtract tax amount
-                                          -
-                                          widget.transactionItems!.fold<double>(
-                                              0.0,
-                                              (sum, item) =>
-                                                  sum +
+                                                          item.splyAmt)) -
                                                   (((item.qty * item.price) -
                                                           (item.qty *
                                                               item.splyAmt)) *
                                                       18 /
                                                       118))),
+                                      netProfit: (
+                                          // Gross profit calculation
+                                          widget.transactionItems!.fold<double>(
+                                                  0.0,
+                                                  (sum, item) =>
+                                                      sum +
+                                                      ((item.qty * item.price) -
+                                                          (item.qty *
+                                                              item.splyAmt)))
+                                              // Subtract tax amount
+                                              -
+                                              widget.transactionItems!.fold<double>(
+                                                  0.0,
+                                                  (sum, item) =>
+                                                      sum + (((item.qty * item.price) - (item.qty * item.splyAmt)) * 18 / 118)))),
                                   expenses: expenses);
                             }
                           },
