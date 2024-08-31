@@ -13,7 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
 
 import 'package:permission_handler/permission_handler.dart' as permission;
-import 'package:open_file/open_file.dart';
+import 'package:open_filex/open_filex.dart';
 
 mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final GlobalKey<SfDataGridState> workBookKey = GlobalKey<SfDataGridState>();
@@ -273,7 +273,7 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> _openOrShareFile(String filePath) async {
     if (Platform.isWindows || Platform.isMacOS) {
       try {
-        final response = await OpenFile.open(filePath);
+        final response = await OpenFilex.open(filePath);
         talker.warning(response);
       } catch (e) {
         talker.error(e);

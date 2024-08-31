@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -5,11 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_dashboard/BuildGaugeOrList.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'customappbar.dart';
 import 'widgets/dropdown.dart';
 
 class Cashbook extends StatefulHookConsumerWidget {
@@ -20,9 +18,7 @@ class Cashbook extends StatefulHookConsumerWidget {
   CashbookState createState() => CashbookState();
 }
 
-class CashbookState extends ConsumerState<Cashbook> {
-  final _routerService = locator<RouterService>();
-
+class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.reactive(
@@ -39,18 +35,9 @@ class CashbookState extends ConsumerState<Cashbook> {
   }
 
   PreferredSizeWidget buildCustomAppBar(CoreViewModel model) {
-    return CustomAppBar(
-      isDividerVisible: false,
-      title: 'Cash Book',
-      icon: Icons.close,
-      onPop: () async {
-        if (model.newTransactionPressed) {
-          model.newTransactionPressed = false;
-          model.notifyListeners();
-        } else {
-          _routerService.back();
-        }
-      },
+    return AppBar(
+      actions: [datePicker()],
+      title: Text('Cash Book'),
     );
   }
 
@@ -97,19 +84,16 @@ class CashbookState extends ConsumerState<Cashbook> {
 
   Widget buildTransactionListContent(CoreViewModel model) {
     final transactionData = ref.watch(transactionsStreamProvider);
+    final dateRange = ref.watch(dateRangeProvider);
+    final startDate = dateRange['startDate'];
+    final endDate = dateRange['endDate'];
     return Column(
       children: [
-        Text(
-          model.transactionPeriod,
-          style: GoogleFonts.poppins(
-            fontSize: 17,
-            color: Colors.lightBlue,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
         SizedBox(height: 5),
         Expanded(
           child: BuildGaugeOrList(
+              startDate: startDate,
+              endDate: endDate,
               context: context,
               model: model,
               widgetType: 'list',

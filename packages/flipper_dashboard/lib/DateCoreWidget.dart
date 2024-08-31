@@ -20,7 +20,7 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       PickerDateRange date = args.value as PickerDateRange;
       if (date.startDate != null) {
         showSnackBar(context, "Date selected",
-            textColor: Colors.white, backgroundColor: Colors.purple);
+            textColor: Colors.white, backgroundColor: Colors.black);
         ref.read(dateRangeProvider.notifier).setStartDate(date.startDate!);
         if (date.endDate != null) {
           ref.read(dateRangeProvider.notifier).setEndDate(date.endDate!);

@@ -251,13 +251,17 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     (widget.transactionType == TransactionType.cashIn ||
                         widget.transactionType == TransactionType.sale);
 
-                HandleTransactionFromCashBook(
-                  cashReceived: amount,
-                  paymentType: ProxyService.box.paymentType()?? "Cash",
-                  discount: 0,
-                  transactionType: widget.transactionType,
-                  isIncome: isIncome,
-                );
+                try {
+                  HandleTransactionFromCashBook(
+                    cashReceived: amount,
+                    paymentType: ProxyService.box.paymentType() ?? "Cash",
+                    discount: 0,
+                    transactionType: widget.transactionType,
+                    isIncome: isIncome,
+                  );
+                } catch (e) {
+                  talker.error(e);
+                }
                 Navigator.of(context).pop(true);
               },
             ),
@@ -321,10 +325,11 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       required String transactionType}) {
     widget.model.newTransactionPressed = false;
     final isExpense = (TransactionType.cashOut == widget.transactionType);
-    final transaction = ref.watch(pendingTransactionProvider((
-      mode: widget.transactionType,
-      isExpense: isExpense,
-    )));
+
+    final transaction = ProxyService.realm.manageTransaction(
+        isExpense: isExpense,
+        transactionType: widget.transactionType,
+        branchId: ProxyService.box.getBranchId()!);
     widget.model.keyboardKeyPressed(
       isExpense: widget.transactionType == TransactionType.cashOut,
       key: '+',
@@ -344,10 +349,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             bhfId: ProxyService.box.bhfId() ?? "00",
             isProformaMode: ProxyService.box.isPoroformaMode(),
             isTrainingMode: ProxyService.box.isTrainingMode(),
-            transaction: transaction.value!,
+            transaction: transaction,
             paymentType: paymentType,
             discount: discount.toDouble(),
-
             transactionType: TransactionType.sale,
             categoryId: "0",
             isIncome: isIncome)
@@ -357,7 +361,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             isProformaMode: ProxyService.box.isPoroformaMode(),
             isTrainingMode: ProxyService.box.isTrainingMode(),
             cashReceived: cashReceived,
-            transaction: transaction.value!,
+            transaction: transaction,
             paymentType: paymentType,
             discount: discount.toDouble(),
             categoryId: category?.id.toString(),

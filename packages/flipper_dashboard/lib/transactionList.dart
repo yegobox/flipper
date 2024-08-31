@@ -4,7 +4,6 @@ import 'package:flipper_dashboard/DataView.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 

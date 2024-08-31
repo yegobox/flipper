@@ -8,7 +8,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_linux
   flutter_localization
   local_notifier
-  open_file_linux
   printing
   realm
   screen_retriever

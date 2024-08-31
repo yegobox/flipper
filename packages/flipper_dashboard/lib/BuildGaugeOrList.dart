@@ -15,6 +15,8 @@ Widget BuildGaugeOrList({
   required AsyncValue<List<ITransaction>> data,
   required CoreViewModel model,
   required String widgetType,
+  DateTime? startDate,
+  DateTime? endDate,
 }) {
   final _routerService = locator<RouterService>();
 
@@ -33,11 +35,39 @@ Widget BuildGaugeOrList({
           return const SizedBox.shrink();
         }
       } else {
-        // Filter transactions based on period
-        final filteredTransactions = filterTransactionsByPeriod(
-          transactions: value,
-          period: model.transactionPeriod,
-        );
+        List<ITransaction> filteredTransactions = [];
+
+        if (startDate != null || endDate != null) {
+          filteredTransactions = value.where((trans) {
+            final transactionDate = trans.lastTouched;
+
+            if (transactionDate == null) return false;
+
+            if (startDate != null && endDate != null) {
+              // If both dates are provided, filter within the range
+              return (transactionDate.isAtSameMomentAs(startDate) ||
+                      transactionDate.isAfter(startDate)) &&
+                  (transactionDate.isAtSameMomentAs(endDate) ||
+                      transactionDate.isBefore(endDate));
+            } else if (startDate != null) {
+              // If only startDate is provided, filter for transactions on or after startDate
+              return transactionDate.isAtSameMomentAs(startDate) ||
+                  transactionDate.isAfter(startDate);
+            } else if (endDate != null) {
+              // If only endDate is provided, filter for transactions on or before endDate
+              return transactionDate.isAtSameMomentAs(endDate) ||
+                  transactionDate.isBefore(endDate);
+            }
+
+            return false; // This line should never be reached
+          }).toList();
+        } else {
+          // Filter transactions based on period
+          filteredTransactions = filterTransactionsByPeriod(
+            transactions: value,
+            period: model.transactionPeriod,
+          );
+        }
 
         switch (widgetType) {
           case 'gauge':
