@@ -339,20 +339,32 @@ jobs:
       - run: |
           dart pub global activate melos
           melos bootstrap
-      - name: Install Android SDK
-        uses: malinskiy/action-android/install-sdk@release/0.1.7
+      # - name: Install Android SDK
+      #   uses: malinskiy/action-android/install-sdk@release/0.1.7
+      # - run: echo $ANDROID_HOME
+      # - run: sdkmanager --install "ndk;23.1.7779620"
+      # - run: sdkmanager --install "build-tools;30.0.3"
+        # Download & install the Android SDK.
+      - uses: hannesa2/action-android/install-sdk@release/0.1.16.7
+
+      # Set up platform tools like adb.
+      - run: sdkmanager platform-tools
+
+      # Start ADB (and verify that pathing is working correctly).
+      - run: adb devices
+
+      # Verify $ANDROID_HOME is properly set for later Gradle commands.
       - run: echo $ANDROID_HOME
-      - run: sdkmanager --install "ndk;23.1.7779620"
-      - run: sdkmanager --install "build-tools;30.0.3"
-      - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.7
+      # - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.7
+      - uses: hannesa2/action-android/emulator-run-cmd@release/0.1.16.7
         with:
           cmd:  cd apps/flipper &&  dart run realm install &&  flutter test --dart-define=FLUTTER_TEST_ENV=true  integration_test/smoke_android_test.dart
           api: 33
           cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
           tag: google_apis
           abi: x86_64
-          bootTimeout: 820
-      - run: sleep 30
+          bootTimeout: 600
+      # - run: sleep 30
   fastlane-deploy:
     name: "Google Deploy"
     needs: [unit-testing,android-integration-test, integration-testing-windows]
