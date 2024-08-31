@@ -30,7 +30,7 @@ class CreateMockdata {
           cashReceived: 0,
           updatedAt: DateTime(2023, 10, 28).toIso8601String(),
           customerChangeDue: 0.0,
-          paymentType: 'Cash',
+          paymentType: ProxyService.box.paymentType() ?? "Cash",
           branchId: 1,
           createdAt: DateTime(2023, 10, 28).toIso8601String(),
           receiptType: "Standard",

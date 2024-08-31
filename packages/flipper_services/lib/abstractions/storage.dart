@@ -49,4 +49,5 @@ abstract class LocalStorage {
   bool? isOrdering();
   String? couponCode();
   double? discountRate();
+  String? paymentType();
 }

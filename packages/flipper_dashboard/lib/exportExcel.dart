@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
 
 import 'package:permission_handler/permission_handler.dart' as permission;
+import 'package:open_file/open_file.dart';
 
 mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
@@ -161,7 +162,15 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
       workbook.dispose();
 
       ref.read(isProcessingProvider.notifier).stopProcessing();
-      shareFileAsAttachment(filePath);
+      if (Platform.isWindows || Platform.isMacOS) {
+        // await launchUrl(Uri.parse(filePath));
+        //Users/richard/Library/Containers/rw.flipper/Data/Documents/2024-08-31-Report.xlsx
+        OpenFile.open(filePath);
+      } else if (Platform.isAndroid || Platform.isIOS || Platform.isFuchsia) {
+        shareFileAsAttachment(filePath);
+      } else {
+        shareFileAsAttachment(filePath);
+      }
     } catch (e, s) {
       ref.read(isProcessingProvider.notifier).stopProcessing();
       talker.error(e);

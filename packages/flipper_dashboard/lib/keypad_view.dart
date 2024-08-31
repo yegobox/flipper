@@ -253,7 +253,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
 
                 HandleTransactionFromCashBook(
                   cashReceived: amount,
-                  paymentType: "Cash",
+                  paymentType: ProxyService.box.paymentType()?? "Cash",
                   discount: 0,
                   transactionType: widget.transactionType,
                   isIncome: isIncome,
@@ -348,8 +348,6 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             paymentType: paymentType,
             discount: discount.toDouble(),
 
-            ///TODO: on big screen we do not have option to select category hence it is always a sale being recorded there
-            ///in future we might improve it.
             transactionType: TransactionType.sale,
             categoryId: "0",
             isIncome: isIncome)

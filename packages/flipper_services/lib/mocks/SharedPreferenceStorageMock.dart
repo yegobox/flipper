@@ -217,4 +217,9 @@ class SharedPreferenceStorageMock implements LocalStorage {
   double? discountRate() {
     return 1.0;
   }
+
+  @override
+  String? paymentType() {
+    return "Cash";
+  }
 }

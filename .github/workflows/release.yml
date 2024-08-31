@@ -358,7 +358,8 @@ jobs:
   fastlane-deploy:
     name: "Google Deploy"
     needs: [unit-testing,android-integration-test, integration-testing-windows]
-    runs-on: ubuntu-22.04
+    # runs-on: ubuntu-22.04
+    runs-on: macOS-12
     steps:
       - run: git config --global core.autocrlf false
       # Set up Flutter.

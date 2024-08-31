@@ -131,7 +131,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       if (formKey.currentState!.validate() && customer == null) {
         handlePayment(
           model: model,
-          paymentType: "Cash",
+          paymentType: ProxyService.box.paymentType() ?? "Cash",
           transactionType: TransactionType.sale,
           transaction: transaction,
           amount: amount,

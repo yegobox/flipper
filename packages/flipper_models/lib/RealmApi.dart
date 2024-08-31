@@ -1334,7 +1334,7 @@ class RealmAPI<M extends IJsonSerializable>
           cashReceived: 0,
           updatedAt: DateTime.now().toIso8601String(),
           customerChangeDue: 0.0,
-          paymentType: 'Cash',
+          paymentType: ProxyService.box.paymentType() ?? "Cash",
           branchId: branchId,
           createdAt: DateTime.now().toIso8601String());
 
@@ -1377,7 +1377,7 @@ class RealmAPI<M extends IJsonSerializable>
         cashReceived: 0,
         updatedAt: DateTime.now().toIso8601String(),
         customerChangeDue: 0.0,
-        paymentType: 'Cash',
+        paymentType: ProxyService.box.paymentType() ?? "Cash",
         branchId: branchId,
         createdAt: DateTime.now().toIso8601String(),
       );
@@ -1423,7 +1423,7 @@ class RealmAPI<M extends IJsonSerializable>
           cashReceived: 0,
           updatedAt: DateTime.now().toIso8601String(),
           customerChangeDue: 0.0,
-          paymentType: 'Cash',
+          paymentType: ProxyService.box.paymentType() ?? "Cash",
           branchId: branchId,
           createdAt: DateTime.now().toIso8601String());
 

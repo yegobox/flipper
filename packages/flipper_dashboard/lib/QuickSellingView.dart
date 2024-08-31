@@ -598,6 +598,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               onChanged: (String? newValue) {
                 setState(() {
                   _selectedPaymentMethod = newValue!;
+                  ProxyService.box
+                      .writeString(key: "paymentType", value: newValue);
                   widget.paymentTypeController.text = newValue;
                 });
               },
