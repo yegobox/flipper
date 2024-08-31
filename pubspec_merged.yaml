@@ -127,11 +127,11 @@ dependencies:
   # if we hit that limit, we will have to switch to paid package or implement some functionality
   # by ourself. but for esence of time I do not want to wast time
   # Synfusion package compatibility https://help.syncfusion.com/flutter/system-requirements#sdk-version-compatibility
-  syncfusion_flutter_datepicker: ^25.2.7
-  syncfusion_flutter_datagrid: ^25.2.7
-  syncfusion_flutter_xlsio: ^25.2.7
-  syncfusion_flutter_datagrid_export: ^25.2.7
-  syncfusion_flutter_core: ^25.2.7
+  syncfusion_flutter_datepicker: ^26.2.11
+  syncfusion_flutter_datagrid: ^26.2.11
+  syncfusion_flutter_xlsio: ^26.2.11
+  syncfusion_flutter_datagrid_export: ^26.2.11
+  syncfusion_flutter_core: ^26.2.11
   # https://github.com/yegobox/flutter_datetime_picker
   
   flutter_datetime_picker:
@@ -336,7 +336,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10
-  msix: ^3.16.7
+  msix: ^3.16.8
   nock: ^1.2.3
   flutter_assets_generator: ^0.0.8
   integration_test:
