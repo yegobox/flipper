@@ -862,6 +862,7 @@ class _UserActivity {
   DateTime? timestamp;
   DateTime? lastTouched;
   int? userId;
+  String? event;
 
   late String action;
 }

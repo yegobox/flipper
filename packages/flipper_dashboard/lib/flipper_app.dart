@@ -183,7 +183,12 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         appBar: _buildAppBar(),
         body: Consumer(
           builder: (context, ref, child) {
-            return _buildAppLayoutDrawer(context, model, ref);
+            return GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () {
+                  print("Received tap event from down");
+                },
+                child: _buildAppLayoutDrawer(context, model, ref));
           },
         ),
       ),
