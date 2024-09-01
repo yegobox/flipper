@@ -1,6 +1,7 @@
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -12,19 +13,11 @@ class SectionSelectUnit extends StatelessWidget {
   final Product product;
   final String type;
   final _routerService = locator<RouterService>();
-  Text unitSelector(Product units) {
-    late Text text = Text(
-      'Select Unit',
-      style: GoogleFonts.poppins(
-          color: Colors.black, fontSize: 17, fontWeight: FontWeight.w400),
-    );
+  Widget unitSelector(Product units) {
+    late Widget text = FlowyText('Select Unit');
 
     if (product.unit != '') {
-      text = Text(
-        product.unit ?? 'Select Unit',
-        style: GoogleFonts.poppins(
-            color: Colors.black, fontSize: 17, fontWeight: FontWeight.w400),
-      );
+      text = FlowyText(product.unit ?? 'Select Unit');
     }
 
     return text;

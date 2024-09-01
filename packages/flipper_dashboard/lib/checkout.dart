@@ -1,7 +1,10 @@
 // ignore_for_file: unused_result
 
+import 'dart:io';
+
 import 'package:flipper_dashboard/IncomingOrders.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
+import 'package:flipper_dashboard/bottomSheet.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/previewCart.dart';
 import 'package:flipper_dashboard/product_view.dart';
@@ -220,6 +223,11 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
+  String getCartText() {
+    int count = int.parse(getCartItemCount());
+    return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
+  }
+
   Widget _buildSmallScreenLayout(ITransaction transaction,
       {required bool showCart}) {
     return ViewModelBuilder<CoreViewModel>.reactive(
@@ -253,16 +261,21 @@ class CheckOutState extends ConsumerState<CheckOut>
                         color: Colors.white,
                         child: PayableView(
                           mode: SellingMode.forSelling,
-                          wording: "Preview Cart (${getCartItemCount()})",
+                          wording: getCartText(),
                           ref: ref,
                           model: model,
                           ticketHandler: () =>
                               handleTicketNavigation(transaction),
                           previewCart: () {
                             talker.warning("Show Quick Sell: ${showCart}");
-                            previewOrOrder(
-                                isShopingFromWareHouse: false,
-                                transaction: transaction);
+                            if (Platform.isAndroid || Platform.isIOS) {
+                              BottomSheets.showBottom(
+                                  context: context, ref: ref);
+                            } else {
+                              previewOrOrder(
+                                  isShopingFromWareHouse: false,
+                                  transaction: transaction);
+                            }
                           },
                         ),
                       ),

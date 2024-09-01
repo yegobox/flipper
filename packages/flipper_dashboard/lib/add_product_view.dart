@@ -16,11 +16,9 @@ import 'package:flipper_services/proxy.dart';
 import 'create/build_image_holder.dart';
 import 'package:flipper_services/constants.dart';
 import 'create/category_selector.dart';
-import 'create/divider.dart';
 import 'create/section_select_unit.dart';
 import 'create/supply_price_widget.dart';
 import 'create/variation_list.dart';
-import 'customappbar.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:intl/intl.dart';
@@ -35,8 +33,8 @@ class AddProductView extends StatefulHookConsumerWidget {
 
 class AddProductViewState extends ConsumerState<AddProductView> {
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
-  final _sub = GlobalKey<FormState>();
-  final productForm = ProductForm();
+  final _formKey = GlobalKey<FormState>();
+  final ProductForm productForm = ProductForm();
 
   @override
   void dispose() {
@@ -45,368 +43,361 @@ class AddProductViewState extends ConsumerState<AddProductView> {
   }
 
   final _routerService = locator<RouterService>();
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ProductViewModel>.reactive(
       onViewModelReady: (model) async {
-        // Reset barcode on initialization.
-        if (SchedulerBinding.instance.schedulerPhase ==
-            SchedulerPhase.persistentCallbacks) {
-          SchedulerBinding.instance.addPostFrameCallback((_) {
-            model.productService.setBarcode('');
-          });
-        }
-
-        Product product = await model.getProduct(productId: widget.productId);
-        ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
-        model.loadCategories();
-        await model.loadColors();
-        model.loadUnits();
-
-        // Start locking the save button.
-        widget.productId == null
-            ? model.setProductName(name: ' ')
-            : ref.read(unsavedProductProvider)?.name;
-
-        // Get the regular variant to fill in the form in edit mode.
-        if (widget.productId != null) {
-          List<Variant> variants = await ProxyService.realm.variants(
-              productId: widget.productId!,
-              branchId: ProxyService.box.getBranchId()!);
-
-          // Filter variants to get the regular variant.
-          Variant? regularVariant =
-              variants.firstWhereOrNull((variant) => variant.name == 'Regular');
-
-          productForm.productNameController.text = model.kProductName!;
-          if (regularVariant == null) {
-            return;
-          }
-          if (regularVariant.retailPrice.toString() != '0.0') {
-            productForm.retailPriceController.text =
-                regularVariant.retailPrice.toString();
-
-            model.lockButton(false);
-          }
-          if (regularVariant.supplyPrice.toString() != '0.0') {
-            productForm.supplyPriceController.text =
-                regularVariant.supplyPrice.toString();
-          }
-        }
+        await _initializeProduct(model);
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
         return PopScope(
           canPop: false,
-          onPopInvokedWithResult: (bool didPop, dynamic here) {
-            if (didPop) {
-              return;
-            }
-            onWillPop(
-              context: context,
-              navigationPurpose: NavigationPurpose.back,
-              message: 'You have unsaved product, do you want to discard?',
-            );
+          onPopInvokedWithResult: (didPop, dynamic) {
+            if (didPop) return;
+            _handleWillPop(context);
           },
           child: Scaffold(
-            appBar: CustomAppBar(
-              onPop: () async {
-                _routerService.navigateTo(CheckOutRoute(
-                  isBigScreen: false,
-                ));
-              },
-              title: 'Create Product',
-              disableButton: model.lock,
-              showActionButton: true,
-              onActionButtonClicked: () async {
-                if (model.kProductName == " ") {
-                  showToast(context, 'Provide name for the product');
-                  return;
-                }
-
-                Product product =
-                    await model.getProduct(productId: widget.productId);
-                await model.saveProduct(
-                    mproduct: product,
-                    color: model.currentColor,
-                    inUpdateProcess: widget.productId != null,
-                    productName: model.kProductName!);
-
-                ref
-                    .read(productsProvider(ProxyService.box.getBranchId()!)
-                        .notifier)
-                    .addProducts(products: [
-                  ...[product]
-                ]);
-                // Re-update the product default variant with retail price.
-                await model.updateRegularVariant(
-                    inUpdateProcess: true,
-                    retailPrice:
-                        double.parse(productForm.retailPriceController.text),
-                    productId: ref.read(unsavedProductProvider)?.id);
-
-                await model.updateRegularVariant(
-                    inUpdateProcess: true,
-                    supplyPrice: double.tryParse(
-                            productForm.supplyPriceController.text) ??
-                        0.0,
-                    productId: ref.read(unsavedProductProvider)?.id);
-
-                _routerService.clearStackAndShow(CheckOutRoute(
-                  isBigScreen: false,
-                ));
-              },
-              rightActionButtonName: 'Save',
-              icon: Icons.close,
-              multi: 3,
-              bottomSpacer: 48.99,
-            ),
-            body: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: <Widget>[
-                Form(
-                    key: _sub,
-                    child: Column(children: <Widget>[
-                      verticalSpaceSmall,
-                      ref.read(unsavedProductProvider) == null
-                          ? const SizedBox.shrink()
-                          : ColorAndImagePlaceHolder(
-                              currentColor:
-                                  ref.read(unsavedProductProvider)!.color,
-                              product: ref.read(unsavedProductProvider),
-                            ),
-                      Text(
-                        'Product',
-                        style: GoogleFonts.poppins(
-                            color: Colors.black,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w400),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 18, right: 18),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: TextFormField(
-                            decoration: const InputDecoration(
-                                enabled: true,
-                                border: OutlineInputBorder(),
-                                hintText: "Product Name"),
-                            controller: productForm.productNameController,
-                            onChanged: (value) {
-                              model.setProductName(name: value);
-                            },
-                          ),
-                        ),
-                      ),
-                      CategorySelector(),
-                      verticalSpaceSmall,
-                      Padding(
-                        padding: EdgeInsets.only(left: 18, right: 18),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Text('PRICE AND INVENTORY',
-                              style: GoogleFonts.poppins(
-                                  color: Colors.black,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w400)),
-                        ),
-                      ),
-                      const CenterDivider(
-                        width: double.infinity,
-                      ),
-                      ref.read(unsavedProductProvider) == null
-                          ? const SizedBox.shrink()
-                          : SectionSelectUnit(
-                              product: ref.read(unsavedProductProvider)!,
-                              type: 'product',
-                            ),
-                      verticalSpaceSmall,
-                      verticalSpaceSmall,
-                      RetailPrice(
-                        controller: productForm.retailPriceController,
-                        onModelUpdate: (value) async {
-                          String trimed = value.trim();
-                          if (trimed.isNotEmpty) {
-                            double? parsedValue = double.tryParse(value);
-                            if (parsedValue != null) {
-                              model.lockButton(false);
-                              await model.updateRegularVariant(
-                                  retailPrice: parsedValue,
-                                  inUpdateProcess: true,
-                                  productId:
-                                      ref.read(unsavedProductProvider)?.id);
-                            } else {
-                              model.lockButton(true);
-                            }
-                          } else {
-                            model.lockButton(true);
-                          }
-                        },
-                      ),
-                      verticalSpaceSmall,
-                      SupplyPrice(
-                        controller: productForm.supplyPriceController,
-                        onModelUpdate: (value) async {
-                          String trimed = value.trim();
-                          if (trimed.isNotEmpty) {
-                            double? parsedValue = double.tryParse(value);
-                            if (parsedValue != null) {
-                              await model.updateRegularVariant(
-                                  supplyPrice: parsedValue,
-                                  inUpdateProcess: true,
-                                  productId:
-                                      ref.read(unsavedProductProvider)?.id);
-                            } else {
-                              return '.';
-                            }
-                          }
-                        },
-                      ),
-                      verticalSpaceSmall,
-                      Padding(
-                        padding: const EdgeInsets.only(left: 18, right: 18),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: TextButton(
-                            child: Text(
-                                (ref.read(unsavedProductProvider) == null ||
-                                        (ref.read(unsavedProductProvider) !=
-                                                null &&
-                                            ref
-                                                    .read(
-                                                        unsavedProductProvider)!
-                                                    .expiryDate ==
-                                                null))
-                                    ? 'Expiry Date'
-                                    : 'Expires at ' +
-                                        formatter.format(DateTime.tryParse(ref
-                                                .read(unsavedProductProvider)!
-                                                .expiryDate!) ??
-                                            DateTime.now()),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black,
-                                )),
-                            style: ButtonStyle(
-                              shape: WidgetStateProperty.resolveWith<
-                                  OutlinedBorder>(
-                                (states) => RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                              ),
-                              backgroundColor: WidgetStateProperty.all<Color>(
-                                  const Color(0xffF2F2F2)),
-                              overlayColor:
-                                  WidgetStateProperty.resolveWith<Color?>(
-                                (Set<WidgetState> states) {
-                                  if (states.contains(WidgetState.hovered)) {
-                                    return Colors.blue.withOpacity(0.04);
-                                  }
-                                  if (states.contains(WidgetState.focused) ||
-                                      states.contains(WidgetState.pressed)) {
-                                    return Colors.blue.withOpacity(0.12);
-                                  }
-                                  return null; // Defer to the widget's default.
-                                },
-                              ),
-                            ),
-                            onPressed: () {
-                              DatePicker.showPicker(context,
-                                  showTitleActions: true,
-                                  onChanged: (date) {}, onConfirm: (date) {
-                                model.updateExpiryDate(date);
-                              }, locale: LocaleType.en);
-                            },
-                          ),
-                        ),
-                      ),
-                      verticalSpaceSmall,
-                      verticalSpaceSmall,
-                      StreamBuilder<List<Variant>>(
-                        stream: ProxyService.realm.geVariantStreamByProductId(
-                            productId:
-                                ref.read(unsavedProductProvider)?.id ?? 0),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return CircularProgressIndicator();
-                          } else {
-                            final List<Variant> variations =
-                                snapshot.data ?? [];
-                            if (variations.isEmpty) {
-                              return const SizedBox.shrink();
-                            } else {
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 18, right: 18),
-                                child: VariationList(
-                                  variations: variations,
-                                  deleteVariant: (id) {
-                                    model.deleteVariant(id: id);
-                                  },
-                                ),
-                              );
-                            }
-                          }
-                        },
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsets.only(left: 18, right: 18, top: 2),
-                        child: SizedBox(
-                          height: 50,
-                          width: double.infinity,
-                          child: TextButton(
-                            child: Text('Add Variation',
-                                style: GoogleFonts.poppins(
-                                    color: Colors.black,
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w400)),
-                            onPressed: () {
-                              model.navigateAddVariation(
-                                  context: context,
-                                  productId:
-                                      ref.read(unsavedProductProvider)!.id!);
-                            },
-                          ),
-                        ),
-                      ),
-                    ])),
-                StreamBuilder<String>(
-                    stream: model.getBarCode().asBroadcastStream(),
-                    builder: (context, snapshot) {
-                      productForm.barCodeController.text =
-                          snapshot.hasData ? snapshot.data! : '';
-                      return Padding(
-                        padding: const EdgeInsets.only(
-                          left: 18,
-                          right: 18,
-                          top: 20,
-                          bottom: 30,
-                        ),
-                        child: GestureDetector(
-                          onTap: () {
-                            _routerService.navigateTo(
-                                ScannViewRoute(intent: 'addBarCode'));
-                          },
-                          child: BoxInputField(
-                            enabled: false,
-                            controller: productForm.barCodeController,
-                            trailing: const Icon(
-                              Icons.center_focus_weak,
-                              color: primary,
-                            ),
-                            placeholder: 'BarCode',
-                          ),
-                        ),
-                      );
+            appBar: AppBar(
+              title: Text("Create Product"),
+              actions: [
+                FlipperButton(
+                    text: "Save",
+                    onPressed: () {
+                      if (!model.lock &&
+                          (_formKey.currentState?.validate() ?? false)) {
+                        _saveProduct(model);
+                      }
                     })
               ],
+            ),
+            body: _buildBody(model),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _initializeProduct(ProductViewModel model) async {
+    _resetBarcode(model);
+    await _loadProductData(model);
+    _initializeForm(model);
+  }
+
+  void _resetBarcode(ProductViewModel model) {
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        model.productService.setBarcode('');
+      });
+    }
+  }
+
+  Future<void> _loadProductData(ProductViewModel model) async {
+    Product product = await model.getProduct(productId: widget.productId);
+    ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+    model.loadCategories();
+    model.loadColors();
+    model.loadUnits();
+  }
+
+  void _initializeForm(ProductViewModel model) {
+    widget.productId == null
+        ? model.setProductName(name: ' ')
+        : ref.read(unsavedProductProvider)?.name;
+
+    if (widget.productId != null) {
+      _fillFormForExistingProduct(model);
+    }
+  }
+
+  Future<void> _fillFormForExistingProduct(ProductViewModel model) async {
+    List<Variant> variants = await ProxyService.realm.variants(
+      productId: widget.productId!,
+      branchId: ProxyService.box.getBranchId()!,
+    );
+
+    Variant? regularVariant =
+        variants.firstWhereOrNull((variant) => variant.name == 'Regular');
+    if (regularVariant == null) return;
+
+    productForm.productNameController.text = model.kProductName!;
+    _setPrice(
+        regularVariant.retailPrice, productForm.retailPriceController, model);
+    _setPrice(regularVariant.supplyPrice, productForm.supplyPriceController);
+  }
+
+  void _setPrice(double price, TextEditingController controller,
+      [ProductViewModel? model]) {
+    if (price != 0.0) {
+      controller.text = price.toString();
+      model?.lockButton(false);
+    }
+  }
+
+  Widget _buildBody(ProductViewModel model) {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              _buildProductHeader(),
+              _buildProductNameField(model),
+              CategorySelector(),
+              _buildPriceAndInventorySection(),
+              _buildUnitSelector(),
+              _buildPriceFields(model),
+              _buildExpiryDatePicker(model),
+              _buildVariationList(model),
+              _buildAddVariationButton(model),
+            ],
+          ),
+        ),
+        _buildBarCodeScanner(model),
+      ],
+    );
+  }
+
+  Widget _buildProductHeader() {
+    return Column(
+      children: [
+        verticalSpaceSmall,
+        if (ref.read(unsavedProductProvider) != null)
+          ColorAndImagePlaceHolder(
+            currentColor: ref.read(unsavedProductProvider)!.color,
+            product: ref.read(unsavedProductProvider),
+          ),
+        Text(
+          'Product',
+          style: GoogleFonts.poppins(
+            color: Colors.black,
+            fontSize: 17,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProductNameField(ProductViewModel model) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18),
+      child: TextFormField(
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(),
+          hintText: "Product Name",
+        ),
+        controller: productForm.productNameController,
+        onChanged: (value) => model.setProductName(name: value),
+      ),
+    );
+  }
+
+  Widget _buildPriceAndInventorySection() {
+    return Column(
+      children: [
+        verticalSpaceSmall,
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 18),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: FlowyText('PRICE AND INVENTORY'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUnitSelector() {
+    return ref.read(unsavedProductProvider) == null
+        ? const SizedBox.shrink()
+        : SectionSelectUnit(
+            product: ref.read(unsavedProductProvider)!,
+            type: 'product',
+          );
+  }
+
+  Widget _buildPriceFields(ProductViewModel model) {
+    return Column(
+      children: [
+        verticalSpaceSmall,
+        RetailPrice(
+          controller: productForm.retailPriceController,
+          onModelUpdate: (value) =>
+              _updatePrice(value, model, isPriceUpdate: true),
+        ),
+        verticalSpaceSmall,
+        SupplyPrice(
+          controller: productForm.supplyPriceController,
+          onModelUpdate: (value) => _updatePrice(value, model),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _updatePrice(String value, ProductViewModel model,
+      {bool isPriceUpdate = false}) async {
+    String trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      if (isPriceUpdate) model.lockButton(true);
+      return;
+    }
+
+    double? parsedValue = double.tryParse(trimmed);
+    if (parsedValue == null) {
+      if (isPriceUpdate) model.lockButton(true);
+      return;
+    }
+
+    if (isPriceUpdate) model.lockButton(false);
+    await model.updateRegularVariant(
+      retailPrice: isPriceUpdate ? parsedValue : null,
+      supplyPrice: !isPriceUpdate ? parsedValue : null,
+      inUpdateProcess: true,
+      productId: ref.read(unsavedProductProvider)?.id,
+    );
+  }
+
+  Widget _buildExpiryDatePicker(ProductViewModel model) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+      child: SizedBox(
+        width: double.infinity,
+        child: FlipperButton(
+          text: _getExpiryDateText(),
+          onPressed: () => _showDatePicker(model),
+        ),
+      ),
+    );
+  }
+
+  String _getExpiryDateText() {
+    final product = ref.read(unsavedProductProvider);
+    if (product == null || product.expiryDate == null) {
+      return 'Expiry Date';
+    }
+    return 'Expires at ${formatter.format(DateTime.tryParse(product.expiryDate!) ?? DateTime.now())}';
+  }
+
+  void _showDatePicker(ProductViewModel model) {
+    DatePicker.showPicker(
+      context,
+      showTitleActions: true,
+      onConfirm: model.updateExpiryDate,
+      locale: LocaleType.en,
+    );
+  }
+
+  Widget _buildVariationList(ProductViewModel model) {
+    int? id = ref.read(unsavedProductProvider)?.id;
+    return StreamBuilder<List<Variant>>(
+      stream: ProxyService.realm.geVariantStreamByProductId(
+        productId: id ?? 0,
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        }
+        final List<Variant> variations = snapshot.data ?? [];
+        if (variations.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: VariationList(
+            variations: variations,
+            deleteVariant: model.deleteVariant,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAddVariationButton(ProductViewModel model) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+      child: SizedBox(
+        height: 50,
+        width: double.infinity,
+        child: FlipperButton(
+          text: 'Add Variation',
+          onPressed: () => model.navigateAddVariation(
+            context: context,
+            productId: ref.read(unsavedProductProvider)!.id!,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBarCodeScanner(ProductViewModel model) {
+    return StreamBuilder<String>(
+      stream: model.getBarCode().asBroadcastStream(),
+      builder: (context, snapshot) {
+        productForm.barCodeController.text = snapshot.data ?? '';
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+          child: GestureDetector(
+            onTap: () =>
+                _routerService.navigateTo(ScannViewRoute(intent: 'addBarCode')),
+            child: BoxInputField(
+              enabled: false,
+              controller: productForm.barCodeController,
+              trailing: const Icon(Icons.center_focus_weak, color: primary),
+              placeholder: 'BarCode',
             ),
           ),
         );
       },
+    );
+  }
+
+  Future<void> _saveProduct(ProductViewModel model) async {
+    if (model.kProductName == " ") {
+      showToast(context, 'Provide name for the product');
+      return;
+    }
+
+    Product product = await model.getProduct(productId: widget.productId);
+    await model.saveProduct(
+      mproduct: product,
+      color: model.currentColor,
+      inUpdateProcess: widget.productId != null,
+      productName: model.kProductName!,
+    );
+
+    ref
+        .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
+        .addProducts(products: [product]);
+
+    await _updateRegularVariant(model);
+
+    _routerService.clearStackAndShow(CheckOutRoute(isBigScreen: false));
+  }
+
+  Future<void> _updateRegularVariant(ProductViewModel model) async {
+    await model.updateRegularVariant(
+      inUpdateProcess: true,
+      retailPrice: double.parse(productForm.retailPriceController.text),
+      productId: ref.read(unsavedProductProvider)?.id,
+    );
+
+    await model.updateRegularVariant(
+      inUpdateProcess: true,
+      supplyPrice:
+          double.tryParse(productForm.supplyPriceController.text) ?? 0.0,
+      productId: ref.read(unsavedProductProvider)?.id,
+    );
+  }
+
+  void _handleWillPop(BuildContext context) {
+    onWillPop(
+      context: context,
+      navigationPurpose: NavigationPurpose.back,
+      message: 'You have unsaved product, do you want to discard?',
     );
   }
 }

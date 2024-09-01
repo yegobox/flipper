@@ -191,7 +191,7 @@ class ProductViewModel extends FlipperBaseModel
   void saveFocusedUnit(
       {required IUnit newUnit, String? id, required String type}) async {
     final int branchId = ProxyService.box.getBranchId()!;
-    ProxyService.realm.realm!.writeAsync(() async {
+    ProxyService.realm.realm!.write(() {
       for (IUnit unit in units) {
         if (unit.active) {
           unit.active = false;

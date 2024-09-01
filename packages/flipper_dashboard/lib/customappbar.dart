@@ -2,6 +2,7 @@
 
 library customappbar;
 
+import 'package:flipper_ui/style_widget/text.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'flipper_ui.dart';
@@ -69,15 +70,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 0),
               leading: buildLeading(),
               title: widget.title != null
-                  ? Text(
-                      widget.title!,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 17,
-                        color: Colors.black,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    )
+                  ? FlowyText(widget.title!)
                   : const SizedBox.shrink(),
               trailing: buildTrailing(),
               dense: true,

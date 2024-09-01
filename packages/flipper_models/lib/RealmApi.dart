@@ -849,15 +849,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Stream<List<Variant>> geVariantStreamByProductId(
-      {required int productId}) async* {
-    final variants = realm!.query<Variant>(r'productId == $0', [productId]);
-    variants.changes.listen((_) async* {
-      yield variants.toList();
-    });
-  }
-
-  @override
   Future<PColor?> getColor({required int id}) async {
     return realm!.query<PColor>(r'id == $0', [id]).firstOrNull;
   }
@@ -1768,7 +1759,11 @@ class RealmAPI<M extends IJsonSerializable>
     // Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
     final query = realm!.query<ITransaction>(
       r'lastTouched >= $0 && lastTouched <= $1 && status == $2 && subTotal > 0',
-      [startDate.toUtc(), endDate.add(Duration(days: 1)).subtract(Duration(seconds: 1)).toUtc(), COMPLETE],
+      [
+        startDate.toUtc(),
+        endDate.add(Duration(days: 1)).subtract(Duration(seconds: 1)).toUtc(),
+        COMPLETE
+      ],
     );
 
     StreamSubscription<RealmResultsChanges<ITransaction>>? subscription;
@@ -3608,5 +3603,14 @@ class RealmAPI<M extends IJsonSerializable>
       talker.warning(s);
       rethrow;
     }
+  }
+
+  @override
+  Stream<List<Variant>> geVariantStreamByProductId({required int productId}) {
+    final variants = realm!.query<Variant>(r'productId == $0', [productId]);
+    return variants.changes
+        .map((event) => event.results.toList())
+        .distinct()
+        .asBroadcastStream();
   }
 }

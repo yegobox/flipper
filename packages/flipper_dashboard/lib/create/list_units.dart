@@ -11,20 +11,27 @@ class ListUnits extends StatelessWidget {
   ListUnits({Key? key, required this.type}) : super(key: key);
   final String type;
   final _routerService = locator<RouterService>();
+
   List<Widget> _getUnitsWidgets(ProductViewModel model) {
     return List.generate(model.units.length, (index) {
       final unit = model.units[index];
       return GestureDetector(
         onTap: () => _onUnitTapped(model, unit),
-        child: ListTile(
-          title: Text(
-            unit.name!,
-            style: const TextStyle(color: Colors.black),
-          ),
-          trailing: Radio<String>(
-            value: unit.id.toString(),
-            groupValue: unit.active ? unit.id.toString() : '0',
-            onChanged: (_) => _onUnitTapped(model, unit),
+        child: Card(
+          margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          elevation: 4.0,
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16.0),
+            title: Text(
+              unit.name!,
+              style: const TextStyle(
+                  color: Colors.black, fontWeight: FontWeight.w600),
+            ),
+            trailing: Radio<String>(
+              value: unit.id.toString(),
+              groupValue: unit.active ? unit.id.toString() : '0',
+              onChanged: (_) => _onUnitTapped(model, unit),
+            ),
           ),
         ),
       );
@@ -56,20 +63,21 @@ class ListUnits extends StatelessWidget {
               ));
             },
             icon: Icons.close,
-            multi: 3,
-            bottomSpacer: 52,
+            multi: 1,
+            bottomSpacer: 70,
           ),
-          body: Stack(
-            children: [
-              model.units.isEmpty
-                  ? const SizedBox.shrink()
-                  : ListView(
-                      children: ListTile.divideTiles(
-                        context: context,
-                        tiles: _getUnitsWidgets(model),
-                      ).toList(),
-                    )
-            ],
+          body: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: model.units.isEmpty
+                ? Center(
+                    child: Text(
+                      'No units available',
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                  )
+                : ListView(
+                    children: _getUnitsWidgets(model),
+                  ),
           ),
         );
       },
