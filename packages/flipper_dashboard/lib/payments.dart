@@ -531,14 +531,21 @@ class PaymentsState extends ConsumerState<Payments> {
     // Parse discount ONLY if _discount.text is NOT empty
     double discount =
         _discount.text.isNotEmpty ? double.parse(_discount.text) : 0.0;
-    await model.collectPayment(
-        transactionType: transactionType,
-        categoryId: categoryId,
-        isIncome: isIncome,
-        paymentType: paymentType!,
-        transaction: widget.transaction,
-        amountReceived: amount,
-        discount: discount);
+   
+      ProxyService.realm.collectPayment(
+      branchId: ProxyService.box.getBranchId()!,
+      isProformaMode: ProxyService.box.isTrainingMode(),
+      isTrainingMode: ProxyService.box.isTrainingMode(),
+      bhfId: ProxyService.box.bhfId() ?? "00",
+      cashReceived: amount,
+      transaction: widget.transaction,
+      categoryId: categoryId,
+      transactionType: transactionType,
+      isIncome: true,
+      paymentType: paymentType!,
+      discount: discount,
+      directlyHandleReceipt: false,
+    );
 
     await handleReceiptGeneration();
 

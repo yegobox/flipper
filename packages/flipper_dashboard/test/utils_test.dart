@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:flipper_models/helperModels/utils.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 
+//  flutter test test/utils_test.dart  --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   group('String to Int List Extension Tests', () {
     test('Converts string to int list', () {
@@ -192,6 +193,31 @@ void main() {
       expect(result['id'], equals('originalServerId'));
       expect(result['serverId'], equals('originalId'));
       expect(result['otherField'], equals('value'));
+    });
+    group('CurrencyFormatExtension tests', () {
+      test('should format a positive number correctly', () {
+        expect((123.45).toRwf(), equals('RWF 123.45'));
+      });
+
+      test('should format a negative number correctly', () {
+        expect((-123.45).toRwf(), equals('-RWF 123.45'));
+      });
+
+      test('should format zero correctly', () {
+        expect(0.toRwf(), equals('RWF'));
+      });
+
+      test('should format 0.0 correctly', () {
+        expect(0.0.toRwf(), equals('RWF'));
+      });
+
+      test('should format a large number correctly', () {
+        expect(123456789.12.toRwf(), equals('RWF 123,456,789.12'));
+      });
+
+      test('should handle a custom symbol', () {
+        expect(123.45.toRwf(symbol: 'FRW '), equals('FRW 123.45'));
+      });
     });
     // test('convertRealmValues handles nested structures', () {
     //   final testMap = {

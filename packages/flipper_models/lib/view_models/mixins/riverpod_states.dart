@@ -84,6 +84,16 @@ final soldStockValueProvider =
   return ProxyService.realm.soldStockValue(branchId: branchId);
 });
 
+final transactionItemsStreamProvider = StreamProvider.autoDispose
+    .family<List<TransactionItem>, int?>((ref, transactionId) {
+  return ProxyService.realm.transactionItemsStreams(
+    branchId: ProxyService.box.getBranchId()!,
+    transactionId: transactionId ?? 0,
+    doneWithTransaction: false,
+    active: true,
+  );
+});
+
 final stockByVariantIdProvider =
     StreamProvider.autoDispose.family<double, int>((ref, variantId) {
   int branchId = ProxyService.box.getBranchId()!;
@@ -707,15 +717,6 @@ final transactionListProvider =
     talker.info("Error loading transactions: $e");
     return Stream.error(e, stackTrace);
   }
-});
-
-final transactionItemsStreamProvider = StreamProvider.autoDispose
-    .family<List<TransactionItem>, int?>((ref, transactionId) {
-  return ProxyService.realm.transactionItemsStreams(
-    transactionId: transactionId ?? 0,
-    doneWithTransaction: false,
-    active: true,
-  );
 });
 
 final currentTransactionsByIdStream =

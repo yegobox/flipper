@@ -497,31 +497,6 @@ class CoreViewModel extends FlipperBaseModel
     return "PaymentRecorded";
   }
 
-  ITransaction collectPayment(
-      {required String paymentType,
-      required ITransaction transaction,
-      required double amountReceived,
-      required double discount,
-      String? categoryId,
-      required String transactionType,
-      bool directlyHandleReceipt = true,
-      required bool isIncome}) {
-    return ProxyService.realm.collectPayment(
-      branchId: ProxyService.box.getBranchId()!,
-      isProformaMode: ProxyService.box.isTrainingMode(),
-      isTrainingMode: ProxyService.box.isTrainingMode(),
-      bhfId: ProxyService.box.bhfId() ?? "00",
-      cashReceived: amountReceived,
-      transaction: transaction,
-      categoryId: categoryId,
-      transactionType: transactionType,
-      isIncome: isIncome,
-      paymentType: paymentType,
-      discount: discount,
-      directlyHandleReceipt: directlyHandleReceipt,
-    );
-  }
-
   void registerLocation() async {
     final permission = await ProxyService.location.hasLocationPermission();
     if (permission) {
@@ -624,7 +599,6 @@ class CoreViewModel extends FlipperBaseModel
       transaction.updatedAt = DateTime.now().toIso8601String();
     });
   }
-
 
   /// the method return total amount of the transaction to be used in the payment
   /// @return num if there is discount applied to transactionItem then it will return discount instead of price to be

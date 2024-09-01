@@ -54,6 +54,12 @@ extension CurrencyFormatExtension on num {
       symbol: symbol ?? 'RWF ',
       decimalDigits: 2,
     );
+
+    // Check if the number is 0 or 0.0
+    if (this == 0 || this == 0.0) {
+      return symbol ?? 'RWF';
+    }
+
     return numberFormat.format(this);
   }
 }

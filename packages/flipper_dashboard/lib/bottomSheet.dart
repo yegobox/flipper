@@ -1,48 +1,78 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_models/realm/schemas.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/src/consumer.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class BottomSheets {
   static void edit(
       {required BuildContext context,
       required WidgetRef ref,
-      required TransactionItem transactionItem}) {
+      required TransactionItem transactionItem,
+      required Function doneDelete,
+      int? transactionId}) {
     WoltModalSheet.show<void>(
         context: context,
         pageListBuilder: (BuildContext context) {
           return [
             WoltModalSheetPage(
-                hasSabGradient: false,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        initialValue: transactionItem.qty.toString(),
-                      ),
-                      Row(children: [
-                        Text(transactionItem.price.toString()),
-                        Spacer(),
-                        Text(0.toRwf())
-                      ])
-                    ],
-                  ),
-                ))
+              hasSabGradient: false,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextFormField(
+                      initialValue: transactionItem.qty.toString(),
+                    ),
+                    Row(children: [
+                      Text(transactionItem.price.toString()),
+                      Spacer(),
+                      Text(0.toRwf())
+                    ]),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    FlipperButton(
+                      color: Colors.blue,
+                      width: double.infinity,
+                      text: 'Done ',
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    FlipperIconButton(
+                      icon: Icons.delete,
+                      iconColor: Colors.red,
+                      textColor: Colors.red,
+                      text: 'Remove Product',
+                      onPressed: () {
+                        ProxyService.realm.deleteItemFromCart(
+                            transactionItemId: transactionItem,
+                            transactionId: transactionId);
+
+                        Navigator.of(context).pop();
+                        doneDelete();
+                      },
+                    )
+                  ],
+                ),
+              ),
+            )
           ];
         });
   }
 
   static void showBottom(
-      {required BuildContext context, required WidgetRef ref}) {
-    final isOrdering = ProxyService.box.isOrdering() ?? false;
-    final transactionItemsAsyncValue =
-        ref.watch(transactionItemsProvider((isExpense: isOrdering)));
+      {required BuildContext context,
+      required WidgetRef ref,
+      required Function doneDelete,
+      required Function onCharge,
+      required List<TransactionItem> items,
+      int? transactionId}) {
     double calculateTotal(List<TransactionItem> items) {
       double total = 0;
       for (var item in items) {
@@ -51,7 +81,8 @@ class BottomSheets {
       return total;
     }
 
-    Widget _buildTransactionItem(TransactionItem transactionItem) {
+    Widget _buildTransactionItem(
+        TransactionItem transactionItem, Function doneDelete) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -71,9 +102,11 @@ class BottomSheets {
               GestureDetector(
                   onTap: () {
                     edit(
+                        doneDelete: doneDelete,
                         context: context,
                         ref: ref,
-                        transactionItem: transactionItem);
+                        transactionItem: transactionItem,
+                        transactionId: transactionId);
                   },
                   child: Icon(Icons.edit)),
             ],
@@ -100,27 +133,13 @@ class BottomSheets {
                 children: [
                   SearchInputWithDropdown(),
                   // Display the transaction items (if available)
-                  if (transactionItemsAsyncValue.hasValue)
-                    ...transactionItemsAsyncValue.value!
-                        .map((transactionItem) =>
-                            _buildTransactionItem(transactionItem))
-                        .toList(),
+
+                  ...items
+                      .map((transactionItem) =>
+                          _buildTransactionItem(transactionItem, doneDelete))
+                      .toList(),
                   SizedBox(height: 16),
 
-                  // Calculate and display the total price
-                  if (transactionItemsAsyncValue.hasValue)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${calculateTotal(transactionItemsAsyncValue.value!)}',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
                   SizedBox(height: 16),
 
                   // Display "Charge" button and "Clear All" icon
@@ -136,11 +155,17 @@ class BottomSheets {
                         text: 'clear All',
                       ),
                       IconButton(
-                        icon: Icon(Icons.delete),
+                        icon: Icon(
+                          Icons.delete,
+                          color: Colors.red,
+                        ),
                         onPressed: () {
-                          // Handle "Clear All" button press here
-                          // This might involve clearing the transactionItemsAsyncValue
-                          print('Clear All button pressed!');
+                          for (TransactionItem item in items) {
+                            ProxyService.realm.deleteItemFromCart(
+                                transactionItemId: item,
+                                transactionId: transactionId);
+                          }
+                          doneDelete();
                         },
                       ),
                     ],
@@ -150,10 +175,10 @@ class BottomSheets {
                   FlipperButton(
                     color: Colors.blue,
                     width: double.infinity,
-                    text: 'Charge ' +
-                        calculateTotal(transactionItemsAsyncValue.value!)
-                            .toRwf(),
-                    onPressed: () => Navigator.of(context).pop(),
+                    text: 'Charge ' + calculateTotal(items).toRwf(),
+                    onPressed: () {
+                      onCharge(transactionId, calculateTotal(items));
+                    },
                   ),
                 ],
               ),

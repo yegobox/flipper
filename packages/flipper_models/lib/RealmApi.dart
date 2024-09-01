@@ -1461,25 +1461,6 @@ class RealmAPI<M extends IJsonSerializable>
     throw UnimplementedError();
   }
 
-  /// when item.active == true
-  /// then this means item is on cart
-  @override
-  List<TransactionItem> transactionItems(
-      {required int transactionId,
-      required bool doneWithTransaction,
-      required int branchId,
-      required bool active}) {
-    String queryString = "";
-
-    queryString =
-        r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3';
-
-    final items = realm!.query<TransactionItem>(queryString,
-        [transactionId, doneWithTransaction, branchId, active]).toList();
-
-    return items;
-  }
-
   /// because we want to deal with transaction that has item
   /// we just return any transaction that has TransactionItem attached
   /// this is to avoid having to deal with multiple transaction that are not complete
@@ -2650,37 +2631,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Stream<List<TransactionItem>> transactionItemsStreams(
-      {required int transactionId,
-      required bool doneWithTransaction,
-      required bool active}) async* {
-    final controller = StreamController<List<TransactionItem>>.broadcast();
-
-    final query = realm!.query<TransactionItem>(
-        r'transactionId == $0 AND doneWithTransaction ==$1 AND active == $2 AND deletedAt == nil',
-        [transactionId, doneWithTransaction, active]);
-
-    StreamSubscription<RealmResultsChanges<TransactionItem>>? subscription;
-
-    controller.onListen = () {
-      subscription = query.changes.listen((event) {
-        final changedTransactions =
-            event.results.whereType<TransactionItem>().toList();
-        if (changedTransactions.isNotEmpty) {
-          controller.add(query.toList());
-        }
-      });
-    };
-
-    controller.onCancel = () {
-      subscription?.cancel();
-      controller.close();
-    };
-
-    yield* controller.stream;
-  }
-
-  @override
   Stream<double> soldStockValue({required branchId}) async* {
     // Get the list of TransactionItem objects for the given branchId
     final List<Computed> computeds =
@@ -3612,5 +3562,62 @@ class RealmAPI<M extends IJsonSerializable>
         .map((event) => event.results.toList())
         .distinct()
         .asBroadcastStream();
+  }
+
+  /// when item.active == true
+  /// then this means item is on cart
+  @override
+  List<TransactionItem> transactionItems(
+      {required int transactionId,
+      required bool doneWithTransaction,
+      required int branchId,
+      required bool active}) {
+    String queryString = "";
+
+    queryString =
+        r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3';
+
+    final items = realm!.query<TransactionItem>(queryString,
+        [transactionId, doneWithTransaction, branchId, active]).toList();
+
+    return items;
+  }
+
+  @override
+  Stream<List<TransactionItem>> transactionItemsStreams(
+      {required int transactionId,
+      required int branchId,
+      required bool doneWithTransaction,
+      required bool active}) {
+    try {
+      final query = realm!.query<TransactionItem>(
+          r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3',
+          [transactionId, doneWithTransaction, branchId, active]);
+
+      // final a = realm!.query<TransactionItem>(
+      //     r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3',
+      //     [transactionId, doneWithTransaction, branchId, active]).toList();
+      // talker.warning('transactionItemsStreams: ${a.length}');
+
+      return query.changes
+          .map((event) => event.results.toList())
+          .distinct()
+          .asBroadcastStream();
+    } catch (e, s) {
+      talker.info(e);
+      talker.error(s);
+      rethrow;
+    }
+  }
+
+  @override
+  void deleteItemFromCart(
+      {required TransactionItem transactionItemId, int? transactionId}) {
+    // get transactionItem where match transactionItemId
+    TransactionItem item = realm!
+        .query<TransactionItem>(r'id == $0', [transactionItemId.id]).first;
+    realm!.write(() {
+      realm!.delete(item);
+    });
   }
 }
