@@ -49,7 +49,7 @@ class _ReceiveStockState extends State<ReceiveStock> {
             rightActionButtonName: 'Save',
             icon: Icons.close,
             multi: 3,
-            bottomSpacer: 52,
+            bottomSpacer: 70,
           ),
           body: Form(
             key: _formKey,

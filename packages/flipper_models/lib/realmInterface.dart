@@ -358,6 +358,7 @@ abstract class RealmApiInterface {
 
   Stream<List<TransactionItem>> transactionItemsStreams(
       {required int transactionId,
+      required int branchId,
       required bool doneWithTransaction,
       required bool active});
 
@@ -465,4 +466,7 @@ abstract class RealmApiInterface {
 
   Stream<List<TransactionItem>> transactionItemList(
       {DateTime? startDate, DateTime? endDate, bool? isPluReport});
+
+  void deleteItemFromCart(
+      {required TransactionItem transactionItemId, int? transactionId});
 }

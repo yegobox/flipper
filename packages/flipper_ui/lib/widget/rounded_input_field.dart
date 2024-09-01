@@ -1,6 +1,5 @@
 import 'package:flipper_infra/size.dart';
 import 'package:flipper_infra/time/duration.dart';
-import 'package:flipper_ui/widget/rounded_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -179,10 +178,11 @@ class _RoundedInputFieldState extends State<RoundedInputField> {
     assert(widget.obscureIcon != null && widget.obscureHideIcon != null);
     final icon = obscureText ? widget.obscureIcon! : widget.obscureHideIcon!;
 
-    return RoundedImageButton(
-      size: iconWidth,
-      press: () => setState(() => obscureText = !obscureText),
-      child: icon,
-    );
+    return SizedBox.shrink();
+    // return RoundedImageButton(
+    //   size: iconWidth,
+    //   press: () => setState(() => obscureText = !obscureText),
+    //   child: icon,
+    // );
   }
 }

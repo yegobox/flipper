@@ -849,15 +849,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Stream<List<Variant>> geVariantStreamByProductId(
-      {required int productId}) async* {
-    final variants = realm!.query<Variant>(r'productId == $0', [productId]);
-    variants.changes.listen((_) async* {
-      yield variants.toList();
-    });
-  }
-
-  @override
   Future<PColor?> getColor({required int id}) async {
     return realm!.query<PColor>(r'id == $0', [id]).firstOrNull;
   }
@@ -1470,25 +1461,6 @@ class RealmAPI<M extends IJsonSerializable>
     throw UnimplementedError();
   }
 
-  /// when item.active == true
-  /// then this means item is on cart
-  @override
-  List<TransactionItem> transactionItems(
-      {required int transactionId,
-      required bool doneWithTransaction,
-      required int branchId,
-      required bool active}) {
-    String queryString = "";
-
-    queryString =
-        r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3';
-
-    final items = realm!.query<TransactionItem>(queryString,
-        [transactionId, doneWithTransaction, branchId, active]).toList();
-
-    return items;
-  }
-
   /// because we want to deal with transaction that has item
   /// we just return any transaction that has TransactionItem attached
   /// this is to avoid having to deal with multiple transaction that are not complete
@@ -1768,7 +1740,11 @@ class RealmAPI<M extends IJsonSerializable>
     // Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
     final query = realm!.query<ITransaction>(
       r'lastTouched >= $0 && lastTouched <= $1 && status == $2 && subTotal > 0',
-      [startDate.toUtc(), endDate.add(Duration(days: 1)).subtract(Duration(seconds: 1)).toUtc(), COMPLETE],
+      [
+        startDate.toUtc(),
+        endDate.add(Duration(days: 1)).subtract(Duration(seconds: 1)).toUtc(),
+        COMPLETE
+      ],
     );
 
     StreamSubscription<RealmResultsChanges<ITransaction>>? subscription;
@@ -2652,37 +2628,6 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   bool isRealmClosed() {
     return realm?.isClosed ?? true;
-  }
-
-  @override
-  Stream<List<TransactionItem>> transactionItemsStreams(
-      {required int transactionId,
-      required bool doneWithTransaction,
-      required bool active}) async* {
-    final controller = StreamController<List<TransactionItem>>.broadcast();
-
-    final query = realm!.query<TransactionItem>(
-        r'transactionId == $0 AND doneWithTransaction ==$1 AND active == $2 AND deletedAt == nil',
-        [transactionId, doneWithTransaction, active]);
-
-    StreamSubscription<RealmResultsChanges<TransactionItem>>? subscription;
-
-    controller.onListen = () {
-      subscription = query.changes.listen((event) {
-        final changedTransactions =
-            event.results.whereType<TransactionItem>().toList();
-        if (changedTransactions.isNotEmpty) {
-          controller.add(query.toList());
-        }
-      });
-    };
-
-    controller.onCancel = () {
-      subscription?.cancel();
-      controller.close();
-    };
-
-    yield* controller.stream;
   }
 
   @override
@@ -3608,5 +3553,71 @@ class RealmAPI<M extends IJsonSerializable>
       talker.warning(s);
       rethrow;
     }
+  }
+
+  @override
+  Stream<List<Variant>> geVariantStreamByProductId({required int productId}) {
+    final variants = realm!.query<Variant>(r'productId == $0', [productId]);
+    return variants.changes
+        .map((event) => event.results.toList())
+        .distinct()
+        .asBroadcastStream();
+  }
+
+  /// when item.active == true
+  /// then this means item is on cart
+  @override
+  List<TransactionItem> transactionItems(
+      {required int transactionId,
+      required bool doneWithTransaction,
+      required int branchId,
+      required bool active}) {
+    String queryString = "";
+
+    queryString =
+        r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3';
+
+    final items = realm!.query<TransactionItem>(queryString,
+        [transactionId, doneWithTransaction, branchId, active]).toList();
+
+    return items;
+  }
+
+  @override
+  Stream<List<TransactionItem>> transactionItemsStreams(
+      {required int transactionId,
+      required int branchId,
+      required bool doneWithTransaction,
+      required bool active}) {
+    try {
+      final query = realm!.query<TransactionItem>(
+          r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3',
+          [transactionId, doneWithTransaction, branchId, active]);
+
+      // final a = realm!.query<TransactionItem>(
+      //     r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3',
+      //     [transactionId, doneWithTransaction, branchId, active]).toList();
+      // talker.warning('transactionItemsStreams: ${a.length}');
+
+      return query.changes
+          .map((event) => event.results.toList())
+          .distinct()
+          .asBroadcastStream();
+    } catch (e, s) {
+      talker.info(e);
+      talker.error(s);
+      rethrow;
+    }
+  }
+
+  @override
+  void deleteItemFromCart(
+      {required TransactionItem transactionItemId, int? transactionId}) {
+    // get transactionItem where match transactionItemId
+    TransactionItem item = realm!
+        .query<TransactionItem>(r'id == $0', [transactionItemId.id]).first;
+    realm!.write(() {
+      realm!.delete(item);
+    });
   }
 }

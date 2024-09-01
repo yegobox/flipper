@@ -1,7 +1,10 @@
 // ignore_for_file: unused_result
 
+import 'dart:io';
+
 import 'package:flipper_dashboard/IncomingOrders.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
+import 'package:flipper_dashboard/bottomSheet.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/previewCart.dart';
 import 'package:flipper_dashboard/product_view.dart';
@@ -199,8 +202,7 @@ class CheckOutState extends ConsumerState<CheckOut>
           padding: const EdgeInsets.all(8.0),
           child: PayableView(
             mode: SellingMode.forSelling,
-            completeTransaction: () =>
-                handleCompleteTransaction(transaction, model),
+            completeTransaction: () => handleCompleteTransaction(transaction),
             ref: ref,
             model: model,
             ticketHandler: () => handleTicketNavigation(transaction),
@@ -220,8 +222,14 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
+  String getCartText() {
+    int count = int.parse(getCartItemCount());
+    return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
+  }
+
   Widget _buildSmallScreenLayout(ITransaction transaction,
       {required bool showCart}) {
+    final items = ref.watch(transactionItemsStreamProvider(transaction.id));
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -253,16 +261,50 @@ class CheckOutState extends ConsumerState<CheckOut>
                         color: Colors.white,
                         child: PayableView(
                           mode: SellingMode.forSelling,
-                          wording: "Preview Cart (${getCartItemCount()})",
+                          wording: getCartText(),
                           ref: ref,
                           model: model,
                           ticketHandler: () =>
                               handleTicketNavigation(transaction),
                           previewCart: () {
                             talker.warning("Show Quick Sell: ${showCart}");
-                            previewOrOrder(
-                                isShopingFromWareHouse: false,
-                                transaction: transaction);
+                            if (Platform.isAndroid || Platform.isIOS) {
+                              BottomSheets.showBottom(
+                                  items: items.hasValue ? items.value! : [],
+                                  context: context,
+                                  ref: ref,
+                                  transactionId: transaction.id,
+                                  onCharge: (transactionId, total) {
+                                    try {
+                                      handleCompleteTransaction(transaction);
+                                      ref.read(loadingProvider.notifier).state =
+                                          false;
+                                      Navigator.of(context).pop();
+                                    } catch (e, s) {
+                                      talker.warning(e);
+                                      talker.error(s);
+                                    }
+                                  },
+                                  doneDelete: () {
+                                    print("done delete");
+                                    final isOrdering =
+                                        ProxyService.box.isOrdering() ?? false;
+
+                                    ref.refresh(transactionItemsProvider(
+                                        (isExpense: isOrdering)));
+                                    ref.refresh(transactionItemsStreamProvider(
+                                        transaction.id));
+
+                                    /// force closing the modal, this is because we have no way to update the item on bottomsheet
+                                    /// since bottom sheet is called on button click and we have no way to update it without another trigger
+                                    /// and bottomsheet is not a stateful widget
+                                    Navigator.of(context).pop();
+                                  });
+                            } else {
+                              previewOrOrder(
+                                  isShopingFromWareHouse: false,
+                                  transaction: transaction);
+                            }
                           },
                         ),
                       ),
@@ -307,20 +349,22 @@ class _MobileViewState extends ConsumerState<MobileView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SearchField(
-                controller: searchContrroller,
-                showAddButton: true,
-                showDatePicker: false,
-                showIncomingButton: true,
-                showOrderButton: true,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SearchField(
+                  controller: searchContrroller,
+                  showAddButton: true,
+                  showDatePicker: false,
+                  showIncomingButton: true,
+                  showOrderButton: true,
+                ),
               ),
-            ),
-            ProductView.normalMode(),
-          ],
+              ProductView.normalMode(),
+            ],
+          ),
         ),
       ),
     );

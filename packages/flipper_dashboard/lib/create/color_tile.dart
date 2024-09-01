@@ -1,5 +1,4 @@
 import 'package:flipper_dashboard/create/browsePhotos.dart';
-import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +8,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'list_divider.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 class ColorTile extends StatefulHookConsumerWidget {
   ColorTile({Key? key}) : super(key: key);
@@ -20,21 +17,14 @@ class ColorTile extends StatefulHookConsumerWidget {
 }
 
 class ColorTileState extends ConsumerState<ColorTile> {
-  final _routerService = locator<RouterService>();
-
+  
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<UploadViewModel>.reactive(
       builder: (context, model, child) {
         return Scaffold(
-          appBar: CustomAppBar(
-            onPop: () {
-              _routerService.pop();
-            },
-            title: 'Edit product Tiles',
-            icon: Icons.close,
-            multi: 3,
-            bottomSpacer: 52,
+          appBar: AppBar(
+            title: Text("Colors"),
           ),
           body: ListView(
             children: [

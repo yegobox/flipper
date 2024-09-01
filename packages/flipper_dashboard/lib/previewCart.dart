@@ -118,8 +118,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     ref.read(loadingProvider.notifier).state = false;
   }
 
-  void handleCompleteTransaction(
-      ITransaction transaction, CoreViewModel model) {
+  void handleCompleteTransaction(ITransaction transaction) {
     if (transaction.subTotal != 0) {
       ref.read(loadingProvider.notifier).state = true;
       Customer? customer =
@@ -128,25 +127,26 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       final amount = double.tryParse(receivedAmountController.text) ?? 0;
       final discount = double.tryParse(discountController.text) ?? 0;
 
-      if (formKey.currentState!.validate() && customer == null) {
+      /// on mobile we are not validating state hence it is always true && customer ==null
+      if ((formKey.currentState?.validate() ?? true) && customer == null) {
         handlePayment(
-          model: model,
           paymentType: ProxyService.box.paymentType() ?? "Cash",
           transactionType: TransactionType.sale,
           transaction: transaction,
           amount: amount,
           discount: discount,
         );
+        ref.read(loadingProvider.notifier).state = false;
         _refreshTransactionItems(transactionId: transaction.id!);
       } else {
         confirmPayment(
           amount: amount,
-          model: model,
           discount: discount,
           paymentType: paymentTypeController.text,
           transaction: transaction,
         );
         _refreshTransactionItems(transactionId: transaction.id!);
+        ref.read(loadingProvider.notifier).state = false;
       }
     } else {
       showSimpleNotification(
@@ -160,21 +160,24 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
 
   Future<void> handlePayment(
       {String? purchaseCode,
-      required CoreViewModel model,
       required String paymentType,
       required ITransaction transaction,
       String? categoryId,
       required String transactionType,
       required double amount,
       required double discount}) async {
-    ITransaction trans = model.collectPayment(
+    ITransaction trans = ProxyService.realm.collectPayment(
+      branchId: ProxyService.box.getBranchId()!,
+      isProformaMode: ProxyService.box.isTrainingMode(),
+      isTrainingMode: ProxyService.box.isTrainingMode(),
+      bhfId: ProxyService.box.bhfId() ?? "00",
+      cashReceived: amount,
+      transaction: transaction,
       categoryId: categoryId,
       transactionType: transactionType,
-      paymentType: paymentType,
-      transaction: transaction,
-      amountReceived: amount,
-      discount: discount,
       isIncome: true,
+      paymentType: paymentType,
+      discount: discount,
       directlyHandleReceipt: false,
     );
     final taxExanbled = ProxyService.realm
@@ -230,8 +233,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> confirmPayment(
-      {required CoreViewModel model,
-      required String paymentType,
+      {required String paymentType,
       required double amount,
       required ITransaction transaction,
       required double discount}) async {
@@ -330,7 +332,6 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                     String purchaseCode = purchasecodecontroller.text;
                     talker.warning("received purchase code: $purchaseCode");
                     await handlePayment(
-                        model: model,
                         transactionType: TransactionType.sale,
                         categoryId: "0",
                         paymentType: paymentType,
@@ -353,7 +354,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     ref.refresh(pendingTransactionProvider(
         (mode: TransactionType.sale, isExpense: false)));
 
-    model.handlingConfirm = false;
+    // model.handlingConfirm = false;
   }
 
   void handleTicketNavigation(ITransaction transaction) {

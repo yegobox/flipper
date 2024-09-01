@@ -347,7 +347,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         completeTransaction: () {
           talker.warning("We are about to complete a sale");
           transactionAsyncValue.whenData((ITransaction transaction) {
-            handleCompleteTransaction(transaction, model);
+            handleCompleteTransaction(transaction);
           });
           ref.read(previewingCart.notifier).state = false;
         },

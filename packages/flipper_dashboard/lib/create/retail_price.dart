@@ -21,7 +21,7 @@ class RetailPrice extends StatelessWidget {
           decoration: InputDecoration(
               enabled: true,
               border: const OutlineInputBorder(),
-              suffixIcon: const Icon(FluentIcons.money_24_regular),
+              // suffixIcon: const Icon(FluentIcons.),
               hintText: FLocalization.of(context).retailPrice),
         ),
       ),

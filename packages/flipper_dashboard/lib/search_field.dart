@@ -234,7 +234,8 @@ class SearchFieldState extends ConsumerState<SearchField>
       barrierDismissible: true,
       context: context,
       builder: (context) => OptionModal(
-        child: _getDeviceType(context) == "Phone"
+        child: _getDeviceType(context) == "Phone" ||
+                _getDeviceType(context) == "Phablet"
             ? SizedBox.shrink()
             : ImportPurchasePage(),
       ),
@@ -281,7 +282,8 @@ class SearchFieldState extends ConsumerState<SearchField>
       barrierDismissible: true,
       context: context,
       builder: (context) => OptionModal(
-        child: _getDeviceType(context) == "Phone"
+        child: _getDeviceType(context) == "Phone" ||
+                _getDeviceType(context) == "Phablet"
             ? AddProductButtons()
             : ProductEntryScreen(),
       ),

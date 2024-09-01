@@ -198,7 +198,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
-          name: windows-build
+          name: windows-build-debug-${{ steps.get_version.outputs.version }}
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
           upload_release_asset: false
   build-and-release-windows-prod:
@@ -256,7 +256,6 @@ jobs:
           echo "## Release Notes" >> release_notes.txt
           echo " - New features..." >> release_notes.txt
           echo " - Bug fixes..." >> release_notes.txt
-
       - name: Extract msix_version
         id: get_version
         shell: powershell
@@ -268,7 +267,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
-          name: windows-build
+          name: windows-build-prod-${{ steps.get_version.outputs.version }}
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
           upload_release_asset: false
 

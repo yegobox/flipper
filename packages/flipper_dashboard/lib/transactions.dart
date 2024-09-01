@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -11,7 +12,6 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
-import 'customappbar.dart';
 import 'widgets/mini_app_icon.dart';
 import 'widgets/radio_buttons.dart';
 
@@ -22,7 +22,8 @@ class Transactions extends StatefulHookConsumerWidget {
   TransactionsState createState() => TransactionsState();
 }
 
-class TransactionsState extends ConsumerState<Transactions> {
+class TransactionsState extends ConsumerState<Transactions>
+    with DateCoreWidget {
   @override
   void initState() {
     super.initState();
@@ -281,13 +282,9 @@ class TransactionsState extends ConsumerState<Transactions> {
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         return Scaffold(
-          appBar: CustomAppBar(
-            isDividerVisible: false,
-            title: 'Transactions',
-            icon: Icons.close,
-            onPop: () async {
-              _routerService.back();
-            },
+          appBar: AppBar(
+            actions: [datePicker()],
+            title: Text('Transactions'),
           ),
           body: defaultTransactions
               ? Column(

@@ -1,9 +1,9 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/toast.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,13 +13,10 @@ import 'package:stacked/stacked.dart';
 
 import 'package:flipper_services/proxy.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'dart:io';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
-// TODO:
-// import 'package:mobile_scanner/mobile_scanner.dart' as newKid;
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 class ScannView extends StatefulHookConsumerWidget {
   const ScannView({
@@ -36,19 +33,14 @@ class ScannView extends StatefulHookConsumerWidget {
 }
 
 class ScannViewState extends ConsumerState<ScannView> {
-  Barcode? result;
-  List<Offset> points = [];
-  QRViewController? controller;
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  MobileScannerController? controller;
+  bool isFlashOn = false;
   final _routerService = locator<RouterService>();
 
   @override
-  void reassemble() {
-    super.reassemble();
-    if (Platform.isAndroid) {
-      controller?.pauseCamera();
-    }
-    controller?.resumeCamera();
+  void initState() {
+    super.initState();
+    controller = MobileScannerController();
   }
 
   @override
@@ -59,13 +51,27 @@ class ScannViewState extends ConsumerState<ScannView> {
         return Scaffold(
           body: Stack(
             children: [
-              _buildQrView(context, model),
+              _buildScanner(context, model),
+              _buildGuideBox(context), // Add this line
               _buildCloseButton(context),
               _buildFlashButton(context),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildGuideBox(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 250, // Set the width of the guide box
+        height: 250, // Set the height of the guide box
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.green, width: 2.0),
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+      ),
     );
   }
 
@@ -92,55 +98,45 @@ class ScannViewState extends ConsumerState<ScannView> {
       bottom: 0,
       left: 0,
       right: 0,
-      child: FutureBuilder(
-        future: controller?.getFlashStatus(),
-        builder: (context, snapshot) {
-          return IconButton(
+      child: Row(
+        children: [
+          IconButton(
             onPressed: () {
-              if (controller != null) {
-                controller!.toggleFlash();
-              }
+              setState(() {
+                isFlashOn = !isFlashOn;
+                controller?.toggleTorch();
+              });
             },
             icon: Icon(
-              snapshot.data == false
-                  ? Icons.lightbulb_outline
-                  : Icons.lightbulb_outline,
-              color: snapshot.data == false ? Colors.white : Colors.blue,
+              isFlashOn ? Icons.flash_on : Icons.flash_off,
+              color: isFlashOn ? Colors.yellow : Colors.white,
             ),
-          );
-        },
+          ),
+          Spacer(),
+          IconButton(
+            onPressed: () {
+              _routerService.pop();
+            },
+            icon: Icon(
+              Icons.keyboard_return,
+              color: isFlashOn ? Colors.yellow : Colors.white,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildQrView(BuildContext context, CoreViewModel model) {
-    var scanArea = MediaQuery.of(context).size.width < 400 ||
-            MediaQuery.of(context).size.height < 400
-        ? 250.0
-        : 300.0;
-
-    return QRView(
-      key: qrKey,
-      onQRViewCreated: (controller) {
-        _onQRViewCreated(controller, model);
+  Widget _buildScanner(BuildContext context, CoreViewModel model) {
+    return MobileScanner(
+      controller: controller,
+      onDetect: (capture) {
+        final List<Barcode> barcodes = capture.barcodes;
+        for (final barcode in barcodes) {
+          performIntent(barcode, model);
+        }
       },
-      overlay: QrScannerOverlayShape(
-        borderColor: const Color(0xFF375778),
-        borderRadius: 10,
-        borderLength: 30,
-        borderWidth: 10,
-        cutOutSize: scanArea,
-      ),
-      onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
     );
-  }
-
-  void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
-    if (!p) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('no Permission')),
-      );
-    }
   }
 
   void scanToLogin({required String? result}) {
@@ -183,36 +179,14 @@ class ScannViewState extends ConsumerState<ScannView> {
     }
   }
 
-  void _onQRViewCreated(QRViewController givenController, CoreViewModel model) {
-    this.controller = givenController;
-
-    result = null;
-
-    if (kDebugMode) {
-      model.productService.setBarcode('11232532');
-      navigate('11232532', model);
-    }
-
-    controller?.scannedDataStream.first.then((scanData) {
-      if (result == null) {
-        performIntent(scanData, model);
-      }
-    }).catchError((error) {
-      // Handle the error here
-    });
-  }
-
-  Future<void> performIntent(Barcode scanData, CoreViewModel model) async {
-    setState(() {
-      result = scanData;
-    });
+  Future<void> performIntent(Barcode barcode, CoreViewModel model) async {
     if (widget.intent == BARCODE) {
-      model.productService.setBarcode(scanData.code);
+      model.productService.setBarcode(barcode.rawValue);
     }
-    scanToLogin(result: scanData.code);
+    scanToLogin(result: barcode.rawValue);
     if (widget.intent == ATTENDANCE) {
       bool isCheckInDone =
-          await ProxyService.realm.checkIn(checkInCode: scanData.code);
+          await ProxyService.realm.checkIn(checkInCode: barcode.rawValue);
       if (isCheckInDone) {
         showSimpleNotification(
           const Text('Check In Successful'),
@@ -223,7 +197,7 @@ class ScannViewState extends ConsumerState<ScannView> {
       }
     }
 
-    navigate(scanData.code, model);
+    navigate(barcode.rawValue, model);
   }
 
   void navigate(String? code, CoreViewModel model) async {
