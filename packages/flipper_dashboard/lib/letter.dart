@@ -3,15 +3,15 @@ import 'dart:math';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 
-final List<Color> colors = [
-  Colors.blue,
-  Colors.green,
-  Colors.red,
-  Colors.orange,
-  Colors.purple,
-  Colors.teal,
-  Colors.pink,
-];
+// final List<Color> colors = [
+//   Colors.blue,
+//   Colors.green,
+//   Colors.red,
+//   Colors.orange,
+//   Colors.purple,
+//   Colors.teal,
+//   Colors.pink,
+// ];
 
 class GmailLikeLetter extends StatefulWidget {
   const GmailLikeLetter({
@@ -47,30 +47,31 @@ class _GmailLikeLetterState extends State<GmailLikeLetter>
 
   @override
   Widget build(BuildContext context) {
-    return CircleAvatar(
-      key: ValueKey(widget.branch.id), // Use a unique key for each instance
-      radius: widget.size,
-      backgroundColor: Colors.white,
-      child: SizedBox(
-        width: 100,
-        height: 100,
-        child: Container(
-          width: 100,
-          height: 100,
-          decoration: ShapeDecoration(
-            shape: CircleBorder(),
-            color: colors[Random().nextInt(colors.length)],
-            shadows: [],
-          ),
-          child: Center(
-            child: Text(
-              widget.sessionActive && widget.branch.name!.length > 0
-                  ? widget.branch.name!.substring(0, 2).toUpperCase()
-                  : 'O',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+    return ClipRRect(
+      key: ValueKey(widget.branch.id),
+      borderRadius: BorderRadius.circular(8.0),
+      child: Container(
+        width: widget.size! * 2, // Adjust the width as needed
+        height: widget.size! * 2, // Adjust the height as needed
+        color: Colors.white,
+        child: Center(
+          child: Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: Colors.pink,
+              shape: BoxShape.rectangle, // This makes it a square/rectangle
+            ),
+            child: Center(
+              child: Text(
+                widget.sessionActive && widget.branch.name!.isNotEmpty
+                    ? widget.branch.name!.substring(0, 2).toUpperCase()
+                    : 'O',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),

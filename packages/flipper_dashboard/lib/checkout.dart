@@ -349,20 +349,22 @@ class _MobileViewState extends ConsumerState<MobileView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SearchField(
-                controller: searchContrroller,
-                showAddButton: true,
-                showDatePicker: false,
-                showIncomingButton: true,
-                showOrderButton: true,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SearchField(
+                  controller: searchContrroller,
+                  showAddButton: true,
+                  showDatePicker: false,
+                  showIncomingButton: true,
+                  showOrderButton: true,
+                ),
               ),
-            ),
-            ProductView.normalMode(),
-          ],
+              ProductView.normalMode(),
+            ],
+          ),
         ),
       ),
     );

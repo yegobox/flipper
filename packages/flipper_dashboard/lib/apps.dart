@@ -1,8 +1,8 @@
 import 'dart:developer';
 
+import 'package:flipper_dashboard/ProfileFutureWidget.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/services.dart';
-import 'package:flipper_dashboard/profile.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -24,13 +24,12 @@ class Apps extends StatefulHookConsumerWidget {
   final bool isBigScreen;
   final CoreViewModel model;
 
-  Apps({
+  const Apps({
     Key? key,
     required this.controller,
     required this.isBigScreen,
     required this.model,
   }) : super(key: key);
-  final List<double> cashInAndOut = [1, 1];
 
   @override
   _AppsState createState() => _AppsState();
@@ -38,8 +37,10 @@ class Apps extends StatefulHookConsumerWidget {
 
 class _AppsState extends ConsumerState<Apps> {
   final _routerService = locator<RouterService>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   String transactionPeriod = "Today";
-  List<String> transactionPeriodOptions = [
+  final List<String> transactionPeriodOptions = [
     "Today",
     "This Week",
     "This Month",
@@ -47,63 +48,7 @@ class _AppsState extends ConsumerState<Apps> {
   ];
 
   String profitType = "Net Profit";
-  List<String> profitTypeOptions = ["Net Profit", "Gross Profit"];
-  Widget _buildCustomPaintWithIcon(
-      {dynamic iconData, required Color color, required String page}) {
-    return GestureDetector(
-      onTap: () async {
-        HapticFeedback.lightImpact();
-        switch (page) {
-          case "POS":
-            _routerService.navigateTo(CheckOutRoute(
-              isBigScreen: widget.isBigScreen,
-            ));
-            return;
-          case "Cashbook":
-            _routerService
-                .navigateTo(CashbookRoute(isBigScreen: widget.isBigScreen));
-            return;
-          case "Settings":
-            _routerService.navigateTo(SettingPageRoute());
-            return;
-          case "Support":
-            final Uri whatsappUri = Uri.parse('https://wa.me/250788360058');
-            if (await canLaunchUrl(whatsappUri)) {
-              await launchUrl(whatsappUri,
-                  mode: LaunchMode.externalApplication);
-            } else {
-              throw 'Could not launch $whatsappUri';
-            }
-            return;
-          case "Connecta":
-            ProxyService.box.writeString(key: 'defaultApp', value: "2");
-            _routerService.navigateTo(SocialHomeViewRoute());
-            return;
-          case "Transactions":
-            _routerService.navigateTo(TransactionsRoute());
-            return;
-          case "Contacts":
-            _routerService.navigateTo(CustomersRoute());
-            break;
-          case "Orders":
-            _routerService.navigateTo(OrdersRoute());
-            break;
-          default:
-            _routerService.navigateTo(CheckOutRoute(
-              isBigScreen: widget.isBigScreen,
-            ));
-        }
-      },
-      child: MiniAppIcon(
-        icon: iconData,
-        color: color,
-        page: page,
-        showPageName: true,
-      ),
-    );
-  }
-
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final List<String> profitTypeOptions = ["Net Profit", "Gross Profit"];
 
   @override
   Widget build(BuildContext context) {
@@ -114,180 +59,250 @@ class _AppsState extends ConsumerState<Apps> {
         isDividerVisible: false,
         bottomSpacer: 48.99,
         closeButton: CLOSEBUTTON.WIDGET,
-        customTrailingWidget: Container(
-          child: FutureBuilder<Branch>(
-            future: ProxyService.local.activeBranch(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting ||
-                  !snapshot.hasData) {
-                return const SizedBox.shrink();
-              }
-              final data = snapshot.data;
-              return Padding(
-                padding: const EdgeInsets.only(right: 12.0),
-                child: SizedBox(
-                  height: 40,
-                  width: 40,
-                  child: ProfileWidget(
-                    branch: data!,
-                    sessionActive: true,
-                    size: 25,
-                    showIcon: false,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        customLeadingWidget: GestureDetector(
-          onTap: () {
-            // Open the drawer when the customLeadingWidget is tapped
-            _scaffoldKey.currentState?.openDrawer();
-          },
-          child: Container(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 12.0),
-              child: Image.asset(
-                'assets/logo.png',
-                package: 'flipper_dashboard',
-                width: 30,
-                height: 30,
-              ),
-            ),
-          ),
-        ),
+        customTrailingWidget: _buildProfileWidget(),
+        customLeadingWidget: _buildDrawerButton(),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
+            _buildFilterRow(),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 0.0),
-              child: ListTile(
-                leading: ReusableDropdown(
-                  options: transactionPeriodOptions,
-                  selectedOption: transactionPeriod,
-                  onChanged: (String? newPeriod) {
-                    setState(() {
-                      transactionPeriod = newPeriod!;
-                    });
-                  },
-                ),
-                trailing: ReusableDropdown(
-                  options: profitTypeOptions,
-                  selectedOption: profitType,
-                  onChanged: (String? newProfitType) {
-                    setState(() {
-                      profitType = newProfitType!;
-                    });
-                  },
-                ),
-                dense: true,
-              ),
+              padding: const EdgeInsets.only(top: 40.0),
+              child: _buildGauge(context, ref),
             ),
-            Wrap(
-              alignment: WrapAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 85.0),
-                  child: _buildGauge(context, ref),
-                  // child: _buildGaugeOldImpl(context, widget.model),
-                ),
-                SizedBox(
-                  height: 340,
-                  width: 340,
-                  child: GridView.count(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 0,
-                    mainAxisSpacing: 1,
-                    padding: EdgeInsets.zero,
-                    children: [
-                      _buildCustomPaintWithIcon(
-                          iconData: "assets/flipper_keypad.svg",
-                          color: const Color(0xff006AFE),
-                          page: "POS"),
-                      _buildCustomPaintWithIcon(
-                          iconData: FluentIcons.calculator_24_regular,
-                          color: Color(0xFF66AAFF),
-                          page: "Cashbook"),
-                      _buildCustomPaintWithIcon(
-                          iconData: FluentIcons.arrow_swap_20_regular,
-                          color: Color(0xFFFF0331),
-                          page: "Transactions"),
-                      // _buildCustomPaintWithIcon(
-                      //     iconData: FluentIcons.communication_20_regular,
-                      //     color: Colors.cyan,
-                      //     page: "Connecta"),
-                      // _buildCustomPaintWithIcon(
-                      //     iconData: FluentIcons.settings_20_regular,
-                      //     color: Color(0xFFCC0F03),
-                      //     page: "Settings"),
-                      _buildCustomPaintWithIcon(
-                          iconData: FluentIcons.people_32_regular,
-                          color: Colors.cyan,
-                          page: "Contacts"),
-                      _buildCustomPaintWithIcon(
-                          iconData: Icons.call,
-                          color: Colors.lightBlue,
-                          page: "Support"),
-                      _buildCustomPaintWithIcon(
-                          iconData: FluentIcons.cart_24_regular,
-                          color: Colors.amber,
-                          page: "Orders"),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            Column(
-              mainAxisAlignment:
-                  MainAxisAlignment.center, // Center content vertically
-              children: [
-                FutureBuilder<LPermission?>(
-                  future: ProxyService.realm
-                      .permission(userId: ProxyService.box.getUserId()!),
-                  builder: (context, snapshot) {
-                    return Text(
-                      snapshot.data?.name?.toUpperCase() ?? "-",
-                      style: GoogleFonts.poppins(
-                        fontSize: 16, // Increase font size
-                        color:
-                            Colors.black.withOpacity(0.7), // Increase opacity
-                        fontWeight: FontWeight.bold,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 8.0), // Add spacing between texts
-                Text(
-                  'FROM YEGOBOX',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16, // Increase font size
-                    color: Colors.black.withOpacity(0.7), // Increase opacity
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+            _buildAppIconsGrid(),
+            const SizedBox(height: 20),
+            _buildFooter(),
           ],
         ),
       ),
     );
   }
 
-  double _calculateCashIn(
-      List<ITransaction> transactions, String transactionPeriod) {
-    DateTime oldDate = _calculateStartingDate(transactionPeriod);
-    List<ITransaction> filteredTransactions = transactions
-        .where((transaction) =>
-            DateTime.parse(transaction.createdAt!).isAfter(oldDate))
-        .toList();
-    double sumCashIn = 0;
-    for (final transaction in filteredTransactions) {
-      if (transaction.isIncome) {
-        sumCashIn += transaction.subTotal;
-      }
+  StatelessWidget? _buildProfileWidget() {
+    return const ProfileFutureWidget();
+  }
+
+  StatelessWidget? _buildDrawerButton() {
+    return GestureDetector(
+      onTap: () => _scaffoldKey.currentState?.openDrawer(),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 12.0),
+        child: Image.asset(
+          'assets/logo.png',
+          package: 'flipper_dashboard',
+          width: 30,
+          height: 30,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          ReusableDropdown(
+            options: transactionPeriodOptions,
+            selectedOption: transactionPeriod,
+            onChanged: (String? newPeriod) {
+              setState(() {
+                transactionPeriod = newPeriod!;
+              });
+            },
+          ),
+          ReusableDropdown(
+            options: profitTypeOptions,
+            selectedOption: profitType,
+            onChanged: (String? newProfitType) {
+              setState(() {
+                profitType = newProfitType!;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppIconsGrid() {
+    return GridView.count(
+      crossAxisCount: 3,
+      crossAxisSpacing: 8,
+      mainAxisSpacing: 8,
+      padding: const EdgeInsets.all(16),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        _buildCustomPaintWithIcon(
+          iconData: FluentIcons.calculator_24_regular,
+          color: const Color(0xff006AFE),
+          page: "POS",
+        ),
+        _buildCustomPaintWithIcon(
+          iconData: FluentIcons.book_48_regular,
+          color: const Color(0xFF66AAFF),
+          page: "Cashbook",
+        ),
+        _buildCustomPaintWithIcon(
+          iconData: FluentIcons.arrow_swap_20_regular,
+          color: const Color(0xFFFF0331),
+          page: "Transactions",
+        ),
+        _buildCustomPaintWithIcon(
+          iconData: FluentIcons.people_32_regular,
+          color: Colors.cyan,
+          page: "Contacts",
+        ),
+        _buildCustomPaintWithIcon(
+          iconData: Icons.call,
+          color: Colors.lightBlue,
+          page: "Support",
+        ),
+        _buildCustomPaintWithIcon(
+          iconData: FluentIcons.cart_24_regular,
+          color: Colors.amber,
+          page: "Orders",
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooter() {
+    return Column(
+      children: [
+        FutureBuilder<LPermission?>(
+          future: ProxyService.realm
+              .permission(userId: ProxyService.box.getUserId()!),
+          builder: (context, snapshot) {
+            return Text(
+              snapshot.data?.name?.toUpperCase() ?? "-",
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                color: Colors.black.withOpacity(0.7),
+                fontWeight: FontWeight.bold,
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 8.0),
+        Text(
+          'FROM YEGOBOX',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            color: Colors.black.withOpacity(0.7),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCustomPaintWithIcon({
+    required dynamic iconData,
+    required Color color,
+    required String page,
+  }) {
+    return GestureDetector(
+      onTap: () async {
+        HapticFeedback.lightImpact();
+        await _navigateToPage(page);
+      },
+      child: MiniAppIcon(
+        icon: iconData,
+        color: color,
+        page: page,
+        showPageName: true,
+      ),
+    );
+  }
+
+  Future<void> _navigateToPage(String page) async {
+    switch (page) {
+      case "POS":
+        await _routerService.navigateTo(CheckOutRoute(
+          isBigScreen: widget.isBigScreen,
+        ));
+        break;
+      case "Cashbook":
+        await _routerService.navigateTo(CashbookRoute(
+          isBigScreen: widget.isBigScreen,
+        ));
+        break;
+      case "Settings":
+        await _routerService.navigateTo(SettingPageRoute());
+        break;
+      case "Support":
+        final Uri whatsappUri = Uri.parse('https://wa.me/250788360058');
+        if (await canLaunchUrl(whatsappUri)) {
+          await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+        } else {
+          throw 'Could not launch $whatsappUri';
+        }
+        break;
+      case "Connecta":
+        ProxyService.box.writeString(key: 'defaultApp', value: "2");
+        await _routerService.navigateTo(SocialHomeViewRoute());
+        break;
+      case "Transactions":
+        await _routerService.navigateTo(TransactionsRoute());
+        break;
+      case "Contacts":
+        await _routerService.navigateTo(CustomersRoute());
+        break;
+      case "Orders":
+        await _routerService.navigateTo(OrdersRoute());
+        break;
+      default:
+        await _routerService.navigateTo(CheckOutRoute(
+          isBigScreen: widget.isBigScreen,
+        ));
     }
-    return sumCashIn;
+  }
+
+  Widget _buildGauge(BuildContext context, WidgetRef ref) {
+    final transactionsData = ref.watch(transactionsStreamProvider);
+
+    return transactionsData.when(
+      data: (value) {
+        final filteredTransactions =
+            _filterTransactionsByPeriod(value, transactionPeriod);
+        final cashIn =
+            _calculateCashIn(filteredTransactions, transactionPeriod);
+        final cashOut =
+            _calculateCashOut(filteredTransactions, transactionPeriod);
+
+        return SemiCircleGauge(
+          dataOnGreenSide: cashIn,
+          dataOnRedSide: cashOut,
+          //maxDataValue: cashIn + cashOut,
+          startPadding: 50.0,
+          profitType: profitType,
+          areValueColumnsVisible: true,
+        );
+      },
+      error: (err, stack) {
+        log('error: $err stack: $stack');
+        return const Center(child: Text('An error occurred'));
+      },
+      loading: () {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+  }
+
+  List<ITransaction> _filterTransactionsByPeriod(
+      List<ITransaction> transactions, String period) {
+    log(transactions.length.toString(), name: 'render transactions on gauge');
+    DateTime startingDate = _calculateStartingDate(transactionPeriod);
+    return transactions
+        .where((transaction) =>
+            DateTime.parse(transaction.createdAt!).isAfter(startingDate))
+        .toList();
   }
 
   DateTime _calculateStartingDate(String transactionPeriod) {
@@ -306,8 +321,22 @@ class _AppsState extends ConsumerState<Apps> {
     }
   }
 
-  double _calculateCashOut(
-      List<ITransaction> transactions, String transactionPeriod) {
+  double _calculateCashIn(List<ITransaction> transactions, String period) {
+    DateTime oldDate = _calculateStartingDate(transactionPeriod);
+    List<ITransaction> filteredTransactions = transactions
+        .where((transaction) =>
+            DateTime.parse(transaction.createdAt!).isAfter(oldDate))
+        .toList();
+    double sumCashIn = 0;
+    for (final transaction in filteredTransactions) {
+      if (transaction.isIncome) {
+        sumCashIn += transaction.subTotal;
+      }
+    }
+    return sumCashIn;
+  }
+
+  double _calculateCashOut(List<ITransaction> transactions, String period) {
     DateTime oldDate = _calculateStartingDate(transactionPeriod);
     List<ITransaction> filteredTransactions = transactions
         .where((transaction) =>
@@ -320,68 +349,5 @@ class _AppsState extends ConsumerState<Apps> {
       }
     }
     return sumCashOut;
-  }
-
-  List<ITransaction> _filterTransactionsByPeriod(
-      List<ITransaction> transactions, String transactionPeriod) {
-    log(transactions.length.toString(), name: 'render transactions on gauge');
-    DateTime startingDate = _calculateStartingDate(transactionPeriod);
-    return transactions
-        .where((transaction) =>
-            DateTime.parse(transaction.createdAt!).isAfter(startingDate))
-        .toList();
-  }
-
-  Widget _buildGauge(BuildContext context, WidgetRef ref) {
-    final transactionsData = ref.watch(transactionsStreamProvider);
-
-    return transactionsData.when(
-      data: (value) {
-        final filteredTransactions =
-            _filterTransactionsByPeriod(value, transactionPeriod);
-        final cashIn =
-            _calculateCashIn(filteredTransactions, transactionPeriod);
-        final cashOut =
-            _calculateCashOut(filteredTransactions, transactionPeriod);
-
-        return SemiCircleGauge(
-          dataOnGreenSide: cashIn,
-          dataOnRedSide: cashOut,
-          startPadding: 0,
-          profitType: profitType,
-        );
-      },
-      error: (error, stackTrace) {
-        return Text(error.toString());
-      },
-      loading: () {
-        return SemiCircleGauge(
-          dataOnGreenSide: 0,
-          dataOnRedSide: 0,
-          startPadding: 0,
-          profitType: profitType,
-        );
-      },
-    );
-  }
-
-  Widget PeriodDropDown() {
-    return DropdownButton<String>(
-      value: transactionPeriod,
-      items: transactionPeriodOptions
-          .map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(
-            value,
-          ),
-        );
-      }).toList(),
-      onChanged: (String? newPeriod) {
-        setState(() {
-          transactionPeriod = newPeriod!;
-        });
-      },
-    );
   }
 }
