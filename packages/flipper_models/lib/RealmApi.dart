@@ -3446,9 +3446,10 @@ class RealmAPI<M extends IJsonSerializable>
 
     // If paymentCompletedByUser is false, sync again and check
     if (!(plan.paymentCompletedByUser ?? false)) {
-      await realm?.subscriptions.waitForSynchronization();
-      plan = getPaymentPlan(businessId: businessId);
-      if (!(plan!.paymentCompletedByUser ?? false)) {
+      final isPaymentComplete = await ProxyService.realmHttp.isPaymentComplete(
+          flipperHttpClient: flipperHttpClient, businessId: businessId);
+
+      if (!isPaymentComplete) {
         throw FailedPaymentException(PAYMENT_REACTIVATION_REQUIRED);
       }
     }
