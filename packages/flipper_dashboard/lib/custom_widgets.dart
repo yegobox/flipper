@@ -50,61 +50,6 @@ Widget userImage(String path, {double height = 100}) {
   );
 }
 
-Widget customIcon(
-  BuildContext context, {
-  int? icon,
-  bool isEnable = false,
-  double size = 18,
-  bool istwitterIcon = true,
-  bool isFontAwesomeRegular = false,
-  bool isFontAwesomeSolid = false,
-  Color? iconColor,
-  double paddingIcon = 0,
-  String text = '',
-  Function? onPressed,
-}) {
-  iconColor = iconColor ?? Theme.of(context).textTheme.bodyMedium!.color;
-
-  return GestureDetector(
-    onTap: () {
-      if (onPressed != null) {
-        onPressed();
-      }
-    },
-    child: Padding(
-      padding: EdgeInsets.only(bottom: istwitterIcon ? paddingIcon : 0),
-      child: Column(
-        children: [
-          Container(
-            height: 10,
-            child: Icon(
-              IconData(
-                icon!,
-                fontFamily: istwitterIcon
-                    ? 'TwitterIcon'
-                    : isFontAwesomeRegular
-                        ? 'AwesomeRegular'
-                        : isFontAwesomeSolid
-                            ? 'AwesomeSolid'
-                            : 'Fontello',
-              ),
-              size: size,
-              color: isEnable ? Theme.of(context).primaryColor : iconColor,
-            ),
-          ),
-          Container(
-            padding: EdgeInsetsDirectional.only(top: 10),
-            child: Text(
-              text,
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
 Widget customBottomIcon(BuildContext context,
     {Image? icon,
     bool isEnable = false,
@@ -141,41 +86,6 @@ Widget customBottomIcon(BuildContext context,
         ),
       ],
     ),
-  );
-}
-
-Widget customTappbleIcon(BuildContext context, int icon,
-    {double size = 16,
-    bool isEnable = false,
-    required Function(bool, int) onPressed1,
-    bool? isBoolValue,
-    int? id,
-    Function? onPressed2,
-    bool isFontAwesomeRegular = false,
-    bool istwitterIcon = false,
-    bool isFontAwesomeSolid = false,
-    Color? iconColor,
-    EdgeInsetsGeometry? padding}) {
-  padding ??= EdgeInsets.all(10);
-  return MaterialButton(
-    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    minWidth: 10,
-    height: 10,
-    padding: padding,
-    shape: const CircleBorder(),
-    color: Colors.transparent,
-    elevation: 0,
-    onPressed: () {
-      onPressed1(isBoolValue!, id!);
-    },
-    child: customIcon(context,
-        icon: icon,
-        size: size,
-        isEnable: isEnable,
-        istwitterIcon: istwitterIcon,
-        isFontAwesomeRegular: isFontAwesomeRegular,
-        isFontAwesomeSolid: isFontAwesomeSolid,
-        iconColor: iconColor),
   );
 }
 

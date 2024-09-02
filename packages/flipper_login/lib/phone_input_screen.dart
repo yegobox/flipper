@@ -10,7 +10,6 @@ import 'phone_input_view.dart' as view;
 
 import 'internal/responsive_page.dart' as b;
 import 'widgets/internal/universal_page_route.dart';
-import 'widgets/internal/universal_scaffold.dart';
 
 /// A screen displaying a fully styled phone number entry screen, with a country-code
 /// picker.
@@ -102,38 +101,36 @@ class PhoneInputScreen extends StatelessWidget {
 
     return FirebaseUIActions(
       actions: actions ?? [SMSCodeRequestedAction(_next)],
-      child: UniversalScaffold(
-        body: b.ResponsivePage(
-          desktopLayoutDirection: desktopLayoutDirection,
-          sideBuilder: sideBuilder,
-          headerBuilder: headerBuilder,
-          headerMaxExtent: headerMaxExtent,
-          breakpoint: breakpoint,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                view.PhoneInputView(
-                  auth: auth,
-                  action: action,
-                  pickedCountryCode: countryCode,
-                  subtitleBuilder: subtitleBuilder,
-                  footerBuilder: footerBuilder,
-                  flowKey: flowKey,
-                  multiFactorSession: multiFactorSession,
-                  mfaHint: mfaHint,
-                ),
-                const SizedBox(height: 8),
-                uni.UniversalButton(
-                  text: l.goBackButtonLabel,
-                  variant: ButtonVariant.text,
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            ),
+      child: b.ResponsivePage(
+        desktopLayoutDirection: desktopLayoutDirection,
+        sideBuilder: sideBuilder,
+        headerBuilder: headerBuilder,
+        headerMaxExtent: headerMaxExtent,
+        breakpoint: breakpoint,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              view.PhoneInputView(
+                auth: auth,
+                action: action,
+                pickedCountryCode: countryCode,
+                subtitleBuilder: subtitleBuilder,
+                footerBuilder: footerBuilder,
+                flowKey: flowKey,
+                multiFactorSession: multiFactorSession,
+                mfaHint: mfaHint,
+              ),
+              const SizedBox(height: 8),
+              uni.UniversalButton(
+                text: l.goBackButtonLabel,
+                variant: ButtonVariant.text,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
           ),
         ),
       ),

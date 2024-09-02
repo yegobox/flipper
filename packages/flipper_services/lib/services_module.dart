@@ -14,6 +14,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/PayStackService.dart';
 import 'package:flipper_services/RealmViaHttp.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:http/http.dart' as httP;
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -292,25 +293,33 @@ abstract class ServicesModule {
 
   @LazySingleton()
   RealmApiInterface realmApi() {
-    const isTest =
-        const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
-    talker.warning("running in test env: $isTest");
+    if (!kIsWeb) {
+      const isTest =
+          const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
+      talker.warning("running in test env: $isTest");
 
-    /// to speed-up the application starting time, when we init realm, we just pass in memory db
-    /// then when user login we will close it and switch to flexible sync
-    if (isTest) {
-      return RealmApiMocked();
+      /// to speed-up the application starting time, when we init realm, we just pass in memory db
+      /// then when user login we will close it and switch to flexible sync
+      if (isTest) {
+        return RealmApiMocked();
+      } else {
+        return RealmAPI().instance();
+      }
     } else {
-      return RealmAPI().instance();
+      return RealmViaHttpService();
     }
   }
 
   @preResolve
   @LazySingleton()
   Future<LocalRealmInterface> localRealm() async {
-    return await LocalRealmApi().configureLocal(
-      useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
-    );
+    if (!kIsWeb) {
+      return await LocalRealmApi().configureLocal(
+        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
+      );
+    } else {
+      return RealmViaHttpService();
+    }
   }
 
   //TODOcheck if code from LanguageService can work fully on windows

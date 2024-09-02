@@ -83,7 +83,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     } else if (e is SessionException || e is PinError) {
       log(stackTrace.toString(), name: 'runStartupLogic');
       await logOut();
-      _routerService.clearStackAndShow(LoginViewRoute());
+      _routerService.clearStackAndShow(LoginRoute());
     } else if (e is BusinessNotFoundException) {
       if (Platform.isWindows) {
         // Handle BusinessNotFoundException for desktop.
@@ -99,7 +99,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     } else {
       // Handle other unexpected errors.
       await logOut();
-      _routerService.clearStackAndShow(LoginViewRoute());
+      _routerService.clearStackAndShow(LoginRoute());
     }
   }
 
@@ -108,7 +108,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     ProxyService.notie.sendData(
         'Could not login business with user ${ProxyService.box.getUserId()} not found!');
     logOut();
-    _routerService.clearStackAndShow(LoginViewRoute());
+    _routerService.clearStackAndShow(LoginRoute());
   }
 
   Future<void> _hasActiveSubscription() async {

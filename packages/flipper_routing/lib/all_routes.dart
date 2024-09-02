@@ -31,7 +31,6 @@ export 'package:flipper_dashboard/flipper_app.dart';
 export 'package:flipper_dashboard/tickets.dart';
 export 'package:flipper_dashboard/new_ticket.dart';
 export 'package:flipper_dashboard/startup_view.dart';
-export 'package:flipper_dashboard/inapp_browser.dart';
 export 'package:flipper_dashboard/order.dart';
 export 'package:flipper_dashboard/payments.dart';
 export 'package:flipper_dashboard/scanner_view.dart';
@@ -51,7 +50,7 @@ export 'package:flipper_login/login.dart';
 export 'package:flipper_login/desktop_login_view.dart';
 
 export 'package:flipper_login/landing.dart';
-export 'package:flipper_login/AuthOptionPage.dart';
+export 'package:flipper_login/Auth.dart';
 export 'package:flipper_login/country_picking_page.dart';
 export 'package:flipper_login/phone_input_screen.dart';
 

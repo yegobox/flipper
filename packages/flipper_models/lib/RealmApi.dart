@@ -33,6 +33,7 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
 
 import 'package:talker_flutter/talker_flutter.dart';
 
+
 // This issue describe how I can mark something for completion later
 // https://github.com/realm/realm-dart/issues/1203
 

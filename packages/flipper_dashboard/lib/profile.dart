@@ -127,7 +127,7 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
             if (value == 'logOut') {
               log('logout selected');
               await logOut();
-              routeService.clearStackAndShow(LoginViewRoute());
+              routeService.clearStackAndShow(LoginRoute());
             }
           },
           itemBuilder: (BuildContext context) => [

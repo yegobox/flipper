@@ -165,7 +165,7 @@ class _LandingState extends State<Landing> {
                       ),
                     ),
                     onPressed: () async {
-                      _routerService.navigateTo(AuthOptionPageRoute());
+                      _routerService.navigateTo(AuthRoute());
                     },
                     child: Text(
                       "Create Account",
@@ -191,7 +191,7 @@ class _LandingState extends State<Landing> {
                             (states) => RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(4)))),
                     onPressed: () async {
-                      _routerService.clearStackAndShow(AuthOptionPageRoute());
+                      _routerService.clearStackAndShow(AuthRoute());
                     },
                     child: Text(
                       "Sign In",

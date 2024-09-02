@@ -2,7 +2,6 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:flipper_login/update_email.dart';
-import 'package:flipper_login/update_printer_settings.dart';
 import 'languages_screen.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -113,7 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return Padding(
           padding: MediaQuery.of(context).viewInsets,
           child: Container(
-            child: const UpdatePrinterSetting(),
+            child: const Text("settings"),
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(

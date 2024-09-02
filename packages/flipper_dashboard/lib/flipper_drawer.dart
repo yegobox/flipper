@@ -193,7 +193,7 @@ class _FlipperDrawerState extends ConsumerState<FlipperDrawer>
                     Icons.help,
                   ),
                   onTap: () async {
-                    _routerService.navigateTo(InAppBrowserRoute());
+                    // _routerService.navigateTo(InAppBrowserRoute());
                   },
                 ),
               ],

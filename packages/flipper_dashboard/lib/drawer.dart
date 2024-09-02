@@ -217,7 +217,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
     }
     await logOut();
 
-    _routerService.navigateTo(LoginViewRoute());
+    _routerService.navigateTo(LoginRoute());
   }
 
   Widget buildLogoutButton() {
@@ -227,7 +227,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
         key: const Key('logoutButton'),
         onPressed: () async {
           await logOut();
-          _routerService.navigateTo(LoginViewRoute());
+          _routerService.navigateTo(LoginRoute());
         },
         child: Text(
           "Logout without closing drawer 🙂",

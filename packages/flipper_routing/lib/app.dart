@@ -14,9 +14,9 @@ import 'all_routes.dart';
     CustomRoute(page: FlipperApp),
     CustomRoute(page: FailedPayment),
     //Login Routes
-    CustomRoute(page: LoginView),
+    CustomRoute(page: Login),
     CustomRoute(page: Landing),
-    CustomRoute(page: AuthOptionPage),
+    CustomRoute(page: Auth),
     CustomRoute(page: CountryPicker),
     CustomRoute(page: PhoneInputScreen),
     //End of login routes
@@ -39,7 +39,6 @@ import 'all_routes.dart';
     CustomRoute(page: ScannView),
     CustomRoute(page: OrderView),
     CustomRoute(page: Orders),
-    CustomRoute(page: InAppBrowser),
     CustomRoute(page: Customers),
     CustomRoute(page: NoNet),
     CustomRoute(page: PinLogin),

@@ -193,10 +193,10 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
           drawer.closingBalance = data.income;
         });
         _routerService
-            .navigateTo(DrawerScreenRoute(open: "close", drawer: drawer!));
+            .navigateTo(DrawerScreenRoute(open: "close", drawer: drawer));
       } else {
         await logOut();
-        _routerService.navigateTo(LoginViewRoute());
+        _routerService.navigateTo(LoginRoute());
       }
     }
   }

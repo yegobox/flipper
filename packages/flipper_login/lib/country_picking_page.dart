@@ -29,7 +29,7 @@ class _CountryPickerState extends State<CountryPicker> {
             child: IconButton(
               onPressed: () {
                 final _routerService = locator<RouterService>();
-                _routerService.navigateTo(AuthOptionPageRoute());
+                _routerService.navigateTo(AuthRoute());
               },
               icon: Image.asset('assets/fav.png',
                   height: 90, width: 45, package: 'flipper_login'),

@@ -63,15 +63,15 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     FailedPaymentRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.FailedPayment(),
+        child: const _i1.FailedPayment(),
         opaque: true,
         barrierDismissible: false,
       );
     },
-    LoginViewRoute.name: (routeData) {
+    LoginRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.LoginView(),
+        child: const _i1.Login(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -86,10 +86,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
-    AuthOptionPageRoute.name: (routeData) {
+    AuthRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.AuthOptionPage(),
+        child: _i1.Auth(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -331,14 +331,6 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.Orders(),
-        opaque: true,
-        barrierDismissible: false,
-      );
-    },
-    InAppBrowserRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
-        routeData: routeData,
-        child: const _i1.InAppBrowser(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -650,16 +642,16 @@ class StackedRouterWeb extends _i4.RootStackRouter {
           path: '/failed-payment',
         ),
         _i4.RouteConfig(
-          LoginViewRoute.name,
-          path: '/login-view',
+          LoginRoute.name,
+          path: '/Login',
         ),
         _i4.RouteConfig(
           LandingRoute.name,
           path: '/Landing',
         ),
         _i4.RouteConfig(
-          AuthOptionPageRoute.name,
-          path: '/auth-option-page',
+          AuthRoute.name,
+          path: '/Auth',
         ),
         _i4.RouteConfig(
           CountryPickerRoute.name,
@@ -740,10 +732,6 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         _i4.RouteConfig(
           OrdersRoute.name,
           path: '/Orders',
-        ),
-        _i4.RouteConfig(
-          InAppBrowserRoute.name,
-          path: '/in-app-browser',
         ),
         _i4.RouteConfig(
           CustomersRoute.name,
@@ -953,15 +941,15 @@ class FailedPaymentRoute extends _i4.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i1.LoginView]
-class LoginViewRoute extends _i4.PageRouteInfo<void> {
-  const LoginViewRoute()
+/// [_i1.Login]
+class LoginRoute extends _i4.PageRouteInfo<void> {
+  const LoginRoute()
       : super(
-          LoginViewRoute.name,
-          path: '/login-view',
+          LoginRoute.name,
+          path: '/Login',
         );
 
-  static const String name = 'LoginView';
+  static const String name = 'Login';
 }
 
 /// generated route for
@@ -989,15 +977,15 @@ class LandingArgs {
 }
 
 /// generated route for
-/// [_i1.AuthOptionPage]
-class AuthOptionPageRoute extends _i4.PageRouteInfo<void> {
-  const AuthOptionPageRoute()
+/// [_i1.Auth]
+class AuthRoute extends _i4.PageRouteInfo<void> {
+  const AuthRoute()
       : super(
-          AuthOptionPageRoute.name,
-          path: '/auth-option-page',
+          AuthRoute.name,
+          path: '/Auth',
         );
 
-  static const String name = 'AuthOptionPage';
+  static const String name = 'Auth';
 }
 
 /// generated route for
@@ -1677,18 +1665,6 @@ class OrdersRoute extends _i4.PageRouteInfo<void> {
         );
 
   static const String name = 'Orders';
-}
-
-/// generated route for
-/// [_i1.InAppBrowser]
-class InAppBrowserRoute extends _i4.PageRouteInfo<void> {
-  const InAppBrowserRoute()
-      : super(
-          InAppBrowserRoute.name,
-          path: '/in-app-browser',
-        );
-
-  static const String name = 'InAppBrowser';
 }
 
 /// generated route for
@@ -2408,10 +2384,10 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> navigateToLoginView(
+  Future<dynamic> navigateToLogin(
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
-      const LoginViewRoute(),
+      const LoginRoute(),
       onFailure: onFailure,
     );
   }
@@ -2428,10 +2404,10 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> navigateToAuthOptionPage(
+  Future<dynamic> navigateToAuth(
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
-      const AuthOptionPageRoute(),
+      const AuthRoute(),
       onFailure: onFailure,
     );
   }
@@ -2729,14 +2705,6 @@ extension RouterStateExtension on _i3.RouterService {
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const OrdersRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> navigateToInAppBrowser(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const InAppBrowserRoute(),
       onFailure: onFailure,
     );
   }
@@ -3109,10 +3077,10 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> replaceWithLoginView(
+  Future<dynamic> replaceWithLogin(
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
-      const LoginViewRoute(),
+      const LoginRoute(),
       onFailure: onFailure,
     );
   }
@@ -3129,10 +3097,10 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> replaceWithAuthOptionPage(
+  Future<dynamic> replaceWithAuth(
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
-      const AuthOptionPageRoute(),
+      const AuthRoute(),
       onFailure: onFailure,
     );
   }
@@ -3430,14 +3398,6 @@ extension RouterStateExtension on _i3.RouterService {
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const OrdersRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> replaceWithInAppBrowser(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const InAppBrowserRoute(),
       onFailure: onFailure,
     );
   }

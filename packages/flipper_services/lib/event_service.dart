@@ -69,7 +69,7 @@ class EventService
           ///is the one logged out not all device, but leaving it now as it is not top priority
           await FirebaseAuth.instance.signOut();
           logOut();
-          _routerService.clearStackAndShow(LoginViewRoute());
+          _routerService.clearStackAndShow(LoginRoute());
         }
       });
     } catch (e, stacktrace) {

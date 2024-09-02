@@ -1,7 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-import '../widgets/internal/keyboard_appearence_listener.dart';
-
 /// {@template ui.auth.screens.responsive_page.header_builder}
 /// A builder that builds the contents of the header.
 /// Used only on mobile platforms.
@@ -186,34 +184,31 @@ class _ResponsivePageState extends State<ResponsivePage> {
         } else if (widget.headerBuilder != null) {
           return Padding(
             padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-            child: KeyboardAppearenceListener(
-              listener: _onKeyboardPositionChanged,
-              child: CustomScrollView(
-                controller: ctrl,
-                slivers: [
-                  if (widget.headerBuilder != null)
-                    SliverPersistentHeader(
-                      delegate: HeaderImageSliverDelegate(
-                        maxExtent:
-                            widget.headerMaxExtent ?? defaultHeaderImageHeight,
-                        builder: widget.headerBuilder!,
+            child: CustomScrollView(
+              controller: ctrl,
+              slivers: [
+                if (widget.headerBuilder != null)
+                  SliverPersistentHeader(
+                    delegate: HeaderImageSliverDelegate(
+                      maxExtent:
+                          widget.headerMaxExtent ?? defaultHeaderImageHeight,
+                      builder: widget.headerBuilder!,
+                    ),
+                  ),
+                SliverList(
+                  delegate: SliverChildListDelegate.fixed(
+                    [
+                      content,
+                      ValueListenableBuilder<double>(
+                        valueListenable: paddingListenable,
+                        builder: (context, value, _) {
+                          return SizedBox(height: value);
+                        },
                       ),
-                    ),
-                  SliverList(
-                    delegate: SliverChildListDelegate.fixed(
-                      [
-                        content,
-                        ValueListenableBuilder<double>(
-                          valueListenable: paddingListenable,
-                          builder: (context, value, _) {
-                            return SizedBox(height: value);
-                          },
-                        ),
-                      ],
-                    ),
-                  )
-                ],
-              ),
+                    ],
+                  ),
+                )
+              ],
             ),
           );
         } else {

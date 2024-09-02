@@ -133,11 +133,14 @@ Future<void> initializeDependencies() async {
     );
   }
 
-  HttpOverrides.global = MyHttpOverrides();
-  ByteData data =
-      await PlatformAssetBundle().load('assets/ca/lets-encrypt-r3.pem');
-  SecurityContext.defaultContext
-      .setTrustedCertificatesBytes(data.buffer.asUint8List());
+  if (!kIsWeb) {
+    HttpOverrides.global = MyHttpOverrides();
+    ByteData data =
+        await PlatformAssetBundle().load('assets/ca/lets-encrypt-r3.pem');
+    SecurityContext.defaultContext
+        .setTrustedCertificatesBytes(data.buffer.asUint8List());
+  }
+
   // Add any other necessary initializations
 }
 
