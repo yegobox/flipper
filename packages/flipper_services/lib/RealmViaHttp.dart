@@ -17,7 +17,7 @@ import 'package:http/src/response.dart';
 import 'package:realm_dart/src/realm_class.dart';
 
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
-import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
+// import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
 
 abstract class RealmViaHttp {
   Future<bool> isCouponValid(
