@@ -16,7 +16,7 @@ jobs:
   
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          workingdirectory: apps/flipper
+          entryPoint: apps/flipper
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}
           projectId: yegobox-2ee43
