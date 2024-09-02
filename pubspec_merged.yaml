@@ -332,7 +332,7 @@ dev_dependencies:
   test: "^1.20.1"
   dart_mappable_builder: ^4.2.1
   isar_generator: ^3.1.0+1
-  patrol: ^3.6.1
+  patrol: ^3.10.0
   flutter_launcher_icons: ^0.13.1
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10

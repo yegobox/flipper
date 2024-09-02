@@ -46,7 +46,7 @@ android/app/google-services.json
 /android/app/profile
 /android/app/release
 # should be exluded as it contain a google API KEY.
-index.html
+# index.html
 
 # file containg sensitive information
 # config.dart
