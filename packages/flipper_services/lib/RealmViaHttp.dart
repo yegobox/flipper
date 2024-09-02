@@ -1438,4 +1438,11 @@ class RealmViaHttpServiceMock implements RealmViaHttp {
       required int businessId}) async {
     return true;
   }
+
+  @override
+  Future<bool> isPaymentComplete(
+      {required HttpClientInterface flipperHttpClient,
+      required int businessId}) async {
+    return true;
+  }
 }
