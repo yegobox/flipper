@@ -154,7 +154,6 @@ class SignupViewModel extends ReactiveViewModel {
     await createDefaultCategory(branches);
     await createDefaultColor(branches);
     // save default Access permission as admin on key features
-    _saveUserAccess();
     // await addDefaultUnits();
     ProxyService.forceDateEntry.dataBootstrapper();
 
@@ -225,28 +224,5 @@ class SignupViewModel extends ReactiveViewModel {
       name: 'color',
     );
     ProxyService.realm.create<PColor>(data: color);
-  }
-
-  void _saveUserAccess() {
-    int? branchId = ProxyService.box.getBranchId();
-    int? businessId = ProxyService.box.getBusinessId();
-    int userId = ProxyService.box.getUserId()!;
-
-    ProxyService.realm.realm!.write(() {
-      for (var feature in features) {
-        ProxyService.realm.realm!.add<Access>(
-          Access(
-            ObjectId(),
-            featureName: feature,
-            userId: userId,
-            businessId: businessId,
-            branchId: branchId,
-            accessLevel: AccessLevel.ADMIN,
-            status: 'active',
-            userType: AccessLevel.ADMIN,
-          ),
-        );
-      }
-    });
   }
 }

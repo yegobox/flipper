@@ -12,17 +12,15 @@ mixin StockRequestApprovalLogic {
     List<TransactionItem> itemsNeedingApproval = [];
     bool isFullyApproved = true;
 
-    ProxyService.realm.realm!.write(() {
-      for (var item in request.items) {
-        if (_canApproveItem(item: item)) {
-          _approveItem(
-              item: item, subBranchId: request.subBranchId!, context: context);
-        } else {
-          isFullyApproved = false;
-          itemsNeedingApproval.add(item);
-        }
+    for (var item in request.items) {
+      if (_canApproveItem(item: item)) {
+        _approveItem(
+            item: item, subBranchId: request.subBranchId!, context: context);
+      } else {
+        isFullyApproved = false;
+        itemsNeedingApproval.add(item);
       }
-    });
+    }
 
     if (!isFullyApproved) {
       bool partialApprovalResult = await _handlePartialApproval(
@@ -54,8 +52,7 @@ mixin StockRequestApprovalLogic {
       required BuildContext context}) {
     item.quantityApproved = item.quantityRequested;
     _updateVariantBranch(variantId: item.variantId!, subBranchId: subBranchId);
-    _updateOrCreateStock(
-        item: item, subBranchId: subBranchId, context: context);
+    _updateOrCreateStock(item: item, subBranchId: subBranchId);
     _updateMainBranchStock(
         variantId: item.variantId!, approvedQuantity: item.quantityApproved!);
   }
@@ -71,59 +68,35 @@ mixin StockRequestApprovalLogic {
   }
 
   void _updateOrCreateStock(
-      {required TransactionItem item,
-      required int subBranchId,
-      required BuildContext context}) {
+      {required TransactionItem item, required int subBranchId}) {
     Stock? stock = ProxyService.realm.stockByVariantId(
       variantId: item.variantId!,
       branchId: subBranchId,
     );
     Variant? variant = ProxyService.realm.getVariantById(id: item.variantId!);
 
+    /// stock for this item should be available in our location then creating item in new location
+    /// we check that this item is not from location we would like to copy it to.
     if (stock == null) {
-      _createNewStock(
-          item: item,
-          variant: variant!,
-          subBranchId: subBranchId,
-          context: context);
+      ProxyService.realm.createNewStock(
+          item: item, variant: variant!, subBranchId: subBranchId);
     } else {
       _updateExistingStock(stock: stock, item: item, variant: variant!);
     }
-  }
-
-  void _createNewStock(
-      {required TransactionItem item,
-      required Variant variant,
-      required int subBranchId,
-      required BuildContext context}) {
-    final newStock = Stock(
-      ObjectId(),
-      id: randomNumber(),
-      lastTouched: DateTime.now(),
-      branchId: subBranchId,
-      variantId: variant.id!,
-      action: AppActions.created,
-      retailPrice: variant.retailPrice,
-      supplyPrice: variant.supplyPrice,
-      currentStock: item.quantityRequested!.toDouble(),
-      rsdQty: item.quantityRequested!.toDouble(),
-      value: (item.quantityRequested! * variant.retailPrice).toDouble(),
-      productId: variant.productId,
-      active: false,
-    );
-    ProxyService.realm.realm!.add(newStock);
   }
 
   void _updateExistingStock(
       {required Stock stock,
       required TransactionItem item,
       required Variant variant}) {
-    stock.lastTouched = DateTime.now();
-    stock.currentStock =
-        stock.currentStock + item.quantityRequested!.toDouble();
-    stock.rsdQty = stock.rsdQty + item.quantityRequested!.toDouble();
-    stock.value = (stock.currentStock * variant.retailPrice);
-    stock.action = AppActions.updated;
+    ProxyService.realm.realm!.write(() {
+      stock.lastTouched = DateTime.now();
+      stock.currentStock =
+          stock.currentStock + item.quantityRequested!.toDouble();
+      stock.rsdQty = stock.rsdQty + item.quantityRequested!.toDouble();
+      stock.value = (stock.currentStock * variant.retailPrice);
+      stock.action = AppActions.updated;
+    });
   }
 
   Future<bool> _handlePartialApproval(

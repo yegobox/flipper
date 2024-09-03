@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
@@ -61,16 +60,29 @@ final productFromSupplier =
     'Content-Type': 'application/json'
   };
   var data = json.encode({
-    "collection": "Variant",
-    "database": "flipper",
-    "dataSource": "Cluster0",
-    "filter": {"branchId": supplier.value?.serverId}
+    "collection": AppSecrets.variantCollection,
+    "database": AppSecrets.database,
+    "dataSource": AppSecrets.dataSource,
+    "filter": {
+      "\$and": [
+        {"branchId": supplier.value?.serverId},
+        {
+          "name": {"\$ne": "Custom Amount"}
+        },
+        {
+          "rsdQty": {"\$ne": 0}
+        },
+        {
+          "productName": {"\$ne": "temp"}
+        }
+      ]
+    }
   });
 
   var dio = Dio();
   try {
     var response = await dio.post(
-      'https://ap-south-1.aws.data.mongodb-api.com/app/data-kbpgj/endpoint/data/v1/action/find',
+      AppSecrets.mongoBaseUrl + '/data/v1/action/find',
       options: Options(headers: headers),
       data: data,
     );

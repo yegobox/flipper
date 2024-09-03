@@ -341,26 +341,28 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         multi: 3,
         bottomSpacer: 88.99,
       ),
-      floatingActionButton: PayableView(
-        wording: "Pay ${getSumOfItems().toRwf()}",
-        mode: SellingMode.forSelling,
-        completeTransaction: () {
-          talker.warning("We are about to complete a sale");
-          transactionAsyncValue.whenData((ITransaction transaction) {
-            handleCompleteTransaction(transaction);
-          });
-          ref.read(previewingCart.notifier).state = false;
-        },
-        ref: ref,
-        model: model,
-        ticketHandler: () {
-          talker.warning("We are about to complete a ticket");
-          transactionAsyncValue.whenData((ITransaction transaction) {
-            handleTicketNavigation(transaction);
-          });
-          ref.read(toggleProvider.notifier).state = false;
-        },
-      ),
+      floatingActionButton: !(ProxyService.box.isOrdering() ?? false)
+          ? PayableView(
+              wording: "Pay ${getSumOfItems().toRwf()}",
+              mode: SellingMode.forSelling,
+              completeTransaction: () {
+                talker.warning("We are about to complete a sale");
+                transactionAsyncValue.whenData((ITransaction transaction) {
+                  handleCompleteTransaction(transaction);
+                });
+                ref.read(previewingCart.notifier).state = false;
+              },
+              ref: ref,
+              model: model,
+              ticketHandler: () {
+                talker.warning("We are about to complete a ticket");
+                transactionAsyncValue.whenData((ITransaction transaction) {
+                  handleTicketNavigation(transaction);
+                });
+                ref.read(toggleProvider.notifier).state = false;
+              },
+            )
+          : SizedBox.shrink(),
       body: _buildSharedView(transactionAsyncValue, true, isOrdering),
     );
   }

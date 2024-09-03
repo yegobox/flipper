@@ -89,7 +89,9 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
               child: PreviewSaleButton(
                 wording: ref.watch(previewingCart)
                     ? "Place order"
-                    : "Preview Cart  (${orders})",
+                    : orders > 0
+                        ? "Preview Cart (${orders})"
+                        : "Preview Cart",
                 mode: SellingMode.forOrdering,
                 previewCart: () async {
                   if (orders > 0) {

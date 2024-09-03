@@ -3,12 +3,10 @@
 import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 import 'package:flipper_dashboard/TransactionList.dart';
 
@@ -34,7 +32,6 @@ class ProductView extends StatefulHookConsumerWidget {
 class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   final searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  final _routerService = locator<RouterService>();
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
 
