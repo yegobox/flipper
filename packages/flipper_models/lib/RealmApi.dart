@@ -33,7 +33,6 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
 
 import 'package:talker_flutter/talker_flutter.dart';
 
-
 // This issue describe how I can mark something for completion later
 // https://github.com/realm/realm-dart/issues/1203
 
@@ -1121,39 +1120,17 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Stream<double> getStockStream(
-      {int? productId, int? variantId, required int branchId}) async* {
+  Stream<double> getStockValue({required int branchId}) {
     if (realm == null) {
-      yield 0.0;
+      return Stream.value(0.0);
     }
-    while (true) {
-      double totalStock = 0.0;
-      if (productId != null) {
-        final query = realm!.query<Stock>(
-            r'productId == $0 && branchId ==$1', [productId, branchId]);
-        totalStock = query.fold<double>(
-            0.0, (sum, stock) => sum + stock.currentStock.toDouble());
-      } else if (variantId != null) {
-        final query = realm!.query<Stock>(
-            r'variantId == $0 && branchId==$1', [variantId, branchId]);
-        totalStock = query.fold<double>(
-            0.0, (sum, stock) => sum + stock.currentStock.toDouble());
-      }
-      yield totalStock;
-      await Future.delayed(Duration(seconds: 1));
-    }
-  }
 
-  @override
-  Stream<double> getStockValue({required int branchId}) async* {
-    //
-    while (true) {
-      double totalStock = 0.0;
-      final stocks = realm!.query<Stock>(r'branchId == $0', [branchId]);
-      totalStock = stocks.fold(0.0, (sum, stock) => sum + (stock.value));
-      yield totalStock;
-      await Future.delayed(Duration(seconds: 1));
-    }
+    return realm!
+        .query<Stock>(r'branchId == $0', [branchId])
+        .changes
+        .map((change) {
+          return change.results.fold(0.0, (sum, stock) => sum + stock.value);
+        });
   }
 
   @override
@@ -1535,38 +1512,6 @@ class RealmAPI<M extends IJsonSerializable>
   Future<List<Product>> products({required int branchId}) async {
     return realm!.query<Product>(
         r'branchId == $0  AND deletedAt == nil', [branchId]).toList();
-  }
-
-  @override
-  Future<List<Product>> productsFuture({required int branchId}) async {
-    // Define the date for recent products filtering
-    final date = DateTime.now().subtract(const Duration(days: 7));
-
-    // Fetch recent products based on branch ID and additional criteria
-    List<Product> recentProducts = realm!.query<Product>(
-        r'branchId == $0 && deletedAt == nil && lastTouched > $1',
-        [branchId, date]).toList();
-
-    // If no recent products are found, fetch all products for the branch
-    if (recentProducts.isEmpty) {
-      recentProducts = realm!.query<Product>(
-          r'branchId == $0 && deletedAt == nil', [branchId]).toList();
-    }
-
-    // Filter out TEMP_PRODUCT and CUSTOM_PRODUCT and sort by lastTouched descending
-    List<Product> filteredProducts = recentProducts
-        .where((product) =>
-            product.name != TEMP_PRODUCT && product.name != CUSTOM_PRODUCT)
-        .toList()
-      ..sort((a, b) => b.lastTouched!.compareTo(a.lastTouched!));
-
-    // Limit to the last 20 items, if available
-    if (filteredProducts.length > 20) {
-      filteredProducts = filteredProducts.take(20).toList();
-    }
-
-    // Return the filtered and sorted list of products
-    return filteredProducts;
   }
 
   @override
@@ -1993,6 +1938,39 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
+  Future<List<Product>> productsFuture({required int branchId}) async {
+    // Define the date for recent products filtering
+    final date = DateTime.now().subtract(const Duration(days: 7));
+
+    // Fetch recent products based on branch ID and additional criteria
+    List<Product> recentProducts = realm!.query<Product>(
+        r'branchId == $0 && lastTouched > $1 && name != "temp" && productName != $2',
+        [branchId, date, CUSTOM_PRODUCT]).toList();
+
+    // If no recent products are found, fetch all products for the branch
+    if (recentProducts.isEmpty) {
+      recentProducts = realm!.query<Product>(
+          r'branchId == $0 && name != "temp" && productName != $1',
+          [branchId, CUSTOM_PRODUCT]).toList();
+    }
+
+    // Filter out TEMP_PRODUCT and CUSTOM_PRODUCT and sort by lastTouched descending
+    List<Product> filteredProducts = recentProducts
+        .where((product) =>
+            product.name != TEMP_PRODUCT && product.name != CUSTOM_PRODUCT)
+        .toList()
+      ..sort((a, b) => b.lastTouched!.compareTo(a.lastTouched!));
+
+    // Limit to the last 20 items, if available
+    if (filteredProducts.length > 20) {
+      filteredProducts = filteredProducts.take(20).toList();
+    }
+
+    // Return the filtered and sorted list of products
+    return filteredProducts;
+  }
+
+  @override
   List<Variant> variants({
     required int branchId,
     int? productId,
@@ -2003,13 +1981,13 @@ class RealmAPI<M extends IJsonSerializable>
 
     if (productId != null) {
       variants = realm!.query<Variant>(
-        r'productId == $0 && branchId == $1 && retailPrice > 0',
-        [productId, branchId],
+        r'productId == $0 && branchId == $1 && productName != "temp" && productName != $2',
+        [productId, branchId, CUSTOM_PRODUCT],
       ).toList();
     } else {
       variants = realm!.query<Variant>(
-        r'branchId == $0 && retailPrice > 0',
-        [branchId],
+        r'branchId == $0 && productName != "temp" && productName != $1',
+        [branchId, CUSTOM_PRODUCT],
       ).toList();
     }
 
@@ -3441,12 +3419,8 @@ class RealmAPI<M extends IJsonSerializable>
       required HttpClientInterface flipperHttpClient}) async {
     PaymentPlan? plan = getPaymentPlan(businessId: businessId);
 
-    if (plan == null) {
-      throw SubscriptionError(term: PAYMENT_UPDATE_REQUIRED);
-    }
-
     // If paymentCompletedByUser is false, sync again and check
-    if (!(plan.paymentCompletedByUser ?? false)) {
+    if (!(plan?.paymentCompletedByUser ?? false)) {
       final isPaymentComplete = await ProxyService.realmHttp.isPaymentComplete(
           flipperHttpClient: flipperHttpClient, businessId: businessId);
 
@@ -3613,6 +3587,32 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
+  Stream<double> getStockStream(
+      {int? productId, int? variantId, required int branchId}) {
+    if (realm == null) {
+      return Stream.value(0.0);
+    }
+    // Stock st = realm!.query<Stock>(r'variantId == $0', [variantId]).first;
+    // talker.warning("This is stock I got ${st.currentStock}");
+
+    String queryString;
+    List<int> queryParams;
+
+    if (productId != null) {
+      queryString = r'productId == $0 && branchId == $1';
+      queryParams = [productId, branchId];
+    } else if (variantId != null) {
+      queryString = r'variantId == $0 && branchId == $1';
+      queryParams = [variantId, branchId];
+    } else {
+      return Stream.value(0.0);
+    }
+
+    return realm!.query<Stock>(queryString, queryParams).changes.map((change) =>
+        change.results.isEmpty ? 0.0 : change.results.first.currentStock);
+  }
+
+  @override
   void deleteItemFromCart(
       {required TransactionItem transactionItemId, int? transactionId}) {
     // get transactionItem where match transactionItemId
@@ -3620,6 +3620,31 @@ class RealmAPI<M extends IJsonSerializable>
         .query<TransactionItem>(r'id == $0', [transactionItemId.id]).first;
     realm!.write(() {
       realm!.delete(item);
+    });
+  }
+
+  @override
+  void createNewStock(
+      {required Variant variant,
+      required TransactionItem item,
+      required int subBranchId}) {
+    realm!.write(() {
+      final newStock = Stock(
+        ObjectId(),
+        id: randomNumber(),
+        lastTouched: DateTime.now(),
+        branchId: subBranchId,
+        variantId: variant.id!,
+        action: AppActions.created,
+        retailPrice: variant.retailPrice,
+        supplyPrice: variant.supplyPrice,
+        currentStock: item.quantityRequested!.toDouble(),
+        rsdQty: item.quantityRequested!.toDouble(),
+        value: (item.quantityRequested! * variant.retailPrice).toDouble(),
+        productId: variant.productId,
+        active: false,
+      );
+      ProxyService.realm.realm!.add(newStock);
     });
   }
 }

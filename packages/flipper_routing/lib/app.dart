@@ -593,3 +593,7 @@ class App {}
 
 // Have been looking to how I can build rust + flutter here is solution
 // https://github.com/AppFlowy-IO/AppFlowy/tree/main/frontend/rust-lib/flowy-ai
+// Read excel file
+// https://pub.dev/packages/excel
+
+// Watch this issue if is solved https://github.com/realm/realm-dart/issues/1790 then if yes switch to google login

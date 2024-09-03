@@ -28,6 +28,7 @@ final features = [
   AppFeature.Orders,
   AppFeature.AddProduct,
   AppFeature.CustomAmount,
+  AppFeature.Sales,
 ];
 
 class AppFeature {

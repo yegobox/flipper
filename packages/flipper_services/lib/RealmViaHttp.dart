@@ -1422,6 +1422,14 @@ class RealmViaHttpService
     // TODO: implement universalProductNames
     throw UnimplementedError();
   }
+
+  @override
+  void createNewStock(
+      {required Variant variant,
+      required TransactionItem item,
+      required int subBranchId}) {
+    // TODO: implement createNewStock
+  }
 }
 
 class RealmViaHttpServiceMock implements RealmViaHttp {

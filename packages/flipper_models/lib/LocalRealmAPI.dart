@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flipper_models/Booting.dart';
 import 'package:flipper_models/DATA.dart';
@@ -97,9 +98,12 @@ class LocalRealmApi extends RealmAPI
 
     // Close any existing local realm instance
     localRealm?.close();
-
+    // talker.warning("EncriptionKey${ProxyService.box.encryptionKey()}");
     try {
-      if (useInMemory || ProxyService.box.encryptionKey().isEmpty || isTest) {
+      if (useInMemory ||
+          ProxyService.box.encryptionKey().isEmpty ||
+          isTest ||
+          ProxyService.box.getBusinessId() == null) {
         talker.error("Using in Memory db");
         _configureInMemory();
       } else {
@@ -109,10 +113,8 @@ class LocalRealmApi extends RealmAPI
           localModels,
           initialDataCallback: dataCb,
           path: path,
-          encryptionKey: ProxyService.box.encryptionKey().isEmpty == true
-              ? []
-              : ProxyService.box.encryptionKey().toIntList(),
-          schemaVersion: 2,
+          encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+          schemaVersion: 3,
           migrationCallback: (migration, oldSchemaVersion) {
             if (oldSchemaVersion < 2) {
               // This means we are migrating from version 1 to version 2
@@ -123,9 +125,26 @@ class LocalRealmApi extends RealmAPI
         localRealm = Realm(config);
       }
     } catch (e) {
+      /// delete this db path
       rethrow;
     }
     return this;
+  }
+
+  /// Delete this db path
+  Future<void> deleteDbPath(String dbPath) async {
+    try {
+      final directory = Directory(dbPath);
+      if (await directory.exists()) {
+        await directory.delete(recursive: true);
+        print('Database path deleted successfully: $dbPath');
+      } else {
+        print('Database path does not exist: $dbPath');
+      }
+    } catch (e) {
+      print('Error deleting database path: $e');
+      rethrow;
+    }
   }
 
   @override

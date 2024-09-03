@@ -144,9 +144,6 @@ PODS:
     - nanopb (< 2.30911.0, >= 2.30908.0)
     - PromisesSwift (~> 2.1)
   - FirebaseSharedSwift (10.29.0)
-  - flutter_inappwebview_macos (0.0.1):
-    - FlutterMacOS
-    - OrderedSet (~> 5.0)
   - flutter_local_notifications (0.0.1):
     - FlutterMacOS
   - flutter_localization (0.0.1):
@@ -238,7 +235,6 @@ PODS:
     - nanopb/encode (= 2.30910.0)
   - nanopb/decode (2.30910.0)
   - nanopb/encode (2.30910.0)
-  - OrderedSet (5.0.0)
   - package_info_plus (0.0.1):
     - FlutterMacOS
   - path_provider_foundation (0.0.1):
@@ -292,7 +288,6 @@ DEPENDENCIES:
   - firebase_crashlytics (from `Flutter/ephemeral/.symlinks/plugins/firebase_crashlytics/macos`)
   - firebase_messaging (from `Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos`)
   - firebase_remote_config (from `Flutter/ephemeral/.symlinks/plugins/firebase_remote_config/macos`)
-  - flutter_inappwebview_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - flutter_localization (from `Flutter/ephemeral/.symlinks/plugins/flutter_localization/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
@@ -343,7 +338,6 @@ SPEC REPOS:
     - GTMAppAuth
     - GTMSessionFetcher
     - nanopb
-    - OrderedSet
     - PromisesObjC
     - PromisesSwift
     - Sentry
@@ -373,8 +367,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos
   firebase_remote_config:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_remote_config/macos
-  flutter_inappwebview_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos
   flutter_local_notifications:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos
   flutter_localization:
@@ -452,7 +444,6 @@ SPEC CHECKSUMS:
   FirebaseRemoteConfigInterop: 6efda51fb5e2f15b16585197e26eaa09574e8a4d
   FirebaseSessions: dbd14adac65ce996228652c1fc3a3f576bdf3ecc
   FirebaseSharedSwift: 20530f495084b8d840f78a100d8c5ee613375f6e
-  flutter_inappwebview_macos: 9600c9df9fdb346aaa8933812009f8d94304203d
   flutter_local_notifications: 3805ca215b2fb7f397d78b66db91f6a747af52e4
   flutter_localization: 4035848ae2ed142875d5fd3dde328250a5e81f42
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
@@ -469,7 +460,6 @@ SPEC CHECKSUMS:
   location: 7cdb0665bd6577d382b0a343acdadbcb7f964775
   mobile_scanner: 4d1f08373cb0321594c81c7709aa460c17b8b84f
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
-  OrderedSet: aaeb196f7fef5a9edf55d89760da9176ad40b93c
   package_info_plus: fa739dd842b393193c5ca93c26798dff6e3d0e0c
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   patrol: 0564cee315ff6c86fb802b3647db05cc2d3d0624

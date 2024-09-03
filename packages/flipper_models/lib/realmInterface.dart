@@ -469,4 +469,9 @@ abstract class RealmApiInterface {
 
   void deleteItemFromCart(
       {required TransactionItem transactionItemId, int? transactionId});
+
+  void createNewStock(
+      {required Variant variant,
+      required TransactionItem item,
+      required int subBranchId});
 }

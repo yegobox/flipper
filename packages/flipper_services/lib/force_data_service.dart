@@ -17,6 +17,12 @@ class ForceDataEntryService {
   final appService = getIt<AppService>();
 
   Future<void> dataBootstrapper() async {
+    /// because here we are bootstraping data, to avoid re-adding them in db yet they exist
+    /// for the case where user switch the laptop and the database would be empty yet on our cloud we do have some data
+    /// hence we sync first.
+    try {
+      await ProxyService.realm.realm!.subscriptions.waitForSynchronization();
+    } catch (e) {}
     int? branchId = ProxyService.box.getBranchId();
     int? businessId = ProxyService.box.getBusinessId();
 
@@ -49,6 +55,23 @@ class ForceDataEntryService {
       await ProxyService.realm.create<PColor>(data: color);
     }
 
+    /// bootstrap app permission for admin
+    List<Access> permissions =
+        ProxyService.realm.access(userId: ProxyService.box.getUserId()!);
+    if (permissions.isEmpty) {
+      int? branchId = ProxyService.box.getBranchId();
+      int? businessId = ProxyService.box.getBusinessId();
+      int userId = ProxyService.box.getUserId()!;
+
+      ProxyService.realm.realm!.write(() {
+        for (var feature in features) {
+          /// because having ticket is considered to be elevated permission you can't have both tickets and sales
+          /// so ticket endup having elevated permission which means it show only on the screen
+          addAccess(feature, userId, businessId!, branchId!);
+        }
+      });
+    }
+
     /// Add default categories to be used, these category can't be deleted as they are helper to identify
     /// type of transaction and categorization of transaction
     /// e.g salaries, airtime and we shall add more as we learn what users needs
@@ -75,6 +98,31 @@ class ForceDataEntryService {
     for (String item in ["A", "B", "C", "D"]) {
       ProxyService.realm.getByTaxType(taxtype: item);
     }
+  }
+
+  void addAccess(String feature, int userId, int businessId, int branchId) {
+    final accessConfig = {
+      AppFeature.Tickets: (AccessLevel.WRITE, 'inactive'),
+      AppFeature.Settings: (AccessLevel.ADMIN, 'active'),
+    };
+
+    final (accessLevel, status) =
+        accessConfig[feature] ?? (AccessLevel.WRITE, 'active');
+
+    ProxyService.realm.realm!.add<Access>(
+      Access(
+        ObjectId(),
+        id: randomNumber(),
+        featureName: feature,
+        userId: userId,
+        businessId: businessId,
+        branchId: branchId,
+        accessLevel: accessLevel,
+        status: status,
+        userType: AccessLevel.ADMIN,
+        createdAt: DateTime.now(),
+      ),
+    );
   }
 
   final talker = TalkerFlutter.init();
