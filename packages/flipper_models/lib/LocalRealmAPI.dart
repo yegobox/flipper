@@ -452,11 +452,13 @@ class LocalRealmApi extends RealmAPI
 
   @override
   Business getBusiness({int? businessId}) {
-    if (businessId != null) {
-      return localRealm!.query<Business>(r'serverId == $0', [businessId]).first;
-    } else {
-      return localRealm!.query<Business>(r'isDefault == $0', [true]).first;
-    }
+    Business? business = businessId != null
+        ? localRealm!
+            .query<Business>(r'serverId == $0', [businessId]).firstOrNull
+        : localRealm!.query<Business>(r'isDefault == $0', [true]).firstOrNull;
+
+    return business ??
+        localRealm!.query<Business>(r'isDefault == $0', [false]).first;
   }
 
   @override
