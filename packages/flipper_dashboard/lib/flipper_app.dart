@@ -185,6 +185,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
           builder: (context, ref, child) {
             return GestureDetector(
                 behavior: HitTestBehavior.translucent,
+                
                 onTap: () {
                   print("Received tap event from down");
                 },

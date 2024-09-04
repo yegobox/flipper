@@ -250,7 +250,23 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 final bool isIncome =
                     (widget.transactionType == TransactionType.cashIn ||
                         widget.transactionType == TransactionType.sale);
-
+                Category? activeCat = ProxyService.realm
+                    .activeCategory(branchId: ProxyService.box.getBranchId()!);
+                if (activeCat == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('A category must be selected'),
+                      duration: Duration(seconds: 3),
+                      action: SnackBarAction(
+                        label: 'OK',
+                        onPressed: () {
+                          // Optional: Add an action when the snackbar is dismissed
+                        },
+                      ),
+                    ),
+                  );
+                  return;
+                }
                 try {
                   HandleTransactionFromCashBook(
                     cashReceived: amount,
@@ -274,23 +290,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       if (amount == 0 && key != "Confirm") {
         return;
       }
-      Category? activeCat = ProxyService.realm
-          .activeCategory(branchId: ProxyService.box.getBranchId()!);
-      if (activeCat == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('A category must be selected'),
-            duration: Duration(seconds: 3),
-            action: SnackBarAction(
-              label: 'OK',
-              onPressed: () {
-                // Optional: Add an action when the snackbar is dismissed
-              },
-            ),
-          ),
-        );
-        return;
-      }
+
       widget.model.keyboardKeyPressed(
         isExpense: widget.transactionType == TransactionType.cashOut,
         key: '+',

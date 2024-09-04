@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:realm/realm.dart';
@@ -11,9 +10,6 @@ import 'proxy.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 
-import 'package:flipper_routing/app.router.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_routing/app.locator.dart';
 
 const socialApp = "socials";
 

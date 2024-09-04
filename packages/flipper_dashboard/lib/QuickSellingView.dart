@@ -334,12 +334,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   Widget _buildSmallDeviceScaffold(bool isOrdering,
       AsyncValue<ITransaction> transactionAsyncValue, CoreViewModel model) {
     return Scaffold(
-      appBar: CustomAppBar(
-        onPop: () async {
-          ref.read(previewingCart.notifier).state = false;
-        },
-        multi: 3,
-        bottomSpacer: 88.99,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () {
+            ref.read(previewingCart.notifier).state = false;
+          },
+        ),
+        // actions: [datePicker()],
+        title: Text('Orders'),
       ),
       floatingActionButton: !(ProxyService.box.isOrdering() ?? false)
           ? PayableView(

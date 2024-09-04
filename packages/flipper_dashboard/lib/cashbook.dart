@@ -36,6 +36,12 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
   PreferredSizeWidget buildCustomAppBar(CoreViewModel model) {
     return AppBar(
+      leading: IconButton(
+        icon: Icon(Icons.close),
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+      ),
       actions: [datePicker()],
       title: Text('Cash Book'),
     );
