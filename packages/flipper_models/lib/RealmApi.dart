@@ -471,9 +471,6 @@ class RealmAPI<M extends IJsonSerializable>
         talker.error(s);
       }
 
-      // remove currentTransactionId from local storage to leave a room
-      // for listening to new transaction that will be created
-      ProxyService.box.remove(key: 'currentTransactionId');
       //NOTE: trigger EBM, now
       if (directlyHandleReceipt) {
         TaxController(object: transaction)

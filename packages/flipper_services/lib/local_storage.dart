@@ -47,7 +47,7 @@ class SharedPreferenceStorage implements LocalStorage {
         'couponCode',
         'discountRate',
         'paymentType',
-        'yegoboxLoggedInUserPermission'
+        'yegoboxLoggedInUserPermission',
       },
     ));
     return this;
