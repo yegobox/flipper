@@ -10,7 +10,6 @@ import 'proxy.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 
-
 const socialApp = "socials";
 
 class AppService with ListenableServiceMixin {
@@ -126,6 +125,12 @@ class AppService with ListenableServiceMixin {
 
     bool hasMultipleBusinesses = businesses.length > 1;
     bool hasMultipleBranches = branches.length > 1;
+
+    // if (!hasMultipleBusinesses && !hasMultipleBranches) {
+    //   // we update the active location i.e (Branch)
+    //   ProxyService.realm
+    //       .createOrUpdateBranchOnCloud(branch: branches.first, isOnline: true);
+    // }
 
     if ((hasMultipleBusinesses || hasMultipleBranches) && !authComplete) {
       throw LoginChoicesException(term: "Choose default business");

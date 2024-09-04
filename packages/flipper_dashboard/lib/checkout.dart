@@ -192,7 +192,7 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   Widget _buildPosDefaultContent(
       ITransaction transaction, CoreViewModel model) {
-    return Wrap(
+    return ListView(
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),

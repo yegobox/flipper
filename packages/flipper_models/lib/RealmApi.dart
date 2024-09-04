@@ -3644,4 +3644,20 @@ class RealmAPI<M extends IJsonSerializable>
       ProxyService.realm.realm!.add(newStock);
     });
   }
+
+  @override
+  void createOrUpdateBranchOnCloud(
+      {required Branch branch, required bool isOnline}) {
+    Branch? branchSaved =
+        realm!.query<Branch>(r'id == $0', [branch.id]).firstOrNull;
+    if (branchSaved == null) {
+      realm!.write(() {
+        realm!.add<Branch>(branch);
+      });
+    } else {
+      realm!.write(() {
+        branchSaved.isOnline = isOnline;
+      });
+    }
+  }
 }

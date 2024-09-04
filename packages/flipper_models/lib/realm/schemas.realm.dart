@@ -11,7 +11,8 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
   static var _defaultsSet = false;
 
   Branch(
-    ObjectId id, {
+    ObjectId realmId, {
+    int? id,
     int? serverId,
     bool? active,
     String? description,
@@ -24,13 +25,16 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
     DateTime? lastTouched,
     String? action,
     DateTime? deletedAt,
+    bool? isOnline = false,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Branch>({
         'isDefault': false,
+        'isOnline': false,
       });
     }
     RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
     RealmObjectBase.set(this, 'serverId', serverId);
     RealmObjectBase.set(this, 'active', active);
     RealmObjectBase.set(this, 'description', description);
@@ -43,14 +47,21 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
+    RealmObjectBase.set(this, 'isOnline', isOnline);
   }
 
   Branch._();
 
   @override
-  ObjectId get id => RealmObjectBase.get<ObjectId>(this, 'id') as ObjectId;
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
   @override
-  set id(ObjectId value) => RealmObjectBase.set(this, 'id', value);
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
 
   @override
   int? get serverId => RealmObjectBase.get<int>(this, 'serverId') as int?;
@@ -122,6 +133,11 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'deletedAt', value);
 
   @override
+  bool? get isOnline => RealmObjectBase.get<bool>(this, 'isOnline') as bool?;
+  @override
+  set isOnline(bool? value) => RealmObjectBase.set(this, 'isOnline', value);
+
+  @override
   Stream<RealmObjectChanges<Branch>> get changes =>
       RealmObjectBase.getChanges<Branch>(this);
 
@@ -135,6 +151,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
   EJsonValue toEJson() {
     return <String, dynamic>{
       'id': id.toEJson(),
+      '_id': realmId.toEJson(),
       'serverId': serverId.toEJson(),
       'active': active.toEJson(),
       'description': description.toEJson(),
@@ -147,6 +164,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
       'lastTouched': lastTouched.toEJson(),
       'action': action.toEJson(),
       'deletedAt': deletedAt.toEJson(),
+      'isOnline': isOnline.toEJson(),
     };
   }
 
@@ -155,10 +173,11 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
       } =>
         Branch(
-          fromEJson(id),
+          fromEJson(realmId),
+          id: fromEJson(ejson['id']),
           serverId: fromEJson(ejson['serverId']),
           active: fromEJson(ejson['active']),
           description: fromEJson(ejson['description']),
@@ -171,6 +190,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
           lastTouched: fromEJson(ejson['lastTouched']),
           action: fromEJson(ejson['action']),
           deletedAt: fromEJson(ejson['deletedAt']),
+          isOnline: fromEJson(ejson['isOnline'], defaultValue: false),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -179,8 +199,10 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Branch._);
     register(_toEJson, _fromEJson);
-    return const SchemaObject(ObjectType.realmObject, Branch, 'Branch', [
-      SchemaProperty('id', RealmPropertyType.objectid, primaryKey: true),
+    return const SchemaObject(ObjectType.realmObject, Branch, 'Location', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
       SchemaProperty('serverId', RealmPropertyType.int, optional: true),
       SchemaProperty('active', RealmPropertyType.bool, optional: true),
       SchemaProperty('description', RealmPropertyType.string, optional: true),
@@ -194,6 +216,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
           optional: true),
       SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('isOnline', RealmPropertyType.bool, optional: true),
     ]);
   }();
 
@@ -6614,11 +6637,15 @@ class UserActivity extends _UserActivity
     DateTime? timestamp,
     DateTime? lastTouched,
     int? userId,
+    String? event,
+    RealmValue details = const RealmValue.nullValue(),
   }) {
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, 'timestamp', timestamp);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'userId', userId);
+    RealmObjectBase.set(this, 'event', event);
+    RealmObjectBase.set(this, 'details', details);
     RealmObjectBase.set(this, 'action', action);
   }
 
@@ -6649,6 +6676,17 @@ class UserActivity extends _UserActivity
   set userId(int? value) => RealmObjectBase.set(this, 'userId', value);
 
   @override
+  String? get event => RealmObjectBase.get<String>(this, 'event') as String?;
+  @override
+  set event(String? value) => RealmObjectBase.set(this, 'event', value);
+
+  @override
+  RealmValue get details =>
+      RealmObjectBase.get<RealmValue>(this, 'details') as RealmValue;
+  @override
+  set details(RealmValue value) => RealmObjectBase.set(this, 'details', value);
+
+  @override
   String get action => RealmObjectBase.get<String>(this, 'action') as String;
   @override
   set action(String value) => RealmObjectBase.set(this, 'action', value);
@@ -6671,6 +6709,8 @@ class UserActivity extends _UserActivity
       'timestamp': timestamp.toEJson(),
       'lastTouched': lastTouched.toEJson(),
       'userId': userId.toEJson(),
+      'event': event.toEJson(),
+      'details': details.toEJson(),
       'action': action.toEJson(),
     };
   }
@@ -6689,6 +6729,8 @@ class UserActivity extends _UserActivity
           timestamp: fromEJson(ejson['timestamp']),
           lastTouched: fromEJson(ejson['lastTouched']),
           userId: fromEJson(ejson['userId']),
+          event: fromEJson(ejson['event']),
+          details: fromEJson(ejson['details']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -6704,6 +6746,8 @@ class UserActivity extends _UserActivity
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
       SchemaProperty('userId', RealmPropertyType.int, optional: true),
+      SchemaProperty('event', RealmPropertyType.string, optional: true),
+      SchemaProperty('details', RealmPropertyType.mixed, optional: true),
       SchemaProperty('action', RealmPropertyType.string),
     ]);
   }();

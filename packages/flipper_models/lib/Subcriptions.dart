@@ -76,6 +76,7 @@ mixin Subscriptions {
       'plans-$businessId':
           realm.query<PaymentPlan>(r'businessId == $0 ', [businessId]),
       'compaigns': realm.all<FlipperSaleCompaign>(),
+      'branch': realm.all<Branch>(),
     };
 
     // Update subscriptions

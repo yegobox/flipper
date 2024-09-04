@@ -4,7 +4,6 @@ import 'dart:isolate';
 import 'package:flipper_models/Subcriptions.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/drive_service.dart';
@@ -168,11 +167,6 @@ class CronService with Subscriptions {
     // Other scheduled tasks...
   }
 
-  Future<void> _keepTryingPublishDevice() async {
-    // Implement the logic for keepTryingPublishDevice
-    ProxyService.event.keepTryingPublishDevice();
-  }
-
   Future<void> _setupFirebase() async {
     Business? business = await ProxyService.local.getBusiness();
     ProxyService.syncFirestore.configure();
@@ -240,15 +234,5 @@ class CronService with Subscriptions {
 
   Duration _getHeartBeatDuration() {
     return Duration(seconds: kDebugMode ? 20 : 60);
-  }
-
-  _heartBeatPull() async {
-    await compute(_backgroundHeartBeat, null);
-  }
-
-  static void _backgroundHeartBeat(_) {
-    // This function will run in a separate isolate
-    // Perform the heartBeat operation here
-    //ProxyService.realm.heartBeat();
   }
 }

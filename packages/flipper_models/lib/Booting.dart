@@ -115,7 +115,7 @@ mixin Booting {
     for (IBranch brannch in branches) {
       Branch branch = Branch(
         ObjectId(),
-
+        id: randomNumber(),
         serverId: brannch.id,
         description: brannch.description,
         name: brannch.name,
