@@ -329,17 +329,10 @@ class IsolateHandler with Subscriptions {
     String dbPatch,
   ) {
     final config = Configuration.local(
-      [
-        UserActivity.schema,
-        Business.schema,
-        Branch.schema,
-        Drawers.schema,
-        UnversalProduct.schema,
-        AppNotification.schema
-      ],
+      localModels,
       encryptionKey: encryptionKey,
       path: dbPatch,
-      schemaVersion: 2,
+      schemaVersion: 3,
       migrationCallback: (migration, oldSchemaVersion) {
         if (oldSchemaVersion < 2) {
           // This means we are migrating from version 1 to version 2

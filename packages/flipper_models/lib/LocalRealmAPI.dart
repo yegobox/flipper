@@ -457,6 +457,9 @@ class LocalRealmApi extends RealmAPI
             .query<Business>(r'serverId == $0', [businessId]).firstOrNull
         : localRealm!.query<Business>(r'isDefault == $0', [true]).firstOrNull;
 
+    /// because when a user logging in have one business and one branch
+    /// he is not taken to business choices flow to set default business hence why we need bellow line to choose a business that is not set
+    /// as default because we know it is onlyone that exist since the user has one.
     return business ??
         localRealm!.query<Business>(r'isDefault == $0', [false]).first;
   }
