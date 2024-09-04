@@ -26,10 +26,46 @@ abstract class RealmViaHttp {
   Future<bool> isPaymentComplete(
       {required HttpClientInterface flipperHttpClient,
       required int businessId});
+  Future<bool> hasAcessSaved(
+      {required HttpClientInterface flipperHttpClient,
+      required int businessId});
 }
 
 class RealmViaHttpService
     implements RealmViaHttp, RealmApiInterface, LocalRealmInterface {
+  @override
+  Future<bool> hasAcessSaved(
+      {required HttpClientInterface flipperHttpClient,
+      required int businessId}) async {
+    var headers = {
+      'api-key': AppSecrets.apikey,
+      'Content-Type': 'application/json'
+    };
+    final response = await flipperHttpClient.post(
+        headers: headers,
+        Uri.parse(AppSecrets.mongoBaseUrl + '/data/v1/action/find'),
+        body: json.encode({
+          "collection": AppSecrets.AccessCollection,
+          "database": AppSecrets.database,
+          "dataSource": AppSecrets.dataSource,
+          "filter": {"businessId": businessId}
+        }));
+    if (response.statusCode == 200) {
+      // Parse the response body
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      final List documents = responseData['documents'] ?? [];
+
+      if (documents.isNotEmpty) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      // If the status code is not 200, return false
+      return false;
+    }
+  }
+
   @override
   Future<bool> isCouponValid(
       {required HttpClientInterface flipperHttpClient,
@@ -42,7 +78,7 @@ class RealmViaHttpService
         headers: headers,
         Uri.parse(AppSecrets.mongoBaseUrl + '/data/v1/action/find'),
         body: json.encode({
-          "collection": AppSecrets.collection,
+          "collection": AppSecrets.flipperCompaignCollection,
           "database": AppSecrets.database,
           "dataSource": AppSecrets.dataSource,
           "filter": {"couponCode": couponCode}
@@ -1445,5 +1481,13 @@ class RealmViaHttpServiceMock implements RealmViaHttp {
       {required HttpClientInterface flipperHttpClient,
       required int businessId}) async {
     return true;
+  }
+
+  @override
+  Future<bool> hasAcessSaved(
+      {required HttpClientInterface flipperHttpClient,
+      required int businessId}) {
+    // TODO: implement hasAcessSaved
+    throw UnimplementedError();
   }
 }

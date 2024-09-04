@@ -222,4 +222,9 @@ class SharedPreferenceStorageMock implements LocalStorage {
   String? paymentType() {
     return "Cash";
   }
+
+  @override
+  String? yegoboxLoggedInUserPermission() {
+    return "admin";
+  }
 }

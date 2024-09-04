@@ -50,4 +50,6 @@ abstract class LocalStorage {
   String? couponCode();
   double? discountRate();
   String? paymentType();
+
+  String? yegoboxLoggedInUserPermission();
 }

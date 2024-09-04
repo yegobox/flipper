@@ -257,6 +257,15 @@ mixin Booting {
               "No tenant added to the user, if a business is added it should have one tenant");
     }
 
+    /// find admin permission in permission list from yegobox
+    for (IPermission permission in user.tenants.first.permissions) {
+      if (permission == 'admin') {
+        ProxyService.box.writeString(
+            key: 'yegoboxLoggedInUserPermission',
+            value: user.tenants.first.permissions.first.name);
+      }
+    }
+
     await ProxyService.box.writeInt(
         key: 'branchId',
         value:

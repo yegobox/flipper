@@ -46,7 +46,8 @@ class SharedPreferenceStorage implements LocalStorage {
         'isOrdering',
         'couponCode',
         'discountRate',
-        'paymentType'
+        'paymentType',
+        'yegoboxLoggedInUserPermission'
       },
     ));
     return this;
@@ -280,5 +281,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String? paymentType() {
     return prefs.getString('paymentType');
+  }
+
+  @override
+  String? yegoboxLoggedInUserPermission() {
+    return prefs.getString('yegoboxLoggedInUserPermission');
   }
 }
