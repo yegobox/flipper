@@ -1,6 +1,8 @@
+import 'package:flipper_dashboard/CustomSupplierDropdown.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/ProductList.dart';
@@ -35,9 +37,23 @@ class Orders extends HookConsumerWidget {
       },
       child: Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.close),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
           title: Text('Select Supplier',
               style: TextStyle(fontWeight: FontWeight.bold)),
           elevation: 1,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: ShopIconWithStatus(
+                statusColor: Colors.green,
+              ),
+            )
+          ],
         ),
         body: LayoutBuilder(
           builder: (context, constraints) {
@@ -115,26 +131,14 @@ class Orders extends HookConsumerWidget {
   }
 
   Widget _buildSupplierDropdown(
-      List<Branch> suppliers,
-      ValueNotifier<Branch?> selectedSupplier,
-      WidgetRef ref,
-      BuildContext context) {
-    return DropdownButtonFormField<Branch>(
-      value: selectedSupplier.value,
-      decoration: InputDecoration(
-        labelText: 'Select Supplier',
-        border: OutlineInputBorder(),
-        focusedBorder: OutlineInputBorder(
-          borderSide:
-              BorderSide(color: Theme.of(context).primaryColor, width: 2),
-        ),
-      ),
-      items: suppliers.map((Branch supplier) {
-        return DropdownMenuItem<Branch>(
-          value: supplier,
-          child: Text(supplier.name ?? "-"),
-        );
-      }).toList(),
+    List<Branch> suppliers,
+    ValueNotifier<Branch?> selectedSupplier,
+    WidgetRef ref,
+    BuildContext context,
+  ) {
+    return CustomSupplierDropdown(
+      suppliers: suppliers,
+      selectedSupplier: selectedSupplier.value,
       onChanged: (Branch? newValue) {
         selectedSupplier.value = newValue;
         if (newValue != null) {
@@ -148,7 +152,8 @@ class Orders extends HookConsumerWidget {
 
   Widget _buildViewProductsButton(
       BuildContext context, WidgetRef ref, Branch? selectedSupplier) {
-    return ElevatedButton(
+    return FlipperButton(
+      textColor: Colors.black,
       onPressed: selectedSupplier == null
           ? null
           : () {
@@ -160,17 +165,7 @@ class Orders extends HookConsumerWidget {
                 ),
               );
             },
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-      ),
-      child: Text(
-        'View Products',
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      text: 'View Products',
     );
   }
 

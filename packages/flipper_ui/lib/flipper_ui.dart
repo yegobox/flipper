@@ -27,6 +27,7 @@ export '/widget/spacing.dart';
 // Keyboard
 // export 'src/keyboard/keyboard_visibility_detector.dart';
 export 'style_widget/button.dart';
+export 'style_widget/ShopIconWithStatus.dart';
 export 'style_widget/divider.dart';
 export 'style_widget/icon_button.dart';
 export 'style_widget/couponToggle.dart';

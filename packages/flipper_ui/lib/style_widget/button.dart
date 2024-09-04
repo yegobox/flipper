@@ -1,13 +1,13 @@
 import 'package:flipper_ui/style_widget/text.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class FlipperButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final double? width;
   final double? height;
   final Color? color;
+  final Color? textColor;
 
   const FlipperButton({
     Key? key,
@@ -15,27 +15,33 @@ class FlipperButton extends StatelessWidget {
     this.width = 200,
     this.color,
     this.height = 50,
-    required this.onPressed,
+    this.textColor,
+    this.onPressed,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: width!,
-      height: height!,
+      width: width,
+      height: height,
       child: TextButton(
-        child: FlowyText(
+        child: Text(
           text,
-          color: Colors.white,
+          style: TextStyle(color: textColor ?? Colors.white),
         ),
         style: ButtonStyle(
-          shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
-            (states) => RoundedRectangleBorder(
+          shape: WidgetStateProperty.all<OutlinedBorder>(
+            RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10.0),
             ),
           ),
-          backgroundColor: WidgetStateProperty.all<Color>(
-            color ?? Color(0xffF2F2F2),
+          backgroundColor: WidgetStateProperty.resolveWith<Color>(
+            (Set<WidgetState> states) {
+              if (states.contains(WidgetState.disabled)) {
+                return Colors.grey; // Color when button is disabled
+              }
+              return color ?? const Color(0xffF2F2F2);
+            },
           ),
           overlayColor: WidgetStateProperty.resolveWith<Color?>(
             (Set<WidgetState> states) {
