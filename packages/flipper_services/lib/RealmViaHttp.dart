@@ -1466,6 +1466,12 @@ class RealmViaHttpService
       required int subBranchId}) {
     // TODO: implement createNewStock
   }
+
+  @override
+  void createOrUpdateBranchOnCloud(
+      {required Branch branch, required bool isOnline}) {
+    // TODO: implement createOrUpdateBranchOnCloud
+  }
 }
 
 class RealmViaHttpServiceMock implements RealmViaHttp {

@@ -7,9 +7,12 @@ part 'schemas.realm.dart';
 /// https://www.mongodb.com/docs/atlas/app-services/sync/data-model/update-schema/#std-label-synced-schema-overview
 /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/realm-database/model-data/data-types/#realmlist
 @RealmModel()
+@MapTo('Location')
 class _Branch {
+  int? id;
   @PrimaryKey()
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
   int? serverId;
 
   bool? active;
@@ -28,6 +31,7 @@ class _Branch {
   String? action;
 
   DateTime? deletedAt;
+  bool? isOnline = false;
 }
 
 @RealmModel()
@@ -863,7 +867,15 @@ class _UserActivity {
   DateTime? lastTouched;
   int? userId;
   String? event;
-
+  // RealmValue.from({
+  //       'ipAddress': '192.168.1.1',
+  //       'items': [
+  //         {'id': 1, 'name': 'Laptop', 'price': 1200.00},
+  //         {'id': 2, 'name': 'Mouse', 'price': 49.99}
+  //       ],
+  //       'total': 1249.99
+  //     })
+  late RealmValue details;
   late String action;
 }
 

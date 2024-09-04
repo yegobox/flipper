@@ -1,7 +1,5 @@
 import 'package:flipper_models/realm/schemas.dart';
-import 'package:flipper_models/states/selectedSupplierProvider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CustomSupplierDropdown extends StatelessWidget {
   final List<Branch> suppliers;
@@ -54,4 +52,3 @@ class CustomSupplierDropdown extends StatelessWidget {
     );
   }
 }
-

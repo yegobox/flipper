@@ -245,6 +245,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
     ref.read(branchSelectionProvider.notifier).setLoading(true);
 
     try {
+      // ProxyService.realm
+      //     .createOrUpdateBranchOnCloud(branch: branch, isOnline: true);
       await _updateAllBranchesInactive();
       await _updateBranchActive(branch);
       await _syncBranchWithDatabase(branch);

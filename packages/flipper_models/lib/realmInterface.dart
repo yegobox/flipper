@@ -474,4 +474,5 @@ abstract class RealmApiInterface {
       {required Variant variant,
       required TransactionItem item,
       required int subBranchId});
+  void createOrUpdateBranchOnCloud({required Branch branch, required bool isOnline});
 }

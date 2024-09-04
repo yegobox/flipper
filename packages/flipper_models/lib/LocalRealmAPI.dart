@@ -114,7 +114,7 @@ class LocalRealmApi extends RealmAPI
           initialDataCallback: dataCb,
           path: path,
           encryptionKey: ProxyService.box.encryptionKey().toIntList(),
-          schemaVersion: 3,
+          schemaVersion: 5,
           migrationCallback: (migration, oldSchemaVersion) {
             if (oldSchemaVersion < 2) {
               // This means we are migrating from version 1 to version 2
@@ -456,6 +456,7 @@ class LocalRealmApi extends RealmAPI
         ? localRealm!
             .query<Business>(r'serverId == $0', [businessId]).firstOrNull
         : localRealm!.query<Business>(r'isDefault == $0', [true]).firstOrNull;
+
     /// because when a user logging in have one business and one branch
     /// he is not taken to business choices flow to set default business hence why we need bellow line to choose a business that is not set
     /// as default because we know it is onlyone that exist since the user has one.
