@@ -1,4 +1,4 @@
-name: Build Windows app
+name: Build Android app
 
 on:
   # Enable manual run
