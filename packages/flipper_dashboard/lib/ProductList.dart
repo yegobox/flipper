@@ -64,6 +64,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
                             return SizedBox.shrink();
                           }
                           return buildVariantRow(
+                            forceRemoteUrl: true,
                             context: context,
                             model: model,
                             variant: products[index],

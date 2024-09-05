@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'dart:io';
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -15,6 +16,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -55,6 +58,7 @@ class RowItem extends StatefulHookConsumerWidget {
   final String variantName;
   final bool isComposite;
   final bool isOrdering;
+  final bool forceRemoteUrl;
 
   RowItem({
     Key? key,
@@ -62,6 +66,7 @@ class RowItem extends StatefulHookConsumerWidget {
     required this.productName,
     required this.variantName,
     required this.stock,
+    required this.forceRemoteUrl,
     this.delete = _defaultFunction,
     this.deleteVariant = _defaultFunction,
     this.edit = _defaultFunction,
@@ -291,48 +296,82 @@ class _RowItemState extends ConsumerState<RowItem> with Refresh {
         ),
       );
     } else {
-      return FutureBuilder<String?>(
-        future: getImageFilePath(imageFileName: widget.imageUrl!),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data != null) {
-            final imageFilePath = snapshot.data!;
-            return Image.file(
-              File(imageFilePath),
-              width: double.infinity,
-              height: 130,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: double.infinity,
-                  height: 130,
-                  color: Colors.grey[300],
-                  child: Center(
-                    child: Icon(
-                      Icons.image,
-                      size: 50,
-                      color: Colors.grey[500],
+      if (widget.forceRemoteUrl) {
+        // get preSigned URL
+        return FutureBuilder<String>(
+          future: preSignedUrl(
+              branchId: widget.variant!.branchId!, imageInS3: widget.imageUrl!),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            } else if (snapshot.hasError || !snapshot.hasData) {
+              return Image.asset(
+                  package: 'flipper_dashboard',
+                  'assets/default_placeholder.png'); // Replace with your default image path
+            } else {
+              return Image.network(snapshot.data!);
+            }
+          },
+        );
+      } else {
+        return FutureBuilder<String?>(
+          future: getImageFilePath(imageFileName: widget.imageUrl!),
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data != null) {
+              final imageFilePath = snapshot.data!;
+
+              return Image.file(
+                File(imageFilePath),
+                width: double.infinity,
+                height: 130,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: double.infinity,
+                    height: 130,
+                    color: Colors.grey[300],
+                    child: Center(
+                      child: Icon(
+                        Icons.image,
+                        size: 50,
+                        color: Colors.grey[500],
+                      ),
                     ),
+                  );
+                },
+              );
+            } else {
+              return Container(
+                width: double.infinity,
+                height: 130,
+                color: Colors.grey[300],
+                child: Center(
+                  child: Icon(
+                    Icons.image,
+                    size: 50,
+                    color: Colors.grey[500],
                   ),
-                );
-              },
-            );
-          } else {
-            return Container(
-              width: double.infinity,
-              height: 130,
-              color: Colors.grey[300],
-              child: Center(
-                child: Icon(
-                  Icons.image,
-                  size: 50,
-                  color: Colors.grey[500],
                 ),
-              ),
-            );
-          }
-        },
-      );
+              );
+            }
+          },
+        );
+      }
     }
+  }
+
+  Future<String> preSignedUrl(
+      {required String imageInS3, required int branchId}) async {
+    final filePath = 'public/branch-$branchId/$imageInS3';
+    talker.warning("GettingPreSignedURL:$filePath");
+    final file = await Amplify.Storage.getUrl(
+        path: StoragePath.fromString(filePath),
+        options: StorageGetUrlOptions(
+            pluginOptions: S3GetUrlPluginOptions(
+          validateObjectExistence: true,
+          expiresIn: Duration(minutes: 30),
+        ))).result;
+    return file.url.toString();
   }
 
   Widget _buildProductDetails({required bool isComposite}) {

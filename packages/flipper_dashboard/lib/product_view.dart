@@ -103,6 +103,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                 if (variants.isEmpty) {
                   return Text('No Products available.');
                 }
+                if (!variants.first.isValid) {
+                  return Center(
+                      child: Text("There was issue, please restart the app"));
+                }
                 return _buildVariantsGrid(context, model, variants);
               },
               error: (_, __) => SizedBox.shrink(),
@@ -129,7 +133,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             if (index >= variants.length) {
               return Center(child: CircularProgressIndicator());
             }
+
             return buildVariantRow(
+              forceRemoteUrl: false,
               context: context,
               model: model,
               variant: variants[index],

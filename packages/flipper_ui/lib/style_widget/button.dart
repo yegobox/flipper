@@ -8,6 +8,7 @@ class FlipperButton extends StatelessWidget {
   final double? height;
   final Color? color;
   final Color? textColor;
+  final double? radius;
 
   const FlipperButton({
     Key? key,
@@ -15,6 +16,7 @@ class FlipperButton extends StatelessWidget {
     this.width = 200,
     this.color,
     this.height = 50,
+    this.radius = 10,
     this.textColor,
     this.onPressed,
   }) : super(key: key);
@@ -32,7 +34,7 @@ class FlipperButton extends StatelessWidget {
         style: ButtonStyle(
           shape: WidgetStateProperty.all<OutlinedBorder>(
             RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
+              borderRadius: BorderRadius.circular(radius ?? 10.0),
             ),
           ),
           backgroundColor: WidgetStateProperty.resolveWith<Color>(
@@ -106,7 +108,7 @@ class FlipperIconButton extends StatelessWidget {
   final Color? iconColor;
   final String? text;
   final Color? textColor;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final double? iconSize;
   final double? width;
   final double? height;
