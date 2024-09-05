@@ -317,7 +317,7 @@ class LocalRealmApi extends RealmAPI
     try {
       if (businessId != null) {
         return localRealm!.query<Branch>(
-            r'businessId == $0 && active == $1', [businessId, true]).toList();
+            r'businessId == $0 && active == $1', [businessId, false]).toList();
       } else {
         throw Exception("BusinessId is required");
       }
