@@ -1472,6 +1472,12 @@ class RealmViaHttpService
       {required Branch branch, required bool isOnline}) {
     // TODO: implement createOrUpdateBranchOnCloud
   }
+
+  @override
+  Drawers? closeDrawer({required Drawers drawer, required double eod}) {
+    // TODO: implement closeDrawer
+    throw UnimplementedError();
+  }
 }
 
 class RealmViaHttpServiceMock implements RealmViaHttp {

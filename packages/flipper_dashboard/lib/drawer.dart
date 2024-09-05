@@ -1,4 +1,4 @@
-import 'package:flipper_models/LocalRealm.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/view_models/gate.dart';
@@ -205,19 +205,20 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
   }
 
   void handleCloseDrawer() async {
-    Drawers? drawers = await ProxyService.local
-        .getDrawer(cashierId: ProxyService.box.getUserId()!);
-    if (drawers != null) {
-      ProxyService.realm.realm!.write(() {
-        drawers.open = false;
-        drawers.cashierId = ProxyService.box.getUserId()!;
-        drawers.closingBalance = double.parse(_controller.text);
-        drawers.closingDateTime = DateTime.now().toIso8601String();
-      });
-    }
-    await logOut();
+    try {
+      Drawers? drawers = await ProxyService.local
+          .getDrawer(cashierId: ProxyService.box.getUserId()!);
+      if (drawers != null) {
+        ProxyService.local
+            .closeDrawer(drawer: drawers, eod: double.parse(_controller.text));
+      }
+      await logOut();
 
-    _routerService.navigateTo(LoginRoute());
+      _routerService.navigateTo(LoginRoute());
+    } catch (e, s) {
+      talker.error(e);
+      talker.error(s);
+    }
   }
 
   Widget buildLogoutButton() {

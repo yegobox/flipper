@@ -72,4 +72,6 @@ abstract class LocalRealmInterface {
   Drawers? openDrawer({required Drawers drawer});
 
   void clearData({required ClearData data});
+
+  Drawers? closeDrawer({required Drawers drawer, required double eod});
 }
