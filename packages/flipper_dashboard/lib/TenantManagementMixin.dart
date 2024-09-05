@@ -60,6 +60,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
 
         // Save access permissions
         await _savePermissions(newTenant, business, branch);
+        _updateTenant(tenant: newTenant, name: _nameController.text);
 
         await model.loadTenants();
         _resetForm();
@@ -70,6 +71,14 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         setState(() => isAddingUser = false);
       }
     }
+  }
+
+  void _updateTenant({Tenant? tenant, String? name}) {
+    ProxyService.realm.realm!.write(() {
+      if (name != null && !name.isEmpty) {
+        tenant!.name = name;
+      }
+    });
   }
 
   Future<void> _savePermissions(
@@ -566,7 +575,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                "Invite ",
+                "Invite Users",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),

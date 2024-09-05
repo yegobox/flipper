@@ -314,13 +314,15 @@ class LocalRealmApi extends RealmAPI
   @override
   List<Branch> branches({int? businessId}) {
     /// filter out active == true, to avoid to order from yourself
+    List<Branch> branches = [];
     try {
       if (businessId != null) {
-        return localRealm!.query<Branch>(
+        branches = localRealm!.query<Branch>(
             r'businessId == $0 && active == $1', [businessId, false]).toList();
       } else {
         throw Exception("BusinessId is required");
       }
+      return branches;
     } catch (e, s) {
       talker.error(e);
       talker.error(s);
@@ -1007,5 +1009,17 @@ class LocalRealmApi extends RealmAPI
       talker.error(e);
       talker.error(s);
     }
+  }
+
+  @override
+  Drawers? closeDrawer({required Drawers drawer, required double eod}) {
+    ProxyService.local.localRealm!.write(() {
+      drawer.open = false;
+      drawer.cashierId = ProxyService.box.getUserId()!;
+      // drawer.closingBalance = double.parse(_controller.text);
+      drawer.closingBalance = eod;
+      drawer.closingDateTime = DateTime.now().toIso8601String();
+    });
+    return drawer;
   }
 }
