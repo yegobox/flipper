@@ -125,34 +125,24 @@ class CheckOutState extends ConsumerState<CheckOut>
           children: [
             Padding(
               padding: const EdgeInsets.only(top: 160.0),
-              child: Card(
-                color: Colors.white,
-                surfaceTintColor: Colors.white,
-                child: Container(
-                  width: constraints.maxWidth,
-                  height: constraints.maxHeight,
-                  child: FadeTransition(
-                    opacity: _animation,
-                    child: (ProxyService.box.isPosDefault()!)
-                        ? _buildPosDefaultContent(transaction, model)
-                        : SizedBox.shrink(),
-                  ),
+              child: Container(
+                width: constraints.maxWidth,
+                height: constraints.maxHeight,
+                child: FadeTransition(
+                  opacity: _animation,
+                  child: (ProxyService.box.isPosDefault()!)
+                      ? _buildPosDefaultContent(transaction, model)
+                      : SizedBox.shrink(),
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.only(top: 160.0),
-              child: Card(
-                elevation: 0,
-                color: Colors.white,
-                surfaceTintColor: Colors.white,
-                child: FadeTransition(
-                  opacity: _animation,
-                  child: (ProxyService.box.isOrdersDefault()!)
-                      ? SingleChildScrollView(
-                          child: const IncomingOrdersWidget())
-                      : SizedBox.shrink(),
-                ),
+              child: FadeTransition(
+                opacity: _animation,
+                child: (ProxyService.box.isOrdersDefault()!)
+                    ? SingleChildScrollView(child: const IncomingOrdersWidget())
+                    : SizedBox.shrink(),
               ),
             ),
             Positioned(

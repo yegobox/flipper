@@ -19,12 +19,15 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required ProductViewModel model,
     required Variant variant,
     required bool isOrdering,
+    required bool forceRemoteUrl,
   }) {
-    final stockStream = ref.watch(stockByVariantIdProvider(variant.id ?? 0));
+    final stockStream = ref.watch(
+        stockByVariantIdProvider(variant.isValid ? (variant.id ?? 0) : 0));
 
     return stockStream.when(
       data: (double stock) {
         return buildRowItem(
+            forceRemoteUrl: forceRemoteUrl,
             context: context,
             model: model,
             variant: variant,
@@ -86,23 +89,33 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       required ProductViewModel model,
       required Variant variant,
       required double stock,
+      required bool forceRemoteUrl,
       required bool isOrdering}) {
     Product? product;
     if (!isOrdering) {
-      product = ProxyService.realm.getProduct(id: variant.productId ?? 0);
+      product = ProxyService.realm
+          .getProduct(id: variant.isValid ? (variant.productId ?? 0) : 0);
     }
-    Assets? asset = ProxyService.realm.getAsset(productId: variant.productId);
-
+    Assets? asset = ProxyService.realm
+        .getAsset(productId: variant.isValid ? variant.productId : 0);
+    if (!variant.isValid) {
+      return SizedBox.shrink();
+    }
     return RowItem(
+      forceRemoteUrl: forceRemoteUrl,
       isOrdering: isOrdering,
       color: variant.color ?? "#673AB7",
       stock: stock,
       model: model,
       variant: variant,
-      productName: variant.productName ?? "",
+      productName: (variant.isValid) ? variant.productName ?? "" : "",
       variantName: variant.name ?? "",
       imageUrl: asset?.assetName,
-      isComposite: !isOrdering ? product?.isComposite ?? false : false,
+      isComposite: !isOrdering
+          ? (product != null && product.isValid
+              ? product.isComposite ?? false
+              : false)
+          : false,
       edit: (productId, type) {
         talker.info("navigating to Edit!");
         if (_getDeviceType(context) != "Phone") {

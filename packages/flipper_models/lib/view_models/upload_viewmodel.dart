@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flipper_models/helperModels/random.dart';
 
@@ -17,37 +18,17 @@ class UploadViewModel extends ProductViewModel {
   File? selectedImage;
 
   void browsePictureFromGallery(
-      {required dynamic id,
+      {required int id,
       required Function(Product) callBack,
       required URLTYPE urlType}) async {
-    // final pickedFile = await FilePicker.platform.pickFiles(
-    //   type: FileType.custom,
-    //   withData: false,
-    //   // Ensure to get file stream for better performance
-    //   withReadStream: true,
-    //   allowedExtensions: ['jpg', 'png'],
-    // );
-    // if (pickedFile != null) {
-    // selectedImage = File(pickedFile.files.single.path!);
     await uploadImage(id: id, urlType: urlType, callBack: callBack);
-    // }
   }
 
   void takePicture(
       {required int productId,
       required Function(Product) callBack,
       required URLTYPE urlType}) async {
-    // final pickedFile = await FilePicker.platform.pickFiles(
-    //   type: FileType.custom,
-    //   withData: false,
-    //   // Ensure to get file stream for better performance
-    //   withReadStream: true,
-    //   allowedExtensions: ['jpg', 'png'],
-    // );
-    // if (pickedFile != null) {
-    //   selectedImage = File(pickedFile.files.single.path!);
     await uploadImage(id: productId, urlType: urlType, callBack: callBack);
-    // }
   }
 
   Future<void> uploadImage({
@@ -56,10 +37,10 @@ class UploadViewModel extends ProductViewModel {
     required Function(Product) callBack,
   }) async {
     final talker = TalkerFlutter.init();
-    final result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       withData: false,
-      withReadStream: true,
+      withReadStream: false,
       allowedExtensions: ['jpg', 'png', 'jpeg'],
     );
 
@@ -70,10 +51,6 @@ class UploadViewModel extends ProductViewModel {
 
     int branchId = ProxyService.box.getBranchId()!;
     final platformFile = result.files.single;
-    // final mimeType =
-    //     lookupMimeType(platformFile.name) ?? 'application/octet-stream';
-
-    // Generate a unique file name
     final uuid = randomNumber().toString();
     final uniqueFileName = '$uuid.${platformFile.extension!}';
 
@@ -83,7 +60,6 @@ class UploadViewModel extends ProductViewModel {
       await ProxyService.realm
           .syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
 
-      // Log step: Save the picked file locally
       talker.warning('Saving picked file locally...');
 
       // Log step: Preparing to upload to S3
@@ -91,39 +67,50 @@ class UploadViewModel extends ProductViewModel {
       talker.warning('Uploading file to S3 at path: $filePath');
 
       await Amplify.Storage.uploadFile(
-        localFile: AWSFile.fromStream(
-          platformFile.readStream!,
-          size: platformFile.size,
-        ),
-        // options: StorageUploadFileOptions(
-        //   metadata: {'contentType': mimeType},
-        // ),
+        localFile:
+            AWSFile.fromPath(platformFile.path!), // Use the file path directly
         path: StoragePath.fromString(filePath),
-        // path: StoragePath.fromString('public/${platformFile.name}'),
+        options: StorageUploadFileOptions(
+          metadata: {
+            "contentType": 'image/${platformFile.extension}'
+          }, // Set contentType dynamically based on file extension
+          pluginOptions: S3UploadFilePluginOptions(getProperties: true),
+        ),
         onProgress: (progress) {
           talker.warning('Fraction completed: ${progress.fractionCompleted}');
         },
       ).result;
 
+      // Get the public URL of the uploaded file
+
       // Log step: Save asset and update database
       talker.warning('Saving asset and updating database...');
-      saveAsset(assetName: uniqueFileName, productId: id);
+
       Product? product = ProxyService.realm.getProduct(id: id);
+      try {
+        Assets? asset = ProxyService.realm.getAsset(productId: product!.id);
+        // 723194300042250.png
+        ProxyService.realm.realm!.write(() {
+          asset!.assetName = uniqueFileName;
+        });
+      } catch (e) {
+        saveAsset(assetName: uniqueFileName, productId: id);
+      }
       ProxyService.realm.realm!.write(() {
         if (product != null) {
           product.imageUrl = uniqueFileName;
         }
       });
-
       await ProxyService.realm.downloadAssetSave(assetName: uniqueFileName);
       // Log success
       talker.warning('File uploaded and database updated successfully.');
-      Product? _product = ProxyService.realm.getProduct(id: id);
-      callBack(_product!);
+
+      callBack(product!);
     } on StorageException catch (e) {
       talker.warning('StorageException: ${e.message}');
-    } catch (e) {
+    } catch (e, s) {
       talker.warning('General Exception: $e');
+      talker.error(s);
     }
   }
 

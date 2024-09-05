@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/view_models/upload_viewmodel.dart';
 import 'package:flipper_services/abstractions/upload.dart';
@@ -26,7 +28,7 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
             width: 180,
             child: TextButton(
               child: Text(
-                'Choose Photo',
+                'Choose a Photo',
               ),
               style: ButtonStyle(
                 overlayColor: WidgetStateProperty.resolveWith<Color?>(
@@ -50,6 +52,7 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                     ref
                         .read(unsavedProductProvider.notifier)
                         .emitProduct(value: product);
+                    ref.refresh(unsavedProductProvider);
                   },
                   urlType: URLTYPE.PRODUCT,
                 );

@@ -314,11 +314,17 @@ class LocalRealmApi extends RealmAPI
   @override
   List<Branch> branches({int? businessId}) {
     /// filter out active == true, to avoid to order from yourself
-    if (businessId != null) {
-      return localRealm!.query<Branch>(
-          r'businessId == $0 && active == $1', [businessId, false]).toList();
-    } else {
-      throw Exception("BusinessId is required");
+    try {
+      if (businessId != null) {
+        return localRealm!.query<Branch>(
+            r'businessId == $0 && active == $1', [businessId, true]).toList();
+      } else {
+        throw Exception("BusinessId is required");
+      }
+    } catch (e, s) {
+      talker.error(e);
+      talker.error(s);
+      rethrow;
     }
   }
 

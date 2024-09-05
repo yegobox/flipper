@@ -1,3 +1,4 @@
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:realm/realm.dart';
@@ -50,11 +51,19 @@ mixin StockRequestApprovalLogic {
       {required TransactionItem item,
       required int subBranchId,
       required BuildContext context}) {
-    item.quantityApproved = item.quantityRequested;
-    _updateVariantBranch(variantId: item.variantId!, subBranchId: subBranchId);
-    _updateOrCreateStock(item: item, subBranchId: subBranchId);
-    _updateMainBranchStock(
-        variantId: item.variantId!, approvedQuantity: item.quantityApproved!);
+    try {
+      ProxyService.realm.realm!.write(() {
+        item.quantityApproved = item.quantityRequested;
+      });
+      _updateVariantBranch(
+          variantId: item.variantId!, subBranchId: subBranchId);
+      _updateOrCreateStock(item: item, subBranchId: subBranchId);
+      _updateMainBranchStock(
+          variantId: item.variantId!, approvedQuantity: item.quantityApproved!);
+    } catch (e, s) {
+      talker.warning(e);
+      talker.error(s);
+    }
   }
 
   void _updateVariantBranch(
@@ -62,7 +71,9 @@ mixin StockRequestApprovalLogic {
     Variant? variant = ProxyService.realm.getVariantById(id: variantId);
     if (variant != null) {
       if (!variant.branchIds.contains(subBranchId)) {
-        variant.branchIds.add(subBranchId);
+        ProxyService.realm.realm!.write(() {
+          variant.branchIds.add(subBranchId);
+        });
       }
     }
   }

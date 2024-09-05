@@ -566,7 +566,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                "Invite a user to your default branch and business",
+                "Invite ",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
