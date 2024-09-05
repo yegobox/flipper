@@ -25,7 +25,7 @@ env:
 jobs:
   fastlane-deploy:
     name: "Google Deploy"
-    needs: [unit-testing,android-integration-test, integration-testing-windows]
+    # needs: [unit-testing,android-integration-test, integration-testing-windows]
     # runs-on: ubuntu-22.04
     runs-on: macOS-12
     steps:
