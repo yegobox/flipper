@@ -10,6 +10,7 @@ import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
 import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
 
 import 'package:permission_handler/permission_handler.dart' as permission;
@@ -260,14 +261,37 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   Future<String> _saveExcelFile(excel.Workbook workbook) async {
     final List<int> bytes = workbook.saveAsStream();
-    final formattedDate =
-        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+    final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+    final fileName = '${formattedDate}-Report.xlsx';
 
-    final Directory tempDir = await getApplicationDocumentsDirectory();
-    final String filePath = '${tempDir.path}/${formattedDate}-Report.xlsx';
-    final File file = File(filePath);
-    await file.writeAsBytes(bytes);
-    return filePath;
+    try {
+      final tempDir = await getApplicationDocumentsDirectory();
+      final filePath = path.join(tempDir.path, fileName);
+      final file = File(filePath);
+
+      await file.create(recursive: true);
+
+      // Chunk the data if it's large
+      final chunkSize = 1024 * 1024; // 1MB chunk size (adjust as needed)
+      if (bytes.length > chunkSize) {
+        final fileStream = file.openWrite(mode: FileMode.writeOnly);
+        for (int i = 0; i < bytes.length; i += chunkSize) {
+          final end =
+              (i + chunkSize < bytes.length) ? i + chunkSize : bytes.length;
+          final chunk = bytes.sublist(i, end);
+          fileStream.add(chunk);
+        }
+        await fileStream.flush(); // Ensure all data is written to disk
+        await fileStream.close(); // Close the stream
+      } else {
+        await file.writeAsBytes(bytes, flush: true);
+      }
+
+      return filePath;
+    } catch (e) {
+      talker.error('Error saving Excel file: $e');
+      rethrow;
+    }
   }
 
   Future<void> _openOrShareFile(String filePath) async {
