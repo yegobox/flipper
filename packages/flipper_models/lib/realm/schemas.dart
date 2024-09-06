@@ -7,8 +7,34 @@ part 'schemas.realm.dart';
 /// https://www.mongodb.com/docs/atlas/app-services/sync/data-model/update-schema/#std-label-synced-schema-overview
 /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/realm-database/model-data/data-types/#realmlist
 @RealmModel()
-@MapTo('Location')
 class _Branch {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+  int? serverId;
+
+  bool? active;
+
+  String? description;
+  String? name;
+  int? businessId;
+  String? longitude;
+  String? latitude;
+  String? location;
+
+  bool isDefault = false;
+
+  DateTime? lastTouched;
+
+  String? action;
+
+  DateTime? deletedAt;
+  bool? isOnline = false;
+}
+
+@RealmModel()
+class _Location {
   int? id;
   @PrimaryKey()
   @MapTo('_id')

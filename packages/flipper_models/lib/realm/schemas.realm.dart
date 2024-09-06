@@ -199,7 +199,225 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
   static final schema = () {
     RealmObjectBase.registerFactory(Branch._);
     register(_toEJson, _fromEJson);
-    return const SchemaObject(ObjectType.realmObject, Branch, 'Location', [
+    return const SchemaObject(ObjectType.realmObject, Branch, 'Branch', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('serverId', RealmPropertyType.int, optional: true),
+      SchemaProperty('active', RealmPropertyType.bool, optional: true),
+      SchemaProperty('description', RealmPropertyType.string, optional: true),
+      SchemaProperty('name', RealmPropertyType.string, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('longitude', RealmPropertyType.string, optional: true),
+      SchemaProperty('latitude', RealmPropertyType.string, optional: true),
+      SchemaProperty('location', RealmPropertyType.string, optional: true),
+      SchemaProperty('isDefault', RealmPropertyType.bool),
+      SchemaProperty('lastTouched', RealmPropertyType.timestamp,
+          optional: true),
+      SchemaProperty('action', RealmPropertyType.string, optional: true),
+      SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('isOnline', RealmPropertyType.bool, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
+class Location extends _Location
+    with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
+  Location(
+    ObjectId realmId, {
+    int? id,
+    int? serverId,
+    bool? active,
+    String? description,
+    String? name,
+    int? businessId,
+    String? longitude,
+    String? latitude,
+    String? location,
+    bool isDefault = false,
+    DateTime? lastTouched,
+    String? action,
+    DateTime? deletedAt,
+    bool? isOnline = false,
+  }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<Location>({
+        'isDefault': false,
+        'isOnline': false,
+      });
+    }
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'serverId', serverId);
+    RealmObjectBase.set(this, 'active', active);
+    RealmObjectBase.set(this, 'description', description);
+    RealmObjectBase.set(this, 'name', name);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'longitude', longitude);
+    RealmObjectBase.set(this, 'latitude', latitude);
+    RealmObjectBase.set(this, 'location', location);
+    RealmObjectBase.set(this, 'isDefault', isDefault);
+    RealmObjectBase.set(this, 'lastTouched', lastTouched);
+    RealmObjectBase.set(this, 'action', action);
+    RealmObjectBase.set(this, 'deletedAt', deletedAt);
+    RealmObjectBase.set(this, 'isOnline', isOnline);
+  }
+
+  Location._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get serverId => RealmObjectBase.get<int>(this, 'serverId') as int?;
+  @override
+  set serverId(int? value) => RealmObjectBase.set(this, 'serverId', value);
+
+  @override
+  bool? get active => RealmObjectBase.get<bool>(this, 'active') as bool?;
+  @override
+  set active(bool? value) => RealmObjectBase.set(this, 'active', value);
+
+  @override
+  String? get description =>
+      RealmObjectBase.get<String>(this, 'description') as String?;
+  @override
+  set description(String? value) =>
+      RealmObjectBase.set(this, 'description', value);
+
+  @override
+  String? get name => RealmObjectBase.get<String>(this, 'name') as String?;
+  @override
+  set name(String? value) => RealmObjectBase.set(this, 'name', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  String? get longitude =>
+      RealmObjectBase.get<String>(this, 'longitude') as String?;
+  @override
+  set longitude(String? value) => RealmObjectBase.set(this, 'longitude', value);
+
+  @override
+  String? get latitude =>
+      RealmObjectBase.get<String>(this, 'latitude') as String?;
+  @override
+  set latitude(String? value) => RealmObjectBase.set(this, 'latitude', value);
+
+  @override
+  String? get location =>
+      RealmObjectBase.get<String>(this, 'location') as String?;
+  @override
+  set location(String? value) => RealmObjectBase.set(this, 'location', value);
+
+  @override
+  bool get isDefault => RealmObjectBase.get<bool>(this, 'isDefault') as bool;
+  @override
+  set isDefault(bool value) => RealmObjectBase.set(this, 'isDefault', value);
+
+  @override
+  DateTime? get lastTouched =>
+      RealmObjectBase.get<DateTime>(this, 'lastTouched') as DateTime?;
+  @override
+  set lastTouched(DateTime? value) =>
+      RealmObjectBase.set(this, 'lastTouched', value);
+
+  @override
+  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
+  @override
+  set action(String? value) => RealmObjectBase.set(this, 'action', value);
+
+  @override
+  DateTime? get deletedAt =>
+      RealmObjectBase.get<DateTime>(this, 'deletedAt') as DateTime?;
+  @override
+  set deletedAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'deletedAt', value);
+
+  @override
+  bool? get isOnline => RealmObjectBase.get<bool>(this, 'isOnline') as bool?;
+  @override
+  set isOnline(bool? value) => RealmObjectBase.set(this, 'isOnline', value);
+
+  @override
+  Stream<RealmObjectChanges<Location>> get changes =>
+      RealmObjectBase.getChanges<Location>(this);
+
+  @override
+  Stream<RealmObjectChanges<Location>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Location>(this, keyPaths);
+
+  @override
+  Location freeze() => RealmObjectBase.freezeObject<Location>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'serverId': serverId.toEJson(),
+      'active': active.toEJson(),
+      'description': description.toEJson(),
+      'name': name.toEJson(),
+      'businessId': businessId.toEJson(),
+      'longitude': longitude.toEJson(),
+      'latitude': latitude.toEJson(),
+      'location': location.toEJson(),
+      'isDefault': isDefault.toEJson(),
+      'lastTouched': lastTouched.toEJson(),
+      'action': action.toEJson(),
+      'deletedAt': deletedAt.toEJson(),
+      'isOnline': isOnline.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(Location value) => value.toEJson();
+  static Location _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
+    return switch (ejson) {
+      {
+        '_id': EJsonValue realmId,
+      } =>
+        Location(
+          fromEJson(realmId),
+          id: fromEJson(ejson['id']),
+          serverId: fromEJson(ejson['serverId']),
+          active: fromEJson(ejson['active']),
+          description: fromEJson(ejson['description']),
+          name: fromEJson(ejson['name']),
+          businessId: fromEJson(ejson['businessId']),
+          longitude: fromEJson(ejson['longitude']),
+          latitude: fromEJson(ejson['latitude']),
+          location: fromEJson(ejson['location']),
+          isDefault: fromEJson(ejson['isDefault'], defaultValue: false),
+          lastTouched: fromEJson(ejson['lastTouched']),
+          action: fromEJson(ejson['action']),
+          deletedAt: fromEJson(ejson['deletedAt']),
+          isOnline: fromEJson(ejson['isOnline'], defaultValue: false),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(Location._);
+    register(_toEJson, _fromEJson);
+    return const SchemaObject(ObjectType.realmObject, Location, 'Location', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
