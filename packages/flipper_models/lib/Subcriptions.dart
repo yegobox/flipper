@@ -77,6 +77,9 @@ mixin Subscriptions {
           realm.query<PaymentPlan>(r'businessId == $0 ', [businessId]),
       'compaigns': realm.all<FlipperSaleCompaign>(),
       'branch': realm.all<Branch>(),
+
+      ///TODO: in next release will query location that are in same range with the user longitude and latitude
+      'location': realm.all<Location>(),
     };
 
     // Update subscriptions
