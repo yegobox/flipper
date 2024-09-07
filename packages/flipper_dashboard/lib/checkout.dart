@@ -23,6 +23,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 
+enum OrderStatus { pending, approved }
+
 class CheckOut extends StatefulHookConsumerWidget {
   CheckOut({
     Key? key,
@@ -46,6 +48,7 @@ class CheckOutState extends ConsumerState<CheckOut>
   late Animation<double> _animation;
   late TabController tabController;
   final FocusNode keyPadFocusNode = FocusNode();
+  OrderStatus _selectedStatus = OrderStatus.pending;
 
   @override
   void initState() {
@@ -141,7 +144,98 @@ class CheckOutState extends ConsumerState<CheckOut>
               child: FadeTransition(
                 opacity: _animation,
                 child: (ProxyService.box.isOrdersDefault()!)
-                    ? SingleChildScrollView(child: const IncomingOrdersWidget())
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 30.0),
+                        child: Column(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(30),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    spreadRadius: 1,
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: SegmentedButton<OrderStatus>(
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      WidgetStateProperty.resolveWith<Color>(
+                                    (Set<WidgetState> states) {
+                                      if (states
+                                          .contains(WidgetState.selected)) {
+                                        return Theme.of(context)
+                                            .colorScheme
+                                            .primary;
+                                      }
+                                      return Colors.white;
+                                    },
+                                  ),
+                                  foregroundColor:
+                                      WidgetStateProperty.resolveWith<Color>(
+                                    (Set<WidgetState> states) {
+                                      if (states
+                                          .contains(WidgetState.selected)) {
+                                        return Colors.white;
+                                      }
+                                      return Theme.of(context)
+                                          .colorScheme
+                                          .primary;
+                                    },
+                                  ),
+                                  side: WidgetStateProperty.all(
+                                    BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary),
+                                  ),
+                                  overlayColor: WidgetStateProperty.all(
+                                      Colors.transparent),
+                                ),
+                                segments: const <ButtonSegment<OrderStatus>>[
+                                  ButtonSegment<OrderStatus>(
+                                    value: OrderStatus.pending,
+                                    label: Text('Pending'),
+                                    icon: Icon(Icons.hourglass_empty),
+                                  ),
+                                  ButtonSegment<OrderStatus>(
+                                    value: OrderStatus.approved,
+                                    label: Text('Approved'),
+                                    icon: Icon(Icons.check_circle_outline),
+                                  ),
+                                ],
+                                selected: <OrderStatus>{_selectedStatus},
+                                onSelectionChanged:
+                                    (Set<OrderStatus> newSelection) {
+                                  setState(() {
+                                    _selectedStatus = newSelection.first;
+                                  });
+                                  if (newSelection.first ==
+                                      OrderStatus.approved) {
+                                    ref
+                                        .watch(stringProvider.notifier)
+                                        .updateString(RequestStatus.approved);
+                                  } else if (newSelection.first ==
+                                      OrderStatus.pending) {
+                                    ref
+                                        .watch(stringProvider.notifier)
+                                        .updateString(RequestStatus.pending);
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Flexible(
+                              child: SingleChildScrollView(
+                                child: const IncomingOrdersWidget(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
                     : SizedBox.shrink(),
               ),
             ),
@@ -204,6 +298,7 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   Widget _buildQuickSellingView() {
     return QuickSellingView(
+      deliveryNoteCotroller: deliveryNoteCotroller,
       formKey: formKey,
       discountController: discountController,
       receivedAmountController: receivedAmountController,

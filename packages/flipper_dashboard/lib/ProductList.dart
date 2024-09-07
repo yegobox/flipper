@@ -74,6 +74,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
                         shrinkWrap: true,
                       )
                     : QuickSellingView(
+                        deliveryNoteCotroller: deliveryNoteCotroller,
                         formKey: formKey,
                         discountController: discountController,
                         receivedAmountController: receivedAmountController,

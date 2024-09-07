@@ -11,7 +11,16 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   IconButton datePicker() {
     return IconButton(
       onPressed: _handleDateTimePicker,
-      icon: Icon(Icons.date_range, color: Colors.grey),
+      icon: const Icon(
+        Icons.calendar_today_rounded,
+        color: Colors.blue,
+        size: 28,
+      ),
+      tooltip: 'Select Date',
+      splashColor: Colors.blue.withOpacity(0.3),
+      highlightColor: Colors.blue.withOpacity(0.1),
+      splashRadius: 24,
+      padding: const EdgeInsets.all(8),
     );
   }
 

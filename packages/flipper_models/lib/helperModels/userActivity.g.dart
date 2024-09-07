@@ -6,7 +6,7 @@ part of 'userActivity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-UserActivity _$UserActivityFromJson(Map<String, dynamic> json) => UserActivity(
+Activity _$ActivityFromJson(Map<String, dynamic> json) => Activity(
       id: json['id'] as int?,
       timestamp: DateTime.parse(json['timestamp'] as String),
       userId: json['userId'] as int,
@@ -18,8 +18,7 @@ UserActivity _$UserActivityFromJson(Map<String, dynamic> json) => UserActivity(
         ? null
         : DateTime.parse(json['deletedAt'] as String);
 
-Map<String, dynamic> _$UserActivityToJson(UserActivity instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$ActivityToJson(Activity instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'timestamp': instance.timestamp.toIso8601String(),
       'id': instance.id,

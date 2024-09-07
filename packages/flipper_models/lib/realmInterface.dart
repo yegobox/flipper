@@ -434,7 +434,8 @@ abstract class RealmApiInterface {
   Future<LPermission?> permission({required int userId});
   List<LPermission> permissions({required int userId});
   List<Access> access({required int userId});
-  Stream<List<StockRequest>> requestsStream({required int branchId});
+  Stream<List<StockRequest>> requestsStream(
+      {required int branchId, required String filter});
   List<StockRequest> requests({required int branchId});
   Tenant getTenant({required int userId});
 
@@ -474,5 +475,16 @@ abstract class RealmApiInterface {
       {required Variant variant,
       required TransactionItem item,
       required int subBranchId});
-  void createOrUpdateBranchOnCloud({required Branch branch, required bool isOnline});
+  void createOrUpdateBranchOnCloud(
+      {required Branch branch, required bool isOnline});
+
+  List<String> activeRealmSubscriptions();
+  Future<void> forceSubs(
+      {int? businessId, Realm? localRealm, int? branchId, int? userId});
+  Future<List<Activity>> activities({required int userId});
+  Future<void> refreshSession({required int branchId, int? refreshRate = 5});
+  int createStockRequest(List<TransactionItem> items,
+      {required String deliveryNote,
+      DateTime? deliveryDate,
+      required int mainBranchId});
 }

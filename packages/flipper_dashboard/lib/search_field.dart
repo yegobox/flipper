@@ -72,7 +72,10 @@ class SearchFieldState extends ConsumerState<SearchField>
   @override
   Widget build(BuildContext context) {
     // final orders = ref.watch(ordersStreamProvider);
-    final orders = ref.watch(stockRequestsProvider);
+
+    final stringValue = ref.watch(stringProvider);
+    final orders = ref.watch(stockRequestsProvider((filter: stringValue)));
+
     final screenWidth = MediaQuery.of(context).size.width;
     final padding = screenWidth * 0.001;
 

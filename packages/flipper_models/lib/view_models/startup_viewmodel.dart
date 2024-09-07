@@ -32,6 +32,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       // Ensure realm is initialized before proceeding.
       await ensureRealmInitialized();
       await _hasActiveSubscription();
+      await _allRequirementsMeets();
 
       // Handle navigation based on user state and app settings.
       if (ProxyService.local.isDrawerOpen(
@@ -115,5 +116,17 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     await ProxyService.realm.hasActiveSubscription(
         businessId: ProxyService.box.getBusinessId()!,
         flipperHttpClient: ProxyService.http);
+  }
+
+  Future<void> _allRequirementsMeets() async {
+    List<Business> businesses = await ProxyService.local.businesses();
+
+    List<Branch> branches = await ProxyService.local
+        .branches(businessId: ProxyService.box.getBusinessId());
+
+    if (businesses.isEmpty || branches.isEmpty) {
+      throw Exception(
+          "requirements failed for having business and branch saved locally");
+    }
   }
 }

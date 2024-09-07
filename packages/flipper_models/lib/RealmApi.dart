@@ -4,6 +4,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flipper_models/Subcriptions.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart' as foundation;
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flipper_models/helperModels/paystack_customer.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
@@ -23,7 +26,6 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart' as foundation;
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:realm/realm.dart';
@@ -1513,10 +1515,59 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<void> recordUserActivity(
-      {required int userId, required String activity}) {
-    // realm!.syncSession.pause();
-    // TODO: implement recordUserActivity
-    throw UnimplementedError();
+      {required int userId, required String activity}) async {
+    try {
+      final userActivity = Activity(
+        ObjectId(),
+        activity,
+        id: randomNumber(),
+        details: RealmValue.from({
+          'platform': foundation.kIsWeb ? 'Web' : await _getPlatformInfo(),
+          'meta': [
+            {'userId': userId},
+            {'appVersion': await _getAppVersion()},
+          ],
+        }),
+        timestamp: DateTime.now(),
+      );
+      realm!.write(() {
+        realm!.add<Activity>(userActivity);
+      });
+    } catch (e, s) {
+      talker.error(e);
+      talker.error(s);
+    }
+  }
+
+  Future<String> _getPlatformInfo() async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+
+    if (foundation.kIsWeb) {
+      return 'Web'; // No need for device info on web
+    } else if (foundation.defaultTargetPlatform ==
+        foundation.TargetPlatform.android) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      return 'Android (${androidInfo.model})';
+    } else if (foundation.defaultTargetPlatform ==
+        foundation.TargetPlatform.iOS) {
+      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+      return 'iOS (${iosInfo.model})';
+    } else if (foundation.defaultTargetPlatform ==
+        foundation.TargetPlatform.windows) {
+      WindowsDeviceInfo iosInfo = await deviceInfo.windowsInfo;
+      return 'Mindows-os-version (${iosInfo.majorVersion})';
+    } else if (foundation.defaultTargetPlatform ==
+        foundation.TargetPlatform.macOS) {
+      MacOsDeviceInfo iosInfo = await deviceInfo.macOsInfo;
+      return 'Mac-os-version (${iosInfo.majorVersion})';
+    } else {
+      return 'Unknown';
+    }
+  }
+
+  Future<String> _getAppVersion() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    return packageInfo.version;
   }
 
   @override
@@ -2026,7 +2077,7 @@ class RealmAPI<M extends IJsonSerializable>
         // Construct the specific directory path
         /// the 1 appended is incremented everytime there is a breaking change on a client.
         final realmDirectory =
-            p.join(appSupportDirectory.path, '${folder ?? ""}2');
+            p.join(appSupportDirectory.path, '${folder ?? ""}4');
 
         // Create the directory if it doesn't exist
         final directory = Directory(realmDirectory);
@@ -2188,6 +2239,8 @@ class RealmAPI<M extends IJsonSerializable>
             talker.error(
                 'Automatic client reset recovery failed. Local changes have been discarded.');
           },
+
+          // ClientResetNoRecovery
           onManualResetFallback: (clientResetError) async {
             print('Automatic client reset failed. Manual reset is required.');
 
@@ -3292,20 +3345,30 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Stream<List<StockRequest>> requestsStream({required int branchId}) {
+  Stream<List<StockRequest>> requestsStream(
+      {required int branchId, required String filter}) {
     if (realm == null) {
       return Stream.value([]);
     }
+    if (filter == RequestStatus.approved) {
+      final query = realm!.query<StockRequest>(
+          r'mainBranchId == $0 && status == $1',
+          [branchId, RequestStatus.approved]);
 
-    final query = realm!.query<StockRequest>(
-        r'mainBranchId == $0 && status == $1 || status == $2',
-        [branchId, RequestStatus.pending, RequestStatus.partiallyApproved]);
+      return query.changes
+          .map((changes) => changes.results.toList())
+          .startWith(query.toList())
+          .debounceTime(Duration(milliseconds: 100));
+    } else {
+      final query = realm!.query<StockRequest>(
+          r'mainBranchId == $0 && status == $1 || status == $2',
+          [branchId, RequestStatus.pending, RequestStatus.partiallyApproved]);
 
-    return query.changes
-        .map((changes) => changes.results.toList())
-        .startWith(query.toList())
-        .debounceTime(
-            Duration(milliseconds: 100)); // Optional: debounce rapid updates
+      return query.changes
+          .map((changes) => changes.results.toList())
+          .startWith(query.toList())
+          .debounceTime(Duration(milliseconds: 100));
+    }
   }
 
   @override
@@ -3659,5 +3722,116 @@ class RealmAPI<M extends IJsonSerializable>
         branchSaved.isOnline = isOnline;
       });
     }
+  }
+
+  @override
+  List<String> activeRealmSubscriptions() {
+    final existingSubscriptions = <String>[];
+    for (Subscription sub in realm!.subscriptions) {
+      existingSubscriptions.add(sub.name!);
+    }
+    return existingSubscriptions;
+  }
+
+  @override
+  Future<void> forceSubs(
+      {int? businessId, Realm? localRealm, int? branchId, int? userId}) async {
+    await updateSubscription(
+      localRealm: localRealm,
+      userId: userId,
+      realm: realm,
+      branchId: branchId,
+      businessId: businessId,
+    );
+  }
+
+  @override
+  Future<List<Activity>> activities({required int userId}) async {
+    // Get the current date
+    DateTime now = DateTime.now();
+
+    // Calculate the start and end of the current day
+    DateTime startOfDay = DateTime(now.year, now.month, now.day);
+    DateTime endOfDay = startOfDay.add(Duration(days: 1));
+
+    return realm!.query<Activity>(
+        r'lastTouched BETWEEN {$0,$1} ', [startOfDay, endOfDay]).toList();
+  }
+
+  Future<bool> hasNoActivityInLast5Minutes(
+      {required int userId, int? refreshRate = 5}) async {
+    // Get the current time
+    DateTime currentTime = DateTime.now();
+
+    // Calculate the time [timer] minutes ago
+    DateTime fiveMinutesAgo =
+        currentTime.subtract(Duration(minutes: refreshRate!));
+
+    // Retrieve the user activities
+    List<Activity> userActivities = await activities(userId: userId);
+
+    // Assume no activity in the last 5 minutes by default
+    bool returnValue = true;
+
+    for (var activity in userActivities) {
+      if (activity.lastTouched!.isAfter(fiveMinutesAgo)) {
+        // The user has done an activity within the last 5 minutes
+        returnValue = false;
+        break; // No need to continue checking, we found an activity
+      }
+    }
+    return returnValue;
+  }
+
+  ///TODO: work on this function to be efficient
+  @override
+  Future<void> refreshSession(
+      {required int branchId, int? refreshRate = 5}) async {
+    while (true) {
+      try {
+        int? userId = ProxyService.box.getUserId();
+        if (userId == null) return;
+        bool noActivity = await hasNoActivityInLast5Minutes(
+            userId: userId, refreshRate: refreshRate);
+        talker.warning(noActivity.toString());
+
+        // if (noActivity) {
+        //   Tenant? tenant = await getTenantBYUserId(userId: userId);
+        //   if (tenant != null) {
+        //     ProxyService.realm.realm!
+        //         .writeAsync(() => tenant.sessionActive = false);
+        //   }
+        // }
+      } catch (error, s) {
+        talker.error('Error fetching tenant: $s');
+        talker.error('Error fetching tenant: $error');
+      }
+      await Future.delayed(Duration(minutes: refreshRate!));
+    }
+  }
+
+  @override
+  int createStockRequest(List<TransactionItem> items,
+      {required String deliveryNote,
+      DateTime? deliveryDate,
+      required int mainBranchId}) {
+    final realm = ProxyService.realm.realm!;
+    int orderId = randomNumber();
+    realm.write(() {
+      final stockRequest = StockRequest(
+        ObjectId(),
+        id: orderId,
+        deliveryDate: deliveryDate,
+        deliveryNote: deliveryNote,
+        mainBranchId: mainBranchId,
+        subBranchId: ProxyService.box.getBranchId(),
+        status: RequestStatus.pending,
+        items: items,
+        updatedAt: DateTime.now().toUtc().toLocal(),
+        createdAt: DateTime.now().toUtc().toLocal(),
+      );
+      realm.add<StockRequest>(stockRequest);
+    });
+    return orderId;
   }
 }

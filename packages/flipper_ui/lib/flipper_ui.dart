@@ -33,6 +33,7 @@ export 'style_widget/icon_button.dart';
 export 'style_widget/couponToggle.dart';
 export 'style_widget/scrollbar.dart';
 export 'style_widget/scrolling/styled_list.dart';
+export 'style_widget/TimeSegmentUI.dart';
 export 'style_widget/scrolling/styled_scroll_bar.dart';
 export 'style_widget/text.dart';
 export 'style_widget/text_field.dart';
