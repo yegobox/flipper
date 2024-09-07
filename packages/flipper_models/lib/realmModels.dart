@@ -35,14 +35,11 @@ final realmModels = [
   PaymentPlan.schema,
   FlipperSaleCompaign.schema,
   Location.schema,
-
-  /// because we want to expose branch or location to public so ordering can be done even outside within a business
-  Branch.schema,
+  Activity.schema,
 ];
 
 /// for local db
 final localModels = [
-  UserActivity.schema,
   Business.schema,
   Branch.schema,
   UnversalProduct.schema,

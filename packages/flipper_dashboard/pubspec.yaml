@@ -125,6 +125,8 @@ dependencies:
   flipper_mocks: any
    # qr_code_scanner: ^1.0.1
   mobile_scanner: ^5.2.1
+  # mapbox_maps_flutter: ^2.2.1
+  # lifecycle: ^0.9.0
 
 dependency_overrides:
   http: ^1.2.1

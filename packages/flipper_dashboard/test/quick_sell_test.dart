@@ -16,6 +16,8 @@ void main() {
   group('QuickSellingView Tests', () {
     late GlobalKey<FormState> formKey;
     late TextEditingController discountController;
+    late TextEditingController deliveryNoteCotroller;
+
     late TextEditingController receivedAmountController;
     late TextEditingController customerPhoneNumberController;
     late TextEditingController paymentTypeController;
@@ -38,6 +40,7 @@ void main() {
       receivedAmountController = TextEditingController();
       customerPhoneNumberController = TextEditingController();
       paymentTypeController = TextEditingController();
+      deliveryNoteCotroller = TextEditingController();
     });
 
     testWidgets('QuickSellingView displays correctly',
@@ -46,6 +49,7 @@ void main() {
         ProviderScope(
           child: TestApp(
             child: QuickSellingView(
+              deliveryNoteCotroller: deliveryNoteCotroller,
               formKey: formKey,
               discountController: discountController,
               receivedAmountController: receivedAmountController,
@@ -79,6 +83,7 @@ void main() {
         ProviderScope(
           child: TestApp(
             child: QuickSellingView(
+              deliveryNoteCotroller: deliveryNoteCotroller,
               formKey: formKey,
               discountController: discountController,
               receivedAmountController: receivedAmountController,

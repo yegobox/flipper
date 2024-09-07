@@ -617,6 +617,9 @@ class _StockRequest {
   DateTime? createdAt;
   // e.g., "pending", "approved", "partiallyApproved", "rejected", "fulfilled"
   String? status;
+  DateTime? deliveryDate;
+  String? deliveryNote;
+  String? orderNote;
   late List<_TransactionItem> items;
   DateTime? updatedAt; // Optional field for tracking last update
 }
@@ -885,9 +888,11 @@ class _Token {
 }
 
 @RealmModel()
-class _UserActivity {
+class _Activity {
+  int? id;
   @PrimaryKey()
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   DateTime? timestamp;
   DateTime? lastTouched;

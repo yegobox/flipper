@@ -598,6 +598,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
           formKey: args.formKey,
           discountController: args.discountController,
           receivedAmountController: args.receivedAmountController,
+          deliveryNoteCotroller: args.deliveryNoteCotroller,
           customerPhoneNumberController: args.customerPhoneNumberController,
           paymentTypeController: args.paymentTypeController,
         ),
@@ -617,6 +618,18 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.PaymentFinalize(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    WaitingOrdersPlacedRoute.name: (routeData) {
+      final args = routeData.argsAs<WaitingOrdersPlacedArgs>();
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.WaitingOrdersPlaced(
+          args.orderId,
+          key: args.key,
+        ),
         opaque: true,
         barrierDismissible: false,
       );
@@ -844,6 +857,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         _i4.RouteConfig(
           PaymentFinalizeRoute.name,
           path: '/payment-finalize',
+        ),
+        _i4.RouteConfig(
+          WaitingOrdersPlacedRoute.name,
+          path: '/waiting-orders-placed',
         ),
       ];
 }
@@ -2269,6 +2286,7 @@ class QuickSellingViewRoute extends _i4.PageRouteInfo<QuickSellingViewArgs> {
     required _i5.GlobalKey<_i5.FormState> formKey,
     required _i5.TextEditingController discountController,
     required _i5.TextEditingController receivedAmountController,
+    required _i5.TextEditingController deliveryNoteCotroller,
     required _i5.TextEditingController customerPhoneNumberController,
     required _i5.TextEditingController paymentTypeController,
   }) : super(
@@ -2279,6 +2297,7 @@ class QuickSellingViewRoute extends _i4.PageRouteInfo<QuickSellingViewArgs> {
             formKey: formKey,
             discountController: discountController,
             receivedAmountController: receivedAmountController,
+            deliveryNoteCotroller: deliveryNoteCotroller,
             customerPhoneNumberController: customerPhoneNumberController,
             paymentTypeController: paymentTypeController,
           ),
@@ -2293,6 +2312,7 @@ class QuickSellingViewArgs {
     required this.formKey,
     required this.discountController,
     required this.receivedAmountController,
+    required this.deliveryNoteCotroller,
     required this.customerPhoneNumberController,
     required this.paymentTypeController,
   });
@@ -2305,13 +2325,15 @@ class QuickSellingViewArgs {
 
   final _i5.TextEditingController receivedAmountController;
 
+  final _i5.TextEditingController deliveryNoteCotroller;
+
   final _i5.TextEditingController customerPhoneNumberController;
 
   final _i5.TextEditingController paymentTypeController;
 
   @override
   String toString() {
-    return 'QuickSellingViewArgs{key: $key, formKey: $formKey, discountController: $discountController, receivedAmountController: $receivedAmountController, customerPhoneNumberController: $customerPhoneNumberController, paymentTypeController: $paymentTypeController}';
+    return 'QuickSellingViewArgs{key: $key, formKey: $formKey, discountController: $discountController, receivedAmountController: $receivedAmountController, deliveryNoteCotroller: $deliveryNoteCotroller, customerPhoneNumberController: $customerPhoneNumberController, paymentTypeController: $paymentTypeController}';
   }
 }
 
@@ -2337,6 +2359,41 @@ class PaymentFinalizeRoute extends _i4.PageRouteInfo<void> {
         );
 
   static const String name = 'PaymentFinalize';
+}
+
+/// generated route for
+/// [_i1.WaitingOrdersPlaced]
+class WaitingOrdersPlacedRoute
+    extends _i4.PageRouteInfo<WaitingOrdersPlacedArgs> {
+  WaitingOrdersPlacedRoute({
+    required int orderId,
+    _i5.Key? key,
+  }) : super(
+          WaitingOrdersPlacedRoute.name,
+          path: '/waiting-orders-placed',
+          args: WaitingOrdersPlacedArgs(
+            orderId: orderId,
+            key: key,
+          ),
+        );
+
+  static const String name = 'WaitingOrdersPlaced';
+}
+
+class WaitingOrdersPlacedArgs {
+  const WaitingOrdersPlacedArgs({
+    required this.orderId,
+    this.key,
+  });
+
+  final int orderId;
+
+  final _i5.Key? key;
+
+  @override
+  String toString() {
+    return 'WaitingOrdersPlacedArgs{orderId: $orderId, key: $key}';
+  }
 }
 
 extension RouterStateExtension on _i3.RouterService {
@@ -3000,6 +3057,7 @@ extension RouterStateExtension on _i3.RouterService {
     required _i5.GlobalKey<_i5.FormState> formKey,
     required _i5.TextEditingController discountController,
     required _i5.TextEditingController receivedAmountController,
+    required _i5.TextEditingController deliveryNoteCotroller,
     required _i5.TextEditingController customerPhoneNumberController,
     required _i5.TextEditingController paymentTypeController,
     void Function(_i4.NavigationFailure)? onFailure,
@@ -3010,6 +3068,7 @@ extension RouterStateExtension on _i3.RouterService {
         formKey: formKey,
         discountController: discountController,
         receivedAmountController: receivedAmountController,
+        deliveryNoteCotroller: deliveryNoteCotroller,
         customerPhoneNumberController: customerPhoneNumberController,
         paymentTypeController: paymentTypeController,
       ),
@@ -3029,6 +3088,20 @@ extension RouterStateExtension on _i3.RouterService {
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const PaymentFinalizeRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToWaitingOrdersPlaced({
+    required int orderId,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      WaitingOrdersPlacedRoute(
+        orderId: orderId,
+        key: key,
+      ),
       onFailure: onFailure,
     );
   }
@@ -3693,6 +3766,7 @@ extension RouterStateExtension on _i3.RouterService {
     required _i5.GlobalKey<_i5.FormState> formKey,
     required _i5.TextEditingController discountController,
     required _i5.TextEditingController receivedAmountController,
+    required _i5.TextEditingController deliveryNoteCotroller,
     required _i5.TextEditingController customerPhoneNumberController,
     required _i5.TextEditingController paymentTypeController,
     void Function(_i4.NavigationFailure)? onFailure,
@@ -3703,6 +3777,7 @@ extension RouterStateExtension on _i3.RouterService {
         formKey: formKey,
         discountController: discountController,
         receivedAmountController: receivedAmountController,
+        deliveryNoteCotroller: deliveryNoteCotroller,
         customerPhoneNumberController: customerPhoneNumberController,
         paymentTypeController: paymentTypeController,
       ),
@@ -3722,6 +3797,20 @@ extension RouterStateExtension on _i3.RouterService {
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const PaymentFinalizeRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithWaitingOrdersPlaced({
+    required int orderId,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      WaitingOrdersPlacedRoute(
+        orderId: orderId,
+        key: key,
+      ),
       onFailure: onFailure,
     );
   }

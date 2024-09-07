@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
+import 'package:flipper_models/secrets.dart';
 
 import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_routing/app.dialogs.dart';
@@ -11,7 +12,7 @@ import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
-
+// import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_services/locator.dart';
@@ -96,7 +97,9 @@ Future<void> initializeDependencies() async {
     // );
   }
   // TODO: to support Ios following these instruction https://developers.google.com/admob/flutter/quick-start#ios
-  if (!isWindows && !isWeb && !isMacOs) {
+  if (!isWindows && !isWeb && !isMacOs && !isLinux) {
+    // MapboxOptions.setAccessToken(AppSecrets.MAPBOX_TOKEN);
+
     /// init admob
     // await MobileAds.instance.initialize();
     FlutterError.onError = (FlutterErrorDetails details) {

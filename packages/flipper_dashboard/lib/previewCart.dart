@@ -3,7 +3,6 @@
 import 'dart:typed_data';
 
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -23,8 +22,6 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 
-import 'package:realm/realm.dart';
-
 mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixin, TextEditingControllersMixin {
   /// this mthod will either preview or completeOrder
@@ -43,6 +40,11 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     /// shoping to main warehouse
 
     try {
+      String deliveryNote = deliveryNoteCotroller.text;
+
+      final dateRange = ref.watch(dateRangeProvider);
+      final startDate = dateRange['startDate'];
+
       final items = ProxyService.realm.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
         transactionId: transaction.id!,
@@ -56,12 +58,21 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
         return;
       }
 
-      await _createStockRequest(items);
+      // ignore: unused_local_variable
+      int orderId = ProxyService.realm.createStockRequest(items,
+          deliveryNote: deliveryNote,
+          deliveryDate: startDate,
+          mainBranchId: ref.read(selectedSupplierProvider).value!.serverId!);
       await _markItemsAsDone(items, transaction);
       _changeTransactionStatus(transaction: transaction);
       await _refreshTransactionItems(transactionId: transaction.id!);
 
-      print("Order placed with ${items.length} items in basket");
+      // locator<RouterService>()
+      //     .navigateTo(WaitingOrdersPlacedRoute(orderId: orderId));
+
+      /// when order is completed procced to waiting orders page
+
+      // print("Order placed with ${items.length} items in basket");
     } catch (e, s) {
       talker.info(e);
       talker.error(s);
@@ -74,23 +85,6 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       /// we mark the status so next time we query pending transaction we don't
       /// accidently query this PENDING transaction and avoid mixxing things up
       transaction.status = ORDERING;
-    });
-  }
-
-  Future<void> _createStockRequest(List<TransactionItem> items) async {
-    final realm = ProxyService.realm.realm!;
-    realm.write(() {
-      final stockRequest = StockRequest(
-        ObjectId(),
-        id: randomNumber(),
-        mainBranchId: ref.read(selectedSupplierProvider).value!.serverId,
-        subBranchId: ProxyService.box.getBranchId(),
-        status: RequestStatus.pending,
-        items: items,
-        updatedAt: DateTime.now().toUtc().toLocal(),
-        createdAt: DateTime.now().toUtc().toLocal(),
-      );
-      realm.add<StockRequest>(stockRequest);
     });
   }
 

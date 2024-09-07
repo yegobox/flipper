@@ -641,7 +641,7 @@ class ButtonIndexNotifier extends StateNotifier<int> {
 
 //DateTime range provider
 final dateRangeProvider =
-    StateNotifierProvider.autoDispose<DateRangeNotifier, Map<String, DateTime>>(
+    StateNotifierProvider<DateRangeNotifier, Map<String, DateTime>>(
   (ref) => DateRangeNotifier(),
 );
 
@@ -1038,14 +1038,28 @@ final branchSelectionProvider =
     StateNotifierProvider<BranchSelectionNotifier, BranchSelectionState>(
   (ref) => BranchSelectionNotifier(),
 );
-final stockRequestsProvider = StreamProvider<List<StockRequest>>((ref) {
+
+final stockRequestsProvider = StreamProvider.autoDispose
+    .family<List<StockRequest>, ({String filter})>((ref, params) {
   final branchId = ProxyService.box.getBranchId();
+  final (:filter) = params;
   if (branchId == null) {
-    throw Exception('Branch ID is not set');
+    return Stream.empty();
   }
-  return ProxyService.realm.requestsStream(branchId: branchId);
+  return ProxyService.realm.requestsStream(branchId: branchId, filter: filter);
 });
 
+class StringState extends StateNotifier<String> {
+  StringState(String initialValue) : super(initialValue);
+
+  void updateString(String newString) {
+    state = newString;
+  }
+}
+
+final stringProvider = StateNotifierProvider<StringState, String>((ref) {
+  return StringState(RequestStatus.pending);
+});
 List<ProviderBase> allProviders = [
   unsavedProductProvider,
   customerSearchStringProvider,

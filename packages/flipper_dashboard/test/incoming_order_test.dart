@@ -6,6 +6,7 @@ import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -69,7 +70,7 @@ void main() {
 
       // Check that the correct request ID text is displayed
       final firstRequestId = await ProxyService.realm
-          .requestsStream(branchId: 1)
+          .requestsStream(branchId: 1, filter: RequestStatus.pending)
           .first
           .then((request) => request.first.id);
       expect(find.text('Request #$firstRequestId'), findsNWidgets(1));

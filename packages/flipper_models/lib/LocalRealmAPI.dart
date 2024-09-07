@@ -114,11 +114,15 @@ class LocalRealmApi extends RealmAPI
           initialDataCallback: dataCb,
           path: path,
           encryptionKey: ProxyService.box.encryptionKey().toIntList(),
-          schemaVersion: 6,
+          schemaVersion: 7,
           migrationCallback: (migration, oldSchemaVersion) {
             if (oldSchemaVersion < 2) {
               // This means we are migrating from version 1 to version 2
               migration.deleteType('Drawers');
+            }
+            if (oldSchemaVersion < 7) {
+              // This means we are migrating from version 1 to version 2
+              migration.deleteType('Log');
             }
           },
         );
@@ -150,71 +154,6 @@ class LocalRealmApi extends RealmAPI
   @override
   bool isRealmClosed() {
     return localRealm?.isClosed ?? true;
-  }
-
-  @override
-  Future<List<UserActivity>> activities({required int userId}) async {
-    // Get the current date
-    DateTime now = DateTime.now();
-
-    // Calculate the start and end of the current day
-    DateTime startOfDay = DateTime(now.year, now.month, now.day);
-    DateTime endOfDay = startOfDay.add(Duration(days: 1));
-
-    return localRealm!.query<UserActivity>(
-        r'lastTouched BETWEEN {$0,$1} ', [startOfDay, endOfDay]).toList();
-  }
-
-  Future<bool> hasNoActivityInLast5Minutes(
-      {required int userId, int? refreshRate = 5}) async {
-    // Get the current time
-    DateTime currentTime = DateTime.now();
-
-    // Calculate the time [timer] minutes ago
-    DateTime fiveMinutesAgo =
-        currentTime.subtract(Duration(minutes: refreshRate!));
-
-    // Retrieve the user activities
-    List<UserActivity> userActivities = await activities(userId: userId);
-
-    // Assume no activity in the last 5 minutes by default
-    bool returnValue = true;
-
-    for (var activity in userActivities) {
-      if (activity.lastTouched!.isAfter(fiveMinutesAgo)) {
-        // The user has done an activity within the last 5 minutes
-        returnValue = false;
-        break; // No need to continue checking, we found an activity
-      }
-    }
-    return returnValue;
-  }
-
-  ///TODO: work on this function to be efficient
-  @override
-  Future<void> refreshSession(
-      {required int branchId, int? refreshRate = 5}) async {
-    while (true) {
-      try {
-        int? userId = ProxyService.box.getUserId();
-        if (userId == null) return;
-        bool noActivity = await hasNoActivityInLast5Minutes(
-            userId: userId, refreshRate: refreshRate);
-        talker.warning(noActivity.toString());
-
-        // if (noActivity) {
-        //   Tenant? tenant = await getTenantBYUserId(userId: userId);
-        //   if (tenant != null) {
-        //     ProxyService.realm.realm!
-        //         .writeAsync(() => tenant.sessionActive = false);
-        //   }
-        // }
-      } catch (error, s) {
-        talker.error('Error fetching tenant: $s');
-        talker.error('Error fetching tenant: $error');
-      }
-      await Future.delayed(Duration(minutes: refreshRate!));
-    }
   }
 
   @override
@@ -260,6 +199,23 @@ class LocalRealmApi extends RealmAPI
       clearData(data: ClearData.Branch);
       clearData(data: ClearData.Business);
       await configureRemoteRealm(userPhone, user, localRealm: localRealm);
+
+      /// before updating local make sure there is realm subscription registered for Access
+      List<String> subscriptions =
+          ProxyService.realm.activeRealmSubscriptions();
+
+      /// wait for subscription before we go to downloadAssetSave line
+
+      if (!subscriptions
+          .contains('access-${ProxyService.box.getBusinessId()}')) {
+        // If not, register the 'Access' subscription
+        await ProxyService.realm.forceSubs(
+          localRealm: localRealm,
+          userId: ProxyService.box.getUserId(),
+          branchId: ProxyService.box.getBranchId(),
+          businessId: ProxyService.box.getBusinessId(),
+        );
+      }
       await updateLocalRealm(user, localRealm: ProxyService.local.localRealm);
       await ProxyService.realm.downloadAssetSave();
       AppInitializer.initialize();

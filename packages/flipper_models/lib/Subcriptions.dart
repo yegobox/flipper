@@ -27,12 +27,14 @@ mixin Subscriptions {
     // existingSubscriptions
     //     .forEach((name) => talker.info("Existing Sub: ${name}"));
 
-    if (businessId == null || branchId == null || userId == null) return;
+    if (businessId == null || branchId == null || userId == null) {
+      return;
+    }
 
     // Define queries with unique names
     final queries = {
-      'transactionItem-$branchId':
-          realm.query<TransactionItem>(r'branchId == $0', [branchId]),
+      'Activity': realm.query<Activity>(r'userId == $0', [userId]),
+
       'product-$branchId': realm.query<Product>(r'branchId == $0', [branchId]),
       'variant-$branchId': realm.query<Variant>(r'branchId == $0', [branchId]),
       'unit-$branchId': realm.query<IUnit>(r'branchId == $0', [branchId]),
@@ -76,7 +78,6 @@ mixin Subscriptions {
       'plans-$businessId':
           realm.query<PaymentPlan>(r'businessId == $0 ', [businessId]),
       'compaigns': realm.all<FlipperSaleCompaign>(),
-      'branch': realm.all<Branch>(),
 
       ///TODO: in next release will query location that are in same range with the user longitude and latitude
       'location': realm.all<Location>(),
@@ -98,19 +99,21 @@ mixin Subscriptions {
           final branchStock =
               realm.query<Stock>(r'branchId == $0', [branch.serverId]);
           final branchName = 'branch_${branch.serverId}_stock';
+          final transactionName = 'transactionItem_${branch.serverId}';
+
+          final itemsRequested = realm
+              .query<TransactionItem>(r'branchId == $0', [branch.serverId]);
+
           if (!existingSubscriptions.contains(branchName)) {
             mutableSubscriptions.add(branchStock,
                 name: branchName, update: true);
           }
+          if (!existingSubscriptions.contains(transactionName)) {
+            mutableSubscriptions.add(itemsRequested,
+                name: branchName, update: true);
+          }
         }
       }
-
-      // Remove old subscriptions that are no longer needed
-      // existingSubscriptions.forEach((name) {
-      //   if (!queries.containsKey(name)) {
-      //     mutableSubscriptions.remove(name);
-      //   }
-      // });
     });
   }
 }

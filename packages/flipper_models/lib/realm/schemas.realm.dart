@@ -4757,6 +4757,9 @@ class StockRequest extends _StockRequest
     int? subBranchId,
     DateTime? createdAt,
     String? status,
+    DateTime? deliveryDate,
+    String? deliveryNote,
+    String? orderNote,
     Iterable<TransactionItem> items = const [],
     DateTime? updatedAt,
   }) {
@@ -4766,6 +4769,9 @@ class StockRequest extends _StockRequest
     RealmObjectBase.set(this, 'subBranchId', subBranchId);
     RealmObjectBase.set(this, 'createdAt', createdAt);
     RealmObjectBase.set(this, 'status', status);
+    RealmObjectBase.set(this, 'deliveryDate', deliveryDate);
+    RealmObjectBase.set(this, 'deliveryNote', deliveryNote);
+    RealmObjectBase.set(this, 'orderNote', orderNote);
     RealmObjectBase.set<RealmList<TransactionItem>>(
         this, 'items', RealmList<TransactionItem>(items));
     RealmObjectBase.set(this, 'updatedAt', updatedAt);
@@ -4810,6 +4816,26 @@ class StockRequest extends _StockRequest
   set status(String? value) => RealmObjectBase.set(this, 'status', value);
 
   @override
+  DateTime? get deliveryDate =>
+      RealmObjectBase.get<DateTime>(this, 'deliveryDate') as DateTime?;
+  @override
+  set deliveryDate(DateTime? value) =>
+      RealmObjectBase.set(this, 'deliveryDate', value);
+
+  @override
+  String? get deliveryNote =>
+      RealmObjectBase.get<String>(this, 'deliveryNote') as String?;
+  @override
+  set deliveryNote(String? value) =>
+      RealmObjectBase.set(this, 'deliveryNote', value);
+
+  @override
+  String? get orderNote =>
+      RealmObjectBase.get<String>(this, 'orderNote') as String?;
+  @override
+  set orderNote(String? value) => RealmObjectBase.set(this, 'orderNote', value);
+
+  @override
   RealmList<TransactionItem> get items =>
       RealmObjectBase.get<TransactionItem>(this, 'items')
           as RealmList<TransactionItem>;
@@ -4844,6 +4870,9 @@ class StockRequest extends _StockRequest
       'subBranchId': subBranchId.toEJson(),
       'createdAt': createdAt.toEJson(),
       'status': status.toEJson(),
+      'deliveryDate': deliveryDate.toEJson(),
+      'deliveryNote': deliveryNote.toEJson(),
+      'orderNote': orderNote.toEJson(),
       'items': items.toEJson(),
       'updatedAt': updatedAt.toEJson(),
     };
@@ -4863,6 +4892,9 @@ class StockRequest extends _StockRequest
           subBranchId: fromEJson(ejson['subBranchId']),
           createdAt: fromEJson(ejson['createdAt']),
           status: fromEJson(ejson['status']),
+          deliveryDate: fromEJson(ejson['deliveryDate']),
+          deliveryNote: fromEJson(ejson['deliveryNote']),
+          orderNote: fromEJson(ejson['orderNote']),
           items: fromEJson(ejson['items']),
           updatedAt: fromEJson(ejson['updatedAt']),
         ),
@@ -4882,6 +4914,10 @@ class StockRequest extends _StockRequest
       SchemaProperty('subBranchId', RealmPropertyType.int, optional: true),
       SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('status', RealmPropertyType.string, optional: true),
+      SchemaProperty('deliveryDate', RealmPropertyType.timestamp,
+          optional: true),
+      SchemaProperty('deliveryNote', RealmPropertyType.string, optional: true),
+      SchemaProperty('orderNote', RealmPropertyType.string, optional: true),
       SchemaProperty('items', RealmPropertyType.object,
           linkTarget: 'TransactionItem',
           collectionType: RealmCollectionType.list),
@@ -6847,11 +6883,12 @@ class Token extends _Token with RealmEntity, RealmObjectBase, RealmObject {
   SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }
 
-class UserActivity extends _UserActivity
+class Activity extends _Activity
     with RealmEntity, RealmObjectBase, RealmObject {
-  UserActivity(
-    ObjectId id,
+  Activity(
+    ObjectId realmId,
     String action, {
+    int? id,
     DateTime? timestamp,
     DateTime? lastTouched,
     int? userId,
@@ -6859,6 +6896,7 @@ class UserActivity extends _UserActivity
     RealmValue details = const RealmValue.nullValue(),
   }) {
     RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
     RealmObjectBase.set(this, 'timestamp', timestamp);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'userId', userId);
@@ -6867,12 +6905,18 @@ class UserActivity extends _UserActivity
     RealmObjectBase.set(this, 'action', action);
   }
 
-  UserActivity._();
+  Activity._();
 
   @override
-  ObjectId get id => RealmObjectBase.get<ObjectId>(this, 'id') as ObjectId;
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
   @override
-  set id(ObjectId value) => RealmObjectBase.set(this, 'id', value);
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
 
   @override
   DateTime? get timestamp =>
@@ -6910,20 +6954,20 @@ class UserActivity extends _UserActivity
   set action(String value) => RealmObjectBase.set(this, 'action', value);
 
   @override
-  Stream<RealmObjectChanges<UserActivity>> get changes =>
-      RealmObjectBase.getChanges<UserActivity>(this);
+  Stream<RealmObjectChanges<Activity>> get changes =>
+      RealmObjectBase.getChanges<Activity>(this);
 
   @override
-  Stream<RealmObjectChanges<UserActivity>> changesFor(
-          [List<String>? keyPaths]) =>
-      RealmObjectBase.getChangesFor<UserActivity>(this, keyPaths);
+  Stream<RealmObjectChanges<Activity>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Activity>(this, keyPaths);
 
   @override
-  UserActivity freeze() => RealmObjectBase.freezeObject<UserActivity>(this);
+  Activity freeze() => RealmObjectBase.freezeObject<Activity>(this);
 
   EJsonValue toEJson() {
     return <String, dynamic>{
       'id': id.toEJson(),
+      '_id': realmId.toEJson(),
       'timestamp': timestamp.toEJson(),
       'lastTouched': lastTouched.toEJson(),
       'userId': userId.toEJson(),
@@ -6933,17 +6977,18 @@ class UserActivity extends _UserActivity
     };
   }
 
-  static EJsonValue _toEJson(UserActivity value) => value.toEJson();
-  static UserActivity _fromEJson(EJsonValue ejson) {
+  static EJsonValue _toEJson(Activity value) => value.toEJson();
+  static Activity _fromEJson(EJsonValue ejson) {
     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {
       {
-        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
         'action': EJsonValue action,
       } =>
-        UserActivity(
-          fromEJson(id),
+        Activity(
+          fromEJson(realmId),
           fromEJson(action),
+          id: fromEJson(ejson['id']),
           timestamp: fromEJson(ejson['timestamp']),
           lastTouched: fromEJson(ejson['lastTouched']),
           userId: fromEJson(ejson['userId']),
@@ -6955,11 +7000,12 @@ class UserActivity extends _UserActivity
   }
 
   static final schema = () {
-    RealmObjectBase.registerFactory(UserActivity._);
+    RealmObjectBase.registerFactory(Activity._);
     register(_toEJson, _fromEJson);
-    return const SchemaObject(
-        ObjectType.realmObject, UserActivity, 'UserActivity', [
-      SchemaProperty('id', RealmPropertyType.objectid, primaryKey: true),
+    return const SchemaObject(ObjectType.realmObject, Activity, 'Activity', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
       SchemaProperty('timestamp', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),

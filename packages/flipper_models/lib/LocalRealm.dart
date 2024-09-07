@@ -11,8 +11,7 @@ abstract class LocalRealmInterface {
   Future<LocalRealmInterface> configureLocal({required bool useInMemory});
   Realm? localRealm;
   bool isRealmClosed();
-  Future<void> refreshSession({required int branchId, int? refreshRate = 5});
-  Future<List<UserActivity>> activities({required int userId});
+
   // Future<String> dbPath({required String path});
   Future<IUser> login(
       {required String userPhone,

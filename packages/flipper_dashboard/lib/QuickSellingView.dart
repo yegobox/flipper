@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:feather_icons/feather_icons.dart';
+import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
 import 'package:flipper_dashboard/payable_view.dart';
@@ -22,6 +23,7 @@ import 'package:stacked/stacked.dart';
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController discountController;
+  final TextEditingController deliveryNoteCotroller;
   final TextEditingController receivedAmountController;
   final TextEditingController customerPhoneNumberController;
   final TextEditingController paymentTypeController;
@@ -31,6 +33,7 @@ class QuickSellingView extends StatefulHookConsumerWidget {
     required this.formKey,
     required this.discountController,
     required this.receivedAmountController,
+    required this.deliveryNoteCotroller,
     required this.customerPhoneNumberController,
     required this.paymentTypeController,
   }) : super(key: key);
@@ -44,7 +47,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         TransactionMixin,
         TextEditingControllersMixin,
         PreviewcartMixin,
-        TransactionItemTable {
+        TransactionItemTable,
+        DateCoreWidget {
   String _selectedPaymentMethod = 'Cash';
 
   double get totalAfterDiscountAndShipping {
@@ -176,6 +180,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               ],
             ],
           ),
+          if (isOrdering) ...[
+            Padding(
+              padding: const EdgeInsets.only(left: 20.0),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Text("Delivery Date"),
+                      datePicker(),
+                    ],
+                  ),
+                  _deliveryNote()
+                ],
+              ),
+            )
+          ],
           SizedBox(height: 6.0),
           Row(
             children: [
@@ -186,6 +206,61 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _deliveryNote() {
+    return TextFormField(
+      controller: widget.deliveryNoteCotroller,
+      keyboardType: TextInputType.text,
+      maxLines: 1,
+      decoration: InputDecoration(
+        labelText: 'Delivery Note',
+        hintText: 'Enter any special instructions for delivery',
+        labelStyle: TextStyle(color: Theme.of(context).primaryColor),
+        prefixIcon:
+            Icon(Icons.local_shipping, color: Theme.of(context).primaryColor),
+        suffixIcon: IconButton(
+          icon: Icon(Icons.clear, color: Colors.grey),
+          onPressed: () => widget.deliveryNoteCotroller.clear(),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide(color: Theme.of(context).primaryColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide:
+              BorderSide(color: Theme.of(context).primaryColor, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.error, width: 2.0),
+        ),
+        filled: true,
+        fillColor: Colors.grey[100],
+      ),
+      onChanged: (value) => null,
+      validator: (String? value) {
+        if (value == null || value.isEmpty) {
+          return null;
+        }
+        final number = double.tryParse(value);
+        if (number == null) {
+          ref.read(loadingProvider.notifier).state = false;
+          return 'Please enter a valid number';
+        }
+        if (number < 0 || number > 100) {
+          ref.read(loadingProvider.notifier).state = false;
+          return 'Discount must be between 0 and 100';
+        }
+        return null;
+      },
     );
   }
 

@@ -185,9 +185,11 @@ class FlipperAppState extends ConsumerState<FlipperApp>
           builder: (context, ref, child) {
             return GestureDetector(
                 behavior: HitTestBehavior.translucent,
-                
                 onTap: () {
-                  print("Received tap event from down");
+                  // TODO: enable this once enabled generally on atlas side
+                  // ProxyService.realm.recordUserActivity(
+                  //     userId: ProxyService.box.getUserId()!,
+                  //     activity: 'TapOnSreen');
                 },
                 child: _buildAppLayoutDrawer(context, model, ref));
           },

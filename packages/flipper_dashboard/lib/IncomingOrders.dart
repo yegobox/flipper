@@ -17,8 +17,9 @@ class IncomingOrdersWidget extends HookConsumerWidget
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final stockRequests = ref.watch(stockRequestsProvider);
-
+    final stringValue = ref.watch(stringProvider);
+    final stockRequests =
+        ref.watch(stockRequestsProvider((filter: stringValue)));
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: stockRequests.when(
@@ -306,7 +307,8 @@ class IncomingOrdersWidget extends HookConsumerWidget
                 ProxyService.realm.realm!.write(() {
                   ProxyService.realm.realm!.delete<StockRequest>(request);
                 });
-                ref.refresh(stockRequestsProvider);
+                final stringValue = ref.watch(stringProvider);
+                ref.refresh(stockRequestsProvider((filter: stringValue)));
               },
             ),
           ],
@@ -318,7 +320,8 @@ class IncomingOrdersWidget extends HookConsumerWidget
   void _handleApproveRequest(
       BuildContext context, WidgetRef ref, StockRequest request) {
     approveRequest(request: request, context: context);
-    ref.refresh(stockRequestsProvider);
+    final stringValue = ref.watch(stringProvider);
+    ref.refresh(stockRequestsProvider((filter: stringValue)));
   }
 
   int _calculateTotalQuantity(StockRequest request) {

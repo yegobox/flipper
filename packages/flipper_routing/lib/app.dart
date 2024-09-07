@@ -68,6 +68,8 @@ import 'all_routes.dart';
     CustomRoute(page: QuickSellingView),
     CustomRoute(page: PaymentPlanUI),
     CustomRoute(page: PaymentFinalize),
+    CustomRoute(page: WaitingOrdersPlaced),
+    //
   ],
   dependencies: [
     LazySingleton(classType: BottomSheetService),
@@ -130,7 +132,7 @@ class App {}
 // -ref: https://github.com/Merrit/adventure_list/blob/main/lib/src/system_tray/system_tray_manager.dart
 // TODO:  packages we can use
 // - https://github.com/luckysmg/flutter_swipe_action_cell(if we choose to use this, then we will need to  the one we use on while showing product item)
-// git submodule update --remote --merge 
+// git submodule update --remote --merge
 // git config submodule.recurse false
 // git pull https://github.com/joelhigi/flipper.git stable
 // flutterfire configure
@@ -270,7 +272,6 @@ class App {}
 //     });
 // }
 
-
 //  Future<String?> get accessToken async {
 //     try {
 //       await _completer.future;
@@ -290,7 +291,7 @@ class App {}
 /// TODO: sentry support isar db for instrumentation, I will support that in near future!
 /// https://github.com/getsentry/sentry-dart/pull/1726/commits/5ee8639f20bb1e566c849f2b3af2c6be5a1a5626
 /// TODO: https://github.com/SharezoneApp/sharezone-app
-/// 
+///
 ///TODO: Code for new app header on mobile WIP
 /// import 'package:flutter/material.dart';
 
@@ -414,21 +415,19 @@ class App {}
 // # Now you can install Pandas using pip
 // python -m pip install pandas
 
-
 // https://www.mongodb.com/docs/atlas/app-services/data-api/
 // https://www.mongodb.com/blog/post/atlas-edge-server-now-in-public-preview?utm_source=beamer&utm_medium=sidebar&utm_campaign=Atlas-Edge-Server-is-Now-in-Public-Preview&utm_content=ctalink
 
-
 /// NOTE: in prodduct_view
 /// We also show buildProductList inside
-/// Edge server token: 
+/// Edge server token:
 /// TODO: deal with flavor https://docs.flutter.dev/deployment/flavors#conditionally-bundling-assets-based-on-flavor
 ///
 ///
 ///WHY!
 ///I am using git submodule add https://github.com/yegobox/plus_plugins.git open-sources/plus_plugins because orgional is wasting my time with java sdk 17 request
 /// sudo killall coreaudiod
-/// 
+///
 /// Things to remember
 /// 1. update branchId and businessId in counter in realm
 /// 2. test receipt see if I am not getting counter issue
@@ -438,7 +437,7 @@ class App {}
 /// https://quarkus.io/guides/security-keycloak-authorization
 /// https://www.keycloak.org/migration/migrating-to-quarkus
 ///
-/// git commit -am "[build release windows] [build release android]" 
+/// git commit -am "[build release windows] [build release android]"
 
 /// https://medium.com/lodgify-technology-blog/deploy-your-flutter-app-to-google-play-with-github-actions-f13a11c4492e
 /// base64 -i upload-keystore.jks -o keystoreBase64
@@ -454,7 +453,7 @@ class App {}
 /// To create a patch for this release,   shorebird patch --platforms=android --release-version=1.170.4252223232270+1723701200
 
 /// Note: shorebird patch --platforms=android without the --release-version option will patch the current version of the app.
-/// 
+///
 ///  nohup java -jar rra.war &  echo $! > pid.txt
 
 // {
@@ -495,7 +494,7 @@ class App {}
 //     }
 // }
 //  docker run -it -e NGROK_AUTHTOKEN=2iuypwkYzPBh8SXyZbGbH_4XTQbAcY12w4yG7Tyag1h ngrok/ngrok http 8080
-// ngrok http http://localhost:8080 
+// ngrok http http://localhost:8080
 
 // ✔ Initialized provider successfully.
 // ✅ Initialized your environment successfully.
@@ -508,16 +507,15 @@ class App {}
 // "amplify console" to open the Amplify Console and view your project status
 // "amplify publish" will build all your local backend and frontend resources (if you have hosting category added) and provision it in the cloud
 
-
 // Pro tip:
 // Try "amplify add api" to create a backend API and then "amplify push" to deploy everything
 /// https://myrratest.rra.gov.rw/app/ebm/trns/sales/indexTrnsSalesInvoice
 /// FLIPPER-17189
-/// https://momoapi.mtn.co.rw/  
+/// https://momoapi.mtn.co.rw/
 /// https://partner.mtn.co.rw/
 /// Username: YEGOBOX.SP
 /// JS Interop: https://www.youtube.com/watch?v=cTzmllsYiCI
-/// 
+///
 /// NOTE: deal with python experiment, python will be used
 /// for heavy experimentation.
 ///  mkdir py
@@ -529,20 +527,20 @@ class App {}
 /// password: :93h)]6m7V8B
 /// TODO: hire in future
 /// https://www.merixstudio.com/development/flutter
-/// 
+///
 /// https://www.mongodb.com/docs/atlas/app-services/data-api/examples/
-/// 
+///
 /// Macos & ios build
 /// https://medium.com/team-rockstars-it/the-easiest-way-to-build-a-flutter-ios-app-using-github-actions-plus-a-key-takeaway-for-developers-48cf2ad7c72a
 /// https://medium.com/@vovaklh20012/code-push-for-flutter-update-your-app-without-new-release-using-shorebird-d3575ba0a2c0
 /// https://github.com/fastlane/fastlane/discussions/20177
 /// Hire a developer to help you with your flutter app https://superdeclarative.com/ (This one can help in UI and Testing)
 /// https://red-badger.com/
-/// 
+///
 /// TODO: impressive widgets
 /// https://github.com/merixstudio/flutter-vizier-challenge
 /// https://pub.dev/packages/mrx_charts
-/// 
+///
 /// TODO: something we can steal
 /// https://ente.io/ (flipper home page)
 /// https://gitlab.com/wolfenrain/okane
@@ -556,12 +554,12 @@ class App {}
 /// I will consider surely in future!
 /// https://github.com/openfoodfacts/smooth-app
 /// https://github.com/smaranjitghose/DocLense
-/// 
+///
 /// TODO: learn about integeation test or get some ideas
 /// https://github.com/ubuntu/app-center/blob/main/packages/app_center/integration_test/app_center_test.dart
 /// git commit -am "test direct-build-windows"
 /// git commit -am "test direct-build-android"
-/// 
+///
 /// https://fly.io/docs/about/pricing/
 /// https://pub.dev/packages/wolt_modal_sheet#why-use-modaldecorator-for-state-management
 /// https://www.corbado.com/pricing
@@ -575,7 +573,6 @@ class App {}
 // Filter out exception types by calling SentryOptions.addExceptionFilterForType(Type exceptionType)
 // https://pub.dev/packages/flutter_thermal_printer
 // https://pos-x.com/download/thermal-receipt-printer-driver-2/
-
 
 // TIP on testing
 //https://stackoverflow.com/questions/73022762/how-to-specify-test-tags-correctly-in-dart-test-yaml

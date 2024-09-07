@@ -9,7 +9,7 @@ import 'package:pocketbase/pocketbase.dart';
 part 'userActivity.g.dart';
 
 @JsonSerializable()
-class UserActivity extends IJsonSerializable {
+class Activity extends IJsonSerializable {
   DateTime timestamp;
   int? id;
   @JsonKey(includeIfNull: true)
@@ -18,17 +18,17 @@ class UserActivity extends IJsonSerializable {
 
   late String action;
 
-  UserActivity(
+  Activity(
       {required this.id,
       required this.timestamp,
       required this.userId,
       required this.action,
       this.lastTouched});
 
-  factory UserActivity.fromRecord(RecordModel record) =>
-      UserActivity.fromJson(record.toJson());
+  factory Activity.fromRecord(RecordModel record) =>
+      Activity.fromJson(record.toJson());
 
-  factory UserActivity.fromJson(Map<String, dynamic> json) {
+  factory Activity.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode
     /// data from remote server and id from remote server is considered remoteId on local
 
@@ -38,11 +38,11 @@ class UserActivity extends IJsonSerializable {
             : DateTime.parse(json['lastTouched'] ?? DateTime.now())
                 .toIso8601String();
 
-    // this line ony added in both business and UserActivity as they are not part of sync schemd
+    // this line ony added in both business and Log as they are not part of sync schemd
     json['action'] = AppActions.created;
-    return _$UserActivityFromJson(json);
+    return _$ActivityFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() => _$UserActivityToJson(this);
+  Map<String, dynamic> toJson() => _$ActivityToJson(this);
 }

@@ -332,11 +332,15 @@ class IsolateHandler with Subscriptions {
       localModels,
       encryptionKey: encryptionKey,
       path: dbPatch,
-      schemaVersion: 6,
+      schemaVersion: 7,
       migrationCallback: (migration, oldSchemaVersion) {
         if (oldSchemaVersion < 2) {
           // This means we are migrating from version 1 to version 2
           migration.deleteType('Drawers');
+        }
+        if (oldSchemaVersion < 7) {
+          // This means we are migrating from version 1 to version 2
+          migration.deleteType('Log');
         }
       },
     );

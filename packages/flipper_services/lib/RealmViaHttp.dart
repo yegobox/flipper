@@ -987,12 +987,6 @@ class RealmViaHttpService
   }
 
   @override
-  Stream<List<StockRequest>> requestsStream({required int branchId}) {
-    // TODO: implement requestsStream
-    throw UnimplementedError();
-  }
-
-  @override
   void saveComposite({required Composite composite}) {
     // TODO: implement saveComposite
   }
@@ -1274,7 +1268,7 @@ class RealmViaHttpService
   }
 
   @override
-  Future<List<UserActivity>> activities({required int userId}) {
+  Future<List<Activity>> activities({required int userId}) {
     // TODO: implement activities
     throw UnimplementedError();
   }
@@ -1476,6 +1470,35 @@ class RealmViaHttpService
   @override
   Drawers? closeDrawer({required Drawers drawer, required double eod}) {
     // TODO: implement closeDrawer
+    throw UnimplementedError();
+  }
+
+  @override
+  List<String> activeRealmSubscriptions() {
+    // TODO: implement activeRealmSubscriptions
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> forceSubs(
+      {int? businessId, Realm? localRealm, int? branchId, int? userId}) {
+    // TODO: implement forceSubs
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<StockRequest>> requestsStream(
+      {required int branchId, required String filter}) {
+    // TODO: implement requestsStream
+    throw UnimplementedError();
+  }
+
+  @override
+  int createStockRequest(List<TransactionItem> items,
+      {required String deliveryNote,
+      DateTime? deliveryDate,
+      required int mainBranchId}) {
+    // TODO: implement createStockRequest
     throw UnimplementedError();
   }
 }
