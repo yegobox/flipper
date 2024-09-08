@@ -34,8 +34,7 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             DropdownButton<Branch>(
-              value: ref
-                  .watch(selectedBranchProvider), // Watch the selected branch
+              value: ref.watch(selectedBranchProvider),
               onChanged: (Branch? newBranch) {
                 if (newBranch != null) {
                   ref.read(selectedBranchProvider.notifier).state = newBranch;

@@ -925,8 +925,7 @@ final businessesProvider = Provider<List<Business>>((ref) {
 });
 
 // Define a provider for the selected branch
-final selectedBranchProvider = StateProvider<Branch?>((ref) => null);
-
+final selectedBranchProvider = AutoDisposeStateProvider<Branch?>((ref) => null);
 // Provider to check if a user has access to a specific feature
 final featureAccessProvider = Provider.family<bool, String>((ref, featureName) {
   final accesses = ref.watch(userAccessesProvider);
