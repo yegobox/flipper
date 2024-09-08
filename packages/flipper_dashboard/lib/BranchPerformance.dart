@@ -245,14 +245,7 @@ class StockBarChartPainter extends CustomPainter {
         Colors.black,
       );
 
-      _drawText(
-        canvas,
-        _truncateText(item.variant?.productName ?? "-", 10),
-        Offset((i * 2 + 1.5) * barWidth, size.height + 5),
-        10,
-        FontWeight.normal,
-        Colors.black,
-      );
+      // Removed the bottom label drawing
     }
   }
 
@@ -269,11 +262,6 @@ class StockBarChartPainter extends CustomPainter {
     );
     textPainter.layout();
     textPainter.paint(canvas, position - Offset(textPainter.width / 2, 0));
-  }
-
-  String _truncateText(String text, int maxLength) {
-    if (text.length <= maxLength) return text;
-    return '${text.substring(0, maxLength - 3)}...';
   }
 
   String _formatNumber(int number) {
