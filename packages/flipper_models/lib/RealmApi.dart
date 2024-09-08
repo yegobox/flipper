@@ -3843,6 +3843,6 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   List<Stock> stocks({required int branchId}) {
     return realm!.query<Stock>(r'branchId == $0 AND variant.productName != $1',
-        [branchId, "temp"]).toList();
+        [branchId, TEMP_PRODUCT]).toList();
   }
 }

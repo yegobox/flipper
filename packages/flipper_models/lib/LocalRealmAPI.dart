@@ -267,23 +267,24 @@ class LocalRealmApi extends RealmAPI
     return localRealm!.all<Business>().toList();
   }
 
-  @override
-  List<Branch> branches({int? businessId}) {
-    /// filter out active == true, to avoid to order from yourself
-    List<Branch> branches = [];
+  List<Branch> _getBranches(int businessId, bool active) {
     try {
-      if (businessId != null) {
-        branches = localRealm!.query<Branch>(
-            r'businessId == $0 && active == $1', [businessId, false]).toList();
-      } else {
-        throw Exception("BusinessId is required");
-      }
-      return branches;
+      return localRealm!.query<Branch>(
+          r'businessId == $0 && active == $1 || active == $2',
+          [businessId, active, false]).toList();
     } catch (e, s) {
       talker.error(e);
       talker.error(s);
       rethrow;
     }
+  }
+
+  @override
+  List<Branch> branches({int? businessId, bool? includeSelf = false}) {
+    if (businessId == null) {
+      throw Exception("BusinessId is required");
+    }
+    return _getBranches(businessId, includeSelf!);
   }
 
   @override
