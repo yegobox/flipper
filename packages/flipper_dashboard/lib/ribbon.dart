@@ -92,6 +92,7 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
                 4, const Key('locations'), () {
               final deviceType = _getDeviceType(context);
               if (deviceType == 'Phone' || deviceType == 'Phablet') {
+                ref.read(selectedBranchProvider.notifier).state = null;
                 _showBranchPerformanceMobile(context);
               } else {
                 _showBranchPerformance(context);

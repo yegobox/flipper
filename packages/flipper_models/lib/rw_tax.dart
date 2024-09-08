@@ -375,7 +375,7 @@ class RWTax implements TaxApi {
         var taxConfig =
             await ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
 
-        _talker!.info("Tax To be applied on: ${item.taxTyCd}");
+        _talker!.warning("Tax To be applied on: ${item.taxTyCd}");
         // Ensure taxPercentage is not null
         if (taxConfig.taxPercentage == 0.0) {
           _talker!.warning(
@@ -385,10 +385,14 @@ class RWTax implements TaxApi {
 
         // Calculate the tax amount
         double taxAmount = (((item.price == 0.0 ? 1 : item.price) * item.qty));
-
+        talker.warning("Tax registered on ${item.taxTyCd}");
         // Accumulate tax amount instead of overwriting
         String taxType = item.taxTyCd ?? "B";
-        taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
+
+        /// we know how to compute tax A so others remain to 0
+        if (taxTotals[taxType] == "A") {
+          taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
+        }
 
         // Log the accumulated tax amount
         _talker!.warning(
@@ -425,7 +429,8 @@ class RWTax implements TaxApi {
       "taxAmtC": totalTaxC,
       "taxAmtA": totalTaxA,
       "taxAmtD": totalTaxD,
-      "taxAmtB": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
+      "taxAmtB": totalTaxB,
+      // "taxAmtB": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
       "totTaxblAmt": totalMinusExemptedProducts,
       "totTaxAmt": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
       "totAmt": totalMinusExemptedProducts,
