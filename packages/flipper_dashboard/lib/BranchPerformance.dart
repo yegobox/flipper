@@ -40,7 +40,8 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
                 if (newBranch != null) {
                   ref.read(selectedBranchProvider.notifier).state = newBranch;
                   ref.refresh(stocksProvider((
-                    branchId: branch?.id ?? ProxyService.box.getBranchId()!
+                    branchId:
+                        branch?.serverId ?? ProxyService.box.getBranchId()!
                   )));
                 }
               },
