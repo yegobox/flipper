@@ -920,11 +920,6 @@ final userAccessesProvider = Provider<List<Access>>((ref) {
   return ProxyService.realm.access(userId: userId);
 });
 
-final branchesProvider = Provider<List<Branch>>((ref) {
-  final businessId = ProxyService.box.getBusinessId();
-  return ProxyService.local.branches(businessId: businessId);
-});
-
 final businessesProvider = Provider<List<Business>>((ref) {
   return ProxyService.local.businesses();
 });
@@ -1054,6 +1049,14 @@ final stocksProvider =
   final (:branchId) = params;
 
   return ProxyService.realm.stocks(branchId: branchId);
+});
+
+final branchesProvider = Provider.autoDispose
+    .family<List<Branch>, ({bool? includeSelf})>((ref, params) {
+  final (:includeSelf) = params;
+  final businessId = ProxyService.box.getBusinessId();
+  return ProxyService.local
+      .branches(businessId: businessId, includeSelf: includeSelf);
 });
 
 class StringState extends StateNotifier<String> {

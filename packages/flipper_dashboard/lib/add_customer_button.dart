@@ -15,20 +15,20 @@ class AddCustomerButton extends StatelessWidget {
         width: double.infinity,
         child: TextButton(
             style: ButtonStyle(
-              shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+              shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
                 (states) => RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4.0),
                 ),
               ),
               backgroundColor:
-                  MaterialStateProperty.all<Color>(const Color(0xffF2F2F2)),
-              overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                (Set<MaterialState> states) {
-                  if (states.contains(MaterialState.hovered)) {
+                  WidgetStateProperty.all<Color>(const Color(0xffF2F2F2)),
+              overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states) {
+                  if (states.contains(WidgetState.hovered)) {
                     return const Color(0xffF2F2F2);
                   }
-                  if (states.contains(MaterialState.focused) ||
-                      states.contains(MaterialState.pressed)) {
+                  if (states.contains(WidgetState.focused) ||
+                      states.contains(WidgetState.pressed)) {
                     return const Color(0xffF2F2F2);
                   }
                   return null;

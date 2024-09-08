@@ -542,7 +542,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   }
 
   Widget _buildBranchDropdown() {
-    final branches = ref.watch(branchesProvider); // No more 'when' needed
+    final branches = ref
+        .watch(branchesProvider((includeSelf: false))); // No more 'when' needed
     final selectedBranch = ref.watch(selectedBranchProvider);
 
     if (branches.isEmpty) {

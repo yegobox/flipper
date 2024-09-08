@@ -21,7 +21,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
 
   @override
   Widget build(BuildContext context) {
-    final branches = ref.watch(branchesProvider);
+    final branches = ref.watch(branchesProvider((includeSelf: false)));
     final isProcessing = ref.watch(isProcessingProvider);
 
     return Scaffold(
@@ -115,7 +115,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                                 userOwnerPhoneNumber:
                                     ProxyService.box.getUserPhone()!,
                                 flipperHttpClient: ProxyService.http);
-                            ref.refresh(branchesProvider);
+                            ref.refresh(branchesProvider((includeSelf: false)));
                             _nameController.clear();
                             _locationController.clear();
                             setState(() {
@@ -225,8 +225,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                                   await ProxyService.local.deleteBranch(
                                       branchId: branch.serverId!,
                                       flipperHttpClient: ProxyService.http);
-                                  ref.refresh(
-                                      branchesProvider); // Refresh the provider
+                                  ref.refresh(branchesProvider((
+                                    includeSelf: false
+                                  ))); // Refresh the provider
                                 }
                               },
                         icon: Icon(Icons.delete,

@@ -1291,7 +1291,7 @@ class RealmViaHttpService
   }
 
   @override
-  List<Branch> branches({int? businessId}) {
+  List<Branch> branches({int? businessId, bool? includeSelf = false}) {
     // TODO: implement branches
     throw UnimplementedError();
   }

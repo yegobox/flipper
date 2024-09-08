@@ -16,7 +16,7 @@ class Orders extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final suppliers = ref.watch(branchesProvider);
+    final suppliers = ref.watch(branchesProvider((includeSelf: false)));
     final selectedSupplier = useState<Branch?>(null);
 
     return PopScope(

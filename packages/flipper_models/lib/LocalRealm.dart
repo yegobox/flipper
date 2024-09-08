@@ -24,7 +24,7 @@ abstract class LocalRealmInterface {
   List<Business> businesses();
   Future<Business?> activeBusinesses({required int userId});
   // Future<Business> getOnlineBusiness({required int userId});
-  List<Branch> branches({int? businessId});
+  List<Branch> branches({int? businessId,bool? includeSelf = false});
   Future<List<ITenant>> signup(
       {required Map business, required HttpClientInterface flipperHttpClient});
   Business getBusiness({int? businessId});

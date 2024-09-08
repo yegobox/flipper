@@ -37,10 +37,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (_) {
         ref.refresh(businessesProvider);
-        ref.refresh(branchesProvider);
+        ref.refresh(branchesProvider((includeSelf: false)));
       },
       builder: (context, viewModel, child) {
-        final branches = ref.watch(branchesProvider);
+        final branches = ref.watch(branchesProvider((includeSelf: false)));
         final businesses = ref.watch(businessesProvider);
 
         return Scaffold(
@@ -322,7 +322,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
     setState(() {
       _isSelectingBranch = true;
     });
-    ref.refresh(branchesProvider);
+    ref.refresh(branchesProvider((includeSelf: false)));
   }
 
   void _completeAuthenticationFlow() {
@@ -351,6 +351,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
 
   void _refreshBusinessAndBranchProviders() {
     ref.refresh(businessesProvider);
-    ref.refresh(branchesProvider);
+    ref.refresh(branchesProvider((includeSelf: false)));
   }
 }

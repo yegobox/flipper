@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'dart:math';
 
 import 'package:flipper_models/realm/schemas.dart';
@@ -15,9 +17,12 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
     with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    final branches = ref.watch(branchesProvider);
-    final items =
-        ref.watch(stocksProvider((branchId: ProxyService.box.getBranchId()!)));
+    final branches = ref.watch(branchesProvider((includeSelf: true)));
+    final branch = ref.watch(selectedBranchProvider);
+    final items = ref.watch(stocksProvider(
+        (branchId: branch?.serverId ?? ProxyService.box.getBranchId()!)));
+    final selectedItemId = ref.watch(selectedItemProvider);
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -28,47 +33,100 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
               'Inventory Dashboard',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            // Add Dropdown for branches
             DropdownButton<Branch>(
-              value: branches.isNotEmpty ? branches.first : null,
+              value: ref
+                  .watch(selectedBranchProvider), // Watch the selected branch
               onChanged: (Branch? newBranch) {
-                // Handle branch selection change
                 if (newBranch != null) {
                   ref.read(selectedBranchProvider.notifier).state = newBranch;
+                  ref.refresh(stocksProvider((
+                    branchId: branch?.id ?? ProxyService.box.getBranchId()!
+                  )));
                 }
               },
               items: branches.map<DropdownMenuItem<Branch>>((Branch branch) {
                 return DropdownMenuItem<Branch>(
-                    value: branch, child: Text(branch.name!));
+                  value: branch,
+                  child: Text(branch.name ?? 'Unknown'),
+                );
               }).toList(),
             ),
           ],
         ),
       ),
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    BestSellingItemCard(items: items),
-                    SizedBox(height: 20),
-                    StockVisualizationCard(items: items),
-                  ],
-                ),
-              ),
+        child: items.isNotEmpty
+            ? CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          BestSellingItemCard(items: items),
+                          SizedBox(height: 20),
+                          StockVisualizationCard(
+                            items: items,
+                            selectedItemId: selectedItemId,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => ItemDetailCard(
+                          item: items[index],
+                          isSelected: items[index].id == selectedItemId,
+                          onTap: () {
+                            ref.read(selectedItemProvider.notifier).state =
+                                items[index].id.toString();
+                          },
+                        ),
+                        childCount: items.length,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : SizedBox.shrink(),
+      ),
+    );
+  }
+}
+
+class StockVisualizationCard extends StatelessWidget {
+  final List<Stock> items;
+  final String? selectedItemId;
+
+  const StockVisualizationCard({
+    Key? key,
+    required this.items,
+    this.selectedItemId,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shadowColor: Colors.black26,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Stock Count',
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-            SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => ItemDetailCard(item: items[index]),
-                  childCount: items.length,
-                ),
-              ),
+            SizedBox(height: 16),
+            AnimatedStockBarChart(
+              items: items,
+              selectedItemId: selectedItemId,
             ),
           ],
         ),
@@ -76,6 +134,216 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
     );
   }
 }
+
+class AnimatedStockBarChart extends StatefulWidget {
+  final List<Stock> items;
+  final String? selectedItemId;
+
+  const AnimatedStockBarChart({
+    Key? key,
+    required this.items,
+    this.selectedItemId,
+  }) : super(key: key);
+
+  @override
+  _AnimatedStockBarChartState createState() => _AnimatedStockBarChartState();
+}
+
+class _AnimatedStockBarChartState extends State<AnimatedStockBarChart>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Container(
+          height: 200,
+          child: CustomPaint(
+            size: Size(double.infinity, 200),
+            painter: StockBarChartPainter(
+              items: widget.items,
+              animationValue: _animation.value,
+              selectedItemId: widget.selectedItemId,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class StockBarChartPainter extends CustomPainter {
+  final List<Stock> items;
+  final double animationValue;
+  final String? selectedItemId;
+
+  StockBarChartPainter({
+    required this.items,
+    required this.animationValue,
+    this.selectedItemId,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final filteredItems = items.where((item) => item.currentStock > 1).toList();
+
+    if (filteredItems.isEmpty) return;
+
+    final double barWidth = size.width / (filteredItems.length * 2 + 1);
+    final double maxStock =
+        filteredItems.map((e) => e.currentStock.toDouble()).reduce(max);
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    for (int i = 0; i < filteredItems.length; i++) {
+      final item = filteredItems[i];
+      final barHeight =
+          (item.currentStock / maxStock) * size.height * animationValue;
+
+      final rect = Rect.fromLTRB(
+        (i * 2 + 1) * barWidth,
+        size.height - barHeight,
+        (i * 2 + 2) * barWidth,
+        size.height,
+      );
+
+      paint.color = item.id.toString() == selectedItemId
+          ? Colors.red.withOpacity(animationValue)
+          : Colors.indigo.withOpacity(animationValue);
+      canvas.drawRect(rect, paint);
+
+      _drawText(
+        canvas,
+        _formatNumber(item.currentStock.toInt()),
+        Offset((i * 2 + 1.5) * barWidth, size.height - barHeight - 15),
+        10,
+        FontWeight.bold,
+        Colors.black,
+      );
+
+      _drawText(
+        canvas,
+        _truncateText(item.variant?.productName ?? "-", 10),
+        Offset((i * 2 + 1.5) * barWidth, size.height + 5),
+        10,
+        FontWeight.normal,
+        Colors.black,
+      );
+    }
+  }
+
+  void _drawText(Canvas canvas, String text, Offset position, double fontSize,
+      FontWeight fontWeight, Color color) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style:
+            TextStyle(color: color, fontSize: fontSize, fontWeight: fontWeight),
+      ),
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    );
+    textPainter.layout();
+    textPainter.paint(canvas, position - Offset(textPainter.width / 2, 0));
+  }
+
+  String _truncateText(String text, int maxLength) {
+    if (text.length <= maxLength) return text;
+    return '${text.substring(0, maxLength - 3)}...';
+  }
+
+  String _formatNumber(int number) {
+    if (number >= 1000000) {
+      return '${(number / 1000000).toStringAsFixed(1)}M';
+    } else if (number >= 1000) {
+      return '${(number / 1000).toStringAsFixed(1)}K';
+    }
+    return number.toString();
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return true;
+  }
+}
+
+class ItemDetailCard extends StatelessWidget {
+  final Stock item;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const ItemDetailCard({
+    Key? key,
+    required this.item,
+    required this.isSelected,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        elevation: 2,
+        margin: EdgeInsets.only(bottom: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shadowColor: Colors.black26,
+        color: isSelected ? Colors.blue.shade50 : null,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.variant?.productName ?? "-",
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    SizedBox(height: 8),
+                    Text('Sold: ${item.sold}',
+                        style: Theme.of(context).textTheme.bodyMedium),
+                    Text('In Stock: ${item.currentStock}',
+                        style: Theme.of(context).textTheme.bodyMedium),
+                  ],
+                ),
+              ),
+              CircularStockIndicator(
+                stock: item.currentStock.toInt(),
+                maxStock: 150,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+// ... (previous code remains the same)
 
 class BestSellingItemCard extends StatelessWidget {
   final List<Stock> items;
@@ -120,206 +388,6 @@ class BestSellingItemCard extends StatelessWidget {
                   ],
                 ),
               ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class StockVisualizationCard extends StatelessWidget {
-  final List<Stock> items;
-
-  const StockVisualizationCard({Key? key, required this.items})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      shadowColor: Colors.black26,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Stock Count',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            SizedBox(height: 16),
-            AnimatedStockBarChart(items: items), // Adding an animated chart
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class AnimatedStockBarChart extends StatefulWidget {
-  final List<Stock> items;
-
-  const AnimatedStockBarChart({Key? key, required this.items})
-      : super(key: key);
-
-  @override
-  _AnimatedStockBarChartState createState() => _AnimatedStockBarChartState();
-}
-
-class _AnimatedStockBarChartState extends State<AnimatedStockBarChart>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      vsync: this, // Use the State class for TickerProvider
-      duration: Duration(seconds: 2),
-    );
-    _animation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-
-    // Start the animation
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController
-        .dispose(); // Dispose the controller to free up resources
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return Container(
-          height: 200,
-          child: CustomPaint(
-            size: Size(double.infinity, 200),
-            painter: StockBarChartPainter(
-              items: widget.items,
-              animationValue: _animation.value, // Pass the animation value
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class StockBarChartPainter extends CustomPainter {
-  final List<Stock> items;
-  final double animationValue;
-
-  StockBarChartPainter({required this.items, required this.animationValue});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final double barWidth = size.width / (items.length * 2 + 1);
-    final double maxStock =
-        items.map((e) => e.currentStock.toDouble()).reduce(max);
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    for (int i = 0; i < items.length; i++) {
-      final item = items[i];
-      final barHeight = (item.currentStock / maxStock) *
-          size.height *
-          animationValue; // Use animated height
-      final rect = Rect.fromLTRB(
-        (i * 2 + 1) * barWidth, // left
-        size.height - barHeight, // top
-        (i * 2 + 2) * barWidth, // right
-        size.height, // bottom
-      );
-
-      paint.color = Colors.indigo
-          .withOpacity(animationValue); // Adjust opacity with animation
-      canvas.drawRect(rect, paint);
-
-      // Draw stock count above the bars
-      final countPainter = TextPainter(
-        text: TextSpan(
-          text: item.currentStock.toString(),
-          style: TextStyle(
-              color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold),
-        ),
-        textDirection: TextDirection.ltr,
-      );
-      countPainter.layout();
-      countPainter.paint(
-        canvas,
-        Offset((i * 2 + 1.5) * barWidth - countPainter.width / 2,
-            size.height - barHeight - 15),
-      );
-
-      // Draw item label below the bars
-      final labelPainter = TextPainter(
-        text: TextSpan(
-          text: item.variant?.productName ?? "-",
-          style: TextStyle(
-              color: Colors.black, fontSize: 10, fontWeight: FontWeight.normal),
-        ),
-        textDirection: TextDirection.ltr,
-      );
-      labelPainter.layout();
-      labelPainter.paint(
-        canvas,
-        Offset((i * 2 + 1.5) * barWidth - labelPainter.width / 2,
-            size.height + 5), // Position below the bar
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
-  }
-}
-
-class ItemDetailCard extends StatelessWidget {
-  final Stock item;
-
-  const ItemDetailCard({Key? key, required this.item}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      margin: EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      shadowColor: Colors.black26,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.variant?.productName ?? "-",
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  SizedBox(height: 8),
-                  Text('Sold: ${item.sold}',
-                      style: Theme.of(context).textTheme.bodyMedium),
-                  Text('In Stock: ${item.currentStock}',
-                      style: Theme.of(context).textTheme.bodyMedium),
-                ],
-              ),
-            ),
-            CircularStockIndicator(
-              stock: item.currentStock.toInt(),
-              maxStock: 150,
             ),
           ],
         ),
@@ -402,3 +470,8 @@ class CircularStockPainter extends CustomPainter {
     return true;
   }
 }
+
+// ... (rest of the previous code remains the same)
+
+// Add this provider at the top of your file or in a separate providers file
+final selectedItemProvider = StateProvider<String?>((ref) => null);

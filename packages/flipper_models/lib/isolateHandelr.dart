@@ -475,6 +475,19 @@ class IsolateHandler with Subscriptions {
       }
     }
 
+    List<Variant> vVariants =
+        realm.query<Variant>(r'productName == NULL').toList();
+    for (Variant variant in vVariants) {
+      Product? product =
+          realm.query<Product>(r'id == $0', [variant.productId]).firstOrNull;
+      if (product != null) {
+        realm.write(() {
+          talker.warning("healedProductName: ${variant.id}");
+          variant.productName = product.name;
+        });
+      }
+    }
+
     /// first find any variant with empty itemClsCd add defaults
     List<Variant> variants =
         realm.query<Variant>(r'itemClsCd == null OR itemClsCd == ""').toList();
