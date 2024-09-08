@@ -1080,7 +1080,7 @@ class RealmViaHttpService
   }
 
   @override
-  Future<double> stocks({int? productId, int? variantId}) {
+  Future<double> totalStock({int? productId, int? variantId}) {
     // TODO: implement stocks
     throw UnimplementedError();
   }
@@ -1499,6 +1499,12 @@ class RealmViaHttpService
       DateTime? deliveryDate,
       required int mainBranchId}) {
     // TODO: implement createStockRequest
+    throw UnimplementedError();
+  }
+
+  @override
+  List<Stock> stocks({required int branchId}) {
+    // TODO: implement stocks
     throw UnimplementedError();
   }
 }

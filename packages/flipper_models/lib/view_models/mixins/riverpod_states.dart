@@ -1049,6 +1049,13 @@ final stockRequestsProvider = StreamProvider.autoDispose
   return ProxyService.realm.requestsStream(branchId: branchId, filter: filter);
 });
 
+final stocksProvider =
+    Provider.autoDispose.family<List<Stock>, ({int branchId})>((ref, params) {
+  final (:branchId) = params;
+
+  return ProxyService.realm.stocks(branchId: branchId);
+});
+
 class StringState extends StateNotifier<String> {
   StringState(String initialValue) : super(initialValue);
 

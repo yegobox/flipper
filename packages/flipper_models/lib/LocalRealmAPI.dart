@@ -928,10 +928,14 @@ class LocalRealmApi extends RealmAPI
 
   @override
   bool isDrawerOpen({required int cashierId, required int branchId}) {
-    return localRealm?.query<Drawers>(
-            r'cashierId == $0 AND open == $1 && branchId == $2',
-            [cashierId, true, branchId]).firstOrNull !=
-        null;
+    final drawer = localRealm?.query<Drawers>(
+        r'cashierId == $0 AND open == $1 && branchId == $2',
+        [cashierId, true, branchId]).firstOrNull;
+
+    if (drawer == null) {
+      throw NoOpenDrawer("There is no open Drawer");
+    }
+    return true;
   }
 
   @override

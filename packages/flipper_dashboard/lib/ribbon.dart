@@ -1,5 +1,7 @@
+import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -8,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class IconText extends StatelessWidget {
   final IconData icon;
@@ -62,6 +65,9 @@ class IconRow extends StatefulHookConsumerWidget {
 
 class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
   final List<bool> _isSelected = [true, false, false, false, false];
+  String _getDeviceType(BuildContext context) {
+    return DeviceType.getDeviceType(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +89,14 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
             _buildIconText(context, Icons.dashboard_outlined, 'Reports', 3,
                 const Key('reports_desktop')),
             _buildIconText(context, Icons.maps_home_work_outlined, 'Locations',
-                4, const Key('locations')),
+                4, const Key('locations'), () {
+              final deviceType = _getDeviceType(context);
+              if (deviceType == 'Phone' || deviceType == 'Phablet') {
+                _showBranchPerformanceMobile(context);
+              } else {
+                _showBranchPerformance(context);
+              }
+            }),
           ],
           onPressed: _onTogglePressed,
           isSelected: _isSelected,
@@ -141,6 +154,73 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
         _routerService.navigateTo(LoginRoute());
       }
     }
+  }
+
+  void _showBranchPerformanceMobile(BuildContext context) {
+    WoltModalSheet.show<void>(
+      context: context,
+      pageListBuilder: (BuildContext _) {
+        return [
+          WoltModalSheetPage(
+            hasSabGradient: false,
+            resizeToAvoidBottomInset: true,
+            enableDrag: true,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.8,
+                    maxWidth: double.infinity),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: 800,
+                      child: BranchPerformance(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ];
+      },
+      modalTypeBuilder: (context) {
+        return WoltModalType.dialog();
+      },
+      onModalDismissedWithBarrierTap: () {
+        Navigator.of(context).pop();
+      },
+      barrierDismissible: true,
+    );
+  }
+
+  void _showBranchPerformance(BuildContext context) {
+    showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (_) => Dialog(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: 800,
+                  child: BranchPerformance(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _showTaxDialog(BuildContext context) {

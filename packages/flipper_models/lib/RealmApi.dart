@@ -173,6 +173,7 @@ class RealmAPI<M extends IJsonSerializable>
         retailPrice: variant.retailPrice,
         supplyPrice: variant.supplyPrice,
         id: randomNumber(),
+        variant: variant,
         productId: variant.productId,
         variantId: variant.id,
         branchId: variant.branchId);
@@ -444,9 +445,9 @@ class RealmAPI<M extends IJsonSerializable>
             item.dcAmt = discount;
             item.discount = discount;
             item.lastTouched = DateTime.now().toUtc().toLocal();
-
-            stock.currentStock = finalStock;
             stock.rsdQty = finalStock;
+            stock.currentStock = finalStock;
+            stock.sold = stock.sold! + item.qty;
             // stock value after item deduct
             stock.value = finalStock * (stock.retailPrice);
             stock.action = AppActions.updated;
@@ -1656,7 +1657,7 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<double> stocks({int? productId, int? variantId}) async {
+  Future<double> totalStock({int? productId, int? variantId}) async {
     double totalStock = 0.0;
     if (productId != null) {
       List<Stock> stocks =
@@ -2336,6 +2337,7 @@ class RealmAPI<M extends IJsonSerializable>
         if (stock == null) {
           final newStock = Stock(ObjectId(),
               id: stockId,
+              variant: variation,
               lastTouched: DateTime.now(),
               branchId: branchId,
               variantId: variation.id!,
@@ -2374,6 +2376,7 @@ class RealmAPI<M extends IJsonSerializable>
             id: stockId,
             lastTouched: DateTime.now(),
             branchId: branchId,
+            variant: variation,
             variantId: variation.id,
             action: AppActions.created,
             retailPrice: variation.retailPrice,
@@ -3192,6 +3195,7 @@ class RealmAPI<M extends IJsonSerializable>
       final Stock stock = Stock(ObjectId(),
           lastTouched: DateTime.now(),
           id: randomNumber(),
+          variant: newVariant,
           action: 'create',
           branchId: branchId,
           variantId: newVariant.id!,
@@ -3694,6 +3698,7 @@ class RealmAPI<M extends IJsonSerializable>
         id: randomNumber(),
         lastTouched: DateTime.now(),
         branchId: subBranchId,
+        variant: variant,
         variantId: variant.id!,
         action: AppActions.created,
         retailPrice: variant.retailPrice,
@@ -3833,5 +3838,11 @@ class RealmAPI<M extends IJsonSerializable>
       realm.add<StockRequest>(stockRequest);
     });
     return orderId;
+  }
+
+  @override
+  List<Stock> stocks({required int branchId}) {
+    return realm!.query<Stock>(r'branchId == $0 AND variant.productName != $1',
+        [branchId, "temp"]).toList();
   }
 }

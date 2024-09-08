@@ -441,10 +441,43 @@ class IsolateHandler with Subscriptions {
     }
   }
 
+  /// handle properties added later as the app grow but needed to support old clients
   static void _selfHeal({Realm? realm}) {
+    // Query stocks where sold == 0.0
+    List<Stock> stocks = realm!.query<Stock>(r'sold == NULL').toList();
+
+    // Loop through each stock to calculate and update sold quantity
+    for (Stock stock in stocks) {
+      // Query past transaction items for the stock's variant
+      List<TransactionItem> items = realm.query<TransactionItem>(
+          r'variantId == $0', [stock.variantId]).toList();
+
+      // Calculate total quantity sold
+      int totalQuantitySold = items.fold(0, (a, b) => a + b.qty.toInt());
+
+      // Write updated sold quantity to realm
+      realm.write(() {
+        stock.sold = totalQuantitySold.toDouble();
+        talker.warning("healedStock: ${stock.id}");
+      });
+    }
+
+    /// query stock with variant null assign it
+    List<Stock> stocksV = realm.query<Stock>(r'variant == NULL').toList();
+    for (Stock stock in stocksV) {
+      Variant? variant =
+          realm.query<Variant>(r'id == $0', [stock.variantId]).firstOrNull;
+      if (variant != null) {
+        realm.write(() {
+          stock.variant = variant;
+          talker.warning("assignedVariant: ${stock.id}");
+        });
+      }
+    }
+
     /// first find any variant with empty itemClsCd add defaults
     List<Variant> variants =
-        realm!.query<Variant>(r'itemClsCd == null OR itemClsCd == ""').toList();
+        realm.query<Variant>(r'itemClsCd == null OR itemClsCd == ""').toList();
     talker.info("healed ${variants.length}");
     for (Variant variant in variants) {
       realm.write(() {

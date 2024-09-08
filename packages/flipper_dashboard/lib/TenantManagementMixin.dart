@@ -60,7 +60,10 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
 
         // Save access permissions
         await _savePermissions(newTenant, business, branch);
-        _updateTenant(tenant: newTenant, name: _nameController.text);
+        _updateTenant(
+            tenant: newTenant,
+            name: _nameController.text,
+            type: selectedUserType);
 
         await model.loadTenants();
         _resetForm();
@@ -73,12 +76,18 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  void _updateTenant({Tenant? tenant, String? name}) {
-    ProxyService.realm.realm!.write(() {
-      if (name != null && !name.isEmpty) {
-        tenant!.name = name;
-      }
-    });
+  void _updateTenant({Tenant? tenant, String? name, required String type}) {
+    try {
+      ProxyService.realm.realm!.write(() {
+        if (name != null && !name.isEmpty) {
+          tenant!.name = name;
+          tenant.type = type;
+          tenant.pin = tenant.userId;
+        }
+      });
+    } catch (e) {
+      talker.error(e);
+    }
   }
 
   Future<void> _savePermissions(
@@ -452,7 +461,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
           selectedUserType = newValue!;
         });
       },
-      items: <String>['Agent', 'Cashier', 'Admin']
+      items: <String>['Agent', 'Cashier', 'Admin', 'Driver']
           .map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
