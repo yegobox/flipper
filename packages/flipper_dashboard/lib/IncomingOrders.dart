@@ -10,6 +10,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:intl/intl.dart';
 
 class IncomingOrdersWidget extends HookConsumerWidget
     with StockRequestApprovalLogic {
@@ -74,6 +75,9 @@ class IncomingOrdersWidget extends HookConsumerWidget
                     _buildItemsList(request),
                     SizedBox(height: 8.0),
                     _buildStatusInfo(request),
+                    SizedBox(height: 16.0),
+                    _buildAdditionalInfo(
+                        request), // New section for additional info
                     SizedBox(height: 16.0),
                     _buildActionRow(context, ref, request),
                   ],
@@ -250,6 +254,71 @@ class IncomingOrdersWidget extends HookConsumerWidget
           ),
         ],
       ),
+    );
+  }
+
+  // New widget for displaying additional information
+
+  Widget _buildAdditionalInfo(StockRequest request) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildInfoItem(
+              icon: Icons.calendar_today,
+              title: 'Delivery Date',
+              content: request.deliveryDate != null
+                  ? DateFormat('MMMM d, y')
+                      .format(request.deliveryDate!.toLocal())
+                  : 'Not specified',
+            ),
+            const SizedBox(height: 12),
+            _buildInfoItem(
+              icon: Icons.note,
+              title: 'Order Note',
+              content: request.orderNote ?? 'No order note',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoItem({
+    required IconData icon,
+    required String title,
+    required String content,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: Colors.blue),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                content,
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

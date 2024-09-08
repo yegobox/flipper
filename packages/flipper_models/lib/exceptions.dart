@@ -103,3 +103,8 @@ class FailedPaymentException implements Exception {
   final String message;
   FailedPaymentException(this.message);
 }
+
+class NoOpenDrawer implements Exception {
+  final String message;
+  NoOpenDrawer(this.message);
+}

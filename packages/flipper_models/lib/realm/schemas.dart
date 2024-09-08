@@ -470,8 +470,9 @@ class _Stock {
 
   int? branchId;
   int? variantId;
-  double lowStock = 0;
   double currentStock = 0.0;
+  double? sold = 0.0;
+  double lowStock = 0;
 
   bool? canTrackingStock = true;
   bool? showLowStockAlert = true;
@@ -497,6 +498,8 @@ class _Stock {
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
   bool ebmSynced = false;
+
+  late _Variant? variant;
 }
 
 @RealmModel()
@@ -620,6 +623,9 @@ class _StockRequest {
   DateTime? deliveryDate;
   String? deliveryNote;
   String? orderNote;
+  bool? customerReceivedOrder = false;
+  bool? driverRequestDeliveryConfirmation = false;
+  int? driverId;
   late List<_TransactionItem> items;
   DateTime? updatedAt; // Optional field for tracking last update
 }
@@ -845,6 +851,7 @@ class _Tenant {
   ///but used in ui to achieve some functionality
 
   bool isLongPressed = false;
+  String type = "Agent";
 }
 
 @RealmModel()

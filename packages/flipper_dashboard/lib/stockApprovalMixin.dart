@@ -362,6 +362,7 @@ mixin StockRequestApprovalLogic {
       lastTouched: DateTime.now(),
       branchId: variant.branchId!,
       variantId: variant.id!,
+      variant: variant,
       action: AppActions.created,
       retailPrice: variant.retailPrice,
       supplyPrice: variant.supplyPrice,

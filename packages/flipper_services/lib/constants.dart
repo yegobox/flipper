@@ -29,6 +29,7 @@ final features = [
   AppFeature.AddProduct,
   AppFeature.CustomAmount,
   AppFeature.Sales,
+  AppFeature.Driver,
 ];
 
 class AppFeature {
@@ -40,6 +41,7 @@ class AppFeature {
   static const String AddProduct = "Add Product";
   static const String Orders = "Orders";
   static const String CustomAmount = "Custom Amount";
+  static const String Driver = "Driver";
 }
 
 class AccessLevel {

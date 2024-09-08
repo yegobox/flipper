@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/locator.dart' as loc;
@@ -22,7 +23,6 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     required bool refreshCredentials,
   }) async {
     final talker = TalkerFlutter.init();
-    // logOut();
     try {
       // Handle authentication refreshing.
       if (refreshCredentials) {
@@ -33,6 +33,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       await ensureRealmInitialized();
       await _hasActiveSubscription();
       await _allRequirementsMeets();
+      AppInitializer.initialize();
 
       // Handle navigation based on user state and app settings.
       if (ProxyService.local.isDrawerOpen(

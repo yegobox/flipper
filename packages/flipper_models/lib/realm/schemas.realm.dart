@@ -3823,8 +3823,9 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     String? bhfId,
     int? branchId,
     int? variantId,
-    double lowStock = 0,
     double currentStock = 0.0,
+    double? sold = 0.0,
+    double lowStock = 0,
     bool? canTrackingStock = true,
     bool? showLowStockAlert = true,
     int? productId,
@@ -3837,11 +3838,13 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     String? action,
     DateTime? deletedAt,
     bool ebmSynced = false,
+    Variant? variant,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Stock>({
-        'lowStock': 0,
         'currentStock': 0.0,
+        'sold': 0.0,
+        'lowStock': 0,
         'canTrackingStock': true,
         'showLowStockAlert': true,
         'value': 0.0,
@@ -3857,8 +3860,9 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'bhfId', bhfId);
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'variantId', variantId);
-    RealmObjectBase.set(this, 'lowStock', lowStock);
     RealmObjectBase.set(this, 'currentStock', currentStock);
+    RealmObjectBase.set(this, 'sold', sold);
+    RealmObjectBase.set(this, 'lowStock', lowStock);
     RealmObjectBase.set(this, 'canTrackingStock', canTrackingStock);
     RealmObjectBase.set(this, 'showLowStockAlert', showLowStockAlert);
     RealmObjectBase.set(this, 'productId', productId);
@@ -3871,6 +3875,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
+    RealmObjectBase.set(this, 'variant', variant);
   }
 
   Stock._();
@@ -3907,17 +3912,22 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
   set variantId(int? value) => RealmObjectBase.set(this, 'variantId', value);
 
   @override
-  double get lowStock =>
-      RealmObjectBase.get<double>(this, 'lowStock') as double;
-  @override
-  set lowStock(double value) => RealmObjectBase.set(this, 'lowStock', value);
-
-  @override
   double get currentStock =>
       RealmObjectBase.get<double>(this, 'currentStock') as double;
   @override
   set currentStock(double value) =>
       RealmObjectBase.set(this, 'currentStock', value);
+
+  @override
+  double? get sold => RealmObjectBase.get<double>(this, 'sold') as double?;
+  @override
+  set sold(double? value) => RealmObjectBase.set(this, 'sold', value);
+
+  @override
+  double get lowStock =>
+      RealmObjectBase.get<double>(this, 'lowStock') as double;
+  @override
+  set lowStock(double value) => RealmObjectBase.set(this, 'lowStock', value);
 
   @override
   bool? get canTrackingStock =>
@@ -3992,6 +4002,13 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
   set ebmSynced(bool value) => RealmObjectBase.set(this, 'ebmSynced', value);
 
   @override
+  Variant? get variant =>
+      RealmObjectBase.get<Variant>(this, 'variant') as Variant?;
+  @override
+  set variant(covariant Variant? value) =>
+      RealmObjectBase.set(this, 'variant', value);
+
+  @override
   Stream<RealmObjectChanges<Stock>> get changes =>
       RealmObjectBase.getChanges<Stock>(this);
 
@@ -4010,8 +4027,9 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       'bhfId': bhfId.toEJson(),
       'branchId': branchId.toEJson(),
       'variantId': variantId.toEJson(),
-      'lowStock': lowStock.toEJson(),
       'currentStock': currentStock.toEJson(),
+      'sold': sold.toEJson(),
+      'lowStock': lowStock.toEJson(),
       'canTrackingStock': canTrackingStock.toEJson(),
       'showLowStockAlert': showLowStockAlert.toEJson(),
       'productId': productId.toEJson(),
@@ -4024,6 +4042,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       'action': action.toEJson(),
       'deletedAt': deletedAt.toEJson(),
       'ebmSynced': ebmSynced.toEJson(),
+      'variant': variant.toEJson(),
     };
   }
 
@@ -4041,8 +4060,9 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
           bhfId: fromEJson(ejson['bhfId']),
           branchId: fromEJson(ejson['branchId']),
           variantId: fromEJson(ejson['variantId']),
-          lowStock: fromEJson(ejson['lowStock'], defaultValue: 0),
           currentStock: fromEJson(ejson['currentStock'], defaultValue: 0.0),
+          sold: fromEJson(ejson['sold'], defaultValue: 0.0),
+          lowStock: fromEJson(ejson['lowStock'], defaultValue: 0),
           canTrackingStock:
               fromEJson(ejson['canTrackingStock'], defaultValue: true),
           showLowStockAlert:
@@ -4057,6 +4077,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
           action: fromEJson(ejson['action']),
           deletedAt: fromEJson(ejson['deletedAt']),
           ebmSynced: fromEJson(ejson['ebmSynced'], defaultValue: false),
+          variant: fromEJson(ejson['variant']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -4073,8 +4094,9 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('bhfId', RealmPropertyType.string, optional: true),
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),
       SchemaProperty('variantId', RealmPropertyType.int, optional: true),
-      SchemaProperty('lowStock', RealmPropertyType.double),
       SchemaProperty('currentStock', RealmPropertyType.double),
+      SchemaProperty('sold', RealmPropertyType.double, optional: true),
+      SchemaProperty('lowStock', RealmPropertyType.double),
       SchemaProperty('canTrackingStock', RealmPropertyType.bool,
           optional: true),
       SchemaProperty('showLowStockAlert', RealmPropertyType.bool,
@@ -4090,6 +4112,8 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('ebmSynced', RealmPropertyType.bool),
+      SchemaProperty('variant', RealmPropertyType.object,
+          optional: true, linkTarget: 'Variant'),
     ]);
   }();
 
@@ -4750,6 +4774,8 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
 
 class StockRequest extends _StockRequest
     with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
   StockRequest(
     ObjectId realmId, {
     int? id,
@@ -4760,9 +4786,18 @@ class StockRequest extends _StockRequest
     DateTime? deliveryDate,
     String? deliveryNote,
     String? orderNote,
+    bool? customerReceivedOrder = false,
+    bool? driverRequestDeliveryConfirmation = false,
+    int? driverId,
     Iterable<TransactionItem> items = const [],
     DateTime? updatedAt,
   }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<StockRequest>({
+        'customerReceivedOrder': false,
+        'driverRequestDeliveryConfirmation': false,
+      });
+    }
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
     RealmObjectBase.set(this, 'mainBranchId', mainBranchId);
@@ -4772,6 +4807,10 @@ class StockRequest extends _StockRequest
     RealmObjectBase.set(this, 'deliveryDate', deliveryDate);
     RealmObjectBase.set(this, 'deliveryNote', deliveryNote);
     RealmObjectBase.set(this, 'orderNote', orderNote);
+    RealmObjectBase.set(this, 'customerReceivedOrder', customerReceivedOrder);
+    RealmObjectBase.set(this, 'driverRequestDeliveryConfirmation',
+        driverRequestDeliveryConfirmation);
+    RealmObjectBase.set(this, 'driverId', driverId);
     RealmObjectBase.set<RealmList<TransactionItem>>(
         this, 'items', RealmList<TransactionItem>(items));
     RealmObjectBase.set(this, 'updatedAt', updatedAt);
@@ -4836,6 +4875,26 @@ class StockRequest extends _StockRequest
   set orderNote(String? value) => RealmObjectBase.set(this, 'orderNote', value);
 
   @override
+  bool? get customerReceivedOrder =>
+      RealmObjectBase.get<bool>(this, 'customerReceivedOrder') as bool?;
+  @override
+  set customerReceivedOrder(bool? value) =>
+      RealmObjectBase.set(this, 'customerReceivedOrder', value);
+
+  @override
+  bool? get driverRequestDeliveryConfirmation =>
+      RealmObjectBase.get<bool>(this, 'driverRequestDeliveryConfirmation')
+          as bool?;
+  @override
+  set driverRequestDeliveryConfirmation(bool? value) =>
+      RealmObjectBase.set(this, 'driverRequestDeliveryConfirmation', value);
+
+  @override
+  int? get driverId => RealmObjectBase.get<int>(this, 'driverId') as int?;
+  @override
+  set driverId(int? value) => RealmObjectBase.set(this, 'driverId', value);
+
+  @override
   RealmList<TransactionItem> get items =>
       RealmObjectBase.get<TransactionItem>(this, 'items')
           as RealmList<TransactionItem>;
@@ -4873,6 +4932,10 @@ class StockRequest extends _StockRequest
       'deliveryDate': deliveryDate.toEJson(),
       'deliveryNote': deliveryNote.toEJson(),
       'orderNote': orderNote.toEJson(),
+      'customerReceivedOrder': customerReceivedOrder.toEJson(),
+      'driverRequestDeliveryConfirmation':
+          driverRequestDeliveryConfirmation.toEJson(),
+      'driverId': driverId.toEJson(),
       'items': items.toEJson(),
       'updatedAt': updatedAt.toEJson(),
     };
@@ -4895,6 +4958,12 @@ class StockRequest extends _StockRequest
           deliveryDate: fromEJson(ejson['deliveryDate']),
           deliveryNote: fromEJson(ejson['deliveryNote']),
           orderNote: fromEJson(ejson['orderNote']),
+          customerReceivedOrder:
+              fromEJson(ejson['customerReceivedOrder'], defaultValue: false),
+          driverRequestDeliveryConfirmation: fromEJson(
+              ejson['driverRequestDeliveryConfirmation'],
+              defaultValue: false),
+          driverId: fromEJson(ejson['driverId']),
           items: fromEJson(ejson['items']),
           updatedAt: fromEJson(ejson['updatedAt']),
         ),
@@ -4918,6 +4987,12 @@ class StockRequest extends _StockRequest
           optional: true),
       SchemaProperty('deliveryNote', RealmPropertyType.string, optional: true),
       SchemaProperty('orderNote', RealmPropertyType.string, optional: true),
+      SchemaProperty('customerReceivedOrder', RealmPropertyType.bool,
+          optional: true),
+      SchemaProperty(
+          'driverRequestDeliveryConfirmation', RealmPropertyType.bool,
+          optional: true),
+      SchemaProperty('driverId', RealmPropertyType.int, optional: true),
       SchemaProperty('items', RealmPropertyType.object,
           linkTarget: 'TransactionItem',
           collectionType: RealmCollectionType.list),
@@ -6322,11 +6397,13 @@ class Tenant extends _Tenant with RealmEntity, RealmObjectBase, RealmObject {
     bool? sessionActive,
     bool? isDefault,
     bool isLongPressed = false,
+    String type = "Agent",
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Tenant>({
         'nfcEnabled': false,
         'isLongPressed': false,
+        'type': "Agent",
       });
     }
     RealmObjectBase.set(this, 'id', id);
@@ -6344,6 +6421,7 @@ class Tenant extends _Tenant with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'sessionActive', sessionActive);
     RealmObjectBase.set(this, 'isDefault', isDefault);
     RealmObjectBase.set(this, 'isLongPressed', isLongPressed);
+    RealmObjectBase.set(this, 'type', type);
   }
 
   Tenant._();
@@ -6436,6 +6514,11 @@ class Tenant extends _Tenant with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'isLongPressed', value);
 
   @override
+  String get type => RealmObjectBase.get<String>(this, 'type') as String;
+  @override
+  set type(String value) => RealmObjectBase.set(this, 'type', value);
+
+  @override
   Stream<RealmObjectChanges<Tenant>> get changes =>
       RealmObjectBase.getChanges<Tenant>(this);
 
@@ -6463,6 +6546,7 @@ class Tenant extends _Tenant with RealmEntity, RealmObjectBase, RealmObject {
       'sessionActive': sessionActive.toEJson(),
       'isDefault': isDefault.toEJson(),
       'isLongPressed': isLongPressed.toEJson(),
+      'type': type.toEJson(),
     };
   }
 
@@ -6489,6 +6573,7 @@ class Tenant extends _Tenant with RealmEntity, RealmObjectBase, RealmObject {
           sessionActive: fromEJson(ejson['sessionActive']),
           isDefault: fromEJson(ejson['isDefault']),
           isLongPressed: fromEJson(ejson['isLongPressed'], defaultValue: false),
+          type: fromEJson(ejson['type'], defaultValue: "Agent"),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -6515,6 +6600,7 @@ class Tenant extends _Tenant with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('sessionActive', RealmPropertyType.bool, optional: true),
       SchemaProperty('isDefault', RealmPropertyType.bool, optional: true),
       SchemaProperty('isLongPressed', RealmPropertyType.bool),
+      SchemaProperty('type', RealmPropertyType.string),
     ]);
   }();
 

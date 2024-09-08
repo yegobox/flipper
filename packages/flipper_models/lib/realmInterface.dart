@@ -27,7 +27,8 @@ abstract class RealmApiInterface {
   Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password});
 
-  Future<double> stocks({int? productId, int? variantId});
+  Future<double> totalStock({int? productId, int? variantId});
+  List<Stock> stocks({required int branchId});
   Stream<double> getStockStream(
       {int? productId, int? variantId, required int branchId});
   List<ITransaction> transactions({
