@@ -934,7 +934,7 @@ class LocalRealmApi extends RealmAPI
         [cashierId, true, branchId]).firstOrNull;
 
     if (drawer == null) {
-      throw NoOpenDrawer("There is no open Drawer");
+      return false;
     }
     return true;
   }
