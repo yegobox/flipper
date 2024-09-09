@@ -201,21 +201,28 @@ class LocalRealmApi extends RealmAPI
       await configureRemoteRealm(userPhone, user, localRealm: localRealm);
 
       /// before updating local make sure there is realm subscription registered for Access
-      List<String> subscriptions =
-          ProxyService.realm.activeRealmSubscriptions();
+      try {
+        if (ProxyService.realm.realm != null) {
+          List<String> subscriptions =
+              ProxyService.realm.activeRealmSubscriptions();
+          if (!subscriptions
+              .contains('access-${ProxyService.box.getBusinessId()}')) {
+            // If not, register the 'Access' subscription
+            await ProxyService.realm.forceSubs(
+              localRealm: localRealm,
+              userId: ProxyService.box.getUserId(),
+              branchId: ProxyService.box.getBranchId(),
+              businessId: ProxyService.box.getBusinessId(),
+            );
+          }
+        }
+      } catch (e, s) {
+        talker.info(e);
+        talker.error(s);
+      }
 
       /// wait for subscription before we go to downloadAssetSave line
 
-      if (!subscriptions
-          .contains('access-${ProxyService.box.getBusinessId()}')) {
-        // If not, register the 'Access' subscription
-        await ProxyService.realm.forceSubs(
-          localRealm: localRealm,
-          userId: ProxyService.box.getUserId(),
-          branchId: ProxyService.box.getBranchId(),
-          businessId: ProxyService.box.getBusinessId(),
-        );
-      }
       await updateLocalRealm(user, localRealm: ProxyService.local.localRealm);
       await ProxyService.realm.downloadAssetSave();
       AppInitializer.initialize();

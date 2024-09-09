@@ -2,9 +2,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:flipper_models/Subcriptions.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flipper_models/isolateHandelr.dart';
+import 'package:flipper_services/cron_service.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flipper_models/helperModels/paystack_customer.dart';
@@ -2124,7 +2127,8 @@ class RealmAPI<M extends IJsonSerializable>
         const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
 
     try {
-      final app = App(AppConfiguration(AppSecrets.appId,
+      final app = App(AppConfiguration(
+          foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId,
           baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
 
       /// When this login does not execute or take too long user will not be able
@@ -2133,7 +2137,9 @@ class RealmAPI<M extends IJsonSerializable>
       /// this will help in avoiding sharing api key!
       /// https://github.com/realm/realm-dart/issues/1205#issuecomment-1465778841
       User user = app.currentUser ??
-          await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
+          await app.logIn(Credentials.apiKey(foundation.kDebugMode
+              ? AppSecrets.mongoApiSecretDebug
+              : AppSecrets.mongoApiSecret));
       if (useInMemoryDb ||
           encryptionKey == null ||
           encryptionKey.isEmpty ||
@@ -2199,7 +2205,12 @@ class RealmAPI<M extends IJsonSerializable>
     if (config == null) {
       throw Exception();
     }
-    realm = await _openRealm(config: config, user: user, app: app);
+    if (realm == null) {
+      realm = await _openRealm(config: config, user: user, app: app);
+    } else {
+      realm!.close();
+      realm = await _openRealm(config: config, user: user, app: app);
+    }
     updateSubscription(
       localRealm: localRealm,
       userId: userId,
@@ -2228,73 +2239,140 @@ class RealmAPI<M extends IJsonSerializable>
             handleCompensatingWrite(syncError);
           }
         },
-        clientResetHandler: RecoverOrDiscardUnsyncedChangesHandler(
-          onBeforeReset: (realm) {
-            print(
-                'A client reset is about to occur. The app may freeze momentarily.');
-          },
-          onAfterRecovery: (before, after) {
-            print('Automatic client reset recovery completed successfully.');
-          },
-          onAfterDiscard: (before, after) {
-            talker.error(
-                'Automatic client reset recovery failed. Local changes have been discarded.');
-          },
-
-          // ClientResetNoRecovery
-          onManualResetFallback: (clientResetError) async {
-            print('Automatic client reset failed. Manual reset is required.');
-
-            await Future.delayed(Duration(seconds: 10));
-
-            // 1. Close the realm
-            realm!.close();
-
-            // 2. Delete the realm file
-            try {
-              // clientResetError.resetRealm();
-              File realmFile = File(realm!.config.path);
-              if (await realmFile.exists()) {
-                await realmFile.delete();
-                talker.warning('Realm file deleted successfully.');
-              }
-            } catch (e) {
-              // print('Error deleting realm file: $e');
-              rethrow;
+        clientResetHandler: ManualRecoveryHandler((clientResetError) async {
+          // 4. Iterate and Update (Handle Conflicts)
+          try {
+            ProxyService.cron.isolateKill();
+            final path = realm!.config.path;
+            // You must close a realm before deleting it
+            if (realm != null) {
+              realm!.close();
             }
 
-            // 3. Restart the app
-            talker.warning('Restarting the app...');
-            // exit(0);
+            // Delete the realm
+            Realm.deleteRealm(path);
+            // 1. Open the Backup Realm
+            final backupRealm = await Realm.open(
+              Configuration.flexibleSync(
+                user,
+                realmModels,
+                path: clientResetError.backupFilePath,
+                encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+              ),
+            );
 
-            //the app re-initialize here
-          },
-        ),
+            // 2. Open the Original Realm
+            final originalRealm = await Realm.open(
+              Configuration.flexibleSync(
+                user,
+                realmModels,
+                path: clientResetError.originalFilePath,
+                encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+              ),
+            );
+
+            // 3. Retrieve Backup Objects
+            final backupObjects = backupRealm.all(); // Get all objects
+            for (final backupObject in backupObjects) {
+              await originalRealm.write(() async {
+                // Resolve Conflicts:
+                originalRealm.add(backupObject, update: true);
+              });
+            }
+            // 5. Ensure Realms are Closed
+            backupRealm.close();
+            originalRealm.close();
+
+            // 6. Resume Synchronization
+            originalRealm.syncSession.resume();
+            await originalRealm.subscriptions.waitForSynchronization();
+
+            /// re-configure the realm with same information required to re-init realm
+            configure(
+                useInMemoryDb: false,
+                branchId: ProxyService.box.getBranchId(),
+                businessId: ProxyService.box.getBusinessId(),
+                encryptionKey: ProxyService.box.encryptionKey(),
+                userId: ProxyService.box.getUserId(),
+                localRealm: ProxyService.local.localRealm);
+          } catch (e) {
+            talker.error('Error during manual recovery: $e');
+          } finally {
+            print('Realms closed after recovery process.');
+          }
+        }),
       );
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<Realm> _openRealm(
-      {required Configuration config,
-      required User user,
-      required App app}) async {
-    CancellationToken token = CancellationToken();
-    Future<void>.delayed(
-        const Duration(seconds: 30),
-        () => token.cancel(CancelledException(
-            cancellationReason: "Realm took too long to open")));
+  Future<Realm> _openRealm({
+    required Configuration config,
+    required User user,
+    required App app,
+  }) async {
+    const int maxRetries = 3;
+    const int retryDelay = 1000; // milliseconds
 
+    for (int attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        CancellationToken token = CancellationToken();
+        Future<void>.delayed(
+          const Duration(seconds: 30),
+          () => token.cancel(CancelledException(
+            cancellationReason: "Realm took too long to open",
+          )),
+        );
+
+        // Attempt to open the Realm
+        return Realm(config);
+      } on RealmException catch (e) {
+        talker.warning("ErorCode: ${e.hashCode}");
+
+        // Handle the case of the Realm being opened with a different sync user
+        if (e.toString().contains("already opened with different sync user")) {
+          talker.warning(
+              'Realm already opened with different sync user. Retrying...');
+          await Future.delayed(
+              Duration(milliseconds: retryDelay * (attempt + 1)));
+
+          // On last retry, force close the Realm
+          if (attempt == maxRetries - 1) {
+            return await _forceCloseAndReopen(config, user, app);
+          }
+        } else {
+          talker.error('RealmException: ${e.toString()}');
+          rethrow;
+        }
+      } on CancelledException catch (_) {
+        talker.warning('Realm opening timed out. Retrying...');
+      } catch (e, s) {
+        talker.error('Error opening Realm: $e');
+        talker.error(s);
+        rethrow;
+      }
+    }
+
+    throw Exception('Failed to open Realm after $maxRetries attempts');
+  }
+
+  Future<Realm> _forceCloseAndReopen(
+      Configuration config, User user, App app) async {
     try {
-      return Realm(config);
-    } on CancelledException catch (_) {
-      return Realm(config);
-    } catch (e, s) {
-      talker.error(s);
-      close();
-      throw e;
-      // return Realm(config);
+      // Close the Realm if it's open
+
+      realm?.close();
+      // close any realm inside isolate
+
+      // Ensure the Realm file is deleted
+      Realm.deleteRealm(config.path);
+
+      // Open a new Realm instance
+      return await Realm(config);
+    } catch (e) {
+      talker.error('Error force closing and reopening Realm: $e');
+      rethrow;
     }
   }
 
@@ -2883,6 +2961,7 @@ class RealmAPI<M extends IJsonSerializable>
       return _downloadAsset(
           branchId, assetName, applicationSupportDirectory.path, subPath!);
     }
+    if (realm == null) return Stream.empty();
 
     List<Assets> assets =
         realm!.query<Assets>(r'branchId == $0', [branchId]).toList();

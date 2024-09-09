@@ -23,6 +23,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     required bool refreshCredentials,
   }) async {
     final talker = TalkerFlutter.init();
+    logOut();
     try {
       // Handle authentication refreshing.
       if (refreshCredentials) {

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:isolate';
-
+import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/Subcriptions.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
@@ -22,6 +22,7 @@ import 'package:talker_flutter/talker_flutter.dart';
 class IsolateHandler with Subscriptions {
   static Realm? realm;
   static Realm? localRealm;
+
   static Future<void> flexibleSync(List<dynamic> args) async {
     String? dbPatch = args[3] as String?;
     String? key = args[4] as String?;
@@ -37,7 +38,8 @@ class IsolateHandler with Subscriptions {
     localRealm?.close();
     localRealm = Realm(configLocal);
 
-    final app = App.getById(AppSecrets.appId);
+    final app = App.getById(
+        foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId);
     final user = app?.currentUser!;
     FlexibleSyncConfiguration config =
         flexibleConfig(user, encryptionKey!.toIntList(), dbPatch);
@@ -71,7 +73,8 @@ class IsolateHandler with Subscriptions {
         bhfId == null ||
         URI == null) return;
 
-    final app = App.getById(AppSecrets.appId);
+    final app = App.getById(
+        foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId);
     final user = app?.currentUser!;
     FlexibleSyncConfiguration config =
         flexibleConfig(user, encryptionKey.toIntList(), dbPatch);
@@ -171,6 +174,9 @@ class IsolateHandler with Subscriptions {
           anythingUpdated = true;
         } catch (e, s) {
           talker.error(s);
+        } finally {
+          realm?.close();
+          sendPort.send('notification:${1}');
         }
       }
     }
@@ -255,6 +261,9 @@ class IsolateHandler with Subscriptions {
           anythingUpdated = true;
         } catch (e, s) {
           talker.error(s);
+        } finally {
+          realm?.close();
+          sendPort.send('notification:${1}');
         }
       }
     }
@@ -300,7 +309,11 @@ class IsolateHandler with Subscriptions {
           await RWTax().saveCustomer(customer: iCustomer, URI: URI);
           sendPort.send('customer:${customer.id}');
           anythingUpdated = true;
-        } catch (e) {}
+        } catch (e) {
+        } finally {
+          realm?.close();
+          sendPort.send('notification:${1}');
+        }
       }
     }
 

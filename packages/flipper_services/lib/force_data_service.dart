@@ -65,8 +65,8 @@ class ForceDataEntryService {
       final doesBusinessHavePermission = await ProxyService.realmHttp
           .hasAcessSaved(
               flipperHttpClient: ProxyService.http, businessId: businessId!);
-      if (!doesBusinessHavePermission &&
-          ProxyService.box.yegoboxLoggedInUserPermission() == 'admin') {
+      String? ybPermission = ProxyService.box.yegoboxLoggedInUserPermission();
+      if (!doesBusinessHavePermission && ybPermission == 'admin') {
         ProxyService.realm.realm!.write(() {
           for (var feature in features) {
             /// because having ticket is considered to be elevated permission you can't have both tickets and sales
