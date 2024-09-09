@@ -30,8 +30,16 @@ class CronService with Subscriptions {
   Future<void> deleteReceivedMessageFromServer() async {
     // Implement delete received message logic
   }
+  Isolate? isolate;
 
   final talker = TalkerFlutter.init();
+
+  void isolateKill() {
+    if (isolate != null) {
+      isolate?.kill();
+    }
+  }
+
   Future<void> _spawnIsolate(String name, dynamic isolateHandler) async {
     if (ProxyService.box.getBusinessId() == null) return;
     try {
@@ -41,7 +49,12 @@ class CronService with Subscriptions {
       if (ProxyService.realm
           .isTaxEnabled(business: ProxyService.local.getBusiness())) {
         ReceivePort receivePort = ReceivePort();
-        final isolate = await Isolate.spawn(
+
+        /// kill any isolate that might be registered before we register new one!
+        if (isolate != null) {
+          isolateKill();
+        }
+        isolate = await Isolate.spawn(
           isolateHandler,
           [
             RootIsolateToken.instance,
@@ -88,7 +101,7 @@ class CronService with Subscriptions {
               /// this means if there is no work done, the isolate will fail to trigger the kill event to use to be able
               /// to kill the current isolate, this is why we have at the bottom of the code to forcefully kill whatever isolate
               /// that is hanging somewhere around
-              isolate.kill();
+              isolate?.kill();
               ProxyService.notification
                   .sendLocalNotification(body: "System is up to date with EBM");
             }
@@ -99,7 +112,7 @@ class CronService with Subscriptions {
         );
         // Isolate.current.addOnExitListener(await receivePort.last);
         await Future.delayed(const Duration(seconds: 20));
-        isolate.kill();
+        isolate?.kill();
       }
     } catch (error, s) {
       talker.warning('Error managing isolates: $s');
