@@ -195,7 +195,7 @@ class RealmViaHttpService
   }
 
   @override
-  Future assignCustomerToTransaction(
+  void assignCustomerToTransaction(
       {required int customerId, int? transactionId}) {
     // TODO: implement assignCustomerToTransaction
     throw UnimplementedError();

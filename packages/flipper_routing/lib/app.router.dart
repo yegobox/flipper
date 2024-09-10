@@ -340,10 +340,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
           routeData.argsAs<CustomersArgs>(orElse: () => const CustomersArgs());
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.Customers(
-          key: args.key,
-          transactionId: args.transactionId,
-        ),
+        child: _i1.Customers(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -1687,34 +1684,24 @@ class OrdersRoute extends _i4.PageRouteInfo<void> {
 /// generated route for
 /// [_i1.Customers]
 class CustomersRoute extends _i4.PageRouteInfo<CustomersArgs> {
-  CustomersRoute({
-    _i5.Key? key,
-    int? transactionId,
-  }) : super(
+  CustomersRoute({_i5.Key? key})
+      : super(
           CustomersRoute.name,
           path: '/Customers',
-          args: CustomersArgs(
-            key: key,
-            transactionId: transactionId,
-          ),
+          args: CustomersArgs(key: key),
         );
 
   static const String name = 'Customers';
 }
 
 class CustomersArgs {
-  const CustomersArgs({
-    this.key,
-    this.transactionId,
-  });
+  const CustomersArgs({this.key});
 
   final _i5.Key? key;
 
-  final int? transactionId;
-
   @override
   String toString() {
-    return 'CustomersArgs{key: $key, transactionId: $transactionId}';
+    return 'CustomersArgs{key: $key}';
   }
 }
 
@@ -2768,13 +2755,11 @@ extension RouterStateExtension on _i3.RouterService {
 
   Future<dynamic> navigateToCustomers({
     _i5.Key? key,
-    int? transactionId,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       CustomersRoute(
         key: key,
-        transactionId: transactionId,
       ),
       onFailure: onFailure,
     );
@@ -3477,13 +3462,11 @@ extension RouterStateExtension on _i3.RouterService {
 
   Future<dynamic> replaceWithCustomers({
     _i5.Key? key,
-    int? transactionId,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       CustomersRoute(
         key: key,
-        transactionId: transactionId,
       ),
       onFailure: onFailure,
     );

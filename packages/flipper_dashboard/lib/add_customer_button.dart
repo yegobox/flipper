@@ -46,9 +46,7 @@ class AddCustomerButton extends StatelessWidget {
                 builder: (BuildContext context) {
                   return Padding(
                     padding: const EdgeInsets.only(top: 20.0),
-                    child: Customers(
-                      transactionId: transactionId ?? 0,
-                    ),
+                    child: Customers(),
                   );
                 },
               );

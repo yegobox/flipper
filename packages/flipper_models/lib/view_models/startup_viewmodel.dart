@@ -3,12 +3,14 @@ import 'dart:io';
 
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
@@ -23,7 +25,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     required bool refreshCredentials,
   }) async {
     final talker = TalkerFlutter.init();
-    logOut();
+    // logOut();
     try {
       // Handle authentication refreshing.
       if (refreshCredentials) {
@@ -99,6 +101,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       _routerService.navigateTo(PaymentPlanUIRoute());
     } else if (e is FailedPaymentException) {
       _routerService.navigateTo(FailedPaymentRoute());
+    } else if (e is RealmException) {
+      talker.warning("Realm Exception $e occurred");
     } else {
       // Handle other unexpected errors.
       await logOut();

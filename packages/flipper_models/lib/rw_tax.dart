@@ -262,276 +262,257 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse?> generateReceiptSignature(
-      {required ITransaction transaction,
-      required String receiptType,
-      required Counter counter,
-      String? purchaseCode,
-      required String URI}) async {
+  Future<RwApiResponse?> generateReceiptSignature({
+    required ITransaction transaction,
+    required String receiptType,
+    required Counter counter,
+    String? purchaseCode,
+    required String URI,
+  }) async {
+    // Get business details
     Business? business = await ProxyService.local.getBusiness();
-
     List<TransactionItem> items =
         await ProxyService.realm.getTransactionItemsByTransactionId(
       transactionId: transaction.id,
     );
+
+    // Get the current date and time in the required format yyyyMMddHHmmss
     String date = DateTime.now()
-        .toString()
-        .replaceAll(RegExp(r'[:-\s]'), '')
+        .toIso8601String()
+        .replaceAll(RegExp(r'[:-\sT]'), '')
         .substring(0, 14);
 
-    List<Map<String, dynamic>> itemsList = items
-        .map((item) => ITransactionItem(
-                id: item.id,
-                qty: item.qty,
-                discount: item.discount,
-                remainingStock: item.remainingStock,
-                itemCd: item.itemCd,
-                variantId: item.id,
-                qtyUnitCd: item.qtyUnitCd,
-                prc: item.price,
-                regrNm: item.regrNm,
-                dcRt: item.dcRt,
-                pkg: item.pkg,
-                dcAmt: item.dcAmt,
-                taxblAmt: item.taxAmt,
-                taxAmt: item.taxAmt,
-                itemClsCd: item.itemClsCd,
-                itemNm: item.name,
-                totAmt: item.totAmt,
-                itemSeq: item.itemSeq,
-                isrccCd: item.isrccCd,
-                isrccNm: item.isrccNm,
-                isrcRt: item.isrcRt,
-                isrcAmt: item.isrcAmt,
-                taxTyCd: item.taxTyCd,
-                bcd: item.bcd,
-                itemTyCd: item.itemTyCd,
-                itemStdNm: item.itemStdNm,
-                orgnNatCd: item.orgnNatCd,
-                pkgUnitCd: item.pkgUnitCd,
-                splyAmt: item.splyAmt,
-                tin: item.tin ?? business.tinNumber,
-                bhfId: item.bhfId ?? ProxyService.box.bhfId(),
-                dftPrc: item.dftPrc,
-                addInfo: item.addInfo,
-                isrcAplcbYn: item.isrcAplcbYn,
-                useYn: item.useYn,
-                regrId: item.regrId,
-                modrId: item.modrId,
-                modrNm: item.modrNm,
-                name: item.name)
-            .toJson())
-        .toList();
+    // Build item list
+    List<Map<String, dynamic>> itemsList =
+        items.map((item) => mapItemToJson(item, business)).toList();
 
-    double totalMinusExemptedProducts = items
+    // Calculate total for non-tax-exempt items
+    double totalTaxable = items
         .where((item) => !item.isTaxExempted)
-        .fold(0, (sum, item) => sum + (item.prc * item.qty));
+        .fold(0, (sum, item) => sum + (item.price * item.qty));
 
-    String salesTyCd;
-    String rcptTyCd;
+    // Get sales and receipt type codes
+    Map<String, String> receiptCodes = getReceiptCodes(receiptType);
+    Map<String, double> taxTotals = calculateTaxTotals(items);
 
-    switch (receiptType) {
-      case "NR":
-        salesTyCd = "N";
-        rcptTyCd = "R";
-        break;
-      case "NS":
-        salesTyCd = "N";
-        rcptTyCd = "S";
-        break;
-      case "CS":
-        salesTyCd = "C";
-        rcptTyCd = "S";
-        break;
-      case "TS":
-        salesTyCd = "T";
-        rcptTyCd = "S";
-        break;
-      case "PS":
-        salesTyCd = "P";
-        rcptTyCd = "S";
-        break;
-      default:
-        salesTyCd = "N";
-        rcptTyCd = "S";
-        break;
-    }
-
-    ///TODO: refactor required I have code like this in TaxController I will look for a way to put into one place
-    Map<String, double> taxTotals = {
-      'A': 0.0,
-      'B': 0.0,
-      'C': 0.0,
-      'D': 0.0,
-    };
-
-    try {
-      for (var item in items) {
-        // Log the item details
-        _talker!.warning(
-            "Processing item with price: ${(item.price == 0.0 ? 1 : item.price)} and quantity: ${item.qty}");
-
-        // Fetch the tax configuration
-        var taxConfig =
-            await ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
-
-        _talker!.warning("Tax To be applied on: ${item.taxTyCd}");
-        // Ensure taxPercentage is not null
-        if (taxConfig.taxPercentage == 0.0) {
-          _talker!.warning(
-              "Tax percentage is null for tax type: ${item.taxTyCd ?? "B"}");
-          continue; // Skip this item if tax percentage is null
-        }
-
-        // Calculate the tax amount
-        double taxAmount = (((item.price == 0.0 ? 1 : item.price) * item.qty));
-        talker.warning("Tax registered on ${item.taxTyCd}");
-        // Accumulate tax amount instead of overwriting
-        String taxType = item.taxTyCd ?? "B";
-
-        /// we know how to compute tax A so others remain to 0
-        if (taxTotals[taxType] == "A") {
-          taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
-        }
-
-        // Log the accumulated tax amount
-        _talker!.warning(
-            "Accumulated tax amount for ${taxType}: ${taxTotals[taxType]}");
-      }
-    } catch (s) {
-      _talker!.error(s);
-    }
-
+    // Retrieve customer information
     Customer? customer =
         ProxyService.realm.getCustomer(id: transaction.customerId);
 
-    double totalTaxA = taxTotals['A'] ?? 0.0;
-    double totalTaxB = taxTotals['B'] ?? 0.0;
-    double totalTaxC = taxTotals['C'] ?? 0.0;
-    double totalTaxD = taxTotals['D'] ?? 0.0;
-    Map<String, dynamic> data = {
-      "tin": business.tinNumber ?? 999909695,
+    // Build request data
+    Map<String, dynamic> requestData = buildRequestData(
+      business: business,
+      counter: counter,
+      transaction: transaction,
+      date: date,
+      totalTaxable: totalTaxable,
+      taxTotals: taxTotals,
+      receiptCodes: receiptCodes,
+      customer: customer,
+      itemsList: itemsList,
+      purchaseCode: purchaseCode,
+    );
+
+    try {
+      // Send request
+      final url = '$URI/trnsSales/saveSales';
+      final response = await sendPostRequest(url, requestData);
+
+      // Handle response
+      if (response.statusCode == 200) {
+        final data = RwApiResponse.fromJson(response.data);
+        if (data.resultCd != "000") {
+          throw Exception(data.resultMsg);
+        }
+
+        // Update transaction and item statuses
+        updateTransactionAndItems(transaction, items, receiptCodes['rcptTyCd']);
+        return data;
+      } else {
+        throw Exception(
+            "Failed to send request. Status Code: ${response.statusCode}");
+      }
+    } catch (e) {
+      _talker?.error(e);
+      rethrow;
+    }
+  }
+
+// Helper function to map TransactionItem to JSON
+  Map<String, dynamic> mapItemToJson(TransactionItem item, Business? business) {
+    return ITransactionItem(
+      id: item.id,
+      qty: item.qty,
+      discount: item.discount,
+      remainingStock: item.remainingStock,
+      itemCd: item.itemCd,
+      variantId: item.id,
+      qtyUnitCd: item.qtyUnitCd,
+      prc: item.price,
+      regrNm: item.regrNm ?? "Registrar", // Ensure regrNm is not null
+      dcRt: item.dcRt,
+      pkg: item.pkg,
+      dcAmt: item.dcAmt,
+      taxblAmt: item.taxAmt,
+      taxAmt: item.taxAmt,
+      itemClsCd: item.itemClsCd,
+      itemNm: item.name,
+      totAmt: item.totAmt,
+      itemSeq: item.itemSeq,
+      isrccCd: item.isrccCd,
+      isrccNm: item.isrccNm,
+      isrcRt: item.isrcRt,
+      isrcAmt: item.isrcAmt,
+      taxTyCd: item.taxTyCd,
+      bcd: item.bcd,
+      itemTyCd: item.itemTyCd,
+      itemStdNm: item.itemStdNm,
+      orgnNatCd: item.orgnNatCd,
+      pkgUnitCd: item.pkgUnitCd,
+      splyAmt: item.splyAmt,
+      tin: item.tin ?? business?.tinNumber,
+      bhfId: item.bhfId ?? ProxyService.box.bhfId(),
+      dftPrc: item.dftPrc,
+      addInfo: item.addInfo,
+      isrcAplcbYn: item.isrcAplcbYn,
+      useYn: item.useYn,
+      regrId:
+          item.regrId ?? "RegistrarID", // Ensure regrId and modrId are not null
+      modrId: item.modrId ?? "ModifierID",
+      modrNm: item.modrNm ?? "Modifier", // Ensure modrNm is not null
+      name: item.name,
+    ).toJson();
+  }
+
+// Helper function to calculate tax totals
+  Map<String, double> calculateTaxTotals(List<TransactionItem> items) {
+    Map<String, double> taxTotals = {'A': 0.0, 'B': 0.0, 'C': 0.0, 'D': 0.0};
+    for (var item in items) {
+      String taxType = item.taxTyCd ?? 'B';
+      double taxAmount = item.price * item.qty;
+      // B is VAT 18, others remain 0
+      if (taxType == "B") {
+        taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
+      }
+    }
+    return taxTotals;
+  }
+
+// Helper function to determine receipt type codes
+  Map<String, String> getReceiptCodes(String receiptType) {
+    switch (receiptType) {
+      case 'NR':
+        return {'salesTyCd': 'N', 'rcptTyCd': 'R'};
+      case 'NS':
+        return {'salesTyCd': 'N', 'rcptTyCd': 'S'};
+      case 'CS':
+        return {'salesTyCd': 'C', 'rcptTyCd': 'S'};
+      case 'TS':
+        return {'salesTyCd': 'T', 'rcptTyCd': 'S'};
+      case 'PS':
+        return {'salesTyCd': 'P', 'rcptTyCd': 'S'};
+      default:
+        return {'salesTyCd': 'N', 'rcptTyCd': 'S'};
+    }
+  }
+
+// Helper function to build request data
+  Map<String, dynamic> buildRequestData({
+    required Business? business,
+    required Counter counter,
+    required ITransaction transaction,
+    required String date,
+    required double totalTaxable,
+    required Map<String, double> taxTotals,
+    required Map<String, String> receiptCodes,
+    Customer? customer,
+    required List<Map<String, dynamic>> itemsList,
+    String? purchaseCode,
+  }) {
+    /// because other rate for tax are not known are set to 1/1
+    final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118) +
+        ((taxTotals['A'] ?? 0.0) * 1 / 1) +
+        ((taxTotals['C'] ?? 0.0) * 1 / 1) +
+        ((taxTotals['D'] ?? 0.0) * 1 / 1);
+    return {
+      "tin": business?.tinNumber ?? 999909695,
       "bhfId": ProxyService.box.bhfId() ?? "00",
       "invcNo": counter.invcNo,
       "orgInvcNo": 0,
-      "salesTyCd": salesTyCd,
-      "rcptTyCd": rcptTyCd,
-      "pmtTyCd": "01", // 01: is cash
-      "salesSttsCd": "02", //02: Approved
+      "salesTyCd": receiptCodes['salesTyCd'],
+      "rcptTyCd": receiptCodes['rcptTyCd'],
+      "pmtTyCd": "01",
+      "salesSttsCd": "02",
       "cfmDt": date,
       "salesDt": date.substring(0, 8),
       "stockRlsDt": date,
       "totItemCnt": itemsList.length,
-      "taxblAmtB": totalTaxB,
-      "taxblAmtA": totalTaxA,
-      "taxblAmtC": totalTaxC,
-      "taxblAmtD": totalTaxD,
-      "taxAmtC": totalTaxC,
-      "taxAmtA": totalTaxA,
-      "taxAmtD": totalTaxD,
-      "taxAmtB": totalTaxB,
-      // "taxAmtB": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
-      "totTaxblAmt": totalMinusExemptedProducts,
-      "totTaxAmt": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
-      "totAmt": totalMinusExemptedProducts,
-      "prchrAcptcYn": "Y",
+
+      // Ensure tax amounts and taxable amounts are set to 0 if null
+      "taxblAmtA": taxTotals['A'] ?? 0.0,
+      "taxblAmtB": taxTotals['B'] ?? 0.0,
+      "taxblAmtC": taxTotals['C'] ?? 0.0,
+      "taxblAmtD": taxTotals['D'] ?? 0.0,
+
+      "taxAmtA": 0.0,
+      "taxAmtB": ((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2),
+      "taxAmtC": 0.0,
+      "taxAmtD": 0.0,
+
+      "taxRtA": (taxTotals['A'] != null && taxTotals['A']! > 0) ? 0 : 0,
+      "taxRtB": (taxTotals['B'] != null && taxTotals['B']! > 0) ? 18 : 18,
+      "taxRtC": (taxTotals['C'] != null && taxTotals['C']! > 0) ? 0 : 0.0,
+      "taxRtD": (taxTotals['D'] != null && taxTotals['D']! > 0) ? 0 : 0.0,
+
+      "totTaxblAmt": totalTaxable,
+
+      "totTaxAmt": totalTax.toStringAsFixed(2),
+      "totAmt": totalTaxable,
+
       "regrId": transaction.id,
       "regrNm": transaction.id,
       "modrId": transaction.id,
       "modrNm": transaction.id,
-      "taxRtA": 0,
-      "taxRtB": 18,
-      "taxRtC": 0,
-      "taxRtD": 0,
-      "custNm": customer?.custNm ?? "N/A",
-      "prcOrdCd": null,
-      "cnclDt": null,
-      "rfdDt": null,
-      "rfdRsnCd": receiptType == "NR"
-          ? ProxyService.box.getRefundReason() ?? "05" // 05 is refunded
-          : null,
-      "remark": "",
 
+      "custNm": customer?.custNm ?? "N/A",
+      "remark": "",
+      "prchrAcptcYn": "Y",
+      // Receipt info
       "receipt": {
+        "prchrAcptcYn": "Y", // Ensure this is not null
         "rptNo": counter.invcNo,
-        //TODO: make this dynamic
-        "adrs": "Kigali,Rwanda",
-        // "rcptPbctDt": date,
-        // "intrlData": itemPrefix +
-        //     transaction.id.toString() +
-        //     DateTime.now().microsecondsSinceEpoch.toString().substring(0, 10),
-        // "rcptSign": transaction.id,
-        "trdeNm": business.name ?? "YEGOBOX",
-        // "topMsg": "Shop with us",
+        "adrs": "Kigali, Rwanda",
         "topMsg":
-            "${business.name}\n\nAddress:${business.adrs}\nTEL: ${ProxyService.box.getUserPhone()}\nTIN: ${business.tinNumber}",
+            "${business?.name}\n\nAddress:${business?.adrs}\nTEL: ${ProxyService.box.getUserPhone()}\nTIN: ${business?.tinNumber}",
         "btmMsg": "Welcome",
-        "prchrAcptcYn": "N",
         "custMblNo": ProxyService.box.currentSaleCustomerPhoneNumber(),
       },
-      "itemList": itemsList
+      "itemList": itemsList,
     };
+  }
 
-    Map<String, dynamic> finalData;
+// Helper function to update transaction and item statuses
+  void updateTransactionAndItems(ITransaction transaction,
+      List<TransactionItem> items, String? receiptType) {
+    for (TransactionItem item in items) {
+      Stock? stock = ProxyService.realm.stockByVariantId(
+        variantId: item.variantId!,
+        branchId: ProxyService.box.getBranchId()!,
+      );
 
-    if (customer != null) {
-      finalData = addFieldIfCondition(
-          json: data,
-          transaction: transaction,
-          customer: customer,
-          purchaseCode: purchaseCode);
-    } else {
-      finalData = data;
-    }
-    _talker!.warning(finalData);
-    try {
-      final url = '${URI}/trnsSales/saveSales';
-      final response = await sendPostRequest(url, finalData);
-      // Clipboard.setData(ClipboardData(text: finalData.toString()));
-      if (response.statusCode == 200) {
-        final data = RwApiResponse.fromJson(response.data);
-        if (data.resultCd != "000") {
-          throw Exception(
-            "${data.resultMsg}",
-          );
+      ProxyService.realm.realm!.write(() {
+        item.ebmSynced = true;
+        stock?.ebmSynced = false;
+        if (receiptType == "R") {
+          item.isRefunded = true;
         }
-
-        /// update transaction.ebmSynced to true;
-        /// update transaction.refunded to false < get this flag given to the type of sale type being used.
-        for (TransactionItem item in items) {
-          /// here we update stock, so it is updated back to rra backoffice as we have new!
-
-          Stock? stock = ProxyService.realm.stockByVariantId(
-              variantId: item.variantId!,
-              branchId: ProxyService.box.getBranchId()!);
-
-          ProxyService.realm.realm!.write(() {
-            item.ebmSynced = true;
-            if (stock != null) {
-              stock.ebmSynced = false;
-            }
-            if (rcptTyCd == "R") {
-              item.isRefunded = true;
-            }
-          });
-        }
-        ProxyService.realm.realm!.write(() {
-          transaction.ebmSynced = true;
-          if (rcptTyCd == "R") {
-            transaction.isRefunded = true;
-          } else {
-            transaction.isRefunded = false;
-          }
-        });
-        return data;
-      } else {
-        throw Exception(
-          "Failed to send request. Status Code: ${response.statusCode}",
-        );
-      }
-    } catch (e) {
-      rethrow;
+      });
     }
+
+    ProxyService.realm.realm!.write(() {
+      transaction.ebmSynced = true;
+      transaction.isRefunded = receiptType == "R";
+    });
   }
 
   // Define these constants at the top level of your file
