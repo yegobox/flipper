@@ -117,7 +117,7 @@ class _SearchInputWithDropdownState extends State<SearchInputWithDropdown> {
                           talker.warning(
                               "CustomerId:${_searchResults[index].id}");
                           if (widget.transaction == null) return;
-                          await model.assignToSale(
+                          model.assignToSale(
                             customerId: _searchResults[index].id!,
                             transactionId: widget.transaction!.id!,
                           );

@@ -260,7 +260,7 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<void> assignCustomerToTransaction(
+  void assignCustomerToTransaction(
       {required int customerId, int? transactionId}) async {
     try {
       // Open a single write transaction
@@ -2126,9 +2126,12 @@ class RealmAPI<M extends IJsonSerializable>
     const isTest =
         const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
 
+    // foundation.kDebugMode ? AppSecrets.appIdDebug :
+    // foundation.kDebugMode
+    // ? AppSecrets.mongoApiSecretDebug
+    // :
     try {
-      final app = App(AppConfiguration(
-          foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId,
+      final app = App(AppConfiguration(AppSecrets.appId,
           baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
 
       /// When this login does not execute or take too long user will not be able
@@ -2137,9 +2140,7 @@ class RealmAPI<M extends IJsonSerializable>
       /// this will help in avoiding sharing api key!
       /// https://github.com/realm/realm-dart/issues/1205#issuecomment-1465778841
       User user = app.currentUser ??
-          await app.logIn(Credentials.apiKey(foundation.kDebugMode
-              ? AppSecrets.mongoApiSecretDebug
-              : AppSecrets.mongoApiSecret));
+          await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
       if (useInMemoryDb ||
           encryptionKey == null ||
           encryptionKey.isEmpty ||
@@ -2246,6 +2247,7 @@ class RealmAPI<M extends IJsonSerializable>
             final path = realm!.config.path;
             // You must close a realm before deleting it
             if (realm != null) {
+              realm!.syncSession.pause();
               realm!.close();
             }
 
@@ -2312,66 +2314,26 @@ class RealmAPI<M extends IJsonSerializable>
     required User user,
     required App app,
   }) async {
-    const int maxRetries = 3;
-    const int retryDelay = 1000; // milliseconds
-
-    for (int attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        CancellationToken token = CancellationToken();
-        Future<void>.delayed(
-          const Duration(seconds: 30),
-          () => token.cancel(CancelledException(
-            cancellationReason: "Realm took too long to open",
-          )),
-        );
-
-        // Attempt to open the Realm
-        return Realm(config);
-      } on RealmException catch (e) {
-        talker.warning("ErorCode: ${e.hashCode}");
-
-        // Handle the case of the Realm being opened with a different sync user
-        if (e.toString().contains("already opened with different sync user")) {
-          talker.warning(
-              'Realm already opened with different sync user. Retrying...');
-          await Future.delayed(
-              Duration(milliseconds: retryDelay * (attempt + 1)));
-
-          // On last retry, force close the Realm
-          if (attempt == maxRetries - 1) {
-            return await _forceCloseAndReopen(config, user, app);
-          }
-        } else {
-          talker.error('RealmException: ${e.toString()}');
-          rethrow;
-        }
-      } on CancelledException catch (_) {
-        talker.warning('Realm opening timed out. Retrying...');
-      } catch (e, s) {
-        talker.error('Error opening Realm: $e');
-        talker.error(s);
-        rethrow;
-      }
-    }
-
-    throw Exception('Failed to open Realm after $maxRetries attempts');
-  }
-
-  Future<Realm> _forceCloseAndReopen(
-      Configuration config, User user, App app) async {
     try {
-      // Close the Realm if it's open
+      CancellationToken token = CancellationToken();
+      Future<void>.delayed(
+        const Duration(seconds: 30),
+        () => token.cancel(CancelledException(
+          cancellationReason: "Realm took too long to open",
+        )),
+      );
 
-      realm?.close();
-      // close any realm inside isolate
-
-      // Ensure the Realm file is deleted
-      Realm.deleteRealm(config.path);
-
-      // Open a new Realm instance
-      return await Realm(config);
-    } catch (e) {
-      talker.error('Error force closing and reopening Realm: $e');
+      // Attempt to open the Realm
+      return Realm(config);
+    } on RealmException catch (e) {
+      talker.warning("ErorCode: ${e.hashCode}");
+      rethrow;
+    } on CancelledException catch (_) {
+      talker.warning('Realm opening timed out. Retrying...');
+      rethrow;
+    } catch (e, s) {
+      talker.error('Error opening Realm: $e');
+      talker.error(s);
       rethrow;
     }
   }
@@ -2946,61 +2908,65 @@ class RealmAPI<M extends IJsonSerializable>
     String? assetName,
     String? subPath = "branch",
   }) async {
-    if (realm == null) {
-      return Stream.value(0.0);
-    }
-    await syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
-    int branchId = ProxyService.box.getBranchId()!;
-    Directory applicationSupportDirectory =
-        await getApplicationSupportDirectory();
-    if (Platform.isAndroid) {
-      applicationSupportDirectory = await getApplicationDocumentsDirectory();
-    }
-
-    if (assetName != null) {
-      return _downloadAsset(
-          branchId, assetName, applicationSupportDirectory.path, subPath!);
-    }
-    if (realm == null) return Stream.empty();
-
-    List<Assets> assets =
-        realm!.query<Assets>(r'branchId == $0', [branchId]).toList();
-
-    StreamController<double> progressController = StreamController<double>();
-
-    for (Assets asset in assets) {
-      if (asset.assetName != null) {
-        // Get the download stream
-        Stream<double> downloadStream = await _downloadAsset(branchId,
-            asset.assetName!, applicationSupportDirectory.path, subPath!);
-
-        // Listen to the download stream and add its events to the main controller
-        downloadStream.listen((progress) {
-          print('Download progress for ${asset.assetName}: $progress');
-          progressController.add(progress);
-        }, onError: (error) {
-          // Handle errors in the download stream
-          talker
-              .error('Error in download stream for ${asset.assetName}: $error');
-          progressController.addError(error);
-        });
-      } else {
-        talker.warning('Asset name is null for asset: ${asset.id}');
+    try {
+      if (realm == null) {
+        return Stream.value(0.0);
       }
+      await syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
+      int branchId = ProxyService.box.getBranchId()!;
+      Directory applicationSupportDirectory =
+          await getApplicationSupportDirectory();
+      if (Platform.isAndroid) {
+        applicationSupportDirectory = await getApplicationDocumentsDirectory();
+      }
+
+      if (assetName != null) {
+        return _downloadAsset(
+            branchId, assetName, applicationSupportDirectory.path, subPath!);
+      }
+      if (realm == null) return Stream.empty();
+
+      List<Assets> assets =
+          realm!.query<Assets>(r'branchId == $0', [branchId]).toList();
+
+      StreamController<double> progressController = StreamController<double>();
+
+      for (Assets asset in assets) {
+        if (asset.assetName != null) {
+          // Get the download stream
+          Stream<double> downloadStream = await _downloadAsset(branchId,
+              asset.assetName!, applicationSupportDirectory.path, subPath!);
+
+          // Listen to the download stream and add its events to the main controller
+          downloadStream.listen((progress) {
+            print('Download progress for ${asset.assetName}: $progress');
+            progressController.add(progress);
+          }, onError: (error) {
+            // Handle errors in the download stream
+            talker.error(
+                'Error in download stream for ${asset.assetName}: $error');
+            progressController.addError(error);
+          });
+        } else {
+          talker.warning('Asset name is null for asset: ${asset.id}');
+        }
+      }
+
+      // Close the stream controller when all downloads are finished
+      Future.wait(assets.map((asset) => asset.assetName != null
+          ? _downloadAsset(branchId, asset.assetName!,
+              applicationSupportDirectory.path, subPath!)
+          : Future.value(Stream.empty()))).then((_) {
+        progressController.close();
+      }).catchError((error) {
+        talker.error('Error in downloading assets: $error');
+        progressController.close();
+      });
+
+      return progressController.stream;
+    } catch (e) {
+      rethrow;
     }
-
-    // Close the stream controller when all downloads are finished
-    Future.wait(assets.map((asset) => asset.assetName != null
-        ? _downloadAsset(branchId, asset.assetName!,
-            applicationSupportDirectory.path, subPath!)
-        : Future.value(Stream.empty()))).then((_) {
-      progressController.close();
-    }).catchError((error) {
-      talker.error('Error in downloading assets: $error');
-      progressController.close();
-    });
-
-    return progressController.stream;
   }
 
   Future<Stream<double>> _downloadAsset(int branchId, String assetName,

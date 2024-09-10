@@ -2,6 +2,7 @@
 
 import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -16,8 +17,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class Customers extends StatefulHookConsumerWidget {
-  Customers({Key? key, this.transactionId}) : super(key: key);
-  final int? transactionId;
+  Customers({Key? key}) : super(key: key);
 
   @override
   CustomersState createState() => CustomersState();
@@ -31,7 +31,8 @@ class CustomersState extends ConsumerState<Customers> {
   Widget build(BuildContext context) {
     final searchKeyword = ref.watch(customerSearchStringProvider);
     final customersRef = ref.watch(customersProvider);
-
+    final transaction = ref.watch(pendingTransactionProviderNonStream(
+        (mode: TransactionType.sale, isExpense: false)));
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -90,10 +91,10 @@ class CustomersState extends ConsumerState<Customers> {
                             child: Slidable(
                               key: Key('customer-${customer.id}'),
                               child: GestureDetector(
-                                onTap: () async {
-                                  await model.assignToSale(
+                                onTap: () {
+                                  model.assignToSale(
                                     customerId: customer.id!,
-                                    transactionId: widget.transactionId!,
+                                    transactionId: transaction.id!,
                                   );
 
                                   model.getTransactionById();
@@ -164,10 +165,10 @@ class CustomersState extends ConsumerState<Customers> {
                                 motion: const ScrollMotion(),
                                 children: [
                                   SlidableAction(
-                                    onPressed: (_) async {
-                                      await model.assignToSale(
+                                    onPressed: (_) {
+                                      model.assignToSale(
                                         customerId: customer.id!,
-                                        transactionId: widget.transactionId!,
+                                        transactionId: transaction.id!,
                                       );
 
                                       model.getTransactionById();
@@ -182,7 +183,7 @@ class CustomersState extends ConsumerState<Customers> {
                                     onPressed: (_) async {
                                       await model.removeFromSale(
                                         customerId: customer.id!,
-                                        transactionId: widget.transactionId!,
+                                        transactionId: transaction.id!,
                                       );
                                       model.getTransactionById();
                                       toast("Customer removed from sale");
@@ -237,12 +238,8 @@ class CustomersState extends ConsumerState<Customers> {
                         color: Colors.white,
                       ),
                     ),
-                    onPressed: () => _handleButtonPress(
-                      context,
-                      model,
-                      customersRef,
-                      searchKeyword,
-                    ),
+                    onPressed: () => _handleButtonPress(context, model,
+                        customersRef, searchKeyword, transaction.id!),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -266,8 +263,12 @@ class CustomersState extends ConsumerState<Customers> {
         : 'Add $searchKeyword to Sale';
   }
 
-  Future<void> _handleButtonPress(BuildContext context, CoreViewModel model,
-      AsyncValue<List<Customer>> customersRef, String searchKeyword) async {
+  Future<void> _handleButtonPress(
+      BuildContext context,
+      CoreViewModel model,
+      AsyncValue<List<Customer>> customersRef,
+      String searchKeyword,
+      int id) async {
     final customers = customersRef.asData?.value ?? [];
     final filteredCustomers = ref
         .read(customersProvider.notifier)
@@ -284,7 +285,7 @@ class CustomersState extends ConsumerState<Customers> {
           return Padding(
             padding: MediaQuery.of(context).viewInsets,
             child: AddCustomer(
-              transactionId: widget.transactionId ?? 0,
+              transactionId: id,
               searchedKey: searchKeyword,
             ),
           );
@@ -292,8 +293,7 @@ class CustomersState extends ConsumerState<Customers> {
       );
     } else {
       final customer = filteredCustomers.first;
-      await model.assignToSale(
-          customerId: customer.id!, transactionId: widget.transactionId!);
+      model.assignToSale(customerId: customer.id!, transactionId: id);
       showAlert(context, onPressedOk: () {}, title: "Customer added to sale!");
     }
   }

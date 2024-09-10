@@ -174,7 +174,7 @@ abstract class RealmApiInterface {
 
   Future<Customer?> addCustomer(
       {required Customer customer, required int transactionId});
-  Future assignCustomerToTransaction(
+  void assignCustomerToTransaction(
       {required int customerId, int? transactionId});
   Future removeCustomerFromTransaction(
       {required int customerId, required int transactionId});

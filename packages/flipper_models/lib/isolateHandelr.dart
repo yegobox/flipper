@@ -37,10 +37,10 @@ class IsolateHandler with Subscriptions {
 
     localRealm?.close();
     localRealm = Realm(configLocal);
-
-    final app = App.getById(
-        foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId);
-    final user = app?.currentUser!;
+//  foundation.kDebugMode ? AppSecrets.appIdDebug :
+    final app = App.getById(AppSecrets.appId);
+    final user = app?.currentUser;
+    if (user == null) return;
     FlexibleSyncConfiguration config =
         flexibleConfig(user, encryptionKey!.toIntList(), dbPatch);
     realm?.close();
@@ -73,9 +73,10 @@ class IsolateHandler with Subscriptions {
         bhfId == null ||
         URI == null) return;
 
-    final app = App.getById(
-        foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId);
-    final user = app?.currentUser!;
+// foundation.kDebugMode ? AppSecrets.appIdDebug :
+    final app = App.getById(AppSecrets.appId);
+    final user = app?.currentUser;
+    if (user == null) return;
     FlexibleSyncConfiguration config =
         flexibleConfig(user, encryptionKey.toIntList(), dbPatch);
 
@@ -95,7 +96,7 @@ class IsolateHandler with Subscriptions {
     final talker = TalkerFlutter.init();
     List<Variant> gvariantIds = <Variant>[];
     for (Variant variant in variants) {
-      if (!variant.ebmSynced) {
+      if (variant.isValid && !variant.ebmSynced) {
         try {
           IVariant iVariant = IVariant(
             id: variant.id,
@@ -175,7 +176,6 @@ class IsolateHandler with Subscriptions {
         } catch (e, s) {
           talker.error(s);
         } finally {
-          realm?.close();
           sendPort.send('notification:${1}');
         }
       }
@@ -262,7 +262,6 @@ class IsolateHandler with Subscriptions {
         } catch (e, s) {
           talker.error(s);
         } finally {
-          realm?.close();
           sendPort.send('notification:${1}');
         }
       }
@@ -311,7 +310,6 @@ class IsolateHandler with Subscriptions {
           anythingUpdated = true;
         } catch (e) {
         } finally {
-          realm?.close();
           sendPort.send('notification:${1}');
         }
       }
@@ -321,6 +319,7 @@ class IsolateHandler with Subscriptions {
       /// send Trigger to send notification
       sendPort.send('notification:${1}');
     }
+    realm?.close();
   }
 
   static FlexibleSyncConfiguration flexibleConfig(

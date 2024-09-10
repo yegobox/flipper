@@ -548,8 +548,7 @@ class CoreViewModel extends FlipperBaseModel
         transactionId: transactionId);
   }
 
-  Future<void> assignToSale(
-      {required int customerId, required int transactionId}) async {
+  void assignToSale({required int customerId, required int transactionId}) {
     ProxyService.realm.assignCustomerToTransaction(
         customerId: customerId, transactionId: transactionId);
   }

@@ -82,6 +82,7 @@ mixin Subscriptions {
       ///TODO: in next release will query location that are in same range with the user longitude and latitude
       'location': realm.all<Location>(),
       'my-stock': realm.query<Stock>(r'branchId == $0', [branchId]),
+      'items': realm.query<TransactionItem>(r'branchId == $0', [branchId]),
     };
 
     // Update subscriptions

@@ -205,6 +205,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
       ProxyService.realm.realm!.write(() {
         for (var i = 0; i < variantsLength; i++) {
           scannedVariants[i].color = color;
+          scannedVariants[i].itemNm = scannedVariants[i].name;
           scannedVariants[i].ebmSynced = false;
           // If found, update it
           if (retailPrice != 0) {

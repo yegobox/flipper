@@ -286,7 +286,12 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                             }
                             return null;
                           },
-                          onFieldSubmitted: (value) {},
+                          onFieldSubmitted: (value) {
+                            ref.refresh(pendingTransactionProvider((
+                              mode: TransactionType.sale,
+                              isExpense: false
+                            )));
+                          },
                           onSaved: (value) {},
                         ),
                       ],
