@@ -14,13 +14,15 @@
         {
             "name": "flipper",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "args": ["--dart-define=TEST_DB=true"]
         },
         {
             "name": "flipper",
             "cwd": "apps/flipper",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "args": ["--dart-define=TEST_DB=true"]
         },
         {
             "name": "flipper (profile mode)",

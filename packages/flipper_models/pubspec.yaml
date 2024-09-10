@@ -54,6 +54,7 @@ dependencies:
   amplify_storage_s3: 2.0.0
   async: ^2.11.0
   mime: ^1.0.6
+  cloud_firestore: ^5.4.0
 
 dependency_overrides:
   http: ^1.2.1

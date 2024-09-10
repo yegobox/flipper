@@ -2126,6 +2126,11 @@ class RealmAPI<M extends IJsonSerializable>
     const isTest =
         const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
 
+    const usetestDB =
+        const bool.fromEnvironment('TEST_DB', defaultValue: false);
+
+    talker.warning("Using test db: $usetestDB");
+
     // foundation.kDebugMode ? AppSecrets.appIdDebug :
     // foundation.kDebugMode
     // ? AppSecrets.mongoApiSecretDebug
