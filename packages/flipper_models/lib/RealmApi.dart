@@ -2,12 +2,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:flipper_models/Subcriptions.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flipper_models/isolateHandelr.dart';
-import 'package:flipper_services/cron_service.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flipper_models/helperModels/paystack_customer.dart';
@@ -396,6 +393,8 @@ class RealmAPI<M extends IJsonSerializable>
           transactionId: transaction.id!,
           doneWithTransaction: false,
           active: true);
+      items
+          .map((item) => ProxyService.backUp.save<TransactionItem>(data: item));
       realm!.write(() {
         transaction.lastTouched = DateTime.now().toUtc().toLocal();
         transaction.status = COMPLETE;
