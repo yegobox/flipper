@@ -551,7 +551,7 @@ class App {}
 /// https://github.com/localsend/localsend
 /// https://github.com/tejasbadone/flutterzon_bloc
 /// Bellow project is good in terms of UI, code organization, Design system start with Figma, this is something
-/// I will consider surely in future!
+/// I will consider surely in future
 /// https://github.com/openfoodfacts/smooth-app
 /// https://github.com/smaranjitghose/DocLense
 ///
