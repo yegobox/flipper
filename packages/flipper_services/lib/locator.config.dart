@@ -8,6 +8,7 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:flipper_models/DataBackup.dart' as _i993;
 import 'package:flipper_models/FirestoreSync.dart' as _i94;
 import 'package:flipper_models/flipper_http_client.dart' as _i843;
 import 'package:flipper_models/LocalRealm.dart' as _i872;
@@ -98,6 +99,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => servicesModule.localRealm(),
       preResolve: true,
     );
+    gh.lazySingleton<_i993.CoreData>(() => servicesModule.backUp());
     gh.lazySingleton<_i403.AppService>(() => servicesModule.appService());
     gh.lazySingleton<_i777.ProductService>(
         () => servicesModule.productService());

@@ -1,3 +1,4 @@
+import 'package:flipper_models/DataBackup.dart';
 import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/LocalRealm.dart';
 import 'package:flipper_models/flipper_http_client.dart';
@@ -63,24 +64,31 @@ final SyncFirestore _syncFirestore = getIt<SyncFirestore>();
 final SystemTime _systemTime = getIt<SystemTime>();
 final EventInterface _event = getIt<EventInterface>();
 final BillingService _billingService = getIt<BillingService>();
-final RealmApiInterface _realm = getIt<RealmApiInterface>();
+
 final TaxApi _tax = getIt<TaxApi>();
 final WhatsApp _whatsApp = getIt<WhatsApp>();
 final Messaging _messaging = getIt<Messaging>();
 final Status _status = getIt<Status>();
 final SentryServiceInterface _sentry = getIt<SentryServiceInterface>();
 final Device _device = getIt<Device>();
-final LocalRealmInterface _localRealm = getIt<LocalRealmInterface>();
+
 final PayStackServiceInterface _payStack = getIt<PayStackServiceInterface>();
 final HttpClientInterface _http = getIt<HttpClientInterface>();
 final RealmViaHttp _realmHttp = getIt<RealmViaHttp>();
 
+final RealmApiInterface _realm = getIt<RealmApiInterface>();
+final LocalRealmInterface _localRealm = getIt<LocalRealmInterface>();
+final CoreData _backUp = getIt<CoreData>();
+
 abstract class ProxyService {
+  static RealmApiInterface get realm => _realm;
+  static LocalRealmInterface get local => _localRealm;
+  static CoreData get backUp => _backUp;
+
   static LocalStorage get box => _box;
   static HttpClientInterface get http => _http;
   static Api get api => _apiService;
   static TaxApi get tax => _tax;
-  static RealmApiInterface get realm => _realm;
 
   static EventInterface get event => _event;
   static Crash get crash => _crash;
@@ -112,7 +120,7 @@ abstract class ProxyService {
   static SentryServiceInterface get sentry => _sentry;
   static Device get device => _device;
   static NotificationStream get notie => NotificationStream();
-  static LocalRealmInterface get local => _localRealm;
+
   static PayStackServiceInterface get payStack => _payStack;
   static RealmViaHttp get realmHttp => _realmHttp;
 }
