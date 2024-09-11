@@ -15,6 +15,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';
@@ -518,34 +519,37 @@ class IsolateHandler with Subscriptions {
         item.itemClsCd = "5020230602";
       });
     }
+
+    /// track variant without stock and match them with stock
+
+    List<Variant> variantsall = realm.all<Variant>().toList();
+
+    for (Variant variant in variantsall) {
+      final stock =
+          realm.query<Stock>(r'variantId == $0', [variant.id]).firstOrNull;
+      if (stock == null) {
+        talker.warning("healed Stock: ${variant.id}");
+        realm.write(() {
+          final newStock = Stock(
+            ObjectId(),
+            id: randomNumber(),
+            lastTouched: DateTime.now(),
+            branchId: variant.branchId,
+            variant: variant,
+            variantId: variant.id!,
+            action: AppActions.created,
+            retailPrice: variant.retailPrice,
+            supplyPrice: variant.supplyPrice,
+            currentStock: variant.qty,
+            rsdQty: variant.qty,
+            ebmSynced: false,
+            value: (variant.qty * variant.retailPrice).toDouble(),
+            productId: variant.productId,
+            active: false,
+          );
+          realm.add(newStock);
+        });
+      }
+    }
   }
-
-  // static Future<void> _backUp({required int branchId}) async {
-  //   await Firebase.initializeApp();
-  //   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  //   DartPluginRegistrant.ensureInitialized();
-  //   List<TransactionItem> items =
-  //       realm!.query<TransactionItem>(r'branchId == $0', [branchId]).toList();
-
-  //   for (TransactionItem item in items) {
-  //     final json = jsonEncode(item.toEJson().convertRealmValues());
-  //     final Map<String, dynamic> dataMap = jsonDecode(json);
-
-  //     // Check if the document already exists
-  //     final docRef =
-  //         _firestore.collection('transactionsItems').doc(item.id.toString());
-  //     final docSnapshot = await docRef.get();
-
-  //     if (docSnapshot.exists) {
-  //       talker.warning("UpdatedFirestore");
-  //       // Update existing document
-  //       await docRef.update(dataMap);
-  //     } else {
-  //       talker.warning("created");
-  //       // Create new document
-  //       await docRef.set(dataMap);
-  //     }
-  //   }
-  // }
 }
