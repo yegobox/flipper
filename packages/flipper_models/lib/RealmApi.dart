@@ -3023,9 +3023,10 @@ class RealmAPI<M extends IJsonSerializable>
           }
 
           // Attempt to remove the asset from S3 storage
-          await amplify.Amplify.Storage.remove(
-            path: storagePath,
-          );
+          //TODO: delete file in s3 when a user update image only
+          // await amplify.Amplify.Storage.remove(
+          //   path: storagePath,
+          // );
           talker.info('Asset deleted from S3 after download error: $path');
         } catch (deleteError) {
           talker.error(

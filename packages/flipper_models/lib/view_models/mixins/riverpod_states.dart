@@ -1069,6 +1069,8 @@ class StringState extends StateNotifier<String> {
 final stringProvider = StateNotifierProvider<StringState, String>((ref) {
   return StringState(RequestStatus.pending);
 });
+
+final showProductsList = AutoDisposeStateProvider<bool>((ref) => true);
 List<ProviderBase> allProviders = [
   unsavedProductProvider,
   customerSearchStringProvider,

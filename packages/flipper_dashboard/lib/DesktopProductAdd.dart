@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/SearchProduct.dart';
 import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_ui/style_widget/text.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flipper_dashboard/create/browsePhotos.dart';
@@ -302,36 +303,27 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       BuildContext context, Variant variant, ScannViewModel model) {
     final List<String> options = ["A", "B", "C", "D"];
 
-    return DropdownSearch<String>(
-      items: options,
-      selectedItem: variant.taxTyCd ?? "B",
-      dropdownDecoratorProps: DropDownDecoratorProps(
-        dropdownSearchDecoration: InputDecoration(
-          border: OutlineInputBorder(
-            borderSide: BorderSide.none,
-          ),
-          disabledBorder: OutlineInputBorder(
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide.none,
-          ),
-          errorBorder: OutlineInputBorder(
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
-        ),
-      ),
+    return DropdownButton<String>(
+      value: variant.taxTyCd ?? "B",
+      items: options.map((String option) {
+        return DropdownMenuItem<String>(
+          value: option,
+          child: Text(option),
+        );
+      }).toList(),
       onChanged: (String? newValue) {
-        try {
-          ProxyService.realm.realm!.write(() => variant.taxTyCd = newValue!);
-        } catch (e) {
-          talker.error(e);
+        if (newValue != null) {
+          try {
+            ProxyService.realm.realm!.write(() {
+              variant.taxTyCd = newValue;
+            });
+          } catch (e) {
+            talker.error(e);
+          }
         }
       },
+      isExpanded: true, // Ensures the dropdown fits its container
+      underline: SizedBox.shrink(), // Removes the default underline
     );
   }
 
@@ -554,6 +546,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
   Widget topButtons(
       BuildContext context, ScannViewModel productModel, Product? productRef) {
+    final product = ref.watch(unsavedProductProvider);
     return ViewModelBuilder.nonReactive(
         viewModelBuilder: () => UploadViewModel(),
         builder: (context, model, child) {
@@ -596,10 +589,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                         /// form is validated and we are not dealing with composite product
                         if (_formKey.currentState!.validate() &&
                             !ref.watch(isCompositeProvider)) {
+                          if (productRef == null) {
+                            Navigator.maybePop(context);
+                            return;
+                          }
                           _onSaveButtonPressed(
                             productModel,
                             context,
-                            productRef!,
+                            productRef,
                           );
                         } else if (_fieldComposite.currentState?.validate() ??
                             false) {
@@ -701,11 +698,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ],
                 ),
               ),
-              if (ref.watch(unsavedProductProvider)?.imageUrl != null)
+              if (product?.imageUrl != null)
                 FutureBuilder(
-                  future: getImageFilePath(
-                      imageFileName:
-                          ref.watch(unsavedProductProvider)!.imageUrl!),
+                  future: getImageFilePath(imageFileName: product!.imageUrl!),
                   builder: (context, snapshot) {
                     if (snapshot.hasData && snapshot.data != null) {
                       final imageFilePath = snapshot.data as String;
@@ -746,9 +741,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     ),
                   ),
                 ),
-              Browsephotos(
-                productId: ref.read(unsavedProductProvider)?.id ?? 0,
-              )
+              Browsephotos()
             ],
           );
         });
@@ -918,157 +911,224 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     );
   }
 
+  Map<int, bool> _selectedVariants = {};
+
   Stack TableVariants(ScannViewModel model, BuildContext context) {
     return Stack(
       children: [
-        SizedBox(
-          height: 200,
-          child: ListView(
-            children: [
-              DataTable(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.transparent,
-                  ),
-                ),
-                columns: [
-                  DataColumn(
-                    label: Row(
-                      children: [
-                        Checkbox(
-                          value: _selectAll,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectAll = value!;
-                              _showDeleteButton = value;
-                            });
-                          },
-                        ),
-                        const Text('All'),
-                      ],
-                    ),
-                  ),
-                  const DataColumn(label: Text('Name')),
-                  const DataColumn(label: Text('Price')),
-                  const DataColumn(label: Text('Created At')),
-                  const DataColumn(label: Text('Quantity')),
-                  const DataColumn(label: Text('Tax')),
-                  const DataColumn(label: Text('Unit')),
-                  const DataColumn(label: Text('Classification')),
-                  const DataColumn(label: Text('Action')),
-                ],
-                rows: model.scannedVariants.reversed.map((variant) {
-                  return DataRow(
-                    color: WidgetStateProperty.resolveWith<Color?>(
-                        (Set<WidgetState> states) {
-                      if (states.contains(WidgetState.selected)) {
-                        return Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(0.08);
-                      }
-                      return null; // Use the default value.
-                    }),
-                    cells: [
-                      DataCell(Checkbox(
-                        value: _selectAll,
-                        onChanged: (value) {
-                          // Handle row checkbox state if needed
-                        },
-                      )),
-                      DataCell(Text(variant.name!)),
-                      DataCell(Text(variant.retailPrice.toStringAsFixed(2))),
-                      DataCell(
-                        Text(
-                          variant.lastTouched == null
-                              ? ''
-                              : variant.lastTouched!
-                                  .toLocal()
-                                  .toIso8601String(),
-                        ),
-                      ),
-                      DataCell(
-                        QuantityCell(
-                          quantity: variant.qty,
-                          onEdit: () {
-                            _showEditQuantityDialog(
-                              context,
-                              variant,
-                              model,
-                              () {
-                                FocusScope.of(context)
-                                    .requestFocus(scannedInputFocusNode);
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      DataCell(
-                        _buildTaxDropdown(context, variant, model),
-                      ),
-                      DataCell(
-                        _buildUnitOfMeasureDropDown(context, variant, model),
-                      ),
-                      DataCell(
-                        _buildUniversalProductDropDown(context, model, variant),
-                      ),
-                      DataCell(
-                        ElevatedButton(
-                          onPressed: () {
-                            model.removeVariant(id: variant.id!);
-                          },
-                          child: const Text('Delete'),
-                        ),
-                      ),
-                    ],
-                  );
-                }).toList(),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: Offset(0, 3),
               ),
             ],
+          ),
+          margin: const EdgeInsets.all(8),
+          child: SizedBox(
+            height: 200,
+            child: ListView(
+              children: [
+                DataTable(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.grey[300]!,
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  columns: [
+                    DataColumn(
+                      label: Row(
+                        children: [
+                          Checkbox(
+                            value: _selectAll,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectAll = value!;
+                                _showDeleteButton = value;
+
+                                // Select or deselect all variants
+                                model.scannedVariants.forEach((variant) {
+                                  _selectedVariants[variant.id!] = _selectAll;
+                                });
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          const Text('All',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                    const DataColumn(
+                        label: Text('Name',
+                            style: TextStyle(fontWeight: FontWeight.bold))),
+                    const DataColumn(
+                        label: Text('Price',
+                            style: TextStyle(fontWeight: FontWeight.bold))),
+                    const DataColumn(
+                        label: Text('Created At',
+                            style: TextStyle(fontWeight: FontWeight.bold))),
+                    const DataColumn(
+                        label: Text('Quantity',
+                            style: TextStyle(fontWeight: FontWeight.bold))),
+                    const DataColumn(
+                        label: Text('Tax',
+                            style: TextStyle(fontWeight: FontWeight.bold))),
+                    const DataColumn(
+                        label: Text('Unit',
+                            style: TextStyle(fontWeight: FontWeight.bold))),
+                    const DataColumn(
+                        label: Text('Classification',
+                            style: TextStyle(fontWeight: FontWeight.bold))),
+                    const DataColumn(
+                        label: Text('Action',
+                            style: TextStyle(fontWeight: FontWeight.bold))),
+                  ],
+                  rows: model.scannedVariants.reversed.map((variant) {
+                    bool isSelected = _selectedVariants[variant.id!] ?? false;
+
+                    return DataRow(
+                      selected: isSelected, // Use selection status from map
+                      color: WidgetStateProperty.resolveWith<Color?>(
+                          (Set<WidgetState> states) {
+                        if (states.contains(WidgetState.selected)) {
+                          return Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.08);
+                        }
+                        return null;
+                      }),
+                      cells: [
+                        DataCell(
+                          Checkbox(
+                            value: isSelected,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedVariants[variant.id!] = value!;
+                                _showDeleteButton =
+                                    _selectedVariants.containsValue(true);
+                              });
+                            },
+                          ),
+                        ),
+                        DataCell(Text(variant.name!)),
+                        DataCell(Text(variant.retailPrice.toStringAsFixed(2))),
+                        DataCell(
+                          Text(
+                            variant.lastTouched == null
+                                ? ''
+                                : variant.lastTouched!
+                                    .toLocal()
+                                    .toIso8601String(),
+                          ),
+                        ),
+                        DataCell(
+                          QuantityCell(
+                            quantity: variant.qty,
+                            onEdit: () {
+                              _showEditQuantityDialog(
+                                context,
+                                variant,
+                                model,
+                                () {
+                                  FocusScope.of(context)
+                                      .requestFocus(scannedInputFocusNode);
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                        DataCell(_buildTaxDropdown(context, variant, model)),
+                        DataCell(_buildUnitOfMeasureDropDown(
+                            context, variant, model)),
+                        DataCell(_buildUniversalProductDropDown(
+                            context, model, variant)),
+                        DataCell(
+                          ElevatedButton(
+                            onPressed: () {
+                              model.removeVariant(id: variant.id!);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const FlowyText(
+                              'Delete',
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
           ),
         ),
         if (_showDeleteButton)
           Positioned(
-            top: 0,
-            right: 0,
+            top: 10,
+            right: 10,
             child: ElevatedButton(
               onPressed: () async {
-                // Display a confirmation dialog or perform any other action
                 bool confirmed = await showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: Text('Confirm Deletion'),
-                      content:
-                          Text('Are you sure you want to delete all variants?'),
+                      title: const Text('Confirm Deletion'),
+                      content: const Text(
+                          'Are you sure you want to delete all variants?'),
                       actions: <Widget>[
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pop(false);
                           },
-                          child: Text('Cancel'),
+                          child: const Text('Cancel'),
                         ),
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pop(true);
                           },
-                          child: Text('Delete'),
+                          child: const Text('Delete'),
                         ),
                       ],
                     );
                   },
                 );
 
-                // If user confirmed, call model.deleteAllVariants()
                 if (confirmed == true) {
                   model.deleteAllVariants();
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, // Background color
-                foregroundColor: Colors.white, // Text color
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
-              child: const Text('Delete'),
+              child: const FlowyText(
+                'Delete',
+                color: Colors.white,
+              ),
             ),
           ),
       ],

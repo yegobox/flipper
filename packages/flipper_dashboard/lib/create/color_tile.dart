@@ -17,7 +17,6 @@ class ColorTile extends StatefulHookConsumerWidget {
 }
 
 class ColorTileState extends ConsumerState<ColorTile> {
-  
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<UploadViewModel>.reactive(
@@ -135,9 +134,7 @@ class ColorTileState extends ConsumerState<ColorTile> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Browsephotos(
-                      productId: model.product!.id!,
-                    ),
+                    Browsephotos(),
                     Container(
                       width: 10,
                     ),
