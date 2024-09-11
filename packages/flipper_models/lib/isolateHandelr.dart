@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:isolate';
-import 'package:flutter/foundation.dart' as foundation;
+import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flipper_models/DataBackUp.dart';
 import 'package:flipper_models/Subcriptions.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
@@ -22,7 +25,6 @@ import 'package:talker_flutter/talker_flutter.dart';
 class IsolateHandler with Subscriptions {
   static Realm? realm;
   static Realm? localRealm;
-
   static Future<void> flexibleSync(List<dynamic> args) async {
     String? dbPatch = args[3] as String?;
     String? key = args[4] as String?;
@@ -87,9 +89,7 @@ class IsolateHandler with Subscriptions {
     /// handle missing value, part of self healing
     _selfHeal(realm: realm);
 
-    // await syncUnsynced(args);
-    //log("This Track how often an isolate is running, helpful when we are crashing! ${branchId}");
-    // load all variants
+    // _backUp(branchId: branchId);
     List<Variant> variants = realm!.query<Variant>(
         r'ebmSynced == $0 && branchId == $1 LIMIT(1000)',
         [false, branchId]).toList();
@@ -475,7 +475,7 @@ class IsolateHandler with Subscriptions {
     }
 
     /// query stock with variant null assign it
-    List<Stock> stocksV = realm.query<Stock>(r'variant == NULL').toList();
+    List<Stock> stocksV = realm.query<Stock>(r'variant == null').toList();
     for (Stock stock in stocksV) {
       Variant? variant =
           realm.query<Variant>(r'id == $0', [stock.variantId]).firstOrNull;
@@ -503,7 +503,7 @@ class IsolateHandler with Subscriptions {
     /// first find any variant with empty itemClsCd add defaults
     List<Variant> variants =
         realm.query<Variant>(r'itemClsCd == null OR itemClsCd == ""').toList();
-    talker.info("healed ${variants.length}");
+
     for (Variant variant in variants) {
       realm.write(() {
         variant.itemClsCd = "5020230602";
@@ -513,11 +513,39 @@ class IsolateHandler with Subscriptions {
     List<TransactionItem> items = realm
         .query<TransactionItem>(r'itemClsCd == null OR itemClsCd == ""')
         .toList();
-    talker.info("healed ${variants.length}");
     for (TransactionItem item in items) {
       realm.write(() {
         item.itemClsCd = "5020230602";
       });
     }
   }
+
+  // static Future<void> _backUp({required int branchId}) async {
+  //   await Firebase.initializeApp();
+  //   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  //   DartPluginRegistrant.ensureInitialized();
+  //   List<TransactionItem> items =
+  //       realm!.query<TransactionItem>(r'branchId == $0', [branchId]).toList();
+
+  //   for (TransactionItem item in items) {
+  //     final json = jsonEncode(item.toEJson().convertRealmValues());
+  //     final Map<String, dynamic> dataMap = jsonDecode(json);
+
+  //     // Check if the document already exists
+  //     final docRef =
+  //         _firestore.collection('transactionsItems').doc(item.id.toString());
+  //     final docSnapshot = await docRef.get();
+
+  //     if (docSnapshot.exists) {
+  //       talker.warning("UpdatedFirestore");
+  //       // Update existing document
+  //       await docRef.update(dataMap);
+  //     } else {
+  //       talker.warning("created");
+  //       // Create new document
+  //       await docRef.set(dataMap);
+  //     }
+  //   }
+  // }
 }

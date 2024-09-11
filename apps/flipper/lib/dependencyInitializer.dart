@@ -5,7 +5,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
-import 'package:flipper_models/secrets.dart';
 
 import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_routing/app.dialogs.dart';

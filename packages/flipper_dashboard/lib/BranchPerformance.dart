@@ -309,7 +309,8 @@ class ItemDetailCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.variant?.productName ?? "-",
+                      item.variant?.productName ??
+                          (item.variant?.id ?? "-").toString(),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     SizedBox(height: 8),
