@@ -96,16 +96,19 @@ class UploadViewModel extends ProductViewModel {
       } catch (e) {
         saveAsset(assetName: uniqueFileName, productId: id);
       }
+      await ProxyService.realm.downloadAssetSave(assetName: uniqueFileName);
+      await Future.delayed(Duration(seconds: 10));
       ProxyService.realm.realm!.write(() {
         if (product != null) {
           product.imageUrl = uniqueFileName;
         }
       });
-      await ProxyService.realm.downloadAssetSave(assetName: uniqueFileName);
+
       // Log success
       talker.warning('File uploaded and database updated successfully.');
 
-      callBack(product!);
+      /// we requery product again and pass it to callback as it has been updated.
+      callBack(ProxyService.realm.getProduct(id: id)!);
     } on StorageException catch (e) {
       talker.warning('StorageException: ${e.message}');
     } catch (e, s) {

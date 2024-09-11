@@ -9,8 +9,7 @@ import 'package:stacked/stacked.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 class Browsephotos extends StatefulHookConsumerWidget {
-  Browsephotos({super.key, required this.productId});
-  final int productId;
+  Browsephotos({super.key});
 
   @override
   BrowsephotosState createState() => BrowsephotosState();
@@ -46,13 +45,12 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
               ),
               onPressed: () async {
                 model.browsePictureFromGallery(
-                  id: widget.productId,
+                  id: ref.watch(unsavedProductProvider)!.id!,
                   callBack: (product) {
-                    // talker.info(product.imageUrl);
                     ref
                         .read(unsavedProductProvider.notifier)
                         .emitProduct(value: product);
-                    ref.refresh(unsavedProductProvider);
+                    // ref.refresh(unsavedProductProvider);
                   },
                   urlType: URLTYPE.PRODUCT,
                 );

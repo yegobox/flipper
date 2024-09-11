@@ -1,14 +1,20 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_dashboard/StockDataSource.dart';
+import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 
 import 'package:flipper_dashboard/TransactionList.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+
+enum ViewMode { products, stocks }
 
 class ProductView extends StatefulHookConsumerWidget {
   final int? favIndex;
@@ -34,6 +40,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   final FocusNode _searchFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
+  ViewMode _selectedStatus = ViewMode.products;
 
   @override
   void initState() {
@@ -119,31 +126,96 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
   Widget _buildVariantsGrid(
       BuildContext context, ProductViewModel model, List<Variant> variants) {
+    final showProductList = ref.watch(showProductsList);
+
+    // Fetching the stock items
+    final branchId = ProxyService.box.getBranchId();
+    final stockItems = ref.watch(stocksProvider((branchId: branchId!)));
+
     return Stack(
       children: [
-        GridView.builder(
-          controller: _scrollController,
-          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 200,
-            mainAxisSpacing: 5.0,
-            crossAxisSpacing: 2.0,
-          ),
-          itemCount: variants.length + (_isLoading ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index >= variants.length) {
-              return Center(child: CircularProgressIndicator());
-            }
+        Column(
+          children: [
+            SegmentedButton<ViewMode>(
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                  (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return Theme.of(context).colorScheme.primary;
+                    }
+                    return Colors.white;
+                  },
+                ),
+                foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                  (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return Colors.white;
+                    }
+                    return Theme.of(context).colorScheme.primary;
+                  },
+                ),
+                side: WidgetStateProperty.all(
+                  BorderSide(color: Theme.of(context).colorScheme.primary),
+                ),
+                overlayColor: WidgetStateProperty.all(Colors.transparent),
+              ),
+              segments: const <ButtonSegment<ViewMode>>[
+                ButtonSegment<ViewMode>(
+                  value: ViewMode.products,
+                  label: Text('Products'),
+                  icon: Icon(Icons.inventory),
+                ),
+                ButtonSegment<ViewMode>(
+                  value: ViewMode.stocks,
+                  label: Text('Stock'),
+                  icon: Icon(Icons.check_circle_outline),
+                ),
+              ],
+              selected: <ViewMode>{_selectedStatus},
+              onSelectionChanged: (Set<ViewMode> newSelection) {
+                setState(() {
+                  _selectedStatus = newSelection.first;
+                });
 
-            return buildVariantRow(
-              forceRemoteUrl: false,
-              context: context,
-              model: model,
-              variant: variants[index],
-              isOrdering: false,
-            );
-          },
-          shrinkWrap: true,
-        ),
+                if (newSelection.first == ViewMode.products) {
+                  ref.read(showProductsList.notifier).state = true;
+                } else {
+                  ref.read(showProductsList.notifier).state = false;
+                }
+              },
+            ),
+            SizedBox(
+              height: 30,
+            ),
+            showProductList
+                ? GridView.builder(
+                    controller: _scrollController,
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 200,
+                      mainAxisSpacing: 5.0,
+                      crossAxisSpacing: 2.0,
+                    ),
+                    itemCount: variants.length + (_isLoading ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index >= variants.length) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+
+                      return buildVariantRow(
+                        forceRemoteUrl: false,
+                        context: context,
+                        model: model,
+                        variant: variants[index],
+                        isOrdering: false,
+                      );
+                    },
+                    shrinkWrap: true,
+                  )
+                : stockItems.isEmpty
+                    ? Center(child: Text("No stock data available"))
+                    : StockDataGrid(),
+          ],
+        )
       ],
     );
   }

@@ -51,7 +51,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     try {
       /// first if there is image attached delete if first
       Product? product = ProxyService.realm.getProduct(id: productId!);
-      if (product!.isComposite!) {
+      if (product?.isComposite ?? false) {
         /// search composite and delete them as well
         List<Composite> composites =
             ProxyService.realm.composites(productId: productId);
@@ -61,7 +61,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           }
         });
       }
-      if (product.imageUrl != null) {
+      if (product != null && product.imageUrl != null) {
         if (await ProxyService.realm
             .removeS3File(fileName: product.imageUrl!)) {
           await model.deleteProduct(productId: productId);
