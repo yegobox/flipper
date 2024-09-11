@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flipper_models/BackUpService.dart';
 import 'package:flipper_models/Subcriptions.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
@@ -143,6 +145,16 @@ class CronService with Subscriptions {
       // );
     }
 
+    Timer.periodic(_getBackUpDuration(), (Timer t) async {
+      final firestore = FirebaseFirestore.instance;
+      final backupService = BackupService(firestore);
+      await backupService.backUp(
+        branchId: ProxyService.box.getBranchId()!,
+        encryptionKey: ProxyService.box.encryptionKey(),
+        dbPath: await ProxyService.realm
+            .dbPath(path: 'synced', folder: ProxyService.box.getBusinessId()),
+      );
+    });
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       if (ProxyService.box.getUserId() == null ||
           ProxyService.box.getBusinessId() == null) return;
@@ -243,6 +255,10 @@ class CronService with Subscriptions {
 
   Duration _getDemoPrintDuration() {
     return Duration(minutes: kDebugMode ? 10 : 20);
+  }
+
+  Duration _getBackUpDuration() {
+    return Duration(minutes: kDebugMode ? 4 : 20);
   }
 
   Duration _getHeartBeatDuration() {

@@ -393,8 +393,8 @@ class RealmAPI<M extends IJsonSerializable>
           transactionId: transaction.id!,
           doneWithTransaction: false,
           active: true);
-      items
-          .map((item) => ProxyService.backUp.save<TransactionItem>(data: item));
+      // items
+      //     .map((item) => await ProxyService.backUp.save<TransactionItem>(data: item));
       realm!.write(() {
         transaction.lastTouched = DateTime.now().toUtc().toLocal();
         transaction.status = COMPLETE;
@@ -3891,7 +3891,8 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   List<Stock> stocks({required int branchId}) {
-    return realm!.query<Stock>(r'branchId == $0 AND variant.productName != $1',
+    return realm!.query<Stock>(
+        r'branchId == $0 AND variant.productName != $1 AND variant != null',
         [branchId, TEMP_PRODUCT]).toList();
   }
 }
