@@ -258,7 +258,7 @@ class CronService with Subscriptions {
   }
 
   Duration _getBackUpDuration() {
-    return Duration(minutes: kDebugMode ? 40 : 20);
+    return Duration(hours: kDebugMode ? 8 : 10);
   }
 
   Duration _getHeartBeatDuration() {
