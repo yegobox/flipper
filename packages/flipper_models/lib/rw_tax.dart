@@ -192,7 +192,7 @@ class RWTax implements TaxApi {
   /// @[itemCd] @[itemClsCd] @[itemStdNm] and others will be required to be passed
   /// when creating an invoice or receipt
   ///  you can save the product information in server. This API function performs storing item information managed by the taxpayer client in
-  /// the server. For more information, refer to ‘3.2.4.1 ItemSaveReq/Res’
+  /// the server. For more information, refer to '3.2.4.1 ItemSaveReq/Res'
   /// After saving item then we can use items/selectItems endPoint to get the item information. of item saved before
   @override
   Future<bool> saveItem(
@@ -390,10 +390,7 @@ class RWTax implements TaxApi {
     for (var item in items) {
       String taxType = item.taxTyCd ?? 'B';
       double taxAmount = item.price * item.qty;
-      // B is VAT 18, others remain 0
-      if (taxType == "B") {
-        taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
-      }
+      taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
     }
     return taxTotals;
   }
@@ -429,6 +426,15 @@ class RWTax implements TaxApi {
     required List<Map<String, dynamic>> itemsList,
     String? purchaseCode,
   }) {
+     Configurations taxConfigTaxB =
+        ProxyService.realm.getByTaxType(taxtype: "B");
+    Configurations taxConfigTaxA =
+        ProxyService.realm.getByTaxType(taxtype: "A");
+    Configurations taxConfigTaxC =
+        ProxyService.realm.getByTaxType(taxtype: "C");
+    Configurations taxConfigTaxD =
+        ProxyService.realm.getByTaxType(taxtype: "D");
+
     /// because other rate for tax are not known are set to 1/1
     final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118) +
         ((taxTotals['A'] ?? 0.0) * 1 / 1) +
@@ -454,15 +460,24 @@ class RWTax implements TaxApi {
       "taxblAmtC": taxTotals['C'] ?? 0.0,
       "taxblAmtD": taxTotals['D'] ?? 0.0,
 
-      "taxAmtA": 0.0,
+      "taxAmtA": ((taxTotals['A'] ?? 0.0) *
+              (taxConfigTaxA.taxPercentage ?? 0) /
+              (100 + (taxConfigTaxA.taxPercentage ?? 0)))
+          .toStringAsFixed(2),
       "taxAmtB": ((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2),
-      "taxAmtC": 0.0,
-      "taxAmtD": 0.0,
+      "taxAmtC": ((taxTotals['C'] ?? 0.0) *
+              (taxConfigTaxC.taxPercentage ?? 0) /
+              (100 + (taxConfigTaxC.taxPercentage ?? 0)))
+          .toStringAsFixed(2),
+      "taxAmtD": ((taxTotals['D'] ?? 0.0) *
+              (taxConfigTaxD.taxPercentage ?? 0) /
+              (100 + (taxConfigTaxD.taxPercentage ?? 0)))
+          .toStringAsFixed(2),
 
-      "taxRtA": (taxTotals['A'] != null && taxTotals['A']! > 0) ? 0 : 0,
-      "taxRtB": (taxTotals['B'] != null && taxTotals['B']! > 0) ? 18 : 18,
-      "taxRtC": (taxTotals['C'] != null && taxTotals['C']! > 0) ? 0 : 0.0,
-      "taxRtD": (taxTotals['D'] != null && taxTotals['D']! > 0) ? 0 : 0.0,
+      "taxRtA": taxConfigTaxA.taxPercentage,
+      "taxRtB": taxConfigTaxB.taxPercentage,
+      "taxRtC": taxConfigTaxC.taxPercentage,
+      "taxRtD": taxConfigTaxD.taxPercentage,
 
       "totTaxblAmt": totalTaxable,
 
@@ -485,7 +500,9 @@ class RWTax implements TaxApi {
         "topMsg":
             "${business?.name}\n\nAddress:${business?.adrs}\nTEL: ${ProxyService.box.getUserPhone()}\nTIN: ${business?.tinNumber}",
         "btmMsg": "Welcome",
-        "custMblNo": ProxyService.box.currentSaleCustomerPhoneNumber(),
+        "custMblNo": customer == null
+            ? ProxyService.box.currentSaleCustomerPhoneNumber()
+            : customer.tin,
       },
       "itemList": itemsList,
     };
