@@ -1,8 +1,4 @@
-import 'package:flipper_ui/src/shared/app_colors.dart';
-import 'package:flipper_ui/src/shared/styles.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_loading/indicator/ball_pulse_indicator.dart';
-import 'package:flipper_loading/loading.dart';
 
 class BoxButton extends StatelessWidget {
   final String title;
@@ -41,44 +37,62 @@ class BoxButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: disabled || busy ? null : onTap,
+      borderRadius: BorderRadius.circular(borderRadius),
+      splashColor: outline
+          ? Colors.blue.withOpacity(0.1)
+          : Colors.white.withOpacity(0.3),
       child: AnimatedContainer(
-        key: key, // Use the provided key
-        duration: Duration(milliseconds: 350),
+        key: key,
+        duration: const Duration(milliseconds: 300),
         width: double.infinity,
-        height: 60,
+        height: 56,
         alignment: Alignment.center,
-        decoration: !outline
-            ? BoxDecoration(
-                color: !disabled ? kcPrimaryColor : kcMediumGreyColor,
-                borderRadius: BorderRadius.circular(borderRadius),
-              )
-            : BoxDecoration(
-                color: const Color(0xff006AFE),
-                borderRadius: BorderRadius.circular(borderRadius),
-                border: Border.all(
-                  color: const Color(0xff006AFE),
-                  width: 1,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: outline
+              ? Colors.transparent
+              : !disabled
+                  ? const Color(0xff006AFE)
+                  : Colors.grey[400],
+          borderRadius: BorderRadius.circular(borderRadius),
+          border: outline
+              ? Border.all(color: const Color(0xff006AFE), width: 1.5)
+              : null,
+          boxShadow: !disabled && !outline
+              ? [
+                  BoxShadow(
+                    color: Colors.blue.withOpacity(0.3),
+                    offset: const Offset(0, 4),
+                    blurRadius: 4.0,
+                  ),
+                ]
+              : [],
+        ),
+        child: busy
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
-              ),
-        child: !busy
-            ? Row(
+              )
+            : Row(
                 mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (leading != null) leading!,
-                  if (leading != null) SizedBox(width: 5),
+                  if (leading != null) const SizedBox(width: 8),
                   Text(
                     title,
-                    style: bodyStyle.copyWith(
-                      color: !outline ? Colors.white : kcPrimaryColor,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: outline ? const Color(0xff006AFE) : Colors.white,
                     ),
                   ),
                 ],
-              )
-            : Loading(
-                indicator: BallPulseIndicator(),
-                size: 50.0,
-                color: Colors.white,
               ),
       ),
     );

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flipper_models/sync_service.dart';
 import 'package:json_annotation/json_annotation.dart';
 part 'business_type.g.dart';
 

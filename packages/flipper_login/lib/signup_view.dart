@@ -284,7 +284,7 @@ class _SignUpViewState extends State<SignUpView> {
                                             color: Colors.white,
                                           )),
                                       style: ButtonStyle(
-                                        shape: MaterialStateProperty
+                                        shape: WidgetStateProperty
                                             .resolveWith<OutlinedBorder>(
                                           (states) => RoundedRectangleBorder(
                                             borderRadius:
@@ -292,20 +292,20 @@ class _SignUpViewState extends State<SignUpView> {
                                           ),
                                         ),
                                         backgroundColor:
-                                            MaterialStateProperty.all<Color>(
+                                            WidgetStateProperty.all<Color>(
                                                 const Color(0xff006AFE)),
-                                        overlayColor: MaterialStateProperty
+                                        overlayColor: WidgetStateProperty
                                             .resolveWith<Color?>(
-                                          (Set<MaterialState> states) {
+                                          (Set<WidgetState> states) {
                                             if (states.contains(
-                                                MaterialState.hovered)) {
+                                                WidgetState.hovered)) {
                                               return Colors.blue
                                                   .withOpacity(0.04);
                                             }
                                             if (states.contains(
-                                                    MaterialState.focused) ||
+                                                    WidgetState.focused) ||
                                                 states.contains(
-                                                    MaterialState.pressed)) {
+                                                    WidgetState.pressed)) {
                                               return Colors.blue
                                                   .withOpacity(0.12);
                                             }

@@ -142,14 +142,13 @@ class _FavoritesState extends State<Favorites> {
                           child: OutlinedButton(
                             child: MediaQuery(
                               data: MediaQuery.of(context).copyWith(
-                                  textScaleFactor:
-                                      MediaQuery.of(context).textScaleFactor),
+                                  textScaler: TextScaler.linear(MediaQuery.of(context).textScaleFactor)),
                               child: Text('Done',
                                   style: primaryTextStyle.copyWith(
                                       color: Colors.white)),
                             ),
                             style: primaryButtonStyle.copyWith(
-                              shape: MaterialStateProperty.all(
+                              shape: WidgetStateProperty.all(
                                 RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(2.0),
                                 ),

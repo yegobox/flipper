@@ -387,9 +387,9 @@ openImagePicker(BuildContext context, Function onImageSelected) {
                 Expanded(
                   child: TextButton(
                     style: ButtonStyle(
-                      overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                          (Set<MaterialState> states) {
-                        if (states.contains(MaterialState.focused))
+                      overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                          (Set<WidgetState> states) {
+                        if (states.contains(WidgetState.focused))
                           return Theme.of(context).primaryColor;
                         return Theme.of(context)
                             .primaryColor; // Defer to the widget's default.
@@ -408,9 +408,9 @@ openImagePicker(BuildContext context, Function onImageSelected) {
                 Expanded(
                   child: TextButton(
                     style: ButtonStyle(
-                      overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                          (Set<MaterialState> states) {
-                        if (states.contains(MaterialState.focused))
+                      overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                          (Set<WidgetState> states) {
+                        if (states.contains(WidgetState.focused))
                           return Theme.of(context).primaryColor;
                         return Theme.of(context)
                             .primaryColor; // Defer to the widget's default.

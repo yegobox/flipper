@@ -38,26 +38,31 @@ class _RowsPerPageInputState extends ConsumerState<RowsPerPageInput> {
         keyboardType: TextInputType.number,
         decoration: InputDecoration(
           labelText: 'Rows Per Page',
-          labelStyle: TextStyle(color: Colors.grey[700]),
+          labelStyle: TextStyle(color: Colors.grey[700], fontSize: 14),
+          filled: true,
+          fillColor: Colors.grey[200],
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide(color: Colors.grey[400]!),
+            borderRadius: BorderRadius.circular(4),
+            borderSide: BorderSide(color: Colors.grey[300]!),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide(color: Colors.blue),
+            borderRadius: BorderRadius.circular(4.0),
+            borderSide: BorderSide(color: Colors.blue, width: 2.0),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide(color: Colors.red),
+            borderRadius: BorderRadius.circular(4),
+            borderSide: BorderSide(color: Colors.red, width: 2.0),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide(color: Colors.red),
+            borderRadius: BorderRadius.circular(4),
+            borderSide: BorderSide(color: Colors.red, width: 2.0),
           ),
           errorStyle: TextStyle(color: Colors.red, fontSize: 12),
+          suffixIcon: Icon(Icons.numbers, color: Colors.grey[500]),
         ),
-        style: TextStyle(fontSize: 16.0),
+        style: TextStyle(fontSize: 16.0, color: Colors.black87),
         validator: (value) {
           if (value == null || value.isEmpty) {
             return 'Please enter a number';
@@ -74,8 +79,6 @@ class _RowsPerPageInputState extends ConsumerState<RowsPerPageInput> {
             if (newValue != null && newValue > 0) {
               ref.read(widget.rowsPerPageProvider.notifier).state = newValue;
             }
-          } else {
-            // Allow empty input without updating the provider
           }
         },
       ),

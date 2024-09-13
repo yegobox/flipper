@@ -9,6 +9,7 @@ class FlipperButton extends StatelessWidget {
   final Color? color;
   final Color? textColor;
   final double? radius;
+  final bool busy;
 
   const FlipperButton({
     Key? key,
@@ -19,6 +20,7 @@ class FlipperButton extends StatelessWidget {
     this.radius = 10,
     this.textColor,
     this.onPressed,
+    this.busy = false,
   }) : super(key: key);
 
   @override
@@ -27,10 +29,20 @@ class FlipperButton extends StatelessWidget {
       width: width,
       height: height,
       child: TextButton(
-        child: Text(
-          text,
-          style: TextStyle(color: textColor ?? Colors.white),
-        ),
+        child: busy
+            ? SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(textColor ?? Colors.white),
+                ),
+              )
+            : Text(
+                text,
+                style: TextStyle(color: textColor ?? Colors.white),
+              ),
         style: ButtonStyle(
           shape: WidgetStateProperty.all<OutlinedBorder>(
             RoundedRectangleBorder(
@@ -58,7 +70,7 @@ class FlipperButton extends StatelessWidget {
             },
           ),
         ),
-        onPressed: onPressed,
+        onPressed: busy ? null : onPressed,
       ),
     );
   }
@@ -66,13 +78,16 @@ class FlipperButton extends StatelessWidget {
 
 class FlipperButtonFlat extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Color? textColor;
+  final bool busy;
+
   const FlipperButtonFlat({
     Key? key,
     required this.text,
     this.textColor,
-    required this.onPressed,
+    this.onPressed,
+    this.busy = false,
   }) : super(key: key);
 
   @override
@@ -89,16 +104,25 @@ class FlipperButtonFlat extends StatelessWidget {
             if (states.contains(WidgetState.hovered)) {
               return Colors.blue.withOpacity(0.04);
             }
-
             return null; // Defer to the widget's default.
           },
         ),
       ),
-      child: FlowyText(
-        text,
-        color: textColor,
-      ),
-      onPressed: onPressed,
+      child: busy
+          ? SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(textColor ?? Colors.blue),
+              ),
+            )
+          : FlowyText(
+              text,
+              color: textColor,
+            ),
+      onPressed: busy ? null : onPressed,
     );
   }
 }
@@ -112,6 +136,7 @@ class FlipperIconButton extends StatelessWidget {
   final double? iconSize;
   final double? width;
   final double? height;
+  final bool busy;
 
   const FlipperIconButton({
     Key? key,
@@ -121,8 +146,9 @@ class FlipperIconButton extends StatelessWidget {
     this.text,
     this.width = 200,
     this.height = 50,
-    required this.onPressed,
+    this.onPressed,
     this.iconSize = 24.0, // Default icon size
+    this.busy = false,
   }) : super(key: key);
 
   @override
@@ -130,7 +156,7 @@ class FlipperIconButton extends StatelessWidget {
     return Container(
       height: height,
       width: width,
-      child: TextButton.icon(
+      child: TextButton(
         style: ButtonStyle(
           shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
             (states) => RoundedRectangleBorder(
@@ -142,23 +168,38 @@ class FlipperIconButton extends StatelessWidget {
               if (states.contains(WidgetState.hovered)) {
                 return Colors.blue.withOpacity(0.04);
               }
-
               return null; // Defer to the widget's default.
             },
           ),
         ),
-        icon: Icon(
-          icon,
-          color: iconColor ?? Colors.black, // Default icon color
-          size: iconSize,
-        ),
-        label: text != null
-            ? FlowyText(
-                text!,
-                color: textColor,
+        child: busy
+            ? SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(iconColor ?? Colors.black),
+                ),
               )
-            : const SizedBox(), // Add empty SizedBox if no text
-        onPressed: onPressed,
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    color: iconColor ?? Colors.black,
+                    size: iconSize,
+                  ),
+                  if (text != null) ...[
+                    SizedBox(width: 8),
+                    FlowyText(
+                      text!,
+                      color: textColor,
+                    ),
+                  ],
+                ],
+              ),
+        onPressed: busy ? null : onPressed,
       ),
     );
   }

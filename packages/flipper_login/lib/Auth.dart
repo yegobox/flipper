@@ -198,10 +198,10 @@ class _AuthState extends State<Auth> {
                       style: TextStyle(color: Color(0xff006AFE)),
                     ),
                     style: ButtonStyle(
-                      shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                      shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
                           (states) => RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(4))),
-                      side: MaterialStateProperty.resolveWith<BorderSide>(
+                      side: WidgetStateProperty.resolveWith<BorderSide>(
                         (states) => BorderSide(
                           color: const Color(0xff006AFE).withOpacity(0.1),
                         ),

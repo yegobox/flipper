@@ -278,7 +278,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                               ],
                             ),
                             style: primaryButtonStyle.copyWith(
-                              shape: MaterialStateProperty.all(
+                              shape: WidgetStateProperty.all(
                                 RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(2.0),
                                 ),

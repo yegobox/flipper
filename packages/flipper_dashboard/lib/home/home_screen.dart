@@ -6,11 +6,6 @@ import 'package:flipper_dashboard/home/pages/custom_sheet_pages/new_order_notifi
 import 'package:flipper_dashboard/home/pages/root_sheet_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:demo_ui_components/demo_ui_components.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
-import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
-import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 const double _contentWidth = 300.0;

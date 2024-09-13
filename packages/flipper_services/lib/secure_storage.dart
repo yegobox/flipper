@@ -13,6 +13,8 @@ class SecureStorage {
 
   //Get Saved Credentials
   Future<Map<String, dynamic>?> getCredentials() async {
+    return null;
+  
     // var result = await storage.readAll();
     // if (result.length == 0) return null;
     // return result;

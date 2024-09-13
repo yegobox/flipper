@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/DynamicDataSource.dart';
 import 'package:flipper_dashboard/HeaderTransactionItem.dart';
@@ -21,24 +19,33 @@ import 'package:stacked/stacked.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:flipper_dashboard/StockRecount.dart';
 
 class DataView extends StatefulHookConsumerWidget {
   const DataView({
     super.key,
+    this.stocks,
     this.transactions,
     required this.startDate,
     required this.endDate,
     required this.showDetailedReport,
     required this.rowsPerPage,
     this.transactionItems,
+    this.showPluReport = true,
+    this.onTapRowShowRefundModal = true,
+    this.onTapRowShowRecountModal = false,
   });
 
   final List<ITransaction>? transactions;
+  final List<Stock>? stocks;
   final DateTime startDate;
   final DateTime endDate;
   final bool showDetailedReport;
   final int rowsPerPage;
   final List<TransactionItem>? transactionItems;
+  final bool showPluReport;
+  final bool onTapRowShowRefundModal;
+  final bool onTapRowShowRecountModal;
 
   @override
   DataViewState createState() => DataViewState();
@@ -47,253 +54,301 @@ class DataView extends StatefulHookConsumerWidget {
 class DataViewState extends ConsumerState<DataView>
     with ExcelExportMixin, DateCoreWidget, Headers {
   static const double dataPagerHeight = 60;
-  DataGridSource? _dataGridSource;
+  late DataGridSource _dataGridSource;
   int pageIndex = 0;
-
-  final rowsPerPageController = TextEditingController(text: 1000.toString());
+  final talker = TalkerFlutter.init();
 
   @override
   void initState() {
     super.initState();
-    _dataGridSource = _buildDataGridSource(widget.showDetailedReport,
-        widget.transactionItems, widget.transactions, widget.rowsPerPage);
+    _initializeDataSource();
   }
 
   @override
-  void didUpdateWidget(covariant DataView oldWidget) {
+  void didUpdateWidget(DataView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.transactionItems != oldWidget.transactionItems ||
-        widget.transactions != oldWidget.transactions ||
-        widget.rowsPerPage != oldWidget.rowsPerPage) {
-      _dataGridSource = _buildDataGridSource(widget.showDetailedReport,
-          widget.transactionItems, widget.transactions, widget.rowsPerPage);
+    if (_shouldUpdateDataSource(oldWidget)) {
+      _initializeDataSource();
     }
   }
 
-  @override
-  void dispose() {
-    rowsPerPageController.dispose();
-    super.dispose();
+  bool _shouldUpdateDataSource(DataView oldWidget) {
+    return widget.transactionItems != oldWidget.transactionItems ||
+        widget.transactions != oldWidget.transactions ||
+        widget.rowsPerPage != oldWidget.rowsPerPage;
   }
 
-  final talker = TalkerFlutter.init();
+  void _initializeDataSource() {
+    _dataGridSource = _buildDataGridSource(
+      showDetailed: widget.showDetailedReport,
+      transactionItems: widget.transactionItems,
+      transactions: widget.transactions,
+      stocks: widget.stocks,
+      rowsPerPage: widget.rowsPerPage,
+    );
+  }
 
-  void handleCellTap(DataGridCellTapDetails details) {
+  void _handleCellTap(DataGridCellTapDetails details) {
     try {
       final rowIndex = details.rowColumnIndex.rowIndex;
       if (rowIndex < 1) return;
-
-      talker.warning(pageIndex);
-      // talker.warning(pageIndex);
-      talker.warning(widget.rowsPerPage);
-      talker.warning(rowIndex);
 
       final dataSource = _dataGridSource as DynamicDataSource;
       final data =
           dataSource.data[pageIndex * widget.rowsPerPage + rowIndex - 1];
 
-      talker.warning('Tapped row: ID = ${data.id}, Name = ${data.subTotal}');
-      showDialog(
-        barrierDismissible: true,
-        context: context,
-        builder: (context) => OptionModal(
-          child: Refund(
-            refundAmount: data.subTotal,
-            transactionId: data.id.toString(),
-            currency: "RWF",
-            transaction: data is ITransaction ? data : null,
-          ),
-        ),
-      );
+      if (widget.onTapRowShowRefundModal) {
+        _showRefundModal(data);
+      }
+      if (widget.onTapRowShowRecountModal) {
+        _showRecountModal(data);
+      }
     } catch (e, s) {
       talker.error(s);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    const EdgeInsets headerPadding =
-        EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
-
-    // talker.info("Given data size: ${widget.transactionItems?.length}");
-
-    return ViewModelBuilder.reactive(
-      viewModelBuilder: () => HomeViewModel(),
-      onViewModelReady: (model) {},
-      builder: (context, model, child) {
-        return Scaffold(
-          body: LayoutBuilder(
-            builder: (context, constraint) {
-              return Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.fromLTRB(0.0, 20, 0, 20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            Switch(
-                                value: ref.watch(toggleBooleanValueProvider),
-                                onChanged: (value) {
-                                  ref
-                                      .read(toggleBooleanValueProvider.notifier)
-                                      .toggleReport();
-                                  if (ref.read(toggleBooleanValueProvider)) {
-                                    ref
-                                        .read(rowsPerPageProvider.notifier)
-                                        .state = 1000;
-                                  }
-                                }),
-                            Text(ref.read(toggleBooleanValueProvider)
-                                ? 'PLU Report'
-                                : 'ZReport'),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: RowsPerPageInput(
-                                  rowsPerPageProvider: rowsPerPageProvider),
-                            ),
-                            widget.showDetailedReport
-                                ? datePicker()
-                                : SizedBox.shrink()
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        height: 40.0,
-                        width: 150.0,
-                        child: BoxButton(
-                          onTap: () async {
-                            if (workBookKey.currentState == null) {
-                              toast("Error: Workbook is null");
-                            } else {
-                              final expenses = ProxyService.realm.transactions(
-                                  startDate: widget.startDate,
-                                  endDate: widget.endDate,
-                                  isExpense: true,
-                                  branchId: ProxyService.box.getBranchId());
-
-                              final nonExpense = ProxyService.realm
-                                  .transactions(
-                                      startDate: widget.startDate,
-                                      endDate: widget.endDate,
-                                      isExpense: false,
-                                      branchId: ProxyService.box.getBranchId());
-
-                              /// categorize transactions
-                              exportDataGridToExcel(
-                                  config: ExportConfig(
-                                      transactions: nonExpense,
-                                      endDate: widget.endDate,
-                                      startDate: widget.startDate,
-                                      grossProfit: widget.transactionItems!.fold<double>(
-                                          0.0,
-                                          (sum, item) =>
-                                              sum +
-                                              (((item.qty * item.price) -
-                                                      (item.qty *
-                                                          item.splyAmt)) -
-                                                  (((item.qty * item.price) -
-                                                          (item.qty *
-                                                              item.splyAmt)) *
-                                                      18 /
-                                                      118))),
-                                      netProfit: (
-                                          // Gross profit calculation
-                                          widget.transactionItems!.fold<double>(
-                                                  0.0,
-                                                  (sum, item) =>
-                                                      sum +
-                                                      ((item.qty * item.price) -
-                                                          (item.qty *
-                                                              item.splyAmt)))
-                                              // Subtract tax amount
-                                              -
-                                              widget.transactionItems!.fold<double>(
-                                                  0.0,
-                                                  (sum, item) =>
-                                                      sum + (((item.qty * item.price) - (item.qty * item.splyAmt)) * 18 / 118)))),
-                                  expenses: expenses);
-                            }
-                          },
-                          borderRadius: 1,
-                          title: 'Export to Excel',
-                          busy: ref.watch(isProcessingProvider),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Expanded(
-                    child: SfDataGridTheme(
-                      data: SfDataGridThemeData(
-                        headerHoverColor: Colors.yellow,
-                        gridLineColor: Colors.amber,
-                        gridLineStrokeWidth: 1.0,
-                        rowHoverColor: Colors.yellow,
-                        selectionColor: Colors.yellow,
-                        rowHoverTextStyle: TextStyle(
-                          color: Colors.red,
-                          fontSize: 14,
-                        ),
-                      ),
-                      child: SizedBox(
-                        height: constraint.maxHeight - dataPagerHeight,
-                        width: constraint.maxWidth,
-                        child: SfDataGrid(
-                          rowsPerPage: widget.rowsPerPage,
-                          allowFiltering: true,
-                          highlightRowOnHover: true,
-                          gridLinesVisibility: GridLinesVisibility.both,
-                          headerGridLinesVisibility: GridLinesVisibility.both,
-                          key: workBookKey,
-                          source: _dataGridSource!,
-                          columnWidthMode: ColumnWidthMode.fill,
-                          onCellTap: handleCellTap,
-                          columns: widget.showDetailedReport
-                              ? pluReportTableHeader(headerPadding)
-                              : zReportTableHeader(headerPadding),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    height: dataPagerHeight,
-                    child: SfDataPager(
-                      lastPageItemVisible: false,
-                      nextPageItemVisible: false,
-                      delegate: _dataGridSource!,
-                      pageCount:
-                          (_dataGridSource!.rows.length / widget.rowsPerPage)
-                              .ceilToDouble(),
-                      direction: Axis.horizontal,
-                      onPageNavigationEnd: (index) {
-                        log("Page Index ${index}");
-                        setState(() {
-                          pageIndex = index;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        );
-      },
+  void _showRecountModal(dynamic data) {
+    showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (context) => OptionModal(
+        child: StockRecount(
+          itemName: data.variant.productName,
+          stockId: data.id,
+          onRecount: (value) {
+            print(value);
+          },
+        ),
+      ),
     );
   }
 
-  DataGridSource _buildDataGridSource(
-      bool showDetailed,
-      List<TransactionItem>? transactionItems,
-      List<ITransaction>? transactions,
-      int rowsPerPage) {
-    if (showDetailed) {
-      return TransactionItemDataSource(
-          transactionItems!, rowsPerPage, showDetailed);
+  void _showRefundModal(dynamic data) {
+    showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (context) => OptionModal(
+        child: Refund(
+          refundAmount: data.subTotal,
+          transactionId: data.id.toString(),
+          currency: "RWF",
+          transaction: data is ITransaction ? data : null,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ViewModelBuilder<HomeViewModel>.reactive(
+      viewModelBuilder: () => HomeViewModel(),
+      builder: (context, model, child) => LayoutBuilder(
+        builder: (context, constraint) => Column(
+          children: [
+            _buildHeader(),
+            SizedBox(
+              height: 10,
+            ),
+            Expanded(child: _buildDataGrid(constraint)),
+            _buildDataPager(constraint),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        if (widget.showPluReport) _buildReportTypeSwitch(),
+        _buildRowsPerPageInput(),
+        if (widget.showDetailedReport) datePicker(),
+        _buildExportButton(),
+      ],
+    );
+  }
+
+  Widget _buildReportTypeSwitch() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      margin: const EdgeInsets.symmetric(vertical: 20.0),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(12.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            offset: Offset(0, 4),
+            blurRadius: 10.0,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            ref.read(toggleBooleanValueProvider) ? 'PLU Report' : 'ZReport',
+            style: TextStyle(
+              fontSize: 16.0,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[800],
+            ),
+          ),
+          Switch.adaptive(
+            activeColor: Colors.blue,
+            value: ref.watch(toggleBooleanValueProvider),
+            onChanged: (value) {
+              ref.read(toggleBooleanValueProvider.notifier).toggleReport();
+              if (ref.read(toggleBooleanValueProvider)) {
+                ref.read(rowsPerPageProvider.notifier).state = 1000;
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRowsPerPageInput() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+      child: RowsPerPageInput(rowsPerPageProvider: rowsPerPageProvider),
+    );
+  }
+
+  Widget _buildExportButton() {
+    return SizedBox(
+      height: 40.0,
+      width: 150.0,
+      child: FlipperButton(
+        onPressed: _exportToExcel,
+        height: 80,
+        text: 'Export to Excel',
+        textColor: Colors.black,
+        busy: ref.watch(isProcessingProvider),
+      ),
+    );
+  }
+
+  Widget _buildDataGrid(BoxConstraints constraint) {
+    return SfDataGridTheme(
+      data: SfDataGridThemeData(
+        headerHoverColor: Colors.yellow,
+        gridLineColor: Colors.amber,
+        gridLineStrokeWidth: 1.0,
+        rowHoverColor: Colors.yellow,
+        selectionColor: Colors.yellow,
+        rowHoverTextStyle: TextStyle(color: Colors.red, fontSize: 14),
+      ),
+      child: SfDataGrid(
+        key: workBookKey,
+        source: _dataGridSource,
+        allowFiltering: true,
+        highlightRowOnHover: true,
+        gridLinesVisibility: GridLinesVisibility.both,
+        headerGridLinesVisibility: GridLinesVisibility.both,
+        columnWidthMode: ColumnWidthMode.fill,
+        onCellTap: _handleCellTap,
+        columns: _getTableHeaders(),
+        rowsPerPage: widget.rowsPerPage,
+      ),
+    );
+  }
+
+  Widget _buildDataPager(BoxConstraints constraint) {
+    return SizedBox(
+      height: dataPagerHeight,
+      child: SfDataPager(
+        delegate: _dataGridSource,
+        pageCount:
+            (_dataGridSource.rows.length / widget.rowsPerPage).ceilToDouble(),
+        direction: Axis.horizontal,
+        onPageNavigationEnd: (index) => setState(() => pageIndex = index),
+      ),
+    );
+  }
+
+  List<GridColumn> _getTableHeaders() {
+    const headerPadding = EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
+    if (widget.stocks != null && widget.stocks!.isNotEmpty) {
+      return stockTableHeader(headerPadding);
+    } else if (widget.showDetailedReport) {
+      return pluReportTableHeader(headerPadding);
     } else {
-      return TransactionDataSource(transactions!, rowsPerPage, showDetailed);
+      return zReportTableHeader(headerPadding);
     }
+  }
+
+  DataGridSource _buildDataGridSource({
+    required bool showDetailed,
+    List<TransactionItem>? transactionItems,
+    List<ITransaction>? transactions,
+    List<Stock>? stocks,
+    required int rowsPerPage,
+  }) {
+    if (transactionItems != null && transactionItems.isNotEmpty) {
+      return TransactionItemDataSource(
+          transactionItems, rowsPerPage, showDetailed);
+    } else if (transactions != null && transactions.isNotEmpty) {
+      return TransactionDataSource(transactions, rowsPerPage, showDetailed);
+    } else if (stocks != null && stocks.isNotEmpty) {
+      return StockDataSource(stocks: stocks, rowsPerPage: rowsPerPage);
+    }
+    throw Exception('No valid data source available');
+  }
+
+  Future<void> _exportToExcel() async {
+    if (workBookKey.currentState == null) {
+      toast("Error: Workbook is null");
+      return;
+    }
+
+    final expenses = ProxyService.realm.transactions(
+      startDate: widget.startDate,
+      endDate: widget.endDate,
+      isExpense: true,
+      branchId: ProxyService.box.getBranchId(),
+    );
+
+    final nonExpense = ProxyService.realm.transactions(
+      startDate: widget.startDate,
+      endDate: widget.endDate,
+      isExpense: false,
+      branchId: ProxyService.box.getBranchId(),
+    );
+
+    final grossProfit = _calculateGrossProfit();
+    final netProfit = _calculateNetProfit();
+
+    exportDataGridToExcel(
+      config: ExportConfig(
+        transactions: nonExpense,
+        endDate: widget.endDate,
+        startDate: widget.startDate,
+        grossProfit: grossProfit,
+        netProfit: netProfit,
+      ),
+      expenses: expenses,
+    );
+  }
+
+  double _calculateGrossProfit() {
+    return widget.transactionItems!.fold<double>(
+      0.0,
+      (sum, item) =>
+          sum + ((item.qty * item.price) - (item.qty * item.splyAmt)),
+    );
+  }
+
+  double _calculateNetProfit() {
+    final grossProfit = _calculateGrossProfit();
+    final taxAmount = widget.transactionItems!.fold<double>(
+      0.0,
+      (sum, item) =>
+          sum +
+          (((item.qty * item.price) - (item.qty * item.splyAmt)) * 18 / 118),
+    );
+    return grossProfit - taxAmount;
   }
 }
