@@ -1516,6 +1516,10 @@ PODS:
     - CocoaAsyncSocket (~> 7.6)
     - Flutter
     - FlutterMacOS
+  - powersync-sqlite-core (0.2.1)
+  - powersync_flutter_libs (0.0.1):
+    - FlutterMacOS
+    - powersync-sqlite-core (~> 0.2.1)
   - printing (1.0.0):
     - FlutterMacOS
   - PromisesObjC (2.4.0)
@@ -1540,6 +1544,24 @@ PODS:
   - sqflite (0.0.3):
     - Flutter
     - FlutterMacOS
+  - "sqlite3 (3.46.1+1)":
+    - "sqlite3/common (= 3.46.1+1)"
+  - "sqlite3/common (3.46.1+1)"
+  - "sqlite3/dbstatvtab (3.46.1+1)":
+    - sqlite3/common
+  - "sqlite3/fts5 (3.46.1+1)":
+    - sqlite3/common
+  - "sqlite3/perf-threadsafe (3.46.1+1)":
+    - sqlite3/common
+  - "sqlite3/rtree (3.46.1+1)":
+    - sqlite3/common
+  - sqlite3_flutter_libs (0.0.1):
+    - FlutterMacOS
+    - "sqlite3 (~> 3.46.0+1)"
+    - sqlite3/dbstatvtab
+    - sqlite3/fts5
+    - sqlite3/perf-threadsafe
+    - sqlite3/rtree
   - tray_manager (0.0.1):
     - FlutterMacOS
   - url_launcher_macos (0.0.1):
@@ -1573,6 +1595,7 @@ DEPENDENCIES:
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
   - patrol (from `Flutter/ephemeral/.symlinks/plugins/patrol/darwin`)
+  - powersync_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/powersync_flutter_libs/macos`)
   - printing (from `Flutter/ephemeral/.symlinks/plugins/printing/macos`)
   - realm (from `Flutter/ephemeral/.symlinks/plugins/realm/macos`)
   - screen_retriever (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever/macos`)
@@ -1581,6 +1604,7 @@ DEPENDENCIES:
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - smart_auth (from `Flutter/ephemeral/.symlinks/plugins/smart_auth/macos`)
   - sqflite (from `Flutter/ephemeral/.symlinks/plugins/sqflite/darwin`)
+  - sqlite3_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/macos`)
   - tray_manager (from `Flutter/ephemeral/.symlinks/plugins/tray_manager/macos`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
   - window_manager (from `Flutter/ephemeral/.symlinks/plugins/window_manager/macos`)
@@ -1619,9 +1643,11 @@ SPEC REPOS:
     - GTMSessionFetcher
     - leveldb-library
     - nanopb
+    - powersync-sqlite-core
     - PromisesObjC
     - PromisesSwift
     - Sentry
+    - sqlite3
 
 EXTERNAL SOURCES:
   amplify_auth_cognito:
@@ -1674,6 +1700,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
   patrol:
     :path: Flutter/ephemeral/.symlinks/plugins/patrol/darwin
+  powersync_flutter_libs:
+    :path: Flutter/ephemeral/.symlinks/plugins/powersync_flutter_libs/macos
   printing:
     :path: Flutter/ephemeral/.symlinks/plugins/printing/macos
   realm:
@@ -1690,6 +1718,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/smart_auth/macos
   sqflite:
     :path: Flutter/ephemeral/.symlinks/plugins/sqflite/darwin
+  sqlite3_flutter_libs:
+    :path: Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/macos
   tray_manager:
     :path: Flutter/ephemeral/.symlinks/plugins/tray_manager/macos
   url_launcher_macos:
@@ -1755,6 +1785,8 @@ SPEC CHECKSUMS:
   package_info_plus: fa739dd842b393193c5ca93c26798dff6e3d0e0c
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   patrol: 0564cee315ff6c86fb802b3647db05cc2d3d0624
+  powersync-sqlite-core: 38ead13d8b21920cfbc79e9b3415b833574a506d
+  powersync_flutter_libs: 3f05f43c382c77cb7bec64785c2b6b1e9bd33c22
   printing: 1dd6a1fce2209ec240698e2439a4adbb9b427637
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
@@ -1766,6 +1798,8 @@ SPEC CHECKSUMS:
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   smart_auth: b38e3ab4bfe089eacb1e233aca1a2340f96c28e9
   sqflite: 673a0e54cc04b7d6dba8d24fb8095b31c3a99eec
+  sqlite3: 0bb0e6389d824e40296f531b858a2a0b71c0d2fb
+  sqlite3_flutter_libs: 5ca46c1a04eddfbeeb5b16566164aa7ad1616e7b
   tray_manager: 9064e219c56d75c476e46b9a21182087930baf90
   url_launcher_macos: 5f437abeda8c85500ceb03f5c1938a8c5a705399
   window_manager: 3a1844359a6295ab1e47659b1a777e36773cd6e8
