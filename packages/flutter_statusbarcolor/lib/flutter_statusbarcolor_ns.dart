@@ -2,7 +2,6 @@
 /// background color and foreground brightness.
 
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/services.dart';
 

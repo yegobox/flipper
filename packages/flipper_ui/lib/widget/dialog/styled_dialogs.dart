@@ -170,7 +170,7 @@ class StyledDialogRoute<T> extends PopupRoute<T> {
           opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
           child: child);
     } else {
-      return _transitionBuilder!(context, animation, secondaryAnimation, child);
+      return _transitionBuilder(context, animation, secondaryAnimation, child);
     } // Some default transition
   }
 }

@@ -1,18 +1,15 @@
 // ignore_for_file: unused_result
 
-import 'package:flipper_dashboard/StockDataSource.dart';
-import 'package:flipper_dashboard/checkout.dart';
+import 'package:flipper_dashboard/DataView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 
 import 'package:flipper_dashboard/TransactionList.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum ViewMode { products, stocks }
 
@@ -132,6 +129,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final branchId = ProxyService.box.getBranchId();
     final stockItems = ref.watch(stocksProvider((branchId: branchId!)));
 
+    final stocks = ref.watch(stocksProvider((branchId: branchId)));
+    final dateRange = ref.watch(dateRangeProvider);
+    final startDate = dateRange['startDate'];
+    final endDate = dateRange['endDate'];
+
     return Stack(
       children: [
         Column(
@@ -213,7 +215,19 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                   )
                 : stockItems.isEmpty
                     ? Center(child: Text("No stock data available"))
-                    : StockDataGrid(),
+                    : SizedBox(
+                        height: 1200,
+                        child: DataView(
+                          onTapRowShowRefundModal: false,
+                          onTapRowShowRecountModal: true,
+                          showPluReport: false,
+                          startDate: startDate ?? DateTime.now(),
+                          endDate: endDate ?? DateTime.now(),
+                          stocks: stocks,
+                          rowsPerPage: ref.read(rowsPerPageProvider),
+                          showDetailedReport: false,
+                        ),
+                      )
           ],
         )
       ],

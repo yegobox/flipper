@@ -12,6 +12,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:stacked_services/stacked_services.dart';
@@ -287,10 +288,9 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                             return null;
                           },
                           onFieldSubmitted: (value) {
-                            ref.refresh(pendingTransactionProvider((
-                              mode: TransactionType.sale,
-                              isExpense: false
-                            )));
+                            talker.warning("purchase code submitted[1]");
+                            _refreshTransactionItems(
+                                transactionId: transaction.id!);
                           },
                           onSaved: (value) {},
                         ),
@@ -309,21 +309,10 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                   Navigator.of(context).pop();
                 },
               ),
-              ElevatedButton(
-                child: ref.watch(isProcessingProvider)
-                    ? SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(color: Colors.white),
-                      )
-                    : Text('Submit'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[600],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
+              FlipperButton(
+                busy: ref.watch(isProcessingProvider),
+                text: 'Submit',
+                textColor: Colors.black,
                 onPressed: () async {
                   if (purchaseCodeFormkey.currentState?.validate() ?? false) {
                     ref.read(isProcessingProvider.notifier).toggleProcessing();
@@ -339,6 +328,9 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                         discount: discount,
                         purchaseCode: purchaseCode);
                     ref.read(loadingProvider.notifier).state = false;
+                    talker.warning("purchase code submitted[2]");
+
+                    _refreshTransactionItems(transactionId: transaction.id!);
                     Navigator.of(context).pop();
                   }
                 },

@@ -35,3 +35,36 @@ class TransactionDataSource extends DynamicDataSource<ITransaction> {
     }
   }
 }
+
+class StockDataSource extends DynamicDataSource<Stock> {
+  StockDataSource({required List<Stock> stocks, required this.rowsPerPage}) {
+    data = stocks;
+    buildPaginatedDataGridRows();
+  }
+
+  final int rowsPerPage;
+  @override
+  void buildPaginatedDataGridRows() {
+    data = data.sublist(
+      0,
+      data.length > rowsPerPage ? rowsPerPage : data.length,
+    );
+  }
+
+  @override
+  Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
+    final int startRowIndex = newPageIndex * rowsPerPage;
+    final int endIndex = startRowIndex + rowsPerPage;
+
+    if (startRowIndex < data.length) {
+      data = data.sublist(
+        startRowIndex,
+        endIndex > data.length ? data.length : endIndex,
+      );
+      notifyListeners();
+      return true;
+    } else {
+      return false; // Prevent page change
+    }
+  }
+}

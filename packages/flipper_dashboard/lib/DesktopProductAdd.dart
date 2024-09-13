@@ -300,11 +300,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   }
 
   Widget _buildTaxDropdown(
-      BuildContext context, Variant variant, ScannViewModel model) {
+    BuildContext context,
+    Variant variant,
+    ScannViewModel model,
+  ) {
     final List<String> options = ["A", "B", "C", "D"];
 
     return DropdownButton<String>(
-      value: variant.taxTyCd ?? "B",
+      value: variant.taxTyCd ?? "B", // Default value if null
       items: options.map((String option) {
         return DropdownMenuItem<String>(
           value: option,
@@ -312,17 +315,21 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         );
       }).toList(),
       onChanged: (String? newValue) {
-        if (newValue != null) {
+        if (newValue != null && newValue != variant.taxTyCd) {
           try {
+            // Ensure the Realm write happens correctly
             ProxyService.realm.realm!.write(() {
               variant.taxTyCd = newValue;
             });
+
+            // Force the UI to rebuild if necessary
+            model.notifyListeners();
           } catch (e) {
             talker.error(e);
           }
         }
       },
-      isExpanded: true, // Ensures the dropdown fits its container
+      isExpanded: true, // Makes the dropdown fill available space
       underline: SizedBox.shrink(), // Removes the default underline
     );
   }

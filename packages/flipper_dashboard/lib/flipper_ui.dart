@@ -47,18 +47,18 @@ class FLipperButton extends StatelessWidget {
         ),
         style: !_disableButton
             ? ButtonStyle(
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(0))),
                 backgroundColor:
-                    MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
-                overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                  (Set<MaterialState> states) {
-                    if (states.contains(MaterialState.hovered)) {
+                    WidgetStateProperty.all<Color>(const Color(0xff006AFE)),
+                overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                  (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.hovered)) {
                       return Colors.blue.withOpacity(0.04);
                     }
-                    if (states.contains(MaterialState.focused) ||
-                        states.contains(MaterialState.pressed)) {
+                    if (states.contains(WidgetState.focused) ||
+                        states.contains(WidgetState.pressed)) {
                       return Colors.blue.withOpacity(0.12);
                     }
                     return null;
@@ -66,19 +66,19 @@ class FLipperButton extends StatelessWidget {
                 ),
               )
             : ButtonStyle(
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(0))),
-                backgroundColor: MaterialStateProperty.all<Color>(
+                backgroundColor: WidgetStateProperty.all<Color>(
                     Color.fromARGB(255, 155, 157, 160)),
-                overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                  (Set<MaterialState> states) {
-                    if (states.contains(MaterialState.hovered)) {
+                overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                  (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.hovered)) {
                       return Color.fromARGB(255, 155, 157, 160)
                           .withOpacity(0.04);
                     }
-                    if (states.contains(MaterialState.focused) ||
-                        states.contains(MaterialState.pressed)) {
+                    if (states.contains(WidgetState.focused) ||
+                        states.contains(WidgetState.pressed)) {
                       return Color.fromARGB(255, 155, 157, 160)
                           .withOpacity(0.12);
                     }

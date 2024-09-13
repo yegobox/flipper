@@ -107,7 +107,7 @@ class _CountryPickerState extends State<CountryPicker> {
                 child: OutlinedButton(
                   key: Key('Continue'),
                   style: primaryButtonStyle.copyWith(
-                      shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                      shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
                           (states) => RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(4)))),
                   onPressed: () async {

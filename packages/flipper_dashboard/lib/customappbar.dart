@@ -4,7 +4,6 @@ library customappbar;
 
 import 'package:flipper_ui/style_widget/text.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'flipper_ui.dart';
 
 enum CLOSEBUTTON { ICON, BUTTON, WIDGET }

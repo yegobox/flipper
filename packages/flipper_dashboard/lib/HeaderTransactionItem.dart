@@ -56,6 +56,36 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     ];
   }
 
+  List<GridColumn> stockTableHeader(EdgeInsets headerPadding) {
+    // Only It has name and
+    return <GridColumn>[
+      GridColumn(
+        columnName: 'Name',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Name', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'CurrentStock',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Current Stock', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+    ];
+  }
+
   List<GridColumn> pluReportTableHeader(EdgeInsets headerPadding) {
     return <GridColumn>[
       GridColumn(

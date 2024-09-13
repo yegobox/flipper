@@ -25,9 +25,9 @@ class BusinessSettingButton extends StatelessWidget {
               )
             : TextButton(
                 style: ButtonStyle(
-                  overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                      (Set<MaterialState> states) {
-                    if (states.contains(MaterialState.focused))
+                  overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                      (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.focused))
                       return Colors.red;
                     return null; // Defer to the widget's default.
                   }),
