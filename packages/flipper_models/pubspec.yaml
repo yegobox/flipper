@@ -56,7 +56,7 @@ dependencies:
   mime: ^1.0.6
   cloud_firestore: ^5.4.0
   firebase_core: ^3.4.0
-  # powersync: ^1.8.2 # for sync data to cloud
+  powersync: ^1.8.2 # for sync data to cloud
 dependency_overrides:
   http: ^1.2.1
   meta: ^1.12.0
