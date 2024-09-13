@@ -224,7 +224,11 @@ class LocalRealmApi extends RealmAPI
       /// wait for subscription before we go to downloadAssetSave line
 
       await updateLocalRealm(user, localRealm: ProxyService.local.localRealm);
+      talker.info("Waiting before calling downloadAssetSave");
+      await Future.delayed(Duration(seconds: 2));
+      talker.info("About to call downloadAssetSave");
       await ProxyService.realm.downloadAssetSave();
+      talker.info("Finished calling downloadAssetSave");
       AppInitializer.initialize();
       if (stopAfterConfigure) return user;
 

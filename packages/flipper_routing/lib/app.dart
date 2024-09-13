@@ -595,3 +595,7 @@ class App {}
 // https://pub.dev/packages/excel
 
 // Watch this issue if is solved https://github.com/realm/realm-dart/issues/1790 then if yes switch to google login
+
+// // await amplify.Amplify.Storage.remove(
+//   //   path: storagePath,
+//   // );

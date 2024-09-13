@@ -2917,6 +2917,7 @@ class RealmAPI<M extends IJsonSerializable>
         return Stream.value(0.0);
       }
       await syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
+      talker.info("About to call downloadAssetSave");
       int branchId = ProxyService.box.getBranchId()!;
       Directory applicationSupportDirectory =
           await getApplicationSupportDirectory();
@@ -2968,7 +2969,9 @@ class RealmAPI<M extends IJsonSerializable>
       });
 
       return progressController.stream;
-    } catch (e) {
+    } catch (e, s) {
+      talker.error('Error in downloading assets: $e');
+      talker.error('Error in downloading assets: $s');
       rethrow;
     }
   }
@@ -3008,30 +3011,6 @@ class RealmAPI<M extends IJsonSerializable>
         progressController.close();
         talker.warning("Downloaded file at path ${storagePath}");
       }).catchError((error) async {
-        String path = 'public/${subPath}-$branchId/$assetName';
-        try {
-          /// first check if the asset exists in realm
-          Assets? asset = getAsset(assetName: assetName);
-          if (asset != null && !asset.isValid) {
-            talker.warning(
-                'Asset object is no longer valid. Skipping deletion from Realm.');
-          } else if (asset != null) {
-            ProxyService.realm.realm!.write(() {
-              ProxyService.realm.realm!.delete(asset);
-            });
-            talker.info('Asset deleted from Realm: $assetName');
-          }
-
-          // Attempt to remove the asset from S3 storage
-          //TODO: delete file in s3 when a user update image only
-          // await amplify.Amplify.Storage.remove(
-          //   path: storagePath,
-          // );
-          talker.info('Asset deleted from S3 after download error: $path');
-        } catch (deleteError) {
-          talker.error(
-              'Failed to delete asset: $path - ${deleteError.toString()}');
-        }
         progressController.addError(error);
         progressController.close();
       });
