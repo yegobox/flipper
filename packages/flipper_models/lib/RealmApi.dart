@@ -3896,4 +3896,14 @@ class RealmAPI<M extends IJsonSerializable>
         r'branchId == $0 AND variant.productName != $1 AND variant != null',
         [branchId, TEMP_PRODUCT]).toList();
   }
+
+  @override
+  void updateStock({required int stockId, required double qty}) {
+    Stock? stock = realm!.query<Stock>(r'id == $0', [stockId]).firstOrNull;
+    if (stock != null) {
+      realm!.write(() {
+        stock.currentStock = qty;
+      });
+    }
+  }
 }

@@ -225,7 +225,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                           endDate: endDate ?? DateTime.now(),
                           stocks: stocks,
                           rowsPerPage: ref.read(rowsPerPageProvider),
-                          showDetailedReport: false,
+
+                          /// for print to work we need to show detailed report
+                          showDetailedReport: true,
                         ),
                       )
           ],

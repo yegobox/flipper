@@ -1507,6 +1507,11 @@ class RealmViaHttpService
     // TODO: implement stocks
     throw UnimplementedError();
   }
+
+  @override
+  void updateStock({required int stockId, required double qty}) {
+    // TODO: implement updateStock
+  }
 }
 
 class RealmViaHttpServiceMock implements RealmViaHttp {

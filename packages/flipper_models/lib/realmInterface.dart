@@ -488,4 +488,5 @@ abstract class RealmApiInterface {
       {required String deliveryNote,
       DateTime? deliveryDate,
       required int mainBranchId});
+  void updateStock({required int stockId, required double qty});
 }

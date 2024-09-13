@@ -117,7 +117,11 @@ class DataViewState extends ConsumerState<DataView>
           itemName: data.variant.productName,
           stockId: data.id,
           onRecount: (value) {
-            print(value);
+            final parsedValue = double.tryParse(value);
+            if (parsedValue != null && parsedValue != 0) {
+              ProxyService.realm
+                  .updateStock(stockId: data.id, qty: parsedValue);
+            }
           },
         ),
       ),
@@ -317,18 +321,21 @@ class DataViewState extends ConsumerState<DataView>
       isExpense: false,
       branchId: ProxyService.box.getBranchId(),
     );
+    final isStockRecount = widget.stocks != null && widget.stocks!.isNotEmpty;
+    final config = ExportConfig(
+      transactions: nonExpense,
+      endDate: widget.endDate,
+      startDate: widget.startDate,
+    );
 
-    final grossProfit = _calculateGrossProfit();
-    final netProfit = _calculateNetProfit();
+    if (!isStockRecount) {
+      config.grossProfit = _calculateGrossProfit();
+      config.netProfit = _calculateNetProfit();
+    }
 
     exportDataGridToExcel(
-      config: ExportConfig(
-        transactions: nonExpense,
-        endDate: widget.endDate,
-        startDate: widget.startDate,
-        grossProfit: grossProfit,
-        netProfit: netProfit,
-      ),
+      isStockRecount: isStockRecount,
+      config: config,
       expenses: expenses,
     );
   }
