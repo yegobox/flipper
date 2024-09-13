@@ -137,7 +137,7 @@ class TaxController<OBJ> {
             "Processing item with price: ${(item.price == 0.0 ? 1 : item.price)} and quantity: ${item.qty}");
 
         // Fetch the tax configuration
-        var taxConfig =
+        Configurations taxConfig =
             ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
 
         talker.info("Tax To be applied on: ${item.taxTyCd}");
