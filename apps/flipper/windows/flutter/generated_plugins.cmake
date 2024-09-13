@@ -15,12 +15,14 @@ list(APPEND FLUTTER_PLUGIN_LIST
   local_auth_windows
   local_notifier
   permission_handler_windows
+  powersync_flutter_libs
   printing
   realm
   screen_retriever
   sentry_flutter
   share_plus
   smart_auth
+  sqlite3_flutter_libs
   tray_manager
   url_launcher_windows
   window_manager
