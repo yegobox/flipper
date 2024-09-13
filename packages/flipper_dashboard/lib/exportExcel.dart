@@ -22,36 +22,38 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> exportDataGridToExcel({
     required ExportConfig config,
     List<ITransaction>? expenses,
+    bool isStockRecount = false,
   }) async {
     try {
       ref.read(isProcessingProvider.notifier).startProcessing();
 
-      final business = await ProxyService.local.getBusiness();
-      final drawer = await ProxyService.local
-          .getDrawer(cashierId: ProxyService.box.getUserId()!);
-
       final excel.Workbook workbook =
           workBookKey.currentState!.exportToExcelWorkbook();
       final excel.Worksheet reportSheet = workbook.worksheets[0];
-      reportSheet.name = 'Report';
+      reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
 
-      final ExcelStyler styler = ExcelStyler(workbook);
-      final Map<String, excel.Range> namedRanges = _addHeaderAndInfoRows(
-        reportSheet: reportSheet,
-        styler: styler,
-        config: config,
-        business: business,
-        drawer: drawer,
-      );
+      if (!isStockRecount) {
+        final business = await ProxyService.local.getBusiness();
+        final drawer = await ProxyService.local
+            .getDrawer(cashierId: ProxyService.box.getUserId()!);
+        final ExcelStyler styler = ExcelStyler(workbook);
 
-      _addClosingBalanceRow(reportSheet, styler, config.currencyFormat);
+        _addHeaderAndInfoRows(
+          reportSheet: reportSheet,
+          styler: styler,
+          config: config,
+          business: business,
+          drawer: drawer,
+        );
 
-      _formatColumns(reportSheet, config.currencyFormat);
+        _addClosingBalanceRow(reportSheet, styler, config.currencyFormat);
+        _formatColumns(reportSheet, config.currencyFormat);
 
-      if (expenses != null && expenses.isNotEmpty) {
-        _addExpensesSheet(workbook, expenses, styler, config.currencyFormat);
+        if (expenses != null && expenses.isNotEmpty) {
+          _addExpensesSheet(workbook, expenses, styler, config.currencyFormat);
+        }
+        _addPaymentMethodSheet(workbook, config, styler);
       }
-      _addPaymentMethodSheet(workbook, config, styler);
 
       final String filePath = await _saveExcelFile(workbook);
       workbook.dispose();
@@ -85,7 +87,7 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     titleRange.cellStyle = headerStyle;
 
     final taxRate = 18;
-    final taxAmount = (config.grossProfit * taxRate) / 118;
+    final taxAmount = (config.grossProfit ?? 0 * taxRate) / 118;
 
     final infoData = [
       ['TIN Number', business.tinNumber?.toString() ?? ''],
@@ -375,19 +377,19 @@ class ExcelStyler {
 }
 
 class ExportConfig {
-  final DateTime? startDate;
-  final DateTime? endDate;
-  final double grossProfit;
-  final double netProfit;
-  final String currencySymbol;
-  final String currencyFormat;
+  DateTime? startDate;
+  DateTime? endDate;
+  double? grossProfit;
+  double? netProfit;
+  String currencySymbol;
+  String currencyFormat;
   final List<ITransaction> transactions;
 
   ExportConfig({
     this.startDate,
     this.endDate,
-    required this.grossProfit,
-    required this.netProfit,
+    this.grossProfit,
+    this.netProfit,
     this.currencySymbol = 'RF',
     required this.transactions,
   }) : currencyFormat =
