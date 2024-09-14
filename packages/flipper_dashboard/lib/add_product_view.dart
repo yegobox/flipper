@@ -204,7 +204,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
           padding: EdgeInsets.symmetric(horizontal: 18),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: FlowyText('PRICE AND INVENTORY'),
+            child: Flippertext('PRICE AND INVENTORY'),
           ),
         ),
       ],

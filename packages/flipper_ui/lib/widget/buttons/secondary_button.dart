@@ -54,7 +54,7 @@ class SecondaryTextButton extends StatelessWidget {
       mode: mode,
       onPressed: onPressed,
       outlineColor: outlineColor,
-      child: FlowyText.regular(
+      child: Flippertext.regular(
         label,
         color: textColor ?? Theme.of(context).colorScheme.primary,
       ),

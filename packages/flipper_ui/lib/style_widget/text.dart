@@ -4,7 +4,7 @@ import 'package:flipper_ui/widget/flowy_tooltip.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class FlowyText extends StatelessWidget {
+class Flippertext extends StatelessWidget {
   final String text;
   final TextOverflow? overflow;
   final double? fontSize;
@@ -28,7 +28,7 @@ class FlowyText extends StatelessWidget {
 
   final bool optimizeEmojiAlign;
 
-  const FlowyText(
+  const Flippertext(
     this.text, {
     super.key,
     this.overflow = TextOverflow.clip,
@@ -50,7 +50,7 @@ class FlowyText extends StatelessWidget {
     this.optimizeEmojiAlign = false,
   });
 
-  FlowyText.small(
+  Flippertext.small(
     this.text, {
     super.key,
     this.overflow,
@@ -70,7 +70,7 @@ class FlowyText extends StatelessWidget {
   })  : fontWeight = FontWeight.w400,
         fontSize = (Platform.isIOS || Platform.isAndroid) ? 14 : 12;
 
-  const FlowyText.regular(
+  const Flippertext.regular(
     this.text, {
     super.key,
     this.fontSize,
@@ -90,7 +90,7 @@ class FlowyText extends StatelessWidget {
     this.optimizeEmojiAlign = false,
   }) : fontWeight = FontWeight.w400;
 
-  const FlowyText.medium(
+  const Flippertext.medium(
     this.text, {
     super.key,
     this.fontSize,
@@ -110,7 +110,7 @@ class FlowyText extends StatelessWidget {
     this.optimizeEmojiAlign = false,
   }) : fontWeight = FontWeight.w500;
 
-  const FlowyText.semibold(
+  const Flippertext.semibold(
     this.text, {
     super.key,
     this.fontSize,
@@ -131,7 +131,7 @@ class FlowyText extends StatelessWidget {
   }) : fontWeight = FontWeight.w600;
 
   // Some emojis are not supported on Linux and Android, fallback to noto color emoji
-  const FlowyText.emoji(
+  const Flippertext.emoji(
     this.text, {
     super.key,
     this.fontSize,

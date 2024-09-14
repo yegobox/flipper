@@ -69,7 +69,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 0),
               leading: buildLeading(),
               title: widget.title != null
-                  ? FlowyText(widget.title!)
+                  ? Flippertext(widget.title!)
                   : const SizedBox.shrink(),
               trailing: buildTrailing(),
               dense: true,
