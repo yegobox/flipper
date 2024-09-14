@@ -7,6 +7,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'BranchDropdown.dart';
 
 class BranchPerformance extends StatefulHookConsumerWidget {
   @override
@@ -17,7 +18,6 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
     with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    final branches = ref.watch(branchesProvider((includeSelf: true)));
     final branch = ref.watch(selectedBranchProvider);
     final items = ref.watch(stocksProvider(
         (branchId: branch?.serverId ?? ProxyService.box.getBranchId()!)));
@@ -26,32 +26,24 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Inventory Dashboard',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            DropdownButton<Branch>(
-              value: ref.watch(selectedBranchProvider),
-              onChanged: (Branch? newBranch) {
-                if (newBranch != null) {
-                  ref.read(selectedBranchProvider.notifier).state = newBranch;
-                  ref.refresh(stocksProvider((
-                    branchId:
-                        branch?.serverId ?? ProxyService.box.getBranchId()!
-                  )));
-                }
-              },
-              items: branches.map<DropdownMenuItem<Branch>>((Branch branch) {
-                return DropdownMenuItem<Branch>(
-                  value: branch,
-                  child: Text(branch.name ?? 'Unknown'),
-                );
-              }).toList(),
-            ),
-          ],
+        backgroundColor: Colors.white, // Clean, light background
+        elevation: 0, // Flat design, no shadow
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Inventory Dashboard',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600, // Semi-bold for clean emphasis
+                  fontSize: 18, // Moderately sized font
+                  color: Colors.black, // Dark text for contrast
+                ),
+              ),
+              BranchDropdown(),
+            ],
+          ),
         ),
       ),
       body: SafeArea(

@@ -17,7 +17,7 @@ class PrimaryTextButton extends StatelessWidget {
     return PrimaryButton(
       mode: mode,
       onPressed: onPressed,
-      child: FlowyText.regular(
+      child: Flippertext.regular(
         label,
         color: Theme.of(context).colorScheme.onPrimary,
       ),

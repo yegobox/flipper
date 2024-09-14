@@ -14,10 +14,10 @@ class SectionSelectUnit extends StatelessWidget {
   final String type;
   final _routerService = locator<RouterService>();
   Widget unitSelector(Product units) {
-    late Widget text = FlowyText('Select Unit');
+    late Widget text = Flippertext('Select Unit');
 
     if (product.unit != '') {
-      text = FlowyText(product.unit ?? 'Select Unit');
+      text = Flippertext(product.unit ?? 'Select Unit');
     }
 
     return text;
