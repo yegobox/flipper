@@ -227,4 +227,9 @@ class SharedPreferenceStorageMock implements LocalStorage {
   String? yegoboxLoggedInUserPermission() {
     return "admin";
   }
+
+  @override
+  bool doneDownloadingAsset() {
+    return false;
+  }
 }

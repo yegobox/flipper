@@ -326,27 +326,28 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   }
 
   void _completeAuthenticationFlow() {
-    if (ProxyService.local.isDrawerOpen(
-        cashierId: ProxyService.box.getUserId()!,
-        branchId: ProxyService.box.getBranchId()!)) {
-      _routerService.navigateTo(FlipperAppRoute());
-    } else {
-      Drawers drawer = Drawers(
-        ObjectId(),
-        id: randomNumber(),
-        openingBalance: 0.0,
-        closingBalance: 0.0,
-        cashierId: ProxyService.box.getUserId()!,
-        tradeName: ProxyService.app.business.name,
-        openingDateTime: DateTime.now().toIso8601String(),
-        open: true,
-        businessId: ProxyService.box.getBusinessId(),
-        branchId: ProxyService.box.getBranchId(),
-      );
+    _routerService.navigateTo(FlipperAppRoute());
+    // if (ProxyService.local.isDrawerOpen(
+    //     cashierId: ProxyService.box.getUserId()!,
+    //     branchId: ProxyService.box.getBranchId()!)) {
+    //   _routerService.navigateTo(FlipperAppRoute());
+    // } else {
+    //   Drawers drawer = Drawers(
+    //     ObjectId(),
+    //     id: randomNumber(),
+    //     openingBalance: 0.0,
+    //     closingBalance: 0.0,
+    //     cashierId: ProxyService.box.getUserId()!,
+    //     tradeName: ProxyService.app.business.name,
+    //     openingDateTime: DateTime.now().toIso8601String(),
+    //     open: true,
+    //     businessId: ProxyService.box.getBusinessId(),
+    //     branchId: ProxyService.box.getBranchId(),
+    //   );
 
-      _routerService
-          .navigateTo(DrawerScreenRoute(open: "open", drawer: drawer));
-    }
+    //   _routerService
+    //       .navigateTo(DrawerScreenRoute(open: "open", drawer: drawer));
+    // }
   }
 
   void _refreshBusinessAndBranchProviders() {

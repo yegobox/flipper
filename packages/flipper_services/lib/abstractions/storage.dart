@@ -52,4 +52,5 @@ abstract class LocalStorage {
   String? paymentType();
 
   String? yegoboxLoggedInUserPermission();
+  bool doneDownloadingAsset();
 }

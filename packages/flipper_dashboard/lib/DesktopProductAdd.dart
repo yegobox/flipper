@@ -1075,7 +1075,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: const FlowyText(
+                            child: const Flippertext(
                               'Delete',
                               color: Colors.white,
                             ),
@@ -1132,7 +1132,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
-              child: const FlowyText(
+              child: const Flippertext(
                 'Delete',
                 color: Colors.white,
               ),

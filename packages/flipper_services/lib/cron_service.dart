@@ -13,6 +13,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:flipper_models/DownloadQueue.dart';
 
 class CronService with Subscriptions {
   final drive = GoogleDrive();
@@ -145,6 +146,40 @@ class CronService with Subscriptions {
       // );
     }
 
+    /// keep assets downloaded and saved locally as they are added by other users in same business/branch
+    Timer.periodic(_downloadFileSchele(), (Timer t) async {
+      try {
+        final downloadQueue = DownloadQueue(3);
+
+        int branchId = ProxyService.box.getBranchId()!;
+        if (ProxyService.realm.realm == null) {
+          talker.warning("realm is null");
+          return;
+        }
+        if (!ProxyService.box.doneDownloadingAsset()) {
+          List<Assets> assets = ProxyService.realm.realm!
+              .query<Assets>(r'branchId == $0', [branchId]).toList();
+
+          for (Assets asset in assets) {
+            if (asset.assetName != null) {
+              downloadQueue.addToQueue(
+                DownloadParams(
+                  branchId: branchId,
+                  assetName: asset.assetName!,
+                  subPath: "branch",
+                ),
+              );
+            }
+          }
+        }
+      } catch (e, s) {
+        talker.warning(e);
+        talker.error(s);
+      } finally {
+        ProxyService.box.writeBool(key: 'doneDownloadingAsset', value: true);
+      }
+    });
+
     Timer.periodic(_getBackUpDuration(), (Timer t) async {
       final firestore = FirebaseFirestore.instance;
       final backupService = BackupService(firestore);
@@ -255,6 +290,10 @@ class CronService with Subscriptions {
 
   Duration _getDemoPrintDuration() {
     return Duration(minutes: kDebugMode ? 10 : 20);
+  }
+
+  Duration _downloadFileSchele() {
+    return Duration(minutes: kDebugMode ? 1 : 2);
   }
 
   Duration _getBackUpDuration() {

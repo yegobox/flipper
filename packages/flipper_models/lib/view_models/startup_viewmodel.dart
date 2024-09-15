@@ -39,15 +39,16 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       AppInitializer.initialize();
 
       // Handle navigation based on user state and app settings.
-      if (ProxyService.local.isDrawerOpen(
-          cashierId: ProxyService.box.getUserId()!,
-          branchId: ProxyService.box.getBranchId()!)) {
-        // Drawer should be open - handle data bootstrapping and navigation.
-        _handleDrawerOpen();
-      } else {
-        // Drawer should be closed - handle data bootstrapping and navigation.
-        _handleDrawerClosed();
-      }
+      _routerService.navigateTo(FlipperAppRoute());
+      // if (ProxyService.local.isDrawerOpen(
+      //     cashierId: ProxyService.box.getUserId()!,
+      //     branchId: ProxyService.box.getBranchId()!)) {
+      //   // Drawer should be open - handle data bootstrapping and navigation.
+      //   _handleDrawerOpen();
+      // } else {
+      //   // Drawer should be closed - handle data bootstrapping and navigation.
+      //   _handleDrawerClosed();
+      // }
     } catch (e, stackTrace) {
       talker.info("StartupViewModel ${e}");
       talker.error("StartupViewModel ${stackTrace}");

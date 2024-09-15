@@ -118,7 +118,7 @@ class FlipperButtonFlat extends StatelessWidget {
                     AlwaysStoppedAnimation<Color>(textColor ?? Colors.blue),
               ),
             )
-          : FlowyText(
+          : Flippertext(
               text,
               color: textColor,
             ),
@@ -192,7 +192,7 @@ class FlipperIconButton extends StatelessWidget {
                   ),
                   if (text != null) ...[
                     SizedBox(width: 8),
-                    FlowyText(
+                    Flippertext(
                       text!,
                       color: textColor,
                     ),

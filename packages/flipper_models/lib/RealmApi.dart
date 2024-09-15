@@ -32,6 +32,8 @@ import 'package:realm/realm.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
+import 'SessionManager.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:talker_flutter/talker_flutter.dart';
 
@@ -2916,20 +2918,14 @@ class RealmAPI<M extends IJsonSerializable>
       if (realm == null) {
         return Stream.value(0.0);
       }
-      await syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
+
       talker.info("About to call downloadAssetSave");
       int branchId = ProxyService.box.getBranchId()!;
-      Directory applicationSupportDirectory =
-          await getApplicationSupportDirectory();
-      if (Platform.isAndroid) {
-        applicationSupportDirectory = await getApplicationDocumentsDirectory();
-      }
 
       if (assetName != null) {
-        return _downloadAsset(
-            branchId, assetName, applicationSupportDirectory.path, subPath!);
+        return downloadAsset(
+            branchId: branchId, assetName: assetName, subPath: subPath!);
       }
-      if (realm == null) return Stream.empty();
 
       List<Assets> assets =
           realm!.query<Assets>(r'branchId == $0', [branchId]).toList();
@@ -2939,8 +2935,10 @@ class RealmAPI<M extends IJsonSerializable>
       for (Assets asset in assets) {
         if (asset.assetName != null) {
           // Get the download stream
-          Stream<double> downloadStream = await _downloadAsset(branchId,
-              asset.assetName!, applicationSupportDirectory.path, subPath!);
+          Stream<double> downloadStream = await downloadAsset(
+              branchId: branchId,
+              assetName: asset.assetName!,
+              subPath: subPath!);
 
           // Listen to the download stream and add its events to the main controller
           downloadStream.listen((progress) {
@@ -2959,8 +2957,10 @@ class RealmAPI<M extends IJsonSerializable>
 
       // Close the stream controller when all downloads are finished
       Future.wait(assets.map((asset) => asset.assetName != null
-          ? _downloadAsset(branchId, asset.assetName!,
-              applicationSupportDirectory.path, subPath!)
+          ? downloadAsset(
+              branchId: branchId,
+              assetName: asset.assetName!,
+              subPath: subPath!)
           : Future.value(Stream.empty()))).then((_) {
         progressController.close();
       }).catchError((error) {
@@ -2976,23 +2976,40 @@ class RealmAPI<M extends IJsonSerializable>
     }
   }
 
-  Future<Stream<double>> _downloadAsset(int branchId, String assetName,
-      String directoryPath, String subPath) async {
-    final filePath = '$directoryPath/$assetName';
-    final file = File(filePath);
+  final sessionManager = SessionManager();
 
+  @override
+  Future<Stream<double>> downloadAsset(
+      {required int branchId,
+      required String assetName,
+      required String subPath}) async {
+    Directory directoryPath;
+    if (Platform.isAndroid) {
+      // Try to get external storage, fall back to internal if not available
+      directoryPath = await getApplicationCacheDirectory();
+    } else {
+      directoryPath = await getApplicationSupportDirectory();
+    }
+
+    final filePath = path.join(directoryPath.path, assetName);
+
+    final file = File(filePath);
     if (await file.exists()) {
       talker.warning('File Exist: ${file.path}');
       return Stream.value(100.0); // Return a stream indicating 100% completion
     }
-
+    talker.warning("file to Download:$filePath");
+    if (!await sessionManager.isAuthenticated()) {
+      await sessionManager.signIn("yegobox@gmail.com");
+      if (!await sessionManager.isAuthenticated()) {
+        throw Exception('Failed to authenticate');
+      }
+    }
     final storagePath = amplify.StoragePath.fromString(
         'public/${subPath}-$branchId/$assetName');
-
     try {
       // Create a stream controller to manage the progress
       final progressController = StreamController<double>();
-
       // Start the download process
       final operation = amplify.Amplify.Storage.downloadFile(
         path: storagePath,
@@ -3005,7 +3022,6 @@ class RealmAPI<M extends IJsonSerializable>
           progressController.sink.add(percentageCompleted.toDouble());
         },
       );
-
       // Listen for the download completion
       operation.result.then((_) {
         progressController.close();
@@ -3014,10 +3030,8 @@ class RealmAPI<M extends IJsonSerializable>
         progressController.addError(error);
         progressController.close();
       });
-
       return progressController.stream;
     } catch (e) {
-      // String path = 'public/${subPath}-$branchId/$assetName';
       talker.error('Error downloading file: $e');
       rethrow;
     }

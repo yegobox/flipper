@@ -12,7 +12,7 @@ void showSnapBar(BuildContext context, String title, {VoidCallback? onClosed}) {
           backgroundColor:
               Theme.of(context).colorScheme.surfaceContainerHighest,
           duration: const Duration(milliseconds: 8000),
-          content: FlowyText(
+          content: Flippertext(
             title,
             maxLines: 2,
             fontSize:
