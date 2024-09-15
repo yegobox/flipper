@@ -1713,10 +1713,10 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<List<TransactionItem>> transactionItemsFuture(
+  List<TransactionItem> transactionItemsFuture(
       {required int transactionId,
       required bool doneWithTransaction,
-      required bool active}) async {
+      required bool active})  {
     int branchId = ProxyService.box.getBranchId()!;
     String queryString = "";
 
@@ -3896,6 +3896,18 @@ class RealmAPI<M extends IJsonSerializable>
     if (stock != null) {
       realm!.write(() {
         stock.currentStock = qty;
+      });
+    }
+  }
+
+  @override
+  void updateTransactionItemQty(
+      {required qty, required int transactionItemId}) {
+    TransactionItem? item = realm!
+        .query<TransactionItem>(r'id == $0', [transactionItemId]).firstOrNull;
+    if (item != null) {
+      realm!.write(() {
+        item.qty = qty;
       });
     }
   }

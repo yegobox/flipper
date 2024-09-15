@@ -355,7 +355,6 @@ class CheckOutState extends ConsumerState<CheckOut>
                             talker.warning("Show Quick Sell: ${showCart}");
                             if (Platform.isAndroid || Platform.isIOS) {
                               BottomSheets.showBottom(
-                                  items: items.hasValue ? items.value! : [],
                                   context: context,
                                   ref: ref,
                                   transactionId: transaction.id,

@@ -49,15 +49,15 @@ mixin SharebleMethods {
     });
   }
 
-  Stream<List<TransactionItem>> transactionItemsStream(
-      {required ITransaction transaction}) {
-    return Stream.fromFuture(ProxyService.realm.transactionItemsFuture(
-            transactionId: transaction.id!,
-            doneWithTransaction: false,
-            active: false))
-        .asyncExpand((items) async* {
-      yield items;
-    });
+  Stream<List<TransactionItem>> transactionItemsStream({
+    required ITransaction transaction,
+  }) {
+    final transactions = ProxyService.realm.transactionItemsFuture(
+      transactionId: transaction.id!,
+      doneWithTransaction: false,
+      active: false,
+    );
+    return Stream.value(transactions);
   }
 
   Stream<List<ITransaction>> getCashInTransactions() {

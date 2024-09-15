@@ -257,7 +257,7 @@ abstract class RealmApiInterface {
       required int branchId,
       required bool active});
 
-  Future<List<TransactionItem>> transactionItemsFuture(
+  List<TransactionItem> transactionItemsFuture(
       {required int transactionId,
       required bool doneWithTransaction,
       required bool active});
@@ -491,5 +491,9 @@ abstract class RealmApiInterface {
   void updateStock({required int stockId, required double qty});
 
   Future<Stream<double>> downloadAsset(
-      {required int branchId, required String assetName, required String subPath});
+      {required int branchId,
+      required String assetName,
+      required String subPath});
+
+  void updateTransactionItemQty({required qty, required int transactionItemId});
 }

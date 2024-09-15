@@ -94,6 +94,18 @@ final transactionItemsStreamProvider = StreamProvider.autoDispose
   );
 });
 
+final transactionItemProvider = Provider.autoDispose
+    .family<List<TransactionItem>, ({int branchId, int transactionId})>(
+        (ref, params) {
+  final (:branchId, :transactionId) = params;
+
+  return ProxyService.realm.transactionItemsFuture(
+    transactionId: transactionId,
+    doneWithTransaction: false,
+    active: true,
+  );
+});
+
 final stockByVariantIdProvider =
     StreamProvider.autoDispose.family<double, int>((ref, variantId) {
   int branchId = ProxyService.box.getBranchId()!;

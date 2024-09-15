@@ -67,6 +67,12 @@ class RealmViaHttpService
   }
 
   @override
+  void updateTransactionItemQty(
+      {required qty, required int transactionItemId}) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Stream<double>> downloadAsset(
       {required int branchId,
       required String assetName,
@@ -1152,7 +1158,7 @@ class RealmViaHttpService
   }
 
   @override
-  Future<List<TransactionItem>> transactionItemsFuture(
+  List<TransactionItem> transactionItemsFuture(
       {required int transactionId,
       required bool doneWithTransaction,
       required bool active}) {

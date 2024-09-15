@@ -20,10 +20,10 @@ class SearchInputWithDropdown extends StatefulWidget {
 
 class _SearchInputWithDropdownState extends State<SearchInputWithDropdown> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedCustomerType = 'Walk-in Customer';
+  String _selectedCustomerType = 'Walk-in';
   final _routerService = locator<RouterService>();
   final List<String> _customerTypes = [
-    'Walk-in Customer',
+    'Walk-in',
     'Take Away',
     'Delivery',
   ];
@@ -38,7 +38,9 @@ class _SearchInputWithDropdownState extends State<SearchInputWithDropdown> {
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Search Input Field
                 TextFormField(
                   controller: _searchController,
                   onChanged: (searchKey) {
@@ -50,15 +52,9 @@ class _SearchInputWithDropdownState extends State<SearchInputWithDropdown> {
                     }
                     List<Customer> customers =
                         ProxyService.realm.getCustomers(key: searchKey);
-                    if (customers.length > 0) {
-                      setState(() {
-                        _searchResults = customers;
-                      });
-                    } else {
-                      setState(() {
-                        _searchResults = [];
-                      });
-                    }
+                    setState(() {
+                      _searchResults = customers.isNotEmpty ? customers : [];
+                    });
                   },
                   decoration: InputDecoration(
                     hintText: 'Search',
@@ -67,9 +63,9 @@ class _SearchInputWithDropdownState extends State<SearchInputWithDropdown> {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
+                        // Dropdown for Customer Type
                         DropdownButton<String>(
                           isDense: true,
-                          alignment: AlignmentDirectional.topStart,
                           value: _selectedCustomerType,
                           icon: const Icon(Icons.arrow_drop_down),
                           elevation: 16,
@@ -91,6 +87,7 @@ class _SearchInputWithDropdownState extends State<SearchInputWithDropdown> {
                             );
                           }).toList(),
                         ),
+                        // Add Customer Button
                         IconButton(
                           onPressed: () {
                             _routerService.navigateTo(CustomersRoute());
@@ -102,47 +99,79 @@ class _SearchInputWithDropdownState extends State<SearchInputWithDropdown> {
                         ),
                       ],
                     ),
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 14.0,
+                      horizontal: 12.0,
+                    ),
                   ),
                 ),
-                SizedBox(height: 16.0),
-                Container(
-                  color: Colors.white,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _searchResults.length,
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () async {
-                          talker.warning(
-                              "CustomerId:${_searchResults[index].id}");
-                          if (widget.transaction == null) return;
-                          model.assignToSale(
-                            customerId: _searchResults[index].id!,
-                            transactionId: widget.transaction!.id!,
-                          );
-                          setState(() {
-                            _searchResults = [];
-                          });
-                          showAlert(
-                            context,
-                            onPressedOk: () {},
-                            title: "Customer added to the sale!",
-                          );
-                        },
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.zero,
-                          ),
-                          child: ListTile(
-                            title: Text(_searchResults[index].custNm!),
-                            subtitle: Text(_searchResults[index].custTin!),
-                          ),
+                const SizedBox(height: 16.0),
+                // Search Results List
+                if (_searchResults.isNotEmpty)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: const Offset(0, 3),
                         ),
-                      );
-                    },
+                      ],
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
+                          onTap: () async {
+                            talker.warning(
+                                "CustomerId:${_searchResults[index].id}");
+                            if (widget.transaction == null) return;
+                            model.assignToSale(
+                              customerId: _searchResults[index].id!,
+                              transactionId: widget.transaction!.id!,
+                            );
+                            setState(() {
+                              _searchResults = [];
+                            });
+                            showAlert(
+                              context,
+                              onPressedOk: () {},
+                              title: "Customer added to the sale!",
+                            );
+                          },
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            elevation: 2,
+                            margin: const EdgeInsets.symmetric(
+                              vertical: 8.0,
+                              horizontal: 4.0,
+                            ),
+                            child: ListTile(
+                              title: Text(
+                                _searchResults[index].custNm!,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              subtitle: Text(_searchResults[index].custTin!),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
               ],
             ),
           );
