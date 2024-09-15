@@ -489,4 +489,7 @@ abstract class RealmApiInterface {
       DateTime? deliveryDate,
       required int mainBranchId});
   void updateStock({required int stockId, required double qty});
+
+  Future<Stream<double>> downloadAsset(
+      {required int branchId, required String assetName, required String subPath});
 }
