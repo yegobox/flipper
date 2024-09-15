@@ -161,11 +161,11 @@ class _AppsState extends ConsumerState<Apps> {
           color: Colors.lightBlue,
           page: "Support",
         ),
-        _buildCustomPaintWithIcon(
-          iconData: FluentIcons.cart_24_regular,
-          color: Colors.amber,
-          page: "Orders",
-        ),
+        // _buildCustomPaintWithIcon(
+        //   iconData: FluentIcons.cart_24_regular,
+        //   color: Colors.amber,
+        //   page: "Orders",
+        // ),
       ],
     );
   }

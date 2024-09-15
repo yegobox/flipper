@@ -67,6 +67,14 @@ class RealmViaHttpService
   }
 
   @override
+  Future<Stream<double>> downloadAsset(
+      {required int branchId,
+      required String assetName,
+      required String subPath}) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<bool> isCouponValid(
       {required HttpClientInterface flipperHttpClient,
       required String couponCode}) async {

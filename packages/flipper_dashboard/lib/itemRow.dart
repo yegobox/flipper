@@ -17,6 +17,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
+import 'package:path/path.dart' as path;
 
 Map<int, String> positionString = {
   0: 'first',
@@ -263,12 +264,15 @@ class _RowItemState extends ConsumerState<RowItem> with Refresh {
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {
-    Directory appSupportDir = await getApplicationSupportDirectory();
+    Directory appSupportDir;
     if (Platform.isAndroid) {
-      appSupportDir = await getApplicationDocumentsDirectory();
+      // Try to get external storage, fall back to internal if not available
+      appSupportDir = await getApplicationCacheDirectory();
+    } else {
+      appSupportDir = await getApplicationSupportDirectory();
     }
 
-    final imageFilePath = '${appSupportDir.path}/${imageFileName}';
+    final imageFilePath = path.join(appSupportDir.path, imageFileName);
     final file = File(imageFilePath);
 
     if (await file.exists()) {
