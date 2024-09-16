@@ -8,7 +8,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -26,7 +26,7 @@ class _SearchInputWithDropdownState
   final TextEditingController _searchController = TextEditingController();
   String _selectedCustomerType = 'Walk-in';
   final _routerService = locator<RouterService>();
-  Customer? _attachedCustomer;
+
   final List<String> _customerTypes = [
     'Walk-in',
     'Take Away',
@@ -39,24 +39,22 @@ class _SearchInputWithDropdownState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateAttachedCustomer();
+      _updateSearchBoxFromTransaction();
     });
   }
 
-  void _updateAttachedCustomer() {
+  void _updateSearchBoxFromTransaction() {
     final transaction = ref.read(pendingTransactionProviderNonStream(
         (mode: TransactionType.sale, isExpense: false)));
     if (transaction.customerId != null) {
-      _attachedCustomer =
+      final customer =
           ProxyService.realm.getCustomer(id: transaction.customerId);
-      if (_attachedCustomer != null) {
-        _searchController.text = _attachedCustomer!.custNm!;
+      if (customer != null) {
+        _searchController.text = customer.custNm!;
       }
     } else {
-      _attachedCustomer = null;
       _searchController.clear();
     }
-    setState(() {});
   }
 
   void _removeAttachedCustomer() {
@@ -65,12 +63,42 @@ class _SearchInputWithDropdownState
     if (transaction.id != null) {
       ProxyService.realm
           .removeCustomerFromTransaction(transaction: transaction);
-      _updateAttachedCustomer();
+      setState(() {
+        _searchController.clear();
+      });
+      ref.invalidate(pendingTransactionProviderNonStream(
+          (mode: TransactionType.sale, isExpense: false)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Watch the transaction once and reuse it
+    final transaction = ref.watch(
+      pendingTransactionProviderNonStream(
+          (mode: TransactionType.sale, isExpense: false)),
+    );
+
+    // React to changes in the transaction using ref.listen
+    ref.listen<ITransaction>(
+      pendingTransactionProviderNonStream(
+          (mode: TransactionType.sale, isExpense: false)),
+      (previous, next) {
+        if (previous?.customerId != next.customerId) {
+          _updateSearchBoxFromTransaction();
+        }
+      },
+    );
+
+    final attachedCustomer = transaction.customerId != null
+        ? ProxyService.realm.getCustomer(id: transaction.customerId)
+        : null;
+    useEffect(() {
+      if (attachedCustomer != null) {
+        _searchController.text = attachedCustomer.custNm!;
+      }
+      return null;
+    }, [attachedCustomer]);
     return ViewModelBuilder.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
@@ -81,7 +109,7 @@ class _SearchInputWithDropdownState
               children: [
                 // Search Input Field
                 TextFormField(
-                  readOnly: _attachedCustomer != null,
+                  readOnly: attachedCustomer != null,
                   controller: _searchController,
                   onChanged: (searchKey) {
                     if (searchKey.isEmpty) {
@@ -103,7 +131,7 @@ class _SearchInputWithDropdownState
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        if (_attachedCustomer != null)
+                        if (attachedCustomer != null)
                           IconButton(
                             icon: Icon(Icons.delete, color: Colors.red),
                             onPressed: _removeAttachedCustomer,
