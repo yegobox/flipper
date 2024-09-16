@@ -403,7 +403,7 @@ class RealmViaHttpService
   }
 
   @override
-  Future<List<Customer>> customers({required int branchId}) {
+  List<Customer> customers({required int branchId}) {
     // TODO: implement customers
     throw UnimplementedError();
   }

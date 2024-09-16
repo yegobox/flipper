@@ -348,7 +348,7 @@ abstract class RealmApiInterface {
   Future<void> recordUserActivity(
       {required int userId, required String activity});
 
-  Future<List<Customer>> customers({required int branchId});
+  List<Customer> customers({required int branchId});
   void close();
   void clear();
   // Future<List<SyncRecord>> syncedModels({required int branchId});

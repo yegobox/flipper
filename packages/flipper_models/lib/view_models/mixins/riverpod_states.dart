@@ -556,10 +556,9 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 
   Future<void> loadCustomers({required String searchString}) async {
     try {
-      await Future.delayed(
-          Duration(seconds: 3)); // await any ongoing database persistance
+      // await any ongoing database persistance
       List<Customer> customers =
-          await ProxyService.realm.customers(branchId: branchId);
+          ProxyService.realm.customers(branchId: branchId);
 
       if (searchString.isNotEmpty) {
         customers = customers

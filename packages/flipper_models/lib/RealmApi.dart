@@ -667,7 +667,7 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<List<Customer>> customers({required int branchId}) async {
+  List<Customer> customers({required int branchId}) {
     return realm!.query<Customer>(r'branchId == $0 ', [branchId]).toList();
   }
 
