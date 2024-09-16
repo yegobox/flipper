@@ -82,8 +82,8 @@ class CronService with Subscriptions {
             /// if we are in sync with EBM server for all models we have inside our app
             String identifier = message as String;
             List<String> separator = identifier.split(":");
-            talker.warning(
-                "About to update model ${separator.first} with ${separator.last}");
+            // talker.warning(
+            //     "About to update model ${separator.first} with ${separator.last}");
             if (separator.first == "variant") {
               // find this variant in db
               Variant variant = ProxyService.realm.realm!
