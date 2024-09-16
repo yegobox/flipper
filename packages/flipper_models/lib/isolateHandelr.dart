@@ -549,5 +549,21 @@ class IsolateHandler with Subscriptions {
         });
       }
     }
+
+    /// Loop through Configuration and remove any duplicate configuration found e.g there should be one Conciguration.taxType
+    List<Configurations> configurations = realm.all<Configurations>().toList();
+    Set<String> uniqueTaxTypes = {};
+
+    for (Configurations config in configurations) {
+      talker.warning("Deleting unnesessary taxes");
+      if (!uniqueTaxTypes.contains(config.taxType!)) {
+        uniqueTaxTypes.add(config.taxType!);
+      } else {
+        realm.write(() {
+          realm.delete(config);
+          talker.warning("Deleted unnessary taxes");
+        });
+      }
+    }
   }
 }
