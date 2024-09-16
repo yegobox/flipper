@@ -64,7 +64,7 @@ Future<void> downloadAssetTask(DownloadParams params) async {
     if (Platform.isAndroid) {
       directoryPath = await getApplicationCacheDirectory();
     } else {
-      directoryPath = await getApplicationSupportDirectory();
+      directoryPath = await getApplicationCacheDirectory();
     }
 
     final filePath = path.join(directoryPath.path, params.assetName);

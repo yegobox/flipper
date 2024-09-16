@@ -269,7 +269,7 @@ class _RowItemState extends ConsumerState<RowItem> with Refresh {
       // Try to get external storage, fall back to internal if not available
       appSupportDir = await getApplicationCacheDirectory();
     } else {
-      appSupportDir = await getApplicationSupportDirectory();
+      appSupportDir = await getApplicationCacheDirectory();
     }
 
     final imageFilePath = path.join(appSupportDir.path, imageFileName);
