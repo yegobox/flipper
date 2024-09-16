@@ -48,6 +48,10 @@ class CustomersState extends ConsumerState<Customers> {
             leading: IconButton(
               icon: Icon(Icons.arrow_back_ios, color: Colors.black),
               onPressed: () {
+                // ref.refresh(customersProvider);
+                ///TODO: this is supposed to make SearchCustomer refresh but for somereason it is not,debug this further
+                ref.invalidate(pendingTransactionProviderNonStream(
+                    (mode: TransactionType.sale, isExpense: false)));
                 _routerService.pop();
               },
             ),
