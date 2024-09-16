@@ -16,11 +16,21 @@ class _AdminControlState extends State<AdminControl> {
   final navigator = locator<RouterService>();
   bool isPosDefault = false;
   bool isOrdersDefault = true;
+  bool filesDownloaded = false;
   @override
   void initState() {
     super.initState();
     isPosDefault = ProxyService.box.readBool(key: 'isPosDefault') ?? false;
     isOrdersDefault = ProxyService.box.readBool(key: 'isOrdersDefault') ?? true;
+    filesDownloaded =
+        ProxyService.box.readBool(key: 'doneDownloadingAsset') ?? true;
+  }
+
+  void toggleDownload(bool value) {
+    ProxyService.box.writeBool(key: 'doneDownloadingAsset', value: false);
+    setState(() {
+      filesDownloaded = ProxyService.box.doneDownloadingAsset();
+    });
   }
 
   void togglePos(bool value) {
@@ -169,6 +179,24 @@ class _AdminControlState extends State<AdminControl> {
                   ),
                 ],
               ),
+              SettingsSection(
+                title: 'Downloads',
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SwitchSettingsCard(
+                          title: 'Images',
+                          subtitle: 'Force Download images',
+                          icon: Icons.download,
+                          value: filesDownloaded,
+                          onChanged: toggleDownload,
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              )
             ],
           ),
         ),

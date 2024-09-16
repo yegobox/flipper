@@ -156,6 +156,7 @@ class CronService with Subscriptions {
           talker.warning("realm is null");
           return;
         }
+        // ProxyService.box.writeBool(key: 'doneDownloadingAsset', value: false);
         if (!ProxyService.box.doneDownloadingAsset()) {
           List<Assets> assets = ProxyService.realm.realm!
               .query<Assets>(r'branchId == $0', [branchId]).toList();
