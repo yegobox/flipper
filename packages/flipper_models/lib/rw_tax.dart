@@ -56,8 +56,8 @@ class RWTax implements TaxApi {
       required String dvcSrlNo,
       required String URI}) async {
     String? token = ProxyService.box.readString(key: 'bearerToken');
-    EBM? ebm = await ProxyService.realm
-        .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
+    EBM? ebm =
+        await ProxyService.realm.ebm(branchId: ProxyService.box.getBranchId()!);
     var headers = {'Authorization': token!, 'Content-Type': 'application/json'};
     var request = http.Request(
         'POST', Uri.parse(ebm!.taxServerUrl! + 'initializer/selectInitInfo'));
@@ -230,8 +230,8 @@ class RWTax implements TaxApi {
     required String URI,
     String lastReqDt = "20210523000000",
   }) async {
-    EBM? ebm = await ProxyService.realm
-        .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
+    EBM? ebm =
+        await ProxyService.realm.ebm(branchId: ProxyService.box.getBranchId()!);
     if (ebm == null) {
       return false;
     }
@@ -426,7 +426,7 @@ class RWTax implements TaxApi {
     required List<Map<String, dynamic>> itemsList,
     String? purchaseCode,
   }) {
-     Configurations taxConfigTaxB =
+    Configurations taxConfigTaxB =
         ProxyService.realm.getByTaxType(taxtype: "B");
     Configurations taxConfigTaxA =
         ProxyService.realm.getByTaxType(taxtype: "A");

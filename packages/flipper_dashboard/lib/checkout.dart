@@ -314,7 +314,6 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   Widget _buildSmallScreenLayout(ITransaction transaction,
       {required bool showCart}) {
-    final items = ref.watch(transactionItemsStreamProvider(transaction.id));
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {

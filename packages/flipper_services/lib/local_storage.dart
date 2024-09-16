@@ -1,3 +1,5 @@
+import 'package:flipper_services/proxy.dart';
+
 import 'abstractions/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -110,6 +112,10 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String? getServerUrl() {
+    final ebm = ProxyService.realm.ebm(branchId: getBranchId()!);
+    if (ebm != null) {
+      return ebm.taxServerUrl;
+    }
     return prefs.getString('getServerUrl');
   }
 
@@ -225,6 +231,10 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String? bhfId() {
+    final ebm = ProxyService.realm.ebm(branchId: getBranchId()!);
+    if (ebm != null) {
+      return ebm.bhfId;
+    }
     return prefs.getString('bhfId');
   }
 

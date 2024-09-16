@@ -176,8 +176,7 @@ abstract class RealmApiInterface {
       {required Customer customer, required int transactionId});
   void assignCustomerToTransaction(
       {required int customerId, int? transactionId});
-  Future removeCustomerFromTransaction(
-      {required int customerId, required int transactionId});
+  void removeCustomerFromTransaction({required ITransaction transaction});
   Customer? getCustomer({String? key, int? id});
   List<Customer> getCustomers({String? key, int? id});
   Future<Customer?> getCustomerFuture({String? key, int? id});
@@ -338,7 +337,9 @@ abstract class RealmApiInterface {
       })> getUnSyncedData();
   Future<Conversation> sendMessage(
       {required String message, required Conversation latestConversation});
-  Future<EBM?> getEbmByBranchId({required int branchId});
+  EBM? ebm({required int branchId});
+  void saveEbm(
+      {required int branchId, required String severUrl, required String bhFId});
 
   // Future<ITenant> authState({required int branchId});
 

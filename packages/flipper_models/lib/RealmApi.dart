@@ -922,8 +922,8 @@ class RealmAPI<M extends IJsonSerializable>
       return realm!.query<Customer>(r'id == $0', [id]).toList();
     } else if (key != null) {
       final customer = realm!.query<Customer>(
-          r'custNm CONTAINS $0 OR email CONTAINS $0 OR telNo CONTAINS $0',
-          [key]).toList();
+          r'custNm LIKE[c] $0 OR email LIKE[c] $0 OR telNo LIKE[c] $0',
+          ['*$key*']).toList();
       return customer;
     } else {
       return [];
@@ -1005,8 +1005,30 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<EBM?> getEbmByBranchId({required int branchId}) async {
+  EBM? ebm({required int branchId}) {
     return realm!.query<EBM>(r'branchId == $0', [branchId]).firstOrNull;
+  }
+
+  void saveEbm(
+      {required int branchId,
+      required String severUrl,
+      required String bhFId}) {
+    Business business = ProxyService.local.getBusiness();
+    realm!.write(() {
+      final ebm = EBM(
+          ObjectId(),
+          bhFId,
+          business.tinNumber!,
+          business.dvcSrlNo ?? "vsdcyegoboxltd",
+          ProxyService.box.getUserId()!, // Convert ObjectId to int
+          business.serverId!,
+          branchId,
+          'created',
+          id: randomNumber(),
+          taxServerUrl: severUrl,
+          lastTouched: DateTime.now());
+      realm!.add<EBM>(ebm);
+    });
   }
 
   @override
@@ -1588,10 +1610,10 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future removeCustomerFromTransaction(
-      {required int customerId, required int transactionId}) {
-    // TODO: implement removeCustomerFromTransaction
-    throw UnimplementedError();
+  void removeCustomerFromTransaction({required ITransaction transaction}) {
+    realm!.write(() {
+      transaction.customerId = null;
+    });
   }
 
   @override
@@ -1716,7 +1738,7 @@ class RealmAPI<M extends IJsonSerializable>
   List<TransactionItem> transactionItemsFuture(
       {required int transactionId,
       required bool doneWithTransaction,
-      required bool active})  {
+      required bool active}) {
     int branchId = ProxyService.box.getBranchId()!;
     String queryString = "";
 

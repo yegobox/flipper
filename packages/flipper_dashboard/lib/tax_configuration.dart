@@ -36,8 +36,16 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
     setState(() {
       _supportLine = ProxyService.remoteConfig.supportLine();
     });
-    _serverUrlController.text = ProxyService.box.getServerUrl() ?? "";
-    _branchController.text = ProxyService.box.bhfId() ?? "";
+
+    final ebm =
+        ProxyService.realm.ebm(branchId: ProxyService.box.getBranchId()!);
+    final serverUrl =
+        ebm?.taxServerUrl ?? ProxyService.box.getServerUrl() ?? "";
+
+    _serverUrlController.text = serverUrl;
+
+    final bhFId = ebm?.bhfId ?? ProxyService.box.bhfId() ?? "";
+    _branchController.text = bhFId;
     String? mrc = ProxyService.box.mrc();
     _mrcController.text = (mrc == null || mrc.isEmpty) ? "" : mrc;
   }
@@ -311,6 +319,10 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
 
   void _saveForm() {
     if (_formKey.currentState!.validate()) {
+      ProxyService.realm.saveEbm(
+          branchId: ProxyService.box.getBranchId()!,
+          severUrl: _serverUrlController.text,
+          bhFId: _branchController.text);
       ProxyService.box.writeString(
         key: "getServerUrl",
         value: _serverUrlController.text,

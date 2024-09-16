@@ -121,9 +121,10 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
 
       final amount = double.tryParse(receivedAmountController.text) ?? 0;
       final discount = double.tryParse(discountController.text) ?? 0;
+      final state = (formKey.currentState?.validate() ?? true);
 
       /// on mobile we are not validating state hence it is always true && customer ==null
-      if ((formKey.currentState?.validate() ?? true) && customer == null) {
+      if (state && customer == null) {
         handlePayment(
           paymentType: ProxyService.box.paymentType() ?? "Cash",
           transactionType: TransactionType.sale,

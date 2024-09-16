@@ -9,19 +9,24 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-class SearchInputWithDropdown extends StatefulWidget {
+import 'package:flipper_services/constants.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+class SearchInputWithDropdown extends StatefulHookConsumerWidget {
   const SearchInputWithDropdown({Key? key, this.transaction}) : super(key: key);
   final ITransaction? transaction;
 
   @override
-  State<SearchInputWithDropdown> createState() =>
+  _SearchInputWithDropdownState createState() =>
       _SearchInputWithDropdownState();
 }
 
-class _SearchInputWithDropdownState extends State<SearchInputWithDropdown> {
+class _SearchInputWithDropdownState
+    extends ConsumerState<SearchInputWithDropdown> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCustomerType = 'Walk-in';
   final _routerService = locator<RouterService>();
+  Customer? _attachedCustomer;
   final List<String> _customerTypes = [
     'Walk-in',
     'Take Away',
@@ -29,6 +34,40 @@ class _SearchInputWithDropdownState extends State<SearchInputWithDropdown> {
   ];
 
   List<Customer> _searchResults = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateAttachedCustomer();
+    });
+  }
+
+  void _updateAttachedCustomer() {
+    final transaction = ref.read(pendingTransactionProviderNonStream(
+        (mode: TransactionType.sale, isExpense: false)));
+    if (transaction.customerId != null) {
+      _attachedCustomer =
+          ProxyService.realm.getCustomer(id: transaction.customerId);
+      if (_attachedCustomer != null) {
+        _searchController.text = _attachedCustomer!.custNm!;
+      }
+    } else {
+      _attachedCustomer = null;
+      _searchController.clear();
+    }
+    setState(() {});
+  }
+
+  void _removeAttachedCustomer() {
+    final transaction = ref.read(pendingTransactionProviderNonStream(
+        (mode: TransactionType.sale, isExpense: false)));
+    if (transaction.id != null) {
+      ProxyService.realm
+          .removeCustomerFromTransaction(transaction: transaction);
+      _updateAttachedCustomer();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +81,7 @@ class _SearchInputWithDropdownState extends State<SearchInputWithDropdown> {
               children: [
                 // Search Input Field
                 TextFormField(
+                  readOnly: _attachedCustomer != null,
                   controller: _searchController,
                   onChanged: (searchKey) {
                     if (searchKey.isEmpty) {
@@ -63,6 +103,11 @@ class _SearchInputWithDropdownState extends State<SearchInputWithDropdown> {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
+                        if (_attachedCustomer != null)
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: _removeAttachedCustomer,
+                          ),
                         // Dropdown for Customer Type
                         DropdownButton<String>(
                           isDense: true,

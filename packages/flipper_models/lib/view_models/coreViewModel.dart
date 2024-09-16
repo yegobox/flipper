@@ -555,10 +555,8 @@ class CoreViewModel extends FlipperBaseModel
 
   /// given a transactionId and a customer, remove the given customer from the
   /// given transaction
-  Future<void> removeFromSale(
-      {required int customerId, required int transactionId}) async {
-    ProxyService.realm.removeCustomerFromTransaction(
-        customerId: customerId, transactionId: transactionId);
+  Future<void> removeFromSale({required ITransaction transaction}) async {
+    ProxyService.realm.removeCustomerFromTransaction(transaction: transaction);
   }
 
   /// as of when one sale is complete trying to sell second product

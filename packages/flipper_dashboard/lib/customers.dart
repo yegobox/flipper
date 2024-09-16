@@ -182,8 +182,7 @@ class CustomersState extends ConsumerState<Customers> {
                                   SlidableAction(
                                     onPressed: (_) async {
                                       await model.removeFromSale(
-                                        customerId: customer.id!,
-                                        transactionId: transaction.id!,
+                                        transaction: transaction,
                                       );
                                       model.getTransactionById();
                                       toast("Customer removed from sale");

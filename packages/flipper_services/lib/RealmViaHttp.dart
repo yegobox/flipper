@@ -569,7 +569,16 @@ class RealmViaHttpService
   }
 
   @override
-  Future<EBM?> getEbmByBranchId({required int branchId}) {
+  void saveEbm(
+      {required int branchId,
+      required String severUrl,
+      required String bhFId}) {
+    // TODO: implement getEbmByBranchId
+    throw UnimplementedError();
+  }
+
+  @override
+  EBM? ebm({required int branchId}) {
     // TODO: implement getEbmByBranchId
     throw UnimplementedError();
   }
@@ -970,8 +979,7 @@ class RealmViaHttpService
   }
 
   @override
-  Future removeCustomerFromTransaction(
-      {required int customerId, required int transactionId}) {
+  void removeCustomerFromTransaction({required ITransaction transaction}) {
     // TODO: implement removeCustomerFromTransaction
     throw UnimplementedError();
   }
