@@ -470,6 +470,7 @@ class RealmAPI<M extends IJsonSerializable>
           Product? product = getProduct(id: variant!.productId!);
           if (product != null) {
             realm!.write(() {
+              variant.qty = finalStock;
               product.lastTouched = DateTime.now().toUtc().toLocal();
             });
           }
