@@ -78,6 +78,7 @@ class SearchFieldState extends ConsumerState<SearchField>
 
     final screenWidth = MediaQuery.of(context).size.width;
     final padding = screenWidth * 0.001;
+    final deviceType = _getDeviceType(context);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: padding),
@@ -117,14 +118,18 @@ class SearchFieldState extends ConsumerState<SearchField>
                 children: [
                   toggleSearch(),
                   calc(model: model),
-                  orders.when(
-                    data: (orders) => widget.showOrderButton
-                        ? orderButton(orders)
-                        : SizedBox.shrink(),
-                    loading: () => SizedBox.shrink(),
-                    error: (err, stack) => Text('Error: $err'),
-                  ),
-                  if (widget.showIncomingButton) incomingButton(),
+                  (deviceType == 'Phone' || deviceType == 'Phablet') == true
+                      ? SizedBox.shrink()
+                      : orders.when(
+                          data: (orders) => widget.showOrderButton
+                              ? orderButton(orders)
+                              : SizedBox.shrink(),
+                          loading: () => SizedBox.shrink(),
+                          error: (err, stack) => Text('Error: $err'),
+                        ),
+                  if (widget.showIncomingButton &&
+                      (deviceType != 'Phone' || deviceType != 'Phablet'))
+                    incomingButton(),
                   if (widget.showAddButton)
                     addButton().shouldSeeTheApp(ref, AppFeature.Sales),
                   if (widget.showDatePicker) datePicker(),

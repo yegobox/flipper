@@ -62,19 +62,30 @@ class _AppsState extends ConsumerState<Apps> {
         customTrailingWidget: _buildProfileWidget(),
         customLeadingWidget: _buildDrawerButton(),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildFilterRow(),
-            Padding(
-              padding: const EdgeInsets.only(top: 40.0),
-              child: _buildGauge(context, ref),
+      body: Column(
+        children: [
+          // Filter Row (Pinned to the top)
+          _buildFilterRow(),
+
+          // Expanded Widget to take up remaining space between content and footer
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 40.0),
+                    child: _buildGauge(context, ref),
+                  ),
+                  _buildAppIconsGrid(),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
-            _buildAppIconsGrid(),
-            const SizedBox(height: 20),
-            _buildFooter(),
-          ],
-        ),
+          ),
+
+          // Footer (Pinned to the bottom)
+          _buildFooter(),
+        ],
       ),
     );
   }
