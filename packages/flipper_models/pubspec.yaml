@@ -56,8 +56,9 @@ dependencies:
   mime: ^1.0.6
   cloud_firestore: ^5.4.0
   firebase_core: ^3.4.0
-  # powersync: ^1.8.2 
+  powersync: ^1.8.2 
   permission_handler: ^11.3.1
+  supabase_flutter: ^2.6.0
   
 dependency_overrides:
   http: ^1.2.1
