@@ -129,12 +129,14 @@ class TaxController<OBJ> {
       'C': 0.0,
       'D': 0.0,
     };
+    double? taxB = 0;
+    double? taxC = 0;
+    double? taxA = 0;
+    double? taxD = 0;
 
     try {
       for (var item in items) {
         // Log the item details
-        talker.warning(
-            "Processing item with price: ${(item.price == 0.0 ? 1 : item.price)} and quantity: ${item.qty}");
 
         // Fetch the tax configuration
         Configurations taxConfig =
@@ -146,6 +148,18 @@ class TaxController<OBJ> {
           talker.warning(
               "Tax percentage is null for tax type: ${item.taxTyCd ?? "B"}");
           continue; // Skip this item if tax percentage is null
+        }
+        if (item.taxTyCd == "B") {
+          taxB = item.price * item.qty;
+        }
+        if (item.taxTyCd == "C") {
+          taxC = item.price * item.qty;
+        }
+        if (item.taxTyCd == "A") {
+          taxA = item.price * item.qty;
+        }
+        if (item.taxTyCd == "D") {
+          taxD = item.price * item.qty;
         }
 
         // Calculate the tax amount
@@ -178,9 +192,14 @@ class TaxController<OBJ> {
     Customer? customer =
         ProxyService.realm.getCustomer(id: transaction.customerId ?? 0);
 
+    talker.warning("BBBB${totalTaxB}");
     Print print = Print();
 
     await print.print(
+      taxB: taxB!,
+      taxC: taxC!,
+      taxA: taxA!,
+      taxD: taxD!,
       grandTotal: transaction.subTotal,
       totalTaxA: totalTaxA,
       totalTaxB: totalTaxB,
