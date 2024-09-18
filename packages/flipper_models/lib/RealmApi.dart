@@ -1015,21 +1015,29 @@ class RealmAPI<M extends IJsonSerializable>
       required String severUrl,
       required String bhFId}) {
     Business business = ProxyService.local.getBusiness();
-    realm!.write(() {
-      final ebm = EBM(
-          ObjectId(),
-          bhFId,
-          business.tinNumber!,
-          business.dvcSrlNo ?? "vsdcyegoboxltd",
-          ProxyService.box.getUserId()!, // Convert ObjectId to int
-          business.serverId!,
-          branchId,
-          'created',
-          id: randomNumber(),
-          taxServerUrl: severUrl,
-          lastTouched: DateTime.now());
-      realm!.add<EBM>(ebm);
-    });
+    final ebm = realm!.query<EBM>(
+        r'branchId == $0', [ProxyService.box.getBranchId()!]).firstOrNull;
+    if (ebm == null) {
+      realm!.write(() {
+        final ebm = EBM(
+            ObjectId(),
+            bhFId,
+            business.tinNumber!,
+            business.dvcSrlNo ?? "vsdcyegoboxltd",
+            ProxyService.box.getUserId()!, // Convert ObjectId to int
+            business.serverId!,
+            branchId,
+            'created',
+            id: randomNumber(),
+            taxServerUrl: severUrl,
+            lastTouched: DateTime.now());
+        realm!.add<EBM>(ebm);
+      });
+    } else {
+      realm!.write(() {
+        ebm.taxServerUrl = severUrl;
+      });
+    }
   }
 
   @override

@@ -565,5 +565,20 @@ class IsolateHandler with Subscriptions {
         });
       }
     }
+
+    List<EBM> ebms = realm.all<EBM>().toList();
+    Set<String> uniqueEbms = {};
+
+    for (EBM config in ebms) {
+      talker.warning("Deleting ebm config");
+      if (!uniqueEbms.contains(config.branchId.toString())) {
+        uniqueEbms.add(config.branchId.toString());
+      } else {
+        realm.write(() {
+          realm.delete(config);
+          talker.warning("Deleted ebm config");
+        });
+      }
+    }
   }
 }
