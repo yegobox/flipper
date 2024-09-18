@@ -176,7 +176,7 @@ dependencies:
   #TODO: added flipper_dashboard here only becase we need customAppBar
   
   firebase_remote_config: ^5.0.4
-  share_plus: ^9.0.0
+  share_plus: ^10.0.2
   # in_app_review: ^2.0.6
   
   firebase_messaging: ^15.0.4

@@ -1,7 +1,7 @@
 name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 1.170.4252223232462+1726686795
+version: 1.170.4252223232463+1726688116
 
 environment:
   sdk: ">=3.3.4 <4.0.0"
@@ -115,7 +115,7 @@ dependencies:
   fast_cached_network_image: ^1.1.1
   flutter_chat_ui: ^1.6.10
   firebase_remote_config: ^5.0.4
-  share_plus: ^9.0.0
+  share_plus: ^10.0.2
   firebase_messaging: ^15.0.4
   country_code_picker: ^3.0.0
   firebase_ui_localizations: ^1.9.0
@@ -135,7 +135,7 @@ dependencies:
   ffi: ">=2.0.0 <3.0.0"
   pdf_widget_wrapper: '>=1.0.0 <2.0.0'
   plugin_platform_interface: ^2.1.0
-  web: ^0.5.1
+  web: ^1.0.0
   archive: ^3.1.0
   bidi: ^2.0.10
   crypto: ^3.0.0
@@ -168,7 +168,14 @@ dependencies:
   cloud_firestore: ^5.4.0
   powersync: ^1.8.2
    # for sync data to cloud
-
+dependency_overrides:
+  http: ^1.2.1
+  meta: ^1.12.0
+  amplify_db_common: ^0.4.4-flipper
+  sqlite3: ^2.4.6
+  web: ^1.0.0
+  aws_common: any
+  json_annotation: any
   
 dev_dependencies:
   flutter_test:
@@ -207,7 +214,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.2610.0
+  msix_version: 1.170.2611.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"

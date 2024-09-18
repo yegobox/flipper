@@ -12,8 +12,14 @@ dependencies:
   flipper_models: any
   flipper_services: any
   realm: ^3.4.1
-  # realm_dart: ^3.4.1
-
+dependency_overrides:
+  http: ^1.2.1
+  meta: ^1.12.0
+  amplify_db_common: ^0.4.4-flipper
+  sqlite3: ^2.4.6
+  web: ^1.0.0
+  aws_common: any
+  json_annotation: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

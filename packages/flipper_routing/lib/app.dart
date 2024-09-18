@@ -136,11 +136,11 @@ class App {}
 // git config submodule.recurse false
 // git pull https://github.com/joelhigi/flipper.git stable
 // flutterfire configure
-// git submodule deinit -f open-sources/flutter_datetime_picker
+// git submodule deinit -f open-sources/dart_pdf
 // STEPS to remove submodule
-///git submodule deinit -f open-sources/flutter_datetime_picker
-///git rm -rf open-sources/flutter_datetime_picker
-///rm -rf open-sources/flutter_datetime_picker
+///git submodule deinit -f open-sources/dart_pdf
+///git rm -rf open-sources/dart_pdf
+///rm -rf open-sources/dart_pdf
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 ///rm -rf path/to/submodule
 ///git submodule add https://github.com/yegobox/plus_plugins.git open-sources/plus_plugins
@@ -557,7 +557,7 @@ class App {}
 ///
 /// TODO: learn about integeation test or get some ideas
 /// https://github.com/ubuntu/app-center/blob/main/packages/app_center/integration_test/app_center_test.dart
-/// git commit am "test direct-build-windows"
+/// git commit -am "test direct-build-windows"
 /// git commit -am "test direct-build-android"
 ///
 /// https://fly.io/docs/about/pricing/

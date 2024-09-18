@@ -13,7 +13,7 @@ dependencies:
 
   stacked: ^3.4.2
   firebase_remote_config: ^5.0.4
-  share_plus: ^9.0.0
+  share_plus: ^10.0.2
   # in_app_review: ^2.0.6
   firebase_messaging: ^15.0.4
   image: ^4.0.17
@@ -83,6 +83,11 @@ dependencies:
 dependency_overrides:
   http: ^1.2.1
   meta: ^1.12.0
+  amplify_db_common: ^0.4.4-flipper
+  sqlite3: ^2.4.6
+  web: ^1.0.0
+  aws_common: any
+  json_annotation: any
   
   # realm_dart: 2.1.0
   # realm_generator: 2.1.0

@@ -64,6 +64,11 @@ dependency_overrides:
   http: ^1.2.1
   meta: ^1.12.0
   analyzer: ^6.0.0
+  amplify_db_common: ^0.4.4-flipper
+  sqlite3: ^2.4.6
+  web: ^1.0.0
+  aws_common: any
+  json_annotation: any
   
 dev_dependencies:
   build_runner: ^2.4.12
