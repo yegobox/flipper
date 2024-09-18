@@ -33,14 +33,6 @@
 [submodule "open-sources/flutter_luban"]
 	path = open-sources/flutter_luban
 	url = https://github.com/yegobox/flutter_luban.git
-[submodule "open-sources/dart_pdf"]
-	path = open-sources/dart_pdf
-	url = https://github.com/yegobox/dart_pdf.git
-
-# NOTES:
-# git submodule update --remote open-sources/plus_plugins
-# git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch open-sources/plus_plugins' --prune-empty --tag-name-filter cat -- --all
-#  git rm --cached open-sources/pubnub
 [submodule "open-sources/flutter_slidable"]
 	path = open-sources/flutter_slidable
 	url = https://github.com/yegobox/flutter_slidable.git
