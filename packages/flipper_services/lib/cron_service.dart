@@ -15,6 +15,9 @@ import 'package:flutter/foundation.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_models/DownloadQueue.dart';
 
+import 'package:flipper_models/power_sync/powersync.dart';
+import 'package:flipper_models/power_sync/schema.dart';
+
 class CronService with Subscriptions {
   final drive = GoogleDrive();
 
@@ -191,7 +194,10 @@ class CronService with Subscriptions {
             .dbPath(path: 'synced', folder: ProxyService.box.getBusinessId()),
       );
     });
+
+    /// heart beat
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
+      backUpPowerSync();
       if (ProxyService.box.getUserId() == null ||
           ProxyService.box.getBusinessId() == null) return;
 
@@ -226,6 +232,55 @@ class CronService with Subscriptions {
     });
 
     // Other scheduled tasks...
+  }
+
+  static void backUpPowerSync() async {
+    final products = ProxyService.realm.realm!.all<Product>();
+    // await openDatabase();
+    // query all Products
+    for (Product product in products) {
+      // print("Data to insert ${product.id}");
+      try {
+        await db.execute(
+          '''
+      INSERT INTO $product_table (
+        id, name, description, tax_id, color, business_id, branch_id, supplier_id,
+        category_id, created_at, unit, image_url, expiry_date, bar_code,
+        nfc_enabled, binded_to_tenant_id, is_favorite, last_touched, action,
+        deleted_at, spplr_nm, is_composite
+      ) VALUES (uuid(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ''',
+          [
+            // product.id.toString(),
+            product.name,
+            product.description,
+            product.taxId,
+            product.color,
+            product.businessId,
+            product.branchId,
+            product.supplierId,
+            product.categoryId,
+            product.createdAt,
+            product.unit,
+            product.imageUrl,
+            product.expiryDate,
+            product.barCode,
+            product.nfcEnabled ? 1 : 0,
+            product.bindedToTenantId,
+            product.isFavorite ? 1 : 0,
+            product.lastTouched?.toIso8601String(),
+            product.action,
+            product.deletedAt?.toIso8601String(),
+            product.spplrNm,
+            0
+            // product.isComposite! ? 1 : 0,
+          ],
+        );
+      } catch (e, s) {
+        print(e);
+        print(s);
+      }
+    }
   }
 
   Future<void> _setupFirebase() async {

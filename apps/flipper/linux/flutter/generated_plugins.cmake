@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_webview_auth
   file_selector_linux
   flutter_localization
+  gtk
   local_notifier
   powersync_flutter_libs
   printing

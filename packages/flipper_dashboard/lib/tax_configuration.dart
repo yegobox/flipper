@@ -304,7 +304,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
     if (value == null || value.isEmpty) {
       return 'Please enter a valid URL';
     }
-    if (!Uri.tryParse(value)!.hasScheme) {
+    if (!Uri.tryParse(value.trim())!.hasScheme) {
       return 'Please enter a valid URL with a scheme (e.g., http:// or https://)';
     }
     return null;
