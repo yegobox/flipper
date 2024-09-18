@@ -25,6 +25,7 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
+import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 
 class LocalRealmApi extends RealmAPI
     with Booting, Data
@@ -170,6 +171,29 @@ class LocalRealmApi extends RealmAPI
     );
   }
 
+  Future<void> _suserbaseAuth() async {
+    // Check if the user already exists
+    final email = '${ProxyService.box.getBranchId()}@flipper.rw';
+    final superUser.User? existingUser =
+        superUser.Supabase.instance.client.auth.currentUser;
+
+    if (existingUser == null) {
+      // User does not exist, proceed to sign up
+      await superUser.Supabase.instance.client.auth.signUp(
+        email: email,
+        password: email,
+      );
+      // Handle sign-up response if needed
+    } else {
+      // User exists, log them in
+      await superUser.Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: email,
+      );
+      // Handle login response if needed
+    }
+  }
+
   @override
   Future<IUser> login(
       {required String userPhone,
@@ -230,6 +254,7 @@ class LocalRealmApi extends RealmAPI
 
       talker.info("Finished calling downloadAssetSave");
       AppInitializer.initialize();
+      await _suserbaseAuth();
       if (stopAfterConfigure) return user;
 
       if (!skipDefaultAppSetup) {

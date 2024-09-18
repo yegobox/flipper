@@ -15,7 +15,7 @@ on:
           - production
   
   push:
-    branches: [main, dev]
+    branches: [main, dev, power-sync]
 
 env:
   URL: ${{ secrets.DB_URL }}

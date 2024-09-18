@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/BackUpService.dart';
 import 'package:flipper_models/Subcriptions.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/services.dart';
@@ -234,6 +235,7 @@ class CronService with Subscriptions {
     // Other scheduled tasks...
   }
 
+
   static void backUpPowerSync() async {
     final products = ProxyService.realm.realm!.all<Product>();
     // await openDatabase();
@@ -241,6 +243,7 @@ class CronService with Subscriptions {
     for (Product product in products) {
       // print("Data to insert ${product.id}");
       try {
+
         await db.execute(
           '''
       INSERT INTO $product_table (
@@ -276,6 +279,56 @@ class CronService with Subscriptions {
             // product.isComposite! ? 1 : 0,
           ],
         );
+
+        final productExist = await db
+            .get('SELECT * FROM product WHERE local_id = ?', [product.id]);
+
+        if (productExist.isEmpty) {
+          final results = await db.execute(
+            '''
+    INSERT INTO $product_table (
+      id,local_id, name, description, tax_id, color, business_id, branch_id, supplier_id,
+      category_id, created_at, unit, image_url, expiry_date, bar_code,
+      nfc_enabled, binded_to_tenant_id, is_favorite, last_touched, action,
+      deleted_at, spplr_nm, is_composite, owner_id
+    ) 
+    VALUES (
+     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    )
+    RETURNING *
+    ''',
+            [
+              product.id,
+              product.id,
+              product.name,
+              product.description,
+              product.taxId ?? 1,
+              product.color,
+              product.businessId,
+              product.branchId,
+              product.supplierId ?? 1,
+              product.categoryId ?? 1,
+              product.createdAt ?? DateTime.now().toIso8601String(),
+              product.unit ?? "KG",
+              product.imageUrl ?? "",
+              product.expiryDate,
+              product.barCode,
+              product.nfcEnabled ? 1 : 0,
+              product.bindedToTenantId,
+              product.isFavorite ? 1 : 0,
+              product.lastTouched?.toIso8601String(),
+              product.action,
+              product.deletedAt?.toIso8601String(),
+              product.spplrNm,
+              0,
+              getUserId()
+            ],
+          );
+
+          // Assuming the results are returned as a list of rows, you can process them here
+          print(results.first.values);
+        } // Or however you want to handle the returned data
+
       } catch (e, s) {
         print(e);
         print(s);
