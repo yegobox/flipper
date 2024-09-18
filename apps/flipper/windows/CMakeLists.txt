@@ -13,6 +13,14 @@ set(BINARY_NAME "flipper")
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
+# Check if the target sqlite3 already exists
+if(TARGET sqlite3)
+    message(STATUS "sqlite3 target already exists. Skipping add_library for sqlite3.")
+else()
+    # Add sqlite3 library if it's not already defined
+    add_library(sqlite3 SHARED IMPORTED)
+    # Link the necessary libraries or dependencies here, if needed
+endif()
 
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
