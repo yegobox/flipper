@@ -48,6 +48,7 @@ class SupabaseConnector extends PowerSyncBackendConnector {
 
     // Use the access token to authenticate against PowerSync
     final token = session.accessToken;
+    print("ACCESSTOKEN: ${token}");
 
     // userId and expiresAt are for debugging purposes only
     final userId = session.user.id;
@@ -83,21 +84,29 @@ class SupabaseConnector extends PowerSyncBackendConnector {
   // Upload pending changes to Supabase.
   @override
   Future<void> uploadData(PowerSyncDatabase database) async {
+    print("Calling U");
     // This function is called whenever there is data to upload, whether the
     // device is online or offline.
     // If this call throws an error, it is retried periodically.
     final transaction = await database.getNextCrudTransaction();
     if (transaction == null) {
+      print("Transaction are null");
       return;
     }
+
+    print("Bellow here");
 
     final rest = Supabase.instance.client.rest;
     CrudEntry? lastOp;
     try {
+      print("Entering Try U");
       // Note: If transactional consistency is important, use database functions
       // or edge functions to process the entire transaction in a single call.
       for (var op in transaction.crud) {
+        print("Into Sync Loop");
         lastOp = op;
+
+        print("Into Sync Loop ${op}");
 
         final table = rest.from(op.table);
         if (op.op == UpdateType.put) {
@@ -114,6 +123,8 @@ class SupabaseConnector extends PowerSyncBackendConnector {
       // All operations successful.
       await transaction.complete();
     } on PostgrestException catch (e) {
+      print("error uploading to superbase");
+      print(e);
       if (e.code != null &&
           fatalResponseCodes.any((re) => re.hasMatch(e.code!))) {
         /// Instead of blocking the queue with these errors,
@@ -146,12 +157,14 @@ String? getUserId() {
 }
 
 Future<String> getDatabasePath() async {
-  const dbFilename = 'flipper.db';
+  const dbFilename = 'power-sync.db';
   // getApplicationSupportDirectory is not supported on Web
   if (kIsWeb) {
     return dbFilename;
   }
   final dir = await getApplicationSupportDirectory();
+  print("PATHDB: ${dir.path}");
+  // /Users/richard/Library/Containers/rw.flipper/Data/Library/Application Support/rw.flipper
   return join(dir.path, dbFilename);
 }
 
@@ -168,6 +181,7 @@ Future<void> openDatabase() async {
   if (isLoggedIn()) {
     // If the user is already logged in, connect immediately.
     // Otherwise, connect once logged in.
+    print("connector");
     currentConnector = SupabaseConnector(db);
     db.connect(connector: currentConnector);
   }

@@ -13,7 +13,7 @@ dependencies:
 
   stacked: ^3.4.2
   firebase_remote_config: ^5.0.4
-  share_plus: ^10.0.2
+  share_plus: ^9.0.0
   # in_app_review: ^2.0.6
   firebase_messaging: ^15.0.4
   image: ^4.0.17
@@ -63,7 +63,7 @@ dependencies:
   flipper_models: ^0.0.1-dev.7
 
   google_fonts: ^6.1.0
-  shared_preferences: ^2.3.1
+  shared_preferences: ^2.3.2
   newrelic_mobile: ^1.0.5
   flutter_local_notifications: ^17.2.2
   local_notifier:
@@ -78,15 +78,15 @@ dependencies:
   realm: ^3.4.1
   internet_connection_checker: ^1.0.0+1
   talker_flutter: ^4.1.5
-  cloud_firestore: ^5.4.0
+  
   firebase_core: ^3.4.0
 dependency_overrides:
   http: ^1.2.1
   meta: ^1.12.0
   
-  sqlite3: ^2.4.6
+  
   web: ^1.0.0
-  aws_common: any
+  
   json_annotation: any
   
   # realm_dart: 2.1.0

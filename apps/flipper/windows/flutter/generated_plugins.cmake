@@ -5,7 +5,6 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   amplify_db_common
   app_links
-  cloud_firestore
   connectivity_plus
   desktop_webview_auth
   file_selector_windows
@@ -20,7 +19,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   printing
   realm
   screen_retriever
-  sentry_flutter
   share_plus
   smart_auth
   sqlite3_flutter_libs
@@ -30,6 +28,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  sentry_flutter
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

@@ -119,7 +119,7 @@ extension RealmEJsonConverterExtension on EJsonValue {
   /// final jsonObject = myObject.toEJson();
   /// final convertedJson = jsonObject.convertRealmValues();
   /// ```
-  dynamic convertRealmValues() {
+  dynamic toFlipperJson() {
     return _convertValue(this);
   }
 
@@ -178,6 +178,7 @@ extension RealmEJsonConverterExtension on EJsonValue {
       convertedMap['id'] = convertedMap['serverId'];
       convertedMap['serverId'] = temp;
     }
+    
 
     return convertedMap;
   }

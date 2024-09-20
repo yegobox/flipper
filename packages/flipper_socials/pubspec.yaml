@@ -38,9 +38,9 @@ dependency_overrides:
   http: ^1.2.1
   meta: ^1.12.0
   
-  sqlite3: ^2.4.6
+  
   web: ^1.0.0
-  aws_common: any
+  
   json_annotation: any
   
 dev_dependencies:

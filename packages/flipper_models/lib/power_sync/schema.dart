@@ -12,7 +12,7 @@ const String ebm_table = 'ebm';
 const String favorite_table = 'favorite';
 const String location_table = 'location';
 const String pcolor_table = 'pcolor';
-const String product_table = 'product';
+const String product_table = 'products';
 const String receipt_table = 'receipt';
 const String setting_table = 'setting';
 const String stock_table = 'stock';
@@ -40,8 +40,23 @@ const String payment_plan_table = 'paymentPlan';
 const String flipper_sale_compaign_table = 'flipperSaleCompaign';
 
 Schema schema = Schema([
-  Table('product', [
-    Column.integer('local_id'),
+  Table('lists', [
+    Column.text('created_at'),
+    Column.text('name'),
+    Column.text('owner_id')
+  ]),
+  Table('todos', [
+    Column.text('created_at'),
+    Column.text('completed_at'),
+    Column.text('description'),
+    Column.integer('completed'),
+    Column.text('created_by'),
+    Column.text('completed_by'),
+    Column.text('list_id'),
+    Column.text('photo_id')
+  ]),
+  Table('products', [
+    Column.integer('product_id'),
     Column.text('name'),
     Column.text('description'),
     Column.text('tax_id'),
@@ -62,7 +77,7 @@ Schema schema = Schema([
     Column.text('deleted_at'),
     Column.text('spplr_nm'),
     Column.integer('is_composite'),
-    Column.text(
-      'created_at',
-    ),
-  ])]);
+    Column.text('created_at'),
+    Column.text('owner_id')
+  ])
+]);

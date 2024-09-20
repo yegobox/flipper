@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/realmModels.dart';
@@ -10,10 +10,10 @@ import 'dart:convert';
 
 class BackupService {
   static const int BATCH_SIZE = 100;
-  final FirebaseFirestore _firestore;
+  // final FirebaseFirestore _firestore;
   Realm? _realm;
 
-  BackupService(this._firestore);
+  // BackupService(this._firestore);
 
   FlexibleSyncConfiguration flexibleConfig(
     User user,
@@ -70,33 +70,33 @@ class BackupService {
   }
 
   Future<void> _processBatch(List<TransactionItem> batch) async {
-    WriteBatch writeBatch = _firestore.batch();
+    // WriteBatch writeBatch = _firestore.batch();
 
-    for (TransactionItem item in batch) {
-      final json = _encodeItem(item);
-      final Map<String, dynamic> dataMap = jsonDecode(json);
-      final docRef =
-          _firestore.collection('transactionsItems').doc(item.id.toString());
+    // for (TransactionItem item in batch) {
+    //   final json = _encodeItem(item);
+    //   final Map<String, dynamic> dataMap = jsonDecode(json);
+    //   final docRef =
+    //       _firestore.collection('transactionsItems').doc(item.id.toString());
 
-      // Check if the document exists
-      final docSnapshot = await docRef.get();
+    //   // Check if the document exists
+    //   final docSnapshot = await docRef.get();
 
-      if (docSnapshot.exists) {
-        writeBatch.update(docRef, dataMap);
-        talker.info("Queued update for item ${item.id}");
-      } else {
-        writeBatch.set(docRef, dataMap);
-        talker.info("Queued creation for item ${item.id}");
-      }
-    }
+    //   if (docSnapshot.exists) {
+    //     writeBatch.update(docRef, dataMap);
+    //     talker.info("Queued update for item ${item.id}");
+    //   } else {
+    //     writeBatch.set(docRef, dataMap);
+    //     talker.info("Queued creation for item ${item.id}");
+    //   }
+    // }
 
     // Commit the batch
-    await writeBatch.commit();
+    // await writeBatch.commit();
 
     talker.info("Processed and committed batch of ${batch.length} items");
   }
 
   String _encodeItem(TransactionItem item) {
-    return jsonEncode(item.toEJson().convertRealmValues());
+    return jsonEncode(item.toEJson().toFlipperJson());
   }
 }

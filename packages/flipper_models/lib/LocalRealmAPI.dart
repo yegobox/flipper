@@ -90,16 +90,10 @@ class LocalRealmApi extends RealmAPI
       apihub = AppSecrets.apihubProd;
       commApi = AppSecrets.commApi;
     }
-
-    ///gross profit (sales zose ukuyemo ikiranguzo) ,
-    /// cost of good sold
-    /// sales
-    /// net profit
     Configuration config;
 
     // Close any existing local realm instance
     localRealm?.close();
-    // talker.warning("EncriptionKey${ProxyService.box.encryptionKey()}");
     try {
       if (useInMemory ||
           ProxyService.box.encryptionKey().isEmpty ||
@@ -115,7 +109,7 @@ class LocalRealmApi extends RealmAPI
           initialDataCallback: dataCb,
           path: path,
           encryptionKey: ProxyService.box.encryptionKey().toIntList(),
-          schemaVersion: 7,
+          schemaVersion: 8,
           migrationCallback: (migration, oldSchemaVersion) {
             if (oldSchemaVersion < 2) {
               // This means we are migrating from version 1 to version 2
@@ -695,7 +689,7 @@ class LocalRealmApi extends RealmAPI
       required Branch branch,
       required HttpClientInterface flipperHttpClient,
       required String userType}) async {
-    talker.info(jsonEncode(branch.toEJson().convertRealmValues()));
+    talker.info(jsonEncode(branch.toEJson().toFlipperJson()));
 
     final data = jsonEncode({
       "phoneNumber": phoneNumber,
@@ -704,8 +698,8 @@ class LocalRealmApi extends RealmAPI
       "permissions": [
         {"name": userType.toLowerCase()}
       ],
-      "businesses": [business.toEJson().convertRealmValues()],
-      "branches": [branch.toEJson().convertRealmValues()]
+      "businesses": [business.toEJson().toFlipperJson()],
+      "branches": [branch.toEJson().toFlipperJson()]
     });
 
     final http.Response response = await flipperHttpClient
@@ -1019,4 +1013,5 @@ class LocalRealmApi extends RealmAPI
     });
     return drawer;
   }
+  
 }

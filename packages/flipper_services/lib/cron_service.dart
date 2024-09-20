@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flipper_models/BackUpService.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/Subcriptions.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/isolateHandelr.dart';
@@ -186,14 +185,14 @@ class CronService with Subscriptions {
     });
 
     Timer.periodic(_getBackUpDuration(), (Timer t) async {
-      final firestore = FirebaseFirestore.instance;
-      final backupService = BackupService(firestore);
-      await backupService.backUp(
-        branchId: ProxyService.box.getBranchId()!,
-        encryptionKey: ProxyService.box.encryptionKey(),
-        dbPath: await ProxyService.realm
-            .dbPath(path: 'synced', folder: ProxyService.box.getBusinessId()),
-      );
+      // final firestore = FirebaseFirestore.instance;
+      // final backupService = BackupService(firestore);
+      // await backupService.backUp(
+      //   branchId: ProxyService.box.getBranchId()!,
+      //   encryptionKey: ProxyService.box.encryptionKey(),
+      //   dbPath: await ProxyService.realm
+      //       .dbPath(path: 'synced', folder: ProxyService.box.getBusinessId()),
+      // );
     });
 
     /// heart beat
@@ -235,103 +234,85 @@ class CronService with Subscriptions {
     // Other scheduled tasks...
   }
 
+  static String camelToSnakeCase(String input) {
+    return input.replaceAllMapped(
+      RegExp(r'([A-Z])'),
+      (Match match) => '_${match.group(1)!.toLowerCase()}',
+    );
+  }
+
+  static Future<Map<String, dynamic>> genericInsert({
+    required String tableName,
+    required Map<String, dynamic> data,
+    String? returningClause,
+  }) async {
+    // Convert keys from camelCase to snake_case
+    final convertedData =
+        data.map((key, value) => MapEntry(camelToSnakeCase(key), value));
+
+    // Separate UUID fields and regular fields
+    final uuidFields = <String>[];
+    final regularFields = <String>[];
+    final values = <dynamic>[];
+
+    convertedData.forEach((key, value) {
+      if (value == 'uuid()') {
+        uuidFields.add(key);
+      } else {
+        regularFields.add(key);
+        values.add(value);
+      }
+    });
+
+    // Generate column names
+    final allColumns = [...uuidFields, ...regularFields];
+    final columns = allColumns.join(', ');
+
+    // Generate placeholders
+    final uuidPlaceholders = uuidFields.map((_) => 'uuid()').join(', ');
+    final regularPlaceholders = regularFields.map((_) => '?').join(', ');
+    final allPlaceholders = [
+      if (uuidPlaceholders.isNotEmpty) uuidPlaceholders,
+      if (regularPlaceholders.isNotEmpty) regularPlaceholders,
+    ].join(', ');
+
+    // Construct the SQL query
+    var sql = 'INSERT INTO $tableName ($columns) VALUES ($allPlaceholders)';
+    if (returningClause != null) {
+      sql += ' RETURNING $returningClause';
+    }
+
+    // Execute the query
+    final List<dynamic> result = await db.execute(sql, values);
+
+    // Return the first row if RETURNING clause was used, otherwise an empty map
+    return result.isNotEmpty ? result.first : {};
+  }
 
   static void backUpPowerSync() async {
     final products = ProxyService.realm.realm!.all<Product>();
-    // await openDatabase();
-    // query all Products
+
     for (Product product in products) {
-      // print("Data to insert ${product.id}");
       try {
+        final productExist = await db.getOptional(
+            'SELECT *  FROM products WHERE product_id = ?', [product.id]);
+        final userUuid = getUserId();
+        Map<String, dynamic> map = product.toEJson().toFlipperJson();
+        map['id'] = 'uuid()';
+        map['product_id'] = product.id;
+        map['owner_id'] = userUuid;
+        map.remove('_id');
+        map.remove('composites');
 
-        await db.execute(
-          '''
-      INSERT INTO $product_table (
-        id, name, description, tax_id, color, business_id, branch_id, supplier_id,
-        category_id, created_at, unit, image_url, expiry_date, bar_code,
-        nfc_enabled, binded_to_tenant_id, is_favorite, last_touched, action,
-        deleted_at, spplr_nm, is_composite
-      ) VALUES (uuid(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ''',
-          [
-            // product.id.toString(),
-            product.name,
-            product.description,
-            product.taxId,
-            product.color,
-            product.businessId,
-            product.branchId,
-            product.supplierId,
-            product.categoryId,
-            product.createdAt,
-            product.unit,
-            product.imageUrl,
-            product.expiryDate,
-            product.barCode,
-            product.nfcEnabled ? 1 : 0,
-            product.bindedToTenantId,
-            product.isFavorite ? 1 : 0,
-            product.lastTouched?.toIso8601String(),
-            product.action,
-            product.deletedAt?.toIso8601String(),
-            product.spplrNm,
-            0
-            // product.isComposite! ? 1 : 0,
-          ],
-        );
-
-        final productExist = await db
-            .get('SELECT * FROM product WHERE local_id = ?', [product.id]);
-
-        if (productExist.isEmpty) {
-          final results = await db.execute(
-            '''
-    INSERT INTO $product_table (
-      id,local_id, name, description, tax_id, color, business_id, branch_id, supplier_id,
-      category_id, created_at, unit, image_url, expiry_date, bar_code,
-      nfc_enabled, binded_to_tenant_id, is_favorite, last_touched, action,
-      deleted_at, spplr_nm, is_composite, owner_id
-    ) 
-    VALUES (
-     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-    )
-    RETURNING *
-    ''',
-            [
-              product.id,
-              product.id,
-              product.name,
-              product.description,
-              product.taxId ?? 1,
-              product.color,
-              product.businessId,
-              product.branchId,
-              product.supplierId ?? 1,
-              product.categoryId ?? 1,
-              product.createdAt ?? DateTime.now().toIso8601String(),
-              product.unit ?? "KG",
-              product.imageUrl ?? "",
-              product.expiryDate,
-              product.barCode,
-              product.nfcEnabled ? 1 : 0,
-              product.bindedToTenantId,
-              product.isFavorite ? 1 : 0,
-              product.lastTouched?.toIso8601String(),
-              product.action,
-              product.deletedAt?.toIso8601String(),
-              product.spplrNm,
-              0,
-              getUserId()
-            ],
+        if (productExist == null) {
+          await genericInsert(
+            tableName: 'products',
+            data: map,
+            returningClause: '*',
           );
-
-          // Assuming the results are returned as a list of rows, you can process them here
-          print(results.first.values);
-        } // Or however you want to handle the returned data
-
-      } catch (e, s) {
-        print(e);
-        print(s);
+        }
+      } catch (e) {
+        rethrow;
       }
     }
   }

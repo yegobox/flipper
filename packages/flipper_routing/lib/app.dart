@@ -136,14 +136,14 @@ class App {}
 // git config submodule.recurse false
 // git pull https://github.com/joelhigi/flipper.git stable
 // flutterfire configure
-// git submodule deinit -f open-sources/dart_pdf
+// git submodule deinit -f open-sources/kds
 // STEPS to remove submodule
-///git submodule deinit -f open-sources/dart_pdf
-///git rm -rf open-sources/dart_pdf
-///rm -rf open-sources/dart_pdf
+///git submodule deinit -f open-sources/kds
+///git rm -rf open-sources/kds
+///rm -rf open-sources/kds
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 ///rm -rf path/to/submodule
-///git submodule add https://github.com/yegobox/plus_plugins.git open-sources/plus_plugins
+///git submodule add https://github.com/yegobox/dart_pdf.git open-sources/dart_pdf
 
 // / find ./ -name pubspec.lock -type f -delete
 // / find ./ -name pubspec_overrides.yaml -type f -delete
@@ -186,7 +186,7 @@ class App {}
 // https://pub.dev/packages/device_apps
 
 // TODO: support auto-printing
-//https://github.com/DavBfr/dart_pdf/issues/1116
+//https://github.com/DavBfr/kds/issues/1116
 
 // TODO: using custom domain follow this
 //https://github.com/firebase/flutterfire/issues/9668 to update

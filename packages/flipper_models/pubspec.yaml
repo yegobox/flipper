@@ -24,7 +24,7 @@ dependencies:
   pocketbase: ^0.17.0
   stock: ^1.0.1
   sentry: ^8.6.0
-  sentry_flutter: ^8.6.0
+  sentry_flutter: ^8.9.0
   
   path_provider: ^2.1.4
   http: ^1.2.1
@@ -54,7 +54,7 @@ dependencies:
   amplify_storage_s3: ^2.0.0
   async: ^2.11.0
   mime: ^1.0.6
-  cloud_firestore: ^5.4.0
+  
   firebase_core: ^3.4.0
   powersync: ^1.8.2 
   permission_handler: ^11.3.1
@@ -65,9 +65,9 @@ dependency_overrides:
   meta: ^1.12.0
   analyzer: ^6.0.0
   
-  sqlite3: ^2.4.6
+  
   web: ^1.0.0
-  aws_common: any
+  
   json_annotation: any
   
 dev_dependencies:

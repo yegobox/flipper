@@ -2,12 +2,6 @@
 	path = Features
 	url =https://github.com/yegobox/designDocs.git
 	branch = main
-[submodule "open-sources/kds"]
-	path = open-sources/kds
-	url = https://github.com/yegobox/FlutterTrelloCards.git
-[submodule "open-sources/flutter_list_drag_and_drop"]
-	path = open-sources/flutter_list_drag_and_drop
-	url = https://github.com/yegobox/flutter_list_drag_and_drop.git
 [submodule "open-sources/qr.flutter"]
 	path = open-sources/qr.flutter
 	url = https://github.com/yegobox/qr.flutter.git
@@ -30,12 +24,12 @@
 [submodule "open-sources/flutter.widgets"]
 	path = open-sources/flutter.widgets
 	url = https://github.com/yegobox/flutter.widgets.git
-[submodule "open-sources/flutter_luban"]
-	path = open-sources/flutter_luban
-	url = https://github.com/yegobox/flutter_luban.git
 [submodule "open-sources/flutter_slidable"]
 	path = open-sources/flutter_slidable
 	url = https://github.com/yegobox/flutter_slidable.git
 [submodule "open-sources/form_bloc"]
 	path = open-sources/form_bloc
 	url = https://github.com/yegobox/form_bloc.git
+[submodule "open-sources/dart_pdf"]
+	path = open-sources/dart_pdf
+	url = https://github.com/yegobox/dart_pdf.git

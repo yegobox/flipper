@@ -172,7 +172,7 @@ void main() {
         'objectId': {'\$oid': '60e1f1f1f1f1f1f1f1f1f1f1'},
       };
 
-      final result = testMap.convertRealmValues();
+      final result = testMap.toFlipperJson();
 
       expect(result['string'], equals('test'));
       expect(result['int'], equals(42));
@@ -188,7 +188,7 @@ void main() {
         'otherField': 'value',
       };
 
-      final result = testMap.convertRealmValues();
+      final result = testMap.toFlipperJson();
 
       expect(result['id'], equals('originalServerId'));
       expect(result['serverId'], equals('originalId'));
