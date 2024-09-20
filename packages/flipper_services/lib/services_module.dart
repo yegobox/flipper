@@ -1,6 +1,5 @@
 import 'package:flipper_models/DataBackUp.dart';
 import 'package:flipper_models/FirestoreSync.dart';
-import 'package:flipper_models/LocalRealm.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/RealmAPIMocked.dart';
 import 'package:flipper_models/RealmApi.dart';
@@ -293,7 +292,7 @@ abstract class ServicesModule {
   }
 
   @LazySingleton()
-  RealmApiInterface realmApi() {
+  DataMigratorToLocal realmApi() {
     if (!kIsWeb) {
       const isTest =
           const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
@@ -307,13 +306,14 @@ abstract class ServicesModule {
         return RealmAPI().instance();
       }
     } else {
-      return RealmViaHttpService();
+      // return RealmViaHttpService();
+      throw Exception();
     }
   }
 
   @preResolve
   @LazySingleton()
-  Future<LocalRealmInterface> localRealm() async {
+  Future<RealmApiInterface> localRealm() async {
     if (!kIsWeb) {
       return await LocalRealmApi().configureLocal(
         useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,

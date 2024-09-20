@@ -6,7 +6,7 @@ import 'package:flipper_services/proxy.dart';
 class DiscountViewModel extends ProductViewModel {
   Future<void> save({required String name, double? amount}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    await ProxyService.realm
+    await ProxyService.local
         .saveDiscount(branchId: branchId, name: name, amount: amount);
   }
 }

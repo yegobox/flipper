@@ -373,8 +373,8 @@ class IncomingOrdersWidget extends HookConsumerWidget
               child: Text('Void'),
               onPressed: () {
                 Navigator.of(context).pop();
-                ProxyService.realm.realm!.write(() {
-                  ProxyService.realm.realm!.delete<StockRequest>(request);
+                ProxyService.local.realm!.write(() {
+                  ProxyService.local.realm!.delete<StockRequest>(request);
                 });
                 final stringValue = ref.watch(stringProvider);
                 ref.refresh(stockRequestsProvider((filter: stringValue)));

@@ -11,7 +11,6 @@
 import 'package:flipper_models/DataBackUp.dart' as _i32;
 import 'package:flipper_models/FirestoreSync.dart' as _i94;
 import 'package:flipper_models/flipper_http_client.dart' as _i843;
-import 'package:flipper_models/LocalRealm.dart' as _i872;
 import 'package:flipper_models/realmInterface.dart' as _i756;
 import 'package:flipper_models/sync_service.dart' as _i211;
 import 'package:flipper_models/tax_api.dart' as _i97;
@@ -94,8 +93,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => servicesModule.box(),
       preResolve: true,
     );
-    gh.lazySingleton<_i756.RealmApiInterface>(() => servicesModule.realmApi());
-    await gh.lazySingletonAsync<_i872.LocalRealmInterface>(
+    gh.lazySingleton<_i756.DataMigratorToLocal>(
+        () => servicesModule.realmApi());
+    await gh.lazySingletonAsync<_i756.RealmApiInterface>(
       () => servicesModule.localRealm(),
       preResolve: true,
     );

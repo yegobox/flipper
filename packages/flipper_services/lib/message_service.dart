@@ -33,7 +33,7 @@ class MessageService with ReactiveServiceMixin {
   void loadTransactions() {
     int branchId = ProxyService.box.getBranchId()!;
     _orders.value =
-        ProxyService.realm.completedTransactions(branchId: branchId);
+        ProxyService.local.completedTransactions(branchId: branchId);
   }
 
   MessageService() {

@@ -185,7 +185,7 @@ class _AppsState extends ConsumerState<Apps> {
     return Column(
       children: [
         FutureBuilder<LPermission?>(
-          future: ProxyService.realm
+          future: ProxyService.local
               .permission(userId: ProxyService.box.getUserId()!),
           builder: (context, snapshot) {
             return Text(

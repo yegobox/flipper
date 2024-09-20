@@ -57,7 +57,7 @@ class UploadViewModel extends ProductViewModel {
     try {
       // Log step: Ensure user is authenticated with AWS Cognito
       talker.warning('Authenticating user with AWS Cognito...');
-      await ProxyService.realm
+      await ProxyService.local
           .syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
 
       talker.warning('Saving picked file locally...');
@@ -86,19 +86,19 @@ class UploadViewModel extends ProductViewModel {
       // Log step: Save asset and update database
       talker.warning('Saving asset and updating database...');
 
-      Product? product = ProxyService.realm.getProduct(id: id);
+      Product? product = ProxyService.local.getProduct(id: id);
       try {
-        Assets? asset = ProxyService.realm.getAsset(productId: product!.id);
+        Assets? asset = ProxyService.local.getAsset(productId: product!.id);
         // 723194300042250.png
-        ProxyService.realm.realm!.write(() {
+        ProxyService.local.realm!.write(() {
           asset!.assetName = uniqueFileName;
         });
       } catch (e) {
         saveAsset(assetName: uniqueFileName, productId: id);
       }
-      await ProxyService.realm.downloadAssetSave(assetName: uniqueFileName);
+      await ProxyService.local.downloadAssetSave(assetName: uniqueFileName);
       await Future.delayed(Duration(seconds: 10));
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         if (product != null) {
           product.imageUrl = uniqueFileName;
         }
@@ -108,7 +108,7 @@ class UploadViewModel extends ProductViewModel {
       talker.warning('File uploaded and database updated successfully.');
 
       /// we requery product again and pass it to callback as it has been updated.
-      callBack(ProxyService.realm.getProduct(id: id)!);
+      callBack(ProxyService.local.getProduct(id: id)!);
     } on StorageException catch (e) {
       talker.warning('StorageException: ${e.message}');
     } catch (e, s) {
@@ -132,8 +132,8 @@ class UploadViewModel extends ProductViewModel {
   }
 
   void saveAsset({required int productId, required assetName}) async {
-    ProxyService.realm.realm!.write(() {
-      ProxyService.realm.realm!.add<Assets>(
+    ProxyService.local.realm!.write(() {
+      ProxyService.local.realm!.add<Assets>(
         Assets(ObjectId(),
             assetName: assetName,
             productId: productId,

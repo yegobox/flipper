@@ -113,7 +113,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
   }
 
   Future<void> _fillFormForExistingProduct(ProductViewModel model) async {
-    List<Variant> variants = await ProxyService.realm.variants(
+    List<Variant> variants = await ProxyService.local.variants(
       productId: widget.productId!,
       branchId: ProxyService.box.getBranchId()!,
     );
@@ -294,7 +294,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
   Widget _buildVariationList(ProductViewModel model) {
     int? id = ref.read(unsavedProductProvider)?.id;
     return StreamBuilder<List<Variant>>(
-      stream: ProxyService.realm.geVariantStreamByProductId(
+      stream: ProxyService.local.geVariantStreamByProductId(
         productId: id ?? 0,
       ),
       builder: (context, snapshot) {

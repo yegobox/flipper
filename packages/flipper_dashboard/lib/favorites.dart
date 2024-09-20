@@ -142,7 +142,8 @@ class _FavoritesState extends State<Favorites> {
                           child: OutlinedButton(
                             child: MediaQuery(
                               data: MediaQuery.of(context).copyWith(
-                                  textScaler: TextScaler.linear(MediaQuery.of(context).textScaleFactor)),
+                                  textScaler: TextScaler.linear(
+                                      MediaQuery.of(context).textScaleFactor)),
                               child: Text('Done',
                                   style: primaryTextStyle.copyWith(
                                       color: Colors.white)),
@@ -316,7 +317,7 @@ class _FavoritesState extends State<Favorites> {
     return StreamBuilder<Favorite?>(
       initialData: null,
       stream:
-          ProxyService.realm.getFavoriteByIndexStream(favIndex: adjustedIndex),
+          ProxyService.local.getFavoriteByIndexStream(favIndex: adjustedIndex),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return _favoriteEmpty(adjustedIndex);
@@ -325,7 +326,7 @@ class _FavoritesState extends State<Favorites> {
           int prodId = favorite.productId!;
 
           return StreamBuilder<List<Product>>(
-            stream: ProxyService.realm.productStreams(prodIndex: prodId),
+            stream: ProxyService.local.productStreams(prodIndex: prodId),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');

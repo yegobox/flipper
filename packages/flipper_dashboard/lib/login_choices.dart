@@ -265,7 +265,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   void _updateAllBusinessesInactive() {
     final businesses = ProxyService.local.businesses();
     for (final business in businesses) {
-      ProxyService.local.localRealm!.write(() {
+      ProxyService.local.realm!.write(() {
         business.active = false;
         business.isDefault = false;
       });
@@ -273,12 +273,11 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   }
 
   Future<void> _updateBusinessActive(Business business) async {
-    ProxyService.local.localRealm!.write(() {
+    ProxyService.local.realm!.write(() {
       business.isDefault = true;
       business.active = true;
     });
-    if (ProxyService.local.localRealm == null ||
-        ProxyService.realm.realm == null) {
+    if (ProxyService.local.realm == null || ProxyService.local.realm == null) {
       await ProxyService.local.login(
         userPhone: ProxyService.box.getUserPhone()!,
         skipDefaultAppSetup: false,
@@ -299,7 +298,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
     final branches = ProxyService.local
         .branches(businessId: ProxyService.box.getBusinessId());
     for (final branch in branches) {
-      ProxyService.local.localRealm!.write(() {
+      ProxyService.local.realm!.write(() {
         branch.active = false;
         branch.isDefault = false;
       });
@@ -307,7 +306,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   }
 
   Future<void> _updateBranchActive(Branch branch) async {
-    ProxyService.local.localRealm!.write(() {
+    ProxyService.local.realm!.write(() {
       branch.isDefault = true;
       branch.active = true;
     });

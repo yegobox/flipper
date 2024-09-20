@@ -87,7 +87,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   Future<Product?> createProduct({required String name}) async {
     int businessId = ProxyService.box.getBusinessId()!;
     int branchId = ProxyService.box.getBranchId()!;
-    return await ProxyService.realm.createProduct(
+    return await ProxyService.local.createProduct(
       tinNumber: ProxyService.box.tin(),
       bhFId: ProxyService.box.bhfId() ?? "00",
       businessId: ProxyService.box.getBusinessId()!,
@@ -114,7 +114,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
       // If the variant is found, remove it from the list
       Variant matchedVariant = scannedVariants[index];
       try {
-        ProxyService.realm.delete(
+        ProxyService.local.delete(
             id: matchedVariant.id!,
             endPoint: 'variant',
             flipperHttpClient: ProxyService.http);
@@ -145,14 +145,14 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
           scannedVariants.firstWhere((variant) => variant.id == id);
 
       // If the variant is found, update its quantity
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         variant.qty = newQuantity;
         variant.ebmSynced = false;
       });
 
-      Stock? stock = ProxyService.realm.stockByVariantId(
+      Stock? stock = ProxyService.local.stockByVariantId(
           variantId: variant.id!, branchId: ProxyService.box.getBranchId()!);
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         stock!.rsdQty = newQuantity;
         stock.ebmSynced = false;
         stock.currentStock = newQuantity;
@@ -168,7 +168,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   Future<void> deleteAllVariants() async {
     // Assuming that each variant has a unique ID
     for (var variant in scannedVariants) {
-      await ProxyService.realm.delete(
+      await ProxyService.local.delete(
           id: variant.id!,
           endPoint: 'variant',
           flipperHttpClient: ProxyService.http);
@@ -185,7 +185,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
           scannedVariants.firstWhere((variant) => variant.id == id);
 
       // If the variant is found, update its unit
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         variant.unit = selectedUnit ?? 'Per Item';
       });
       notifyListeners();
@@ -202,7 +202,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
       final variantsLength = scannedVariants.length;
 
       // loop through all variants and update all with retailPrice and supplyPrice
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         for (var i = 0; i < variantsLength; i++) {
           scannedVariants[i].color = color;
           scannedVariants[i].itemNm = scannedVariants[i].name;

@@ -38,9 +38,9 @@ class _DownloadCardState extends State<DownloadCard> {
     });
 
     try {
-      // Assuming `ProxyService.realm.downloadAssetSave` returns a stream of download progress
+      // Assuming `ProxyService.local.downloadAssetSave` returns a stream of download progress
       Stream<double> progressStream =
-          await ProxyService.realm.downloadAssetSave(
+          await ProxyService.local.downloadAssetSave(
         assetName: widget.filename,
         subPath: "reports",
       );
@@ -68,7 +68,7 @@ class _DownloadCardState extends State<DownloadCard> {
         _filePath = filePath;
       });
 
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         widget.report.downloaded = true;
       });
     } catch (e) {

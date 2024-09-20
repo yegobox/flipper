@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:flipper_models/LocalRealm.dart';
+import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/proxy.dart';
@@ -45,35 +45,35 @@ mixin CoreMiscellaneous {
       /// refreshing the user token will invalidate any session
       await FirebaseAuth.instance.currentUser?.getIdToken(true);
 
-      await ProxyService.realm.amplifyLogout();
+      await ProxyService.local.amplifyLogout();
 
       /// calling close on logout inroduced error where another attempt to login will fail since
       /// the instance of realm is instantiated at app start level.
       // resetDependencies(dispose: true);
       /// wait to sync data for this eod
-      // await ProxyService.realm.realm!.syncSession.waitForUpload();
+      // await ProxyService.local.realm!.syncSession.waitForUpload();
 
       /// get all business and unset default
-      if (ProxyService.local.localRealm != null &&
+      if (ProxyService.local.realm != null &&
           ProxyService.box.getBranchId() != null) {
         List<Business> businesses = ProxyService.local.businesses();
         for (Business business in businesses) {
-          ProxyService.local.localRealm!.write(() {
+          ProxyService.local.realm!.write(() {
             business.isDefault = false;
             business.active = false;
           });
         }
         List<Branch> branches = ProxyService.local.branches();
         for (Branch branch in branches) {
-          ProxyService.local.localRealm!.write(() {
+          ProxyService.local.realm!.write(() {
             branch.isDefault = false;
             branch.active = false;
           });
         }
       }
-      ProxyService.realm.close();
-      ProxyService.realm.realm = null;
-      ProxyService.local.localRealm = null;
+      ProxyService.local.close();
+      ProxyService.local.realm = null;
+      ProxyService.local.realm = null;
       ProxyService.local.clearData(data: ClearData.Branch);
       ProxyService.local.clearData(data: ClearData.Business);
       return Future.value(true);
@@ -87,11 +87,11 @@ mixin CoreMiscellaneous {
   /// Ensures that the Realm database is initialized and ready to use.
   Future<void> ensureRealmInitialized() async {
     if (ProxyService.box.encryptionKey().isNotEmpty &&
-        ProxyService.realm.realm == null) {
+        ProxyService.realm.oldRealm == null) {
       await ProxyService.realm.configure(
         useInMemoryDb: false,
         useFallBack: false,
-        localRealm: ProxyService.local.localRealm,
+        localRealm: ProxyService.local.realm,
         branchId: ProxyService.box.getBranchId()!,
         userId: ProxyService.box.getUserId()!,
         businessId: ProxyService.box.getBusinessId()!,

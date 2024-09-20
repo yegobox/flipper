@@ -155,7 +155,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   }
 
   void _handleClearAll() {
-    ProxyService.realm.realm!.write(() {
+    ProxyService.local.realm!.write(() {
       for (var notification in widget.notifications) {
         notification.completed = true;
         widget.onAcknowledge(notification.id!);
@@ -170,7 +170,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   void _handleAcknowledge(
       AppNotification notification, int index, StateSetter setState) {
-    ProxyService.realm.realm!.write(() {
+    ProxyService.local.realm!.write(() {
       notification.completed = true;
     });
 

@@ -117,11 +117,11 @@ class TaxController<OBJ> {
     }
     Business? business = await ProxyService.local.getBusiness();
     List<TransactionItem> items =
-        await ProxyService.realm.getTransactionItemsByTransactionId(
+        await ProxyService.local.getTransactionItemsByTransactionId(
       transactionId: transaction.id,
     );
     Receipt? receipt =
-        await ProxyService.realm.getReceipt(transactionId: transaction.id!);
+        await ProxyService.local.getReceipt(transactionId: transaction.id!);
 
     Map<String, double> taxTotals = {
       'A': 0.0,
@@ -140,7 +140,7 @@ class TaxController<OBJ> {
 
         // Fetch the tax configuration
         Configurations taxConfig =
-            ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
+            ProxyService.local.getByTaxType(taxtype: item.taxTyCd ?? "B");
 
         talker.info("Tax To be applied on: ${item.taxTyCd}");
         // Ensure taxPercentage is not null
@@ -190,7 +190,7 @@ class TaxController<OBJ> {
     talker.warning("Final computed Tax for D: $totalTaxD");
 
     Customer? customer =
-        ProxyService.realm.getCustomer(id: transaction.customerId ?? 0);
+        ProxyService.local.getCustomer(id: transaction.customerId ?? 0);
 
     talker.warning("BBBB${totalTaxB}");
     Print print = Print();
@@ -258,7 +258,7 @@ class TaxController<OBJ> {
     try {
       log(receiptType, name: "onBefore: current Counter");
       int branchId = ProxyService.box.getBranchId()!;
-      Counter? counter = await ProxyService.realm
+      Counter? counter = await ProxyService.local
           .getCounter(branchId: branchId, receiptType: receiptType);
 
       if (counter == null) {
@@ -271,7 +271,7 @@ class TaxController<OBJ> {
           lastTouched: DateTime.now(),
           receiptType: receiptType,
         );
-        await ProxyService.realm.realm!.putAsync(counter);
+        await ProxyService.local.realm!.putAsync(counter);
       }
 
       /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
@@ -306,12 +306,12 @@ class TaxController<OBJ> {
       /// at the time of passing in data, I have to remember to clean it in rw_tax.dart
       /// since curRcptNo need to be update when one change to keep track on current then we find all
       // Fetch the counters from the database
-      List<Counter> counters = ProxyService.realm.realm!
+      List<Counter> counters = ProxyService.local.realm!
           .query<Counter>(r'branchId == $0', [branchId]).toList();
 
       /// I have a dought that maybe wrapping this into write does not make sense as this code is called before in realmExtension
       /// and the wrapper is wrapped before.
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         counters.map((Counter count) {
           count.totRcptNo = receiptSignature.data?.totRcptNo;
           count.curRcptNo = receiptSignature.data?.rcptNo;
@@ -331,7 +331,7 @@ class TaxController<OBJ> {
     Drawers? drawer = await ProxyService.local
         .getDrawer(cashierId: ProxyService.box.getUserId()!);
 
-    ProxyService.realm.realm!.write(() {
+    ProxyService.local.realm!.write(() {
       drawer!
         ..cashierId = ProxyService.box.getBusinessId()!
         ..nsSaleCount = receiptType == "NS"
@@ -369,7 +369,7 @@ class TaxController<OBJ> {
     String receiptType,
   ) async {
     try {
-      await ProxyService.realm.createReceipt(
+      await ProxyService.local.createReceipt(
         signature: receiptSignature,
         transaction: transaction,
         qrCode: qrCode,

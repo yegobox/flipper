@@ -56,7 +56,7 @@ class KeyPadService with ListenableServiceMixin {
   }
 
   void setTransaction(ITransaction? transaction) async {
-    ProxyService.realm.realm!.write(() {
+    ProxyService.local.realm!.write(() {
       if (transaction != null) {
         _transaction.value = transaction;
       } else {
@@ -69,14 +69,14 @@ class KeyPadService with ListenableServiceMixin {
   /// we have one transaction but an transaction can have more than 1 transactionitem(s)
   /// it is in this recard in application anywhere else it's okay to access transactions[0]
   Future<ITransaction?> getPendingTransaction({required int branchId}) async {
-    ITransaction? transaction = await ProxyService.realm.manageTransaction(
+    ITransaction? transaction = await ProxyService.local.manageTransaction(
       branchId: ProxyService.box.getBranchId()!,
       transactionType: TransactionType.sale,
       isExpense: false,
       includeSubTotalCheck: false,
     );
 
-    List<TransactionItem> items = ProxyService.realm.transactionItems(
+    List<TransactionItem> items = ProxyService.local.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
         transactionId: transaction.id!,
         doneWithTransaction: false,
@@ -90,8 +90,8 @@ class KeyPadService with ListenableServiceMixin {
   /// this function update _transactions.value the same as getTransactions but this takes id of the transaction we want
   /// it is very important to not fonfuse these functions. later on.
   Future<ITransaction?> getTransactionById({required int id}) async {
-    ITransaction? od = await ProxyService.realm.getTransactionById(id: id);
-    List<TransactionItem> transactionItems = await ProxyService.realm
+    ITransaction? od = await ProxyService.local.getTransactionById(id: id);
+    List<TransactionItem> transactionItems = await ProxyService.local
         .getTransactionItemsByTransactionId(transactionId: od!.id);
     _countTransactionItems.value = transactionItems.length;
 

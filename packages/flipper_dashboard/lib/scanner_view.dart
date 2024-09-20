@@ -186,7 +186,7 @@ class ScannViewState extends ConsumerState<ScannView> {
     scanToLogin(result: barcode.rawValue);
     if (widget.intent == ATTENDANCE) {
       bool isCheckInDone =
-          await ProxyService.realm.checkIn(checkInCode: barcode.rawValue);
+          await ProxyService.local.checkIn(checkInCode: barcode.rawValue);
       if (isCheckInDone) {
         showSimpleNotification(
           const Text('Check In Successful'),

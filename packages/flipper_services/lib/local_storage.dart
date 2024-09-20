@@ -50,7 +50,8 @@ class SharedPreferenceStorage implements LocalStorage {
         'discountRate',
         'paymentType',
         'yegoboxLoggedInUserPermission',
-        'doneDownloadingAsset'
+        'doneDownloadingAsset',
+        'doneMigrateToLocal'
       },
     ));
     return this;
@@ -112,7 +113,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String? getServerUrl() {
-    final ebm = ProxyService.realm.ebm(branchId: getBranchId()!);
+    final ebm = ProxyService.local.ebm(branchId: getBranchId()!);
     if (ebm != null) {
       return ebm.taxServerUrl;
     }
@@ -231,7 +232,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String? bhfId() {
-    final ebm = ProxyService.realm.ebm(branchId: getBranchId()!);
+    final ebm = ProxyService.local.ebm(branchId: getBranchId()!);
     if (ebm != null) {
       return ebm.bhfId;
     }
@@ -302,5 +303,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   bool doneDownloadingAsset() {
     return prefs.getBool('doneDownloadingAsset') ?? false;
+  }
+
+  @override
+  bool doneMigrateToLocal() {
+    return prefs.getBool('doneMigrateToLocal') ?? false;
   }
 }

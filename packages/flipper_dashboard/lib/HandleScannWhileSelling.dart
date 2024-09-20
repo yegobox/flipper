@@ -31,13 +31,13 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     if (!ref.read(toggleProvider.notifier).state) {
       ref.read(searchStringProvider.notifier).emitString(value: '');
       if (value.isNotEmpty) {
-        Variant? variant = ProxyService.realm.variant(name: value);
+        Variant? variant = ProxyService.local.variant(name: value);
         if (variant != null && variant.id != null) {
-          Stock? stock = ProxyService.realm.stockByVariantId(
+          Stock? stock = ProxyService.local.stockByVariantId(
               variantId: variant.id!,
               nonZeroValue: false,
               branchId: ProxyService.box.getBranchId()!);
-          ITransaction currentTransaction = ProxyService.realm
+          ITransaction currentTransaction = ProxyService.local
               .manageTransaction(
                   branchId: ProxyService.box.getBranchId()!,
                   transactionType: TransactionType.sale,

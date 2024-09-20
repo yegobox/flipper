@@ -164,7 +164,7 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<void> registerOnSocial() {
-    return ProxyService.realm.registerOnSocial(
+    return ProxyService.local.registerOnSocial(
       password: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
       phoneNumberOrEmail: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
     );
@@ -200,7 +200,7 @@ class SignupViewModel extends ReactiveViewModel {
       id: randomNumber(),
       branchId: branches[0].serverId!,
     );
-    ProxyService.realm.create<Category>(data: category);
+    ProxyService.local.create<Category>(data: category);
   }
 
   Future<void> createDefaultColor(List<Branch> branches) async {
@@ -223,6 +223,6 @@ class SignupViewModel extends ReactiveViewModel {
       branchId: branches[0].serverId,
       name: 'color',
     );
-    ProxyService.realm.create<PColor>(data: color);
+    ProxyService.local.create<PColor>(data: color);
   }
 }

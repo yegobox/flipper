@@ -60,7 +60,7 @@ class SettingViewModel extends CoreViewModel {
 
   loadUserSettings() async {
     int businessId = ProxyService.box.getBusinessId()!;
-    _setting = await ProxyService.realm.getSetting(businessId: businessId);
+    _setting = await ProxyService.local.getSetting(businessId: businessId);
     notifyListeners();
   }
 
@@ -77,7 +77,7 @@ class SettingViewModel extends CoreViewModel {
     } else if (ProxyService.box.getBusinessId().runtimeType is String) {
       businessId = ProxyService.box.getBusinessId()!;
     }
-    return ProxyService.realm
+    return ProxyService.local
         .isSubscribed(feature: 'sync', businessId: businessId);
   }
 
@@ -96,13 +96,13 @@ class SettingViewModel extends CoreViewModel {
 
     /// do we have a subscription on the feature
 
-    isSubscribed = ProxyService.realm
+    isSubscribed = ProxyService.local
         .isSubscribed(businessId: businessId, feature: feature);
     if (isSubscribed) {
       callback(isSubscribed);
     } else {
       /// subscribe to the feature
-      // isSubscribed = ProxyService.realm.subscribe(
+      // isSubscribed = ProxyService.local.subscribe(
       //   businessId: businessId,
       //   feature: feature,
       //   agentCode: agentCode,
@@ -123,8 +123,8 @@ class SettingViewModel extends CoreViewModel {
       if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email!)) {
         callback(1);
       } else {
-        await ProxyService.realm.createGoogleSheetDoc(email: setting.email!);
-        ProxyService.realm.realm!.writeAsync(() async {
+        await ProxyService.local.createGoogleSheetDoc(email: setting.email!);
+        ProxyService.local.realm!.writeAsync(() async {
           Business business = await ProxyService.local.getBusiness();
           business.email = setting.email;
         });
@@ -143,7 +143,7 @@ class SettingViewModel extends CoreViewModel {
       } else {
         /// the
         Business business = await ProxyService.local.getBusiness();
-        ProxyService.realm.enableAttendance(
+        ProxyService.local.enableAttendance(
             businessId: business.serverId!, email: setting.email!);
       }
     } else {

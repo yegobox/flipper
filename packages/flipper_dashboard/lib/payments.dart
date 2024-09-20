@@ -112,7 +112,7 @@ class PaymentsState extends ConsumerState<Payments> {
         /// check if there is a full customer attached, because there is cases where we don't want to create a user in normal flow
         /// because it might be tedious to fill tin number,name and phone number etc... then it make sense if no customer attached to this transaction
         /// to add extra field to request phone number from a user completing this transaction for the tin to be used as placeholder in this case
-        Customer? customer = ProxyService.realm
+        Customer? customer = ProxyService.local
             .getCustomer(id: widget.transaction.customerId ?? 0);
         if (customer == null) {
           /// there is no customer attached to this transaction then enable extra field.
@@ -531,8 +531,8 @@ class PaymentsState extends ConsumerState<Payments> {
     // Parse discount ONLY if _discount.text is NOT empty
     double discount =
         _discount.text.isNotEmpty ? double.parse(_discount.text) : 0.0;
-   
-      ProxyService.realm.collectPayment(
+
+    ProxyService.local.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isTrainingMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),

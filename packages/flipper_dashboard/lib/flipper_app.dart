@@ -187,7 +187,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
                 behavior: HitTestBehavior.translucent,
                 onTap: () {
                   // TODO: enable this once enabled generally on atlas side
-                  // ProxyService.realm.recordUserActivity(
+                  // ProxyService.local.recordUserActivity(
                   //     userId: ProxyService.box.getUserId()!,
                   //     activity: 'TapOnSreen');
                 },
@@ -220,7 +220,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   Widget _buildAppLayoutDrawer(
       BuildContext context, CoreViewModel model, WidgetRef ref) {
     return StreamBuilder<Tenant?>(
-      stream: ProxyService.realm
+      stream: ProxyService.local
           .authState(branchId: ProxyService.box.getBranchId() ?? 0),
       builder: (context, snapshot) {
         return _buildAppLayoutDrawerInner(context, model, snapshot, ref);
@@ -259,14 +259,14 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   Future<void> _showLocalAuthOverlay(
       BuildContext context, CoreViewModel model) async {
-    List<Tenant> tenants = await ProxyService.realm
+    List<Tenant> tenants = await ProxyService.local
         .tenants(businessId: ProxyService.box.getBusinessId()!);
     screenLock(
       context: context,
       correctString: model.passCode,
       canCancel: false,
       onUnlocked: () async {
-        Tenant? tenant = await ProxyService.realm
+        Tenant? tenant = await ProxyService.local
             .getTenantBYPin(pin: int.tryParse(model.passCode) ?? 0);
         model.weakUp(userId: tenant!.userId!, pin: model.passCode);
         Navigator.of(context).maybePop();

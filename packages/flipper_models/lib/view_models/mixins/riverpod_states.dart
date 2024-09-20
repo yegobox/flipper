@@ -76,17 +76,17 @@ class SellingModeNotifier extends StateNotifier<SellingMode> {
 
 final stocValueProvider =
     StreamProvider.autoDispose.family<double, int>((ref, branchId) {
-  return ProxyService.realm.stockValue(branchId: branchId);
+  return ProxyService.local.stockValue(branchId: branchId);
 });
 
 final soldStockValueProvider =
     StreamProvider.autoDispose.family<double, int>((ref, branchId) {
-  return ProxyService.realm.soldStockValue(branchId: branchId);
+  return ProxyService.local.soldStockValue(branchId: branchId);
 });
 
 final transactionItemsStreamProvider = StreamProvider.autoDispose
     .family<List<TransactionItem>, int?>((ref, transactionId) {
-  return ProxyService.realm.transactionItemsStreams(
+  return ProxyService.local.transactionItemsStreams(
     branchId: ProxyService.box.getBranchId()!,
     transactionId: transactionId ?? 0,
     doneWithTransaction: false,
@@ -99,7 +99,7 @@ final transactionItemProvider = Provider.autoDispose
         (ref, params) {
   final (:branchId, :transactionId) = params;
 
-  return ProxyService.realm.transactionItemsFuture(
+  return ProxyService.local.transactionItemsFuture(
     transactionId: transactionId,
     doneWithTransaction: false,
     active: true,
@@ -109,7 +109,7 @@ final transactionItemProvider = Provider.autoDispose
 final stockByVariantIdProvider =
     StreamProvider.autoDispose.family<double, int>((ref, variantId) {
   int branchId = ProxyService.box.getBranchId()!;
-  return ProxyService.realm
+  return ProxyService.local
       .getStockStream(variantId: variantId, branchId: branchId);
 });
 
@@ -168,7 +168,7 @@ class PaginatedVariantsNotifier
 
   Future<List<Variant>> fetchVariants(int productId) async {
     final branchId = ProxyService.box.getBranchId()!;
-    return await ProxyService.realm
+    return await ProxyService.local
         .variants(branchId: branchId, productId: productId);
   }
 }
@@ -182,7 +182,7 @@ final pendingTransactionProviderNonStream =
     final branchId = ProxyService.box.getBranchId()!;
 
     // Return the result of manageTransaction directly
-    return ProxyService.realm.manageTransaction(
+    return ProxyService.local.manageTransaction(
       transactionType: mode,
       isExpense: isExpense,
       branchId: branchId,
@@ -198,7 +198,7 @@ final pendingTransactionProvider = StreamProvider.autoDispose
     final branchId = ProxyService.box.getBranchId()!;
 
     // Return a stream from the manageTransaction method
-    return ProxyService.realm.manageTransactionStream(
+    return ProxyService.local.manageTransactionStream(
       transactionType: mode,
       isExpense: isExpense,
       branchId: branchId,
@@ -255,7 +255,7 @@ class TransactionItemsNotifier
       talker.info("Loading transactionId $currentTransaction");
       state = const AsyncValue.loading();
 
-      final items = ProxyService.realm.transactionItems(
+      final items = ProxyService.local.transactionItems(
           branchId: ProxyService.box.getBranchId()!,
           transactionId: currentTransaction,
           doneWithTransaction: false,
@@ -273,7 +273,7 @@ class TransactionItemsNotifier
   Future<void> updatePendingTransaction() async {
     try {
       final branchId = ProxyService.box.getBranchId()!;
-      final stream = ProxyService.realm.manageTransactionStream(
+      final stream = ProxyService.local.manageTransactionStream(
         branchId: branchId,
         transactionType: TransactionType.sale,
         isExpense: false,
@@ -282,7 +282,7 @@ class TransactionItemsNotifier
       // Listen to the stream and process the transaction
       await for (final transaction in stream) {
         // Assuming realm.write is synchronous, process the transaction here
-        ProxyService.realm.realm?.write(() {
+        ProxyService.local.realm?.write(() {
           transaction.subTotal = totalPayable;
         });
         // Optionally break the loop if only one transaction needs to be updated
@@ -349,10 +349,10 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
 
       if (searchOnly) {
         // Fetch all variants for search purposes
-        variants = await ProxyService.realm.variants(branchId: branchId);
+        variants = await ProxyService.local.variants(branchId: branchId);
       } else {
         // Fetch paginated variants
-        variants = await ProxyService.realm.variants(
+        variants = await ProxyService.local.variants(
           branchId: branchId,
           page: _currentPage,
           itemsPerPage: _itemsPerPage,
@@ -457,11 +457,11 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
   }) async {
     try {
       List<Product> products =
-          await ProxyService.realm.productsFuture(branchId: branchId);
+          await ProxyService.local.productsFuture(branchId: branchId);
 
       // Fetch additional products beyond the initial 20 items
       if (searchString.isNotEmpty) {
-        List<Product?> additionalProducts = await ProxyService.realm
+        List<Product?> additionalProducts = await ProxyService.local
             .getProductByName(
                 name: searchString, branchId: ProxyService.box.getBranchId()!);
 
@@ -558,7 +558,7 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
     try {
       // await any ongoing database persistance
       List<Customer> customers =
-          ProxyService.realm.customers(branchId: branchId);
+          ProxyService.local.customers(branchId: branchId);
 
       if (searchString.isNotEmpty) {
         customers = customers
@@ -608,14 +608,14 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 
 final variantsFutureProvider = FutureProvider.autoDispose
     .family<AsyncValue<List<Variant>>, int>((ref, productId) async {
-  final data = await ProxyService.realm.variants(
+  final data = await ProxyService.local.variants(
       productId: productId, branchId: ProxyService.box.getBranchId()!);
   return AsyncData(data);
 });
 
 final categoryStreamProvider =
     StreamProvider.autoDispose<List<cat.Category>>((ref) {
-  final category = ProxyService.realm.categoryStream();
+  final category = ProxyService.local.categoryStream();
 
   // Return the stream
   return category;
@@ -627,7 +627,7 @@ final unitsProvider =
     final branchId = ProxyService.box.getBranchId()!;
 
     // Check if units are already present in the database
-    final existingUnits = await ProxyService.realm.units(branchId: branchId);
+    final existingUnits = await ProxyService.local.units(branchId: branchId);
 
     return AsyncData(existingUnits);
   } catch (error) {
@@ -682,7 +682,7 @@ final transactionItemListProvider =
     return Stream.value([]);
   }
 
-  return ProxyService.realm
+  return ProxyService.local
       .transactionItemList(
     startDate: startDate,
     endDate: endDate,
@@ -710,7 +710,7 @@ final transactionListProvider =
   }
 
   try {
-    final stream = ProxyService.realm.transactionList(
+    final stream = ProxyService.local.transactionList(
       startDate: startDate,
       endDate: endDate,
     );
@@ -735,7 +735,7 @@ final currentTransactionsByIdStream =
   // Retrieve the transaction status from the provider container, if needed
 
   // Use ProxyService to get the IsarStream of transactions
-  final transactionsStream = ProxyService.realm
+  final transactionsStream = ProxyService.local
       .transactionStreamById(id: id, filterType: FilterType.TRANSACTION);
 
   // Return the stream
@@ -745,7 +745,7 @@ final currentTransactionsByIdStream =
 final selectImportItemsProvider = FutureProvider.autoDispose
     .family<RwApiResponse, int?>((ref, productId) async {
   // Fetch the list of variants from a remote service.
-  final response = await ProxyService.realm.selectImportItems(
+  final response = await ProxyService.local.selectImportItems(
       tin: 999909695,
       bhfId: ProxyService.box.bhfId() ?? "00",
       lastReqDt: "20210331000000");
@@ -758,7 +758,7 @@ final transactionsStreamProvider =
   // Retrieve the transaction status from the provider container, if needed
 
   // Use ProxyService to get the IsarStream of transactions
-  final transactionsStream = ProxyService.realm
+  final transactionsStream = ProxyService.local
       .transactionsStream(branchId: ProxyService.box.getBranchId());
 
   // Return the stream
@@ -768,11 +768,11 @@ final transactionsStreamProvider =
 final ordersStreamProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
   int branchId = ProxyService.box.getBranchId() ?? 0;
-  return ProxyService.realm.orders(branchId: branchId);
+  return ProxyService.local.orders(branchId: branchId);
 });
 final variantStreamProvider =
     StreamProvider.autoDispose.family<List<Variant>, int>((ref, id) {
-  return ProxyService.realm
+  return ProxyService.local
       .getVariantByProductIdStream(productId: id)
       .distinct((prev, next) =>
           prev.map((e) => e.retailPrice).join() ==
@@ -798,7 +798,7 @@ final universalProductsNames =
 
 final skuProvider =
     StreamProvider.autoDispose.family<SKU?, int>((ref, branchId) {
-  return ProxyService.realm
+  return ProxyService.local
       .sku(branchId: branchId, businessId: ProxyService.box.getBusinessId()!);
 });
 
@@ -874,7 +874,7 @@ final notificationStreamProvider = StreamProvider<List<AppNotification>>((ref) {
 
 final reportsProvider =
     StreamProvider.autoDispose.family<List<Report>, int>((ref, branchId) {
-  return ProxyService.realm.reports(branchId: branchId).map((reports) {
+  return ProxyService.local.reports(branchId: branchId).map((reports) {
     talker.warning(reports);
     return reports;
   });
@@ -920,7 +920,7 @@ final selectedItemIdProvider = StateProvider<int?>((ref) => NO_SELECTION);
 
 final tenantProvider = Provider<Tenant?>((ref) {
   final userId = ProxyService.box.getUserId();
-  return ProxyService.realm.tenant(userId: userId);
+  return ProxyService.local.tenant(userId: userId);
 });
 
 /// check if a user has either, admin,read,write on a given feature
@@ -928,7 +928,7 @@ final tenantProvider = Provider<Tenant?>((ref) {
 // Provider to get the list of user accesses
 final userAccessesProvider = Provider<List<Access>>((ref) {
   final userId = ProxyService.box.getUserId()!;
-  return ProxyService.realm.access(userId: userId);
+  return ProxyService.local.access(userId: userId);
 });
 
 final businessesProvider = Provider<List<Business>>((ref) {
@@ -1051,14 +1051,14 @@ final stockRequestsProvider = StreamProvider.autoDispose
   if (branchId == null) {
     return Stream.empty();
   }
-  return ProxyService.realm.requestsStream(branchId: branchId, filter: filter);
+  return ProxyService.local.requestsStream(branchId: branchId, filter: filter);
 });
 
 final stocksProvider =
     Provider.autoDispose.family<List<Stock>, ({int branchId})>((ref, params) {
   final (:branchId) = params;
 
-  return ProxyService.realm.stocks(branchId: branchId);
+  return ProxyService.local.stocks(branchId: branchId);
 });
 
 final branchesProvider = Provider.autoDispose

@@ -62,7 +62,7 @@ class BottomSheets {
                     onPressed: () {
                       if (double.tryParse(newQtyController.text) != null &&
                           double.tryParse(newQtyController.text) != 0) {
-                        ProxyService.realm.updateTransactionItemQty(
+                        ProxyService.local.updateTransactionItemQty(
                             qty: double.tryParse(newQtyController.text),
                             transactionItemId: transactionItem.id!);
 
@@ -83,7 +83,7 @@ class BottomSheets {
                     textColor: Colors.red,
                     text: 'Remove Product',
                     onPressed: () {
-                      ProxyService.realm.deleteItemFromCart(
+                      ProxyService.local.deleteItemFromCart(
                         transactionItemId: transactionItem,
                         transactionId: transactionId,
                       );
@@ -182,7 +182,7 @@ class BottomSheets {
                         onPressed: () {
                           // Handle "Clear All"
                           for (TransactionItem item in items) {
-                            ProxyService.realm.deleteItemFromCart(
+                            ProxyService.local.deleteItemFromCart(
                                 transactionItemId: item,
                                 transactionId: transactionId);
                           }

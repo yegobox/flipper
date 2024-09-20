@@ -50,7 +50,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   AsyncFieldValidationFormBloc(
       {required this.signupViewModel, required String country}) {
     countryName.updateInitialValue(country);
-    ProxyService.realm.businessTypes().then((data) {
+    ProxyService.local.businessTypes().then((data) {
       // Update the items of the SelectFieldBloc
       log(data.toString(), name: 'AsyncFieldValidationFormBloc');
       // remove Flipper Connecta from data
@@ -85,7 +85,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       if (username == null) {
         return "Username/business name is required";
       }
-      int status = await ProxyService.realm.userNameAvailable(
+      int status = await ProxyService.local.userNameAvailable(
           name: username, flipperHttpClient: ProxyService.http);
 
       if (status == 200) {
@@ -284,8 +284,8 @@ class _SignUpViewState extends State<SignUpView> {
                                             color: Colors.white,
                                           )),
                                       style: ButtonStyle(
-                                        shape: WidgetStateProperty
-                                            .resolveWith<OutlinedBorder>(
+                                        shape: WidgetStateProperty.resolveWith<
+                                            OutlinedBorder>(
                                           (states) => RoundedRectangleBorder(
                                             borderRadius:
                                                 BorderRadius.circular(10.0),

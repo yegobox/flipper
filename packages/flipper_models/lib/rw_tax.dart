@@ -57,7 +57,7 @@ class RWTax implements TaxApi {
       required String URI}) async {
     String? token = ProxyService.box.readString(key: 'bearerToken');
     EBM? ebm =
-        await ProxyService.realm.ebm(branchId: ProxyService.box.getBranchId()!);
+        await ProxyService.local.ebm(branchId: ProxyService.box.getBranchId()!);
     var headers = {'Authorization': token!, 'Content-Type': 'application/json'};
     var request = http.Request(
         'POST', Uri.parse(ebm!.taxServerUrl! + 'initializer/selectInitInfo'));
@@ -231,7 +231,7 @@ class RWTax implements TaxApi {
     String lastReqDt = "20210523000000",
   }) async {
     EBM? ebm =
-        await ProxyService.realm.ebm(branchId: ProxyService.box.getBranchId()!);
+        await ProxyService.local.ebm(branchId: ProxyService.box.getBranchId()!);
     if (ebm == null) {
       return false;
     }
@@ -272,7 +272,7 @@ class RWTax implements TaxApi {
     // Get business details
     Business? business = await ProxyService.local.getBusiness();
     List<TransactionItem> items =
-        await ProxyService.realm.getTransactionItemsByTransactionId(
+        await ProxyService.local.getTransactionItemsByTransactionId(
       transactionId: transaction.id,
     );
 
@@ -297,7 +297,7 @@ class RWTax implements TaxApi {
 
     // Retrieve customer information
     Customer? customer =
-        ProxyService.realm.getCustomer(id: transaction.customerId);
+        ProxyService.local.getCustomer(id: transaction.customerId);
 
     // Build request data
     Map<String, dynamic> requestData = buildRequestData(
@@ -427,13 +427,13 @@ class RWTax implements TaxApi {
     String? purchaseCode,
   }) {
     Configurations taxConfigTaxB =
-        ProxyService.realm.getByTaxType(taxtype: "B");
+        ProxyService.local.getByTaxType(taxtype: "B");
     Configurations taxConfigTaxA =
-        ProxyService.realm.getByTaxType(taxtype: "A");
+        ProxyService.local.getByTaxType(taxtype: "A");
     Configurations taxConfigTaxC =
-        ProxyService.realm.getByTaxType(taxtype: "C");
+        ProxyService.local.getByTaxType(taxtype: "C");
     Configurations taxConfigTaxD =
-        ProxyService.realm.getByTaxType(taxtype: "D");
+        ProxyService.local.getByTaxType(taxtype: "D");
 
     /// because other rate for tax are not known are set to 1/1
     final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118) +
@@ -512,12 +512,12 @@ class RWTax implements TaxApi {
   void updateTransactionAndItems(ITransaction transaction,
       List<TransactionItem> items, String? receiptType) {
     for (TransactionItem item in items) {
-      Stock? stock = ProxyService.realm.stockByVariantId(
+      Stock? stock = ProxyService.local.stockByVariantId(
         variantId: item.variantId!,
         branchId: ProxyService.box.getBranchId()!,
       );
 
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         item.ebmSynced = true;
         stock?.ebmSynced = false;
         if (receiptType == "R") {
@@ -526,7 +526,7 @@ class RWTax implements TaxApi {
       });
     }
 
-    ProxyService.realm.realm!.write(() {
+    ProxyService.local.realm!.write(() {
       transaction.ebmSynced = true;
       transaction.isRefunded = receiptType == "R";
     });
@@ -626,7 +626,7 @@ class RWTax implements TaxApi {
         /// that way we will be updating the product's variant with no question
         /// otherwise then create a complete new product.
         /// TODO: uncomment the bellow to save product tuvuye kurangura or update them!
-        // ProxyService.realm.createProduct(
+        // ProxyService.local.createProduct(
         //   product: Product(
         //     ObjectId(),
         //     name: item.itemNm,
@@ -741,7 +741,7 @@ class RWTax implements TaxApi {
         /// existing product and use the name that exist,
         /// that way we will be updating the product's variant with no question
         /// otherwise then create a complete new product.
-        ProxyService.realm.createProduct(
+        ProxyService.local.createProduct(
           bhFId: ProxyService.box.bhfId() ?? "00",
           tinNumber: ProxyService.box.tin(),
           businessId: ProxyService.box.getBusinessId()!,

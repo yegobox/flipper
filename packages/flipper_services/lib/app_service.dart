@@ -47,7 +47,7 @@ class AppService with ListenableServiceMixin {
     int? branchId = ProxyService.box.getBranchId();
 
     final List<Category> result =
-        await ProxyService.realm.categories(branchId: branchId ?? 0);
+        await ProxyService.local.categories(branchId: branchId ?? 0);
 
     _categories.value = result;
     notifyListeners();
@@ -82,7 +82,7 @@ class AppService with ListenableServiceMixin {
 
   Future<void> logSocial() async {
     final phoneNumber = ProxyService.box.getUserPhone()!.replaceFirst("+", "");
-    final token = await ProxyService.realm.loginOnSocial(
+    final token = await ProxyService.local.loginOnSocial(
       password: phoneNumber,
       phoneNumberOrEmail: phoneNumber,
     );
@@ -101,7 +101,7 @@ class AppService with ListenableServiceMixin {
       type: socialApp,
     );
 
-    await ProxyService.realm.create(data: data);
+    await ProxyService.local.create(data: data);
   }
 
   final _contacts = ReactiveValue<List<Business>>([]);
@@ -159,7 +159,7 @@ class AppService with ListenableServiceMixin {
   Future<bool> isSocialLoggedin() async {
     if (ProxyService.box.getDefaultApp() == "2") {
       int businessId = ProxyService.box.getBusinessId()!;
-      return await ProxyService.realm
+      return await ProxyService.local
           .isTokenValid(businessId: businessId, tokenType: socialApp);
     }
 

@@ -119,7 +119,7 @@ class DataViewState extends ConsumerState<DataView>
           onRecount: (value) {
             final parsedValue = double.tryParse(value);
             if (parsedValue != null && parsedValue != 0) {
-              ProxyService.realm
+              ProxyService.local
                   .updateStock(stockId: data.id, qty: parsedValue);
             }
           },
@@ -308,14 +308,14 @@ class DataViewState extends ConsumerState<DataView>
       return;
     }
 
-    final expenses = ProxyService.realm.transactions(
+    final expenses = ProxyService.local.transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: true,
       branchId: ProxyService.box.getBranchId(),
     );
 
-    final nonExpense = ProxyService.realm.transactions(
+    final nonExpense = ProxyService.local.transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: false,

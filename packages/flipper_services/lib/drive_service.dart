@@ -103,7 +103,7 @@ class GoogleDrive {
   /// if the token is not expired it will return the http client
 
   Future<void> updateBusiness(Business business) async {
-    ProxyService.realm.realm!.write(() {
+    ProxyService.local.realm!.write(() {
       business.backUpEnabled = true;
       business.lastDbBackup = DateTime.now().toIso8601String();
     });
@@ -141,7 +141,7 @@ class GoogleDrive {
     );
 
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
-    ProxyService.realm.realm!.writeAsync(() async {
+    ProxyService.local.realm!.writeAsync(() async {
       Business business = await ProxyService.local.getBusiness();
       business.backupFileId = fileUploaded.id;
     });

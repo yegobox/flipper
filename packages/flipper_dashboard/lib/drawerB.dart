@@ -11,7 +11,7 @@ class MyDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           FutureBuilder<Tenant?>(
-              future: ProxyService.realm
+              future: ProxyService.local
                   .getTenantBYUserId(userId: ProxyService.box.getUserId()!),
               builder: (context, snapshot) {
                 return DrawerHeader(

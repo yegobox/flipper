@@ -49,11 +49,11 @@ class CreateMockdata {
 
   Future<void> ensureRealmInitialized() async {
     if (ProxyService.box.encryptionKey().isNotEmpty &&
-        ProxyService.realm.realm == null) {
+        ProxyService.local.realm == null) {
       await ProxyService.realm.configure(
         useInMemoryDb: false,
         useFallBack: false,
-        localRealm: ProxyService.local.localRealm,
+        localRealm: ProxyService.local.realm,
         branchId: ProxyService.box.getBranchId()!,
         userId: ProxyService.box.getUserId()!,
         businessId: ProxyService.box.getBusinessId()!,
@@ -65,7 +65,7 @@ class CreateMockdata {
 
   Future<void> createAndSaveMockStockRequests({required Realm realm}) async {
     // Create a product first
-    Product? product = await ProxyService.realm.createProduct(
+    Product? product = await ProxyService.local.createProduct(
         bhFId: "00",
         tinNumber: 111,
         branchId: 1,

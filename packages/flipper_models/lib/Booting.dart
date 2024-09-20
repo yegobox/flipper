@@ -46,12 +46,12 @@ mixin Booting {
 
   Future<void> addOrUpdateTenantInRealm(Tenant iTenant, String userId,
       {Realm? localRealm}) async {
-    Tenant? exist = ProxyService.realm.realm!
+    Tenant? exist = ProxyService.local.realm!
         .query<Tenant>(r'id == $0', [iTenant.id]).firstOrNull;
     if (exist == null) {
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         iTenant.sessionActive = (userId == iTenant.userId);
-        ProxyService.realm.realm!.add<Tenant>(iTenant);
+        ProxyService.local.realm!.add<Tenant>(iTenant);
       });
     }
   }
@@ -62,7 +62,7 @@ mixin Booting {
     final List<String> features = ['Sales', 'Inventory', 'Reports', 'Settings'];
 
     for (IPermission permission in permissions) {
-      LPermission? exist = ProxyService.realm.realm!
+      LPermission? exist = ProxyService.local.realm!
           .query<LPermission>(r'userId == $0', [permission.userId]).firstOrNull;
 
       if (exist == null) {
@@ -77,7 +77,7 @@ mixin Booting {
         // Check if the permission is "admin" and handle access creation
         if (permission.name.toLowerCase() == 'admin') {
           for (String featureName in features) {
-            final Access? existingAccess = ProxyService.realm.realm!
+            final Access? existingAccess = ProxyService.local.realm!
                 .query<Access>(r'userId == $0 AND featureName == $1',
                     [permission.userId, featureName]).firstOrNull;
 
@@ -94,8 +94,8 @@ mixin Booting {
                 userId: permission.userId,
                 featureName: featureName,
               );
-              ProxyService.realm.realm!.write(() {
-                ProxyService.realm.realm!.add<Access>(access);
+              ProxyService.local.realm!.write(() {
+                ProxyService.local.realm!.add<Access>(access);
               });
             }
           }
@@ -103,8 +103,8 @@ mixin Booting {
       }
     }
 
-    ProxyService.realm.realm!.write(() {
-      ProxyService.realm.realm!.addAll<LPermission>(permissionToAdd);
+    ProxyService.local.realm!.write(() {
+      ProxyService.local.realm!.addAll<LPermission>(permissionToAdd);
     });
   }
 
@@ -281,18 +281,18 @@ mixin Booting {
   }
 
   Future<void> initializeRealms() async {
-    if (ProxyService.realm.realm == null) {
+    if (ProxyService.local.realm == null) {
       await ProxyService.realm.configure(
         useInMemoryDb: false,
         useFallBack: false,
-        localRealm: ProxyService.local.localRealm,
+        localRealm: ProxyService.local.realm,
         businessId: ProxyService.box.getBusinessId(),
         encryptionKey: ProxyService.box.encryptionKey(),
         branchId: ProxyService.box.getBranchId(),
         userId: ProxyService.box.getUserId(),
       );
     }
-    if (ProxyService.local.localRealm == null) {
+    if (ProxyService.local.realm == null) {
       await ProxyService.local.configureLocal(useInMemory: false);
     }
   }

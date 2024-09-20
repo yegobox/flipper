@@ -29,11 +29,11 @@ class ProductService with ListenableServiceMixin {
   /// discount streams
   Stream<List<Discount>> discountStream({required int branchId}) async* {
     yield* Stream.fromFuture(
-        ProxyService.realm.getDiscounts(branchId: branchId));
+        ProxyService.local.getDiscounts(branchId: branchId));
   }
 
   Stream<List<Product>> productStream({required int branchId}) {
-    return Stream.fromFuture(ProxyService.realm
+    return Stream.fromFuture(ProxyService.local
             .getProductList(branchId: ProxyService.box.getBranchId()!))
         .asyncExpand((products) async* {
       // Yield the products as they become available
@@ -58,7 +58,7 @@ class ProductService with ListenableServiceMixin {
 
   Future<Product?> getProductByBarCode({required String? code}) async {
     if (code == null) return null;
-    return await ProxyService.realm.getProductByBarCode(
+    return await ProxyService.local.getProductByBarCode(
         barCode: code, branchId: ProxyService.box.getBranchId()!);
   }
 

@@ -113,7 +113,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
             bottomSpacer: 80,
           ),
           body: FutureBuilder<List<Category>>(
-            future: ProxyService.realm
+            future: ProxyService.local
                 .categories(branchId: ProxyService.box.getBranchId()!),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {

@@ -50,27 +50,27 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> deleteFunc(int? productId, ProductViewModel model) async {
     try {
       /// first if there is image attached delete if first
-      Product? product = ProxyService.realm.getProduct(id: productId!);
+      Product? product = ProxyService.local.getProduct(id: productId!);
       if (product?.isComposite ?? false) {
         /// search composite and delete them as well
         List<Composite> composites =
-            ProxyService.realm.composites(productId: productId);
-        ProxyService.realm.realm!.write(() {
+            ProxyService.local.composites(productId: productId);
+        ProxyService.local.realm!.write(() {
           for (Composite composite in composites) {
-            ProxyService.realm.realm!.delete(composite);
+            ProxyService.local.realm!.delete(composite);
           }
         });
       }
       if (product != null && product.imageUrl != null) {
-        if (await ProxyService.realm
+        if (await ProxyService.local
             .removeS3File(fileName: product.imageUrl!)) {
           await model.deleteProduct(productId: productId);
           ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
 
           /// delete assets related to a product
           Assets? asset =
-              ProxyService.realm.getAsset(assetName: product.imageUrl!);
-          ProxyService.realm
+              ProxyService.local.getAsset(assetName: product.imageUrl!);
+          ProxyService.local
               .delete(id: asset?.id ?? 0, flipperHttpClient: ProxyService.http);
         }
       } else {
@@ -93,10 +93,10 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       required bool isOrdering}) {
     Product? product;
     if (!isOrdering) {
-      product = ProxyService.realm
+      product = ProxyService.local
           .getProduct(id: variant.isValid ? (variant.productId ?? 0) : 0);
     }
-    Assets? asset = ProxyService.realm
+    Assets? asset = ProxyService.local
         .getAsset(productId: variant.isValid ? variant.productId : 0);
     if (!variant.isValid) {
       return SizedBox.shrink();

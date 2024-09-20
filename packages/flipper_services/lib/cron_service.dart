@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:isolate';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/Subcriptions.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/services.dart';
@@ -16,7 +15,6 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_models/DownloadQueue.dart';
 
 import 'package:flipper_models/power_sync/powersync.dart';
-import 'package:flipper_models/power_sync/schema.dart';
 
 class CronService with Subscriptions {
   final drive = GoogleDrive();
@@ -49,10 +47,10 @@ class CronService with Subscriptions {
   Future<void> _spawnIsolate(String name, dynamic isolateHandler) async {
     if (ProxyService.box.getBusinessId() == null) return;
     try {
-      Business business = ProxyService.local.localRealm!.query<Business>(
+      Business business = ProxyService.local.realm!.query<Business>(
           r'serverId == $0', [ProxyService.box.getBusinessId()!]).first;
       // talker.warning("Business ID ${ProxyService.box.getBusinessId()}");
-      if (ProxyService.realm
+      if (ProxyService.local
           .isTaxEnabled(business: ProxyService.local.getBusiness())) {
         ReceivePort receivePort = ReceivePort();
 
@@ -73,7 +71,7 @@ class CronService with Subscriptions {
             ProxyService.box.bhfId() ?? "00",
             ProxyService.box.getBusinessId(),
             ProxyService.box.getServerUrl(),
-            await ProxyService.realm.dbPath(
+            await ProxyService.local.dbPath(
                 path: 'local', folder: ProxyService.box.getBusinessId()),
           ],
         );
@@ -89,16 +87,16 @@ class CronService with Subscriptions {
             //     "About to update model ${separator.first} with ${separator.last}");
             if (separator.first == "variant") {
               // find this variant in db
-              Variant variant = ProxyService.realm.realm!
+              Variant variant = ProxyService.local.realm!
                   .query<Variant>(r'id == $0', [separator.last]).first;
-              ProxyService.realm.markModelForEbmUpdate<Variant>(model: variant);
+              ProxyService.local.markModelForEbmUpdate<Variant>(model: variant);
             }
             if (separator.first == "stock") {
               // find this variant in db
-              Stock stock = ProxyService.realm.realm!
+              Stock stock = ProxyService.local.realm!
                   .query<Stock>(r'id == $0', [separator.last]).first;
 
-              ProxyService.realm.markModelForEbmUpdate<Stock>(model: stock);
+              ProxyService.local.markModelForEbmUpdate<Stock>(model: stock);
             }
             if (separator.first == "notification") {
               /// in event when we are done with work in isolate
@@ -112,7 +110,7 @@ class CronService with Subscriptions {
                   .sendLocalNotification(body: "System is up to date with EBM");
             }
 
-            await ProxyService.realm.realm!.subscriptions
+            await ProxyService.local.realm!.subscriptions
                 .waitForSynchronization();
           },
         );
@@ -144,8 +142,8 @@ class CronService with Subscriptions {
       //   branchId: ProxyService.box.getBranchId(),
       //   businessId: ProxyService.box.getBusinessId(),
       //   userId: ProxyService.box.getUserId(),
-      //   realm: ProxyService.realm.realm,
-      //   localRealm: ProxyService.local.localRealm,
+      //   realm: ProxyService.local.realm,
+      //   localRealm: ProxyService.local.realm,
       // );
     }
 
@@ -155,13 +153,13 @@ class CronService with Subscriptions {
         final downloadQueue = DownloadQueue(3);
 
         int branchId = ProxyService.box.getBranchId()!;
-        if (ProxyService.realm.realm == null) {
+        if (ProxyService.local.realm == null) {
           talker.warning("realm is null");
           return;
         }
         // ProxyService.box.writeBool(key: 'doneDownloadingAsset', value: false);
         if (!ProxyService.box.doneDownloadingAsset()) {
-          List<Assets> assets = ProxyService.realm.realm!
+          List<Assets> assets = ProxyService.local.realm!
               .query<Assets>(r'branchId == $0', [branchId]).toList();
 
           for (Assets asset in assets) {
@@ -227,7 +225,7 @@ class CronService with Subscriptions {
     });
 
     Timer.periodic(_getpublushingDeviceDuration(), (Timer t) async {
-      // ProxyService.realm.sendScheduleMessages();
+      // ProxyService.local.sendScheduleMessages();
       // await _keepTryingPublishDevice(); // Add this line
     });
 
@@ -290,7 +288,8 @@ class CronService with Subscriptions {
   }
 
   static void backUpPowerSync() async {
-    final products = ProxyService.realm.realm!.all<Product>();
+    final products = ProxyService.local.realm!.all<Product>();
+    ProxyService.realm.copyRemoteDataToLocalDb();
 
     for (Product product in products) {
       try {

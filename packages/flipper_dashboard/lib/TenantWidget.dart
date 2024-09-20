@@ -66,7 +66,7 @@ class TenantWidget extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
-        if (ProxyService.realm.isAdmin(
+        if (ProxyService.local.isAdmin(
             userId: ProxyService.box.getUserId() ?? 0,
             appFeature: AppFeature.Settings))
           Padding(

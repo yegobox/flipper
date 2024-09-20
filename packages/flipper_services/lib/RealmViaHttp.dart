@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flipper_models/LocalRealm.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
@@ -31,8 +30,7 @@ abstract class RealmViaHttp {
       required int businessId});
 }
 
-class RealmViaHttpService
-    implements RealmViaHttp, RealmApiInterface, LocalRealmInterface {
+class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   @override
   Future<bool> hasAcessSaved(
       {required HttpClientInterface flipperHttpClient,
@@ -1275,9 +1273,6 @@ class RealmViaHttpService
   }
 
   @override
-  Realm? localRealm;
-
-  @override
   Future<Branch> activeBranch() {
     // TODO: implement activeBranch
     throw UnimplementedError();
@@ -1330,14 +1325,14 @@ class RealmViaHttpService
   }
 
   @override
-  Future<LocalRealmInterface> configureLocal({required bool useInMemory}) {
+  Future<RealmApiInterface> configureLocal({required bool useInMemory}) {
     // TODO: implement configureLocal
     throw UnimplementedError();
   }
 
   @override
   Future<void> configureRemoteRealm(String userPhone, IUser user,
-      {Realm? localRealm}) {
+      {Realm? realm}) {
     // TODO: implement configureRemoteRealm
     throw UnimplementedError();
   }

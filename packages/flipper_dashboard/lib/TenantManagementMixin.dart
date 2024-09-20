@@ -55,7 +55,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
               userType: selectedUserType,
               flipperHttpClient: ProxyService.http);
         } else {
-          newTenant = ProxyService.realm.getTenant(userId: userId!);
+          newTenant = ProxyService.local.getTenant(userId: userId!);
         }
 
         // Save access permissions
@@ -78,7 +78,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
 
   void _updateTenant({Tenant? tenant, String? name, required String type}) {
     try {
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         if (name != null && !name.isEmpty) {
           tenant!.name = name;
           tenant.type = type;
@@ -94,14 +94,14 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       Tenant? newTenant, Business? business, Branch? branch) async {
     tenantAllowedFeatures.forEach((featureName, accessLevel) {
       // Query for existing Access object
-      Access? existingAccess = ProxyService.realm.realm!.query<Access>(
+      Access? existingAccess = ProxyService.local.realm!.query<Access>(
           r'userId == $0 AND featureName == $1',
           [newTenant?.userId ?? userId, featureName]).firstOrNull;
 
       talker.warning(featureName);
       if (existingAccess != null) {
         // Update existing Access object
-        ProxyService.realm.realm!.write(() {
+        ProxyService.local.realm!.write(() {
           existingAccess.accessLevel = accessLevel.toLowerCase();
           existingAccess.status = activeFeatures[featureName] != null
               ? activeFeatures[featureName]!
@@ -128,8 +128,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
           userId: newTenant?.userId,
           featureName: featureName,
         );
-        ProxyService.realm.realm!.write(() {
-          ProxyService.realm.realm!.add<Access>(access);
+        ProxyService.local.realm!.write(() {
+          ProxyService.local.realm!.add<Access>(access);
         });
       }
     });
@@ -254,7 +254,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
 
   Widget _buildTenantCard(Tenant tenant, FlipperBaseModel model) {
     List<Access> tenantAccesses =
-        ProxyService.realm.access(userId: tenant.userId!);
+        ProxyService.local.access(userId: tenant.userId!);
 
     return ExpansionTile(
       onExpansionChanged: (expanded) {
@@ -400,24 +400,24 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
 
       showToast(context, 'Tenant deleted successfully');
       model.deleteTenant(tenant);
-      ProxyService.realm.delete(
+      ProxyService.local.delete(
           id: tenant.id!,
           endPoint: 'tenant',
           flipperHttpClient: ProxyService.http);
 
       /// also delete related permission & acess
       List<LPermission> permissions =
-          ProxyService.realm.permissions(userId: tenant.userId!);
+          ProxyService.local.permissions(userId: tenant.userId!);
       for (LPermission permission in permissions) {
-        ProxyService.realm.delete(
+        ProxyService.local.delete(
             id: permission.id!,
             endPoint: 'permission',
             flipperHttpClient: ProxyService.http);
       }
       //
-      List<Access> accesses = ProxyService.realm.access(userId: tenant.userId!);
+      List<Access> accesses = ProxyService.local.access(userId: tenant.userId!);
       for (Access access in accesses) {
-        ProxyService.realm.delete(
+        ProxyService.local.delete(
             id: access.id!,
             endPoint: 'access',
             flipperHttpClient: ProxyService.http);

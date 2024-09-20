@@ -30,19 +30,19 @@ void main() {
           IUser.fromJson(
             json.decode(userResponse),
           ),
-          localRealm: ProxyService.local.localRealm);
+          realm: ProxyService.local.realm);
       CreateMockdata()
-          .createAndSaveMockStockRequests(realm: ProxyService.realm.realm!);
+          .createAndSaveMockStockRequests(realm: ProxyService.local.realm!);
     });
     tearDownAll(() async {
-      ProxyService.realm.realm!.write(() {
-        ProxyService.realm.realm!.deleteAll<Product>();
-        ProxyService.realm.realm!.deleteAll<SKU>();
-        ProxyService.realm.realm!.deleteAll<Variant>();
-        ProxyService.realm.realm!.deleteAll<Stock>();
-        ProxyService.realm.realm!.deleteAll<StockRequest>();
+      ProxyService.local.realm!.write(() {
+        ProxyService.local.realm!.deleteAll<Product>();
+        ProxyService.local.realm!.deleteAll<SKU>();
+        ProxyService.local.realm!.deleteAll<Variant>();
+        ProxyService.local.realm!.deleteAll<Stock>();
+        ProxyService.local.realm!.deleteAll<StockRequest>();
       });
-      ProxyService.realm.close();
+      ProxyService.local.close();
     });
 
     testWidgets('Widget displays stock requests correctly',
@@ -58,7 +58,7 @@ void main() {
           ),
         ),
       );
-      List<StockRequest> requests = ProxyService.realm.requests(branchId: 1);
+      List<StockRequest> requests = ProxyService.local.requests(branchId: 1);
       talker.warning("We have Stock Request generated ${requests.length}");
 
       // Allow the stream to emit values and the widget to rebuild
@@ -69,7 +69,7 @@ void main() {
       expect(find.byType(Card), findsNWidgets(2));
 
       // Check that the correct request ID text is displayed
-      final firstRequestId = await ProxyService.realm
+      final firstRequestId = await ProxyService.local
           .requestsStream(branchId: 1, filter: RequestStatus.pending)
           .first
           .then((request) => request.first.id);

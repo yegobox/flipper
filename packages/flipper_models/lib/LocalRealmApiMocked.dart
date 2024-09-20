@@ -34,10 +34,10 @@ class LocalRealmApiMocked extends LocalRealmApi {
       if (stopAfterConfigure) return user;
 
       if (!skipDefaultAppSetup) {
-        await setDefaultApp(user, localRealm: localRealm);
+        await setDefaultApp(user, localRealm: realm);
       }
 
-      await updateLocalRealm(user, localRealm: localRealm);
+      await updateLocalRealm(user, localRealm: realm);
 
       return user;
     } else {

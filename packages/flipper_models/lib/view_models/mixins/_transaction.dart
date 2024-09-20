@@ -26,7 +26,7 @@ mixin TransactionMixin {
           ? '${variation.productName}(${variation.name})'
           : variation.productName!;
 
-      TransactionItem? existTransactionItem = ProxyService.realm
+      TransactionItem? existTransactionItem = ProxyService.local
           .getTransactionItemByVariantId(
               variantId: variation.id!, transactionId: pendingTransaction.id);
 
@@ -66,7 +66,7 @@ mixin TransactionMixin {
     try {
       if (item != null && !isCustom) {
         // Update existing non-custom item
-        ProxyService.realm.realm!.write(() {
+        ProxyService.local.realm!.write(() {
           item.qty = (item.qty) + quantity;
           item.price = amountTotal / quantity;
           item.taxblAmt = variation.retailPrice * quantity;
@@ -85,7 +85,7 @@ mixin TransactionMixin {
         double computedQty = isCustom ? 1.0 : quantity;
         if (partOfComposite) {
           Composite composite =
-              ProxyService.realm.composite(variantId: variation.id!);
+              ProxyService.local.composite(variantId: variation.id!);
           computedQty = composite.qty ?? 0.0;
         }
 
@@ -145,14 +145,14 @@ mixin TransactionMixin {
           partOfComposite: partOfComposite,
         );
 // 428129618288376
-        ProxyService.realm.addTransactionItem(
+        ProxyService.local.addTransactionItem(
             transaction: pendingTransaction,
             item: newItem,
             partOfComposite: partOfComposite);
       }
 
       // Handle activation of inactive items
-      List<TransactionItem> inactiveItems = ProxyService.realm.transactionItems(
+      List<TransactionItem> inactiveItems = ProxyService.local.transactionItems(
           branchId: ProxyService.box.getBranchId()!,
           transactionId: pendingTransaction.id!,
           doneWithTransaction: false,
@@ -173,7 +173,7 @@ mixin TransactionMixin {
       required ITransaction pendingTransaction,
       bool isDoneWithTransaction = false}) {
     if (inactiveItems.isNotEmpty) {
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         for (TransactionItem inactiveItem in inactiveItems) {
           inactiveItem.active = true;
           if (isDoneWithTransaction) {
@@ -185,7 +185,7 @@ mixin TransactionMixin {
   }
 
   void updatePendingTransactionTotals(ITransaction pendingTransaction) {
-    List<TransactionItem> items = ProxyService.realm.transactionItems(
+    List<TransactionItem> items = ProxyService.local.transactionItems(
       branchId: ProxyService.box.getBranchId()!,
       transactionId: pendingTransaction.id!,
       doneWithTransaction: false,
@@ -198,14 +198,14 @@ mixin TransactionMixin {
     DateTime newLastTouched = DateTime.now();
 
     // Check if we're already in a write transaction
-    if (ProxyService.realm.realm!.isInTransaction) {
+    if (ProxyService.local.realm!.isInTransaction) {
       // If we are, just update the values without starting a new transaction
       pendingTransaction.subTotal = newSubTotal;
       pendingTransaction.updatedAt = newUpdatedAt;
       pendingTransaction.lastTouched = newLastTouched;
     } else {
       // If we're not in a transaction, start a new one
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         pendingTransaction.subTotal = newSubTotal;
         pendingTransaction.updatedAt = newUpdatedAt;
         pendingTransaction.lastTouched = newLastTouched;

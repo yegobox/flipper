@@ -146,7 +146,7 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
-        List<TransactionItem> items = ProxyService.realm.transactionItems(
+        List<TransactionItem> items = ProxyService.local.transactionItems(
           branchId: ProxyService.box.getBranchId()!,
           transactionId: widget.transaction.id!,
           doneWithTransaction: true,

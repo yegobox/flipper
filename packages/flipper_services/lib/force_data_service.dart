@@ -40,7 +40,7 @@ class ForceDataEntryService {
     ];
 
     int branchid = ProxyService.box.getBranchId()!;
-    List<PColor> kColors = await ProxyService.realm.colors(branchId: branchid);
+    List<PColor> kColors = await ProxyService.local.colors(branchId: branchid);
     if (kColors.isEmpty) {
       final PColor color = PColor(ObjectId(),
           id: randomNumber(),
@@ -50,12 +50,12 @@ class ForceDataEntryService {
           action: AppActions.created,
           name: "#d63031",
           active: false);
-      await ProxyService.realm.create<PColor>(data: color);
+      await ProxyService.local.create<PColor>(data: color);
     }
 
     /// bootstrap app permission for admin
     List<Access> permissions =
-        ProxyService.realm.access(userId: ProxyService.box.getUserId()!);
+        ProxyService.local.access(userId: ProxyService.box.getUserId()!);
     if (permissions.isEmpty) {
       int? branchId = ProxyService.box.getBranchId();
       int? businessId = ProxyService.box.getBusinessId();
@@ -67,7 +67,7 @@ class ForceDataEntryService {
               flipperHttpClient: ProxyService.http, businessId: businessId!);
       String? ybPermission = ProxyService.box.yegoboxLoggedInUserPermission();
       if (!doesBusinessHavePermission && ybPermission == 'admin') {
-        ProxyService.realm.realm!.write(() {
+        ProxyService.local.realm!.write(() {
           for (var feature in features) {
             /// because having ticket is considered to be elevated permission you can't have both tickets and sales
             /// so ticket endup having elevated permission which means it show only on the screen
@@ -89,11 +89,11 @@ class ForceDataEntryService {
       createCategory(name: name, branchId: branchid);
     }
 
-    List<IUnit> kUnits = await ProxyService.realm.units(branchId: branchid);
+    List<IUnit> kUnits = await ProxyService.local.units(branchId: branchid);
 
     if (kUnits.isEmpty) {
       try {
-        await ProxyService.realm.addUnits(units: mockUnits);
+        await ProxyService.local.addUnits(units: mockUnits);
       } catch (e) {
         talker.critical(e);
       }
@@ -101,7 +101,7 @@ class ForceDataEntryService {
 
     /// bootstrap tax if not bootstraped
     for (String item in ["A", "B", "C", "D"]) {
-      ProxyService.realm.getByTaxType(taxtype: item);
+      ProxyService.local.getByTaxType(taxtype: item);
     }
   }
 
@@ -114,7 +114,7 @@ class ForceDataEntryService {
     final (accessLevel, status) =
         accessConfig[feature] ?? (AccessLevel.WRITE, 'active');
 
-    ProxyService.realm.realm!.add<Access>(
+    ProxyService.local.realm!.add<Access>(
       Access(
         ObjectId(),
         id: randomNumber(),
@@ -135,11 +135,11 @@ class ForceDataEntryService {
   createCategory({required String name, required int branchId}) {
     talker.info('App is started');
     Category? category;
-    category = ProxyService.realm.realm!
+    category = ProxyService.local.realm!
         .query<Category>(r'name ==$0', [name]).firstOrNull;
     if (category == null) {
       try {
-        ProxyService.realm.realm!.put<Category>(Category(
+        ProxyService.local.realm!.put<Category>(Category(
           ObjectId(),
           id: randomNumber(),
           focused: false,

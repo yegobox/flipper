@@ -8,6 +8,11 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
+  bool doneMigrateToLocal() {
+    return true;
+  }
+
+  @override
   String encryptionKey() {
     return "1,2,3,4"; // Sample encryption key
   }

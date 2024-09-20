@@ -18,7 +18,7 @@ class CashbookViewModel extends ProductViewModel with SharebleMethods {
 
   Future<int> deleteTransactionByIndex(int transactionIndex) async {
     ITransaction? target = await getTransactionByIndex(transactionIndex);
-    await ProxyService.realm
+    await ProxyService.local
         .deleteTransactionByIndex(transactionIndex: transactionIndex);
     notifyListeners();
 
@@ -30,7 +30,7 @@ class CashbookViewModel extends ProductViewModel with SharebleMethods {
 
   Future<ITransaction?> getTransactionByIndex(int transactionIndex) async {
     ITransaction? res =
-        await ProxyService.realm.getTransactionById(id: transactionIndex);
+        await ProxyService.local.getTransactionById(id: transactionIndex);
     return res;
   }
 }

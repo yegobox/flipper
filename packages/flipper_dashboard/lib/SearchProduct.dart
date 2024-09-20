@@ -49,7 +49,7 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                     return;
                   }
                   List<Variant> variants =
-                      ProxyService.realm.getVariants(key: searchKey);
+                      ProxyService.local.getVariants(key: searchKey);
                   setState(() {
                     _searchResults = variants.isNotEmpty ? variants : [];
                   });

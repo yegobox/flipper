@@ -5,7 +5,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 abstract class DynamicDataSource<T> extends DataGridSource {
   List<T> data = [];
-  bool showPluReport = false; 
+  bool showPluReport = false;
 
   // Update the rows getter to dynamically check showPluReport
   @override
@@ -15,19 +15,18 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         return _buildTransactionItemRow(item);
       } else if (item is ITransaction && !showPluReport) {
         return _buildITransactionRow(item);
-      } else if(item is Stock){
+      } else if (item is Stock) {
         return _buildStockRow(item);
-      }
-      else {
+      } else {
         // Handle other types of items or return an empty row
         return DataGridRow(cells: []);
       }
     }).toList();
   }
-  
+
   DataGridRow _buildTransactionItemRow(TransactionItem item) {
     var taxConfig =
-        ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
+        ProxyService.local.getByTaxType(taxtype: item.taxTyCd ?? "B");
     double taxPercentage = taxConfig.taxPercentage ?? 0;
     double adjustedTaxPercentage = taxPercentage == 0 ? 1 : taxPercentage;
 
@@ -39,7 +38,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     name = name.toUpperCase();
 
     Configurations configurations =
-        ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
+        ProxyService.local.getByTaxType(taxtype: item.taxTyCd ?? "B");
 
     String formattedName = '$name-$number';
     return DataGridRow(cells: [
@@ -61,26 +60,23 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         value: taxPercentage == 0
             ? 0
             : (((item.qty * item.price) - (item.qty * item.splyAmt)) *
-                adjustedTaxPercentage /
-                (100 + adjustedTaxPercentage))
-            .toPrecision(2),
+                    adjustedTaxPercentage /
+                    (100 + adjustedTaxPercentage))
+                .toPrecision(2),
       ),
       DataGridCell<double>(
           columnName: 'GrossProfit',
           value: ((((item.qty * item.price) - (item.qty * item.splyAmt)))
                   .toPrecision(2)) -
-              (((item.qty * item.price) - (item.qty * item.splyAmt)) *
-                  18 /
-                  118)
-              .toPrecision(2)),
+              (((item.qty * item.price) - (item.qty * item.splyAmt)) * 18 / 118)
+                  .toPrecision(2)),
     ]);
   }
 
   DataGridRow _buildITransactionRow(ITransaction item) {
     return DataGridRow(cells: [
       DataGridCell<String>(columnName: 'Name', value: item.id.toString()),
-      DataGridCell<String>(
-          columnName: 'Type', value: item.receiptType ?? "-"),
+      DataGridCell<String>(columnName: 'Type', value: item.receiptType ?? "-"),
       DataGridCell<double>(columnName: 'Amount', value: item.subTotal),
       DataGridCell<double>(
           columnName: 'CashReceived', value: item.cashReceived),
@@ -89,8 +85,10 @@ abstract class DynamicDataSource<T> extends DataGridSource {
 
   DataGridRow _buildStockRow(Stock item) {
     return DataGridRow(cells: [
-      DataGridCell<String>(columnName: 'Name', value: item.variant?.productName ?? ''),
-      DataGridCell<double>(columnName: 'CurrentStock', value: item.currentStock),
+      DataGridCell<String>(
+          columnName: 'Name', value: item.variant?.productName ?? ''),
+      DataGridCell<double>(
+          columnName: 'CurrentStock', value: item.currentStock),
     ]);
   }
 

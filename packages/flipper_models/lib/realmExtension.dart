@@ -34,10 +34,10 @@ extension RealmExtension on Realm {
   Future<void> _spawnIsolate(String name, dynamic isolateHandler) async {
     try {
       String encryptionKey = ProxyService.box.encryptionKey();
-      Business business = ProxyService.realm.realm!.query<Business>(
+      Business business = ProxyService.local.realm!.query<Business>(
           r'id == $0', [ProxyService.box.getBusinessId()!]).first;
 
-      EBM ebm = ProxyService.realm.realm!.query<EBM>(
+      EBM ebm = ProxyService.local.realm!.query<EBM>(
           r'businessId == $0', [ProxyService.box.getBusinessId()!]).first;
 
       ReceivePort receivePort = ReceivePort();

@@ -48,7 +48,7 @@ class _SearchInputWithDropdownState
         (mode: TransactionType.sale, isExpense: false)));
     if (transaction.customerId != null) {
       final customer =
-          ProxyService.realm.getCustomer(id: transaction.customerId);
+          ProxyService.local.getCustomer(id: transaction.customerId);
       if (customer != null) {
         _searchController.text = customer.custNm!;
       }
@@ -61,7 +61,7 @@ class _SearchInputWithDropdownState
     final transaction = ref.read(pendingTransactionProviderNonStream(
         (mode: TransactionType.sale, isExpense: false)));
     if (transaction.id != null) {
-      ProxyService.realm
+      ProxyService.local
           .removeCustomerFromTransaction(transaction: transaction);
       setState(() {
         _searchController.clear();
@@ -91,7 +91,7 @@ class _SearchInputWithDropdownState
     );
 
     final attachedCustomer = transaction.customerId != null
-        ? ProxyService.realm.getCustomer(id: transaction.customerId)
+        ? ProxyService.local.getCustomer(id: transaction.customerId)
         : null;
     useEffect(() {
       if (attachedCustomer != null) {
@@ -119,7 +119,7 @@ class _SearchInputWithDropdownState
                       return;
                     }
                     List<Customer> customers =
-                        ProxyService.realm.getCustomers(key: searchKey);
+                        ProxyService.local.getCustomers(key: searchKey);
                     setState(() {
                       _searchResults = customers.isNotEmpty ? customers : [];
                     });

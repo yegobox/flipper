@@ -93,7 +93,7 @@ class _RefundState extends State<Refund> {
         }
       });
 
-      await ProxyService.realm.realm!.writeAsync(() {
+      await ProxyService.local.realm!.writeAsync(() {
         widget.transaction?.receiptType = filterType == FilterType.NR
             ? TransactionReceptType.NR
             : TransactionReceptType.CS;

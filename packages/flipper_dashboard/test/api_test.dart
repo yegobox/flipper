@@ -1,4 +1,4 @@
-import 'package:flipper_models/RealmApi.dart';
+import 'package:flipper_models/LocalRealmApi.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('Isar Realm API!', () {
-    RealmAPI realm = RealmAPI();
+    LocalRealmApi realm = LocalRealmApi();
 
     setUpAll(() async {
       // Initialize the Realm API with an in-memory database for testing

@@ -46,7 +46,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       final dateRange = ref.watch(dateRangeProvider);
       final startDate = dateRange['startDate'];
 
-      final items = ProxyService.realm.transactionItems(
+      final items = ProxyService.local.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
         transactionId: transaction.id!,
         doneWithTransaction: false,
@@ -60,7 +60,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       }
 
       // ignore: unused_local_variable
-      int orderId = ProxyService.realm.createStockRequest(items,
+      int orderId = ProxyService.local.createStockRequest(items,
           deliveryNote: deliveryNote,
           deliveryDate: startDate,
           mainBranchId: ref.read(selectedSupplierProvider).value!.serverId!);
@@ -82,7 +82,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
   }
 
   void _changeTransactionStatus({required ITransaction transaction}) {
-    ProxyService.realm.realm!.write(() {
+    ProxyService.local.realm!.write(() {
       /// we mark the status so next time we query pending transaction we don't
       /// accidently query this PENDING transaction and avoid mixxing things up
       transaction.status = ORDERING;
@@ -117,7 +117,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     if (transaction.subTotal != 0) {
       ref.read(loadingProvider.notifier).state = true;
       Customer? customer =
-          ProxyService.realm.getCustomer(id: transaction.customerId);
+          ProxyService.local.getCustomer(id: transaction.customerId);
 
       final amount = double.tryParse(receivedAmountController.text) ?? 0;
       final discount = double.tryParse(discountController.text) ?? 0;
@@ -162,7 +162,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       required String transactionType,
       required double amount,
       required double discount}) async {
-    ITransaction trans = ProxyService.realm.collectPayment(
+    ITransaction trans = ProxyService.local.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isTrainingMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
@@ -176,7 +176,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       discount: discount,
       directlyHandleReceipt: false,
     );
-    final taxExanbled = ProxyService.realm
+    final taxExanbled = ProxyService.local
         .isTaxEnabled(business: ProxyService.local.getBusiness());
 
     final hasServerUrl = ProxyService.box.getServerUrl() != null;
@@ -193,7 +193,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       {String? purchaseCode, ITransaction? transaction}) async {
     try {
       ITransaction? trans =
-          await ProxyService.realm.getTransactionById(id: transaction!.id!);
+          await ProxyService.local.getTransactionById(id: transaction!.id!);
 
       TaxController(object: trans).handleReceipt(
         purchaseCode: purchaseCode,

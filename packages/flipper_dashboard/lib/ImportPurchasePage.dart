@@ -39,7 +39,7 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
       setState(() {
         isLoading = true;
       });
-      final data = await ProxyService.realm.selectImportItems(
+      final data = await ProxyService.local.selectImportItems(
         tin: ProxyService.box.tin(),
         bhfId: ProxyService.box.bhfId() ?? "00",
         lastReqDt: convertedDate,

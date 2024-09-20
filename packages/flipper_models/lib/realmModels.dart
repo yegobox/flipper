@@ -37,6 +37,7 @@ final realmModels = [
   Location.schema,
   Activity.schema,
 ];
+int schemaVersion = 8;
 
 /// for local db
 final localModels = [
@@ -44,7 +45,6 @@ final localModels = [
   Branch.schema,
   UnversalProduct.schema,
   AppNotification.schema,
-  Drawers.schema,
   Variant.schema,
   Product.schema,
   Stock.schema,

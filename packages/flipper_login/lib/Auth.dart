@@ -172,7 +172,7 @@ class _AuthState extends State<Auth> {
                             StartUpViewRoute(invokeLogin: true));
                       }
                     } catch (e) {
-                      // ProxyService.realm.logOut();
+                      // ProxyService.local.logOut();
                       Sentry.captureException(e,
                           stackTrace: StackTrace.current);
                       setState(() {

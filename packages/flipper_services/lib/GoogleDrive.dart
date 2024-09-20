@@ -118,7 +118,7 @@ class GoogleDrive {
   }
 
   Future<void> updateBusiness(Business business) async {
-    ProxyService.realm.realm!.write(() {
+    ProxyService.local.realm!.write(() {
       business.backUpEnabled = true;
       business.lastDbBackup = DateTime.now().toIso8601String();
     });
@@ -152,7 +152,7 @@ class GoogleDrive {
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
     //patch a business with lst backup fileId.
     Business business = await ProxyService.local.getBusiness();
-    ProxyService.realm.realm!.write(() {
+    ProxyService.local.realm!.write(() {
       business.backupFileId = fileUploaded.id;
     });
     // downloadGoogleDriveFile('data', fileUploaded.id);

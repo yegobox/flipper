@@ -124,7 +124,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
       isLoading = true;
     });
 
-    PaymentPlan paymentPlan = ProxyService.realm
+    PaymentPlan paymentPlan = ProxyService.local
         .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!)!;
 
     int finalPrice = 0;
@@ -138,7 +138,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
       finalPrice = paymentPlan.totalPrice!.toInt();
     }
     if (selectedPaymentMethod == "Card") {
-      final (:url, :userId, :customerCode) = await ProxyService.realm.subscribe(
+      final (:url, :userId, :customerCode) = await ProxyService.local.subscribe(
         businessId: ProxyService.box.getBusinessId()!,
         business: ProxyService.local.getBusiness(),
         agentCode: 1,
@@ -146,7 +146,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
         amount: finalPrice,
       );
 
-      await ProxyService.realm.saveOrUpdatePaymentPlan(
+      await ProxyService.local.saveOrUpdatePaymentPlan(
           businessId: paymentPlan.businessId!,
           selectedPlan: paymentPlan.selectedPlan!,
           paymentMethod: selectedPaymentMethod,
@@ -162,8 +162,8 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
       bool keepLoop = true;
       do {
         /// force instant update from remote db
-        await ProxyService.realm.realm?.subscriptions.waitForSynchronization();
-        PaymentPlan? plan = ProxyService.realm
+        await ProxyService.local.realm?.subscriptions.waitForSynchronization();
+        PaymentPlan? plan = ProxyService.local
             .getPaymentPlan(businessId: paymentPlan.businessId!);
         if (plan != null && plan.paymentCompletedByUser!) {
           talker.warning("A user has Completed payment");

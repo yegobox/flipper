@@ -113,7 +113,7 @@ class EventService
         String deviceVersion = Platform.version;
         // publish the device name and version
 
-        Device? device = await ProxyService.realm.getDevice(
+        Device? device = await ProxyService.local.getDevice(
             phone: loginData.phone, linkingCode: loginData.linkingCode);
         try {
           await ProxyService.local.login(
@@ -121,7 +121,7 @@ class EventService
               skipDefaultAppSetup: true,
               flipperHttpClient: ProxyService.http);
           if (device == null) {
-            await ProxyService.realm.create(
+            await ProxyService.local.create(
                 data: Device(ObjectId(),
                     id: randomNumber(),
                     pubNubPublished: false,
@@ -161,11 +161,11 @@ class EventService
       helper.IConversation conversation =
           helper.IConversation.fromJson(envelope.payload);
 
-      Conversation? localConversation = await ProxyService.realm
+      Conversation? localConversation = await ProxyService.local
           .getConversation(messageId: conversation.messageId!);
 
       if (localConversation == null) {
-        await ProxyService.realm.create(data: conversation);
+        await ProxyService.local.create(data: conversation);
       }
     });
   }
@@ -181,11 +181,11 @@ class EventService
     subscription.messages.listen((envelope) async {
       LoginData deviceEvent = LoginData.fromMap(envelope.payload);
 
-      Device? device = await ProxyService.realm.getDevice(
+      Device? device = await ProxyService.local.getDevice(
           phone: deviceEvent.phone, linkingCode: deviceEvent.linkingCode);
 
       if (device == null) {
-        await ProxyService.realm.create(
+        await ProxyService.local.create(
             data: Device(ObjectId(),
                 id: randomNumber(),
                 pubNubPublished: true,
@@ -205,7 +205,7 @@ class EventService
   @override
   Future<void> keepTryingPublishDevice() async {
     if (ProxyService.box.getBusinessId() == null) return;
-    List<Device> devices = await ProxyService.realm
+    List<Device> devices = await ProxyService.local
         .unpublishedDevices(businessId: ProxyService.box.getBusinessId()!);
     for (Device device in devices) {
       nub.PublishResult result = await publish(
@@ -222,7 +222,7 @@ class EventService
         },
       );
       if (result.description == 'Sent') {
-        ProxyService.realm.realm!.writeAsync(() async {
+        ProxyService.local.realm!.writeAsync(() async {
           device.pubNubPublished = true;
         });
       }

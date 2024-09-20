@@ -31,7 +31,7 @@ void main() {
           IUser.fromJson(
             json.decode(userResponse),
           ),
-          localRealm: ProxyService.local.localRealm);
+          realm: ProxyService.local.realm);
     });
 
     setUp(() {

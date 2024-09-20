@@ -23,7 +23,7 @@ class FailedPayment extends HookConsumerWidget {
       Future<void> fetchPlan() async {
         try {
           final fetchedPlan =
-              await ProxyService.realm.getPaymentPlan(businessId: 1);
+              await ProxyService.local.getPaymentPlan(businessId: 1);
           plan.value = fetchedPlan;
         } catch (e) {
           error.value = 'Failed to fetch plan details: ${e.toString()}';
@@ -146,7 +146,7 @@ class FailedPayment extends HookConsumerWidget {
     if (plan.paymentMethod == "Card") {
       int finalPrice = plan.totalPrice!.toInt();
       isLoading.value = true;
-      FlipperSaleCompaign? compaign = ProxyService.realm.getLatestCompaign();
+      FlipperSaleCompaign? compaign = ProxyService.local.getLatestCompaign();
       try {
         if (kDebugMode) {
           if (compaign != null) {
@@ -159,7 +159,7 @@ class FailedPayment extends HookConsumerWidget {
         }
 
         final (:url, :userId, :customerCode) =
-            await ProxyService.realm.subscribe(
+            await ProxyService.local.subscribe(
           business: ProxyService.local.getBusiness(),
           // rule: plan.isYearlyPlan! ? 'annually' : 'monthly',
           businessId: ProxyService.box.getBusinessId() ?? 0,
@@ -192,9 +192,9 @@ class FailedPayment extends HookConsumerWidget {
     const delayBetweenAttempts = Duration(seconds: 5);
 
     while (true) {
-      await ProxyService.realm.realm?.subscriptions.waitForSynchronization();
+      await ProxyService.local.realm?.subscriptions.waitForSynchronization();
       PaymentPlan? planUpdated =
-          ProxyService.realm.getPaymentPlan(businessId: plan.businessId ?? 0);
+          ProxyService.local.getPaymentPlan(businessId: plan.businessId ?? 0);
 
       if (planUpdated != null && planUpdated.paymentCompletedByUser == true) {
         return; // Exit the loop and complete the function once payment is completed

@@ -1,4 +1,4 @@
-import 'package:flipper_models/RealmApi.dart';
+import 'package:flipper_models/RealmAPI.dart';
 
 class RealmApiMocked extends RealmAPI {
   @override

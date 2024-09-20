@@ -140,13 +140,13 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
     if (index == 3) {
       _routerService.navigateTo(ReportsRoute());
     } else if (index == 2) {
-      final data = await ProxyService.realm
+      final data = await ProxyService.local
           .getTransactionsAmountsSum(period: TransactionPeriod.today);
       final drawer = await ProxyService.local
           .getDrawer(cashierId: ProxyService.box.getUserId()!);
 
       if (drawer != null) {
-        ProxyService.realm.realm!
+        ProxyService.local.realm!
             .write(() => drawer.closingBalance = data.income);
         _routerService
             .navigateTo(DrawerScreenRoute(open: "close", drawer: drawer));

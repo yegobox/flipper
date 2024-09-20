@@ -200,7 +200,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   // Item manipulation methods
   void _decrementQuantity(TransactionItem item, bool isOrdering) {
     if (!item.partOfComposite && item.isValid) {
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         if (item.qty > 0) {
           item.qty--;
           item.quantityRequested = item.qty.toInt();
@@ -212,7 +212,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   void _incrementQuantity(TransactionItem item, bool isOrdering) {
     if (!item.partOfComposite && item.isValid) {
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         item.qty++;
         item.quantityRequested = item.qty.toInt();
       });
@@ -228,7 +228,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       if (doubleValue != null) {
         final newQty = doubleValue.toInt();
         if (doubleValue == newQty.toDouble() && newQty >= 0) {
-          ProxyService.realm.realm!.write(() {
+          ProxyService.local.realm!.write(() {
             item.qty = doubleValue;
             item.quantityRequested = newQty;
           });
@@ -250,8 +250,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   void _deleteSingleItem(TransactionItem item, bool isOrdering) {
     try {
-      ProxyService.realm.realm!.write(() {
-        ProxyService.realm.realm!.delete(item);
+      ProxyService.local.realm!.write(() {
+        ProxyService.local.realm!.delete(item);
       });
       _refreshTransactionItems(isOrdering);
     } catch (e) {
@@ -260,15 +260,15 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   void _deleteCompositeItems(TransactionItem item, bool isOrdering) {
-    final coo = ProxyService.realm.composite(variantId: item.variantId!);
-    final composites = ProxyService.realm.composites(productId: coo.productId!);
+    final coo = ProxyService.local.composite(variantId: item.variantId!);
+    final composites = ProxyService.local.composites(productId: coo.productId!);
 
     for (final composite in composites) {
-      final deletableItem = ProxyService.realm
+      final deletableItem = ProxyService.local
           .getTransactionItemByVariantId(variantId: composite.variantId!);
       if (deletableItem != null && deletableItem.isValid) {
-        ProxyService.realm.realm!.write(() {
-          ProxyService.realm.realm!.delete(deletableItem);
+        ProxyService.local.realm!.write(() {
+          ProxyService.local.realm!.delete(deletableItem);
         });
       }
     }

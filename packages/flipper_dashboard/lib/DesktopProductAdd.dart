@@ -318,7 +318,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         if (newValue != null && newValue != variant.taxTyCd) {
           try {
             // Ensure the Realm write happens correctly
-            ProxyService.realm.realm!.write(() {
+            ProxyService.local.realm!.write(() {
               variant.taxTyCd = newValue;
             });
 
@@ -455,7 +455,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           model.setProductName(name: product.name!);
 
           // Populate variants related to the product
-          List<Variant> variants = await ProxyService.realm.variants(
+          List<Variant> variants = await ProxyService.local.variants(
               productId: widget.productId!,
               branchId: ProxyService.box.getBranchId()!);
 
@@ -619,7 +619,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                 "This is the variant on composite${partOfComposite[i].variant.id}");
 
                             /// now save each
-                            ProxyService.realm.saveComposite(
+                            ProxyService.local.saveComposite(
                               composite: Composite(ObjectId(),
                                   id: randomNumber(),
                                   businessId: ProxyService.box.getBusinessId(),
@@ -643,11 +643,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           /// print the sku and bar
                           talker.info("SKU ${sku} Bar Code ${barCode}");
 
-                          Product? product = ProxyService.realm.getProduct(
+                          Product? product = ProxyService.local.getProduct(
                               id: ref.read(unsavedProductProvider)!.id!);
 
                           /// update the product with propper name
-                          ProxyService.realm.realm!.write(() {
+                          ProxyService.local.realm!.write(() {
                             product?.name = productNameController.text;
                             product?.color = model.currentColor;
                             product?.isComposite = true;
@@ -655,7 +655,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
                           /// create the default variant to represent this composite item, in flipper each product
                           /// has a default variant
-                          ProxyService.realm.createVariant(
+                          ProxyService.local.createVariant(
                             tinNumber: ProxyService.box.tin(),
                             branchId: ProxyService.box.getBranchId()!,
                             itemSeq: 1,

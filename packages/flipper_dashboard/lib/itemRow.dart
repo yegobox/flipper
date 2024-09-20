@@ -191,7 +191,7 @@ class _RowItemState extends ConsumerState<RowItem> with Refresh {
       if (isOrdering) {
         /// update is ordering to true
         ProxyService.box.writeBool(key: 'isOrdering', value: true);
-        pendingTransaction = ProxyService.realm.manageTransaction(
+        pendingTransaction = ProxyService.local.manageTransaction(
           transactionType: TransactionType.sale,
           isExpense: true,
           branchId: branchId,
@@ -199,7 +199,7 @@ class _RowItemState extends ConsumerState<RowItem> with Refresh {
       } else {
         /// update is ordering to true
         ProxyService.box.writeBool(key: 'isOrdering', value: false);
-        pendingTransaction = ProxyService.realm.manageTransaction(
+        pendingTransaction = ProxyService.local.manageTransaction(
           transactionType: TransactionType.sale,
           isExpense: false,
           branchId: branchId,
@@ -208,20 +208,20 @@ class _RowItemState extends ConsumerState<RowItem> with Refresh {
 
       /// first check if this item is a composite
       Product? product =
-          ProxyService.realm.getProduct(id: widget.variant!.productId!);
+          ProxyService.local.getProduct(id: widget.variant!.productId!);
       if (product != null &&
           product.isComposite != null &&
           product.isComposite!) {
         /// get items of this composite
         List<Composite> composites =
-            ProxyService.realm.composites(productId: product.id!);
+            ProxyService.local.composites(productId: product.id!);
         for (Composite composite in composites) {
           /// find a stock for a given variant
-          Stock? stock = ProxyService.realm.stockByVariantId(
+          Stock? stock = ProxyService.local.stockByVariantId(
               variantId: composite.variantId!,
               branchId: ProxyService.box.getBranchId()!);
           Variant? variant =
-              ProxyService.realm.getVariantById(id: composite.variantId!);
+              ProxyService.local.getVariantById(id: composite.variantId!);
           model.saveTransaction(
             variation: variant!,
             amountTotal: variant.retailPrice,
@@ -239,7 +239,7 @@ class _RowItemState extends ConsumerState<RowItem> with Refresh {
       } else {
         double stockQty = 0;
         if (!widget.isOrdering) {
-          Stock? stock = ProxyService.realm.stockByVariantId(
+          Stock? stock = ProxyService.local.stockByVariantId(
               variantId: widget.variant?.id ?? 0,
               branchId: ProxyService.box.getBranchId()!);
           stockQty = stock?.currentStock ?? 0.0;

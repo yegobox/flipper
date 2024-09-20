@@ -250,7 +250,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 final bool isIncome =
                     (widget.transactionType == TransactionType.cashIn ||
                         widget.transactionType == TransactionType.sale);
-                Category? activeCat = ProxyService.realm
+                Category? activeCat = ProxyService.local
                     .activeCategory(branchId: ProxyService.box.getBranchId()!);
                 if (activeCat == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -326,7 +326,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     widget.model.newTransactionPressed = false;
     final isExpense = (TransactionType.cashOut == widget.transactionType);
 
-    final transaction = ProxyService.realm.manageTransaction(
+    final transaction = ProxyService.local.manageTransaction(
         isExpense: isExpense,
         transactionType: widget.transactionType,
         branchId: ProxyService.box.getBranchId()!);
@@ -337,13 +337,13 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         ref.read(keypadProvider.notifier).reset();
       },
     );
-    Category? category = ProxyService.realm
+    Category? category = ProxyService.local
         .activeCategory(branchId: ProxyService.box.getBranchId()!);
     var shortestSide = MediaQuery.of(context).size.shortestSide;
     var useMobileLayout = shortestSide < 600;
 
     !useMobileLayout
-        ? ProxyService.realm.collectPayment(
+        ? ProxyService.local.collectPayment(
             cashReceived: cashReceived,
             branchId: ProxyService.box.getBranchId()!,
             bhfId: ProxyService.box.bhfId() ?? "00",
@@ -355,7 +355,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             transactionType: TransactionType.sale,
             categoryId: "0",
             isIncome: isIncome)
-        : ProxyService.realm.collectPayment(
+        : ProxyService.local.collectPayment(
             branchId: ProxyService.box.getBranchId()!,
             bhfId: ProxyService.box.bhfId() ?? "00",
             isProformaMode: ProxyService.box.isPoroformaMode(),

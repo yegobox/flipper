@@ -53,7 +53,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
         onViewModelReady: (model) {},
         builder: (build, viewModel, child) {
           return StreamBuilder<List<Conversation>>(
-              stream: ProxyService.realm.conversations(),
+              stream: ProxyService.local.conversations(),
               builder: (context, snapshot) {
                 if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                   final conversations = snapshot.data ?? [];
@@ -81,7 +81,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                             const EdgeInsets.only(left: 28.0),
                                         child: StreamBuilder<
                                                 List<Conversation>>(
-                                            stream: ProxyService.realm
+                                            stream: ProxyService.local
                                                 .conversations(
                                                     conversationId: viewModel
                                                         .conversationId!),
@@ -140,7 +140,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                               // The list of messages for the selected chat
                               viewModel.focusedConversation
                                   ? StreamBuilder<List<Conversation>>(
-                                      stream: ProxyService.realm.conversations(
+                                      stream: ProxyService.local.conversations(
                                           conversationId:
                                               viewModel.conversationId!),
                                       builder: (context, snapshot) {

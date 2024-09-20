@@ -19,7 +19,7 @@ mixin ProductMixin {
     Business business = await ProxyService.local
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     try {
-      ProxyService.realm.realm!.write(() {
+      ProxyService.local.realm!.write(() {
         List<Variant> updatables = [];
         for (var i = 0; i < variations!.length; i++) {
           String itemPrefix = "FLIPPER-";
@@ -78,7 +78,7 @@ mixin ProductMixin {
           updatables.add(variations[i]);
         }
 
-        ProxyService.realm.addVariant(
+        ProxyService.local.addVariant(
             variations: updatables, branchId: ProxyService.box.getBranchId()!);
       });
     } catch (e, s) {
@@ -97,11 +97,11 @@ mixin ProductMixin {
     ProxyService.analytics
         .trackEvent("product_creation", {'feature_name': 'product_creation'});
 
-    Category? activeCat = await ProxyService.realm
+    Category? activeCat = await ProxyService.local
         .activeCategory(branchId: ProxyService.box.getBranchId()!);
-    List<Variant> variants = await ProxyService.realm.variants(
+    List<Variant> variants = await ProxyService.local.variants(
         productId: mproduct.id, branchId: ProxyService.box.getBranchId()!);
-    ProxyService.realm.realm!.write(() {
+    ProxyService.local.realm!.write(() {
       mproduct.name = productName;
       mproduct.barCode = productService.barCode.toString();
       mproduct.color = color;
@@ -144,6 +144,6 @@ mixin ProductMixin {
       }
     });
 
-    return ProxyService.realm.getProduct(id: mproduct.id!);
+    return ProxyService.local.getProduct(id: mproduct.id!);
   }
 }

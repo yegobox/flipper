@@ -58,11 +58,11 @@ class SellState extends ConsumerState<Sell> {
             disableButton: false,
             showActionButton: true,
             onActionButtonClicked: () async {
-              Stock? stock = await ProxyService.realm.stockByVariantId(
+              Stock? stock = await ProxyService.local.stockByVariantId(
                   variantId: model.checked,
                   branchId: ProxyService.box.getBranchId()!);
               Variant? variant =
-                  ProxyService.realm.getVariantById(id: model.checked);
+                  ProxyService.local.getVariantById(id: model.checked);
 
               bool saved = await model.saveTransaction(
                   partOfComposite: false,

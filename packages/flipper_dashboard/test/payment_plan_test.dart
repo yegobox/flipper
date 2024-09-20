@@ -13,7 +13,7 @@ void main() {
     setUpAll(() async {
       // Initialize dependencies for test environment
       await initializeDependenciesForTest();
-      CreateMockdata().mockBusiness(local: ProxyService.local.localRealm!);
+      CreateMockdata().mockBusiness(local: ProxyService.local.realm!);
       await CreateMockdata().ensureRealmInitialized();
     });
 

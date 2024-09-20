@@ -48,7 +48,7 @@ Widget SettingLayout(
                     ),
                     onPressed: (BuildContext context) async {
                       Tenant? tenant =
-                          await ProxyService.realm.getTenantBYUserId(
+                          await ProxyService.local.getTenantBYUserId(
                         userId: ProxyService.box.getUserId()!,
                       );
                       _routerService
@@ -101,14 +101,14 @@ Widget SettingLayout(
                     ),
                     onPressed: (BuildContext context) async {
                       log('here');
-                      final data = await ProxyService.realm
+                      final data = await ProxyService.local
                           .getTransactionsAmountsSum(
                               period: TransactionPeriod.today);
                       Drawers? drawer = await ProxyService.local.getDrawer(
                         cashierId: ProxyService.box.getUserId()!,
                       );
                       if (drawer != null) {
-                        ProxyService.realm.realm!.write(() {
+                        ProxyService.local.realm!.write(() {
                           drawer.closingBalance = data.income;
                         });
                       }

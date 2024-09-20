@@ -53,4 +53,5 @@ abstract class LocalStorage {
 
   String? yegoboxLoggedInUserPermission();
   bool doneDownloadingAsset();
+  bool doneMigrateToLocal();
 }

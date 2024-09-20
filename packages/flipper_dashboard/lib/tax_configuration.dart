@@ -38,7 +38,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
     });
 
     final ebm =
-        ProxyService.realm.ebm(branchId: ProxyService.box.getBranchId()!);
+        ProxyService.local.ebm(branchId: ProxyService.box.getBranchId()!);
     final serverUrl =
         ebm?.taxServerUrl ?? ProxyService.box.getServerUrl() ?? "";
 
@@ -63,7 +63,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
       viewModelBuilder: () => SettingViewModel(),
       onViewModelReady: (model) async {
         try {
-          final isTaxEnabledForBusiness = await ProxyService.realm
+          final isTaxEnabledForBusiness = await ProxyService.local
               .isTaxEnabled(business: ProxyService.local.getBusiness());
           if (isTaxEnabledForBusiness) {
             setState(() {
@@ -319,7 +319,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
 
   void _saveForm() {
     if (_formKey.currentState!.validate()) {
-      ProxyService.realm.saveEbm(
+      ProxyService.local.saveEbm(
           branchId: ProxyService.box.getBranchId()!,
           severUrl: _serverUrlController.text,
           bhFId: _branchController.text);
