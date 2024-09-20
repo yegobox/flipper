@@ -145,13 +145,13 @@ class TaxController<OBJ> {
           taxB = item.price * item.qty;
         }
         if (item.taxTyCd == "C") {
-          taxC = item.price * item.qty;
+          taxC =taxC!+ ( item.price * item.qty);
         }
         if (item.taxTyCd == "A") {
-          taxA = item.price * item.qty;
+          taxA = taxA!+ (item.price * item.qty);
         }
         if (item.taxTyCd == "D") {
-          taxD = item.price * item.qty;
+          taxD =taxD!+ (item.price * item.qty);
         }
 
         // Calculate the tax amount
