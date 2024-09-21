@@ -1,36 +1,54 @@
 import 'dart:collection';
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import 'package:flipper_models/power_sync/powersync.dart';
 
 class DatabaseQueue {
   final Queue<Map<String, dynamic>> _queue = Queue();
   final int _maxConcurrentOperations;
   int _activeOperations = 0;
+  final String _queueFileName = 'database_queue.json';
+  bool _isProcessing = false;
 
   DatabaseQueue(this._maxConcurrentOperations);
+
+  Future<void> initialize() async {
+    await _loadQueueFromDisk();
+    _processQueue();
+  }
 
   Future<void> addToQueue({
     required String tableName,
     required Map<String, dynamic> data,
     String? returningClause,
   }) async {
-    _queue.add({
+    final operation = {
       'tableName': tableName,
       'data': data,
       'returningClause': returningClause,
-    });
-    await _processQueue();
+    };
+    _queue.add(operation);
+    await _saveQueueToDisk();
+    _processQueue();
   }
 
   Future<void> _processQueue() async {
+    if (_isProcessing) return;
+    _isProcessing = true;
+
     while (_activeOperations < _maxConcurrentOperations && _queue.isNotEmpty) {
       final params = _queue.removeFirst();
       _activeOperations++;
-      await _startOperation(params);
+      await _saveQueueToDisk();
+      _startOperation(params);
     }
+
+    _isProcessing = false;
   }
 
-  Future<void> _startOperation(Map<String, dynamic> params) async {
+  void _startOperation(Map<String, dynamic> params) async {
     try {
       await genericInsert(
         tableName: params['tableName'],
@@ -40,6 +58,8 @@ class DatabaseQueue {
       print('Insertion completed for ${params['tableName']}');
     } catch (e) {
       print('Error inserting into ${params['tableName']}: $e');
+      // Optionally, you might want to add the failed operation back to the queue
+      // or handle the error in some other way
     } finally {
       _operationCompleted();
     }
@@ -48,6 +68,32 @@ class DatabaseQueue {
   void _operationCompleted() {
     _activeOperations--;
     _processQueue();
+  }
+
+  Future<void> _saveQueueToDisk() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/$_queueFileName');
+      print("QUEUENAME: ${file}");
+      await file.writeAsString(jsonEncode(_queue.toList()));
+    } catch (e) {
+      print('Error saving queue to disk: $e');
+    }
+  }
+
+  Future<void> _loadQueueFromDisk() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/$_queueFileName');
+      print("QUEUENAME: ${file}");
+      if (await file.exists()) {
+        final queueData = await file.readAsString();
+        final List<dynamic> loadedQueue = jsonDecode(queueData);
+        _queue.addAll(loadedQueue.cast<Map<String, dynamic>>());
+      }
+    } catch (e) {
+      print('Error loading queue from disk: $e');
+    }
   }
 
   static Future<Map<String, dynamic>> genericInsert({

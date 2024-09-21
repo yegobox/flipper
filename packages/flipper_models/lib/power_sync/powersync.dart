@@ -84,17 +84,13 @@ class SupabaseConnector extends PowerSyncBackendConnector {
   // Upload pending changes to Supabase.
   @override
   Future<void> uploadData(PowerSyncDatabase database) async {
-    print("Calling U");
     // This function is called whenever there is data to upload, whether the
     // device is online or offline.
     // If this call throws an error, it is retried periodically.
     final transaction = await database.getNextCrudTransaction();
     if (transaction == null) {
-      print("Transaction are null");
       return;
     }
-
-    print("Bellow here");
 
     final rest = Supabase.instance.client.rest;
     CrudEntry? lastOp;
@@ -103,10 +99,9 @@ class SupabaseConnector extends PowerSyncBackendConnector {
       // Note: If transactional consistency is important, use database functions
       // or edge functions to process the entire transaction in a single call.
       for (var op in transaction.crud) {
-        print("Into Sync Loop");
         lastOp = op;
 
-        print("Into Sync Loop ${op}");
+        // print("Into Sync Loop ${op}");
 
         final table = rest.from(op.table);
         if (op.op == UpdateType.put) {
