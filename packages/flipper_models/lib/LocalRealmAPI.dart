@@ -2417,8 +2417,6 @@ class LocalRealmApi
     if (realm == null) {
       return Stream.value(0.0);
     }
-    // Stock st = realm!.query<Stock>(r'variantId == $0', [variantId]).first;
-    // talker.warning("This is stock I got ${st.currentStock}");
 
     String queryString;
     List<int> queryParams;
@@ -4647,5 +4645,26 @@ class LocalRealmApi
   RealmApiInterface instance() {
     // TODO: implement instance
     throw UnimplementedError();
+  }
+
+  void saveStock({required Variant variant}) {
+    realm!.write(() {
+      final stock = Stock(
+        ObjectId(),
+        id: randomNumber(),
+        lastTouched: DateTime.now(),
+        branchId: variant.branchId,
+        variant: variant,
+        variantId: variant.id!,
+        action: AppActions.created,
+        retailPrice: variant.retailPrice,
+        supplyPrice: variant.supplyPrice,
+        currentStock: variant.qty,
+        rsdQty: variant.rsdQty,
+        value: (variant.qty * variant.retailPrice).toDouble(),
+        productId: variant.productId,
+      );
+      realm!.add<Stock>(stock);
+    });
   }
 }

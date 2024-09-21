@@ -303,7 +303,7 @@ class CronService with Subscriptions {
         map.remove('_id');
         map.remove('composites');
 
-        if (productExist == null) {
+        if (productExist == null && product.id != null) {
           await genericInsert(
             tableName: 'products',
             data: map,

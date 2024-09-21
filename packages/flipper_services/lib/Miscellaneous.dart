@@ -6,6 +6,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 mixin CoreMiscellaneous {
   Future<bool> logOut() async {
@@ -34,6 +35,9 @@ mixin CoreMiscellaneous {
       ProxyService.box.remove(key: 'UToken');
       ProxyService.box.remove(key: 'businessId');
       ProxyService.box.remove(key: 'defaultApp');
+      if (kDebugMode) {
+        ProxyService.box.remove(key: 'doneMigrateToLocal');
+      }
 
       // but for shared preference we can just clear them all
       /// We do not clear all variable, this is because even on logout

@@ -574,4 +574,5 @@ abstract class RealmApiInterface {
   void clearData({required ClearData data});
 
   Drawers? closeDrawer({required Drawers drawer, required double eod});
+  void saveStock({required Variant variant});
 }

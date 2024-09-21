@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flipper_models/Subcriptions.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:path/path.dart' as p;
@@ -347,62 +348,129 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   void copyRemoteDataToLocalDb() {
-    /// loop through all data and save them into the local DB. if a user did not migrate to local db.
-    if (ProxyService.box.doneMigrateToLocal()) {
+    if (!ProxyService.box.doneMigrateToLocal()) {
       try {
+        // Copy Product objects first in a separate transaction
         ProxyService.local.realm!.write(() {
-          void copyObjects<T extends RealmObject>(List<T> sourceObjects) {
-            for (var obj in sourceObjects) {
-              // Replace thaw() with a method that returns a mutable copy of the object
-              // Detach the object before adding
-              var detachedObject = detachObject(obj);
-              ProxyService.local.realm!.add(detachedObject);
-            }
-          }
-
-          // copyObjects(oldRealm!.all<Composite>().toList());
-
           copyObjects(oldRealm!.all<Product>().toList());
-          copyObjects(oldRealm!.all<Variant>().toList());
-          // copyObjects(oldRealm!.all<Stock>().toList());
+        });
 
-          // copyObjects(oldRealm!.all<StockRequest>().toList());
-          // copyObjects(oldRealm!.all<TransactionItem>().toList());
-          // copyObjects(oldRealm!.all<Tenant>().toList());
-          // copyObjects(oldRealm!.all<EBM>().toList());
-          // copyObjects(oldRealm!.all<Configurations>().toList());
-          // copyObjects(oldRealm!.all<Category>().toList());
-          // copyObjects(oldRealm!.all<PColor>().toList());
-          // copyObjects(oldRealm!.all<Counter>().toList());
-          // copyObjects(oldRealm!.all<Customer>().toList());
-          // copyObjects(oldRealm!.all<Device>().toList());
-          // copyObjects(oldRealm!.all<Drawers>().toList());
-          // copyObjects(oldRealm!.all<Favorite>().toList());
-          // copyObjects(oldRealm!.all<Receipt>().toList());
-          // copyObjects(oldRealm!.all<Setting>().toList());
-          // copyObjects(oldRealm!.all<ITransaction>().toList());
-          // copyObjects(oldRealm!.all<IUnit>().toList());
-          // copyObjects(oldRealm!.all<Voucher>().toList());
-          // copyObjects(oldRealm!.all<Pin>().toList());
-          // copyObjects(oldRealm!.all<LPermission>().toList());
-          // copyObjects(oldRealm!.all<Token>().toList());
-          // copyObjects(oldRealm!.all<Activity>().toList());
-          // // copyObjects(oldRealm!.all<UnversalProduct>().toList());
-          // // copyObjects(oldRealm!.all<AppNotification>().toList());
-          // copyObjects(oldRealm!.all<Assets>().toList());
-          // copyObjects(oldRealm!.all<SKU>().toList());
-          // copyObjects(oldRealm!.all<Report>().toList());
-          // copyObjects(oldRealm!.all<Computed>().toList());
-          // copyObjects(oldRealm!.all<Access>().toList());
-          // copyObjects(oldRealm!.all<PaymentPlan>().toList());
-          // copyObjects(oldRealm!.all<FlipperSaleCompaign>().toList());
+        // Copy Variant objects in a new transaction
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Variant>().toList());
+        });
+
+        List<Variant> variants = ProxyService.local.realm!.query<Variant>(
+            r'branchId == $0', [ProxyService.box.getBranchId()]).toList();
+        for (Variant variant in variants) {
+          ProxyService.local.saveStock(variant: variant);
+        }
+        // Copy Stock and Composite objects together in one transaction
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Composite>().toList());
+        });
+
+        // Copy StockRequest and TransactionItem objects in one transaction
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<StockRequest>().toList());
+          copyObjects(oldRealm!.all<TransactionItem>().toList());
+        });
+
+        // Continue this pattern for the remaining object types
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Tenant>().toList());
+          copyObjects(oldRealm!.all<EBM>().toList());
+        });
+
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Configurations>().toList());
+          copyObjects(oldRealm!.all<Category>().toList());
+        });
+
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<PColor>().toList());
+          copyObjects(oldRealm!.all<Counter>().toList());
+        });
+
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Customer>().toList());
+        });
+
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Device>().toList());
+        });
+
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Drawers>().toList());
+        });
+
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Favorite>().toList());
+        });
+
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Receipt>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Setting>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<ITransaction>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<IUnit>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Voucher>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Pin>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<LPermission>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Token>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Activity>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Assets>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<SKU>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Report>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Computed>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<Access>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<PaymentPlan>().toList());
+        });
+        ProxyService.local.realm!.write(() {
+          copyObjects(oldRealm!.all<FlipperSaleCompaign>().toList());
         });
 
         ProxyService.box.writeBool(key: 'doneMigrateToLocal', value: true);
       } catch (e, s) {
+        // Handle errors and log them
         talker.warning(e);
         talker.error(s);
       }
+    }
+  }
+
+// Helper function to copy the objects
+  void copyObjects<T extends RealmObject>(List<T> sourceObjects) {
+    for (var obj in sourceObjects) {
+      var detachedObject = detachObject(obj);
+      ProxyService.local.realm!.add<T>(detachedObject, update: true);
     }
   }
 
@@ -412,6 +480,7 @@ class RealmAPI<M extends IJsonSerializable>
     if (obj is Product) {
       return Product(
         obj.realmId,
+        id: obj.id,
         name: obj.name,
         description: obj.description,
         taxId: obj.taxId,
@@ -446,7 +515,7 @@ class RealmAPI<M extends IJsonSerializable>
     } else if (obj is Variant) {
       return Variant(
         obj.realmId, // ObjectId
-        id: obj.id,
+        id: obj.id ?? randomNumber(),
         deletedAt: obj.deletedAt,
         name: obj.name,
         color: obj.color,
@@ -497,7 +566,7 @@ class RealmAPI<M extends IJsonSerializable>
         spplrItemNm: obj.spplrItemNm,
         ebmSynced: obj.ebmSynced,
         taxType: obj.taxType,
-        branchIds: obj.branchIds,
+        branchIds: obj.branchIds.map((e) => e).toList(),
       ) as T;
     } else if (obj is Stock) {
       return Stock(
@@ -577,7 +646,7 @@ class RealmAPI<M extends IJsonSerializable>
                 spplrItemNm: obj.variant!.spplrItemNm,
                 ebmSynced: obj.ebmSynced,
                 taxType: obj.variant!.taxType,
-                branchIds: obj.variant!.branchIds,
+                branchIds: obj.variant!.branchIds.map((e) => e).toList(),
               )
             : null,
       ) as T;

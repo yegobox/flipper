@@ -11,7 +11,7 @@ void main() {
 
     setUpAll(() async {
       // Initialize the Realm API with an in-memory database for testing
-      await realm.configure(useInMemoryDb: true, businessId: 1);
+      await realm.configureLocal(useInMemory: true);
     });
 
     tearDownAll(() async {

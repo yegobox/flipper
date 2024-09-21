@@ -37,7 +37,7 @@ final realmModels = [
   Location.schema,
   Activity.schema,
 ];
-int schemaVersion = 8;
+int schemaVersion = 9;
 
 /// for local db
 final localModels = [

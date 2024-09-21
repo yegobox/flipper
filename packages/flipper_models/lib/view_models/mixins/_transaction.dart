@@ -46,7 +46,7 @@ mixin TransactionMixin {
       return true;
     } catch (e, s) {
       talker.warning(e);
-      talker.warning(s);
+      talker.error(s);
       rethrow;
     }
   }

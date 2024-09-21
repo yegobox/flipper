@@ -127,9 +127,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
     // Fetching the stock items
     final branchId = ProxyService.box.getBranchId();
-    final stockItems = ref.watch(stocksProvider((branchId: branchId!)));
 
-    final stocks = ref.watch(stocksProvider((branchId: branchId)));
+    final stocks = ref.watch(stocksProvider((branchId: branchId!)));
     final dateRange = ref.watch(dateRangeProvider);
     final startDate = dateRange['startDate'];
     final endDate = dateRange['endDate'];
@@ -213,7 +212,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                     },
                     shrinkWrap: true,
                   )
-                : stockItems.isEmpty
+                : stocks.isEmpty
                     ? Center(child: Text("No stock data available"))
                     : SizedBox(
                         height: 1200,
