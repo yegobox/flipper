@@ -555,7 +555,6 @@ class IsolateHandler with Subscriptions {
     Set<String> uniqueTaxTypes = {};
 
     for (Configurations config in configurations) {
-      talker.warning("Deleting unnesessary taxes");
       if (!uniqueTaxTypes.contains(config.taxType!)) {
         uniqueTaxTypes.add(config.taxType!);
       } else {
@@ -570,7 +569,6 @@ class IsolateHandler with Subscriptions {
     Set<String> uniqueEbms = {};
 
     for (EBM config in ebms) {
-      talker.warning("Deleting ebm config");
       if (!uniqueEbms.contains(config.branchId.toString())) {
         uniqueEbms.add(config.branchId.toString());
       } else {

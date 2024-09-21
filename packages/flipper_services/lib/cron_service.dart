@@ -13,6 +13,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_models/DownloadQueue.dart';
+import 'package:flipper_models/DatabaseQueue.dart';
 
 import 'package:flipper_models/power_sync/powersync.dart';
 
@@ -239,79 +240,112 @@ class CronService with Subscriptions {
     );
   }
 
-  static Future<Map<String, dynamic>> genericInsert({
-    required String tableName,
-    required Map<String, dynamic> data,
-    String? returningClause,
-  }) async {
-    // Convert keys from camelCase to snake_case
-    final convertedData =
-        data.map((key, value) => MapEntry(camelToSnakeCase(key), value));
+  // static Future<Map<String, dynamic>> genericInsert({
+  //   required String tableName,
+  //   required Map<String, dynamic> data,
+  //   String? returningClause,
+  // }) async {
+  //   // Convert keys from camelCase to snake_case
+  //   final convertedData =
+  //       data.map((key, value) => MapEntry(camelToSnakeCase(key), value));
 
-    // Separate UUID fields and regular fields
-    final uuidFields = <String>[];
-    final regularFields = <String>[];
-    final values = <dynamic>[];
+  //   // Separate UUID fields and regular fields
+  //   final uuidFields = <String>[];
+  //   final regularFields = <String>[];
+  //   final values = <dynamic>[];
 
-    convertedData.forEach((key, value) {
-      if (value == 'uuid()') {
-        uuidFields.add(key);
-      } else {
-        regularFields.add(key);
-        values.add(value);
-      }
-    });
+  //   convertedData.forEach((key, value) {
+  //     if (value == 'uuid()') {
+  //       uuidFields.add(key);
+  //     } else {
+  //       regularFields.add(key);
+  //       values.add(value);
+  //     }
+  //   });
 
-    // Generate column names
-    final allColumns = [...uuidFields, ...regularFields];
-    final columns = allColumns.join(', ');
+  //   // Generate column names
+  //   final allColumns = [...uuidFields, ...regularFields];
+  //   final columns = allColumns.join(', ');
 
-    // Generate placeholders
-    final uuidPlaceholders = uuidFields.map((_) => 'uuid()').join(', ');
-    final regularPlaceholders = regularFields.map((_) => '?').join(', ');
-    final allPlaceholders = [
-      if (uuidPlaceholders.isNotEmpty) uuidPlaceholders,
-      if (regularPlaceholders.isNotEmpty) regularPlaceholders,
-    ].join(', ');
+  //   // Generate placeholders
+  //   final uuidPlaceholders = uuidFields.map((_) => 'uuid()').join(', ');
+  //   final regularPlaceholders = regularFields.map((_) => '?').join(', ');
+  //   final allPlaceholders = [
+  //     if (uuidPlaceholders.isNotEmpty) uuidPlaceholders,
+  //     if (regularPlaceholders.isNotEmpty) regularPlaceholders,
+  //   ].join(', ');
 
-    // Construct the SQL query
-    var sql = 'INSERT INTO $tableName ($columns) VALUES ($allPlaceholders)';
-    if (returningClause != null) {
-      sql += ' RETURNING $returningClause';
+  //   // Construct the SQL query
+  //   var sql = 'INSERT INTO $tableName ($columns) VALUES ($allPlaceholders)';
+  //   if (returningClause != null) {
+  //     sql += ' RETURNING $returningClause';
+  //   }
+
+  //   // Execute the query
+  //   final List<dynamic> result = await db.execute(sql, values);
+
+  //   // Return the first row if RETURNING clause was used, otherwise an empty map
+  //   return result.isNotEmpty ? result.first : {};
+  // }
+
+  void backUpPowerSync() async {
+    try {
+      ProxyService.realm.copyRemoteDataToLocalDb();
+
+      List<Product> products =
+          ProxyService.local.realm!.all<Product>().toList();
+      List<Stock> stocks = ProxyService.local.realm!.all<Stock>().toList();
+
+      final userUuid = getUserId();
+
+      final databaseQueue = DatabaseQueue(5); // Allow 5 concurrent operations
+
+      await _insertItems(stocks, 'stocks', userUuid!, databaseQueue);
+      await _insertItems(products, 'products', userUuid, databaseQueue);
+    } catch (e) {
+      print(e);
     }
-
-    // Execute the query
-    final List<dynamic> result = await db.execute(sql, values);
-
-    // Return the first row if RETURNING clause was used, otherwise an empty map
-    return result.isNotEmpty ? result.first : {};
   }
 
-  static void backUpPowerSync() async {
-    final products = ProxyService.local.realm!.all<Product>();
-    ProxyService.realm.copyRemoteDataToLocalDb();
+  Future<void> _insertItems<T>(List<T> items, String tableName, String userUuid,
+      DatabaseQueue queue) async {
+    String singularTableName = tableName.endsWith('s')
+        ? tableName.substring(0, tableName.length - 1)
+        : tableName;
 
-    for (Product product in products) {
-      try {
-        final productExist = await db.getOptional(
-            'SELECT *  FROM products WHERE product_id = ?', [product.id]);
-        final userUuid = getUserId();
-        Map<String, dynamic> map = product.toEJson().toFlipperJson();
-        map['id'] = 'uuid()';
-        map['product_id'] = product.id;
+    for (var item in items) {
+      final noLose = item;
+      final itemId = (noLose as dynamic).id;
+      final itemExist = await db.getOptional(
+          'SELECT * FROM $tableName WHERE ${singularTableName}_id = ?',
+          [itemId]);
+      if (itemExist == null && itemId != null) {
+        Map<String, dynamic>? map;
+        if (item is Stock) {
+          map = item.toEJson().toFlipperJson();
+        } else if (item is Product) {
+          map = item.toEJson().toFlipperJson();
+        } else if (item is Variant) {
+          map = item.toEJson().toFlipperJson();
+        } else {
+          throw TypeError();
+        }
+
+        map!['id'] = 'uuid()';
+        map['${singularTableName}_id'] = itemId;
         map['owner_id'] = userUuid;
         map.remove('_id');
-        map.remove('composites');
-
-        if (productExist == null && product.id != null) {
-          await genericInsert(
-            tableName: 'products',
-            data: map,
-            returningClause: '*',
-          );
+        if (tableName == 'products') {
+          map.remove('composites');
+        } else if (tableName == 'stocks') {
+          map.remove('variant');
         }
-      } catch (e) {
-        rethrow;
+
+        await queue.addToQueue(
+          tableName: tableName,
+          data: map,
+          returningClause: '*',
+        );
       }
     }
   }

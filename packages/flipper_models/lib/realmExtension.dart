@@ -14,17 +14,20 @@ extension RealmExtension on Realm {
   }) {
     write(() {
       final talker = TalkerFlutter.init();
-      add(object);
+      add<T>(object,update: true);
       talker.warning(
           "Saved using standart non async on realm extension :) ${object.toEJson()}");
       _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
+      if (onAdd != null) {
+        onAdd(object);
+      }
     });
   }
 
   Future<void> putAsync<T extends RealmObject>(T object) async {
     await writeAsync(() {
       final talker = TalkerFlutter.init();
-      add(object);
+      add<T>(object,update: true);
       talker.warning(
           "Saved using async on realm Extension:) ${object.toEJson()}");
       _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
