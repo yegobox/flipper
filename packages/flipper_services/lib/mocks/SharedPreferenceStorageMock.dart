@@ -88,7 +88,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
-  bool isPoroformaMode() {
+  bool isProformaMode() {
     return false; // Sample poroforma mode status
   }
 

@@ -531,10 +531,10 @@ class PaymentsState extends ConsumerState<Payments> {
     // Parse discount ONLY if _discount.text is NOT empty
     double discount =
         _discount.text.isNotEmpty ? double.parse(_discount.text) : 0.0;
-   
-      ProxyService.realm.collectPayment(
+
+    ProxyService.realm.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
-      isProformaMode: ProxyService.box.isTrainingMode(),
+      isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
       bhfId: ProxyService.box.bhfId() ?? "00",
       cashReceived: amount,

@@ -19,7 +19,7 @@ class SharedPreferenceStorage implements LocalStorage {
         'needLinkPhoneNumber',
         'getServerUrl',
         'currentOrderId',
-        'isPoroformaMode',
+        'isProformaMode',
         'isTrainingMode',
         'isAutoPrintEnabled',
         'isAutoBackupEnabled',
@@ -125,8 +125,8 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  bool isPoroformaMode() {
-    return prefs.getBool('isPoroformaMode') ?? false;
+  bool isProformaMode() {
+    return prefs.getBool('isProformaMode') ?? false;
   }
 
   @override

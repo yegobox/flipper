@@ -164,7 +164,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       required double discount}) async {
     ITransaction trans = ProxyService.realm.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
-      isProformaMode: ProxyService.box.isTrainingMode(),
+      isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
       bhfId: ProxyService.box.bhfId() ?? "00",
       cashReceived: amount,

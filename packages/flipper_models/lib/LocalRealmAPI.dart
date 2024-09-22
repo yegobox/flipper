@@ -114,7 +114,7 @@ class LocalRealmApi extends RealmAPI
           initialDataCallback: dataCb,
           path: path,
           encryptionKey: ProxyService.box.encryptionKey().toIntList(),
-          schemaVersion: 7,
+          schemaVersion: 9,
           migrationCallback: (migration, oldSchemaVersion) {
             if (oldSchemaVersion < 2) {
               // This means we are migrating from version 1 to version 2

@@ -142,16 +142,16 @@ class TaxController<OBJ> {
             ProxyService.realm.getByTaxType(taxtype: item.taxTyCd!);
 
         if (item.taxTyCd == "B") {
-          taxB = item.price * item.qty;
+          taxB = taxB! + (item.price * item.qty);
         }
         if (item.taxTyCd == "C") {
-          taxC =taxC!+ ( item.price * item.qty);
+          taxC = taxC! + (item.price * item.qty);
         }
         if (item.taxTyCd == "A") {
-          taxA = taxA!+ (item.price * item.qty);
+          taxA = taxA! + (item.price * item.qty);
         }
         if (item.taxTyCd == "D") {
-          taxD =taxD!+ (item.price * item.qty);
+          taxD = taxD! + (item.price * item.qty);
         }
 
         // Calculate the tax amount

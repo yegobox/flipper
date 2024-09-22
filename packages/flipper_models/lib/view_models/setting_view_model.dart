@@ -195,17 +195,17 @@ class SettingViewModel extends CoreViewModel {
     notifyListeners();
   }
 
-  bool get isProformaModeEnabled => ProxyService.box.isPoroformaMode();
+  bool get isProformaModeEnabled => ProxyService.box.isProformaMode();
   set isProformaModeEnabled(bool value) {
     if (!ProxyService.box.isTrainingMode()) {
-      ProxyService.box.writeBool(key: 'isPoroformaMode', value: value);
+      ProxyService.box.writeBool(key: 'isProformaMode', value: value);
       notifyListeners();
     }
   }
 
   bool get isTrainingModeEnabled => ProxyService.box.isTrainingMode();
   set isTrainingModeEnabled(bool value) {
-    if (!ProxyService.box.isPoroformaMode()) {
+    if (!ProxyService.box.isProformaMode()) {
       ProxyService.box.writeBool(key: 'isTrainingMode', value: value);
       notifyListeners();
     }
