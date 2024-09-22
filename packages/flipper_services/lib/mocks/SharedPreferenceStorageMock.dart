@@ -18,6 +18,11 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
+  bool forceUPSERT() {
+    return false;
+  }
+
+  @override
   int? currentOrderId() {
     return 12345; // Sample current order ID
   }

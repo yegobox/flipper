@@ -240,75 +240,32 @@ class CronService with Subscriptions {
     );
   }
 
-  // static Future<Map<String, dynamic>> genericInsert({
-  //   required String tableName,
-  //   required Map<String, dynamic> data,
-  //   String? returningClause,
-  // }) async {
-  //   // Convert keys from camelCase to snake_case
-  //   final convertedData =
-  //       data.map((key, value) => MapEntry(camelToSnakeCase(key), value));
-
-  //   // Separate UUID fields and regular fields
-  //   final uuidFields = <String>[];
-  //   final regularFields = <String>[];
-  //   final values = <dynamic>[];
-
-  //   convertedData.forEach((key, value) {
-  //     if (value == 'uuid()') {
-  //       uuidFields.add(key);
-  //     } else {
-  //       regularFields.add(key);
-  //       values.add(value);
-  //     }
-  //   });
-
-  //   // Generate column names
-  //   final allColumns = [...uuidFields, ...regularFields];
-  //   final columns = allColumns.join(', ');
-
-  //   // Generate placeholders
-  //   final uuidPlaceholders = uuidFields.map((_) => 'uuid()').join(', ');
-  //   final regularPlaceholders = regularFields.map((_) => '?').join(', ');
-  //   final allPlaceholders = [
-  //     if (uuidPlaceholders.isNotEmpty) uuidPlaceholders,
-  //     if (regularPlaceholders.isNotEmpty) regularPlaceholders,
-  //   ].join(', ');
-
-  //   // Construct the SQL query
-  //   var sql = 'INSERT INTO $tableName ($columns) VALUES ($allPlaceholders)';
-  //   if (returningClause != null) {
-  //     sql += ' RETURNING $returningClause';
-  //   }
-
-  //   // Execute the query
-  //   final List<dynamic> result = await db.execute(sql, values);
-
-  //   // Return the first row if RETURNING clause was used, otherwise an empty map
-  //   return result.isNotEmpty ? result.first : {};
-  // }
-
   void backUpPowerSync() async {
     try {
       ProxyService.realm.copyRemoteDataToLocalDb();
 
       List<Product> products =
           ProxyService.local.realm!.all<Product>().toList();
+      List<Variant> variants =
+          ProxyService.local.realm!.all<Variant>().toList();
+
       List<Stock> stocks = ProxyService.local.realm!.all<Stock>().toList();
 
       final userUuid = getUserId();
 
       final databaseQueue = DatabaseQueue(5); // Allow 5 concurrent operations
 
-      await _insertItems(stocks, 'stocks', userUuid!, databaseQueue);
-      await _insertItems(products, 'products', userUuid, databaseQueue);
+      await _insertOrUpdateItems(
+          products, 'products', userUuid!, databaseQueue);
+      await _insertOrUpdateItems(variants, 'variants', userUuid, databaseQueue);
+      await _insertOrUpdateItems(stocks, 'stocks', userUuid, databaseQueue);
     } catch (e) {
       print(e);
     }
   }
 
-  Future<void> _insertItems<T>(List<T> items, String tableName, String userUuid,
-      DatabaseQueue queue) async {
+  Future<void> _insertOrUpdateItems<T>(List<T> items, String tableName,
+      String userUuid, DatabaseQueue queue) async {
     String singularTableName = tableName.endsWith('s')
         ? tableName.substring(0, tableName.length - 1)
         : tableName;
@@ -316,10 +273,12 @@ class CronService with Subscriptions {
     for (var item in items) {
       final noLose = item;
       final itemId = (noLose as dynamic).id;
-      final itemExist = await db.getOptional(
-          'SELECT * FROM $tableName WHERE ${singularTableName}_id = ?',
-          [itemId]);
-      if (itemExist == null && itemId != null) {
+
+      if (itemId != null) {
+        final itemExist = await db.getOptional(
+            'SELECT * FROM $tableName WHERE ${singularTableName}_id = ?',
+            [itemId]);
+
         Map<String, dynamic>? map;
         if (item is Stock) {
           map = item.toEJson().toFlipperJson();
@@ -331,22 +290,65 @@ class CronService with Subscriptions {
           throw TypeError();
         }
 
-        map!['id'] = 'uuid()';
-        map['${singularTableName}_id'] = itemId;
+        map!['${singularTableName}_id'] = itemId;
         map['owner_id'] = userUuid;
         map.remove('_id');
         if (tableName == 'products') {
           map.remove('composites');
         } else if (tableName == 'stocks') {
           map.remove('variant');
+        } else if (tableName == 'variants') {
+          map.remove('branchIds');
         }
 
-        await queue.addToQueue(
-          tableName: tableName,
-          data: map,
-          returningClause: '*',
-        );
+        if (itemExist == null) {
+          // Item doesn't exist, perform insert
+          map['id'] = 'uuid()';
+          await queue.addToQueue(
+            tableName: tableName,
+            data: map,
+            returningClause: '*',
+          );
+        } else {
+          try {
+            final single = singularTableName + "_id";
+            await db.execute(
+                'UPDATE $tableName SET  created_at = datetime() WHERE  ${single} = ?',
+                [map[singularTableName + "_id"]]);
+          } catch (e) {
+            rethrow;
+          }
+        }
       }
+    }
+  }
+
+  Future<void> upsertObject(String tableName, Map<String, dynamic> map) async {
+    final singularTableName = tableName.substring(0, tableName.length - 1);
+    final single = singularTableName + "_id";
+
+    try {
+      // Prepare the column names and values
+      final columns = map.keys.where((key) => key != single).toList();
+      final values = columns.map((col) => map[col]).toList();
+
+      // Prepare the SQL statement
+      final placeholders = List.filled(columns.length, '?').join(', ');
+      final updateSet = columns.map((col) => '$col = ?').join(', ');
+
+      // Construct the SQL query
+      final sql = '''
+      INSERT OR REPLACE INTO $tableName (${columns.join(', ')}, $single, created_at, updated_at)
+      VALUES ($placeholders, ?, datetime('now'), datetime('now'))
+      ON CONFLICT($single) DO UPDATE SET
+      $updateSet, updated_at = datetime('now')
+      WHERE $single = ?
+    ''';
+
+      // Execute the query
+      await db.execute(sql, [...values, map[single], ...values, map[single]]);
+    } catch (e) {
+      rethrow;
     }
   }
 

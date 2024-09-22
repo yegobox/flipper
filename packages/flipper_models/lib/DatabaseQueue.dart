@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_models/power_sync/powersync.dart';
 
@@ -23,6 +24,7 @@ class DatabaseQueue {
     required String tableName,
     required Map<String, dynamic> data,
     String? returningClause,
+    Map<String, dynamic>? where,
   }) async {
     final operation = {
       'tableName': tableName,
@@ -50,16 +52,26 @@ class DatabaseQueue {
 
   void _startOperation(Map<String, dynamic> params) async {
     try {
-      await genericInsert(
-        tableName: params['tableName'],
-        data: params['data'],
-        returningClause: params['returningClause'],
-      );
-      print('Insertion completed for ${params['tableName']}');
+      if (params['where'] == null) {
+        // Perform insert
+        await genericInsert(
+          tableName: params['tableName'],
+          data: params['data'],
+          returningClause: params['returningClause'],
+        );
+      } else {
+        // Perform update
+        // await genericUpdate(
+        //   tableName: params['tableName'],
+        //   data: params['data'],
+        //   where: params['where'],
+        //   returningClause: params['returningClause'],
+        // );
+      }
+      print('Operation completed for ${params['tableName']}');
     } catch (e) {
-      print('Error inserting into ${params['tableName']}: $e');
-      // Optionally, you might want to add the failed operation back to the queue
-      // or handle the error in some other way
+      print('Error processing operation for ${params['tableName']}: $e');
+      // Handle error (e.g., retry logic or logging)
     } finally {
       _operationCompleted();
     }
@@ -105,37 +117,30 @@ class DatabaseQueue {
     final convertedData =
         data.map((key, value) => MapEntry(camelToSnakeCase(key), value));
 
-    // Separate UUID fields and regular fields
-    final uuidFields = <String>[];
-    final regularFields = <String>[];
     final values = <dynamic>[];
 
     convertedData.forEach((key, value) {
-      if (value == 'uuid()') {
-        uuidFields.add(key);
-      } else {
-        regularFields.add(key);
+      if (key != 'id') {
         values.add(value);
       }
     });
 
     // Generate column names
-    final allColumns = [...uuidFields, ...regularFields];
-    final columns = allColumns.join(', ');
-
-    // Generate placeholders
-    final uuidPlaceholders = uuidFields.map((_) => 'uuid()').join(', ');
-    final regularPlaceholders = regularFields.map((_) => '?').join(', ');
-    final allPlaceholders = [
-      if (uuidPlaceholders.isNotEmpty) uuidPlaceholders,
-      if (regularPlaceholders.isNotEmpty) regularPlaceholders,
-    ].join(', ');
+    final columns = ['id'] +
+        convertedData.keys
+            .where((key) => key != 'id')
+            .map(camelToSnakeCase)
+            .toList();
+    final placeHolders = ['uuid()'] +
+        convertedData.keys.where((key) => key != 'id').map((e) => '?').toList();
 
     // Construct the SQL query
-    var sql = 'INSERT INTO $tableName ($columns) VALUES ($allPlaceholders)';
-    if (returningClause != null) {
-      sql += ' RETURNING $returningClause';
-    }
+    final sql = '''
+      INSERT INTO
+        $tableName (${columns.join(', ')})
+        VALUES (${placeHolders.join(', ')})
+      ${returningClause != null ? 'RETURNING $returningClause' : ''}
+    ''';
 
     // Execute the query
     final List<dynamic> result = await db.execute(sql, values);

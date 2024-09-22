@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:powersync/powersync.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_models/secrets.dart';
-
+import 'dart:io';
 import 'schema.dart';
 import 'supabase.dart';
 import 'fts_setup.dart';
@@ -101,7 +101,7 @@ class SupabaseConnector extends PowerSyncBackendConnector {
       for (var op in transaction.crud) {
         lastOp = op;
 
-        // print("Into Sync Loop ${op}");
+        print("Into Sync Loop ${op}");
 
         final table = rest.from(op.table);
         if (op.op == UpdateType.put) {
@@ -152,15 +152,21 @@ String? getUserId() {
 }
 
 Future<String> getDatabasePath() async {
-  const dbFilename = 'power-sync.db';
+  const dbFilename = 'flipper.db';
   // getApplicationSupportDirectory is not supported on Web
   if (kIsWeb) {
     return dbFilename;
   }
-  final dir = await getApplicationSupportDirectory();
-  print("PATHDB: ${dir.path}");
-  // /Users/richard/Library/Containers/rw.flipper/Data/Library/Application Support/rw.flipper
-  return join(dir.path, dbFilename);
+  final dir = await getApplicationDocumentsDirectory();
+  final version = "2";
+  // Ensure the '2' directory exists
+  final versionedDir = Directory(join(dir.path, version));
+  if (!await versionedDir.exists()) {
+    await versionedDir.create(recursive: true);
+  }
+
+  print("SQLDB: ${join(versionedDir.path, dbFilename)}");
+  return join(versionedDir.path, dbFilename);
 }
 
 Future<void> openDatabase() async {
