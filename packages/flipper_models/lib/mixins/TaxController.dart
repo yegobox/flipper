@@ -138,16 +138,20 @@ class TaxController<OBJ> {
       for (var item in items) {
         // Log the item details
 
-        // Fetch the tax configuration
         Configurations taxConfig =
-            ProxyService.local.getByTaxType(taxtype: item.taxTyCd ?? "B");
+            ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
 
-        talker.info("Tax To be applied on: ${item.taxTyCd}");
-        // Ensure taxPercentage is not null
-        if (taxConfig.taxPercentage == 0.0) {
-          talker.warning(
-              "Tax percentage is null for tax type: ${item.taxTyCd ?? "B"}");
-          continue; // Skip this item if tax percentage is null
+        if (item.taxTyCd == "B") {
+          taxB = taxB! + (item.price * item.qty);
+        }
+        if (item.taxTyCd == "C") {
+          taxC = taxC! + (item.price * item.qty);
+        }
+        if (item.taxTyCd == "A") {
+          taxA = taxA! + (item.price * item.qty);
+        }
+        if (item.taxTyCd == "D") {
+          taxD = taxD! + (item.price * item.qty);
         }
         if (item.taxTyCd == "B") {
           taxB = item.price * item.qty;

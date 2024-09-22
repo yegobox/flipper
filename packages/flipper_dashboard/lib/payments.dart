@@ -534,7 +534,7 @@ class PaymentsState extends ConsumerState<Payments> {
 
     ProxyService.local.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
-      isProformaMode: ProxyService.box.isTrainingMode(),
+      isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
       bhfId: ProxyService.box.bhfId() ?? "00",
       cashReceived: amount,

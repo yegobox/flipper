@@ -14,7 +14,7 @@ abstract class LocalStorage {
   bool getNeedAccountLinkWithPhone();
   String? getServerUrl();
   int? currentOrderId();
-  bool isPoroformaMode();
+  bool isProformaMode();
   bool isTrainingMode();
   bool isAnonymous();
   bool isAutoPrintEnabled();

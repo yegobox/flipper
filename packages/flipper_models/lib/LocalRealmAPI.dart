@@ -2654,16 +2654,6 @@ class LocalRealmApi
   }
 
   @override
-  T? findObject<T extends RealmObject>(String query, List<dynamic> arguments) {
-    if (realm == null) return null;
-    final results = realm!.query<T>(query, arguments);
-    if (results.isNotEmpty) {
-      return results.first;
-    }
-    return null;
-  }
-
-  @override
   Category? activeCategory({required int branchId}) {
     return realm!.query<Category>(
         r'focused == $0 && active == $1 && branchId == $2',
