@@ -498,12 +498,15 @@ class _Stock {
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
   bool ebmSynced = false;
+  /// by default it is set to true because as soon we save in realm we auto-save in sqlite
+  /// which means we don't need to re-sync, but when received
+  bool cloudSynced = true;
 
   late _Variant? variant;
 }
 
 @RealmModel()
-class _Variant  {
+class _Variant {
   int? id;
   @PrimaryKey()
   @MapTo('_id')

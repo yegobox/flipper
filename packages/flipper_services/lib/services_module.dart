@@ -7,6 +7,7 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/MockHttpClient.dart';
 import 'package:flipper_models/realmInterface.dart';
+import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
@@ -391,11 +392,6 @@ abstract class ServicesModule {
     return CronService();
   }
 
-  // @LazySingleton()
-  // Sync sync() {
-  //   return Sync.create();
-  // }
-
   @LazySingleton()
   SyncFirestore syncFirestore() {
     return SyncFirestore.create();
@@ -414,5 +410,10 @@ abstract class ServicesModule {
   @LazySingleton()
   BillingService billing() {
     return BillingService();
+  }
+
+  @LazySingleton()
+  SyncInterface synchronize() {
+    return CloudSync().instance();
   }
 }

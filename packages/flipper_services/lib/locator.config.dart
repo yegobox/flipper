@@ -8,6 +8,7 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:flipper_models/CloudSync.dart' as _i562;
 import 'package:flipper_models/DataBackUp.dart' as _i32;
 import 'package:flipper_models/FirestoreSync.dart' as _i94;
 import 'package:flipper_models/flipper_http_client.dart' as _i843;
@@ -111,6 +112,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i798.ForceDataEntryService>(
         () => servicesModule.forcedataEntry());
     gh.lazySingleton<_i36.BillingService>(() => servicesModule.billing());
+    gh.lazySingleton<_i562.SyncInterface>(() => servicesModule.synchronize());
     return this;
   }
 }

@@ -2,6 +2,7 @@ import 'package:flipper_models/DataBackUp.dart';
 import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/realmInterface.dart';
+import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -78,11 +79,13 @@ final RealmViaHttp _realmHttp = getIt<RealmViaHttp>();
 final DataMigratorToLocal _realm = getIt<DataMigratorToLocal>();
 final RealmApiInterface _localRealm = getIt<RealmApiInterface>();
 final CoreData _backUp = getIt<CoreData>();
+final SyncInterface _synchronize = getIt<SyncInterface>();
 
 abstract class ProxyService {
   static DataMigratorToLocal get realm => _realm;
   static RealmApiInterface get local => _localRealm;
   static CoreData get backUp => _backUp;
+  static SyncInterface get synchronize => _synchronize;
 
   static LocalStorage get box => _box;
   static HttpClientInterface get http => _http;
