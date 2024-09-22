@@ -178,7 +178,6 @@ extension RealmEJsonConverterExtension on EJsonValue {
       convertedMap['id'] = convertedMap['serverId'];
       convertedMap['serverId'] = temp;
     }
-    
 
     return convertedMap;
   }
@@ -225,4 +224,11 @@ extension StringExtension on String {
     return 'yegobox@gmail.com';
     // return this.replaceFirst('+', '') + '@flipper.rw';
   }
+}
+
+String camelToSnakeCase(String input) {
+  return input.replaceAllMapped(
+    RegExp(r'([A-Z])'),
+    (match) => '_${match.group(1)!.toLowerCase()}',
+  );
 }

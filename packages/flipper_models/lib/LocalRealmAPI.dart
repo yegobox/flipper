@@ -23,6 +23,8 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
+
+import 'package:flipper_models/power_sync/powersync.dart';
 import 'package:flipper_models/realmInterface.dart';
 // ignore: unused_import
 import 'dart:async';
@@ -280,6 +282,8 @@ class LocalRealmApi
 
       await configureTheBox(userPhone, user);
       await configureLocal(useInMemory: false);
+
+      listen();
 
       /// clear any business/branches that was logged in this is to unintentionaly log to the branch
       /// that I am not supposed to
@@ -1055,13 +1059,13 @@ class LocalRealmApi
   void clearData({required ClearData data}) {
     try {
       if (data == ClearData.Branch) {
-        realm!.write(() {
-          realm!.deleteAll<Branch>();
+        realm?.write(() {
+          realm?.deleteAll<Branch>();
         });
       }
       if (data == ClearData.Business) {
-        realm!.write(() {
-          realm!.deleteAll<Business>();
+        realm?.write(() {
+          realm?.deleteAll<Business>();
         });
       }
     } catch (e, s) {
@@ -4656,5 +4660,151 @@ class LocalRealmApi
       );
       realm!.add<Stock>(stock);
     });
+  }
+
+  @override
+  void updateTransactionStatus(ITransaction transaction, String receiptType) {
+    realm!.write(() {
+      transaction.ebmSynced = true;
+      transaction.isRefunded = receiptType == "R";
+    });
+  }
+
+  Future<void> handleChanges<T>({
+    required RealmResults<T> results,
+    required String tableName,
+    required String idField,
+    required int Function(T) getId,
+    required Map<String, dynamic> Function(T) convertToMap,
+    required Function(Map<String, dynamic>) preProcessMap,
+  }) async {
+    results.changes.listen(
+      (changes) async {
+        for (var obj in changes.modified) {
+          final modifiedItem = results[obj];
+          final id = getId(modifiedItem);
+          final item = await db.getOptional(
+            'SELECT * FROM $tableName WHERE $idField = ?',
+            [id],
+          );
+
+          if (item != null) {
+            try {
+              Map<String, dynamic> map = convertToMap(modifiedItem);
+              preProcessMap(map);
+
+              bool hasChanges = compareChanges(item, map);
+
+              if (hasChanges) {
+                await updateRecord(tableName, idField, map, id);
+              }
+            } catch (e, s) {
+              talker.info(e);
+              talker.error(s);
+            }
+          }
+        }
+
+        // Handle deleted objects if necessary
+        for (var index in changes.deleted) {
+          try {
+            final deletedId = getId(results[index]);
+            await deleteRecord(tableName, idField, deletedId);
+          } catch (e, s) {
+            talker.info('Error deleting record: $e');
+            talker.error(s);
+          }
+        }
+      },
+      onError: (error) {
+        print('Error occurred while listening to changes: $error');
+      },
+    );
+  }
+
+  Future<void> deleteRecord(String tableName, String idField, int id) async {
+    await db.execute(
+      'DELETE FROM $tableName WHERE $idField = ?',
+      [id],
+    );
+  }
+
+  Future<void> updateRecord(String tableName, String idField,
+      Map<String, dynamic> map, int id) async {
+    final keysToUpdate =
+        map.keys.map((key) => '${camelToSnakeCase(key)} = ?').join(', ');
+    final valuesToUpdate = map.values.toList();
+
+    await db.execute(
+      'UPDATE $tableName SET $keysToUpdate WHERE $idField = ?',
+      [...valuesToUpdate, id],
+    );
+  }
+
+  bool compareChanges(Map<String, dynamic> item, Map<String, dynamic> map) {
+    for (final key in item.keys) {
+      if (map[key]?.toString() != item[key]?.toString()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  void listen() {
+    handleChanges<Stock>(
+      results: realm!.all<Stock>(),
+      tableName: 'stocks',
+      idField: 'stock_id',
+      getId: (stock) => stock.id!,
+      convertToMap: (stock) => stock.toEJson().toFlipperJson(),
+      preProcessMap: (map) {
+        map.remove('variant');
+        map['stock_id'] = map['id'];
+        map.remove('id');
+        map.remove('_id');
+      },
+    );
+
+    handleChanges<Product>(
+      results: realm!.all<Product>(),
+      tableName: 'products',
+      idField: 'product_id',
+      getId: (product) => product.id!,
+      convertToMap: (product) => product.toEJson().toFlipperJson(),
+      preProcessMap: (map) {
+        map.remove('composites');
+        map['product_id'] = map['id'];
+        map.remove('id');
+        map.remove('_id');
+      },
+    );
+
+    handleChanges<Variant>(
+      results: realm!.all<Variant>(),
+      tableName: 'variants',
+      idField: 'variant_id',
+      getId: (variant) => variant.id!,
+      convertToMap: (variant) => variant.toEJson().toFlipperJson(),
+      preProcessMap: (map) {
+        map.remove('branchIds');
+        map['variant_id'] = map['id'];
+        map.remove('id');
+        map.remove('_id');
+      },
+    );
+
+    handleChanges<Counter>(
+      results: realm!.all<Counter>(),
+      tableName: 'counters',
+      idField: 'counter_id',
+      getId: (counter) => counter.id!,
+      convertToMap: (counter) => counter.toEJson().toFlipperJson(),
+      preProcessMap: (map) {
+        map['counter_id'] = map['id'];
+        map.remove('id');
+        map.remove('_id');
+      },
+    );
   }
 }

@@ -32,6 +32,10 @@ abstract class RealmViaHttp {
 
 class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   @override
+  void updateTransactionStatus(ITransaction transaction, String receiptType) {}
+  @override
+  listen() {}
+  @override
   void saveStock({required Variant variant}) {}
   @override
   Future<bool> hasAcessSaved(

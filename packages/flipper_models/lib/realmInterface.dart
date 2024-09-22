@@ -575,4 +575,6 @@ abstract class RealmApiInterface {
 
   Drawers? closeDrawer({required Drawers drawer, required double eod});
   void saveStock({required Variant variant});
+  void updateTransactionStatus(ITransaction transaction, String receiptType);
+  listen();
 }

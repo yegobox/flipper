@@ -503,7 +503,7 @@ class _Stock {
 }
 
 @RealmModel()
-class _Variant {
+class _Variant  {
   int? id;
   @PrimaryKey()
   @MapTo('_id')

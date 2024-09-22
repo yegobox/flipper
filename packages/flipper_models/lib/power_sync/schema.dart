@@ -158,5 +158,18 @@ Schema schema = Schema([
     Column.text('tax_type'),
     Column.text('created_at'),
     Column.text('owner_id')
+  ]),
+  Table('counters', [
+    Column.integer('counter_id'),
+    Column.integer('business_id'),
+    Column.integer('branch_id'),
+    Column.text('receipt_type'),
+    Column.integer('tot_rcpt_no'),
+    Column.integer('cur_rcpt_no'),
+    Column.integer('invc_no'),
+    Column.text('last_touched'),
+    Column.text('action'),
+    Column.text('created_at'),
+    Column.text('owner_id')
   ])
 ]);

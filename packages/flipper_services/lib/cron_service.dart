@@ -250,6 +250,8 @@ class CronService with Subscriptions {
           ProxyService.local.realm!.all<Variant>().toList();
 
       List<Stock> stocks = ProxyService.local.realm!.all<Stock>().toList();
+      List<Counter> counters =
+          ProxyService.local.realm!.all<Counter>().toList();
 
       final userUuid = getUserId();
 
@@ -259,6 +261,7 @@ class CronService with Subscriptions {
           products, 'products', userUuid!, databaseQueue);
       await _insertOrUpdateItems(variants, 'variants', userUuid, databaseQueue);
       await _insertOrUpdateItems(stocks, 'stocks', userUuid, databaseQueue);
+      await _insertOrUpdateItems(counters, 'counters', userUuid, databaseQueue);
     } catch (e) {
       print(e);
     }
@@ -286,6 +289,8 @@ class CronService with Subscriptions {
           map = item.toEJson().toFlipperJson();
         } else if (item is Variant) {
           map = item.toEJson().toFlipperJson();
+        } else if (item is Counter) {
+          map = item.toEJson().toFlipperJson();
         } else {
           throw TypeError();
         }
@@ -312,9 +317,9 @@ class CronService with Subscriptions {
         } else {
           // try {
           //   final single = singularTableName + "_id";
-          //   await db.execute(
-          //       'UPDATE $tableName SET  created_at = datetime() WHERE  ${single} = ?',
-          //       [map[singularTableName + "_id"]]);
+            // await db.execute(
+            //     'UPDATE $tableName SET  created_at = datetime() WHERE  ${single} = ?',
+            //     [map[singularTableName + "_id"]]);
           // } catch (e) {
           //   rethrow;
           // }

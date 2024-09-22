@@ -2,7 +2,7 @@
 DROP TABLE IF EXISTS public.branch;
 DROP TABLE IF EXISTS public.business;
 DROP TABLE IF EXISTS public.category;
-DROP TABLE IF EXISTS public.counter;
+DROP TABLE IF EXISTS public.counters;
 DROP TABLE IF EXISTS public.customer;
 DROP TABLE IF EXISTS public.device;
 DROP TABLE IF EXISTS public.discount;
@@ -45,7 +45,24 @@ DROP TABLE IF EXISTS public.lists CASCADE;
 
 -- Create the tables
 
-
+-- Counter Table
+DROP TABLE IF EXISTS public.counters;
+ALTER PUBLICATION powersync ADD TABLE counters;
+CREATE TABLE public.counters (
+  id uuid not null default gen_random_uuid (),
+  counter_id bigint,
+  business_id bigint,
+  branch_id bigint,
+  receipt_type text,
+  tot_rcpt_no bigint,
+  cur_rcpt_no bigint,
+  invc_no bigint,
+  last_touched timestamp with time zone,
+  action text,
+  created_at timestamp with time zone DEFAULT now(),
+  owner_id uuid not null,
+  constraint counters_pkey primary key (id)
+);
 -- Product Table
 CREATE TABLE public.products (
   id uuid not null default gen_random_uuid (),
@@ -249,20 +266,7 @@ CREATE TABLE public.category (
   owner_id uuid not null
 );
 
--- Counter Table
-CREATE TABLE public.counter (
-   id uuid not null default gen_random_uuid (),
-  business_id bigint,
-  branch_id bigint,
-  receipt_type text,
-  tot_rcpt_no bigint,
-  cur_rcpt_no bigint,
-  invc_no bigint,
-  last_touched timestamp with time zone,
-  action text,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
-);
+
 
 -- Customer Table
 CREATE TABLE public.customer (
@@ -880,7 +884,7 @@ create policy "todos in owned lists" on public.todos for ALL using (
 ALTER TABLE public.branch ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.business ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.category ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.counter ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.counters ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customer ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.device ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.discount ENABLE ROW LEVEL SECURITY;
@@ -930,7 +934,7 @@ CREATE POLICY "Users can only access their own data" ON public.business
 CREATE POLICY "Users can only access their own data" ON public.category
   FOR ALL USING (auth.uid() = owner_id);
 
-CREATE POLICY "Users can only access their own data" ON public.counter
+CREATE POLICY "Users can only access their own data" ON public.counters
   FOR ALL USING (auth.uid() = owner_id);
 
 CREATE POLICY "Users can only access their own data" ON public.customer
