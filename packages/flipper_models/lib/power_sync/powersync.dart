@@ -1,4 +1,5 @@
 // This file performs setup of the PowerSync database
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart';
@@ -95,13 +96,10 @@ class SupabaseConnector extends PowerSyncBackendConnector {
     final rest = Supabase.instance.client.rest;
     CrudEntry? lastOp;
     try {
-      print("Entering Try U");
       // Note: If transactional consistency is important, use database functions
       // or edge functions to process the entire transaction in a single call.
       for (var op in transaction.crud) {
         lastOp = op;
-
-        print("Into Sync Loop ${op}");
 
         final table = rest.from(op.table);
         if (op.op == UpdateType.put) {
@@ -109,7 +107,14 @@ class SupabaseConnector extends PowerSyncBackendConnector {
           data['id'] = op.id;
           await table.upsert(data);
         } else if (op.op == UpdateType.patch) {
-          await table.update(op.opData!).eq('id', op.id);
+          // talker.warning("DATA: ${op.opData}");
+          if (op.opData != null && op.opData!.isNotEmpty) {
+            await table.update(op.opData!).eq('id', op.id);
+          } else {
+            // Optionally, you can log this situation or handle it in another way
+            // talker.info(
+            //     "Skipping update for ${op.table} with id ${op.id} due to empty opData");
+          }
         } else if (op.op == UpdateType.delete) {
           await table.delete().eq('id', op.id);
         }

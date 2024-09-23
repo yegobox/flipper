@@ -314,16 +314,7 @@ class CronService with Subscriptions {
             data: map,
             returningClause: '*',
           );
-        } else {
-          // try {
-          //   final single = singularTableName + "_id";
-            // await db.execute(
-            //     'UPDATE $tableName SET  created_at = datetime() WHERE  ${single} = ?',
-            //     [map[singularTableName + "_id"]]);
-          // } catch (e) {
-          //   rethrow;
-          // }
-        }
+        } 
       }
     }
   }

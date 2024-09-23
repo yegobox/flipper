@@ -1,5 +1,6 @@
 import 'package:flipper_models/power_sync/powersync.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 // ignore: unused_import
@@ -24,6 +25,8 @@ abstract class SyncInterface {
 }
 
 class CloudSync implements SyncInterface {
+  final Set<int> _processingIds = {};
+
   @override
   SyncInterface instance() {
     return this;
@@ -43,6 +46,10 @@ class CloudSync implements SyncInterface {
         for (var obj in changes.modified) {
           final modifiedItem = results[obj];
           final id = getId(modifiedItem);
+
+          // Skip if this ID is currently being processed by watchTable
+          if (_processingIds.contains(id)) continue;
+
           final item = await db.getOptional(
             'SELECT * FROM $tableName WHERE $idField = ?',
             [id],
@@ -69,6 +76,10 @@ class CloudSync implements SyncInterface {
         for (var index in changes.deleted) {
           try {
             final deletedId = getId(results[index]);
+
+            // Skip if this ID is currently being processed by watchTable
+            if (_processingIds.contains(deletedId)) continue;
+
             await deleteRecord(tableName, idField, deletedId);
           } catch (e, s) {
             print('Error deleting record: $e');
@@ -118,73 +129,92 @@ class CloudSync implements SyncInterface {
     required T Function(Map<String, dynamic>) createRealmObject,
     required void Function(T, Map<String, dynamic>) updateRealmObject,
   }) {
-    db
-        .watch('SELECT * FROM $tableName ORDER BY created_at DESC, $idField')
-        .listen((events) {
-      ProxyService.local.realm!.write(() {
-        for (var event in events) {
-          try {
-            final data = Map<String, dynamic>.from(event);
-            final id = data[idField];
+    try {
+      db.watch('SELECT * FROM $tableName ORDER BY created_at DESC').listen(
+          (events) {
+        ProxyService.local.realm!.write(() {
+          for (var event in events) {
+            try {
+              final data = Map<String, dynamic>.from(event);
+              final id = data[idField];
 
-            // Find existing object or create a new one
-            var realmObject =
-                ProxyService.local.realm!.query<T>('id == $id').firstOrNull;
-            if (realmObject == null) {
-              realmObject = createRealmObject(data);
-              ProxyService.local.realm!.add<T>(realmObject);
-            } else {
-              updateRealmObject(realmObject, data);
+              // Add this ID to the processing set
+              _processingIds.add(id);
+
+              // Find existing object or create a new one
+              var realmObject =
+                  ProxyService.local.realm!.query<T>('id == $id').firstOrNull;
+              if (realmObject == null) {
+                realmObject = createRealmObject(data);
+                ProxyService.local.realm!.add<T>(realmObject);
+              } else {
+                updateRealmObject(realmObject, data);
+              }
+
+              // Remove this ID from the processing set after a short delay
+              Future.delayed(Duration(seconds: 2), () {
+                _processingIds.remove(id);
+              });
+            } catch (e, s) {
+              print('Error processing event for $tableName: $e');
+              print('Error processing event for $tableName: $s');
             }
-          } catch (e, s) {
-            print('Error processing event for $tableName: $e');
-            print('Error processing event for $tableName: $s');
           }
-        }
+        });
+      }, onError: (error) {
+        print('Error in watch stream for $tableName: $error');
       });
-    }, onError: (error) {
-      print('Error in watch stream for $tableName: $error');
-    });
+    } catch (e, s) {
+      talker.error(s);
+    }
   }
 
   @override
   void listen() {
     ///wathers for update
-    // watchTable<Stock>(
-    //   tableName: 'stocks',
-    //   idField: 'stock_id',
-    //   createRealmObject: (data) {
-    //     return Stock(
-    //       ObjectId(),
-    //       currentStock: data['currentStock'],
-    //       sold: data['sold'],
-    //       lowStock: data['lowStock'],
-    //       canTrackingStock: data['canTrackingStock'],
-    //       showLowStockAlert: data['showLowStockAlert'],
-    //       productId: data['product_id'],
-    //       active: data['active'],
-    //       value: data['value'],
-    //       rsdQty: data['rsdQty'],
-    //       supplyPrice: data['supplyPrice'],
-    //       retailPrice: data['retailPrice'],
-    //       lastTouched: DateTime.parse(data['lastTouched']),
-    //       branchId: data['branch_id'],
-    //       variantId: data['variant_id'],
-    //       action: data['action'],
-    //       deletedAt: data['deletedAt'] != null
-    //           ? DateTime.parse(data['deletedAt'])
-    //           : null,
-    //       ebmSynced: data['ebmSynced'] ?? false,
-    //     );
-    //   },
-    //   updateRealmObject: (stock, data) {
-    //     realm!.write(() {
-    //       stock.currentStock = double.parse(data['current_stock']);
-    //       stock.rsdQty = double.parse(data['rsd_qty']);
-    //       stock.lastTouched = DateTime.parse(data['last_touched']);
-    //     });
-    //   },
-    // );
+    watchTable<Stock>(
+      tableName: 'stocks',
+      idField: 'stock_id',
+      createRealmObject: (data) {
+        return Stock(
+          ObjectId(),
+          currentStock: data['currentStock'],
+          sold: data['sold'],
+          lowStock: data['lowStock'],
+          canTrackingStock: data['canTrackingStock'],
+          showLowStockAlert: data['showLowStockAlert'],
+          productId: data['product_id'],
+          active: data['active'],
+          value: data['value'],
+          rsdQty: data['rsdQty'],
+          supplyPrice: data['supplyPrice'],
+          retailPrice: data['retailPrice'],
+          lastTouched: DateTime.parse(data['lastTouched']),
+          branchId: data['branch_id'],
+          variantId: data['variant_id'],
+          action: data['action'],
+          deletedAt: data['deletedAt'] != null
+              ? DateTime.parse(data['deletedAt'])
+              : null,
+          ebmSynced: data['ebmSynced'] ?? false,
+        );
+      },
+      updateRealmObject: (stock, data) {
+        talker.warning(
+            "received Stock from remote ${double.parse(data['current_stock'])}");
+        stock.currentStock = double.parse(data['current_stock']);
+        stock.rsdQty = double.parse(data['rsd_qty']);
+        stock.lastTouched = DateTime.parse(data['last_touched']);
+        //find related variant
+        Variant? variant = ProxyService.local.realm!.query<Variant>(
+            r'variantId == $0', [data['variant_id']]).firstOrNull;
+        if (variant != null) {
+          variant.qty = double.parse(data['rsd_qty']);
+          variant.rsdQty = double.parse(data['rsd_qty']);
+          variant.ebmSynced = false;
+        }
+      },
+    );
 
     ///watchers for upload
 
