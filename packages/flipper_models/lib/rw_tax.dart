@@ -488,6 +488,7 @@ class RWTax implements TaxApi {
       "regrNm": transaction.id,
       "modrId": transaction.id,
       "modrNm": transaction.id,
+      "rfdRsnCd": ProxyService.box.getRefundReason(),
 
       "custNm": customer?.custNm ?? "N/A",
       "remark": "",
