@@ -598,3 +598,4 @@ class App {}
 // // await amplify.Amplify.Storage.remove(
 //   //   path: storagePath,
 //   // );
+// https://developer.apple.com/documentation/bundleresources/information_property_list/lsapplicationcategorytype

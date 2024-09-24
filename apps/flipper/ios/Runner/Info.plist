@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.business</string>
+
 </dict>
 </plist>
