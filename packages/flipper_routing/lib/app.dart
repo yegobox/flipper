@@ -598,3 +598,7 @@ class App {}
 //   //   path: storagePath,
 //   // );
 // https://developer.apple.com/documentation/bundleresources/information_property_list/lsapplicationcategorytype
+// https://medium.com/swiftable/build-and-deploy-the-app-to-testflight-using-github-actions-with-fastlane-and-app-distribution-ff1786a8bf72
+
+// Download ios Simulator
+// https://developer.apple.com/download/all/?q=Simulator%20Runtime
