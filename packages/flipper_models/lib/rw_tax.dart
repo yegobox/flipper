@@ -504,7 +504,7 @@ class RWTax implements TaxApi {
         "btmMsg": "Welcome",
         "custMblNo": customer == null
             ? ProxyService.box.currentSaleCustomerPhoneNumber()
-            : customer.tin,
+            : customer.telNo,
       },
       "itemList": itemsList,
     };
