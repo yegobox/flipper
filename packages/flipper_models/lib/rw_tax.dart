@@ -436,10 +436,11 @@ class RWTax implements TaxApi {
         ProxyService.realm.getByTaxType(taxtype: "D");
 
     /// because other rate for tax are not known are set to 1/1
-    final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118) +
-        ((taxTotals['A'] ?? 0.0) * 1 / 1) +
-        ((taxTotals['C'] ?? 0.0) * 1 / 1) +
-        ((taxTotals['D'] ?? 0.0) * 1 / 1);
+    final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118);
+    // final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118) +
+    //     ((taxTotals['A'] ?? 0.0) * 1 / 1) +
+    //     ((taxTotals['C'] ?? 0.0) * 1 / 1) +
+    //     ((taxTotals['D'] ?? 0.0) * 1 / 1);
     return {
       "tin": business?.tinNumber ?? 999909695,
       "bhfId": ProxyService.box.bhfId() ?? "00",
