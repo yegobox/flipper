@@ -14,7 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_models/DownloadQueue.dart';
 import 'package:flipper_models/DatabaseQueue.dart';
-
+import 'package:realm/realm.dart';
 import 'package:flipper_models/power_sync/powersync.dart';
 
 class CronService with Subscriptions {
@@ -137,6 +137,60 @@ class CronService with Subscriptions {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
+    Timer.periodic(_keepRealmInSync(), (Timer t) async {
+      /// constantly download update from sqlite3
+      ProxyService.synchronize.watchTable<Stock>(
+        tableName: 'stocks',
+        idField: 'stock_id',
+        createRealmObject: (data) {
+          return Stock(
+            ObjectId(),
+            currentStock: data['currentStock'],
+            sold: data['sold'],
+            lowStock: data['lowStock'],
+            canTrackingStock: data['canTrackingStock'],
+            showLowStockAlert: data['showLowStockAlert'],
+            productId: data['product_id'],
+            active: data['active'],
+            value: data['value'],
+            rsdQty: data['rsdQty'],
+            supplyPrice: data['supplyPrice'],
+            retailPrice: data['retailPrice'],
+            lastTouched: DateTime.parse(data['lastTouched']),
+            branchId: data['branch_id'],
+            variantId: data['variant_id'],
+            action: data['action'],
+            deletedAt: data['deletedAt'] != null
+                ? DateTime.parse(data['deletedAt'])
+                : null,
+            ebmSynced: data['ebmSynced'] ?? false,
+          );
+        },
+        updateRealmObject: (_stock, data) {
+          //find related variant
+          Variant? variant = ProxyService.local.realm!
+              .query<Variant>(r'id == $0', [data['variant_id']]).firstOrNull;
+          final Stock? stock = ProxyService.local.stockByVariantId(
+              variantId: data['variant_id'], branchId: data['branch_id']);
+          if (variant != null && stock != null) {
+            ProxyService.local.realm!.write(() {
+              /// keep stock in sync
+              stock.currentStock = double.parse(data['current_stock']);
+              stock.rsdQty = double.parse(data['current_stock']);
+              stock.lastTouched = DateTime.parse(data['last_touched']);
+
+              /// keep variant in sync
+              variant.qty = double.parse(data['current_stock']);
+
+              variant.rsdQty = double.parse(data['current_stock']);
+
+              variant.ebmSynced = false;
+              talker.warning("done updating variant & stock");
+            });
+          }
+        },
+      );
+    });
     // create a compute function to keep track of unsaved data back to EBM do this in background
     if (await ProxyService.status.isInternetAvailable()) {
       // updateSubscription(
@@ -314,7 +368,7 @@ class CronService with Subscriptions {
             data: map,
             returningClause: '*',
           );
-        } 
+        }
       }
     }
   }
@@ -415,6 +469,10 @@ class CronService with Subscriptions {
 
   Duration _downloadFileSchele() {
     return Duration(minutes: kDebugMode ? 1 : 2);
+  }
+
+  Duration _keepRealmInSync() {
+    return Duration(seconds: kDebugMode ? 10 : 20);
   }
 
   Duration _getBackUpDuration() {

@@ -1,7 +1,8 @@
 # Uncomment this line to define a global platform for your project
-# platform :ios, '12.0'
-platform :ios, '14.4.99'
-
+platform :ios, '13.0'
+# platform :ios, '14.4.99'
+# adding this line https://github.com/juliansteenbakker/mobile_scanner/issues/1165 as a temporal fix for issue mention on the link
+$FirebaseSDKVersion = '10.29.0'
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -43,3 +44,5 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
   end
 end
+
+

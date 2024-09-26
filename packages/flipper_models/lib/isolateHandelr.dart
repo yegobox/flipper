@@ -18,7 +18,6 @@ import 'package:realm/realm.dart';
 import 'dart:collection';
 import 'package:flutter/services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
-
 import 'dart:async';
 
 class IsolateHandler with Subscriptions {

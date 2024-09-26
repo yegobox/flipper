@@ -594,7 +594,11 @@ class App {}
 // https://pub.dev/packages/excel
 
 // Watch this issue if is solved https://github.com/realm/realm-dart/issues/1790 then if yes switch to google login
-
 // // await amplify.Amplify.Storage.remove(
 //   //   path: storagePath,
 //   // );
+// https://developer.apple.com/documentation/bundleresources/information_property_list/lsapplicationcategorytype
+// https://medium.com/swiftable/build-and-deploy-the-app-to-testflight-using-github-actions-with-fastlane-and-app-distribution-ff1786a8bf72
+
+// Download ios Simulator
+// https://developer.apple.com/download/all/?q=Simulator%20Runtime
