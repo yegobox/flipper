@@ -8,6 +8,11 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
+  int? dbVersion() {
+    return 3;
+  }
+
+  @override
   bool doneMigrateToLocal() {
     return true;
   }

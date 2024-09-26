@@ -1,5 +1,6 @@
 // This file performs setup of the PowerSync database
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart';
@@ -164,7 +165,7 @@ Future<String> getDatabasePath() async {
   }
   // /Users/richard/Library/Containers/rw.flipper/Data/Documents/3/flipper.db
   final dir = await getApplicationDocumentsDirectory();
-  final version = "3";
+  final version = ProxyService.box.dbVersion().toString();
   // Ensure the '2' directory exists
   final versionedDir = Directory(join(dir.path, version));
   if (!await versionedDir.exists()) {

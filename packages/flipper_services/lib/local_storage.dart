@@ -52,7 +52,8 @@ class SharedPreferenceStorage implements LocalStorage {
         'yegoboxLoggedInUserPermission',
         'doneDownloadingAsset',
         'doneMigrateToLocal',
-        'forceUPSERT'
+        'forceUPSERT',
+        'dbVersion'
       },
     ));
     return this;
@@ -314,5 +315,9 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   bool forceUPSERT() {
     return prefs.getBool('forceUPSERT') ?? false;
+  }
+  @override
+  int? dbVersion(){
+      return prefs.getInt('dbVersion') ?? 3;
   }
 }

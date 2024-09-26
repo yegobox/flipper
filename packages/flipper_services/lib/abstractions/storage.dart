@@ -55,4 +55,5 @@ abstract class LocalStorage {
   bool doneDownloadingAsset();
   bool doneMigrateToLocal();
   bool forceUPSERT();
+  int? dbVersion();
 }
