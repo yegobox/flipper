@@ -316,8 +316,9 @@ class SharedPreferenceStorage implements LocalStorage {
   bool forceUPSERT() {
     return prefs.getBool('forceUPSERT') ?? false;
   }
+
   @override
-  int? dbVersion(){
-      return prefs.getInt('dbVersion') ?? 3;
+  int? dbVersion() {
+    return prefs.getInt('dbVersion') ?? 5;
   }
 }

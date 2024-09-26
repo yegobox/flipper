@@ -85,7 +85,7 @@ Future<void> initializeDependencies() async {
   // FirebaseFirestore.instance.settings = const Settings(
   //   persistenceEnabled: true,
   // );
-  await openDatabase();
+
   _configureAmplify();
   if (!isWindows) {
     ///https://firebase.google.com/docs/app-check/flutter/debug-provider?hl=en&authuser=1
@@ -132,6 +132,7 @@ Future<void> initializeDependencies() async {
   );
   setupDialogUi();
   setupBottomSheetUi();
+  await openDatabase();
 
   ///Will switch to localNotification when it support windows
   if (isAndroid || isIos && !isWeb) {

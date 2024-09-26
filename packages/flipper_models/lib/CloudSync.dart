@@ -25,6 +25,7 @@ abstract class SyncInterface {
   Future<void> watchTable<T extends RealmObject>({
     required String tableName,
     required String idField,
+    bool useWatch = false,
     required T Function(Map<String, dynamic>) createRealmObject,
     required void Function(T, Map<String, dynamic>) updateRealmObject,
   });
@@ -135,12 +136,39 @@ class CloudSync implements SyncInterface {
     required String idField,
     required T Function(Map<String, dynamic>) createRealmObject,
     required void Function(T, Map<String, dynamic>) updateRealmObject,
+    bool useWatch = false, // ... existing code ...
   }) async {
     try {
-      final results =
-          await db.execute('SELECT * FROM $tableName ORDER BY created_at DESC');
-      for (var data in results) {
-        try {
+      if (useWatch) {
+        final changes =
+            await db.watch('SELECT * FROM $tableName ORDER BY created_at DESC');
+        changes.listen((data) {
+          for (var item in data) {
+            final id = item[idField];
+
+            // Add this ID to the processing set
+            _processingIds.add(id);
+
+            // Find existing object or create a new one
+            var realmObject =
+                ProxyService.local.realm!.query<T>('id == $id').firstOrNull;
+            if (realmObject == null) {
+              realmObject = createRealmObject(item);
+              ProxyService.local.realm!.add<T>(realmObject);
+            } else {
+              updateRealmObject(realmObject, item);
+            }
+
+            // Remove this ID from the processing set after a short delay
+            Future.delayed(Duration(seconds: 2), () {
+              _processingIds.remove(id);
+            });
+          }
+        });
+      } else {
+        final results = await db
+            .execute('SELECT * FROM $tableName ORDER BY created_at DESC');
+        for (var data in results) {
           final id = data[idField];
 
           // Add this ID to the processing set
@@ -160,9 +188,6 @@ class CloudSync implements SyncInterface {
           Future.delayed(Duration(seconds: 2), () {
             _processingIds.remove(id);
           });
-        } catch (e, s) {
-          print('Error processing event for $tableName: $e');
-          print('Error processing event for $tableName: $s');
         }
       }
     } catch (e, s) {
@@ -172,8 +197,6 @@ class CloudSync implements SyncInterface {
 
   @override
   void listen() {
-    ///wathers for update
-
     ///watchers for upload
 
     handleChanges<Stock>(

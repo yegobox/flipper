@@ -31,13 +31,13 @@
             "type": "dart",
             "flutterMode": "profile"
         },
-        {
-            "name": "flipper (release mode)",
-            "cwd": "apps/flipper",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release"
-        },
+        // {
+        //     "name": "flipper (release mode)",
+        //     "cwd": "apps/flipper",
+        //     "request": "launch",
+        //     "type": "dart",
+        //     "flutterMode": "release"
+        // },
         {
             "name": "cli_dialog",
             "cwd": "open-sources/cli_dialog",

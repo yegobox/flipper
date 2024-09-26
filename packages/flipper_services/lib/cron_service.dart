@@ -137,6 +137,61 @@ class CronService with Subscriptions {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
+    /// listen for change and do not
+    ProxyService.synchronize.watchTable<Stock>(
+      tableName: 'stocks',
+      idField: 'stock_id',
+      useWatch: true,
+      createRealmObject: (data) {
+        return Stock(
+          ObjectId(),
+          currentStock: data['currentStock'],
+          sold: data['sold'],
+          lowStock: data['lowStock'],
+          canTrackingStock: data['canTrackingStock'],
+          showLowStockAlert: data['showLowStockAlert'],
+          productId: data['product_id'],
+          active: data['active'],
+          value: data['value'],
+          rsdQty: data['rsdQty'],
+          supplyPrice: data['supplyPrice'],
+          retailPrice: data['retailPrice'],
+          lastTouched: DateTime.parse(data['lastTouched']),
+          branchId: data['branch_id'],
+          variantId: data['variant_id'],
+          action: data['action'],
+          deletedAt: data['deletedAt'] != null
+              ? DateTime.parse(data['deletedAt'])
+              : null,
+          ebmSynced: data['ebmSynced'] ?? false,
+        );
+      },
+      updateRealmObject: (_stock, data) {
+        //find related variant
+        Variant? variant = ProxyService.local.realm!
+            .query<Variant>(r'id == $0', [data['variant_id']]).firstOrNull;
+        final Stock? stock = ProxyService.local.stockByVariantId(
+            variantId: data['variant_id'], branchId: data['branch_id']);
+        if (variant != null && stock != null) {
+          ProxyService.local.realm!.write(() {
+            /// keep stock in sync
+            stock.currentStock = double.parse(data['current_stock']);
+            stock.rsdQty = double.parse(data['current_stock']);
+            stock.lastTouched = DateTime.parse(data['last_touched']);
+
+            /// keep variant in sync
+            variant.qty = double.parse(data['current_stock']);
+
+            variant.rsdQty = double.parse(data['current_stock']);
+
+            variant.ebmSynced = false;
+            talker.warning(
+                "done updating variant & stock ${data['current_stock']}");
+          });
+        }
+      },
+    );
+
     Timer.periodic(_keepRealmInSync(), (Timer t) async {
       /// constantly download update from sqlite3
       ProxyService.synchronize.watchTable<Stock>(
@@ -185,24 +240,12 @@ class CronService with Subscriptions {
               variant.rsdQty = double.parse(data['current_stock']);
 
               variant.ebmSynced = false;
-              talker.warning(
-                  "done updating variant & stock ${data['current_stock']}");
             });
           }
         },
       );
     });
     // create a compute function to keep track of unsaved data back to EBM do this in background
-    if (await ProxyService.status.isInternetAvailable()) {
-      // updateSubscription(
-      //   branchId: ProxyService.box.getBranchId(),
-      //   businessId: ProxyService.box.getBusinessId(),
-      //   userId: ProxyService.box.getUserId(),
-      //   realm: ProxyService.local.realm,
-      //   localRealm: ProxyService.local.realm,
-      // );
-    }
-
     /// keep assets downloaded and saved locally as they are added by other users in same business/branch
     Timer.periodic(_downloadFileSchele(), (Timer t) async {
       try {
@@ -473,7 +516,7 @@ class CronService with Subscriptions {
   }
 
   Duration _keepRealmInSync() {
-    return Duration(seconds: kDebugMode ? 10 : 20);
+    return Duration(minutes: kDebugMode ? 10 : 10);
   }
 
   Duration _getBackUpDuration() {

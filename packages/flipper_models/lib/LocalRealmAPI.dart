@@ -93,7 +93,7 @@ class LocalRealmApi
 
         // Construct the full path to the database file
         final String fileName = '$path.realm';
-        talker.warning("DBPATH:${p.join(realmDirectory, fileName)}");
+
         return p.join(realmDirectory, fileName);
       } catch (e) {
         // Handle any exceptions that might occur
