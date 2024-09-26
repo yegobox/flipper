@@ -185,7 +185,8 @@ class CronService with Subscriptions {
               variant.rsdQty = double.parse(data['current_stock']);
 
               variant.ebmSynced = false;
-              talker.warning("done updating variant & stock");
+              talker.warning(
+                  "done updating variant & stock ${data['current_stock']}");
             });
           }
         },

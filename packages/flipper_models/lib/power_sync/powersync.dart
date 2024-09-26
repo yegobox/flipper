@@ -162,8 +162,9 @@ Future<String> getDatabasePath() async {
   if (kIsWeb) {
     return dbFilename;
   }
+  // /Users/richard/Library/Containers/rw.flipper/Data/Documents/3/flipper.db
   final dir = await getApplicationDocumentsDirectory();
-  final version = "2";
+  final version = "3";
   // Ensure the '2' directory exists
   final versionedDir = Directory(join(dir.path, version));
   if (!await versionedDir.exists()) {
