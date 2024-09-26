@@ -340,7 +340,7 @@ class RWTax implements TaxApi {
 
 // Helper function to map TransactionItem to JSON
   Map<String, dynamic> mapItemToJson(TransactionItem item, Business? business) {
-    return ITransactionItem(
+    final itemJson = ITransactionItem(
       id: item.id,
       qty: item.qty,
       discount: item.discount,
@@ -353,11 +353,14 @@ class RWTax implements TaxApi {
       dcRt: item.dcRt,
       pkg: item.pkg,
       dcAmt: item.dcAmt,
-      taxblAmt: item.taxAmt,
-      taxAmt: item.taxAmt,
+      taxblAmt: (item.price * item.qty),
+      taxAmt: double.parse(((item.taxTyCd == "B")
+              ? (item.price * item.qty * 0.15254) // 18/118
+              : 0)
+          .toStringAsFixed(2)),
       itemClsCd: item.itemClsCd,
       itemNm: item.name,
-      totAmt: item.totAmt,
+      totAmt: item.price * item.qty,
       itemSeq: item.itemSeq,
       isrccCd: item.isrccCd,
       isrccNm: item.isrccNm,
@@ -382,6 +385,8 @@ class RWTax implements TaxApi {
       modrNm: item.modrNm ?? "Modifier", // Ensure modrNm is not null
       name: item.name,
     ).toJson();
+    talker.warning("ItemOnReceipt ${itemJson}");
+    return itemJson;
   }
 
 // Helper function to calculate tax totals
