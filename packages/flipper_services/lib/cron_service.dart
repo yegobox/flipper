@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/Subcriptions.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
@@ -247,7 +246,7 @@ class CronService with Subscriptions {
     });
     // create a compute function to keep track of unsaved data back to EBM do this in background
     /// keep assets downloaded and saved locally as they are added by other users in same business/branch
-    Timer.periodic(_downloadFileSchele(), (Timer t) async {
+    Timer.periodic(_downloadFileSchedule(), (Timer t) async {
       try {
         final downloadQueue = DownloadQueue(3);
 
@@ -281,16 +280,15 @@ class CronService with Subscriptions {
       }
     });
 
-    Timer.periodic(_getBackUpDuration(), (Timer t) async {
-      // final firestore = FirebaseFirestore.instance;
-      // final backupService = BackupService(firestore);
-      // await backupService.backUp(
-      //   branchId: ProxyService.box.getBranchId()!,
-      //   encryptionKey: ProxyService.box.encryptionKey(),
-      //   dbPath: await ProxyService.realm
-      //       .dbPath(path: 'synced', folder: ProxyService.box.getBusinessId()),
-      // );
-    });
+    // Timer.periodic(_getBackUpDuration(), (Timer t) async {
+    //   // final firestore = FirebaseFirestore.instance;
+    //   await CloudSync().backUp(
+    //     branchId: ProxyService.box.getBranchId()!,
+    //     encryptionKey: ProxyService.box.encryptionKey(),
+    //     dbPath: await ProxyService.realm
+    //         .dbPath(path: 'synced', folder: ProxyService.box.getBusinessId()),
+    //   );
+    // });
 
     /// heart beat
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
@@ -511,7 +509,7 @@ class CronService with Subscriptions {
     return Duration(minutes: kDebugMode ? 10 : 20);
   }
 
-  Duration _downloadFileSchele() {
+  Duration _downloadFileSchedule() {
     return Duration(minutes: kDebugMode ? 1 : 2);
   }
 
@@ -520,7 +518,7 @@ class CronService with Subscriptions {
   }
 
   Duration _getBackUpDuration() {
-    return Duration(hours: kDebugMode ? 8 : 10);
+    return Duration(hours: kDebugMode ? 4 : 4);
   }
 
   Duration _getHeartBeatDuration() {

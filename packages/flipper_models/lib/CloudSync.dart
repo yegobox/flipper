@@ -4,23 +4,25 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flipper_models/secrets.dart';
 // ignore: unused_import
 import 'dart:async';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/realmModels.dart';
 
 enum SyncProvider { POWERSYNC, FIRESTORE }
 
 abstract class SyncInterface {
   Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch);
-  Future<void> handleChanges<T>({
-    required RealmResults<T> results,
-    required String tableName,
-    required String idField,
-    required int Function(T) getId,
-    required Map<String, dynamic> Function(T) convertToMap,
-    required Function(Map<String, dynamic>) preProcessMap,
-  });
+  Future<void> handleChanges<T>(
+      {required RealmResults<T> results,
+      required String tableName,
+      required String idField,
+      required int Function(T) getId,
+      required Map<String, dynamic> Function(T) convertToMap,
+      required Function(Map<String, dynamic>) preProcessMap,
+      required SyncProvider syncProvider});
   Future<void> deleteRecord(String tableName, String idField, int id);
   Future<void> updateRecord(
       {required String tableName,
@@ -37,6 +39,10 @@ abstract class SyncInterface {
     required T Function(Map<String, dynamic>) createRealmObject,
     required void Function(T, Map<String, dynamic>) updateRealmObject,
   });
+  Future<void> backUp(
+      {required int branchId,
+      required String encryptionKey,
+      required String dbPath});
 }
 
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
@@ -83,19 +89,29 @@ class CloudSync implements SyncInterface {
   }
 
   @override
-  Future<void> handleChanges<T>({
-    required RealmResults<T> results,
-    required String tableName,
-    required String idField,
-    required int Function(T) getId,
-    required Map<String, dynamic> Function(T) convertToMap,
-    required Function(Map<String, dynamic>) preProcessMap,
-  }) async {
+  Future<void> handleChanges<T>(
+      {required RealmResults<T> results,
+      required String tableName,
+      required String idField,
+      required int Function(T) getId,
+      required Map<String, dynamic> Function(T) convertToMap,
+      required Function(Map<String, dynamic>) preProcessMap,
+      required SyncProvider syncProvider}) async {
     results.changes.listen(
       (changes) async {
         for (var obj in changes.modified) {
           final modifiedItem = results[obj];
           final id = getId(modifiedItem);
+          Map<String, dynamic> map = convertToMap(modifiedItem);
+          if (syncProvider == SyncProvider.FIRESTORE) {
+            await updateRecord(
+                tableName: tableName,
+                idField: idField,
+                map: map,
+                id: id,
+                syncProvider: SyncProvider.POWERSYNC);
+            return;
+          }
 
           // Skip if this ID is currently being processed by watchTable
           if (_processingIds.contains(id)) continue;
@@ -107,7 +123,6 @@ class CloudSync implements SyncInterface {
 
           if (item != null) {
             try {
-              Map<String, dynamic> map = convertToMap(modifiedItem);
               preProcessMap(map);
 
               bool hasChanges = compareChanges(item, map);
@@ -120,9 +135,8 @@ class CloudSync implements SyncInterface {
                     id: id,
                     syncProvider: SyncProvider.POWERSYNC);
               }
-            } catch (e, s) {
-              print(e);
-              print(s);
+            } catch (e) {
+              throw Exception();
             }
           }
         }
@@ -142,9 +156,7 @@ class CloudSync implements SyncInterface {
           }
         }
       },
-      onError: (error) {
-        print('Error occurred while listening to changes: $error');
-      },
+      onError: (error) {},
     );
   }
 
@@ -269,6 +281,7 @@ class CloudSync implements SyncInterface {
     ///watchers for upload
 
     handleChanges<Stock>(
+      syncProvider: SyncProvider.FIRESTORE,
       results: ProxyService.local.realm!.all<Stock>(),
       tableName: 'stocks',
       idField: 'stock_id',
@@ -283,6 +296,7 @@ class CloudSync implements SyncInterface {
     );
 
     handleChanges<Product>(
+      syncProvider: SyncProvider.FIRESTORE,
       results: ProxyService.local.realm!.all<Product>(),
       tableName: 'products',
       idField: 'product_id',
@@ -297,6 +311,7 @@ class CloudSync implements SyncInterface {
     );
 
     handleChanges<Variant>(
+      syncProvider: SyncProvider.FIRESTORE,
       results: ProxyService.local.realm!.all<Variant>(),
       tableName: 'variants',
       idField: 'variant_id',
@@ -311,6 +326,7 @@ class CloudSync implements SyncInterface {
     );
 
     handleChanges<Counter>(
+      syncProvider: SyncProvider.FIRESTORE,
       results: ProxyService.local.realm!.all<Counter>(),
       tableName: 'counters',
       idField: 'counter_id',
@@ -322,5 +338,52 @@ class CloudSync implements SyncInterface {
         map.remove('_id');
       },
     );
+  }
+
+  static const int BATCH_SIZE = 100;
+  Realm? _realm;
+  Future<void> backUp(
+      {required int branchId,
+      required String encryptionKey,
+      required String dbPath}) async {
+    final app = App.getById(AppSecrets.appId);
+    final user = app?.currentUser;
+    if (user == null) return;
+
+    FlexibleSyncConfiguration config = Configuration.flexibleSync(
+      user,
+      realmModels,
+      encryptionKey: encryptionKey.toIntList(),
+      path: dbPath,
+    );
+
+    _realm?.close();
+    _realm = Realm(config);
+
+    try {
+      List<TransactionItem> items = _realm!
+          .query<TransactionItem>(r'branchId == $0', [branchId]).toList();
+      List<List<TransactionItem>> batches =
+          _splitIntoBatches(items, BATCH_SIZE);
+
+      for (var batch in batches) {
+        await CloudSync().processbatchBackUp(batch);
+      }
+      talker.info("Backup completed successfully for branch $branchId");
+    } catch (e, stackTrace) {
+      talker.error("Error during backup for branch $branchId: $e", stackTrace);
+      rethrow;
+    } finally {
+      _realm?.close();
+    }
+  }
+
+  List<List<TransactionItem>> _splitIntoBatches(
+      List<TransactionItem> items, int batchSize) {
+    return [
+      for (var i = 0; i < items.length; i += batchSize)
+        items.sublist(
+            i, i + batchSize > items.length ? items.length : i + batchSize)
+    ];
   }
 }
