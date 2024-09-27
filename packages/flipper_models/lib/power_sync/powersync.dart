@@ -179,7 +179,7 @@ Future<String> getDatabasePath() async {
 Future<void> openDatabase() async {
   // Open the local database
   db = PowerSyncDatabase(
-      schema: schema, path: await getDatabasePath(), logger: attachedLogger);
+      schema: schema, path: await getDatabasePath(), logger: attachedLogger,);
   await db.initialize();
 
   await loadSupabase();
