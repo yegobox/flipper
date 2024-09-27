@@ -4178,6 +4178,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     bool ebmSynced = false,
     String taxType = "B",
     Iterable<int> branchIds = const [],
+    Stock? stock,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Variant>({
@@ -4264,6 +4265,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'taxType', taxType);
     RealmObjectBase.set<RealmList<int>>(
         this, 'branchIds', RealmList<int>(branchIds));
+    RealmObjectBase.set(this, 'stock', stock);
   }
 
   Variant._();
@@ -4570,6 +4572,12 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       throw RealmUnsupportedSetError();
 
   @override
+  Stock? get stock => RealmObjectBase.get<Stock>(this, 'stock') as Stock?;
+  @override
+  set stock(covariant Stock? value) =>
+      RealmObjectBase.set(this, 'stock', value);
+
+  @override
   Stream<RealmObjectChanges<Variant>> get changes =>
       RealmObjectBase.getChanges<Variant>(this);
 
@@ -4635,6 +4643,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       'ebmSynced': ebmSynced.toEJson(),
       'taxType': taxType.toEJson(),
       'branchIds': branchIds.toEJson(),
+      'stock': stock.toEJson(),
     };
   }
 
@@ -4699,6 +4708,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
           ebmSynced: fromEJson(ejson['ebmSynced'], defaultValue: false),
           taxType: fromEJson(ejson['taxType'], defaultValue: "B"),
           branchIds: fromEJson(ejson['branchIds']),
+          stock: fromEJson(ejson['stock']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -4765,6 +4775,8 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('taxType', RealmPropertyType.string),
       SchemaProperty('branchIds', RealmPropertyType.int,
           collectionType: RealmCollectionType.list),
+      SchemaProperty('stock', RealmPropertyType.object,
+          optional: true, linkTarget: 'Stock'),
     ]);
   }();
 

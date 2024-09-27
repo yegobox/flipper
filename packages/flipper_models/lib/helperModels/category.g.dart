@@ -7,11 +7,11 @@ part of 'category.dart';
 // **************************************************************************
 
 Category _$CategoryFromJson(Map<String, dynamic> json) => Category(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       active: json['active'] as bool,
       focused: json['focused'] as bool,
       name: json['name'] as String,
-      branchId: json['branchId'] as int,
+      branchId: (json['branchId'] as num).toInt(),
     )
       ..action = json['action'] as String
       ..deletedAt = json['deletedAt'] == null

@@ -580,5 +580,20 @@ class IsolateHandler with Subscriptions {
         });
       }
     }
+
+    /// check for variant that do not have stock assigned asign it
+    for (Variant variant in variants) {
+      if (variant.stock == null) {
+        /// find stock assign it
+        Stock? stock = realm.query<Stock>(r'variantId ==$0 && branchId == $1',
+            [variant.id, variant.branchId]).firstOrNull;
+        if (stock != null) {
+          realm.write(() {
+            variant.stock = stock;
+            talker.warning("Deleted ebm config");
+          });
+        }
+      }
+    }
   }
 }

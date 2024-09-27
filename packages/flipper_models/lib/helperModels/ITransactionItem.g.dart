@@ -8,10 +8,10 @@ part of 'ITransactionItem.dart';
 
 ITransactionItem _$ITransactionItemFromJson(Map<String, dynamic> json) =>
     ITransactionItem(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       name: json['name'] as String?,
-      transactionId: json['transactionId'] as int?,
-      variantId: json['variantId'] as int?,
+      transactionId: (json['transactionId'] as num?)?.toInt(),
+      variantId: (json['variantId'] as num?)?.toInt(),
       qty: (json['qty'] as num?)?.toDouble() ?? 0.0,
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       discount: (json['discount'] as num?)?.toDouble() ?? 0.0,
@@ -28,11 +28,11 @@ ITransactionItem _$ITransactionItemFromJson(Map<String, dynamic> json) =>
       taxblAmt: (json['taxblAmt'] as num?)?.toDouble() ?? 0.0,
       taxAmt: (json['taxAmt'] as num?)?.toDouble() ?? 0.0,
       totAmt: (json['totAmt'] as num?)?.toDouble() ?? 0.0,
-      itemSeq: json['itemSeq'] as int?,
+      itemSeq: (json['itemSeq'] as num?)?.toInt(),
       isrccCd: json['isrccCd'] as String?,
       isrccNm: json['isrccNm'] as String?,
-      isrcRt: json['isrcRt'] as int?,
-      isrcAmt: json['isrcAmt'] as int?,
+      isrcRt: (json['isrcRt'] as num?)?.toInt(),
+      isrcAmt: (json['isrcAmt'] as num?)?.toInt(),
       taxTyCd: json['taxTyCd'] as String?,
       bcd: json['bcd'] as String?,
       itemClsCd: json['itemClsCd'] as String?,
@@ -46,7 +46,7 @@ ITransactionItem _$ITransactionItemFromJson(Map<String, dynamic> json) =>
       itemNm: json['itemNm'] as String?,
       prc: (json['prc'] as num?)?.toDouble() ?? 0.0,
       splyAmt: (json['splyAmt'] as num?)?.toDouble() ?? 0.0,
-      tin: json['tin'] as int?,
+      tin: (json['tin'] as num?)?.toInt(),
       bhfId: json['bhfId'] as String?,
       dftPrc: (json['dftPrc'] as num?)?.toDouble(),
       addInfo: json['addInfo'] as String?,
@@ -63,7 +63,7 @@ ITransactionItem _$ITransactionItemFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['deletedAt'] as String),
       action: json['action'] as String?,
-      branchId: json['branchId'] as int?,
+      branchId: (json['branchId'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$ITransactionItemToJson(ITransactionItem instance) =>

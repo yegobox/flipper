@@ -39,6 +39,7 @@ mixin ProductMixin {
           variations[i].itemNm = variations[i].name;
           variations[i].regrId = randomNumber().toString().substring(0, 5);
           variations[i].rsdQty = variations[i].qty;
+          variations[i].qty = variations[i].qty;
           variations[i].itemTyCd = "2"; // this is a finished product
           /// available type for itemTyCd are 1 for raw material and 3 for service
           /// is insurance applicable default is not applicable
@@ -77,7 +78,7 @@ mixin ProductMixin {
           variations[i].qtyUnitCd = "U"; // see 4.6 in doc
           updatables.add(variations[i]);
         }
-
+       
         ProxyService.realm.addVariant(
             variations: updatables, branchId: ProxyService.box.getBranchId()!);
       });

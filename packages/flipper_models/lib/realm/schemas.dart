@@ -607,6 +607,7 @@ class _Variant {
   /// it can be A for exempted, B, C or D
   /// we want to assign this variant to multiple branch
   late List<int> branchIds;
+  late _Stock? stock;
 }
 
 @RealmModel()

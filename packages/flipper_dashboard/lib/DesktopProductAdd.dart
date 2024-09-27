@@ -149,7 +149,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     VoidCallback onDialogClosed,
   ) {
     TextEditingController quantityController =
-        TextEditingController(text: variant.qty.toString());
+        TextEditingController(text: variant.stock?.currentStock.toString());
 
     // Create a FocusNode and set autofocus to true
     FocusNode focusNode = FocusNode();
@@ -1045,7 +1045,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                         ),
                         DataCell(
                           QuantityCell(
-                            quantity: variant.qty,
+                            quantity: variant.stock?.currentStock,
                             onEdit: () {
                               _showEditQuantityDialog(
                                 context,

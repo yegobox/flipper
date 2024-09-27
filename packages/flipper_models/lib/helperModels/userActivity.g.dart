@@ -7,9 +7,9 @@ part of 'userActivity.dart';
 // **************************************************************************
 
 Activity _$ActivityFromJson(Map<String, dynamic> json) => Activity(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       timestamp: DateTime.parse(json['timestamp'] as String),
-      userId: json['userId'] as int,
+      userId: (json['userId'] as num).toInt(),
       action: json['action'] as String,
       lastTouched: json['lastTouched'] == null
           ? null

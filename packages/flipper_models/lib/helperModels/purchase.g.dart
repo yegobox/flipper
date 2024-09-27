@@ -7,7 +7,7 @@ part of 'purchase.dart';
 // **************************************************************************
 
 Purchase _$PurchaseFromJson(Map<String, dynamic> json) => Purchase(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       itemIds:
           (json['itemIds'] as List<dynamic>).map((e) => e as String).toList(),
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -17,8 +17,8 @@ Purchase _$PurchaseFromJson(Map<String, dynamic> json) => Purchase(
           : DateTime.parse(json['lastTouched'] as String),
       tin: json['tin'] as String?,
       bhfId: json['bhfId'] as String?,
-      invcNo: json['invcNo'] as int?,
-      orgInvcNo: json['orgInvcNo'] as int?,
+      invcNo: (json['invcNo'] as num?)?.toInt(),
+      orgInvcNo: (json['orgInvcNo'] as num?)?.toInt(),
       spplrTin: json['spplrTin'] as String?,
       spplrBhfId: json['spplrBhfId'] as String?,
       spplrNm: json['spplrNm'] as String?,
@@ -34,7 +34,7 @@ Purchase _$PurchaseFromJson(Map<String, dynamic> json) => Purchase(
       cnclReqDt: json['cnclReqDt'] as String?,
       cnclDt: json['cnclDt'] as String?,
       rfdDt: json['rfdDt'] as String?,
-      totItemCnt: json['totItemCnt'] as int?,
+      totItemCnt: (json['totItemCnt'] as num?)?.toInt(),
       taxblAmtA: (json['taxblAmtA'] as num?)?.toDouble(),
       taxblAmtB: (json['taxblAmtB'] as num?)?.toDouble(),
       taxblAmtC: (json['taxblAmtC'] as num?)?.toDouble(),
@@ -51,9 +51,9 @@ Purchase _$PurchaseFromJson(Map<String, dynamic> json) => Purchase(
       totTaxAmt: (json['totTaxAmt'] as num?)?.toDouble(),
       totAmt: (json['totAmt'] as num?)?.toDouble(),
       remark: json['remark'] as String?,
-      modrId: json['modrId'] as int?,
+      modrId: (json['modrId'] as num?)?.toInt(),
       modrNm: json['modrNm'] as String?,
-      regrId: json['regrId'] as int?,
+      regrId: (json['regrId'] as num?)?.toInt(),
     )..deletedAt = json['deletedAt'] == null
         ? null
         : DateTime.parse(json['deletedAt'] as String);
