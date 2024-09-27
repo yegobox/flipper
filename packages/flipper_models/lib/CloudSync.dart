@@ -3,12 +3,16 @@ import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 // ignore: unused_import
 import 'dart:async';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
 
+enum SyncProvider { POWERSYNC, FIRESTORE }
+
 abstract class SyncInterface {
+  Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch);
   Future<void> handleChanges<T>({
     required RealmResults<T> results,
     required String tableName,
@@ -19,7 +23,11 @@ abstract class SyncInterface {
   });
   Future<void> deleteRecord(String tableName, String idField, int id);
   Future<void> updateRecord(
-      String tableName, String idField, Map<String, dynamic> map, int id);
+      {required String tableName,
+      required String idField,
+      required Map<String, dynamic> map,
+      required int id,
+      required SyncProvider syncProvider});
   void listen();
   SyncInterface instance();
   Future<void> watchTable<T extends RealmObject>({
@@ -31,12 +39,47 @@ abstract class SyncInterface {
   });
 }
 
+/// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
+/// anotherone to acheive sync for flipper app
+
 class CloudSync implements SyncInterface {
+  // static final CloudSync _instance = CloudSync._internal();
+  // CloudSync._internal();
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   final Set<int> _processingIds = {};
 
   @override
   SyncInterface instance() {
     return this;
+  }
+
+  @override
+  Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch) async {
+    WriteBatch writeBatch = _firestore.batch();
+
+    for (T item in batch) {
+      // Changed TransactionItem to T
+
+      final data = item.toEJson().toFlipperJson();
+      final docRef =
+          _firestore.collection('transactionsItems').doc(data['id'].toString());
+
+      // Check if the document exists
+      final docSnapshot = await docRef.get();
+
+      if (docSnapshot.exists) {
+        writeBatch.update(docRef, data);
+      } else {
+        writeBatch.set(docRef, data);
+      }
+    }
+
+    // Commit the batch
+    await writeBatch.commit();
+
+    talker.info("Processed and committed batch of ${batch.length} items");
   }
 
   @override
@@ -70,7 +113,12 @@ class CloudSync implements SyncInterface {
               bool hasChanges = compareChanges(item, map);
 
               if (hasChanges) {
-                await updateRecord(tableName, idField, map, id);
+                await updateRecord(
+                    tableName: tableName,
+                    idField: idField,
+                    map: map,
+                    id: id,
+                    syncProvider: SyncProvider.POWERSYNC);
               }
             } catch (e, s) {
               print(e);
@@ -109,16 +157,37 @@ class CloudSync implements SyncInterface {
   }
 
   @override
-  Future<void> updateRecord(String tableName, String idField,
-      Map<String, dynamic> map, int id) async {
+  Future<void> updateRecord(
+      {required String tableName,
+      required String idField,
+      required Map<String, dynamic> map,
+      required int id,
+      required SyncProvider syncProvider}) async {
     final keysToUpdate =
         map.keys.map((key) => '${camelToSnakeCase(key)} = ?').join(', ');
     final valuesToUpdate = map.values.toList();
 
-    await db.execute(
-      'UPDATE $tableName SET $keysToUpdate WHERE $idField = ?',
-      [...valuesToUpdate, id],
-    );
+    if (syncProvider == SyncProvider.POWERSYNC) {
+      await db.execute(
+        'UPDATE $tableName SET $keysToUpdate WHERE $idField = ?',
+        [...valuesToUpdate, id],
+      );
+    }
+    if (syncProvider == SyncProvider.FIRESTORE) {
+      // Check if the document already exists
+      final docRef = _firestore.collection(tableName).doc(id.toString());
+      final docSnapshot = await docRef.get();
+
+      if (docSnapshot.exists) {
+        talker.warning("UpdatedFirestore");
+        // Update existing document
+        await docRef.update(map);
+      } else {
+        talker.warning("created");
+        // Create new document
+        await docRef.set(map);
+      }
+    }
   }
 
   bool compareChanges(Map<String, dynamic> item, Map<String, dynamic> map) {

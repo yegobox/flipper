@@ -1,4 +1,4 @@
-import 'package:flipper_models/DataBackUp.dart';
+
 import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/RealmAPIMocked.dart';
@@ -324,10 +324,7 @@ abstract class ServicesModule {
     }
   }
 
-  @LazySingleton()
-  CoreData backUp() {
-    return DataBackUp();
-  }
+ 
 
   //TODOcheck if code from LanguageService can work fully on windows
   @LazySingleton()
