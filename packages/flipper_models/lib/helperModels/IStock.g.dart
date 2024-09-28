@@ -7,16 +7,16 @@ part of 'IStock.dart';
 // **************************************************************************
 
 IStock _$IStockFromJson(Map<String, dynamic> json) => IStock(
-      id: json['id'] as int?,
-      tin: json['tin'] as int?,
+      id: (json['id'] as num?)?.toInt(),
+      tin: (json['tin'] as num?)?.toInt(),
       bhfId: json['bhfId'] as String?,
-      branchId: json['branchId'] as int?,
-      variantId: json['variantId'] as int?,
+      branchId: (json['branchId'] as num?)?.toInt(),
+      variantId: (json['variantId'] as num?)?.toInt(),
       lowStock: (json['lowStock'] as num?)?.toDouble() ?? 0,
       currentStock: (json['currentStock'] as num?)?.toDouble() ?? 0.0,
       canTrackingStock: json['canTrackingStock'] as bool? ?? true,
       showLowStockAlert: json['showLowStockAlert'] as bool? ?? true,
-      productId: json['productId'] as int?,
+      productId: (json['productId'] as num?)?.toInt(),
       active: json['active'] as bool?,
       value: (json['value'] as num?)?.toDouble() ?? 0.0,
       rsdQty: (json['rsdQty'] as num?)?.toDouble() ?? 0.0,

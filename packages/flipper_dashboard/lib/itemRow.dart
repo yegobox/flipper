@@ -217,16 +217,13 @@ class _RowItemState extends ConsumerState<RowItem> with Refresh {
             ProxyService.local.composites(productId: product.id!);
         for (Composite composite in composites) {
           /// find a stock for a given variant
-          Stock? stock = ProxyService.local.stockByVariantId(
-              variantId: composite.variantId!,
-              branchId: ProxyService.box.getBranchId()!);
           Variant? variant =
               ProxyService.local.getVariantById(id: composite.variantId!);
           model.saveTransaction(
             variation: variant!,
             amountTotal: variant.retailPrice,
             customItem: false,
-            currentStock: stock!.currentStock,
+            currentStock: variant.stock!.currentStock,
             pendingTransaction: pendingTransaction,
             partOfComposite: true,
             compositePrice: composite.actualPrice,

@@ -39,6 +39,7 @@ mixin ProductMixin {
           variations[i].itemNm = variations[i].name;
           variations[i].regrId = randomNumber().toString().substring(0, 5);
           variations[i].rsdQty = variations[i].qty;
+          variations[i].qty = variations[i].qty;
           variations[i].itemTyCd = "2"; // this is a finished product
           /// available type for itemTyCd are 1 for raw material and 3 for service
           /// is insurance applicable default is not applicable

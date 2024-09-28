@@ -97,6 +97,8 @@ class CloudSync implements SyncInterface {
       required Map<String, dynamic> Function(T) convertToMap,
       required Function(Map<String, dynamic>) preProcessMap,
       required SyncProvider syncProvider}) async {
+
+        
     results.changes.listen(
       (changes) async {
         for (var obj in changes.modified) {

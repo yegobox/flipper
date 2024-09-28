@@ -14,7 +14,7 @@ IConversation _$IConversationFromJson(Map<String, dynamic> json) =>
       channelType: json['channelType'] as String?,
       fromNumber: json['fromNumber'] as String?,
       toNumber: json['toNumber'] as String?,
-      businessId: json['businessId'] as int?,
+      businessId: (json['businessId'] as num?)?.toInt(),
       createdAt: json['createdAt'] as String?,
       respondedBy: json['respondedBy'] as String?,
       messageType: json['messageType'] as String?,
@@ -29,7 +29,7 @@ IConversation _$IConversationFromJson(Map<String, dynamic> json) =>
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
-      id: json['id'] as int? ?? 0,
+      id: (json['id'] as num?)?.toInt() ?? 0,
     )
       ..action = json['action'] as String
       ..lastTouched = json['lastTouched'] == null

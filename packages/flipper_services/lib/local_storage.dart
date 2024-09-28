@@ -319,6 +319,6 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   int? dbVersion() {
-    return prefs.getInt('dbVersion') ?? 5;
+    return prefs.getInt('dbVersion') ?? 6;
   }
 }

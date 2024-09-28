@@ -11,6 +11,8 @@ import 'package:flipper_models/secrets.dart';
 import 'dart:io';
 import 'schema.dart';
 import 'supabase.dart';
+import 'package:sqlite_async/sqlite_async.dart';
+
 import 'fts_setup.dart';
 
 final log = Logger('powersync-supabase');
@@ -177,9 +179,17 @@ Future<String> getDatabasePath() async {
 }
 
 Future<void> openDatabase() async {
+  db = PowerSyncDatabase.withFactory(
+    DefaultSqliteOpenFactory(path: await getDatabasePath()),
+    schema: schema,
+    logger: attachedLogger,
+  );
   // Open the local database
-  db = PowerSyncDatabase(
-      schema: schema, path: await getDatabasePath(), logger: attachedLogger,);
+  // db = PowerSyncDatabase(
+  //   schema: schema,
+  //   path: await getDatabasePath(),
+  //   logger: attachedLogger,
+  // );
   await db.initialize();
 
   await loadSupabase();
@@ -191,6 +201,7 @@ Future<void> openDatabase() async {
     // Otherwise, connect once logged in.
     print("connector");
     currentConnector = SupabaseConnector(db);
+    // db.isolateConnectionFactory();
     db.connect(connector: currentConnector);
   }
 

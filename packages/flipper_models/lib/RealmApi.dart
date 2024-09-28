@@ -348,6 +348,10 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   void copyRemoteDataToLocalDb() {
+    if (ProxyService.box.doneMigrateToLocal()) {
+      /// we no longer need sync so pause it for now for future removal.
+      oldRealm!.syncSession.pause();
+    }
     if (!ProxyService.box.doneMigrateToLocal()) {
       try {
         // Copy Product objects first in a separate transaction

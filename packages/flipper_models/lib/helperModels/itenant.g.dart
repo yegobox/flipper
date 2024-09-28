@@ -7,20 +7,20 @@ part of 'itenant.dart';
 // **************************************************************************
 
 IITenant _$IITenantFromJson(Map<String, dynamic> json) => IITenant(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       name: json['name'] as String,
       phoneNumber: json['phoneNumber'] as String,
       email: json['email'] as String?,
       nfcEnabled: json['nfcEnabled'] as bool,
-      businessId: json['businessId'] as int,
-      userId: json['userId'] as int,
+      businessId: (json['businessId'] as num).toInt(),
+      userId: (json['userId'] as num).toInt(),
       isDefault: json['isDefault'] as bool,
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
       sessionActive: json['sessionActive'] as bool?,
       isLongPressed: json['isLongPressed'] as bool? ?? false,
-      pin: json['pin'] as int?,
+      pin: (json['pin'] as num?)?.toInt(),
     )
       ..action = json['action'] as String
       ..imageUrl = json['imageUrl'] as String?

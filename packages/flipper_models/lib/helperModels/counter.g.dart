@@ -7,12 +7,12 @@ part of 'counter.dart';
 // **************************************************************************
 
 ICounter _$ICounterFromJson(Map<String, dynamic> json) => ICounter(
-      id: json['id'] as int?,
-      businessId: json['businessId'] as int,
-      branchId: json['branchId'] as int,
+      id: (json['id'] as num?)?.toInt(),
+      businessId: (json['businessId'] as num).toInt(),
+      branchId: (json['branchId'] as num).toInt(),
       receiptType: json['receiptType'] as String,
-      totRcptNo: json['totRcptNo'] as int,
-      curRcptNo: json['curRcptNo'] as int,
+      totRcptNo: (json['totRcptNo'] as num).toInt(),
+      curRcptNo: (json['curRcptNo'] as num).toInt(),
       lastTouched: json['lastTouched'] == null
           ? null
           : DateTime.parse(json['lastTouched'] as String),
