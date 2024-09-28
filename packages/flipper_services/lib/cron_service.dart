@@ -234,7 +234,6 @@ class CronService with Subscriptions {
       getId: (variant) => variant.id!,
       convertToMap: (variant) => variant.toEJson().toFlipperJson(),
       preProcessMap: (map) {
-        map.remove('branchIds');
         map['variant_id'] = map['id'];
         map.remove('id');
         map.remove('_id');
