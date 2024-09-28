@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:isolate';
-// import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/Subcriptions.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
@@ -27,7 +27,90 @@ class IsolateHandler with Subscriptions {
   static Realm? realm;
   static Realm? localRealm;
 
-  static Future<void> cloudSync(List<dynamic> args) async {
+  static Future<void> cloudDownload(List<dynamic> args) async {
+    final rootIsolateToken = args[0] as RootIsolateToken;
+    final sendPort = args[1] as SendPort;
+    String? dbPatch = args[3] as String?;
+    String? key = args[4] as String?;
+    String? local = args[9] as String?;
+
+    if (dbPatch == null || key == null) return;
+    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    try {
+      LocalConfiguration configLocal = localConfig(key.toIntList(), local!);
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      /// re-init firestore
+      final firestore = FirebaseFirestore.instance;
+      localRealm?.close();
+      localRealm = Realm(configLocal);
+      CloudSync(firestore, localRealm!).handleRealmChanges<Stock>(
+        syncProvider: "FIRESTORE",
+        results: localRealm!.all<Stock>(),
+        tableName: 'stocks',
+        idField: 'stock_id',
+        getId: (stock) => stock.id!,
+        convertToMap: (stock) =>
+            stock.toEJson(includeVariant: false).toFlipperJson(),
+        preProcessMap: (map) {
+          map.remove('variant');
+          map['stock_id'] = map['id'];
+          map.remove('id');
+          map.remove('_id');
+        },
+      );
+
+      CloudSync(firestore, localRealm!).handleRealmChanges<Product>(
+        syncProvider: "FIRESTORE",
+        results: localRealm!.all<Product>(),
+        tableName: 'products',
+        idField: 'product_id',
+        getId: (product) => product.id!,
+        convertToMap: (product) => product.toEJson().toFlipperJson(),
+        preProcessMap: (map) {
+          map.remove('composites');
+          map['product_id'] = map['id'];
+          map.remove('id');
+          map.remove('_id');
+        },
+      );
+
+      CloudSync(firestore, localRealm!).handleRealmChanges<Variant>(
+        syncProvider: "FIRESTORE",
+        results: localRealm!.all<Variant>(),
+        tableName: 'variants',
+        idField: 'variant_id',
+        getId: (variant) => variant.id!,
+        convertToMap: (variant) => variant.toEJson().toFlipperJson(),
+        preProcessMap: (map) {
+          map['variant_id'] = map['id'];
+          map.remove('id');
+          map.remove('_id');
+        },
+      );
+
+      CloudSync(firestore, localRealm!).handleRealmChanges<Counter>(
+        syncProvider: "FIRESTORE",
+        results: localRealm!.all<Counter>(),
+        tableName: 'counters',
+        idField: 'counter_id',
+        getId: (counter) => counter.id!,
+        convertToMap: (counter) => counter.toEJson().toFlipperJson(),
+        preProcessMap: (map) {
+          map['counter_id'] = map['id'];
+          map.remove('id');
+          map.remove('_id');
+        },
+      );
+      sendPort.send(1);
+    } catch (e) {
+      talker.error(e);
+    }
+  }
+
+  static Future<void> cloudUpload(List<dynamic> args) async {
     final rootIsolateToken = args[0] as RootIsolateToken;
     final sendPort = args[1] as SendPort;
     String? dbPatch = args[3] as String?;
@@ -47,12 +130,68 @@ class IsolateHandler with Subscriptions {
       localRealm?.close();
       localRealm = Realm(configLocal);
 
-      /// handle change that happen within realm propagate them in ync provider supported
+      CloudSync(firestore, localRealm!).watchTableAsync<Stock>(
+        syncProvider: "FIRESTORE",
+        tableName: 'stocks',
+        idField: 'stock_id',
+        createRealmObject: (data) {
+          return Stock(
+            ObjectId(),
+            currentStock: data['currentStock'],
+            sold: data['sold'],
+            lowStock: data['lowStock'],
+            canTrackingStock: data['canTrackingStock'],
+            showLowStockAlert: data['showLowStockAlert'],
+            productId: data['product_id'],
+            active: data['active'],
+            value: data['value'],
+            rsdQty: data['rsdQty'],
+            supplyPrice: data['supplyPrice'],
+            retailPrice: data['retailPrice'],
+            lastTouched: DateTime.parse(data['lastTouched']),
+            branchId: data['branch_id'],
+            variantId: data['variant_id'],
+            action: data['action'],
+            deletedAt: data['deletedAt'] != null
+                ? DateTime.parse(data['deletedAt'])
+                : null,
+            ebmSynced: data['ebmSynced'] ?? false,
+          );
+        },
+        updateRealmObject: (_stock, data) {
+          //find related variant
+          Variant? variant = localRealm!
+              .query<Variant>(r'id == $0', [data['variant_id']]).firstOrNull;
 
-      // end of handling change for realm
+          final Stock? stock = localRealm!.query<Stock>(
+              r'variantId ==$0 && branchId == $1',
+              [data['variant_id'], data['branch_id']]).firstOrNull;
+          if (variant != null && stock != null) {
+            localRealm!.write(() {
+              /// keep stock in sync
+              try {
+                final finalStock = data['current_stock'] is int ||
+                        data['current_stock'] is double
+                    ? data['current_stock'].toDouble()
+                    : double.parse(data['current_stock']);
+                stock.currentStock = finalStock;
+                stock.rsdQty = finalStock;
+                stock.lastTouched = DateTime.parse(data['last_touched']);
 
-      /// listen for change from sync provider
+                // /// keep variant in sync
+                variant.qty = finalStock;
 
+                variant.rsdQty = finalStock;
+
+                variant.ebmSynced = false;
+              } catch (e, s) {
+                talker.error(e);
+                talker.error(s);
+              }
+            });
+          }
+        },
+      );
       sendPort.send(1);
     } catch (e) {
       talker.error(e);
@@ -137,70 +276,8 @@ class IsolateHandler with Subscriptions {
     for (Variant variant in variants) {
       if (variant.isValid && !variant.ebmSynced) {
         try {
-          IVariant iVariant = IVariant(
-            id: variant.id,
-            deletedAt: variant.deletedAt,
-            name: variant.name,
-            color: variant.color,
-            sku: variant.sku,
-            productId: variant.productId,
-            unit: variant.unit,
-            productName: variant.productName,
-            branchId: variant.branchId,
-            taxName: variant.taxName,
-            taxPercentage: variant.taxPercentage,
-            isTaxExempted: variant.isTaxExempted,
-            itemSeq: variant.itemSeq,
-            isrccCd: variant.isrccCd,
-            isrccNm: variant.isrccNm,
-            isrcRt: variant.isrcRt,
-            isrcAmt: variant.isrcAmt,
-            taxTyCd: variant.taxTyCd,
-            bcd: variant.bcd,
-            itemClsCd: variant.itemClsCd,
-            itemTyCd: variant.itemTyCd,
-            itemStdNm: variant.itemStdNm,
-            orgnNatCd: variant.orgnNatCd,
-            pkg: variant.pkg,
-            itemCd: variant.itemCd,
-            pkgUnitCd: variant.pkgUnitCd,
-            qtyUnitCd: variant.qtyUnitCd,
-            itemNm: variant.itemNm,
-            qty: variant.qty,
-            prc: variant.prc,
-            splyAmt: variant.splyAmt,
-            tin: tinNumber,
-            bhfId: bhfId,
-            dftPrc: variant.dftPrc,
-            addInfo: variant.addInfo,
-            isrcAplcbYn: variant.isrcAplcbYn,
-            useYn: variant.useYn,
-            regrId: variant.regrId,
-            regrNm: variant.regrNm,
-            modrId: variant.modrId,
-            modrNm: variant.modrNm,
-            rsdQty: variant.rsdQty,
-            lastTouched: variant.lastTouched,
-            supplyPrice: variant.supplyPrice,
-            retailPrice: variant.retailPrice,
-            action: variant.action,
-            spplrItemClsCd: variant.spplrItemClsCd,
-            spplrItemCd: variant.spplrItemCd,
-            spplrItemNm: variant.spplrItemNm,
-            ebmSynced: variant.ebmSynced,
-          );
-          // Convert EJsonValue to JSON string
-          // Clipboard.setData(ClipboardData(text: iVariant.toJson().toString()));
-
-          /// is this variant part of the composite product then do not attempt to save to EBM server
-          /// as the respective variant have been saved there already!
-          // Product? product = realm!
-          //     .query<Product>(r'id == $0', [variant.productId]).firstOrNull;
-
-          /// Check if the product exists and is composite
-          // if (product?.isComposite ?? false) {
-          //   return; // Return early if the product is composite
-          // }
+          IVariant iVariant =
+              IVariant.fromJson(variant.toEJson().toFlipperJson());
 
           /// do not attempt saving a variant with missing fields
           if (variant.qtyUnitCd == null ||
@@ -241,58 +318,8 @@ class IsolateHandler with Subscriptions {
             id: stock.id,
             currentStock: stock.currentStock,
           );
-          IVariant iVariant = IVariant(
-            id: variant.id,
-            deletedAt: variant.deletedAt,
-            name: variant.name,
-            color: variant.color,
-            sku: variant.sku,
-            productId: variant.productId,
-            unit: variant.unit,
-            productName: variant.productName,
-            branchId: variant.branchId,
-            taxName: variant.taxName,
-            taxPercentage: variant.taxPercentage,
-            isTaxExempted: variant.isTaxExempted,
-            itemSeq: variant.itemSeq,
-            isrccCd: variant.isrccCd,
-            isrccNm: variant.isrccNm,
-            isrcRt: variant.isrcRt,
-            isrcAmt: variant.isrcAmt,
-            taxTyCd: variant.taxTyCd,
-            bcd: variant.bcd,
-            itemClsCd: variant.itemClsCd,
-            itemTyCd: variant.itemTyCd,
-            itemStdNm: variant.itemStdNm,
-            orgnNatCd: variant.orgnNatCd,
-            pkg: variant.pkg,
-            itemCd: variant.itemCd,
-            pkgUnitCd: variant.pkgUnitCd,
-            qtyUnitCd: variant.qtyUnitCd,
-            itemNm: variant.itemNm,
-            qty: variant.qty,
-            prc: variant.prc,
-            splyAmt: variant.splyAmt,
-            tin: tinNumber,
-            bhfId: bhfId,
-            dftPrc: variant.dftPrc,
-            addInfo: variant.addInfo,
-            isrcAplcbYn: variant.isrcAplcbYn,
-            useYn: variant.useYn,
-            regrId: variant.regrId,
-            regrNm: variant.regrNm,
-            modrId: variant.modrId,
-            modrNm: variant.modrNm,
-            rsdQty: variant.rsdQty,
-            lastTouched: variant.lastTouched,
-            supplyPrice: variant.supplyPrice,
-            retailPrice: variant.retailPrice,
-            action: variant.action,
-            spplrItemClsCd: variant.spplrItemClsCd,
-            spplrItemCd: variant.spplrItemCd,
-            spplrItemNm: variant.spplrItemNm,
-            ebmSynced: variant.ebmSynced,
-          );
+          IVariant iVariant =
+              IVariant.fromJson(variant.toEJson().toFlipperJson());
 
           await RWTax().saveStock(stock: iStock, variant: iVariant, URI: URI);
           sendPort.send('stock:${stock.id}');
@@ -320,29 +347,8 @@ class IsolateHandler with Subscriptions {
           });
           talker.info("saving Customer on EBM server ${customer.toEJson()}");
           if ((customer.custTin?.length ?? 0) < 9) return;
-          ICustomer iCustomer = ICustomer(
-            id: customer.id,
-            custNm: customer.custNm,
-            email: customer.email,
-            telNo: customer.telNo,
-            adrs: customer.adrs,
-            branchId: customer.branchId,
-            updatedAt: customer.updatedAt,
-            custNo: customer.custNo,
-            custTin: customer.custTin,
-            regrNm: customer.regrNm,
-            regrId: customer.regrId,
-            modrNm: customer.modrNm,
-            modrId: customer.modrId,
-            ebmSynced: customer.ebmSynced,
-            lastTouched: customer.lastTouched,
-            action: customer.action,
-            deletedAt: customer.deletedAt,
-            tin: tinNumber,
-            bhfId: bhfId,
-            useYn: customer.useYn,
-            customerType: customer.customerType,
-          );
+          ICustomer iCustomer =
+              ICustomer.fromJson(customer.toEJson().toFlipperJson());
 
           await RWTax().saveCustomer(customer: iCustomer, URI: URI);
           sendPort.send('customer:${customer.id}');

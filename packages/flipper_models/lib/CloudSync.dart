@@ -21,6 +21,15 @@ abstract class SyncInterface {
     required Function(Map<String, dynamic>) preProcessMap,
     required String syncProvider,
   });
+  Future<void> handleRealmChangesAsync<T>({
+    required RealmResults<T> results,
+    required String tableName,
+    required String idField,
+    required int Function(T) getId,
+    required Map<String, dynamic> Function(T) convertToMap,
+    required Function(Map<String, dynamic>) preProcessMap,
+    required String syncProvider,
+  });
   Future<void> deleteRecord(String tableName, String idField, int id);
   Future<void> updateRecord({
     required String tableName,
@@ -31,17 +40,28 @@ abstract class SyncInterface {
   });
   void listen();
   SyncInterface instance();
-  Future<void> watchTable<T extends RealmObject>(
-      {required String tableName,
-      required String idField,
-      bool useWatch = false,
-      required T Function(Map<String, dynamic>) createRealmObject,
-      required void Function(T, Map<String, dynamic>) updateRealmObject,
-      required String syncProvider});
-  Future<void> backUp(
-      {required int branchId,
-      required String encryptionKey,
-      required String dbPath});
+  Future<void> watchTable<T extends RealmObject>({
+    required String tableName,
+    required String idField,
+    bool useWatch = false,
+    required T Function(Map<String, dynamic>) createRealmObject,
+    required void Function(T, Map<String, dynamic>) updateRealmObject,
+    required String syncProvider,
+  });
+
+  Future<void> watchTableAsync<T extends RealmObject>({
+    required String tableName,
+    required String idField,
+    bool useWatch = false,
+    required T Function(Map<String, dynamic>) createRealmObject,
+    required void Function(T, Map<String, dynamic>) updateRealmObject,
+    required String syncProvider,
+  });
+  Future<void> backUp({
+    required int branchId,
+    required String encryptionKey,
+    required String dbPath,
+  });
 }
 
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
@@ -377,5 +397,75 @@ class CloudSync implements SyncInterface {
         items.sublist(
             i, i + batchSize > items.length ? items.length : i + batchSize)
     ];
+  }
+
+  Future<void> watchTableAsync<T extends RealmObject>({
+    required String tableName,
+    required String idField,
+    bool useWatch = false,
+    required T Function(Map<String, dynamic>) createRealmObject,
+    required void Function(T, Map<String, dynamic>) updateRealmObject,
+    required String syncProvider,
+  }) async {
+    if (syncProvider == "FIRESTORE") {
+      try {
+        // Get Firestore collection changes without listening
+        _firestore.collection(tableName).get().then((querySnapshot) {
+          for (var docChange in querySnapshot.docs) {
+            final id = int.parse(docChange.id);
+            final data = docChange.data();
+
+            // Process the document based on the change type
+            // Assuming all changes are either added or modified for this example
+            var realmObject = _realm.query<T>('id == "$id"').firstOrNull;
+            if (realmObject == null) {
+              realmObject = createRealmObject(data);
+              _realm.write(() {
+                _realm.add<T>(realmObject!);
+              });
+            } else {
+              talker.warning("Firestore changes updateRealmObject:)");
+              updateRealmObject(realmObject, data);
+            }
+          }
+        }, onError: (error) {
+          talker.error("Error fetching Firestore changes: $error");
+        });
+      } catch (e) {
+        talker.error("Error fetching Firestore changes: $e");
+      }
+    }
+  }
+
+  Future<void> handleRealmChangesAsync<T>({
+    required RealmResults<T> results,
+    required String tableName,
+    required String idField,
+    required int Function(T) getId,
+    required Map<String, dynamic> Function(T) convertToMap,
+    required Function(Map<String, dynamic>) preProcessMap,
+    required String syncProvider,
+  }) async {
+    //loop through all data and bulk update
+    for (T result in results) {
+      final modifiedItem = results[result.toEJson().toFlipperJson()['id']];
+      final id = getId(modifiedItem);
+      try {
+        Map<String, dynamic> map = convertToMap(modifiedItem);
+        if (syncProvider == 'FIRESTORE') {
+          talker.warning("Change in realm happened");
+          await updateRecord(
+              tableName: tableName,
+              idField: idField,
+              map: map,
+              id: id,
+              syncProvider: syncProvider);
+          return;
+        }
+      } catch (e, s) {
+        talker.warning(e);
+        talker.error(s);
+      }
+    }
   }
 }

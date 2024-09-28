@@ -14,7 +14,7 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_models/DownloadQueue.dart';
 import 'package:flipper_models/CloudSync.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:realm/realm.dart';
+// import 'package:realm/realm.dart';
 
 class CronService with Subscriptions {
   final drive = GoogleDrive();
@@ -191,132 +191,17 @@ class CronService with Subscriptions {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
-    final localRealm = ProxyService.local.realm;
-    final firestore = FirebaseFirestore.instance;
+    // final localRealm = ProxyService.local.realm;
+    // final firestore = FirebaseFirestore.instance;
 
     /// listen for change and do not
-    CloudSync(firestore, localRealm!).handleRealmChanges<Stock>(
-      syncProvider: "FIRESTORE",
-      results: localRealm.all<Stock>(),
-      tableName: 'stocks',
-      idField: 'stock_id',
-      getId: (stock) => stock.id!,
-      convertToMap: (stock) =>
-          stock.toEJson(includeVariant: false).toFlipperJson(),
-      preProcessMap: (map) {
-        map.remove('variant');
-        map['stock_id'] = map['id'];
-        map.remove('id');
-        map.remove('_id');
-      },
-    );
+    await _spawnIsolateLongRunning(
+        "cloudSyncDownload", IsolateHandler.cloudDownload);
 
-    CloudSync(firestore, localRealm).handleRealmChanges<Product>(
-      syncProvider: "FIRESTORE",
-      results: localRealm.all<Product>(),
-      tableName: 'products',
-      idField: 'product_id',
-      getId: (product) => product.id!,
-      convertToMap: (product) => product.toEJson().toFlipperJson(),
-      preProcessMap: (map) {
-        map.remove('composites');
-        map['product_id'] = map['id'];
-        map.remove('id');
-        map.remove('_id');
-      },
-    );
+    Timer.periodic(_keepRealmInSync(), (Timer t) async {
+      await _spawnIsolate("cloudSyncUpload", IsolateHandler.cloudUpload);
+    });
 
-    CloudSync(firestore, localRealm).handleRealmChanges<Variant>(
-      syncProvider: "FIRESTORE",
-      results: localRealm.all<Variant>(),
-      tableName: 'variants',
-      idField: 'variant_id',
-      getId: (variant) => variant.id!,
-      convertToMap: (variant) => variant.toEJson().toFlipperJson(),
-      preProcessMap: (map) {
-        map['variant_id'] = map['id'];
-        map.remove('id');
-        map.remove('_id');
-      },
-    );
-
-    CloudSync(firestore, localRealm).handleRealmChanges<Counter>(
-      syncProvider: "FIRESTORE",
-      results: localRealm.all<Counter>(),
-      tableName: 'counters',
-      idField: 'counter_id',
-      getId: (counter) => counter.id!,
-      convertToMap: (counter) => counter.toEJson().toFlipperJson(),
-      preProcessMap: (map) {
-        map['counter_id'] = map['id'];
-        map.remove('id');
-        map.remove('_id');
-      },
-    );
-
-    CloudSync(firestore, localRealm).watchTable<Stock>(
-      syncProvider: "FIRESTORE",
-      tableName: 'stocks',
-      idField: 'stock_id',
-      createRealmObject: (data) {
-        return Stock(
-          ObjectId(),
-          currentStock: data['currentStock'],
-          sold: data['sold'],
-          lowStock: data['lowStock'],
-          canTrackingStock: data['canTrackingStock'],
-          showLowStockAlert: data['showLowStockAlert'],
-          productId: data['product_id'],
-          active: data['active'],
-          value: data['value'],
-          rsdQty: data['rsdQty'],
-          supplyPrice: data['supplyPrice'],
-          retailPrice: data['retailPrice'],
-          lastTouched: DateTime.parse(data['lastTouched']),
-          branchId: data['branch_id'],
-          variantId: data['variant_id'],
-          action: data['action'],
-          deletedAt: data['deletedAt'] != null
-              ? DateTime.parse(data['deletedAt'])
-              : null,
-          ebmSynced: data['ebmSynced'] ?? false,
-        );
-      },
-      updateRealmObject: (_stock, data) {
-        //find related variant
-        Variant? variant = localRealm
-            .query<Variant>(r'id == $0', [data['variant_id']]).firstOrNull;
-
-        final Stock? stock = localRealm.query<Stock>(
-            r'variantId ==$0 && branchId == $1',
-            [data['variant_id'], data['branch_id']]).firstOrNull;
-        if (variant != null && stock != null) {
-          localRealm.write(() {
-            /// keep stock in sync
-            try {
-              final finalStock = data['current_stock'] is int ||
-                      data['current_stock'] is double
-                  ? data['current_stock'].toDouble()
-                  : double.parse(data['current_stock']);
-              stock.currentStock = finalStock;
-              stock.rsdQty = finalStock;
-              stock.lastTouched = DateTime.parse(data['last_touched']);
-
-              // /// keep variant in sync
-              variant.qty = finalStock;
-
-              variant.rsdQty = finalStock;
-
-              variant.ebmSynced = false;
-            } catch (e, s) {
-              talker.error(e);
-              talker.error(s);
-            }
-          });
-        }
-      },
-    );
-    await _spawnIsolateLongRunning("cloudSync", IsolateHandler.cloudSync);
     // create a compute function to keep track of unsaved data back to EBM do this in background
     /// keep assets downloaded and saved locally as they are added by other users in same business/branch
     Timer.periodic(_downloadFileSchedule(), (Timer t) async {
@@ -587,7 +472,7 @@ class CronService with Subscriptions {
   }
 
   Duration _keepRealmInSync() {
-    return Duration(minutes: kDebugMode ? 10 : 10);
+    return Duration(seconds: kDebugMode ? 60 : 60);
   }
 
   Duration _getBackUpDuration() {

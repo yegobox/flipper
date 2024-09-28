@@ -71,4 +71,7 @@ class ICustomer {
   });
 
   Map<String, dynamic> toJson() => _$ICustomerToJson(this);
+
+  factory ICustomer.fromJson(Map<String, dynamic> json) =>
+      _$ICustomerFromJson(json);
 }
