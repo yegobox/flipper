@@ -1,4 +1,4 @@
-import 'package:flipper_models/power_sync/powersync.dart';
+// import 'package:flipper_models/power_sync/powersync.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
@@ -97,8 +97,6 @@ class CloudSync implements SyncInterface {
       required Map<String, dynamic> Function(T) convertToMap,
       required Function(Map<String, dynamic>) preProcessMap,
       required SyncProvider syncProvider}) async {
-
-        
     results.changes.listen(
       (changes) async {
         for (var obj in changes.modified) {
@@ -118,29 +116,29 @@ class CloudSync implements SyncInterface {
           // Skip if this ID is currently being processed by watchTable
           if (_processingIds.contains(id)) continue;
 
-          final item = await db.getOptional(
-            'SELECT * FROM $tableName WHERE $idField = ?',
-            [id],
-          );
+          // final item = await db.getOptional(
+          //   'SELECT * FROM $tableName WHERE $idField = ?',
+          //   [id],
+          // );
 
-          if (item != null) {
-            try {
-              preProcessMap(map);
+          // if (item != null) {
+          //   try {
+          //     preProcessMap(map);
 
-              bool hasChanges = compareChanges(item, map);
+          //     bool hasChanges = compareChanges(item, map);
 
-              if (hasChanges) {
-                await updateRecord(
-                    tableName: tableName,
-                    idField: idField,
-                    map: map,
-                    id: id,
-                    syncProvider: SyncProvider.POWERSYNC);
-              }
-            } catch (e) {
-              throw Exception();
-            }
-          }
+          //     if (hasChanges) {
+          //       await updateRecord(
+          //           tableName: tableName,
+          //           idField: idField,
+          //           map: map,
+          //           id: id,
+          //           syncProvider: SyncProvider.POWERSYNC);
+          //     }
+          //   } catch (e) {
+          //     throw Exception();
+          //   }
+          // }
         }
 
         // Handle deleted objects if necessary
@@ -164,10 +162,10 @@ class CloudSync implements SyncInterface {
 
   @override
   Future<void> deleteRecord(String tableName, String idField, int id) async {
-    await db.execute(
-      'DELETE FROM $tableName WHERE $idField = ?',
-      [id],
-    );
+    // await db.execute(
+    //   'DELETE FROM $tableName WHERE $idField = ?',
+    //   [id],
+    // );
   }
 
   @override
@@ -182,10 +180,10 @@ class CloudSync implements SyncInterface {
     final valuesToUpdate = map.values.toList();
 
     if (syncProvider == SyncProvider.POWERSYNC) {
-      await db.execute(
-        'UPDATE $tableName SET $keysToUpdate WHERE $idField = ?',
-        [...valuesToUpdate, id],
-      );
+      // await db.execute(
+      //   'UPDATE $tableName SET $keysToUpdate WHERE $idField = ?',
+      //   [...valuesToUpdate, id],
+      // );
     }
     if (syncProvider == SyncProvider.FIRESTORE) {
       // Check if the document already exists
@@ -223,55 +221,55 @@ class CloudSync implements SyncInterface {
   }) async {
     try {
       if (useWatch) {
-        final changes =
-            await db.watch('SELECT * FROM $tableName ORDER BY created_at DESC');
-        changes.listen((data) {
-          for (var item in data) {
-            final id = item[idField];
+        // final changes =
+        //     await db.watch('SELECT * FROM $tableName ORDER BY created_at DESC');
+        // changes.listen((data) {
+        //   for (var item in data) {
+        //     final id = item[idField];
 
-            // Add this ID to the processing set
-            _processingIds.add(id);
+        //     // Add this ID to the processing set
+        //     _processingIds.add(id);
 
-            // Find existing object or create a new one
-            var realmObject =
-                ProxyService.local.realm!.query<T>('id == $id').firstOrNull;
-            if (realmObject == null) {
-              realmObject = createRealmObject(item);
-              ProxyService.local.realm!.add<T>(realmObject);
-            } else {
-              updateRealmObject(realmObject, item);
-            }
+        //     // Find existing object or create a new one
+        //     var realmObject =
+        //         ProxyService.local.realm!.query<T>('id == $id').firstOrNull;
+        //     if (realmObject == null) {
+        //       realmObject = createRealmObject(item);
+        //       ProxyService.local.realm!.add<T>(realmObject);
+        //     } else {
+        //       updateRealmObject(realmObject, item);
+        //     }
 
-            // Remove this ID from the processing set after a short delay
-            Future.delayed(Duration(seconds: 2), () {
-              _processingIds.remove(id);
-            });
-          }
-        });
+        //     // Remove this ID from the processing set after a short delay
+        //     Future.delayed(Duration(seconds: 2), () {
+        //       _processingIds.remove(id);
+        //     });
+        //   }
+        // });
       } else {
-        final results = await db
-            .execute('SELECT * FROM $tableName ORDER BY created_at DESC');
-        for (var data in results) {
-          final id = data[idField];
+        // final results = await db
+        //     .execute('SELECT * FROM $tableName ORDER BY created_at DESC');
+        // for (var data in results) {
+        //   final id = data[idField];
 
-          // Add this ID to the processing set
-          _processingIds.add(id);
+        //   // Add this ID to the processing set
+        //   _processingIds.add(id);
 
-          // Find existing object or create a new one
-          var realmObject =
-              ProxyService.local.realm!.query<T>('id == $id').firstOrNull;
-          if (realmObject == null) {
-            realmObject = createRealmObject(data);
-            ProxyService.local.realm!.add<T>(realmObject);
-          } else {
-            updateRealmObject(realmObject, data);
-          }
+        //   // Find existing object or create a new one
+        //   var realmObject =
+        //       ProxyService.local.realm!.query<T>('id == $id').firstOrNull;
+        //   if (realmObject == null) {
+        //     realmObject = createRealmObject(data);
+        //     ProxyService.local.realm!.add<T>(realmObject);
+        //   } else {
+        //     updateRealmObject(realmObject, data);
+        //   }
 
-          // Remove this ID from the processing set after a short delay
-          Future.delayed(Duration(seconds: 2), () {
-            _processingIds.remove(id);
-          });
-        }
+        //   // Remove this ID from the processing set after a short delay
+        //   Future.delayed(Duration(seconds: 2), () {
+        //     _processingIds.remove(id);
+        //   });
+        // }
       }
     } catch (e, s) {
       talker.error(s);

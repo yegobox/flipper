@@ -12,9 +12,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_models/DownloadQueue.dart';
-import 'package:flipper_models/DatabaseQueue.dart';
 import 'package:realm/realm.dart';
-import 'package:flipper_models/power_sync/powersync.dart';
 
 class CronService with Subscriptions {
   final drive = GoogleDrive();
@@ -349,99 +347,99 @@ class CronService with Subscriptions {
       List<Counter> counters =
           ProxyService.local.realm!.all<Counter>().toList();
 
-      final userUuid = getUserId();
+      // final userUuid = getUserId();
 
-      final databaseQueue = DatabaseQueue(5); // Allow 5 concurrent operations
+      // final databaseQueue = DatabaseQueue(5); // Allow 5 concurrent operations
 
-      await _insertOrUpdateItems(
-          products, 'products', userUuid!, databaseQueue);
-      await _insertOrUpdateItems(variants, 'variants', userUuid, databaseQueue);
-      await _insertOrUpdateItems(stocks, 'stocks', userUuid, databaseQueue);
-      await _insertOrUpdateItems(counters, 'counters', userUuid, databaseQueue);
+      // await _insertOrUpdateItems(
+      //     products, 'products', userUuid!, databaseQueue);
+      // await _insertOrUpdateItems(variants, 'variants', userUuid, databaseQueue);
+      // await _insertOrUpdateItems(stocks, 'stocks', userUuid, databaseQueue);
+      // await _insertOrUpdateItems(counters, 'counters', userUuid, databaseQueue);
     } catch (e) {
       print(e);
     }
   }
 
-  Future<void> _insertOrUpdateItems<T>(List<T> items, String tableName,
-      String userUuid, DatabaseQueue queue) async {
-    String singularTableName = tableName.endsWith('s')
-        ? tableName.substring(0, tableName.length - 1)
-        : tableName;
+  // Future<void> _insertOrUpdateItems<T>(List<T> items, String tableName,
+  //     String userUuid, DatabaseQueue queue) async {
+  // String singularTableName = tableName.endsWith('s')
+  //     ? tableName.substring(0, tableName.length - 1)
+  //     : tableName;
 
-    for (var item in items) {
-      final noLose = item;
-      final itemId = (noLose as dynamic).id;
+  // for (var item in items) {
+  //   final noLose = item;
+  //   final itemId = (noLose as dynamic).id;
 
-      if (itemId != null) {
-        final itemExist = await db.getOptional(
-            'SELECT * FROM $tableName WHERE ${singularTableName}_id = ?',
-            [itemId]);
+  //   if (itemId != null) {
+  //     final itemExist = await db.getOptional(
+  //         'SELECT * FROM $tableName WHERE ${singularTableName}_id = ?',
+  //         [itemId]);
 
-        Map<String, dynamic>? map;
-        if (item is Stock) {
-          map = item.toEJson().toFlipperJson();
-        } else if (item is Product) {
-          map = item.toEJson().toFlipperJson();
-        } else if (item is Variant) {
-          map = item.toEJson().toFlipperJson();
-        } else if (item is Counter) {
-          map = item.toEJson().toFlipperJson();
-        } else {
-          throw TypeError();
-        }
+  //     Map<String, dynamic>? map;
+  //     if (item is Stock) {
+  //       map = item.toEJson().toFlipperJson();
+  //     } else if (item is Product) {
+  //       map = item.toEJson().toFlipperJson();
+  //     } else if (item is Variant) {
+  //       map = item.toEJson().toFlipperJson();
+  //     } else if (item is Counter) {
+  //       map = item.toEJson().toFlipperJson();
+  //     } else {
+  //       throw TypeError();
+  //     }
 
-        map!['${singularTableName}_id'] = itemId;
-        map['owner_id'] = userUuid;
-        map.remove('_id');
-        if (tableName == 'products') {
-          map.remove('composites');
-        } else if (tableName == 'stocks') {
-          map.remove('variant');
-        } else if (tableName == 'variants') {
-          map.remove('branchIds');
-        }
+  //     map!['${singularTableName}_id'] = itemId;
+  //     map['owner_id'] = userUuid;
+  //     map.remove('_id');
+  //     if (tableName == 'products') {
+  //       map.remove('composites');
+  //     } else if (tableName == 'stocks') {
+  //       map.remove('variant');
+  //     } else if (tableName == 'variants') {
+  //       map.remove('branchIds');
+  //     }
 
-        if (itemExist == null) {
-          // Item doesn't exist, perform insert
-          map['id'] = 'uuid()';
-          await queue.addToQueue(
-            tableName: tableName,
-            data: map,
-            returningClause: '*',
-          );
-        }
-      }
-    }
-  }
+  //     if (itemExist == null) {
+  //       // Item doesn't exist, perform insert
+  //       map['id'] = 'uuid()';
+  //       await queue.addToQueue(
+  //         tableName: tableName,
+  //         data: map,
+  //         returningClause: '*',
+  //       );
+  //     }
+  //   }
+  // }
+  // }
 
   Future<void> upsertObject(String tableName, Map<String, dynamic> map) async {
-    final singularTableName = tableName.substring(0, tableName.length - 1);
-    final single = singularTableName + "_id";
+    // final singularTableName = tableName.substring(0, tableName.length - 1);
+    // final single = singularTableName + "_id";
 
-    try {
-      // Prepare the column names and values
-      final columns = map.keys.where((key) => key != single).toList();
-      final values = columns.map((col) => map[col]).toList();
+    // try {
+    //   // Prepare the column names and values
+    //   final columns = map.keys.where((key) => key != single).toList();
+    //   final values = columns.map((col) => map[col]).toList();
 
-      // Prepare the SQL statement
-      final placeholders = List.filled(columns.length, '?').join(', ');
-      final updateSet = columns.map((col) => '$col = ?').join(', ');
+    //   // Prepare the SQL statement
+    //   final placeholders = List.filled(columns.length, '?').join(', ');
+    //   final updateSet = columns.map((col) => '$col = ?').join(', ');
 
-      // Construct the SQL query
-      final sql = '''
-      INSERT OR REPLACE INTO $tableName (${columns.join(', ')}, $single, created_at, updated_at)
-      VALUES ($placeholders, ?, datetime('now'), datetime('now'))
-      ON CONFLICT($single) DO UPDATE SET
-      $updateSet, updated_at = datetime('now')
-      WHERE $single = ?
-    ''';
+    //   // Construct the SQL query
+    //   final sql = '''
+    //   INSERT OR REPLACE INTO $tableName (${columns.join(', ')}, $single, created_at, updated_at)
+    //   VALUES ($placeholders, ?, datetime('now'), datetime('now'))
+    //   ON CONFLICT($single) DO UPDATE SET
+    //   $updateSet, updated_at = datetime('now')
+    //   WHERE $single = ?
+    // ''';
 
-      // Execute the query
-      await db.execute(sql, [...values, map[single], ...values, map[single]]);
-    } catch (e) {
-      rethrow;
-    }
+    //   // Execute the query
+    //   await db.execute(sql, [...values, map[single], ...values, map[single]]);
+    // } catch (e) {
+    //   rethrow;
+    // }
   }
 
   Future<void> _setupFirebase() async {

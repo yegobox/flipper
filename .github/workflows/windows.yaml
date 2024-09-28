@@ -14,7 +14,7 @@ on:
           - promote_to_production
           - production
   push:
-    branches: [main, dev]
+    branches: [main, dev,firestore]
 jobs:
   integration-testing-windows:
     name: "Integration Testing Windows"
