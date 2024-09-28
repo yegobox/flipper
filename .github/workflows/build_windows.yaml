@@ -15,7 +15,7 @@ on:
           - production
   
   push:
-    branches: [main, dev, power-sync]
+    branches: [main, dev, power-sync,firestore]
 
 env:
   URL: ${{ secrets.DB_URL }}
@@ -32,7 +32,8 @@ jobs:
   #     GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
   integration-testing-windows:
     name: "Integration Testing Windows"
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
+    # && github.ref == 'refs/heads/dev'
+    if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'test')
     runs-on: windows-2022
     steps:
       - name: Export pub environment variable on Windows

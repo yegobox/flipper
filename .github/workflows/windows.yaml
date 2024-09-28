@@ -18,7 +18,8 @@ on:
 jobs:
   integration-testing-windows:
     name: "Integration Testing Windows"
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'only-windows')
+    # && github.ref == 'refs/heads/dev'
+    if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'only-windows')
     runs-on: windows-2022
     steps:
       - name: Export pub environment variable on Windows
