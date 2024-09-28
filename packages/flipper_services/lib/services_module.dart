@@ -409,8 +409,8 @@ abstract class ServicesModule {
     return BillingService();
   }
 
-  @LazySingleton()
-  SyncInterface synchronize() {
-    return CloudSync().instance();
-  }
+  // @LazySingleton()
+  // SyncInterface synchronize() {
+  //   return CloudSync().instance();
+  // }
 }

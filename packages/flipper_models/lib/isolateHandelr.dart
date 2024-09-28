@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:isolate';
+// import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/Subcriptions.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
@@ -12,17 +13,52 @@ import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
-
+import 'firebase_options.dart';
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';
 import 'dart:collection';
 import 'package:flutter/services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class IsolateHandler with Subscriptions {
   static Realm? realm;
   static Realm? localRealm;
+
+  static Future<void> cloudSync(List<dynamic> args) async {
+    final rootIsolateToken = args[0] as RootIsolateToken;
+    final sendPort = args[1] as SendPort;
+    String? dbPatch = args[3] as String?;
+    String? key = args[4] as String?;
+    String? local = args[9] as String?;
+
+    if (dbPatch == null || key == null) return;
+    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    try {
+      LocalConfiguration configLocal = localConfig(key.toIntList(), local!);
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      /// re-init firestore
+      final firestore = FirebaseFirestore.instance;
+      localRealm?.close();
+      localRealm = Realm(configLocal);
+
+      /// handle change that happen within realm propagate them in ync provider supported
+
+      // end of handling change for realm
+
+      /// listen for change from sync provider
+
+      sendPort.send(1);
+    } catch (e) {
+      talker.error(e);
+    }
+  }
+
   static Future<void> flexibleSync(List<dynamic> args) async {
     String? dbPatch = args[3] as String?;
     String? key = args[4] as String?;
@@ -37,7 +73,6 @@ class IsolateHandler with Subscriptions {
 
     localRealm?.close();
     localRealm = Realm(configLocal);
-//  foundation.kDebugMode ? AppSecrets.appIdDebug :
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser;
     if (user == null) return;
@@ -65,6 +100,7 @@ class IsolateHandler with Subscriptions {
     int? tinNumber = args[5] as int?;
     String? bhfId = args[6] as String?;
     String? URI = args[8] as String?;
+    String? local = args[9] as String?;
 
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
 
@@ -73,7 +109,6 @@ class IsolateHandler with Subscriptions {
         bhfId == null ||
         URI == null) return;
 
-// foundation.kDebugMode ? AppSecrets.appIdDebug :
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser;
     if (user == null) return;
@@ -84,8 +119,14 @@ class IsolateHandler with Subscriptions {
     realm = Realm(config);
     bool anythingUpdated = false;
 
+    LocalConfiguration configLocal =
+        localConfig(encryptionKey.toIntList(), local!);
+
+    localRealm?.close();
+    localRealm = Realm(configLocal);
+
     /// handle missing value, part of self healing
-    _selfHeal(realm: realm);
+    _selfHeal(realm: realm, localRealm: localRealm);
 
     // _backUp(branchId: branchId);
     List<Variant> variants = realm!.query<Variant>(
@@ -452,7 +493,7 @@ class IsolateHandler with Subscriptions {
   }
 
   /// handle properties added later as the app grow but needed to support old clients
-  static void _selfHeal({Realm? realm}) {
+  static void _selfHeal({Realm? realm, Realm? localRealm}) {
     // Query stocks where sold == 0.0
     List<Stock> stocks = realm!.query<Stock>(r'sold == NULL').toList();
 
@@ -473,17 +514,6 @@ class IsolateHandler with Subscriptions {
     }
 
     /// query stock with variant null assign it
-    List<Stock> stocksV = realm.query<Stock>(r'variant == null').toList();
-    for (Stock stock in stocksV) {
-      Variant? variant =
-          realm.query<Variant>(r'id == $0', [stock.variantId]).firstOrNull;
-      if (variant != null) {
-        realm.write(() {
-          stock.variant = variant;
-          talker.warning("assignedVariant: ${stock.id}");
-        });
-      }
-    }
 
     List<Variant> vVariants =
         realm.query<Variant>(r'productName == NULL').toList();
@@ -532,7 +562,6 @@ class IsolateHandler with Subscriptions {
             id: randomNumber(),
             lastTouched: DateTime.now(),
             branchId: variant.branchId,
-            variant: variant,
             variantId: variant.id!,
             action: AppActions.created,
             retailPrice: variant.retailPrice,
@@ -577,17 +606,19 @@ class IsolateHandler with Subscriptions {
         });
       }
     }
+    List<Variant> variantsAll = localRealm!.all<Variant>().toList();
 
     /// check for variant that do not have stock assigned asign it
-    for (Variant variant in variants) {
+    for (Variant variant in variantsAll) {
       if (variant.stock == null) {
         /// find stock assign it
-        Stock? stock = realm.query<Stock>(r'variantId ==$0 && branchId == $1',
+        Stock? stock = localRealm.query<Stock>(
+            r'variantId ==$0 && branchId == $1',
             [variant.id, variant.branchId]).firstOrNull;
         if (stock != null) {
-          realm.write(() {
+          localRealm.write(() {
             variant.stock = stock;
-            talker.warning("Deleted ebm config");
+            talker.warning("Updated stock");
           });
         }
       }

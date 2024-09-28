@@ -282,7 +282,7 @@ class LocalRealmApi
       await configureTheBox(userPhone, user);
       await configureLocal(useInMemory: false);
 
-      ProxyService.synchronize.listen();
+      // ProxyService.synchronize.listen();
 
       /// clear any business/branches that was logged in this is to unintentionaly log to the branch
       /// that I am not supposed to

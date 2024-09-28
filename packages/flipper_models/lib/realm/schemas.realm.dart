@@ -3838,6 +3838,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     String? action,
     DateTime? deletedAt,
     bool ebmSynced = false,
+    bool cloudSynced = true,
     Variant? variant,
   }) {
     if (!_defaultsSet) {
@@ -3852,6 +3853,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
         'supplyPrice': 0.0,
         'retailPrice': 0.0,
         'ebmSynced': false,
+        'cloudSynced': true,
       });
     }
     RealmObjectBase.set(this, 'id', id);
@@ -3875,6 +3877,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
+    RealmObjectBase.set(this, 'cloudSynced', cloudSynced);
     RealmObjectBase.set(this, 'variant', variant);
   }
 
@@ -4002,6 +4005,13 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
   set ebmSynced(bool value) => RealmObjectBase.set(this, 'ebmSynced', value);
 
   @override
+  bool get cloudSynced =>
+      RealmObjectBase.get<bool>(this, 'cloudSynced') as bool;
+  @override
+  set cloudSynced(bool value) =>
+      RealmObjectBase.set(this, 'cloudSynced', value);
+
+  @override
   Variant? get variant =>
       RealmObjectBase.get<Variant>(this, 'variant') as Variant?;
   @override
@@ -4019,7 +4029,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
   @override
   Stock freeze() => RealmObjectBase.freezeObject<Stock>(this);
 
-  EJsonValue toEJson() {
+  EJsonValue toEJson({bool includeVariant = false}) {
     return <String, dynamic>{
       'id': id.toEJson(),
       '_id': realmId.toEJson(),
@@ -4042,7 +4052,8 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       'action': action.toEJson(),
       'deletedAt': deletedAt.toEJson(),
       'ebmSynced': ebmSynced.toEJson(),
-      'variant': variant.toEJson(),
+      'cloudSynced': cloudSynced.toEJson(),
+      'variant': includeVariant ? variant.toEJson() : null,
     };
   }
 
@@ -4077,6 +4088,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
           action: fromEJson(ejson['action']),
           deletedAt: fromEJson(ejson['deletedAt']),
           ebmSynced: fromEJson(ejson['ebmSynced'], defaultValue: false),
+          cloudSynced: fromEJson(ejson['cloudSynced'], defaultValue: true),
           variant: fromEJson(ejson['variant']),
         ),
       _ => raiseInvalidEJson(ejson),
@@ -4112,6 +4124,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('ebmSynced', RealmPropertyType.bool),
+      SchemaProperty('cloudSynced', RealmPropertyType.bool),
       SchemaProperty('variant', RealmPropertyType.object,
           optional: true, linkTarget: 'Variant'),
     ]);

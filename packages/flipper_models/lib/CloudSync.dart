@@ -1,7 +1,6 @@
 // import 'package:flipper_models/power_sync/powersync.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/secrets.dart';
@@ -11,34 +10,34 @@ import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realmModels.dart';
 
-enum SyncProvider { POWERSYNC, FIRESTORE }
-
 abstract class SyncInterface {
   Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch);
-  Future<void> handleChanges<T>(
-      {required RealmResults<T> results,
-      required String tableName,
-      required String idField,
-      required int Function(T) getId,
-      required Map<String, dynamic> Function(T) convertToMap,
-      required Function(Map<String, dynamic>) preProcessMap,
-      required SyncProvider syncProvider});
-  Future<void> deleteRecord(String tableName, String idField, int id);
-  Future<void> updateRecord(
-      {required String tableName,
-      required String idField,
-      required Map<String, dynamic> map,
-      required int id,
-      required SyncProvider syncProvider});
-  void listen();
-  SyncInterface instance();
-  Future<void> watchTable<T extends RealmObject>({
+  Future<void> handleRealmChanges<T>({
+    required RealmResults<T> results,
     required String tableName,
     required String idField,
-    bool useWatch = false,
-    required T Function(Map<String, dynamic>) createRealmObject,
-    required void Function(T, Map<String, dynamic>) updateRealmObject,
+    required int Function(T) getId,
+    required Map<String, dynamic> Function(T) convertToMap,
+    required Function(Map<String, dynamic>) preProcessMap,
+    required String syncProvider,
   });
+  Future<void> deleteRecord(String tableName, String idField, int id);
+  Future<void> updateRecord({
+    required String tableName,
+    required String idField,
+    required Map<String, dynamic> map,
+    required int id,
+    required String syncProvider,
+  });
+  void listen();
+  SyncInterface instance();
+  Future<void> watchTable<T extends RealmObject>(
+      {required String tableName,
+      required String idField,
+      bool useWatch = false,
+      required T Function(Map<String, dynamic>) createRealmObject,
+      required void Function(T, Map<String, dynamic>) updateRealmObject,
+      required String syncProvider});
   Future<void> backUp(
       {required int branchId,
       required String encryptionKey,
@@ -52,10 +51,11 @@ class CloudSync implements SyncInterface {
   // static final CloudSync _instance = CloudSync._internal();
   // CloudSync._internal();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
+  final FirebaseFirestore _firestore;
+  final Realm _realm;
   final Set<int> _processingIds = {};
 
+  CloudSync(this._firestore, this._realm);
   @override
   SyncInterface instance() {
     return this;
@@ -89,28 +89,35 @@ class CloudSync implements SyncInterface {
   }
 
   @override
-  Future<void> handleChanges<T>(
+  Future<void> handleRealmChanges<T>(
       {required RealmResults<T> results,
       required String tableName,
       required String idField,
       required int Function(T) getId,
       required Map<String, dynamic> Function(T) convertToMap,
       required Function(Map<String, dynamic>) preProcessMap,
-      required SyncProvider syncProvider}) async {
+      required String syncProvider}) async {
+    talker.warning("Registered handle change in isolate");
     results.changes.listen(
       (changes) async {
         for (var obj in changes.modified) {
           final modifiedItem = results[obj];
           final id = getId(modifiedItem);
-          Map<String, dynamic> map = convertToMap(modifiedItem);
-          if (syncProvider == SyncProvider.FIRESTORE) {
-            await updateRecord(
-                tableName: tableName,
-                idField: idField,
-                map: map,
-                id: id,
-                syncProvider: SyncProvider.POWERSYNC);
-            return;
+          try {
+            Map<String, dynamic> map = convertToMap(modifiedItem);
+            if (syncProvider == 'FIRESTORE') {
+              talker.warning("Change in realm happened");
+              await updateRecord(
+                  tableName: tableName,
+                  idField: idField,
+                  map: map,
+                  id: id,
+                  syncProvider: syncProvider);
+              return;
+            }
+          } catch (e, s) {
+            talker.warning(e);
+            talker.error(s);
           }
 
           // Skip if this ID is currently being processed by watchTable
@@ -174,18 +181,22 @@ class CloudSync implements SyncInterface {
       required String idField,
       required Map<String, dynamic> map,
       required int id,
-      required SyncProvider syncProvider}) async {
+      required String syncProvider}) async {
     final keysToUpdate =
         map.keys.map((key) => '${camelToSnakeCase(key)} = ?').join(', ');
     final valuesToUpdate = map.values.toList();
 
-    if (syncProvider == SyncProvider.POWERSYNC) {
+    if (syncProvider == "POWERSYNC") {
       // await db.execute(
       //   'UPDATE $tableName SET $keysToUpdate WHERE $idField = ?',
       //   [...valuesToUpdate, id],
       // );
     }
-    if (syncProvider == SyncProvider.FIRESTORE) {
+    // get a modified map
+    final modifiedMap =
+        map.map((key, value) => MapEntry(camelToSnakeCase(key), value));
+    modifiedMap[idField] = map['id'];
+    if (syncProvider == "FIRESTORE") {
       // Check if the document already exists
       final docRef = _firestore.collection(tableName).doc(id.toString());
       final docSnapshot = await docRef.get();
@@ -193,11 +204,11 @@ class CloudSync implements SyncInterface {
       if (docSnapshot.exists) {
         talker.warning("UpdatedFirestore");
         // Update existing document
-        await docRef.update(map);
+        await docRef.update(modifiedMap);
       } else {
         talker.warning("created");
         // Create new document
-        await docRef.set(map);
+        await docRef.set(modifiedMap);
       }
     }
   }
@@ -217,131 +228,117 @@ class CloudSync implements SyncInterface {
     required String idField,
     required T Function(Map<String, dynamic>) createRealmObject,
     required void Function(T, Map<String, dynamic>) updateRealmObject,
-    bool useWatch = false, // ... existing code ...
+    bool useWatch = false,
+    required String syncProvider,
   }) async {
-    try {
-      if (useWatch) {
-        // final changes =
-        //     await db.watch('SELECT * FROM $tableName ORDER BY created_at DESC');
-        // changes.listen((data) {
-        //   for (var item in data) {
-        //     final id = item[idField];
+    if (syncProvider == "FIRESTORE") {
+      try {
+        // Listen for Firestore collection changes
+        _firestore.collection(tableName).snapshots().listen((querySnapshot) {
+          for (var docChange in querySnapshot.docChanges) {
+            final id = int.parse(docChange.doc.id);
+            final data = docChange.doc.data()!;
 
-        //     // Add this ID to the processing set
-        //     _processingIds.add(id);
+            // Process the document based on the change type
+            switch (docChange.type) {
+              case DocumentChangeType.added:
+              case DocumentChangeType.modified:
+                var realmObject = _realm.query<T>('id == "$id"').firstOrNull;
+                if (realmObject == null) {
+                  realmObject = createRealmObject(data);
+                  _realm.write(() {
+                    _realm.add<T>(realmObject!);
+                  });
+                } else {
+                  talker.warning("Firestore changes updateRealmObject");
+                  updateRealmObject(realmObject, data);
+                }
 
-        //     // Find existing object or create a new one
-        //     var realmObject =
-        //         ProxyService.local.realm!.query<T>('id == $id').firstOrNull;
-        //     if (realmObject == null) {
-        //       realmObject = createRealmObject(item);
-        //       ProxyService.local.realm!.add<T>(realmObject);
-        //     } else {
-        //       updateRealmObject(realmObject, item);
-        //     }
-
-        //     // Remove this ID from the processing set after a short delay
-        //     Future.delayed(Duration(seconds: 2), () {
-        //       _processingIds.remove(id);
-        //     });
-        //   }
-        // });
-      } else {
-        // final results = await db
-        //     .execute('SELECT * FROM $tableName ORDER BY created_at DESC');
-        // for (var data in results) {
-        //   final id = data[idField];
-
-        //   // Add this ID to the processing set
-        //   _processingIds.add(id);
-
-        //   // Find existing object or create a new one
-        //   var realmObject =
-        //       ProxyService.local.realm!.query<T>('id == $id').firstOrNull;
-        //   if (realmObject == null) {
-        //     realmObject = createRealmObject(data);
-        //     ProxyService.local.realm!.add<T>(realmObject);
-        //   } else {
-        //     updateRealmObject(realmObject, data);
-        //   }
-
-        //   // Remove this ID from the processing set after a short delay
-        //   Future.delayed(Duration(seconds: 2), () {
-        //     _processingIds.remove(id);
-        //   });
-        // }
+                break;
+              case DocumentChangeType.removed:
+                _realm.write(() {
+                  var realmObject =
+                      _realm.query<T>('$idField == "$id"').firstOrNull;
+                  if (realmObject != null) {
+                    _realm.delete(realmObject);
+                  }
+                });
+                break;
+            }
+          }
+        }, onError: (error) {
+          talker.error("Error listening to Firestore changes: $error");
+        });
+      } catch (e) {
+        talker.error("Error setting up Firestore listener: $e");
       }
-    } catch (e, s) {
-      talker.error(s);
+    }
+    if (syncProvider == "POWERSYNC") {
+      try {
+        if (useWatch) {
+          // final changes =
+          //     await db.watch('SELECT * FROM $tableName ORDER BY created_at DESC');
+          // changes.listen((data) {
+          //   for (var item in data) {
+          //     final id = item[idField];
+
+          //     // Add this ID to the processing set
+          //     _processingIds.add(id);
+
+          //     // Find existing object or create a new one
+          //     var realmObject =
+          //         _realm.query<T>('id == $id').firstOrNull;
+          //     if (realmObject == null) {
+          //       realmObject = createRealmObject(item);
+          //       _realm.add<T>(realmObject);
+          //     } else {
+          //       updateRealmObject(realmObject, item);
+          //     }
+
+          //     // Remove this ID from the processing set after a short delay
+          //     Future.delayed(Duration(seconds: 2), () {
+          //       _processingIds.remove(id);
+          //     });
+          //   }
+          // });
+        } else {
+          // final results = await db
+          //     .execute('SELECT * FROM $tableName ORDER BY created_at DESC');
+          // for (var data in results) {
+          //   final id = data[idField];
+
+          //   // Add this ID to the processing set
+          //   _processingIds.add(id);
+
+          //   // Find existing object or create a new one
+          //   var realmObject =
+          //       _realm.query<T>('id == $id').firstOrNull;
+          //   if (realmObject == null) {
+          //     realmObject = createRealmObject(data);
+          //     _realm.add<T>(realmObject);
+          //   } else {
+          //     updateRealmObject(realmObject, data);
+          //   }
+
+          //   // Remove this ID from the processing set after a short delay
+          //   Future.delayed(Duration(seconds: 2), () {
+          //     _processingIds.remove(id);
+          //   });
+          // }
+        }
+      } catch (e, s) {
+        talker.error(s);
+      }
     }
   }
 
   @override
   void listen() {
     ///watchers for upload
-
-    handleChanges<Stock>(
-      syncProvider: SyncProvider.FIRESTORE,
-      results: ProxyService.local.realm!.all<Stock>(),
-      tableName: 'stocks',
-      idField: 'stock_id',
-      getId: (stock) => stock.id!,
-      convertToMap: (stock) => stock.toEJson().toFlipperJson(),
-      preProcessMap: (map) {
-        map.remove('variant');
-        map['stock_id'] = map['id'];
-        map.remove('id');
-        map.remove('_id');
-      },
-    );
-
-    handleChanges<Product>(
-      syncProvider: SyncProvider.FIRESTORE,
-      results: ProxyService.local.realm!.all<Product>(),
-      tableName: 'products',
-      idField: 'product_id',
-      getId: (product) => product.id!,
-      convertToMap: (product) => product.toEJson().toFlipperJson(),
-      preProcessMap: (map) {
-        map.remove('composites');
-        map['product_id'] = map['id'];
-        map.remove('id');
-        map.remove('_id');
-      },
-    );
-
-    handleChanges<Variant>(
-      syncProvider: SyncProvider.FIRESTORE,
-      results: ProxyService.local.realm!.all<Variant>(),
-      tableName: 'variants',
-      idField: 'variant_id',
-      getId: (variant) => variant.id!,
-      convertToMap: (variant) => variant.toEJson().toFlipperJson(),
-      preProcessMap: (map) {
-        map.remove('branchIds');
-        map['variant_id'] = map['id'];
-        map.remove('id');
-        map.remove('_id');
-      },
-    );
-
-    handleChanges<Counter>(
-      syncProvider: SyncProvider.FIRESTORE,
-      results: ProxyService.local.realm!.all<Counter>(),
-      tableName: 'counters',
-      idField: 'counter_id',
-      getId: (counter) => counter.id!,
-      convertToMap: (counter) => counter.toEJson().toFlipperJson(),
-      preProcessMap: (map) {
-        map['counter_id'] = map['id'];
-        map.remove('id');
-        map.remove('_id');
-      },
-    );
   }
 
   static const int BATCH_SIZE = 100;
-  Realm? _realm;
+
   Future<void> backUp(
       {required int branchId,
       required String encryptionKey,
@@ -357,25 +354,20 @@ class CloudSync implements SyncInterface {
       path: dbPath,
     );
 
-    _realm?.close();
-    _realm = Realm(config);
-
     try {
-      List<TransactionItem> items = _realm!
-          .query<TransactionItem>(r'branchId == $0', [branchId]).toList();
+      List<TransactionItem> items =
+          _realm.query<TransactionItem>(r'branchId == $0', [branchId]).toList();
       List<List<TransactionItem>> batches =
           _splitIntoBatches(items, BATCH_SIZE);
 
       for (var batch in batches) {
-        await CloudSync().processbatchBackUp(batch);
+        await processbatchBackUp(batch);
       }
       talker.info("Backup completed successfully for branch $branchId");
     } catch (e, stackTrace) {
       talker.error("Error during backup for branch $branchId: $e", stackTrace);
       rethrow;
-    } finally {
-      _realm?.close();
-    }
+    } finally {}
   }
 
   List<List<TransactionItem>> _splitIntoBatches(
