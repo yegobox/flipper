@@ -19,6 +19,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_ui/style_widget/button.dart';
+
+class PaymentMethod {
+  String method;
+  double amount;
+
+  PaymentMethod(this.method, this.amount);
+}
 
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -49,14 +57,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         PreviewcartMixin,
         TransactionItemTable,
         DateCoreWidget {
-  String _selectedPaymentMethod = 'Cash';
+  List<PaymentMethod> _paymentMethods = [PaymentMethod('Cash', 0.0)];
 
   double get totalAfterDiscountAndShipping {
     final discount = double.tryParse(widget.discountController.text) ?? 0.0;
     return grandTotal - discount;
   }
 
-  // Main build method
   @override
   Widget build(BuildContext context) {
     final isOrdering = ProxyService.box.isOrdering() ?? false;
@@ -93,7 +100,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         });
   }
 
-  // Device-specific builds
   Widget _buildSmallDeviceScaffold(bool isOrdering,
       AsyncValue<ITransaction> transactionAsyncValue, CoreViewModel model) {
     return Scaffold(
@@ -104,7 +110,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             ref.read(previewingCart.notifier).state = false;
           },
         ),
-        // actions: [datePicker()],
         title: Text('Orders'),
       ),
       floatingActionButton: !(ProxyService.box.isOrdering() ?? false)
@@ -133,7 +138,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  // Shared view for both small and large devices
   Widget _buildSharedView(AsyncValue<ITransaction> transactionAsyncValue,
       bool isSmallDevice, bool isOrdering) {
     return Padding(
@@ -152,14 +156,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  // UI Component builders
-
   Widget _buildTotalRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Text(
-          'Grand Total: \ ${grandTotal.toRwf()}',
+          'Grand Total: ${grandTotal.toRwf()}',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ],
@@ -250,15 +252,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         if (value == null || value.isEmpty) {
           return null;
         }
-        final number = double.tryParse(value);
-        if (number == null) {
-          ref.read(loadingProvider.notifier).state = false;
-          return 'Please enter a valid number';
-        }
-        if (number < 0 || number > 100) {
-          ref.read(loadingProvider.notifier).state = false;
-          return 'Discount must be between 0 and 100';
-        }
         return null;
       },
     );
@@ -283,7 +276,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
         ),
       ),
-      onChanged: (value) => null,
+      onChanged: (value) => setState(() {}),
       validator: (String? value) {
         if (value == null || value.isEmpty) {
           return null;
@@ -320,7 +313,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
         ),
       ),
-      onChanged: (value) => null,
+      onChanged: (value) => setState(() {}),
       validator: (String? value) {
         if (value == null || value.isEmpty) {
           ref.read(loadingProvider.notifier).state = false;
@@ -331,9 +324,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ref.read(loadingProvider.notifier).state = false;
           return 'Please enter a valid number';
         }
-        if (number < grandTotal) {
+        if (number < totalAfterDiscountAndShipping) {
           ref.read(loadingProvider.notifier).state = false;
-          return 'You are receiving less compared';
+          return 'You are receiving less than the total due';
         }
         return null;
       },
@@ -376,64 +369,103 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildPaymentMethodField() {
-    return TextFormField(
-      controller: widget.paymentTypeController,
-      keyboardType: TextInputType.text,
-      readOnly: true,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          ref.read(loadingProvider.notifier).state = false;
-          return 'Please select or enter a payment method';
-        }
-        return null;
-      },
-      decoration: InputDecoration(
-        labelText: 'Payment Method',
-        border: OutlineInputBorder(),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
+    return Column(
+      children: [
+        for (int i = 0; i < _paymentMethods.length; i++)
+          _buildPaymentMethodRow(i),
+        SizedBox(height: 10),
+        FlipperButton(
+          height: 30,
+          onPressed: _addPaymentMethod,
+          textColor: Colors.black,
+          text: 'Add Payment Method',
         ),
-        suffixIcon: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
+      ],
+    );
+  }
+
+  Widget _buildPaymentMethodRow(int index) {
+    return Column(
+      children: [
+        Row(
           children: [
-            DropdownButton<String>(
-              isDense: true,
-              alignment: AlignmentDirectional.topStart,
-              value: _selectedPaymentMethod,
-              icon: const Icon(Icons.arrow_drop_down),
-              elevation: 16,
-              style: const TextStyle(color: Colors.black),
-              underline: Container(
-                height: 2,
-                color: Colors.transparent,
-              ),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedPaymentMethod = newValue!;
-                  ProxyService.box
-                      .writeString(key: "paymentType", value: newValue);
-                  widget.paymentTypeController.text = newValue;
-                });
-              },
-              items: paymentTypes.map<DropdownMenuItem<String>>(
-                (String value) {
+            Expanded(
+              flex: 2,
+              child: DropdownButton<String>(
+                value: _paymentMethods[index].method,
+                items: paymentTypes.map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
                     child: Text(value),
                   );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _paymentMethods[index].method = newValue!;
+                  });
                 },
-              ).toList(),
+              ),
+            ),
+            SizedBox(
+              width: 10,
+              height: 5,
+            ),
+            Expanded(
+              flex: 3,
+              child: TextFormField(
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Amount',
+                  border: OutlineInputBorder(),
+                ),
+                initialValue: _paymentMethods[index].amount.toString(),
+                onChanged: (value) {
+                  setState(() {
+                    _paymentMethods[index].amount =
+                        double.tryParse(value) ?? 0.0;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an amount';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
+              ),
             ),
             IconButton(
-              onPressed: () {},
-              icon: Icon(FluentIcons.credit_card_clock_20_regular,
-                  color: Colors.blue),
+              icon: Icon(Icons.remove_circle_outline),
+              onPressed: index == 0 ? null : () => _removePaymentMethod(index),
             ),
           ],
         ),
-      ),
+        SizedBox(height: 10),
+      ],
     );
+  }
+
+  void _addPaymentMethod() {
+    setState(() {
+      _paymentMethods.add(PaymentMethod('Cash', 0.0));
+    });
+  }
+
+  void _removePaymentMethod(int index) {
+    setState(() {
+      _paymentMethods.removeAt(index);
+    });
+  }
+
+  String? validatePaymentMethods() {
+    double total =
+        _paymentMethods.fold(0, (sum, method) => sum + method.amount);
+    if (total < totalAfterDiscountAndShipping) {
+      return 'Total received amount is less than the total due';
+    }
+    return null;
   }
 
   Widget _buildFooter(AsyncValue<ITransaction> transactionAsyncValue) {
@@ -453,7 +485,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         Column(
           children: [
             Text(
-              'Total - Discount: \ ${totalAfterDiscountAndShipping.toRwf()}',
+              'Total - Discount: ${totalAfterDiscountAndShipping.toRwf()}',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Row(
@@ -503,5 +535,25 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         )
       ],
     );
+  }
+
+  void handleCompleteTransaction(ITransaction transaction) {
+    if (widget.formKey.currentState!.validate() &&
+        validatePaymentMethods() == null) {
+      // Process the payment methods
+      for (var method in _paymentMethods) {
+        print('Payment Method: ${method.method}, Amount: ${method.amount}');
+        // Here you would update your transaction with these payment details
+        // For example:
+        // transaction.addPayment(method.method, method.amount);
+      }
+      // Continue with your existing logic for completing the transaction
+      // ...
+    }
+  }
+
+  void handleTicketNavigation(ITransaction transaction) {
+    // Implement your ticket navigation logic here
+    // ...
   }
 }

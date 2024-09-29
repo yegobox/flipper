@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:isolate';
+import 'dart:ui';
 import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/Subcriptions.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
@@ -36,6 +37,8 @@ class IsolateHandler with Subscriptions {
 
     if (dbPatch == null || key == null) return;
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    DartPluginRegistrant.ensureInitialized();
+
     try {
       LocalConfiguration configLocal = localConfig(key.toIntList(), local!);
       await Firebase.initializeApp(
@@ -46,6 +49,9 @@ class IsolateHandler with Subscriptions {
       final firestore = FirebaseFirestore.instance;
       localRealm?.close();
       localRealm = Realm(configLocal);
+
+      /// re-init firestore
+
       CloudSync(firestore, localRealm!).handleRealmChanges<Stock>(
         syncProvider: "FIRESTORE",
         results: localRealm!.all<Stock>(),
@@ -104,31 +110,6 @@ class IsolateHandler with Subscriptions {
           map.remove('_id');
         },
       );
-      sendPort.send(1);
-    } catch (e) {
-      talker.error(e);
-    }
-  }
-
-  static Future<void> cloudUpload(List<dynamic> args) async {
-    final rootIsolateToken = args[0] as RootIsolateToken;
-    final sendPort = args[1] as SendPort;
-    String? dbPatch = args[3] as String?;
-    String? key = args[4] as String?;
-    String? local = args[9] as String?;
-
-    if (dbPatch == null || key == null) return;
-    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
-    try {
-      LocalConfiguration configLocal = localConfig(key.toIntList(), local!);
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-
-      /// re-init firestore
-      final firestore = FirebaseFirestore.instance;
-      localRealm?.close();
-      localRealm = Realm(configLocal);
 
       CloudSync(firestore, localRealm!).watchTableAsync<Stock>(
         syncProvider: "FIRESTORE",

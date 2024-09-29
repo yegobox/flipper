@@ -44,61 +44,6 @@ class CronService with Subscriptions {
     }
   }
 
-  Future<void> _spawnIsolateLongRunning(
-      String name, dynamic isolateHandler) async {
-    if (ProxyService.box.getBusinessId() == null) return;
-
-    try {
-      Business business = ProxyService.local.realm!.query<Business>(
-          r'serverId == $0', [ProxyService.box.getBusinessId()!]).first;
-
-      if (ProxyService.local
-          .isTaxEnabled(business: ProxyService.local.getBusiness())) {
-        ReceivePort receivePort = ReceivePort();
-        final RootIsolateToken rootIsolateToken = RootIsolateToken.instance!;
-
-        // Prepare the arguments for the isolate
-        List<dynamic> isolateArgs = [
-          rootIsolateToken,
-          receivePort.sendPort,
-          ProxyService.box.getBranchId()!,
-          await ProxyService.realm
-              .dbPath(path: name, folder: ProxyService.box.getBusinessId()),
-          ProxyService.box.encryptionKey(),
-          business.tinNumber,
-          ProxyService.box.bhfId() ?? "00",
-          ProxyService.box.getBusinessId(),
-          ProxyService.box.getServerUrl(),
-          await ProxyService.local
-              .dbPath(path: 'local', folder: ProxyService.box.getBusinessId()),
-        ];
-
-        // Spawn the isolate
-        await Isolate.spawn(
-          isolateHandler,
-          isolateArgs,
-          onError: receivePort.sendPort,
-          onExit: receivePort.sendPort,
-        );
-
-        // Listen for messages from the isolate
-        receivePort.listen((message) async {
-          if (message is int && message == 1) {
-            print('Background task completed successfully');
-          } else if (message is List &&
-              message.length == 2 &&
-              message.first == 'error') {
-            print('Error in background task: ${message.last}');
-          }
-          // Add any other message handling logic here
-        });
-      }
-    } catch (error, s) {
-      print('Error managing isolates: $s');
-      // Consider using a more robust logging solution here
-    }
-  }
-
   Future<void> _spawnIsolate(String name, dynamic isolateHandler) async {
     if (ProxyService.box.getBusinessId() == null) return;
     try {
@@ -194,12 +139,8 @@ class CronService with Subscriptions {
     // final localRealm = ProxyService.local.realm;
     // final firestore = FirebaseFirestore.instance;
 
-    /// listen for change and do not
-    await _spawnIsolateLongRunning(
-        "cloudSyncDownload", IsolateHandler.cloudDownload);
-
     Timer.periodic(_keepRealmInSync(), (Timer t) async {
-      await _spawnIsolate("cloudSyncUpload", IsolateHandler.cloudUpload);
+      await _spawnIsolate("cloudSyncDownload", IsolateHandler.cloudDownload);
     });
 
     // create a compute function to keep track of unsaved data back to EBM do this in background
@@ -472,7 +413,7 @@ class CronService with Subscriptions {
   }
 
   Duration _keepRealmInSync() {
-    return Duration(seconds: kDebugMode ? 60 : 60);
+    return Duration(seconds: kDebugMode ? 10 : 60);
   }
 
   Duration _getBackUpDuration() {

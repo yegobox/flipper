@@ -117,7 +117,6 @@ class CloudSync implements SyncInterface {
       required Map<String, dynamic> Function(T) convertToMap,
       required Function(Map<String, dynamic>) preProcessMap,
       required String syncProvider}) async {
-    talker.warning("Registered handle change in isolate");
     results.changes.listen(
       (changes) async {
         for (var obj in changes.modified) {
@@ -128,11 +127,12 @@ class CloudSync implements SyncInterface {
             if (syncProvider == 'FIRESTORE') {
               talker.warning("Change in realm happened");
               await updateRecord(
-                  tableName: tableName,
-                  idField: idField,
-                  map: map,
-                  id: id,
-                  syncProvider: syncProvider);
+                tableName: tableName,
+                idField: idField,
+                map: map,
+                id: id,
+                syncProvider: syncProvider,
+              );
               return;
             }
           } catch (e, s) {
@@ -217,18 +217,23 @@ class CloudSync implements SyncInterface {
         map.map((key, value) => MapEntry(camelToSnakeCase(key), value));
     modifiedMap[idField] = map['id'];
     if (syncProvider == "FIRESTORE") {
-      // Check if the document already exists
-      final docRef = _firestore.collection(tableName).doc(id.toString());
-      final docSnapshot = await docRef.get();
+      try {
+        // Check if the document already exists
+        final docRef = _firestore.collection(tableName).doc(id.toString());
+        final docSnapshot = await docRef.get();
 
-      if (docSnapshot.exists) {
-        talker.warning("UpdatedFirestore");
-        // Update existing document
-        await docRef.update(modifiedMap);
-      } else {
-        talker.warning("created");
-        // Create new document
-        await docRef.set(modifiedMap);
+        if (docSnapshot.exists) {
+          talker.warning("UpdatedFirestore");
+          // Update existing document
+          await docRef.update(modifiedMap);
+        } else {
+          talker.warning("created");
+          // Create new document
+          await docRef.set(modifiedMap);
+        }
+      } catch (e, s) {
+        talker.warning(e);
+        talker.error(s);
       }
     }
   }
@@ -448,10 +453,10 @@ class CloudSync implements SyncInterface {
   }) async {
     //loop through all data and bulk update
     for (T result in results) {
-      final modifiedItem = results[result.toEJson().toFlipperJson()['id']];
-      final id = getId(modifiedItem);
+      final id = getId(result);
+
       try {
-        Map<String, dynamic> map = convertToMap(modifiedItem);
+        Map<String, dynamic> map = convertToMap(result);
         if (syncProvider == 'FIRESTORE') {
           talker.warning("Change in realm happened");
           await updateRecord(

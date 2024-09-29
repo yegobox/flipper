@@ -543,10 +543,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     final file = File(imageFilePath);
 
     if (await file.exists()) {
-      talker.info("image exist at path ${imageFilePath}");
       return imageFilePath;
     } else {
-      talker.info("image does not exist at path ${imageFilePath}");
       return null;
     }
   }

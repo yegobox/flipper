@@ -1114,3 +1114,13 @@ class _FlipperSaleCompaign {
   DateTime? createdAt;
   String? couponCode;
 }
+
+@RealmModel()
+class _PaymentMethod {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+  int? transactionId;
+  DateTime? createdAt;
+}
