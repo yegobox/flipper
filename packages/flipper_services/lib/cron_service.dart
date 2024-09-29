@@ -12,8 +12,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_models/DownloadQueue.dart';
-import 'package:flipper_models/CloudSync.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:realm/realm.dart';
 
 class CronService with Subscriptions {
@@ -239,14 +237,14 @@ class CronService with Subscriptions {
     try {
       ProxyService.realm.copyRemoteDataToLocalDb();
 
-      List<Product> products =
-          ProxyService.local.realm!.all<Product>().toList();
-      List<Variant> variants =
-          ProxyService.local.realm!.all<Variant>().toList();
+      // List<Product> products =
+      //     ProxyService.local.realm!.all<Product>().toList();
+      // List<Variant> variants =
+      //     ProxyService.local.realm!.all<Variant>().toList();
 
-      List<Stock> stocks = ProxyService.local.realm!.all<Stock>().toList();
-      List<Counter> counters =
-          ProxyService.local.realm!.all<Counter>().toList();
+      // List<Stock> stocks = ProxyService.local.realm!.all<Stock>().toList();
+      // List<Counter> counters =
+      //     ProxyService.local.realm!.all<Counter>().toList();
 
       // final userUuid = getUserId();
 
@@ -413,7 +411,7 @@ class CronService with Subscriptions {
   }
 
   Duration _keepRealmInSync() {
-    return Duration(seconds: kDebugMode ? 1200 : 1200);
+    return Duration(seconds: kDebugMode ? 10 : 10);
   }
 
   Duration _getBackUpDuration() {

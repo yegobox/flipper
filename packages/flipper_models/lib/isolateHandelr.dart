@@ -51,9 +51,22 @@ class IsolateHandler with Subscriptions {
       localRealm = Realm(configLocal);
 
       /// re-init firestore
+      CloudSync(firestore, localRealm!).handleRealmChanges<Counter>(
+        syncProvider: SyncProvider.FIRESTORE,
+        results: localRealm!.all<Counter>(),
+        tableName: 'counters',
+        idField: 'counter_id',
+        getId: (stock) => stock.id!,
+        convertToMap: (stock) => stock.toEJson().toFlipperJson(),
+        preProcessMap: (map) {
+          map['counter_id'] = map['id'];
+          map.remove('id');
+          map.remove('_id');
+        },
+      );
 
       CloudSync(firestore, localRealm!).handleRealmChanges<Stock>(
-        syncProvider: "FIRESTORE",
+        syncProvider: SyncProvider.FIRESTORE,
         results: localRealm!.all<Stock>(),
         tableName: 'stocks',
         idField: 'stock_id',
@@ -69,7 +82,7 @@ class IsolateHandler with Subscriptions {
       );
 
       CloudSync(firestore, localRealm!).handleRealmChanges<Product>(
-        syncProvider: "FIRESTORE",
+        syncProvider: SyncProvider.FIRESTORE,
         results: localRealm!.all<Product>(),
         tableName: 'products',
         idField: 'product_id',
@@ -84,7 +97,7 @@ class IsolateHandler with Subscriptions {
       );
 
       CloudSync(firestore, localRealm!).handleRealmChanges<Variant>(
-        syncProvider: "FIRESTORE",
+        syncProvider: SyncProvider.FIRESTORE,
         results: localRealm!.all<Variant>(),
         tableName: 'variants',
         idField: 'variant_id',
@@ -98,7 +111,7 @@ class IsolateHandler with Subscriptions {
       );
 
       CloudSync(firestore, localRealm!).handleRealmChanges<Counter>(
-        syncProvider: "FIRESTORE",
+        syncProvider: SyncProvider.FIRESTORE,
         results: localRealm!.all<Counter>(),
         tableName: 'counters',
         idField: 'counter_id',
@@ -111,8 +124,74 @@ class IsolateHandler with Subscriptions {
         },
       );
 
+      CloudSync(firestore, localRealm!).watchTableAsync<Counter>(
+        syncProvider: SyncProvider.FIRESTORE,
+        tableName: 'counters',
+        idField: 'counter_id',
+        createRealmObject: (data) {
+          return Counter(
+            ObjectId(),
+            businessId: data['business_id'] is int
+                ? data['business_id']
+                : int.parse(data['business_id']),
+            branchId: data['branch_id'] is int
+                ? data['branch_id']
+                : int.parse(data['branch_id']),
+            receiptType: data['receipt_type'],
+            totRcptNo: data['tot_rcpt_no'] is int
+                ? data['tot_rcpt_no']
+                : int.parse(data['tot_rcpt_no']),
+            curRcptNo: data['cur_rcpt_no'] is int
+                ? data['cur_rcpt_no']
+                : int.parse(data['cur_rcpt_no']),
+            invcNo: data['invc_no'] is int
+                ? data['invc_no']
+                : int.parse(data['invc_no']),
+            lastTouched: DateTime.parse(data['last_touched']),
+            action: data['action'],
+          );
+        },
+        updateRealmObject: (_stock, data) {
+          //find related variant
+          Counter? counter = localRealm!
+              .query<Counter>(r'id == $0', [data['variant_id']]).firstOrNull;
+
+          if (counter != null) {
+            localRealm!.write(() {
+              /// keep stock in sync
+              try {
+                // /// keep variant in sync
+                counter.businessId = data['business_id'] is int
+                    ? data['business_id']
+                    : int.parse(data['business_id']);
+
+                counter.branchId = data['branch_id'] is int
+                    ? data['branch_id']
+                    : int.parse(data['branch_id']);
+
+                counter.receiptType = data['receipt_type'];
+                counter.totRcptNo = data['tot_rcpt_no'] is int
+                    ? data['tot_rcpt_no']
+                    : int.parse(data['tot_rcpt_no']);
+                counter.curRcptNo = data['cur_rcpt_no'] is int
+                    ? data['cur_rcpt_no']
+                    : int.parse(data['cur_rcpt_no']);
+                counter.invcNo = data['invc_no'] is int
+                    ? data['invc_no']
+                    : int.parse(data['invc_no']);
+                counter.lastTouched = DateTime.parse(data['last_touched']);
+                counter.action = data['action'];
+              } catch (e, s) {
+                talker.error(e);
+                talker.error(s);
+              }
+            });
+          }
+        },
+      );
+
       CloudSync(firestore, localRealm!).watchTableAsync<Stock>(
-        syncProvider: "FIRESTORE",
+        syncProvider: SyncProvider.FIRESTORE,
         tableName: 'stocks',
         idField: 'stock_id',
         createRealmObject: (data) {

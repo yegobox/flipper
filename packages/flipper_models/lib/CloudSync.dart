@@ -10,6 +10,8 @@ import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realmModels.dart';
 
+enum SyncProvider { FIRESTORE, POWERSYNC }
+
 abstract class SyncInterface {
   Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch);
   Future<void> handleRealmChanges<T>({
@@ -19,7 +21,7 @@ abstract class SyncInterface {
     required int Function(T) getId,
     required Map<String, dynamic> Function(T) convertToMap,
     required Function(Map<String, dynamic>) preProcessMap,
-    required String syncProvider,
+    required SyncProvider syncProvider,
   });
   Future<void> handleRealmChangesAsync<T>({
     required RealmResults<T> results,
@@ -28,7 +30,7 @@ abstract class SyncInterface {
     required int Function(T) getId,
     required Map<String, dynamic> Function(T) convertToMap,
     required Function(Map<String, dynamic>) preProcessMap,
-    required String syncProvider,
+    required SyncProvider syncProvider,
   });
   Future<void> deleteRecord(String tableName, String idField, int id);
   Future<void> updateRecord({
@@ -36,7 +38,7 @@ abstract class SyncInterface {
     required String idField,
     required Map<String, dynamic> map,
     required int id,
-    required String syncProvider,
+    required SyncProvider syncProvider,
   });
   void listen();
   SyncInterface instance();
@@ -46,7 +48,7 @@ abstract class SyncInterface {
     bool useWatch = false,
     required T Function(Map<String, dynamic>) createRealmObject,
     required void Function(T, Map<String, dynamic>) updateRealmObject,
-    required String syncProvider,
+    required SyncProvider syncProvider,
   });
 
   Future<void> watchTableAsync<T extends RealmObject>({
@@ -55,7 +57,7 @@ abstract class SyncInterface {
     bool useWatch = false,
     required T Function(Map<String, dynamic>) createRealmObject,
     required void Function(T, Map<String, dynamic>) updateRealmObject,
-    required String syncProvider,
+    required SyncProvider syncProvider,
   });
   Future<void> backUp({
     required int branchId,
@@ -116,7 +118,7 @@ class CloudSync implements SyncInterface {
       required int Function(T) getId,
       required Map<String, dynamic> Function(T) convertToMap,
       required Function(Map<String, dynamic>) preProcessMap,
-      required String syncProvider}) async {
+      required SyncProvider syncProvider}) async {
     results.changes.listen(
       (changes) async {
         for (var obj in changes.modified) {
@@ -124,7 +126,7 @@ class CloudSync implements SyncInterface {
           final id = getId(modifiedItem);
           try {
             Map<String, dynamic> map = convertToMap(modifiedItem);
-            if (syncProvider == 'FIRESTORE') {
+            if (syncProvider == SyncProvider.FIRESTORE) {
               talker.warning("Change in realm happened");
               await updateRecord(
                 tableName: tableName,
@@ -201,7 +203,7 @@ class CloudSync implements SyncInterface {
       required String idField,
       required Map<String, dynamic> map,
       required int id,
-      required String syncProvider}) async {
+      required SyncProvider syncProvider}) async {
     final keysToUpdate =
         map.keys.map((key) => '${camelToSnakeCase(key)} = ?').join(', ');
     final valuesToUpdate = map.values.toList();
@@ -216,7 +218,7 @@ class CloudSync implements SyncInterface {
     final modifiedMap =
         map.map((key, value) => MapEntry(camelToSnakeCase(key), value));
     modifiedMap[idField] = map['id'];
-    if (syncProvider == "FIRESTORE") {
+    if (syncProvider == SyncProvider.FIRESTORE) {
       try {
         // Check if the document already exists
         final docRef = _firestore.collection(tableName).doc(id.toString());
@@ -254,9 +256,9 @@ class CloudSync implements SyncInterface {
     required T Function(Map<String, dynamic>) createRealmObject,
     required void Function(T, Map<String, dynamic>) updateRealmObject,
     bool useWatch = false,
-    required String syncProvider,
+    required SyncProvider syncProvider,
   }) async {
-    if (syncProvider == "FIRESTORE") {
+    if (syncProvider == SyncProvider.FIRESTORE) {
       try {
         // Listen for Firestore collection changes
         _firestore.collection(tableName).snapshots().listen((querySnapshot) {
@@ -410,9 +412,9 @@ class CloudSync implements SyncInterface {
     bool useWatch = false,
     required T Function(Map<String, dynamic>) createRealmObject,
     required void Function(T, Map<String, dynamic>) updateRealmObject,
-    required String syncProvider,
+    required SyncProvider syncProvider,
   }) async {
-    if (syncProvider == "FIRESTORE") {
+    if (syncProvider == SyncProvider.FIRESTORE) {
       try {
         // Get Firestore collection changes without listening
         _firestore.collection(tableName).get().then((querySnapshot) {
@@ -449,7 +451,7 @@ class CloudSync implements SyncInterface {
     required int Function(T) getId,
     required Map<String, dynamic> Function(T) convertToMap,
     required Function(Map<String, dynamic>) preProcessMap,
-    required String syncProvider,
+    required SyncProvider syncProvider,
   }) async {
     //loop through all data and bulk update
     for (T result in results) {
@@ -457,7 +459,7 @@ class CloudSync implements SyncInterface {
 
       try {
         Map<String, dynamic> map = convertToMap(result);
-        if (syncProvider == 'FIRESTORE') {
+        if (syncProvider == SyncProvider.FIRESTORE) {
           talker.warning("Change in realm happened");
           await updateRecord(
               tableName: tableName,
