@@ -1438,53 +1438,30 @@ class LocalRealmApi
 
   @override
   Stream<double> soldStockValue({required branchId}) async* {
+    // Get the list of Stock objects for the given branchId where there is available stock
+    final List<Stock> stocks = realm!.query<Stock>(
+        r'currentStock > $0 AND branchId == $1', [0, branchId]).toList();
+
     // Get the list of TransactionItem objects for the given branchId
-    final List<Computed> computeds =
-        realm!.query<Computed>(r'branchId == $0', [branchId]).toList();
 
-    if (computeds.isNotEmpty) {
-      // Find the computed entry with the highest totalStockSoldValue
-      final computed = computeds.reduce((curr, next) =>
-          (next.totalStockSoldValue ?? 0) > (curr.totalStockSoldValue ?? 0)
-              ? next
-              : curr);
+    double totalSoldValue = 0;
 
-      // Check if the computed object has a valid totalStockSoldValue
-      if (computed.totalStockSoldValue != null) {
-        yield computed.totalStockSoldValue!.toPrecision(2);
-        return;
-      }
+    for (var stock in stocks) {
+      // Find corresponding transactions for this stock
+
+      // Assuming retailPrice is the price for each unit sold, and sold stock is based on the difference
+      double stockSoldValue =
+          (stock.initialStock! - stock.currentStock) * stock.retailPrice;
+
+      // Add to the total sold value
+      totalSoldValue += stockSoldValue;
     }
 
-    // If no valid computed value is found, or computeds is empty, calculate from transactions
-    final List<TransactionItem> transactions =
-        realm!.query<TransactionItem>(r'branchId == $0', [branchId]).toList();
-
-    // Calculate the total sold value
-    double totalSoldValue =
-        transactions.fold(0, (sum, transaction) => sum + transaction.totAmt);
-
-    // Yield the total sold value
+    // Yield the total sold stock value
     yield totalSoldValue;
   }
 
   Stream<double> stockValue({required branchId}) async* {
-    // Get the list of Stock objects for the given branchId
-    /// first check in Computed model if we have already calculated the value
-    final List<Computed> computeds =
-        realm!.query<Computed>(r'branchId == $0', [branchId]).toList();
-
-    if (computeds.isNotEmpty) {
-      // Find the computed entry with the highest totalStockValue
-      final computed = computeds.reduce((curr, next) =>
-          (next.totalStockValue ?? 0) > (curr.totalStockValue ?? 0)
-              ? next
-              : curr);
-
-      yield computed.totalStockValue?.toPrecision(2) ?? 0;
-      return;
-    }
-
     final List<Stock> stocks = realm!.query<Stock>(
         r'currentStock > $0 AND branchId == $1', [0, branchId]).toList();
 
@@ -4301,22 +4278,64 @@ class LocalRealmApi
   }
 
   @override
+  List<ITransaction> transactions({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isExpense = false,
+    bool includePending = false,
+  }) {
+    // Initialize query string
+    String queryString = r'''
+  status == $0
+  && branchId == $1
+  ''';
+
+    // Initialize parameters
+    List<dynamic> parameters = [status ?? COMPLETE, branchId];
+
+    // Add expense/income condition
+    if (isExpense) {
+      queryString += ' && isExpense == true && subTotal > 0 ';
+    } else {
+      queryString += ' && isIncome == true ';
+    }
+
+    // Handle date range safely
+    if (startDate != null && endDate != null && startDate != endDate) {
+      queryString += r' && lastTouched >= $2 && lastTouched <= $3 ';
+      parameters.addAll([startDate.toUtc(), endDate.toUtc()]);
+    } else if (startDate != null) {
+      queryString += r' && lastTouched >= $2 ';
+      parameters.add(startDate.toUtc());
+    }
+
+    // Log query and parameters for debugging
+    // talker.warning('Query: $queryString');
+    // talker.warning('Parameters: $parameters');
+
+    // Execute and return the query result, sorted manually by createdAt
+    var results = realm!.query<ITransaction>(queryString, parameters).toList();
+    // results.sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
+    return results;
+  }
+
+  @override
   Stream<List<ITransaction>> transactionList(
       {DateTime? startDate, DateTime? endDate}) {
     if (startDate == null || endDate == null) return Stream.value([]);
 
     final controller = StreamController<List<ITransaction>>.broadcast();
 
-    // This is a hack as the query is failing to include data that is on the same endDate
-    // so to include it I have to add 1 day to a provided endDate
-    // Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
     final query = realm!.query<ITransaction>(
-      r'lastTouched >= $0 && lastTouched <= $1 && status == $2 && subTotal > 0',
-      [
-        startDate.toUtc(),
-        endDate.add(Duration(days: 1)).subtract(Duration(seconds: 1)).toUtc(),
-        COMPLETE
-      ],
+      startDate == endDate
+          ? r'lastTouched >= $0  && status == $1 && subTotal > 0'
+          : r'lastTouched >= $0 && lastTouched <= $1 && status == $2 && subTotal > 0',
+      startDate == endDate
+          ? [startDate.toUtc(), COMPLETE]
+          : [startDate.toUtc(), endDate.toUtc(), COMPLETE],
     );
 
     StreamSubscription<RealmResultsChanges<ITransaction>>? subscription;
@@ -4342,21 +4361,16 @@ class LocalRealmApi
   @override
   Stream<List<TransactionItem>> transactionItemList(
       {DateTime? startDate, DateTime? endDate, bool? isPluReport}) {
-    // if (startDate == null || endDate == null) return Stream.empty();
     final controller = StreamController<List<TransactionItem>>.broadcast();
-
-    // talker.info("pluReport $isPluReport");
-    // talker.info("startDate $startDate");
-    // talker.info("startDate $endDate");
-
-    /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
     RealmResults<TransactionItem> query;
 
-    query = realm!
-        .query<TransactionItem>(r'lastTouched >= $0 && lastTouched <= $1 ', [
-      startDate?.toUtc(),
-      endDate?.add(Duration(days: 1)).toUtc(),
-    ]);
+    query = realm!.query<TransactionItem>(
+        startDate == endDate
+            ? r'lastTouched >= $0'
+            : r'lastTouched >= $0 && lastTouched <= $1',
+        startDate == endDate
+            ? [startDate?.toUtc()]
+            : [startDate?.toUtc(), endDate?.toUtc()]);
 
     StreamSubscription<RealmResultsChanges<TransactionItem>>? subscription;
 
@@ -4412,64 +4426,6 @@ class LocalRealmApi
     });
 
     return controller.stream;
-  }
-
-  @override
-  List<ITransaction> transactions({
-    DateTime? startDate,
-    DateTime? endDate,
-    String? status,
-    String? transactionType,
-    int? branchId,
-    bool isExpense = false,
-    bool includePending = false,
-  }) {
-    // Initialize query string
-    String queryString = r'''
-    status == $0
-    && branchId == $1
-  ''';
-
-    // Initialize parameters
-    List<dynamic> parameters = [status ?? COMPLETE, branchId];
-
-    // Add expense/income condition
-    if (isExpense) {
-      queryString += ' && isExpense == true && subTotal > 0 ';
-    } else {
-      queryString += ' && isIncome == true ';
-    }
-
-    // Handle date range
-    if (startDate != null && endDate != null) {
-      // Adjust endDate to cover the full day
-      final adjustedEndDate =
-          endDate.add(Duration(days: 1)).subtract(Duration(seconds: 1));
-      queryString += r' && lastTouched >= $2 && lastTouched <= $3 ';
-      parameters.addAll([startDate.toUtc(), adjustedEndDate.toUtc()]);
-      print("Both startDate and endDate provided.");
-    } else if (startDate != null) {
-      queryString += r' && lastTouched >= $2 ';
-      parameters.add(startDate.toUtc());
-      print("Only startDate provided.");
-    } else if (endDate != null) {
-      final adjustedEndDate =
-          endDate.add(Duration(days: 1)).subtract(Duration(seconds: 1));
-      // Adjust the query condition to include transactions ON the endDate
-      queryString += r' && lastTouched <= $2 ';
-      parameters.add(adjustedEndDate.toUtc());
-      print("Only endDate provided.");
-    }
-
-    // Add sort condition
-    queryString += ' SORT(createdAt DESC) ';
-
-    // Log query and parameters for debugging
-    talker.warning('Query: $queryString');
-    talker.warning('Parameters: $parameters');
-
-    // Execute and return the query result
-    return realm!.query<ITransaction>(queryString, parameters).toList();
   }
 
   @override
@@ -4667,5 +4623,18 @@ class LocalRealmApi
       transaction.ebmSynced = true;
       transaction.isRefunded = receiptType == "R";
     });
+  }
+
+  @override
+  void savePaymentType({required TransactionPaymentRecord paymentRecord}) {
+    realm!.write(() {
+      realm!.add<TransactionPaymentRecord>(paymentRecord);
+    });
+  }
+
+  @override
+  List<TransactionPaymentRecord> getPaymentType({required int transactionId}) {
+    return realm!.query<TransactionPaymentRecord>(
+        r'transactionId == $0', [transactionId]).toList();
   }
 }

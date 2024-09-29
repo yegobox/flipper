@@ -238,9 +238,7 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
-                  width: double.infinity,
-                  height: 800,
+                Expanded(
                   child: TaxConfiguration(showheader: false),
                 ),
               ],

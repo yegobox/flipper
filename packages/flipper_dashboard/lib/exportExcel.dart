@@ -188,14 +188,30 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     // Group transactions by payment type and sum the amounts
     Map<String, double> paymentTypeTotals = {};
+
     for (var transaction in config.transactions) {
-      if (transaction.paymentType != null) {
-        talker.warning(transaction.paymentType);
-        paymentTypeTotals[transaction.paymentType!] =
-            (paymentTypeTotals[transaction.paymentType!] ?? 0) +
-                transaction.subTotal;
+      // print("times we called");
+      // Get the payment type for the transaction
+      final List<TransactionPaymentRecord> type =
+          ProxyService.local.getPaymentType(transactionId: transaction.id!);
+
+      if (type.isNotEmpty) {
+        // If the payment method already exists, accumulate the amount
+        for (var paymentType in type) {
+          talker.error(paymentType.paymentMethod!);
+
+          if (paymentTypeTotals.containsKey(paymentType.paymentMethod!)) {
+            paymentTypeTotals[paymentType.paymentMethod!] =
+                paymentTypeTotals[paymentType.paymentMethod!]! +
+                    paymentType.amount!;
+          } else {
+            // Otherwise, add a new entry
+            paymentTypeTotals[paymentType.paymentMethod!] = paymentType.amount!;
+          }
+        }
       }
     }
+    talker.warning(paymentTypeTotals);
 
     int rowIndex = 2;
     paymentTypeTotals.forEach((paymentType, totalAmount) {

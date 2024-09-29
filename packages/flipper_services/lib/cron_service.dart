@@ -413,7 +413,7 @@ class CronService with Subscriptions {
   }
 
   Duration _keepRealmInSync() {
-    return Duration(seconds: kDebugMode ? 10 : 60);
+    return Duration(seconds: kDebugMode ? 1200 : 1200);
   }
 
   Duration _getBackUpDuration() {

@@ -504,6 +504,7 @@ class _Stock {
   bool cloudSynced = true;
 
   late _Variant? variant;
+  double? initialStock;
 }
 
 @RealmModel()
@@ -1116,11 +1117,13 @@ class _FlipperSaleCompaign {
 }
 
 @RealmModel()
-class _PaymentMethod {
+class _TransactionPaymentRecord {
   int? id;
   @PrimaryKey()
   @MapTo('_id')
   late ObjectId realmId;
   int? transactionId;
+  double? amount = 0.0;
+  String? paymentMethod;
   DateTime? createdAt;
 }

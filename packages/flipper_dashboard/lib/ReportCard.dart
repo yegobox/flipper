@@ -1,10 +1,9 @@
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
-import 'package:talker_flutter/talker_flutter.dart';
 
 class ReportCard extends StatelessWidget {
-  final double valueA;
-  final double valueB;
+  final double stockValue;
+  final double soldStock;
   final String cardName;
   final String wordingA;
   final String wordingB;
@@ -12,8 +11,8 @@ class ReportCard extends StatelessWidget {
 
   const ReportCard({
     Key? key,
-    required this.valueA,
-    required this.valueB,
+    required this.stockValue,
+    required this.soldStock,
     required this.cardName,
     required this.wordingA,
     required this.wordingB,
@@ -22,10 +21,9 @@ class ReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final talker = TalkerFlutter.init();
-    talker.warning("Incoming Value A ${valueA}: Incoming Value B ${valueB}");
-    double percentage = valueA != 0 ? (valueB / valueA * 100) : 0.0;
-    print("Percentage: ${percentage}");
+    double percentage = stockValue != 0
+        ? ((soldStock / stockValue) * 100).clamp(0.0, 100.0)
+        : 0.0;
 
     return Card(
       elevation: 4,
@@ -48,18 +46,20 @@ class ReportCard extends StatelessWidget {
             const SizedBox(height: 8),
             _buildDataRow(
               title: wordingA,
-              value: valueA.toRwf(),
+              value: stockValue.toRwf(),
               color: Colors.orangeAccent,
             ),
             const SizedBox(height: 4),
-            _buildDataRow(
-              title: wordingB,
-              value: valueB.toRwf(),
-              color: Colors.greenAccent,
-            ),
+            // _buildDataRow(
+            //   title: wordingB,
+            //   value: valueB.toRwf(),
+            //   color: Colors.greenAccent,
+            // ),
             const SizedBox(height: 8),
             LinearProgressIndicator(
-              value: valueA != 0 ? (valueB / valueA).clamp(0.0, 1.0) : 0.0,
+              value: stockValue != 0
+                  ? (soldStock / stockValue).clamp(0.0, 1.0)
+                  : 0.0,
               backgroundColor: Colors.white.withOpacity(0.3),
               valueColor: AlwaysStoppedAnimation<Color>(Colors.greenAccent),
             ),

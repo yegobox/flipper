@@ -594,6 +594,35 @@ class IsolateHandler with Subscriptions {
       }
     }
     List<Variant> variantsAll = localRealm!.all<Variant>().toList();
+    List<ITransaction> transactions = localRealm.all<ITransaction>().toList();
+    for (ITransaction transaction in transactions) {
+      // find equivalent transactionRecord
+      final TransactionPaymentRecord? record = localRealm
+          .query<TransactionPaymentRecord>(
+              r'transactionId == $0', [transaction.id]).firstOrNull;
+      if (record == null) {
+        localRealm.write(() {
+          localRealm.add<TransactionPaymentRecord>(TransactionPaymentRecord(
+            ObjectId(),
+            amount: transaction.cashReceived,
+            transactionId: transaction.id!,
+            paymentMethod: transaction.paymentType,
+          ));
+        });
+      }
+    }
+
+    List<Stock> stockss =
+        localRealm.query<Stock>(r' initialStock == NULL').toList();
+
+    for (Stock stock in stockss) {
+      // find equivalent transactionRecord
+      if (stock.initialStock == null) {
+        localRealm.write(() {
+          stock.initialStock = stock.currentStock;
+        });
+      }
+    }
 
     /// check for variant that do not have stock assigned asign it
     for (Variant variant in variantsAll) {

@@ -24,8 +24,10 @@ import 'package:flipper_ui/style_widget/button.dart';
 class PaymentMethod {
   String method;
   double amount;
+  TextEditingController controller;
 
-  PaymentMethod(this.method, this.amount);
+  PaymentMethod(this.method, this.amount)
+      : controller = TextEditingController(text: amount.toString());
 }
 
 class QuickSellingView extends StatefulHookConsumerWidget {
@@ -62,6 +64,39 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   double get totalAfterDiscountAndShipping {
     final discount = double.tryParse(widget.discountController.text) ?? 0.0;
     return grandTotal - discount;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _paymentMethods[0].controller.addListener(_updatePaymentAmounts);
+  }
+
+  void _updatePaymentAmounts() {
+    if (_paymentMethods.length > 1) {
+      double remainingAmount = totalAfterDiscountAndShipping;
+      for (int i = 0; i < _paymentMethods.length; i++) {
+        if (i == 0) {
+          double enteredAmount =
+              double.tryParse(_paymentMethods[i].controller.text) ?? 0.0;
+          remainingAmount -= enteredAmount;
+        } else {
+          if (i == _paymentMethods.length - 1) {
+            _paymentMethods[i].amount = remainingAmount;
+            _paymentMethods[i].controller.text =
+                remainingAmount.toStringAsFixed(2);
+          } else {
+            _paymentMethods[i].amount = 0.0;
+            _paymentMethods[i].controller.text = '0.00';
+          }
+        }
+      }
+      for (PaymentMethod payment in _paymentMethods) {
+        ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
+            Payment(amount: payment.amount, method: payment.method));
+      }
+    }
+    setState(() {});
   }
 
   @override
@@ -119,7 +154,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               completeTransaction: () {
                 talker.warning("We are about to complete a sale");
                 transactionAsyncValue.whenData((ITransaction transaction) {
-                  handleCompleteTransaction(transaction);
+                  handleCompleteTransaction(
+                      transaction: transaction,
+                      paymentMethods: ref.watch(paymentMethodsProvider));
                 });
                 ref.read(previewingCart.notifier).state = false;
               },
@@ -313,7 +350,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
         ),
       ),
-      onChanged: (value) => setState(() {}),
+      onChanged: (value) => setState(() {
+        /// always first row in payment type is equal by received amount
+        _paymentMethods[0].controller.text = value;
+        _updatePaymentAmounts(); // Update payment amounts after received amount changes
+      }),
       validator: (String? value) {
         if (value == null || value.isEmpty) {
           ref.read(loadingProvider.notifier).state = false;
@@ -402,27 +443,27 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 onChanged: (String? newValue) {
                   setState(() {
                     _paymentMethods[index].method = newValue!;
+                    // Update the amount if the payment method changes to avoid issues
+                    _updatePaymentAmounts();
                   });
                 },
               ),
             ),
-            SizedBox(
-              width: 10,
-              height: 5,
-            ),
+            SizedBox(width: 10, height: 5),
             Expanded(
               flex: 3,
               child: TextFormField(
+                controller: _paymentMethods[index].controller,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: 'Amount',
                   border: OutlineInputBorder(),
                 ),
-                initialValue: _paymentMethods[index].amount.toString(),
                 onChanged: (value) {
                   setState(() {
                     _paymentMethods[index].amount =
                         double.tryParse(value) ?? 0.0;
+                    _updatePaymentAmounts(); // Update payment amounts after amount changes
                   });
                 },
                 validator: (value) {
@@ -450,20 +491,26 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   void _addPaymentMethod() {
     setState(() {
       _paymentMethods.add(PaymentMethod('Cash', 0.0));
+      _paymentMethods.last.controller
+          .addListener(_updatePaymentAmounts); // Add listener to new controller
+      _updatePaymentAmounts(); // Update payment amounts after adding new method
     });
   }
 
   void _removePaymentMethod(int index) {
     setState(() {
+      _paymentMethods[index].controller.removeListener(
+          _updatePaymentAmounts); // Remove listener from removed controller
       _paymentMethods.removeAt(index);
+      _updatePaymentAmounts(); // Update payment amounts after removing a method
     });
   }
 
   String? validatePaymentMethods() {
     double total =
         _paymentMethods.fold(0, (sum, method) => sum + method.amount);
-    if (total < totalAfterDiscountAndShipping) {
-      return 'Total received amount is less than the total due';
+    if ((total - totalAfterDiscountAndShipping).abs() > 0.01) {
+      return 'Total received amount does not match the total due';
     }
     return null;
   }
@@ -535,25 +582,5 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         )
       ],
     );
-  }
-
-  void handleCompleteTransaction(ITransaction transaction) {
-    if (widget.formKey.currentState!.validate() &&
-        validatePaymentMethods() == null) {
-      // Process the payment methods
-      for (var method in _paymentMethods) {
-        print('Payment Method: ${method.method}, Amount: ${method.amount}');
-        // Here you would update your transaction with these payment details
-        // For example:
-        // transaction.addPayment(method.method, method.amount);
-      }
-      // Continue with your existing logic for completing the transaction
-      // ...
-    }
-  }
-
-  void handleTicketNavigation(ITransaction transaction) {
-    // Implement your ticket navigation logic here
-    // ...
   }
 }

@@ -9,6 +9,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
+import 'package:flipper_ui/style_widget/button.dart';
 
 class TaxConfiguration extends StatefulHookConsumerWidget {
   const TaxConfiguration({Key? key, required this.showheader})
@@ -54,6 +55,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
   void dispose() {
     _serverUrlController.dispose();
     _branchController.dispose();
+    _mrcController.dispose();
     super.dispose();
   }
 
@@ -280,18 +282,11 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
                 ),
               ),
               const SizedBox(height: 16),
-              ElevatedButton.icon(
+              FlipperButton(
+                width: double.infinity,
+                textColor: Colors.black,
                 onPressed: _saveForm,
-                icon: const Icon(Icons.save),
-                label: const Text('Save '),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+                text: "Save",
               ),
             ],
           ),

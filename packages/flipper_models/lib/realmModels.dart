@@ -36,8 +36,9 @@ final realmModels = [
   FlipperSaleCompaign.schema,
   Location.schema,
   Activity.schema,
+  TransactionPaymentRecord.schema,
 ];
-int schemaVersion = 11;
+int schemaVersion = 12;
 
 /// for local db
 final localModels = [
@@ -80,4 +81,5 @@ final localModels = [
   FlipperSaleCompaign.schema,
   Location.schema,
   Activity.schema,
+  TransactionPaymentRecord.schema,
 ];

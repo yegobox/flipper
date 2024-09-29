@@ -3840,6 +3840,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     bool ebmSynced = false,
     bool cloudSynced = true,
     Variant? variant,
+    double? initialStock,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Stock>({
@@ -3879,6 +3880,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
     RealmObjectBase.set(this, 'cloudSynced', cloudSynced);
     RealmObjectBase.set(this, 'variant', variant);
+    RealmObjectBase.set(this, 'initialStock', initialStock);
   }
 
   Stock._();
@@ -4019,6 +4021,13 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'variant', value);
 
   @override
+  double? get initialStock =>
+      RealmObjectBase.get<double>(this, 'initialStock') as double?;
+  @override
+  set initialStock(double? value) =>
+      RealmObjectBase.set(this, 'initialStock', value);
+
+  @override
   Stream<RealmObjectChanges<Stock>> get changes =>
       RealmObjectBase.getChanges<Stock>(this);
 
@@ -4054,6 +4063,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       'ebmSynced': ebmSynced.toEJson(),
       'cloudSynced': cloudSynced.toEJson(),
       'variant': includeVariant ? variant.toEJson() : null,
+      'initialStock': initialStock.toEJson(),
     };
   }
 
@@ -4090,6 +4100,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
           ebmSynced: fromEJson(ejson['ebmSynced'], defaultValue: false),
           cloudSynced: fromEJson(ejson['cloudSynced'], defaultValue: true),
           variant: fromEJson(ejson['variant']),
+          initialStock: fromEJson(ejson['initialStock']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -4127,6 +4138,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('cloudSynced', RealmPropertyType.bool),
       SchemaProperty('variant', RealmPropertyType.object,
           optional: true, linkTarget: 'Variant'),
+      SchemaProperty('initialStock', RealmPropertyType.double, optional: true),
     ]);
   }();
 
@@ -8697,6 +8709,132 @@ class FlipperSaleCompaign extends _FlipperSaleCompaign
       SchemaProperty('discountRate', RealmPropertyType.int, optional: true),
       SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('couponCode', RealmPropertyType.string, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
+class TransactionPaymentRecord extends _TransactionPaymentRecord
+    with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
+  TransactionPaymentRecord(
+    ObjectId realmId, {
+    int? id,
+    int? transactionId,
+    double? amount = 0.0,
+    String? paymentMethod,
+    DateTime? createdAt,
+  }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<TransactionPaymentRecord>({
+        'amount': 0.0,
+      });
+    }
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'transactionId', transactionId);
+    RealmObjectBase.set(this, 'amount', amount);
+    RealmObjectBase.set(this, 'paymentMethod', paymentMethod);
+    RealmObjectBase.set(this, 'createdAt', createdAt);
+  }
+
+  TransactionPaymentRecord._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get transactionId =>
+      RealmObjectBase.get<int>(this, 'transactionId') as int?;
+  @override
+  set transactionId(int? value) =>
+      RealmObjectBase.set(this, 'transactionId', value);
+
+  @override
+  double? get amount => RealmObjectBase.get<double>(this, 'amount') as double?;
+  @override
+  set amount(double? value) => RealmObjectBase.set(this, 'amount', value);
+
+  @override
+  String? get paymentMethod =>
+      RealmObjectBase.get<String>(this, 'paymentMethod') as String?;
+  @override
+  set paymentMethod(String? value) =>
+      RealmObjectBase.set(this, 'paymentMethod', value);
+
+  @override
+  DateTime? get createdAt =>
+      RealmObjectBase.get<DateTime>(this, 'createdAt') as DateTime?;
+  @override
+  set createdAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'createdAt', value);
+
+  @override
+  Stream<RealmObjectChanges<TransactionPaymentRecord>> get changes =>
+      RealmObjectBase.getChanges<TransactionPaymentRecord>(this);
+
+  @override
+  Stream<RealmObjectChanges<TransactionPaymentRecord>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<TransactionPaymentRecord>(this, keyPaths);
+
+  @override
+  TransactionPaymentRecord freeze() =>
+      RealmObjectBase.freezeObject<TransactionPaymentRecord>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'transactionId': transactionId.toEJson(),
+      'amount': amount.toEJson(),
+      'paymentMethod': paymentMethod.toEJson(),
+      'createdAt': createdAt.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(TransactionPaymentRecord value) => value.toEJson();
+  static TransactionPaymentRecord _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
+    return switch (ejson) {
+      {
+        '_id': EJsonValue realmId,
+      } =>
+        TransactionPaymentRecord(
+          fromEJson(realmId),
+          id: fromEJson(ejson['id']),
+          transactionId: fromEJson(ejson['transactionId']),
+          amount: fromEJson(ejson['amount'], defaultValue: 0.0),
+          paymentMethod: fromEJson(ejson['paymentMethod']),
+          createdAt: fromEJson(ejson['createdAt']),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(TransactionPaymentRecord._);
+    register(_toEJson, _fromEJson);
+    return const SchemaObject(ObjectType.realmObject, TransactionPaymentRecord,
+        'TransactionPaymentRecord', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('transactionId', RealmPropertyType.int, optional: true),
+      SchemaProperty('amount', RealmPropertyType.double, optional: true),
+      SchemaProperty('paymentMethod', RealmPropertyType.string, optional: true),
+      SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
     ]);
   }();
 

@@ -44,6 +44,7 @@ class ReportsState extends ConsumerState<Reports>
         ref.watch(soldStockValueProvider(ProxyService.box.getBranchId()!));
     final reports = ref.watch(reportsProvider(ProxyService.box.getBranchId()!));
 
+
     return SafeArea(
       child: Scaffold(
         appBar: CustomAppBar(
@@ -88,8 +89,8 @@ class ReportsState extends ConsumerState<Reports>
                             cardName: "Stock Value",
                             wordingA: "Current Stock",
                             wordingB: "Gross Sales",
-                            valueA: stockValue.asData?.value ?? 0,
-                            valueB: soldStock.asData?.value ?? 0,
+                            stockValue: stockValue.asData?.value ?? 0,
+                            soldStock: soldStock.asData?.value ?? 0,
                             description: "Stock Performance",
                           ),
                         ],

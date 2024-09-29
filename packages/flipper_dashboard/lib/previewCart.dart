@@ -14,12 +14,12 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/foundation.dart';
-
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:realm/realm.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 
@@ -113,7 +113,10 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     ref.read(loadingProvider.notifier).state = false;
   }
 
-  void handleCompleteTransaction(ITransaction transaction) {
+  void handleCompleteTransaction(
+      {required ITransaction transaction,
+      required List<Payment> paymentMethods}) {
+    final transactionId = transaction.id!;
     if (transaction.subTotal != 0) {
       ref.read(loadingProvider.notifier).state = true;
       Customer? customer =
@@ -143,6 +146,17 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
         );
         _refreshTransactionItems(transactionId: transaction.id!);
         ref.read(loadingProvider.notifier).state = false;
+      }
+
+      for (var payment in paymentMethods) {
+      
+        ProxyService.local.savePaymentType(
+            paymentRecord: TransactionPaymentRecord(
+          ObjectId(),
+          amount: payment.amount,
+          transactionId: transactionId,
+          paymentMethod: payment.method,
+        ));
       }
     } else {
       showSimpleNotification(

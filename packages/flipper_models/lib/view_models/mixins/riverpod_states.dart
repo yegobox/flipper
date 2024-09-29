@@ -1077,6 +1077,46 @@ class StringState extends StateNotifier<String> {
   }
 }
 
+class Payment {
+  final double amount;
+  final String method;
+
+  Payment({
+    required this.amount,
+    required this.method,
+  });
+}
+
+class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
+  PaymentMethodsNotifier() : super([]);
+
+  // Method to add a payment method
+  void addPaymentMethod(Payment method) {
+    final existingIndex = state
+        .indexWhere((existingMethod) => existingMethod.method == method.method);
+    if (existingIndex != -1) {
+      state[existingIndex] = method;
+    } else {
+      state = [...state, method];
+    }
+  }
+
+  // Method to remove a payment method
+  void removePaymentMethod(String method) {
+    state = state.where((Payment) => Payment.method != method).toList();
+  }
+
+  // Method to update payment methods
+  void setPaymentMethods(List<Payment> methods) {
+    state = methods;
+  }
+}
+
+final paymentMethodsProvider =
+    StateNotifierProvider<PaymentMethodsNotifier, List<Payment>>(
+  (ref) => PaymentMethodsNotifier(),
+);
+
 final stringProvider = StateNotifierProvider<StringState, String>((ref) {
   return StringState(RequestStatus.pending);
 });

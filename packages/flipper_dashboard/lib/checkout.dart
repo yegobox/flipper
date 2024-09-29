@@ -286,7 +286,9 @@ class CheckOutState extends ConsumerState<CheckOut>
           padding: const EdgeInsets.all(8.0),
           child: PayableView(
             mode: SellingMode.forSelling,
-            completeTransaction: () => handleCompleteTransaction(transaction),
+            completeTransaction: () => handleCompleteTransaction(
+                transaction: transaction,
+                paymentMethods: ref.watch(paymentMethodsProvider)),
             ref: ref,
             model: model,
             ticketHandler: () => handleTicketNavigation(transaction),
@@ -359,7 +361,10 @@ class CheckOutState extends ConsumerState<CheckOut>
                                   transactionId: transaction.id,
                                   onCharge: (transactionId, total) {
                                     try {
-                                      handleCompleteTransaction(transaction);
+                                      handleCompleteTransaction(
+                                          transaction: transaction,
+                                          paymentMethods: ref
+                                              .watch(paymentMethodsProvider));
                                       ref.read(loadingProvider.notifier).state =
                                           false;
                                       Navigator.of(context).pop();
