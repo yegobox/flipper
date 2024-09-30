@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:ui';
 import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/Subcriptions.dart';
+// import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
 import 'package:flipper_models/helperModels/IVariant.dart';
@@ -11,7 +12,6 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
-import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'firebase_options.dart';
@@ -49,135 +49,12 @@ class IsolateHandler with Subscriptions {
       localRealm?.close();
       localRealm = Realm(configLocal);
 
-      /// re-init firestore
-      CloudSync(firestore, localRealm!).handleRealmChangesAsync<Counter>(
-        syncProvider: SyncProvider.FIRESTORE,
-        results: localRealm!.all<Counter>(),
-        tableName: 'counters',
-        idField: 'counter_id',
-        getId: (stock) => stock.id!,
-        convertToMap: (stock) => stock.toEJson().toFlipperJson(),
-        preProcessMap: (map) {
-          map['counter_id'] = map['id'];
-          map.remove('id');
-          map.remove('_id');
-        },
-      );
-
-      CloudSync(firestore, localRealm!).handleRealmChangesAsync<Stock>(
-        syncProvider: SyncProvider.FIRESTORE,
-        results: localRealm!.all<Stock>(),
-        tableName: 'stocks',
-        idField: 'stock_id',
-        getId: (stock) => stock.id!,
-        convertToMap: (stock) =>
-            stock.toEJson(includeVariant: false).toFlipperJson(),
-        preProcessMap: (map) {
-          map.remove('variant');
-          map['stock_id'] = map['id'];
-          map.remove('id');
-          map.remove('_id');
-        },
-      );
-
-      CloudSync(firestore, localRealm!).handleRealmChangesAsync<Product>(
-        syncProvider: SyncProvider.FIRESTORE,
-        results: localRealm!.all<Product>(),
-        tableName: 'products',
-        idField: 'product_id',
-        getId: (product) => product.id!,
-        convertToMap: (product) => product.toEJson().toFlipperJson(),
-        preProcessMap: (map) {
-          map.remove('composites');
-          map['product_id'] = map['id'];
-          map.remove('id');
-          map.remove('_id');
-        },
-      );
-
-      CloudSync(firestore, localRealm!).handleRealmChangesAsync<Variant>(
-        syncProvider: SyncProvider.FIRESTORE,
-        results: localRealm!.all<Variant>(),
-        tableName: 'variants',
-        idField: 'variant_id',
-        getId: (variant) => variant.id!,
-        convertToMap: (variant) => variant.toEJson().toFlipperJson(),
-        preProcessMap: (map) {
-          map['variant_id'] = map['id'];
-          map.remove('id');
-          map.remove('_id');
-        },
-      );
-
-      // CloudSync(firestore, localRealm!).handleRealmChangesAsync<Configurations>(
-      //   syncProvider: SyncProvider.FIRESTORE,
-      //   results: localRealm!.all<Configurations>(),
-      //   tableName: 'configurations',
-      //   idField: 'configuration_id',
-      //   getId: (configuration) => configuration.id!,
-      //   convertToMap: (configuration) =>
-      //       configuration.toEJson().toFlipperJson(),
-      //   preProcessMap: (map) {
-      //     map['configuration_id'] = map['id'];
-      //     map.remove('id');
-      //     map.remove('_id');
-      //   },
-      // );
-
-      // CloudSync(firestore, localRealm!).watchTableAsync<Configurations>(
-      //   syncProvider: SyncProvider.FIRESTORE,
-      //   tableName: 'configurations',
-      //   idField: 'configuration_id',
-      //   createRealmObject: (data) {
-      //     return Configurations(
-      //       ObjectId(),
-      //       id: int.parse(data['configuration_id']),
-      //       taxType: data['tax_type'],
-      //       taxPercentage: data['tax_percentage'] is double
-      //           ? data['tax_percentage']
-      //           : double.parse(data['tax_percentage']),
-      //       businessId: data['business_id'] is int
-      //           ? data['business_id']
-      //           : int.parse(data['business_id']),
-      //       branchId: data['branch_id'] is int
-      //           ? data['branch_id']
-      //           : int.parse(data['branch_id']),
-      //     );
-      //   },
-      //   updateRealmObject: (_config, data) {
-      //     //find related variant
-      //     Configurations? configuration = localRealm!.query<Configurations>(
-      //         r'id == $0', [data['configuration_id']]).firstOrNull;
-
-      //     if (configuration != null) {
-      //       localRealm!.write(() {
-      //         try {
-      //           configuration.taxType = data['tax_type'];
-
-      //           configuration.taxPercentage = data['tax_percentage'] is double
-      //               ? data['tax_percentage']
-      //               : double.parse(data['tax_percentage']);
-
-      //           configuration.businessId = data['business_id'] is int
-      //               ? data['business_id']
-      //               : int.parse(data['business_id']);
-      //           configuration.branchId = data['branch_id'] is int
-      //               ? data['branch_id']
-      //               : int.parse(data['branch_id']);
-      //         } catch (e, s) {
-      //           talker.error(e);
-      //           talker.error(s);
-      //         }
-      //       });
-      //     }
-      //   },
-      // );
-
       CloudSync(firestore, localRealm!).watchTableAsync<Stock>(
         syncProvider: SyncProvider.FIRESTORE,
         tableName: 'stocks',
         idField: 'stock_id',
         createRealmObject: (data) {
+          // Stock(null).fromJson(data);
           return Stock(
             ObjectId(),
             currentStock: data['currentStock'],

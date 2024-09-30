@@ -4,12 +4,38 @@ import 'dart:ui';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/CloudSync.dart';
 
 extension RealmExtension on Realm {
+  T writeN<T>(
+      {required String tableName, required T Function() writeCallback}) {
+    assert(!_isFuture<T>(), 'writeCallback must be synchronous');
+    final transaction = beginWrite();
+    try {
+      T result = writeCallback();
+      transaction.commit();
+
+      if (result is Iterable) {
+        for (var item in result) {
+          _syncToFirestore(tableName, item);
+        }
+      } else {
+        _syncToFirestore(tableName, result);
+      }
+      return result;
+    } catch (e, s) {
+      talker.error(s);
+      if (transaction.isOpen) {
+        transaction.rollback();
+      }
+      rethrow;
+    }
+  }
+
   void put<T extends RealmObject>(
     T object, {
     required String tableName,
@@ -17,25 +43,31 @@ extension RealmExtension on Realm {
   }) {
     write(() {
       add<T>(object, update: true);
-      final firestore = FirebaseFirestore.instance;
-      CloudSync(firestore, ProxyService.local.realm!).updateRecord(
-          tableName: tableName,
-
-          /// take tablename e.g products => product_id
-          idField: tableName.singularize() + "_id",
-          map: object is Stock
-              ? object.toEJson(includeVariant: false)!.toFlipperJson()
-              : object.toEJson()!.toFlipperJson(),
-          id: object is Stock
-              ? object.toEJson(includeVariant: false)!.toFlipperJson()['id']
-              : object.toEJson()!.toFlipperJson()['id'],
-          syncProvider: SyncProvider.FIRESTORE);
+      _syncToFirestore(tableName, object);
       _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
       if (onAdd != null) {
         onAdd(object);
       }
     });
   }
+
+  void _syncToFirestore<T>(String tableName, T data) {
+    final firestore = FirebaseFirestore.instance;
+    final map = data is Stock
+        ? data.toEJson(includeVariant: false)!.toFlipperJson()
+        : data.toEJson().toFlipperJson();
+    final id = map['id'];
+    CloudSync(firestore, ProxyService.local.realm!).updateRecord(
+      tableName: tableName,
+      idField: tableName.singularize() + "_id",
+      map: map,
+      id: id,
+      syncProvider: SyncProvider.FIRESTORE,
+    );
+  }
+
+  bool _isSubtype<S, T>() => <S>[] is List<T>;
+  bool _isFuture<T>() => T != Never && _isSubtype<T, Future>();
 
   Future<void> _spawnIsolate(String name, dynamic isolateHandler) async {
     try {

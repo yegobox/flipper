@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flipper_models/realmExtension.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 
 import 'package:flipper_models/Booting.dart';
 import 'package:flipper_models/DATA.dart' as defaultData;
@@ -39,7 +41,6 @@ import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_mocks/mocks.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
@@ -4584,13 +4585,16 @@ class LocalRealmApi
     required List<Counter> counters,
     required RwApiResponse receiptSignature,
   }) {
-    ProxyService.local.realm!.write(() {
-      for (Counter counter in counters) {
-        talker.warning("Touched Counter ${counter.id}");
-        counter.totRcptNo = receiptSignature.data?.totRcptNo;
-        counter.curRcptNo = receiptSignature.data?.rcptNo;
-        counter.invcNo = (counter.invcNo != null) ? counter.invcNo! + 1 : 1;
-      }
-    });
+    ProxyService.local.realm!.writeN(
+        tableName: countersTable,
+        writeCallback: () {
+          for (Counter counter in counters) {
+            talker.warning("Touched Counter ${counter.id}");
+            counter.totRcptNo = receiptSignature.data?.totRcptNo;
+            counter.curRcptNo = receiptSignature.data?.rcptNo;
+            counter.invcNo = (counter.invcNo != null) ? counter.invcNo! + 1 : 1;
+          }
+          return counters;
+        });
   }
 }

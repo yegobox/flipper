@@ -1,14 +1,10 @@
-// import 'package:flipper_models/power_sync/powersync.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flipper_models/secrets.dart';
-// ignore: unused_import
 import 'dart:async';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/realmModels.dart';
 
 enum SyncProvider { FIRESTORE, POWERSYNC }
 
@@ -76,6 +72,43 @@ class CloudSync implements SyncInterface {
   final FirebaseFirestore _firestore;
   final Realm _realm;
   final Set<int> _processingIds = {};
+
+  Future<void> watchTableAsync<T extends RealmObject>({
+    required String tableName,
+    required String idField,
+    bool useWatch = false,
+    required T Function(Map<String, dynamic>) createRealmObject,
+    required void Function(T, Map<String, dynamic>) updateRealmObject,
+    required SyncProvider syncProvider,
+  }) async {
+    if (syncProvider == SyncProvider.FIRESTORE) {
+      try {
+        // Get Firestore collection changes without listening
+        _firestore.collection(tableName).get().then((querySnapshot) {
+          for (var docChange in querySnapshot.docs) {
+            final id = int.parse(docChange.id);
+            final data = docChange.data();
+
+            // Process the document based on the change type
+            // Assuming all changes are either added or modified for this example
+            var realmObject = _realm.query<T>('id == "$id"').firstOrNull;
+            if (realmObject == null) {
+              realmObject = createRealmObject(data);
+              _realm.write(() {
+                _realm.add<T>(realmObject!);
+              });
+            } else {
+              updateRealmObject(realmObject, data);
+            }
+          }
+        }, onError: (error) {
+          talker.error("Error fetching Firestore changes: $error");
+        });
+      } catch (e) {
+        talker.error("Error fetching Firestore changes: $e");
+      }
+    }
+  }
 
   CloudSync(this._firestore, this._realm);
   @override
@@ -375,10 +408,6 @@ class CloudSync implements SyncInterface {
       {required int branchId,
       required String encryptionKey,
       required String dbPath}) async {
-    
-
-   
-
     try {
       List<TransactionItem> items =
           _realm.query<TransactionItem>(r'branchId == $0', [branchId]).toList();
@@ -402,44 +431,6 @@ class CloudSync implements SyncInterface {
         items.sublist(
             i, i + batchSize > items.length ? items.length : i + batchSize)
     ];
-  }
-
-  Future<void> watchTableAsync<T extends RealmObject>({
-    required String tableName,
-    required String idField,
-    bool useWatch = false,
-    required T Function(Map<String, dynamic>) createRealmObject,
-    required void Function(T, Map<String, dynamic>) updateRealmObject,
-    required SyncProvider syncProvider,
-  }) async {
-    if (syncProvider == SyncProvider.FIRESTORE) {
-      try {
-        // Get Firestore collection changes without listening
-        _firestore.collection(tableName).get().then((querySnapshot) {
-          for (var docChange in querySnapshot.docs) {
-            final id = int.parse(docChange.id);
-            final data = docChange.data();
-
-            // Process the document based on the change type
-            // Assuming all changes are either added or modified for this example
-            var realmObject = _realm.query<T>('id == "$id"').firstOrNull;
-            if (realmObject == null) {
-              realmObject = createRealmObject(data);
-              _realm.write(() {
-                _realm.add<T>(realmObject!);
-              });
-            } else {
-              talker.warning("Firestore changes updateRealmObject:)");
-              updateRealmObject(realmObject, data);
-            }
-          }
-        }, onError: (error) {
-          talker.error("Error fetching Firestore changes: $error");
-        });
-      } catch (e) {
-        talker.error("Error fetching Firestore changes: $e");
-      }
-    }
   }
 
   Future<void> handleRealmChangesAsync<T>({
