@@ -18,7 +18,7 @@ import 'firebase_options.dart';
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';
 import 'dart:collection';
-// import 'package:flutter/services.dart';
+import 'package:flutter/services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,14 +28,14 @@ class IsolateHandler with Subscriptions {
   static Realm? localRealm;
 
   static Future<void> cloudDownload(List<dynamic> args) async {
-    // final rootIsolateToken = args[0] as RootIsolateToken;
+    final rootIsolateToken = args[0] as RootIsolateToken;
     final sendPort = args[1] as SendPort;
     String? dbPatch = args[3] as String?;
     String? key = args[4] as String?;
     String? local = args[9] as String?;
 
     if (dbPatch == null || key == null) return;
-    // BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     DartPluginRegistrant.ensureInitialized();
 
     try {
@@ -49,12 +49,68 @@ class IsolateHandler with Subscriptions {
       localRealm?.close();
       localRealm = Realm(configLocal);
 
+      CloudSync(firestore, localRealm!).watchTableAsync<Counter>(
+        syncProvider: SyncProvider.FIRESTORE,
+        tableName: 'counters',
+        idField: 'counter_id',
+        createRealmObject: (data) {
+          return Counter(
+            ObjectId(),
+            id: randomNumber(),
+            businessId: data['business_id'],
+            branchId: data['branch_id'],
+            receiptType: data['receipt_type'],
+            totRcptNo: data['tot_rcpt_no'],
+            curRcptNo: data['cur_rcpt_no'],
+            invcNo: data['invc_no'],
+            lastTouched: data['last_touched'],
+          );
+        },
+        updateRealmObject: (_stock, data) {
+          //find related variant
+          Counter? counter = localRealm!
+              .query<Counter>(r'id == $0', [data['variant_id']]).firstOrNull;
+
+          if (counter != null) {
+            localRealm!.write(() {
+              /// keep stock in sync
+              try {
+                // /// keep variant in sync
+                counter.businessId = data['business_id'] is int
+                    ? data['business_id']
+                    : int.parse(data['business_id']);
+
+                counter.branchId = data['branch_id'] is int
+                    ? data['branch_id']
+                    : int.parse(data['branch_id']);
+
+                counter.receiptType = data['receipt_type'];
+                counter.totRcptNo = data['tot_rcpt_no'] is int
+                    ? data['tot_rcpt_no']
+                    : int.parse(data['tot_rcpt_no']);
+                counter.curRcptNo = data['cur_rcpt_no'] is int
+                    ? data['cur_rcpt_no']
+                    : int.parse(data['cur_rcpt_no']);
+                counter.invcNo = data['invc_no'] is int
+                    ? data['invc_no']
+                    : int.parse(data['invc_no']);
+                counter.lastTouched = data['last_touched'] is DateTime
+                    ? data['last_touched']
+                    : DateTime.parse(data['last_touched']);
+              } catch (e, s) {
+                talker.error(e);
+                talker.error(s);
+              }
+            });
+          }
+        },
+      );
+
       CloudSync(firestore, localRealm!).watchTableAsync<Stock>(
         syncProvider: SyncProvider.FIRESTORE,
         tableName: 'stocks',
         idField: 'stock_id',
         createRealmObject: (data) {
-          // Stock(null).fromJson(data);
           return Stock(
             ObjectId(),
             currentStock: data['currentStock'],

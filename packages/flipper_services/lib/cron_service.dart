@@ -141,6 +141,7 @@ class CronService with Subscriptions {
       /// bootstrap data for universal Product names;
 
       await _spawnIsolate("local", IsolateHandler.localData);
+      await _spawnIsolate("cloudDownload", IsolateHandler.cloudDownload);
 
       await _spawnIsolate("synced", IsolateHandler.handleEBMTrigger);
     });
@@ -197,7 +198,7 @@ class CronService with Subscriptions {
 
   void pullChanges() async {
     try {
-      /// given table query data in 
+      /// given table query data in
       /// on receive then update
     } catch (e) {
       print(e);

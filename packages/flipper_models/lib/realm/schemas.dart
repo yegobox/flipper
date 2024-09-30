@@ -1,4 +1,5 @@
 import 'package:realm/realm.dart';
+// import 'package:json_annotation/json_annotation.dart';
 part 'schemas.realm.dart';
 
 // https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
@@ -505,6 +506,35 @@ class _Stock {
 
   late _Variant? variant;
   double? initialStock;
+  Stock toRealmObject() {
+    return Stock(
+      this.realmId,
+      id: this.id,
+      // realmId: this.realmId,
+      tin: this.tin,
+      bhfId: this.bhfId,
+      branchId: this.branchId,
+      variantId: this.variantId,
+      currentStock: this.currentStock,
+      sold: this.sold,
+      lowStock: this.lowStock,
+      canTrackingStock: this.canTrackingStock,
+      showLowStockAlert: this.showLowStockAlert,
+      productId: this.productId,
+      active: this.active,
+      value: this.value,
+      rsdQty: this.rsdQty,
+      supplyPrice: this.supplyPrice,
+      retailPrice: this.retailPrice,
+      lastTouched: this.lastTouched,
+      action: this.action,
+      deletedAt: this.deletedAt,
+      ebmSynced: this.ebmSynced,
+      cloudSynced: this.cloudSynced,
+      // variant: this.variant,
+      initialStock: this.initialStock,
+    );
+  }
 }
 
 @RealmModel()
