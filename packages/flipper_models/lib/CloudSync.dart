@@ -127,6 +127,7 @@ class CloudSync implements SyncInterface {
           try {
             // Skip if this ID is currently being processed by watchTable
             if (_processingIds.contains(id)) continue;
+            talker.warning("processed ID ${id}");
             _processingIds.add(id);
             Map<String, dynamic> map = convertToMap(modifiedItem);
             if (syncProvider == SyncProvider.FIRESTORE) {
@@ -216,6 +217,7 @@ class CloudSync implements SyncInterface {
       //   'UPDATE $tableName SET $keysToUpdate WHERE $idField = ?',
       //   [...valuesToUpdate, id],
       // );
+      return;
     }
     // get a modified map
     final modifiedMap =
@@ -228,7 +230,7 @@ class CloudSync implements SyncInterface {
         final docSnapshot = await docRef.get();
 
         if (docSnapshot.exists) {
-          talker.warning("UpdatedFirestore");
+          talker.warning("UpdatedFirestore ${id}");
           // Update existing document
           await docRef.update(modifiedMap);
         } else {
@@ -280,7 +282,7 @@ class CloudSync implements SyncInterface {
                     _realm.add<T>(realmObject!);
                   });
                 } else {
-                  talker.warning("Firestore changes updateRealmObject");
+                  talker.warning("Firestore changes updateRealmObject: ${id}");
                   updateRealmObject(realmObject, data);
                 }
 

@@ -578,4 +578,9 @@ abstract class RealmApiInterface {
   void updateTransactionStatus(ITransaction transaction, String receiptType);
   void savePaymentType({required TransactionPaymentRecord paymentRecord});
   List<TransactionPaymentRecord> getPaymentType({required int transactionId});
+
+  void updateCounters({
+    required List<Counter> counters,
+    required RwApiResponse receiptSignature,
+  });
 }

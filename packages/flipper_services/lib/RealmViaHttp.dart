@@ -35,6 +35,11 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   void savePaymentType({required TransactionPaymentRecord paymentRecord}) {}
 
   @override
+  void updateCounters({
+    required List<Counter> counters,
+    required RwApiResponse receiptSignature,
+  }) {}
+  @override
   List<TransactionPaymentRecord> getPaymentType({required int transactionId}) {
     return [];
   }

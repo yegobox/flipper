@@ -313,16 +313,10 @@ class TaxController<OBJ> {
       List<Counter> counters = ProxyService.local.realm!
           .query<Counter>(r'branchId == $0', [branchId]).toList();
 
-      /// I have a dought that maybe wrapping this into write does not make sense as this code is called before in realmExtension
-      /// and the wrapper is wrapped before.
-      ProxyService.local.realm!.write(() {
-        counters.map((Counter count) {
-          count.totRcptNo = receiptSignature.data?.totRcptNo;
-          count.curRcptNo = receiptSignature.data?.rcptNo;
-          count.invcNo = (count.invcNo != null) ? count.invcNo! + 1 : 1;
-          return count;
-        }).toList();
-      });
+      ProxyService.local.updateCounters(
+        counters: counters,
+        receiptSignature: receiptSignature,
+      );
     } catch (e, s) {
       talker.info(e);
       talker.error(s);

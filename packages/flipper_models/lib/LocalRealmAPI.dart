@@ -4637,4 +4637,18 @@ class LocalRealmApi
     return realm!.query<TransactionPaymentRecord>(
         r'transactionId == $0', [transactionId]).toList();
   }
+
+  void updateCounters({
+    required List<Counter> counters,
+    required RwApiResponse receiptSignature,
+  }) {
+    ProxyService.local.realm!.write(() {
+      for (Counter counter in counters) {
+        talker.warning("Touched Counter ${counter.id}");
+        counter.totRcptNo = receiptSignature.data?.totRcptNo;
+        counter.curRcptNo = receiptSignature.data?.rcptNo;
+        counter.invcNo = (counter.invcNo != null) ? counter.invcNo! + 1 : 1;
+      }
+    });
+  }
 }

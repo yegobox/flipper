@@ -140,7 +140,8 @@ class CronService with Subscriptions {
     try {
       final localRealm = ProxyService.local.realm;
       final firestore = FirebaseFirestore.instance;
-      CloudSync(firestore, localRealm!).handleRealmChanges<Counter>(
+      talker.warning("CounterSize:${localRealm!.all<Counter>().length}");
+      CloudSync(firestore, localRealm).handleRealmChanges<Counter>(
         syncProvider: SyncProvider.FIRESTORE,
         results: localRealm.all<Counter>(),
         tableName: 'counters',
@@ -557,11 +558,11 @@ class CronService with Subscriptions {
   }
 
   Duration _getSyncPushDuration() {
-    return Duration(minutes: kDebugMode ? 1 : 5);
+    return Duration(minutes: kDebugMode ? 1 : 1);
   }
 
   Duration _getSyncPullDuration() {
-    return Duration(minutes: kDebugMode ? 10 : 20);
+    return Duration(minutes: kDebugMode ? 1 : 1);
   }
 
   Duration _getpublushingDeviceDuration() {
@@ -589,6 +590,6 @@ class CronService with Subscriptions {
   }
 
   Duration _getHeartBeatDuration() {
-    return Duration(seconds: kDebugMode ? 20 : 60);
+    return Duration(seconds: kDebugMode ? 10 : 10);
   }
 }

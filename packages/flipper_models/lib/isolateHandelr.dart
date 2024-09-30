@@ -25,9 +25,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 class IsolateHandler with Subscriptions {
-  static Realm? realm;
   static Realm? localRealm;
-  
 
   static Future<void> cloudDownload(List<dynamic> args) async {
     // final rootIsolateToken = args[0] as RootIsolateToken;
@@ -243,42 +241,10 @@ class IsolateHandler with Subscriptions {
     }
   }
 
-  static Future<void> flexibleSync(List<dynamic> args) async {
-    String? dbPatch = args[3] as String?;
-    String? key = args[4] as String?;
-    final branchId = args[2] as int;
-    final businessId = args[7] as int;
-    String? encryptionKey = args[4] as String?;
-    String? local = args[9] as String?;
-
-    if (dbPatch == null || key == null) return;
-
-    LocalConfiguration configLocal = localConfig(key.toIntList(), local!);
-
-    localRealm?.close();
-    localRealm = Realm(configLocal);
-    final app = App.getById(AppSecrets.appId);
-    final user = app?.currentUser;
-    if (user == null) return;
-    FlexibleSyncConfiguration config =
-        flexibleConfig(user, encryptionKey!.toIntList(), dbPatch);
-    realm?.close();
-    realm = Realm(config);
-
-    await IsolateHandler().updateSubscription(
-        branchId: branchId,
-        businessId: businessId,
-        realm: realm,
-        localRealm: localRealm);
-
-    await realm?.syncSession.waitForDownload();
-    await realm?.subscriptions.waitForSynchronization();
-  }
-
   static Future<void> handleEBMTrigger(List<dynamic> args) async {
     final rootIsolateToken = args[0] as RootIsolateToken;
     final sendPort = args[1] as SendPort;
-    final dbPatch = args[3] as String;
+    // final dbPatch = args[3] as String;
     final branchId = args[2] as int;
     String? encryptionKey = args[4] as String?;
     int? tinNumber = args[5] as int?;
@@ -296,11 +262,7 @@ class IsolateHandler with Subscriptions {
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser;
     if (user == null) return;
-    FlexibleSyncConfiguration config =
-        flexibleConfig(user, encryptionKey.toIntList(), dbPatch);
 
-    realm?.close();
-    realm = Realm(config);
     bool anythingUpdated = false;
 
     LocalConfiguration configLocal =
@@ -310,10 +272,10 @@ class IsolateHandler with Subscriptions {
     localRealm = Realm(configLocal);
 
     /// handle missing value, part of self healing
-    _selfHeal(realm: realm, localRealm: localRealm);
+    _selfHeal(localRealm: localRealm);
 
     // _backUp(branchId: branchId);
-    List<Variant> variants = realm!.query<Variant>(
+    List<Variant> variants = localRealm!.query<Variant>(
         r'ebmSynced == $0 && branchId == $1 LIMIT(1000)',
         [false, branchId]).toList();
     final talker = TalkerFlutter.init();
@@ -341,13 +303,13 @@ class IsolateHandler with Subscriptions {
         }
       }
     }
-    List<Stock> stocks =
-        realm!.query<Stock>(r'branchId ==$0 LIMIT(1000)', [branchId]).toList();
+    List<Stock> stocks = localRealm!
+        .query<Stock>(r'branchId ==$0 LIMIT(1000)', [branchId]).toList();
 
     // // Fetching all variant ids from stocks
     List<int?> variantIds = stocks.map((stock) => stock.variantId).toList();
     Map<int, Variant?> variantMap = {};
-    realm!.query<Variant>(r'id IN $0', [variantIds]).forEach((variant) {
+    localRealm!.query<Variant>(r'id IN $0', [variantIds]).forEach((variant) {
       variantMap[variant.id!] = variant;
     });
     for (Stock stock in stocks) {
@@ -380,12 +342,12 @@ class IsolateHandler with Subscriptions {
 
     // load all customer
     List<Customer> customers =
-        realm!.query<Customer>(r'branchId ==$0', [branchId]).toList();
+        localRealm!.query<Customer>(r'branchId ==$0', [branchId]).toList();
 
     for (Customer customer in customers) {
       if (!customer.ebmSynced) {
         try {
-          realm!.write(() {
+          localRealm!.write(() {
             // Update customer properties within the write transaction
             customer.tin = tinNumber;
             customer.bhfId = bhfId;
@@ -409,7 +371,7 @@ class IsolateHandler with Subscriptions {
       /// send Trigger to send notification
       sendPort.send('notification:${1}');
     }
-    realm?.close();
+    localRealm?.close();
   }
 
   static FlexibleSyncConfiguration flexibleConfig(
@@ -544,21 +506,21 @@ class IsolateHandler with Subscriptions {
   }
 
   /// handle properties added later as the app grow but needed to support old clients
-  static void _selfHeal({Realm? realm, Realm? localRealm}) {
+  static void _selfHeal({Realm? localRealm}) {
     // Query stocks where sold == 0.0
-    List<Stock> stocks = realm!.query<Stock>(r'sold == NULL').toList();
+    List<Stock> stocks = localRealm!.query<Stock>(r'sold == NULL').toList();
 
     // Loop through each stock to calculate and update sold quantity
     for (Stock stock in stocks) {
       // Query past transaction items for the stock's variant
-      List<TransactionItem> items = realm.query<TransactionItem>(
+      List<TransactionItem> items = localRealm.query<TransactionItem>(
           r'variantId == $0', [stock.variantId]).toList();
 
       // Calculate total quantity sold
       int totalQuantitySold = items.fold(0, (a, b) => a + b.qty.toInt());
 
       // Write updated sold quantity to realm
-      realm.write(() {
+      localRealm.write(() {
         stock.sold = totalQuantitySold.toDouble();
         talker.warning("healedStock: ${stock.id}");
       });
@@ -567,12 +529,12 @@ class IsolateHandler with Subscriptions {
     /// query stock with variant null assign it
 
     List<Variant> vVariants =
-        realm.query<Variant>(r'productName == NULL').toList();
+        localRealm.query<Variant>(r'productName == NULL').toList();
     for (Variant variant in vVariants) {
-      Product? product =
-          realm.query<Product>(r'id == $0', [variant.productId]).firstOrNull;
+      Product? product = localRealm
+          .query<Product>(r'id == $0', [variant.productId]).firstOrNull;
       if (product != null) {
-        realm.write(() {
+        localRealm.write(() {
           talker.warning("healedProductName: ${variant.id}");
           variant.productName = product.name;
         });
@@ -580,34 +542,35 @@ class IsolateHandler with Subscriptions {
     }
 
     /// first find any variant with empty itemClsCd add defaults
-    List<Variant> variants =
-        realm.query<Variant>(r'itemClsCd == null OR itemClsCd == ""').toList();
+    List<Variant> variants = localRealm
+        .query<Variant>(r'itemClsCd == null OR itemClsCd == ""')
+        .toList();
 
     for (Variant variant in variants) {
-      realm.write(() {
+      localRealm.write(() {
         variant.itemClsCd = "5020230602";
       });
     }
 
-    List<TransactionItem> items = realm
+    List<TransactionItem> items = localRealm
         .query<TransactionItem>(r'itemClsCd == null OR itemClsCd == ""')
         .toList();
     for (TransactionItem item in items) {
-      realm.write(() {
+      localRealm.write(() {
         item.itemClsCd = "5020230602";
       });
     }
 
     /// track variant without stock and match them with stock
 
-    List<Variant> variantsall = realm.all<Variant>().toList();
+    List<Variant> variantsall = localRealm.all<Variant>().toList();
 
     for (Variant variant in variantsall) {
       final stock =
-          realm.query<Stock>(r'variantId == $0', [variant.id]).firstOrNull;
+          localRealm.query<Stock>(r'variantId == $0', [variant.id]).firstOrNull;
       if (stock == null) {
         talker.warning("healed Stock: ${variant.id}");
-        realm.write(() {
+        localRealm.write(() {
           final newStock = Stock(
             ObjectId(),
             id: randomNumber(),
@@ -624,40 +587,41 @@ class IsolateHandler with Subscriptions {
             productId: variant.productId,
             active: false,
           );
-          realm.add(newStock);
+          localRealm.add(newStock);
         });
       }
     }
 
     /// Loop through Configuration and remove any duplicate configuration found e.g there should be one Conciguration.taxType
-    List<Configurations> configurations = realm.all<Configurations>().toList();
+    List<Configurations> configurations =
+        localRealm.all<Configurations>().toList();
     Set<String> uniqueTaxTypes = {};
 
     for (Configurations config in configurations) {
       if (!uniqueTaxTypes.contains(config.taxType!)) {
         uniqueTaxTypes.add(config.taxType!);
       } else {
-        realm.write(() {
-          realm.delete(config);
+        localRealm.write(() {
+          localRealm.delete(config);
           talker.warning("Deleted unnessary taxes");
         });
       }
     }
 
-    List<EBM> ebms = realm.all<EBM>().toList();
+    List<EBM> ebms = localRealm.all<EBM>().toList();
     Set<String> uniqueEbms = {};
 
     for (EBM config in ebms) {
       if (!uniqueEbms.contains(config.branchId.toString())) {
         uniqueEbms.add(config.branchId.toString());
       } else {
-        realm.write(() {
-          realm.delete(config);
+        localRealm.write(() {
+          localRealm.delete(config);
           talker.warning("Deleted ebm config");
         });
       }
     }
-    List<Variant> variantsAll = localRealm!.all<Variant>().toList();
+    List<Variant> variantsAll = localRealm.all<Variant>().toList();
     List<ITransaction> transactions = localRealm.all<ITransaction>().toList();
     for (ITransaction transaction in transactions) {
       // find equivalent transactionRecord
@@ -677,7 +641,7 @@ class IsolateHandler with Subscriptions {
     }
 
     List<Stock> stockss =
-        localRealm.query<Stock>(r' initialStock == NULL').toList();
+        localRealm.query<Stock>(r'initialStock == NULL').toList();
 
     for (Stock stock in stockss) {
       // find equivalent transactionRecord
@@ -688,6 +652,7 @@ class IsolateHandler with Subscriptions {
       }
     }
 
+    
     /// check for variant that do not have stock assigned asign it
     for (Variant variant in variantsAll) {
       if (variant.stock == null) {
