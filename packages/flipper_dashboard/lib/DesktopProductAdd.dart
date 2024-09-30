@@ -1000,6 +1000,33 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             style: TextStyle(fontWeight: FontWeight.bold))),
                   ],
                   rows: model.scannedVariants.reversed.map((variant) {
+                    if (variant.stock == null) {
+                      ProxyService.local.realm!.write(() {
+                        final id = randomNumber();
+                        ProxyService.local.realm!.add(
+                          Stock(
+                            ObjectId(),
+                            id: id,
+                            variant: variant,
+                            lastTouched: DateTime.now(),
+                            branchId: variant.branchId,
+                            variantId: variant.id!,
+                            action: AppActions.created,
+                            retailPrice: variant.retailPrice,
+                            supplyPrice: variant.supplyPrice,
+                            currentStock: variant.qty,
+                            rsdQty: variant.qty,
+                            value: (variant.qty * (variant.retailPrice))
+                                .toDouble(),
+                            productId: variant.productId,
+                            active: false,
+                          ),
+                        );
+                        final stock = ProxyService.local.realm!
+                            .query<Stock>(r'id == $0', [id]).firstOrNull;
+                        variant.stock = stock;
+                      });
+                    }
                     bool isSelected = _selectedVariants[variant.id!] ?? false;
 
                     return DataRow(
