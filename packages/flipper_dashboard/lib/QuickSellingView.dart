@@ -70,6 +70,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   void initState() {
     super.initState();
     _paymentMethods[0].controller.addListener(_updatePaymentAmounts);
+    for (PaymentMethod payment in _paymentMethods) {
+      ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
+          Payment(amount: payment.amount, method: payment.method));
+    }
   }
 
   void _updatePaymentAmounts() {
@@ -353,6 +357,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       onChanged: (value) => setState(() {
         /// always first row in payment type is equal by received amount
         _paymentMethods[0].controller.text = value;
+        for (PaymentMethod payment in _paymentMethods) {
+          ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
+              Payment(amount: double.parse(value), method: payment.method));
+        }
         _updatePaymentAmounts(); // Update payment amounts after received amount changes
       }),
       validator: (String? value) {
@@ -443,7 +451,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 onChanged: (String? newValue) {
                   setState(() {
                     _paymentMethods[index].method = newValue!;
-                    // Update the amount if the payment method changes to avoid issues
+
+                    for (PaymentMethod payment in _paymentMethods) {
+                      ref
+                          .read(paymentMethodsProvider.notifier)
+                          .addPaymentMethod(Payment(
+                              amount: payment.amount, method: payment.method));
+                    }
+
                     _updatePaymentAmounts();
                   });
                 },

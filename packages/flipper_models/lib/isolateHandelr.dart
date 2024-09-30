@@ -18,7 +18,7 @@ import 'firebase_options.dart';
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';
 import 'dart:collection';
-import 'package:flutter/services.dart';
+// import 'package:flutter/services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -242,7 +242,7 @@ class IsolateHandler with Subscriptions {
   }
 
   static Future<void> handleEBMTrigger(List<dynamic> args) async {
-    final rootIsolateToken = args[0] as RootIsolateToken;
+    // final rootIsolateToken = args[0] as RootIsolateToken;
     final sendPort = args[1] as SendPort;
     // final dbPatch = args[3] as String;
     final branchId = args[2] as int;
@@ -252,8 +252,8 @@ class IsolateHandler with Subscriptions {
     String? URI = args[8] as String?;
     String? local = args[9] as String?;
 
-    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
-
+    // BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    DartPluginRegistrant.ensureInitialized();
     if (encryptionKey == null ||
         tinNumber == null ||
         bhfId == null ||
@@ -652,7 +652,6 @@ class IsolateHandler with Subscriptions {
       }
     }
 
-    
     /// check for variant that do not have stock assigned asign it
     for (Variant variant in variantsAll) {
       if (variant.stock == null) {

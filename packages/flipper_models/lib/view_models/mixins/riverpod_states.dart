@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:talker_flutter/talker_flutter.dart';
-
+import 'package:flutter/material.dart';
 import '_transaction.dart';
 
 final unsavedProductProvider =
@@ -1078,13 +1078,17 @@ class StringState extends StateNotifier<String> {
 }
 
 class Payment {
-  final double amount;
-  final String method;
+  double amount;
+  String method;
+  TextEditingController controller;
+  final String id;
 
   Payment({
     required this.amount,
     required this.method,
-  });
+    String? id,
+  })  : controller = TextEditingController(text: amount.toString()),
+        id = id ?? UniqueKey().toString();
 }
 
 class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
@@ -1092,13 +1096,15 @@ class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
 
   // Method to add a payment method
   void addPaymentMethod(Payment method) {
-    final existingIndex = state
-        .indexWhere((existingMethod) => existingMethod.method == method.method);
-    if (existingIndex != -1) {
-      state[existingIndex] = method;
-    } else {
-      state = [...state, method];
-    }
+    try {
+      final existingIndex = state.indexWhere(
+          (existingMethod) => existingMethod.method == method.method);
+      if (existingIndex != -1) {
+        state[existingIndex] = method;
+      } else {
+        state = [...state, method];
+      }
+    } catch (e) {}
   }
 
   // Method to remove a payment method
