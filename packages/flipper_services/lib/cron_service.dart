@@ -230,6 +230,6 @@ class CronService with Subscriptions {
   }
 
   Duration _pull() {
-    return Duration(seconds: kDebugMode ? 60 : 60);
+    return Duration(seconds: kDebugMode ? 10 : 10);
   }
 }

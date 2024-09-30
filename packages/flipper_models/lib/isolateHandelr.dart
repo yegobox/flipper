@@ -40,9 +40,16 @@ class IsolateHandler with Subscriptions {
 
     try {
       LocalConfiguration configLocal = localConfig(key.toIntList(), local!);
+      final Completer<void> completer = Completer<void>();
+      Timer(Duration(seconds: 10), () {
+        if (!completer.isCompleted) {
+          sendPort.send(0);
+        }
+      });
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+      completer.complete();
 
       /// re-init firestore
       final firestore = FirebaseFirestore.instance;
