@@ -5,7 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
-// import 'package:flipper_models/power_sync/powersync.dart';
+import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
@@ -82,9 +82,9 @@ Future<void> initializeDependencies() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  // FirebaseFirestore.instance.settings = const Settings(
-  //   persistenceEnabled: true,
-  // );
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+  );
 
   _configureAmplify();
   if (!isWindows) {
@@ -133,6 +133,8 @@ Future<void> initializeDependencies() async {
   setupDialogUi();
   setupBottomSheetUi();
   // await openDatabase();
+  // TODO: re-work on supabase initi when working with powersync
+  loadSupabase();
 
   ///Will switch to localNotification when it support windows
   if (isAndroid || isIos && !isWeb) {
