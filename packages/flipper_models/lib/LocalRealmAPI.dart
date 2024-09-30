@@ -293,7 +293,7 @@ class LocalRealmApi
 
       talker.info("Finished calling downloadAssetSave");
       AppInitializer.initialize();
-      await _suserbaseAuth();
+      // await _suserbaseAuth();
       if (stopAfterConfigure) return user;
 
       if (!skipDefaultAppSetup) {
