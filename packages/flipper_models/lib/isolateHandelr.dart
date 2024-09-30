@@ -664,6 +664,32 @@ class IsolateHandler with Subscriptions {
             variant.stock = stock;
             talker.warning("Updated stock");
           });
+        } else {
+          localRealm.write(() {
+            final id = randomNumber();
+            localRealm.add(
+              Stock(
+                ObjectId(),
+                id: id,
+                variant: variant,
+                lastTouched: DateTime.now(),
+                branchId: variant.branchId,
+                variantId: variant.id!,
+                action: AppActions.created,
+                retailPrice: variant.retailPrice,
+                supplyPrice: variant.supplyPrice,
+                currentStock: variant.qty,
+                rsdQty: variant.qty,
+                value: (variant.qty * (variant.retailPrice)).toDouble(),
+                productId: variant.productId,
+                active: false,
+              ),
+            );
+            // get created stock
+            final stock =
+                localRealm.query<Stock>(r'id == $0', [id]).firstOrNull;
+            variant.stock = stock;
+          });
         }
       }
     }
