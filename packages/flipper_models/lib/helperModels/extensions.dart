@@ -232,3 +232,43 @@ String camelToSnakeCase(String input) {
     (match) => '_${match.group(1)!.toLowerCase()}',
   );
 }
+
+
+extension StringSingularize on String {
+  String singularize() {
+    // Handle common irregular plurals
+    final irregulars = {
+      'people': 'person',
+      'children': 'child',
+      'feet': 'foot',
+      'teeth': 'tooth',
+      'geese': 'goose',
+      'mice': 'mouse',
+    };
+
+    if (irregulars.containsKey(this.toLowerCase())) {
+      return irregulars[this.toLowerCase()]!;
+    }
+
+    // Handle regular plurals
+    if (endsWith('ies')) {
+      return substring(0, length - 3) + 'y';
+    } else if (endsWith('es')) {
+      return substring(0, length - 2);
+    } else if (endsWith('s') && !endsWith('ss')) {
+      return substring(0, length - 1);
+    }
+
+    // If no rule applies, return the original string
+    return this;
+  }
+}
+
+// Example usage:
+// void main() {
+//   print('products'.singularize()); // Outputs: product
+//   print('categories'.singularize()); // Outputs: category
+//   print('people'.singularize()); // Outputs: person
+//   print('buses'.singularize()); // Outputs: bus
+//   print('address'.singularize()); // Outputs: address (unchanged)
+// }

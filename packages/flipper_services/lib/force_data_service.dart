@@ -139,16 +139,18 @@ class ForceDataEntryService {
         .query<Category>(r'name ==$0', [name]).firstOrNull;
     if (category == null) {
       try {
-        ProxyService.local.realm!.put<Category>(Category(
-          ObjectId(),
-          id: randomNumber(),
-          focused: false,
-          name: name,
-          active: false,
-          branchId: branchId,
-          lastTouched: DateTime.now(),
-          action: AppActions.created,
-        ));
+        ProxyService.local.realm!.put<Category>(
+            Category(
+              ObjectId(),
+              id: randomNumber(),
+              focused: false,
+              name: name,
+              active: false,
+              branchId: branchId,
+              lastTouched: DateTime.now(),
+              action: AppActions.created,
+            ),
+            tableName: 'categories');
       } catch (e) {
         talker.critical(e);
       }

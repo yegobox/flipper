@@ -24,7 +24,7 @@ final supplierListProvider =
   String token = ProxyService.box.getBearerToken()!;
 
   final response = await http.get(
-    Uri.parse('https://apihub.yegobox.com/searchAlike?name=$keyword'),
+    Uri.parse('https://178.62.206.133/searchAlike?name=$keyword'),
     headers: {'Authorization': '${token}'},
   );
 

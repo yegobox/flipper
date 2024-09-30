@@ -67,7 +67,7 @@ class MobileUpload implements UploadT {
     if (kDebugMode) {
       url = 'https://uat-apihub.yegobox.com/s3/upload';
     } else if (!kDebugMode) {
-      url = 'https://apihub.yegobox.com/s3/upload';
+      url = 'https://178.62.206.133/s3/upload';
     }
     log(paths.length.toString(), name: 'paths');
     uploader.clearUploads();

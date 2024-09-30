@@ -3,34 +3,37 @@ import 'dart:ui';
 
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
-import 'package:talker_flutter/talker_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flipper_models/CloudSync.dart';
 
 extension RealmExtension on Realm {
   void put<T extends RealmObject>(
     T object, {
+    required String tableName,
     Function(T)? onAdd,
   }) {
     write(() {
-      final talker = TalkerFlutter.init();
       add<T>(object, update: true);
-      talker.warning(
-          "Saved using standart non async on realm extension :) ${object.toEJson()}");
+      final firestore = FirebaseFirestore.instance;
+      CloudSync(firestore, ProxyService.local.realm!).updateRecord(
+          tableName: tableName,
+
+          /// take tablename e.g products => product_id
+          idField: tableName.singularize() + "_id",
+          map: object is Stock
+              ? object.toEJson(includeVariant: false)!.toFlipperJson()
+              : object.toEJson()!.toFlipperJson(),
+          id: object is Stock
+              ? object.toEJson(includeVariant: false)!.toFlipperJson()['id']
+              : object.toEJson()!.toFlipperJson()['id'],
+          syncProvider: SyncProvider.FIRESTORE);
       _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
       if (onAdd != null) {
         onAdd(object);
       }
-    });
-  }
-
-  Future<void> putAsync<T extends RealmObject>(T object) async {
-    await writeAsync(() {
-      final talker = TalkerFlutter.init();
-      add<T>(object, update: true);
-      talker.warning(
-          "Saved using async on realm Extension:) ${object.toEJson()}");
-      _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
     });
   }
 

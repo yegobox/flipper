@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
   flipper_models: any
   flipper_services: any
-  realm: ^3.4.1
+  realm: ^20.0.0
 dependency_overrides:
   http: ^1.2.1
   meta: ^1.12.0

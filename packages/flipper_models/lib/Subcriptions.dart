@@ -19,9 +19,6 @@ mixin Subscriptions {
 
     // Collect current subscription names
     final existingSubscriptions = <String>{};
-    for (Subscription sub in realm.subscriptions) {
-      existingSubscriptions.add(sub.name!);
-    }
 
     // Log current subscriptions
     // existingSubscriptions
@@ -84,38 +81,5 @@ mixin Subscriptions {
       'my-stock': realm.query<Stock>(r'branchId == $0', [branchId]),
       'items': realm.query<TransactionItem>(r'branchId == $0', [branchId]),
     };
-
-    // Update subscriptions
-    realm.subscriptions.update((MutableSubscriptionSet mutableSubscriptions) {
-      queries.forEach((name, query) {
-        if (!existingSubscriptions.contains(name)) {
-          // talker.warning("Registered subscription ${name}");
-          mutableSubscriptions.add(query, name: name, update: true);
-        }
-      });
-
-      if (localRealm != null) {
-        List<Branch> branches = localRealm
-            .query<Branch>(r'businessId == $0', [businessId]).toList();
-        for (Branch branch in branches) {
-          final branchStock =
-              realm.query<Stock>(r'branchId == $0', [branch.serverId]);
-          final branchName = 'branch_${branch.serverId}_stock';
-          final transactionName = 'transactionItem_${branch.serverId}';
-
-          final itemsRequested = realm
-              .query<TransactionItem>(r'branchId == $0', [branch.serverId]);
-
-          if (!existingSubscriptions.contains(branchName)) {
-            mutableSubscriptions.add(branchStock,
-                name: branchName, update: true);
-          }
-          if (!existingSubscriptions.contains(transactionName)) {
-            mutableSubscriptions.add(itemsRequested,
-                name: transactionName, update: true);
-          }
-        }
-      }
-    });
   }
 }

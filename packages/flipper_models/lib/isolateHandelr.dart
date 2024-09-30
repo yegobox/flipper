@@ -259,10 +259,6 @@ class IsolateHandler with Subscriptions {
         bhfId == null ||
         URI == null) return;
 
-    final app = App.getById(AppSecrets.appId);
-    final user = app?.currentUser;
-    if (user == null) return;
-
     bool anythingUpdated = false;
 
     LocalConfiguration configLocal =
@@ -372,20 +368,6 @@ class IsolateHandler with Subscriptions {
       sendPort.send('notification:${1}');
     }
     localRealm?.close();
-  }
-
-  static FlexibleSyncConfiguration flexibleConfig(
-    User? user,
-    List<int> encryptionKey,
-    String dbPatch,
-  ) {
-    final config = Configuration.flexibleSync(
-      user!,
-      realmModels,
-      encryptionKey: encryptionKey,
-      path: dbPatch,
-    );
-    return config;
   }
 
   static LocalConfiguration localConfig(

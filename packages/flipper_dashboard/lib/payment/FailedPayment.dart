@@ -192,7 +192,6 @@ class FailedPayment extends HookConsumerWidget {
     const delayBetweenAttempts = Duration(seconds: 5);
 
     while (true) {
-      await ProxyService.local.realm?.subscriptions.waitForSynchronization();
       PaymentPlan? planUpdated =
           ProxyService.local.getPaymentPlan(businessId: plan.businessId ?? 0);
 

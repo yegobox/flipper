@@ -275,7 +275,7 @@ class TaxController<OBJ> {
           lastTouched: DateTime.now(),
           receiptType: receiptType,
         );
-        await ProxyService.local.realm!.putAsync(counter);
+        ProxyService.local.realm!.put(counter, tableName: 'counters');
       }
 
       /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first

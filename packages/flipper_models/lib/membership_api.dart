@@ -1,7 +1,7 @@
 import 'package:flipper_models/member.dart';
 
 class MembershipApi implements Members {
-  String apihub = "https://apihub.yegobox.com";
+  String apihub = "https://178.62.206.133";
   @override
   Future<bool> deduct({required String phoneNumberOrId, int? defaultDeductor}) {
     // TODO: implement deduct

@@ -503,9 +503,9 @@ class RWTax implements TaxApi {
       "receipt": {
         "prchrAcptcYn": "Y", // Ensure this is not null
         "rptNo": counter.invcNo,
-        "adrs": "Kigali, Rwanda",
+        "adrs": business?.adrs?? "Kigali, Rwanda",
         "topMsg":
-            "${business?.name}\n\nAddress:${business?.adrs}\nTEL: ${ProxyService.box.getUserPhone()}\nTIN: ${business?.tinNumber}",
+            "${business?.name}\n\nAddress:${business?.adrs ?? "Kigali, Rwanda"}\nTEL: ${ProxyService.box.getUserPhone()}\nTIN: ${business?.tinNumber}",
         "btmMsg": "Welcome",
         "custMblNo": customer == null
             ? ProxyService.box.currentSaleCustomerPhoneNumber()

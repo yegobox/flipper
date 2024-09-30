@@ -140,7 +140,7 @@ dependencies:
       ref: 32ea47240c10469ad31db0084f5d9b7a12d16e01
     path: ../
   
-  realm: ^3.4.1
+  realm: ^20.0.0
   
   sizer: ^2.0.15
   # firebase_app_check: ^0.2.1+12

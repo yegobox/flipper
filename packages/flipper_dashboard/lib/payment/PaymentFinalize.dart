@@ -162,7 +162,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
       bool keepLoop = true;
       do {
         /// force instant update from remote db
-        await ProxyService.local.realm?.subscriptions.waitForSynchronization();
+       
         PaymentPlan? plan = ProxyService.local
             .getPaymentPlan(businessId: paymentPlan.businessId!);
         if (plan != null && plan.paymentCompletedByUser!) {

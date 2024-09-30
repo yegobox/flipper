@@ -1070,7 +1070,7 @@ class LocalRealmApi
               value: (variation.qty * (variation.retailPrice)).toDouble(),
               productId: variation.productId,
               active: false);
-          await realm!.putAsync<Stock>(newStock);
+          realm!.put<Stock>(newStock, tableName: 'stocks');
         }
 
         stock!.currentStock = stock.currentStock + variation.qty;
@@ -1078,20 +1078,20 @@ class LocalRealmApi
         stock.action = AppActions.updated;
         stock.lastTouched = DateTime.now().toLocal();
         stock.value = (variation.qty * (variation.retailPrice)).toDouble();
-        await realm!.putAsync<Stock>(stock);
+        realm!.put<Stock>(stock, tableName: 'stocks');
 
         variant.qty = variation.qty;
         variant.retailPrice = variation.retailPrice;
         variant.supplyPrice = variation.supplyPrice;
         variant.action = AppActions.updated;
         variant.lastTouched = DateTime.now().toLocal();
-        await realm!.putAsync<Variant>(variant);
+        realm!.put<Variant>(variant, tableName: 'variants');
       } else {
         int stockId = randomNumber();
 
         talker.info("Saving variant when scanning..... [1]");
 
-        await realm!.putAsync<Variant>(variation);
+        realm!.put<Variant>(variation, tableName: 'variants');
 
         final newStock = Stock(ObjectId(),
             id: stockId,
@@ -1107,7 +1107,7 @@ class LocalRealmApi
             productId: variation.productId)
           ..active = true;
 
-        realm!.putAsync<Stock>(newStock);
+        realm!.put<Stock>(newStock, tableName: 'stocks');
       }
     } catch (e, s) {
       talker.error(s);
@@ -1307,9 +1307,9 @@ class LocalRealmApi
           ..productId = product.id!
           ..rsdQty = 0.0;
 
-        realm!.put<Variant>(variant);
+        realm!.put<Variant>(variant, tableName: 'variants');
 
-        realm!.put<Stock>(stock);
+        realm!.put<Stock>(stock, tableName: 'stocks');
 
         return realm!.query<Variant>(r'id == $0 ', [variantId]).firstOrNull;
       }
@@ -1854,7 +1854,7 @@ class LocalRealmApi
       sku.consumed = true;
     });
 
-    realm!.put<Product>(product);
+    realm!.put<Product>(product, tableName: 'products');
 
     if (!skipRegularVariant) {
       Product kProduct =
@@ -1872,7 +1872,7 @@ class LocalRealmApi
           productId: product.id!,
           itemSeq: itemSeq,
           ebmSynced: ebmSynced);
-      await realm!.putAsync<Variant>(newVariant);
+      realm!.put<Variant>(newVariant, tableName: 'variants');
 
       // Create a Stock for the Regular Variant
       final Stock stock = Stock(ObjectId(),
@@ -1884,7 +1884,7 @@ class LocalRealmApi
           variantId: newVariant.id!,
           currentStock: qty,
           productId: kProduct.id!);
-      await realm!.putAsync<Stock>(stock);
+      realm!.put<Stock>(stock, tableName: 'stocks');
     }
 
     return realm!.query<Product>(r'id == $0 ', [product.id]).firstOrNull;
@@ -2589,7 +2589,7 @@ class LocalRealmApi
       // Open a write transaction
 
       // Add the customer to the Realm
-      realm!.put(customer);
+      realm!.put(customer, tableName: 'customers');
 
       // Get the transaction from Realm
       final transaction =
@@ -2615,7 +2615,7 @@ class LocalRealmApi
       if (fav == null) {
         data.id = randomNumber();
 
-        realm!.put<Favorite>(data);
+        realm!.put<Favorite>(data, tableName: 'favorites');
 
         return 200;
       } else {
@@ -2641,7 +2641,7 @@ class LocalRealmApi
         variantId: variant.id,
         branchId: variant.branchId);
     try {
-      realm!.put<Stock>(stock);
+      realm!.put<Stock>(stock, tableName: 'stocks');
 
       return stock;
     } catch (e) {
@@ -2989,7 +2989,7 @@ class LocalRealmApi
     if (data is Counter) {
       Counter counter = data;
 
-      realm!.put<Counter>(counter);
+      realm!.put<Counter>(counter, tableName: 'counters');
       // Return the created conversation
       // Cast the result to type T
       return data;
@@ -2999,7 +2999,7 @@ class LocalRealmApi
     if (data is Conversation) {
       Conversation conversation = data;
 
-      realm!.put<Conversation>(conversation);
+      realm!.put<Conversation>(conversation, tableName: 'conversations');
       // Return the created conversation
       // Cast the result to type T
       return data;
@@ -3028,50 +3028,50 @@ class LocalRealmApi
     }
     if (data is Conversation) {
       Conversation conversation = data;
-      realm!.put<Conversation>(conversation);
+      realm!.put<Conversation>(conversation, tableName: 'conversations');
       return null;
     }
     if (data is Category) {
       Category category = data;
-      realm!.put<Category>(category);
+      realm!.put<Category>(category, tableName: 'categories');
       return null;
     }
     if (data is Product) {
-      realm!.put<Product>(data);
+      realm!.put<Product>(data, tableName: 'products');
     }
     if (data is Variant) {
-      realm!.put<Variant>(data);
+      realm!.put<Variant>(data, tableName: 'variants');
       return null;
     }
     if (data is Favorite) {
-      realm!.put<Favorite>(data);
+      realm!.put<Favorite>(data, tableName: 'favorites');
       return null;
     }
     if (data is Stock) {
-      realm!.put<Stock>(data);
+      realm!.put<Stock>(data, tableName: 'stocks');
       return null;
     }
 
     if (data is Token) {
-      realm!.put<Token>(data);
+      realm!.put<Token>(data, tableName: 'tokens');
       return null;
     }
     if (data is Setting) {
       realm!.write(() {
-        realm!.put<Setting>(data);
+        realm!.put<Setting>(data, tableName: 'settings');
       });
       return null;
     }
     if (data is EBM) {
-      realm!.put<EBM>(data);
+      realm!.put<EBM>(data, tableName: 'ebms');
       return null;
     }
     if (data is ITransaction) {
-      realm!.put<ITransaction>(data);
+      realm!.put<ITransaction>(data, tableName: 'transactions');
       return null;
     }
     if (data is TransactionItem) {
-      realm!.put<TransactionItem>(data);
+      realm!.put<TransactionItem>(data, tableName: 'transactionItems');
       return null;
     }
     return null;
@@ -3805,7 +3805,7 @@ class LocalRealmApi
 
       // save transaction to isar
       realm!.write(() {
-        realm!.put<ITransaction>(transaction);
+        realm!.put<ITransaction>(transaction, tableName: 'transactions');
       });
       return transaction;
     } else {
@@ -3893,7 +3893,7 @@ class LocalRealmApi
           createdAt: DateTime.now().toIso8601String());
 
       // save transaction to isar
-      realm!.put<ITransaction>(transaction);
+      realm!.put<ITransaction>(transaction, tableName: 'transactions');
 
       return transaction;
     } else {
@@ -4363,7 +4363,6 @@ class LocalRealmApi
         controller!.sink.add(results.results.toList());
       });
     }, onCancel: () {
-      query.unsubscribe();
       controller!.close();
     });
 
@@ -4414,7 +4413,7 @@ class LocalRealmApi
       if (response.statusCode != 200) {
         throw InternalServerError(term: "error patching the branch");
       }
-    } else if (data is User) {
+    } else if (data is IUser) {
       final response = await flipperHttpClient.patch(
           Uri.parse("$apihub/v2/api/user"),
           body: jsonEncode(data.toEJson()));

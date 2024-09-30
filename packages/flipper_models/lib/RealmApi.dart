@@ -40,9 +40,9 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   List<String> activeRealmSubscriptions() {
     final existingSubscriptions = <String>[];
-    for (Subscription sub in oldRealm!.subscriptions) {
-      existingSubscriptions.add(sub.name!);
-    }
+    // for (Subscription sub in oldRealm!.subscriptions) {
+    //   existingSubscriptions.add(sub.name!);
+    // }
     return existingSubscriptions;
   }
 
@@ -115,16 +115,16 @@ class RealmAPI<M extends IJsonSerializable>
     // ? AppSecrets.mongoApiSecretDebug
     // :
     try {
-      final app = App(AppConfiguration(AppSecrets.appId,
-          baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
+      // final app = App(AppConfiguration(AppSecrets.appId,
+      //     baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
 
       /// When this login does not execute or take too long user will not be able
       /// to proceed and use the app,!
       /// https://github.com/realm/realm-dart/issues/1205 support using firebase credentials
       /// this will help in avoiding sharing api key!
       /// https://github.com/realm/realm-dart/issues/1205#issuecomment-1465778841
-      User user = app.currentUser ??
-          await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
+      // User user = app.currentUser ??
+      //     await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
       if (useInMemoryDb ||
           encryptionKey == null ||
           encryptionKey.isEmpty ||
@@ -143,15 +143,15 @@ class RealmAPI<M extends IJsonSerializable>
         }
         oldRealm?.close();
         String path = await dbPath(path: 'synced', folder: businessId);
-        await _configurePersistent(
-            user: user,
-            path: path,
-            businessId: businessId,
-            branchId: branchId!,
-            userId: userId!,
-            app: app,
-            encryptions: encryptionKey.toIntList(),
-            localRealm: localRealm);
+        // await _configurePersistent(
+        //     user: user,
+        //     path: path,
+        //     businessId: businessId,
+        //     branchId: branchId!,
+        //     userId: userId!,
+        //     app: app,
+        //     encryptions: encryptionKey.toIntList(),
+        //     localRealm: localRealm);
         return this;
       }
     } catch (e, s) {
@@ -169,165 +169,165 @@ class RealmAPI<M extends IJsonSerializable>
     talker.info("Opened in-memory realm.");
   }
 
-  Future<void> _configurePersistent(
-      {required User user,
-      required String path,
-      required int businessId,
-      required int branchId,
-      required int userId,
-      required List<int> encryptions,
-      Realm? localRealm,
-      required App app}) async {
-    CancellationToken token = CancellationToken();
-    Future<void>.delayed(
-        const Duration(seconds: 30),
-        () => token.cancel(CancelledException(
-            cancellationReason: "Realm took too long to open")));
-    talker.warning("opening persistent");
-    // Sentry.captureMessage("opening persistent");
-    Configuration? config =
-        await _createPersistentConfig(user, path, encryptions: encryptions);
-    if (config == null) {
-      throw Exception();
-    }
-    if (oldRealm == null) {
-      oldRealm = await _openRealm(config: config, user: user, app: app);
-    } else {
-      oldRealm!.close();
-      oldRealm = await _openRealm(config: config, user: user, app: app);
-    }
-    updateSubscription(
-      localRealm: localRealm,
-      userId: userId,
-      realm: oldRealm,
-      branchId: branchId,
-      businessId: businessId,
-    );
-  }
+  // Future<void> _configurePersistent(
+  //     {required User user,
+  //     required String path,
+  //     required int businessId,
+  //     required int branchId,
+  //     required int userId,
+  //     required List<int> encryptions,
+  //     Realm? localRealm,
+  //     required App app}) async {
+  //   CancellationToken token = CancellationToken();
+  //   Future<void>.delayed(
+  //       const Duration(seconds: 30),
+  //       () => token.cancel(CancelledException(
+  //           cancellationReason: "Realm took too long to open")));
+  //   talker.warning("opening persistent");
+  //   // Sentry.captureMessage("opening persistent");
+  //   // Configuration? config =
+  //   //     await _createPersistentConfig(user, path, encryptions: encryptions);
+  //   // if (config == null) {
+  //   //   throw Exception();
+  //   // }
+  //   // if (oldRealm == null) {
+  //   //   oldRealm = await _openRealm(config: config, user: user, app: app);
+  //   // } else {
+  //   //   oldRealm!.close();
+  //   //   oldRealm = await _openRealm(config: config, user: user, app: app);
+  //   // }
+  //   updateSubscription(
+  //     localRealm: localRealm,
+  //     userId: userId,
+  //     realm: oldRealm,
+  //     branchId: branchId,
+  //     businessId: businessId,
+  //   );
+  // }
 
-  void handleCompensatingWrite(CompensatingWriteError compensatingWriteError) {
-    final writeReason = compensatingWriteError.compensatingWrites!.first;
-    print("Error message: " + writeReason.reason);
+  // void handleCompensatingWrite(CompensatingWriteError compensatingWriteError) {
+  //   final writeReason = compensatingWriteError.compensatingWrites!.first;
+  //   print("Error message: " + writeReason.reason);
 
-    // ... handle compensating write error as needed.
-  }
+  //   // ... handle compensating write error as needed.
+  // }
 
   ///https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/handle-sync-errors/import 'dart:io';
-  Future<Configuration?> _createPersistentConfig(User user, String path,
-      {required List<int> encryptions}) async {
-    try {
-      return Configuration.flexibleSync(
-        user,
-        realmModels,
-        encryptionKey: encryptions,
-        path: path,
-        shouldCompactCallback: (totalSize, usedSize) {
-          const tenMB = 10 * 1048576;
-          return (totalSize > tenMB) &&
-              (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
-        },
-        syncErrorHandler: (syncError) {
-          if (syncError is CompensatingWriteError) {
-            handleCompensatingWrite(syncError);
-          }
-        },
-        clientResetHandler: ManualRecoveryHandler((clientResetError) async {
-          // 4. Iterate and Update (Handle Conflicts)
-          try {
-            ProxyService.cron.isolateKill();
-            final path = oldRealm!.config.path;
-            // You must close a realm before deleting it
-            if (oldRealm != null) {
-              oldRealm!.syncSession.pause();
-              oldRealm!.close();
-            }
+  // Future<Configuration?> _createPersistentConfig(User user, String path,
+  //     {required List<int> encryptions}) async {
+  //   try {
+  //     return Configuration.flexibleSync(
+  //       user,
+  //       realmModels,
+  //       encryptionKey: encryptions,
+  //       path: path,
+  //       shouldCompactCallback: (totalSize, usedSize) {
+  //         const tenMB = 10 * 1048576;
+  //         return (totalSize > tenMB) &&
+  //             (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
+  //       },
+  //       syncErrorHandler: (syncError) {
+  //         if (syncError is CompensatingWriteError) {
+  //           handleCompensatingWrite(syncError);
+  //         }
+  //       },
+  //       clientResetHandler: ManualRecoveryHandler((clientResetError) async {
+  //         // 4. Iterate and Update (Handle Conflicts)
+  //         try {
+  //           ProxyService.cron.isolateKill();
+  //           final path = oldRealm!.config.path;
+  //           // You must close a realm before deleting it
+  //           if (oldRealm != null) {
+  //             oldRealm!.syncSession.pause();
+  //             oldRealm!.close();
+  //           }
 
-            // Delete the realm
-            Realm.deleteRealm(path);
-            // 1. Open the Backup Realm
-            final backupRealm = await Realm.open(
-              Configuration.flexibleSync(
-                user,
-                realmModels,
-                path: clientResetError.backupFilePath,
-                encryptionKey: ProxyService.box.encryptionKey().toIntList(),
-              ),
-            );
+  //           // Delete the realm
+  //           Realm.deleteRealm(path);
+  //           // 1. Open the Backup Realm
+  //           final backupRealm = await Realm.open(
+  //             Configuration.flexibleSync(
+  //               user,
+  //               realmModels,
+  //               path: clientResetError.backupFilePath,
+  //               encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+  //             ),
+  //           );
 
-            // 2. Open the Original Realm
-            final originalRealm = await Realm.open(
-              Configuration.flexibleSync(
-                user,
-                realmModels,
-                path: clientResetError.originalFilePath,
-                encryptionKey: ProxyService.box.encryptionKey().toIntList(),
-              ),
-            );
+  //           // 2. Open the Original Realm
+  //           final originalRealm = await Realm.open(
+  //             Configuration.flexibleSync(
+  //               user,
+  //               realmModels,
+  //               path: clientResetError.originalFilePath,
+  //               encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+  //             ),
+  //           );
 
-            // 3. Retrieve Backup Objects
-            final backupObjects = backupRealm.all(); // Get all objects
-            for (final backupObject in backupObjects) {
-              await originalRealm.write(() async {
-                // Resolve Conflicts:
-                originalRealm.add(backupObject, update: true);
-              });
-            }
-            // 5. Ensure Realms are Closed
-            backupRealm.close();
-            originalRealm.close();
+  //           // 3. Retrieve Backup Objects
+  //           final backupObjects = backupRealm.all(); // Get all objects
+  //           for (final backupObject in backupObjects) {
+  //             await originalRealm.write(() async {
+  //               // Resolve Conflicts:
+  //               originalRealm.add(backupObject, update: true);
+  //             });
+  //           }
+  //           // 5. Ensure Realms are Closed
+  //           backupRealm.close();
+  //           originalRealm.close();
 
-            // 6. Resume Synchronization
-            originalRealm.syncSession.resume();
-            await originalRealm.subscriptions.waitForSynchronization();
+  //           // 6. Resume Synchronization
+  //           originalRealm.syncSession.resume();
+  //           await originalRealm.subscriptions.waitForSynchronization();
 
-            /// re-configure the realm with same information required to re-init realm
-            configure(
-                useInMemoryDb: false,
-                branchId: ProxyService.box.getBranchId(),
-                businessId: ProxyService.box.getBusinessId(),
-                encryptionKey: ProxyService.box.encryptionKey(),
-                userId: ProxyService.box.getUserId(),
-                localRealm: ProxyService.local.realm);
-          } catch (e) {
-            talker.error('Error during manual recovery: $e');
-          } finally {
-            print('Realms closed after recovery process.');
-          }
-        }),
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
+  //           /// re-configure the realm with same information required to re-init realm
+  //           configure(
+  //               useInMemoryDb: false,
+  //               branchId: ProxyService.box.getBranchId(),
+  //               businessId: ProxyService.box.getBusinessId(),
+  //               encryptionKey: ProxyService.box.encryptionKey(),
+  //               userId: ProxyService.box.getUserId(),
+  //               localRealm: ProxyService.local.realm);
+  //         } catch (e) {
+  //           talker.error('Error during manual recovery: $e');
+  //         } finally {
+  //           print('Realms closed after recovery process.');
+  //         }
+  //       }),
+  //     );
+  //   } catch (e) {
+  //     rethrow;
+  //   }
+  // }
 
-  Future<Realm> _openRealm({
-    required Configuration config,
-    required User user,
-    required App app,
-  }) async {
-    try {
-      CancellationToken token = CancellationToken();
-      Future<void>.delayed(
-        const Duration(seconds: 30),
-        () => token.cancel(CancelledException(
-          cancellationReason: "Realm took too long to open",
-        )),
-      );
+  // Future<Realm> _openRealm({
+  //   required Configuration config,
+  //   required User user,
+  //   required App app,
+  // }) async {
+  //   try {
+  //     CancellationToken token = CancellationToken();
+  //     Future<void>.delayed(
+  //       const Duration(seconds: 30),
+  //       () => token.cancel(CancelledException(
+  //         cancellationReason: "Realm took too long to open",
+  //       )),
+  //     );
 
-      // Attempt to open the Realm
-      return Realm(config);
-    } on RealmException catch (e) {
-      talker.warning("ErorCode: ${e.hashCode}");
-      rethrow;
-    } on CancelledException catch (_) {
-      talker.warning('Realm opening timed out. Retrying...');
-      rethrow;
-    } catch (e, s) {
-      talker.error('Error opening Realm: $e');
-      talker.error(s);
-      rethrow;
-    }
-  }
+  //     // Attempt to open the Realm
+  //     return Realm(config);
+  //   } on RealmException catch (e) {
+  //     talker.warning("ErorCode: ${e.hashCode}");
+  //     rethrow;
+  //   } on CancelledException catch (_) {
+  //     talker.warning('Realm opening timed out. Retrying...');
+  //     rethrow;
+  //   } catch (e, s) {
+  //     talker.error('Error opening Realm: $e');
+  //     talker.error(s);
+  //     rethrow;
+  //   }
+  // }
 
   @override
   void close() {
@@ -350,7 +350,6 @@ class RealmAPI<M extends IJsonSerializable>
   void copyRemoteDataToLocalDb() {
     if (ProxyService.box.doneMigrateToLocal()) {
       /// we no longer need sync so pause it for now for future removal.
-      oldRealm!.syncSession.pause();
     }
     if (!ProxyService.box.doneMigrateToLocal()) {
       try {

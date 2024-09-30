@@ -375,16 +375,9 @@ class CloudSync implements SyncInterface {
       {required int branchId,
       required String encryptionKey,
       required String dbPath}) async {
-    final app = App.getById(AppSecrets.appId);
-    final user = app?.currentUser;
-    if (user == null) return;
+    
 
-    FlexibleSyncConfiguration config = Configuration.flexibleSync(
-      user,
-      realmModels,
-      encryptionKey: encryptionKey.toIntList(),
-      path: dbPath,
-    );
+   
 
     try {
       List<TransactionItem> items =

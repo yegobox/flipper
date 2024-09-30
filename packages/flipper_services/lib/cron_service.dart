@@ -109,9 +109,6 @@ class CronService with Subscriptions {
               ProxyService.notification
                   .sendLocalNotification(body: "System is up to date with EBM");
             }
-
-            await ProxyService.local.realm!.subscriptions
-                .waitForSynchronization();
           },
         );
         // Isolate.current.addOnExitListener(await receivePort.last);
