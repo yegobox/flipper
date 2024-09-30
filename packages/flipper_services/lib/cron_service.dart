@@ -145,7 +145,6 @@ class CronService with Subscriptions {
       /// bootstrap data for universal Product names;
 
       await _spawnIsolate("local", IsolateHandler.localData);
-      await _spawnIsolate("cloudDownload", IsolateHandler.cloudDownload);
 
       await _spawnIsolate("synced", IsolateHandler.handleEBMTrigger);
     });
