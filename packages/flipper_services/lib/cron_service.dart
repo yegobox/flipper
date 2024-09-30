@@ -133,6 +133,10 @@ class CronService with Subscriptions {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
+    Timer.periodic(_pull(), (Timer t) async {
+      await _spawnIsolate("cloudDownload", IsolateHandler.cloudDownload);
+    });
+
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       // backUpPowerSync();
       if (ProxyService.box.getUserId() == null ||
@@ -224,5 +228,9 @@ class CronService with Subscriptions {
 
   Duration _getHeartBeatDuration() {
     return Duration(seconds: kDebugMode ? 10 : 10);
+  }
+
+  Duration _pull() {
+    return Duration(seconds: kDebugMode ? 60 : 60);
   }
 }
