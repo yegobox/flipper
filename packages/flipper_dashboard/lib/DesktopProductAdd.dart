@@ -1001,6 +1001,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ],
                   rows: model.scannedVariants.reversed.map((variant) {
                     if (variant.stock == null) {
+                      //
                       ProxyService.local.realm!.write(() {
                         final id = randomNumber();
                         ProxyService.local.realm!.add(
