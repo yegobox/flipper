@@ -92,8 +92,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => servicesModule.box(),
       preResolve: true,
     );
-    gh.lazySingleton<_i756.DataMigratorToLocal>(
-        () => servicesModule.realmApi());
+
     await gh.lazySingletonAsync<_i756.RealmApiInterface>(
       () => servicesModule.localRealm(),
       preResolve: true,

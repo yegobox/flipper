@@ -282,17 +282,6 @@ mixin Booting {
 
   Future<void> initializeRealms() async {
     if (ProxyService.local.realm == null) {
-      await ProxyService.realm.configure(
-        useInMemoryDb: false,
-        useFallBack: false,
-        localRealm: ProxyService.local.realm,
-        businessId: ProxyService.box.getBusinessId(),
-        encryptionKey: ProxyService.box.encryptionKey(),
-        branchId: ProxyService.box.getBranchId(),
-        userId: ProxyService.box.getUserId(),
-      );
-    }
-    if (ProxyService.local.realm == null) {
       await ProxyService.local.configureLocal(useInMemory: false);
     }
   }

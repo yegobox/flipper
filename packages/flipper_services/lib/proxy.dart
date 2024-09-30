@@ -75,12 +75,10 @@ final PayStackServiceInterface _payStack = getIt<PayStackServiceInterface>();
 final HttpClientInterface _http = getIt<HttpClientInterface>();
 final RealmViaHttp _realmHttp = getIt<RealmViaHttp>();
 
-final DataMigratorToLocal _realm = getIt<DataMigratorToLocal>();
 final RealmApiInterface _localRealm = getIt<RealmApiInterface>();
 final SyncInterface _synchronize = getIt<SyncInterface>();
 
 abstract class ProxyService {
-  static DataMigratorToLocal get realm => _realm;
   static RealmApiInterface get local => _localRealm;
   static SyncInterface get synchronize => _synchronize;
 

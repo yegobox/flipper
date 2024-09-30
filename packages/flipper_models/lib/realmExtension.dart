@@ -14,7 +14,7 @@ extension RealmExtension on Realm {
   }) {
     write(() {
       final talker = TalkerFlutter.init();
-      add<T>(object,update: true);
+      add<T>(object, update: true);
       talker.warning(
           "Saved using standart non async on realm extension :) ${object.toEJson()}");
       _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
@@ -27,7 +27,7 @@ extension RealmExtension on Realm {
   Future<void> putAsync<T extends RealmObject>(T object) async {
     await writeAsync(() {
       final talker = TalkerFlutter.init();
-      add<T>(object,update: true);
+      add<T>(object, update: true);
       talker.warning(
           "Saved using async on realm Extension:) ${object.toEJson()}");
       _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
@@ -50,8 +50,7 @@ extension RealmExtension on Realm {
           RootIsolateToken.instance,
           receivePort.sendPort,
           ProxyService.box.getBranchId()!,
-          await ProxyService.realm
-              .dbPath(path: 'synced', folder: ProxyService.box.getBusinessId()),
+          'synced-removed',
           encryptionKey,
           business.tinNumber,
           ebm.bhfId

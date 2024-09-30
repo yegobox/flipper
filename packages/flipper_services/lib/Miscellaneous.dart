@@ -90,17 +90,7 @@ mixin CoreMiscellaneous {
 
   /// Ensures that the Realm database is initialized and ready to use.
   Future<void> ensureRealmInitialized() async {
-    if (ProxyService.box.encryptionKey().isNotEmpty &&
-        ProxyService.realm.oldRealm == null) {
-      await ProxyService.realm.configure(
-        useInMemoryDb: false,
-        useFallBack: false,
-        localRealm: ProxyService.local.realm,
-        branchId: ProxyService.box.getBranchId()!,
-        userId: ProxyService.box.getUserId()!,
-        businessId: ProxyService.box.getBusinessId()!,
-        encryptionKey: ProxyService.box.encryptionKey(),
-      );
+    if (ProxyService.box.encryptionKey().isNotEmpty) {
       await ProxyService.local.configureLocal(useInMemory: false);
     }
   }

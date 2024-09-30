@@ -54,15 +54,6 @@ class LoginViewModel extends FlipperBaseModel
     logOut();
     try {
       setIsprocessing(value: true);
-      if (ProxyService.local.realm == null) {
-        await ProxyService.realm.configure(
-            useInMemoryDb: false,
-            localRealm: ProxyService.local.realm,
-            businessId: ProxyService.box.getBusinessId(),
-            encryptionKey: ProxyService.box.encryptionKey(),
-            branchId: ProxyService.box.getBranchId(),
-            userId: ProxyService.box.getUserId());
-      }
 
       IPin? pin = await ProxyService.local
           .getPin(pin: pinCode, flipperHttpClient: ProxyService.http);

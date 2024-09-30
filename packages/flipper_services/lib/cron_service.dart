@@ -65,8 +65,7 @@ class CronService with Subscriptions {
             RootIsolateToken.instance,
             receivePort.sendPort,
             ProxyService.box.getBranchId()!,
-            await ProxyService.realm
-                .dbPath(path: name, folder: ProxyService.box.getBusinessId()),
+            'synced-removed',
             ProxyService.box.encryptionKey(),
             business.tinNumber,
             ProxyService.box.bhfId() ?? "00",
@@ -370,7 +369,6 @@ class CronService with Subscriptions {
     // });
 
     /// heart beat
-    
 
     await _setupFirebase();
 

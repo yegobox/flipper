@@ -1,4 +1,3 @@
-
 import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/RealmAPIMocked.dart';
@@ -292,26 +291,6 @@ abstract class ServicesModule {
     }
   }
 
-  @LazySingleton()
-  DataMigratorToLocal realmApi() {
-    if (!kIsWeb) {
-      const isTest =
-          const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
-      talker.warning("running in test env: $isTest");
-
-      /// to speed-up the application starting time, when we init realm, we just pass in memory db
-      /// then when user login we will close it and switch to flexible sync
-      if (isTest) {
-        return RealmApiMocked();
-      } else {
-        return RealmAPI().instance();
-      }
-    } else {
-      // return RealmViaHttpService();
-      throw Exception();
-    }
-  }
-
   @preResolve
   @LazySingleton()
   Future<RealmApiInterface> localRealm() async {
@@ -323,8 +302,6 @@ abstract class ServicesModule {
       return RealmViaHttpService();
     }
   }
-
- 
 
   //TODOcheck if code from LanguageService can work fully on windows
   @LazySingleton()

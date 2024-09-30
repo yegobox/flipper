@@ -22,15 +22,7 @@ void main() {
         ),
         realm: ProxyService.local.realm,
       );
-      await ProxyService.realm.configure(
-        useInMemoryDb: false,
-        useFallBack: false,
-        localRealm: ProxyService.local.realm,
-        branchId: ProxyService.box.getBranchId()!,
-        userId: ProxyService.box.getUserId()!,
-        businessId: ProxyService.box.getBusinessId()!,
-        encryptionKey: ProxyService.box.encryptionKey(),
-      );
+
       CreateMockdata().mockBusiness(local: ProxyService.local.realm!);
       CreateMockdata().mockTransactions(realm: ProxyService.local.realm!);
     });

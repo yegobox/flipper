@@ -224,17 +224,7 @@ class LocalRealmApi
 
   @override
   Future<void> configureRemoteRealm(String userPhone, IUser user,
-      {Realm? realm}) async {
-    await ProxyService.realm.configure(
-      useInMemoryDb: false,
-      useFallBack: false,
-      localRealm: realm,
-      businessId: ProxyService.box.getBusinessId(),
-      encryptionKey: ProxyService.box.encryptionKey(),
-      branchId: ProxyService.box.getBranchId(),
-      userId: ProxyService.box.getUserId(),
-    );
-  }
+      {Realm? realm}) async {}
 
   Future<void> _suserbaseAuth() async {
     // Check if the user already exists
@@ -292,25 +282,6 @@ class LocalRealmApi
       await configureRemoteRealm(userPhone, user, realm: realm);
 
       /// before updating local make sure there is realm subscription registered for Access
-      try {
-        if (realm != null) {
-          List<String> subscriptions =
-              ProxyService.realm.activeRealmSubscriptions();
-          if (!subscriptions
-              .contains('access-${ProxyService.box.getBusinessId()}')) {
-            // If not, register the 'Access' subscription
-            await ProxyService.realm.forceSubs(
-              localRealm: realm,
-              userId: ProxyService.box.getUserId(),
-              branchId: ProxyService.box.getBranchId(),
-              businessId: ProxyService.box.getBusinessId(),
-            );
-          }
-        }
-      } catch (e, s) {
-        talker.info(e);
-        talker.error(s);
-      }
 
       /// wait for subscription before we go to downloadAssetSave line
 
@@ -336,17 +307,6 @@ class LocalRealmApi
   }
 
   Future<void> _initializeRealms() async {
-    if (realm == null) {
-      await ProxyService.realm.configure(
-        useInMemoryDb: false,
-        useFallBack: false,
-        localRealm: realm,
-        businessId: ProxyService.box.getBusinessId(),
-        encryptionKey: ProxyService.box.encryptionKey(),
-        branchId: ProxyService.box.getBranchId(),
-        userId: ProxyService.box.getUserId(),
-      );
-    }
     if (realm == null) {
       await configureLocal(useInMemory: false);
     }
@@ -407,14 +367,7 @@ class LocalRealmApi
           flipperHttpClient: flipperHttpClient);
 
       await configureLocal(useInMemory: false);
-      await ProxyService.realm.configure(
-        useInMemoryDb: false,
-        localRealm: realm,
-        businessId: ProxyService.box.getBusinessId(),
-        encryptionKey: ProxyService.box.encryptionKey(),
-        branchId: ProxyService.box.getBranchId(),
-        userId: ProxyService.box.getUserId(),
-      );
+
       final tenantToAdd = <Tenant>[];
       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
         ITenant jTenant = tenant;
@@ -571,17 +524,6 @@ class LocalRealmApi
     final http.Response response = await flipperHttpClient
         .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
     if (response.statusCode == 200) {
-      if (realm == null) {
-        await ProxyService.realm.configure(
-          useInMemoryDb: false,
-          useFallBack: false,
-          localRealm: realm,
-          businessId: ProxyService.box.getBusinessId(),
-          branchId: ProxyService.box.getBranchId(),
-          userId: ProxyService.box.getUserId(),
-          encryptionKey: ProxyService.box.encryptionKey(),
-        );
-      }
       if (realm == null) {
         await configureLocal(useInMemory: false);
       }
