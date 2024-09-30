@@ -360,12 +360,12 @@ class CronService with Subscriptions {
 
     /// heart beat
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
-      backUpPowerSync();
+      // backUpPowerSync();
       if (ProxyService.box.getUserId() == null ||
           ProxyService.box.getBusinessId() == null) return;
 
       /// bootstrap data for universal Product names;
-      await _spawnIsolate("synced", IsolateHandler.flexibleSync);
+
       await _spawnIsolate("local", IsolateHandler.localData);
 
       await _spawnIsolate("synced", IsolateHandler.handleEBMTrigger);
@@ -406,7 +406,7 @@ class CronService with Subscriptions {
 
   void backUpPowerSync() async {
     try {
-      ProxyService.realm.copyRemoteDataToLocalDb();
+      // ProxyService.realm.copyRemoteDataToLocalDb();
 
       // List<Product> products =
       //     ProxyService.local.realm!.all<Product>().toList();
