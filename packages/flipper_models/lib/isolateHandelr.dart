@@ -27,16 +27,17 @@ import 'package:firebase_core/firebase_core.dart';
 class IsolateHandler with Subscriptions {
   static Realm? realm;
   static Realm? localRealm;
+  
 
   static Future<void> cloudDownload(List<dynamic> args) async {
-    final rootIsolateToken = args[0] as RootIsolateToken;
+    // final rootIsolateToken = args[0] as RootIsolateToken;
     final sendPort = args[1] as SendPort;
     String? dbPatch = args[3] as String?;
     String? key = args[4] as String?;
     String? local = args[9] as String?;
 
     if (dbPatch == null || key == null) return;
-    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    // BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     DartPluginRegistrant.ensureInitialized();
 
     try {
@@ -51,7 +52,7 @@ class IsolateHandler with Subscriptions {
       localRealm = Realm(configLocal);
 
       /// re-init firestore
-      CloudSync(firestore, localRealm!).handleRealmChanges<Counter>(
+      CloudSync(firestore, localRealm!).handleRealmChangesAsync<Counter>(
         syncProvider: SyncProvider.FIRESTORE,
         results: localRealm!.all<Counter>(),
         tableName: 'counters',
@@ -65,7 +66,7 @@ class IsolateHandler with Subscriptions {
         },
       );
 
-      CloudSync(firestore, localRealm!).handleRealmChanges<Stock>(
+      CloudSync(firestore, localRealm!).handleRealmChangesAsync<Stock>(
         syncProvider: SyncProvider.FIRESTORE,
         results: localRealm!.all<Stock>(),
         tableName: 'stocks',
@@ -81,7 +82,7 @@ class IsolateHandler with Subscriptions {
         },
       );
 
-      CloudSync(firestore, localRealm!).handleRealmChanges<Product>(
+      CloudSync(firestore, localRealm!).handleRealmChangesAsync<Product>(
         syncProvider: SyncProvider.FIRESTORE,
         results: localRealm!.all<Product>(),
         tableName: 'products',
@@ -96,7 +97,7 @@ class IsolateHandler with Subscriptions {
         },
       );
 
-      CloudSync(firestore, localRealm!).handleRealmChanges<Variant>(
+      CloudSync(firestore, localRealm!).handleRealmChangesAsync<Variant>(
         syncProvider: SyncProvider.FIRESTORE,
         results: localRealm!.all<Variant>(),
         tableName: 'variants',
@@ -110,85 +111,69 @@ class IsolateHandler with Subscriptions {
         },
       );
 
-      CloudSync(firestore, localRealm!).handleRealmChanges<Counter>(
-        syncProvider: SyncProvider.FIRESTORE,
-        results: localRealm!.all<Counter>(),
-        tableName: 'counters',
-        idField: 'counter_id',
-        getId: (counter) => counter.id!,
-        convertToMap: (counter) => counter.toEJson().toFlipperJson(),
-        preProcessMap: (map) {
-          map['counter_id'] = map['id'];
-          map.remove('id');
-          map.remove('_id');
-        },
-      );
+      // CloudSync(firestore, localRealm!).handleRealmChangesAsync<Configurations>(
+      //   syncProvider: SyncProvider.FIRESTORE,
+      //   results: localRealm!.all<Configurations>(),
+      //   tableName: 'configurations',
+      //   idField: 'configuration_id',
+      //   getId: (configuration) => configuration.id!,
+      //   convertToMap: (configuration) =>
+      //       configuration.toEJson().toFlipperJson(),
+      //   preProcessMap: (map) {
+      //     map['configuration_id'] = map['id'];
+      //     map.remove('id');
+      //     map.remove('_id');
+      //   },
+      // );
 
-      CloudSync(firestore, localRealm!).watchTableAsync<Counter>(
-        syncProvider: SyncProvider.FIRESTORE,
-        tableName: 'counters',
-        idField: 'counter_id',
-        createRealmObject: (data) {
-          return Counter(
-            ObjectId(),
-            businessId: data['business_id'] is int
-                ? data['business_id']
-                : int.parse(data['business_id']),
-            branchId: data['branch_id'] is int
-                ? data['branch_id']
-                : int.parse(data['branch_id']),
-            receiptType: data['receipt_type'],
-            totRcptNo: data['tot_rcpt_no'] is int
-                ? data['tot_rcpt_no']
-                : int.parse(data['tot_rcpt_no']),
-            curRcptNo: data['cur_rcpt_no'] is int
-                ? data['cur_rcpt_no']
-                : int.parse(data['cur_rcpt_no']),
-            invcNo: data['invc_no'] is int
-                ? data['invc_no']
-                : int.parse(data['invc_no']),
-            lastTouched: DateTime.parse(data['last_touched']),
-            action: data['action'],
-          );
-        },
-        updateRealmObject: (_stock, data) {
-          //find related variant
-          Counter? counter = localRealm!
-              .query<Counter>(r'id == $0', [data['variant_id']]).firstOrNull;
+      // CloudSync(firestore, localRealm!).watchTableAsync<Configurations>(
+      //   syncProvider: SyncProvider.FIRESTORE,
+      //   tableName: 'configurations',
+      //   idField: 'configuration_id',
+      //   createRealmObject: (data) {
+      //     return Configurations(
+      //       ObjectId(),
+      //       id: int.parse(data['configuration_id']),
+      //       taxType: data['tax_type'],
+      //       taxPercentage: data['tax_percentage'] is double
+      //           ? data['tax_percentage']
+      //           : double.parse(data['tax_percentage']),
+      //       businessId: data['business_id'] is int
+      //           ? data['business_id']
+      //           : int.parse(data['business_id']),
+      //       branchId: data['branch_id'] is int
+      //           ? data['branch_id']
+      //           : int.parse(data['branch_id']),
+      //     );
+      //   },
+      //   updateRealmObject: (_config, data) {
+      //     //find related variant
+      //     Configurations? configuration = localRealm!.query<Configurations>(
+      //         r'id == $0', [data['configuration_id']]).firstOrNull;
 
-          if (counter != null) {
-            localRealm!.write(() {
-              /// keep stock in sync
-              try {
-                // /// keep variant in sync
-                counter.businessId = data['business_id'] is int
-                    ? data['business_id']
-                    : int.parse(data['business_id']);
+      //     if (configuration != null) {
+      //       localRealm!.write(() {
+      //         try {
+      //           configuration.taxType = data['tax_type'];
 
-                counter.branchId = data['branch_id'] is int
-                    ? data['branch_id']
-                    : int.parse(data['branch_id']);
+      //           configuration.taxPercentage = data['tax_percentage'] is double
+      //               ? data['tax_percentage']
+      //               : double.parse(data['tax_percentage']);
 
-                counter.receiptType = data['receipt_type'];
-                counter.totRcptNo = data['tot_rcpt_no'] is int
-                    ? data['tot_rcpt_no']
-                    : int.parse(data['tot_rcpt_no']);
-                counter.curRcptNo = data['cur_rcpt_no'] is int
-                    ? data['cur_rcpt_no']
-                    : int.parse(data['cur_rcpt_no']);
-                counter.invcNo = data['invc_no'] is int
-                    ? data['invc_no']
-                    : int.parse(data['invc_no']);
-                counter.lastTouched = DateTime.parse(data['last_touched']);
-                counter.action = data['action'];
-              } catch (e, s) {
-                talker.error(e);
-                talker.error(s);
-              }
-            });
-          }
-        },
-      );
+      //           configuration.businessId = data['business_id'] is int
+      //               ? data['business_id']
+      //               : int.parse(data['business_id']);
+      //           configuration.branchId = data['branch_id'] is int
+      //               ? data['branch_id']
+      //               : int.parse(data['branch_id']);
+      //         } catch (e, s) {
+      //           talker.error(e);
+      //           talker.error(s);
+      //         }
+      //       });
+      //     }
+      //   },
+      // );
 
       CloudSync(firestore, localRealm!).watchTableAsync<Stock>(
         syncProvider: SyncProvider.FIRESTORE,

@@ -12,6 +12,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_models/DownloadQueue.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flipper_models/CloudSync.dart';
+import 'package:realm/realm.dart';
 // import 'package:realm/realm.dart';
 
 class CronService with Subscriptions {
@@ -134,9 +137,176 @@ class CronService with Subscriptions {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
-    // final localRealm = ProxyService.local.realm;
-    // final firestore = FirebaseFirestore.instance;
+    try {
+      final localRealm = ProxyService.local.realm;
+      final firestore = FirebaseFirestore.instance;
+      CloudSync(firestore, localRealm!).handleRealmChanges<Counter>(
+        syncProvider: SyncProvider.FIRESTORE,
+        results: localRealm.all<Counter>(),
+        tableName: 'counters',
+        idField: 'counter_id',
+        getId: (counter) => counter.id!,
+        convertToMap: (counter) => counter.toEJson().toFlipperJson(),
+        preProcessMap: (map) {
+          map['counter_id'] = map['id'];
+          map.remove('id');
+          map.remove('_id');
+        },
+      );
+      CloudSync(firestore, localRealm).watchTable<Counter>(
+        syncProvider: SyncProvider.FIRESTORE,
+        tableName: 'counters',
+        idField: 'counter_id',
+        createRealmObject: (data) {
+          return Counter(
+            ObjectId(),
+            businessId: data['business_id'] is int
+                ? data['business_id']
+                : int.parse(data['business_id']),
+            branchId: data['branch_id'] is int
+                ? data['branch_id']
+                : int.parse(data['branch_id']),
+            receiptType: data['receipt_type'],
+            totRcptNo: data['tot_rcpt_no'] is int
+                ? data['tot_rcpt_no']
+                : int.parse(data['tot_rcpt_no']),
+            curRcptNo: data['cur_rcpt_no'] is int
+                ? data['cur_rcpt_no']
+                : int.parse(data['cur_rcpt_no']),
+            invcNo: data['invc_no'] is int
+                ? data['invc_no']
+                : int.parse(data['invc_no']),
+            lastTouched: DateTime.parse(data['last_touched']),
+            action: data['action'],
+          );
+        },
+        updateRealmObject: (_stock, data) {
+          //find related variant
+          Counter? counter = localRealm
+              .query<Counter>(r'id == $0', [data['variant_id']]).firstOrNull;
 
+          if (counter != null) {
+            localRealm.write(() {
+              /// keep stock in sync
+              try {
+                // /// keep variant in sync
+                counter.businessId = data['business_id'] is int
+                    ? data['business_id']
+                    : int.parse(data['business_id']);
+
+                counter.branchId = data['branch_id'] is int
+                    ? data['branch_id']
+                    : int.parse(data['branch_id']);
+
+                counter.receiptType = data['receipt_type'];
+                counter.totRcptNo = data['tot_rcpt_no'] is int
+                    ? data['tot_rcpt_no']
+                    : int.parse(data['tot_rcpt_no']);
+                counter.curRcptNo = data['cur_rcpt_no'] is int
+                    ? data['cur_rcpt_no']
+                    : int.parse(data['cur_rcpt_no']);
+                counter.invcNo = data['invc_no'] is int
+                    ? data['invc_no']
+                    : int.parse(data['invc_no']);
+                counter.lastTouched = DateTime.parse(data['last_touched']);
+                counter.action = data['action'];
+              } catch (e, s) {
+                talker.error(e);
+                talker.error(s);
+              }
+            });
+          }
+        },
+      );
+
+      CloudSync(firestore, localRealm).handleRealmChanges<EBM>(
+        syncProvider: SyncProvider.FIRESTORE,
+        results: localRealm.all<EBM>(),
+        tableName: 'ebms',
+        idField: 'ebm_id',
+        getId: (ebm) => ebm.id!,
+        convertToMap: (ebm) => ebm.toEJson().toFlipperJson(),
+        preProcessMap: (map) {
+          map['ebm_id'] = map['id'];
+          map.remove('id');
+          map.remove('_id');
+        },
+      );
+      CloudSync(firestore, localRealm).watchTable<EBM>(
+        syncProvider: SyncProvider.FIRESTORE,
+        tableName: 'ebms',
+        idField: 'ebm_id',
+        createRealmObject: (data) {
+          return EBM(
+            ObjectId(),
+            data['bhf_id'],
+            data['tin_number'] is int
+                ? data['tin_number']
+                : double.parse(data['tin_number']),
+            data['dvc_srl_no'] is int
+                ? data['dvc_srl_no']
+                : int.parse(data['dvc_srl_no']),
+            data['user_id'] is int
+                ? data['user_id']
+                : int.parse(data['user_id']),
+            data['business_id'] is int
+                ? data['business_id']
+                : int.parse(data['business_id']),
+            data['branch_id'] is int
+                ? data['branch_id']
+                : int.parse(data['branch_id']),
+            data['action'],
+            id: data['ebm_id'] is int
+                ? data['ebm_id']
+                : int.parse(data['ebm_id']),
+            taxServerUrl: data['tax_server_url'],
+            lastTouched: DateTime.parse(data['last_touched']),
+          );
+        },
+        updateRealmObject: (_ebm, data) {
+          //find related variant
+          EBM? ebm = localRealm
+              .query<EBM>(r'id == $0', [data['configuration_id']]).firstOrNull;
+
+          if (ebm != null) {
+            localRealm.write(() {
+              try {
+                ebm.bhfId = data['bhf_id'];
+
+                ebm.tinNumber = data['tin_number'] is int
+                    ? data['tin_number']
+                    : double.parse(data['tin_number']);
+
+                ebm.dvcSrlNo = data['dvc_srl_no'] is int
+                    ? data['dvc_srl_no']
+                    : int.parse(data['dvc_srl_no']);
+                ebm.branchId = data['branch_id'] is int
+                    ? data['branch_id']
+                    : int.parse(data['branch_id']);
+                ebm.userId = data['user_id'] is int
+                    ? data['user_id']
+                    : int.parse(data['user_id']);
+                ebm.taxServerUrl = data['tax_server_url'] is int
+                    ? data['tax_server_url']
+                    : int.parse(data['tax_server_url']);
+                ebm.businessId = data['business_id'] is int
+                    ? data['business_id']
+                    : int.parse(data['business_id']);
+
+                ebm.lastTouched = data['last_touched'] is DateTime
+                    ? data['last_touched']
+                    : DateTime.parse(data['last_touched']);
+              } catch (e, s) {
+                talker.error(e);
+                talker.error(s);
+              }
+            });
+          }
+        },
+      );
+    } catch (e) {
+      talker.error(e);
+    }
     Timer.periodic(_keepRealmInSync(), (Timer t) async {
       await _spawnIsolate("cloudSyncDownload", IsolateHandler.cloudDownload);
     });
@@ -411,7 +581,7 @@ class CronService with Subscriptions {
   }
 
   Duration _keepRealmInSync() {
-    return Duration(seconds: kDebugMode ? 10 : 10);
+    return Duration(seconds: kDebugMode ? 60 : 60);
   }
 
   Duration _getBackUpDuration() {

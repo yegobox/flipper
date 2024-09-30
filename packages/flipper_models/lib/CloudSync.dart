@@ -125,6 +125,9 @@ class CloudSync implements SyncInterface {
           final modifiedItem = results[obj];
           final id = getId(modifiedItem);
           try {
+            // Skip if this ID is currently being processed by watchTable
+            if (_processingIds.contains(id)) continue;
+            _processingIds.add(id);
             Map<String, dynamic> map = convertToMap(modifiedItem);
             if (syncProvider == SyncProvider.FIRESTORE) {
               talker.warning("Change in realm happened");
@@ -135,15 +138,15 @@ class CloudSync implements SyncInterface {
                 id: id,
                 syncProvider: syncProvider,
               );
+              Future.delayed(Duration(seconds: 2), () {
+                _processingIds.remove(id);
+              });
               return;
             }
           } catch (e, s) {
             talker.warning(e);
             talker.error(s);
           }
-
-          // Skip if this ID is currently being processed by watchTable
-          if (_processingIds.contains(id)) continue;
 
           // final item = await db.getOptional(
           //   'SELECT * FROM $tableName WHERE $idField = ?',
@@ -323,9 +326,9 @@ class CloudSync implements SyncInterface {
           //     }
 
           //     // Remove this ID from the processing set after a short delay
-          //     Future.delayed(Duration(seconds: 2), () {
-          //       _processingIds.remove(id);
-          //     });
+          // Future.delayed(Duration(seconds: 2), () {
+          //   _processingIds.remove(id);
+          // });
           //   }
           // });
         } else {
@@ -458,15 +461,21 @@ class CloudSync implements SyncInterface {
       final id = getId(result);
 
       try {
+        // Skip if this ID is currently being processed by watchTable
+        if (_processingIds.contains(id)) continue;
         Map<String, dynamic> map = convertToMap(result);
         if (syncProvider == SyncProvider.FIRESTORE) {
-          talker.warning("Change in realm happened");
+          talker.warning("Change in realm happened Async");
+          _processingIds.add(id);
           await updateRecord(
               tableName: tableName,
               idField: idField,
               map: map,
               id: id,
               syncProvider: syncProvider);
+          Future.delayed(Duration(seconds: 2), () {
+            _processingIds.remove(id);
+          });
           return;
         }
       } catch (e, s) {
