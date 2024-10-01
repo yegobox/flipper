@@ -600,6 +600,11 @@ class LocalRealmApi
   }
 
   @override
+  Business? getBusinessById({required int businessId}) {
+    return realm!.query<Business>(r'serverId == $0', [businessId]).firstOrNull;
+  }
+
+  @override
   Business getBusiness({int? businessId}) {
     Business? business = businessId != null
         ? realm!.query<Business>(r'serverId == $0', [businessId]).firstOrNull
@@ -1493,15 +1498,23 @@ class LocalRealmApi
       final localPin =
           realm!.query<Pin>(r'userId == $0', [pinString]).firstOrNull;
       if (localPin != null) {
-        return IPin(
-            id: localPin.id,
-            pin: localPin.pin ?? int.parse(pinString),
-            userId: localPin.userId!,
-            phoneNumber: localPin.phoneNumber!,
-            branchId: localPin.branchId!,
-            businessId: localPin.businessId!,
-            ownerName: localPin.ownerName!,
-            tokenUid: localPin.tokenUid!);
+        /// check if there is business for this user
+        Business? business = getBusinessById(businessId: localPin.businessId!);
+        Branch? branchE = branch(serverId: localPin.branchId!);
+        if (branchE != null || business != null) {
+          return IPin(
+              id: localPin.id,
+              pin: localPin.pin ?? int.parse(pinString),
+              userId: localPin.userId!,
+              phoneNumber: localPin.phoneNumber!,
+              branchId: localPin.branchId!,
+              businessId: localPin.businessId!,
+              ownerName: localPin.ownerName!,
+              tokenUid: localPin.tokenUid!);
+        } else {
+          clearData(data: ClearData.Branch);
+          clearData(data: ClearData.Business);
+        }
       } else {
         /// clear the branch as it is definetly new user logging in, to avoid accidental login to uninted busisness/branch
         clearData(data: ClearData.Branch);

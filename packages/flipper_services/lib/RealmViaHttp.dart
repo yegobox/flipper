@@ -32,6 +32,11 @@ abstract class RealmViaHttp {
 
 class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   @override
+  Business? getBusinessById({required int businessId}) {
+    return null;
+  }
+
+  @override
   Pin? savePin({required Pin pin}) {
     return null;
   }
