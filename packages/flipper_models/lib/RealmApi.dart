@@ -1,14 +1,11 @@
 // ignore: unused_import
 import 'dart:async';
 import 'dart:io';
-import 'package:flipper_models/Subcriptions.dart';
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:path/path.dart' as p;
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/realmModels.dart';
-import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:path_provider/path_provider.dart';
@@ -20,7 +17,6 @@ import 'package:talker_flutter/talker_flutter.dart';
 // https://github.com/realm/realm-dart/issues/1203
 
 class RealmAPI<M extends IJsonSerializable>
-    with Subscriptions
     implements SyncReaml<M>, DataMigratorToLocal {
   @override
   Realm? oldRealm;
@@ -447,9 +443,7 @@ class RealmAPI<M extends IJsonSerializable>
         ProxyService.local.realm!.write(() {
           copyObjects(oldRealm!.all<Report>().toList());
         });
-        ProxyService.local.realm!.write(() {
-          copyObjects(oldRealm!.all<Computed>().toList());
-        });
+
         ProxyService.local.realm!.write(() {
           copyObjects(oldRealm!.all<Access>().toList());
         });
@@ -1153,18 +1147,6 @@ class RealmAPI<M extends IJsonSerializable>
         filename: obj.filename,
         s3Url: obj.s3Url,
         downloaded: obj.downloaded,
-      ) as T;
-    } else if (obj is Computed) {
-      return Computed(
-        obj.id,
-        branchId: obj.branchId,
-        businessId: obj.businessId,
-        grossProfit: obj.grossProfit,
-        netProfit: obj.netProfit,
-        totalStockValue: obj.totalStockValue,
-        totalStockSoldValue: obj.totalStockSoldValue,
-        totalStockItems: obj.totalStockItems,
-        createdAt: obj.createdAt,
       ) as T;
     } else if (obj is Access) {
       return Access(

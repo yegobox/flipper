@@ -1,5 +1,4 @@
 import 'package:realm/realm.dart';
-// import 'package:json_annotation/json_annotation.dart';
 part 'schemas.realm.dart';
 
 // https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
@@ -450,7 +449,6 @@ class _Setting {
   bool? autoRespond;
   String? token;
   bool hasPin = false;
-  // @JsonKey(fromJson: _toInt)
   int? businessId;
   String? createdAt;
 
@@ -506,35 +504,6 @@ class _Stock {
 
   late _Variant? variant;
   double? initialStock;
-  Stock toRealmObject() {
-    return Stock(
-      this.realmId,
-      id: this.id,
-      // realmId: this.realmId,
-      tin: this.tin,
-      bhfId: this.bhfId,
-      branchId: this.branchId,
-      variantId: this.variantId,
-      currentStock: this.currentStock,
-      sold: this.sold,
-      lowStock: this.lowStock,
-      canTrackingStock: this.canTrackingStock,
-      showLowStockAlert: this.showLowStockAlert,
-      productId: this.productId,
-      active: this.active,
-      value: this.value,
-      rsdQty: this.rsdQty,
-      supplyPrice: this.supplyPrice,
-      retailPrice: this.retailPrice,
-      lastTouched: this.lastTouched,
-      action: this.action,
-      deletedAt: this.deletedAt,
-      ebmSynced: this.ebmSynced,
-      cloudSynced: this.cloudSynced,
-      // variant: this.variant,
-      initialStock: this.initialStock,
-    );
-  }
 }
 
 @RealmModel()
@@ -1073,21 +1042,6 @@ class _Report {
 /// because this computation will happen on atlas server
 
 @RealmModel()
-class _Computed {
-  @PrimaryKey()
-  @MapTo('_id')
-  late ObjectId id;
-  int? branchId;
-  int? businessId;
-  double? grossProfit = 0;
-  double? netProfit = 0;
-  double? totalStockValue = 0;
-  double? totalStockSoldValue = 0;
-  double? totalStockItems = 0;
-  DateTime? createdAt;
-}
-
-@RealmModel()
 class _Access {
   int? id;
   @PrimaryKey()
@@ -1099,10 +1053,10 @@ class _Access {
   int? userId;
   String? featureName;
   String? userType;
-  String? accessLevel; // e.g., 'read', 'write', 'admin'
+  String? accessLevel;
   DateTime? createdAt;
-  DateTime? expiresAt; // Optional expiration date
-  String? status; // e.g., 'active', 'pending', 'revoked'
+  DateTime? expiresAt;
+  String? status;
 }
 
 @RealmModel()
@@ -1115,17 +1069,14 @@ class _PaymentPlan {
 
   int? businessId;
 
-  // Add your new fields
-  String?
-      selectedPlan; // Stores the chosen plan (e.g., 'Mobile', 'Mobile + Desktop', etc.)
-  int?
-      additionalDevices; // Number of additional devices (relevant for 'More than 3 Devices')
-  bool? isYearlyPlan; // Indicates whether the user chose a yearly plan
-  double? totalPrice; // The total price based on selected options
+  String? selectedPlan;
+  int? additionalDevices;
+  bool? isYearlyPlan;
+  double? totalPrice;
   DateTime? createdAt;
   bool? paymentCompletedByUser = false;
   int? payStackCustomerId;
-  // this is the rule from which we will bill the customer again e.g monthly
+
   String? rule;
   String? paymentMethod;
   String? customerCode;

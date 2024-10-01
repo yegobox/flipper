@@ -29,7 +29,6 @@ final realmModels = [
   Composite.schema,
   SKU.schema,
   Report.schema,
-  Computed.schema,
   Access.schema,
   StockRequest.schema,
   PaymentPlan.schema,
@@ -38,7 +37,7 @@ final realmModels = [
   Activity.schema,
   TransactionPaymentRecord.schema,
 ];
-int schemaVersion = 12;
+int schemaVersion = 13;
 
 /// for local db
 final localModels = [
@@ -74,7 +73,6 @@ final localModels = [
   Composite.schema,
   SKU.schema,
   Report.schema,
-  Computed.schema,
   Access.schema,
   StockRequest.schema,
   PaymentPlan.schema,

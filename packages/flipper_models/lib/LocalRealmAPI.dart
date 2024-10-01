@@ -1990,9 +1990,9 @@ class LocalRealmApi
 
   @override
   Future<({double grossProfit, double netProfit})> getReportData() async {
-    // Query the Realm database
+    // Query the Realm database for all stock items for the current branch
     final query = realm!
-        .query<Computed>(r'branchId == $0', [ProxyService.box.getBranchId()]);
+        .query<Stock>(r'branchId == $0', [ProxyService.box.getBranchId()]);
 
     // Check if there are any results
     if (query.isEmpty) {
@@ -2000,14 +2000,24 @@ class LocalRealmApi
       return (grossProfit: 0.0, netProfit: 0.0);
     }
 
-    // Get the first (and presumably only) result
-    final value = query.first;
+    // Initialize variables to accumulate gross and net profit
+    double totalGrossProfit = 0.0;
+    double totalNetProfit = 0.0;
 
-    // Return the data in the required format
-    return (
-      grossProfit: value.grossProfit ?? 0.0,
-      netProfit: value.netProfit ?? 0.0,
-    );
+    // Iterate over all stock items and calculate gross and net profit
+    for (var stock in query) {
+      final grossProfit =
+          (stock.retailPrice - stock.supplyPrice) * stock.currentStock;
+      totalGrossProfit += grossProfit;
+
+      // If net profit needs other expenses deducted, adjust accordingly
+      // For now, we'll keep it equal to gross profit
+      totalNetProfit +=
+          grossProfit; //TODO: You can add other deductions here if necessary
+    }
+
+    // Return the accumulated data
+    return (grossProfit: totalGrossProfit, netProfit: totalNetProfit);
   }
 
   @override
