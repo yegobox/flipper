@@ -75,7 +75,7 @@ class LoginViewModel extends FlipperBaseModel
       ProxyService.box.writeBool(key: 'isAnonymous', value: true);
 
       // Sign out from Firebase before attempting to log in
-      await FirebaseAuth.instance.signOut();
+      // await FirebaseAuth.instance.signOut();
 
       // Perform user login with ProxyService
       await ProxyService.local.login(
@@ -122,7 +122,6 @@ class LoginViewModel extends FlipperBaseModel
           openDrawer();
         }
       } else {
-        await FirebaseAuth.instance.signOut();
         throw UnknownError(term: "Failed to authenticate with Firebase");
       }
     } on LoginChoicesException {

@@ -34,7 +34,7 @@ mixin CoreMiscellaneous {
       /// a user log in back and there is values such as tinNumber,bhfId,URI that we will still need to re-use
       /// therefore why the bellow line is commented out.
 
-      await FirebaseAuth.instance.signOut();
+      // await FirebaseAuth.instance.signOut();
 
       /// refreshing the user token will invalidate any session
       await FirebaseAuth.instance.currentUser?.getIdToken(true);
@@ -55,6 +55,14 @@ mixin CoreMiscellaneous {
           ProxyService.local.realm!.write(() {
             business.isDefault = false;
             business.active = false;
+          });
+        }
+        List<Branch> branches = ProxyService.local
+            .branches(businessId: ProxyService.box.getBusinessId());
+        for (Branch branch in branches) {
+          ProxyService.local.realm!.write(() {
+            branch.isDefault = false;
+            branch.active = false;
           });
         }
       }
