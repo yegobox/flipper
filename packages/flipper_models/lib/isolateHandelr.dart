@@ -1344,16 +1344,6 @@ class IsolateHandler {
       }
     }
 
-    /// delete deplicate branches (local branch saved)
-    List<Branch> branches = localRealm.all<Branch>().toList();
-    // for (Branch branch in branches) {
-    //   localRealm.write(() {
-    //     localRealm.delete(branch);
-    //     talker.warning("Deleted branch");
-    //   });
-    // }
-    talker.warning("We have branch ${branches.length}");
-
     /// check for variant that do not have stock assigned asign it
     for (Variant variant in variantsAll) {
       if (variant.stock == null) {
