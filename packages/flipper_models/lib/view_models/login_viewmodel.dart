@@ -98,31 +98,27 @@ class LoginViewModel extends FlipperBaseModel
       }
 
       // Check if a logged-in Firebase user exists
-      final auth = FirebaseAuth.instance;
-      if (auth.currentUser != null) {
-        final defaultApp = ProxyService.box.getDefaultApp();
-        await appService.appInit();
-        if (defaultApp == "2") {
-          if (!areDependenciesInitialized) {
-            await initDependencies();
-          }
-          final _routerService = locator<RouterService>();
-          _routerService.navigateTo(SocialHomeViewRoute());
-        } else if (ProxyService.local.isDrawerOpen(
-            cashierId: ProxyService.box.getUserId()!,
-            branchId: ProxyService.box.getBranchId()!)) {
-          ProxyService.forceDateEntry.dataBootstrapper();
-          if (ProxyService.box.getDefaultApp() == 2) {
-            locator<RouterService>().navigateTo(SocialHomeViewRoute());
-          } else {
-            /// the appInit() trigger the auth flow before navigating to the app
-            locator<RouterService>().navigateTo(FlipperAppRoute());
-          }
+
+      final defaultApp = ProxyService.box.getDefaultApp();
+      await appService.appInit();
+      if (defaultApp == "2") {
+        if (!areDependenciesInitialized) {
+          await initDependencies();
+        }
+        final _routerService = locator<RouterService>();
+        _routerService.navigateTo(SocialHomeViewRoute());
+      } else if (ProxyService.local.isDrawerOpen(
+          cashierId: ProxyService.box.getUserId()!,
+          branchId: ProxyService.box.getBranchId()!)) {
+        ProxyService.forceDateEntry.dataBootstrapper();
+        if (ProxyService.box.getDefaultApp() == 2) {
+          locator<RouterService>().navigateTo(SocialHomeViewRoute());
         } else {
-          openDrawer();
+          /// the appInit() trigger the auth flow before navigating to the app
+          locator<RouterService>().navigateTo(FlipperAppRoute());
         }
       } else {
-        throw UnknownError(term: "Failed to authenticate with Firebase");
+        openDrawer();
       }
     } on LoginChoicesException {
       locator<RouterService>().navigateTo(LoginChoicesRoute());
