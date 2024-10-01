@@ -1502,6 +1502,10 @@ class LocalRealmApi
             businessId: localPin.businessId!,
             ownerName: localPin.ownerName!,
             tokenUid: localPin.tokenUid!);
+      } else {
+        /// clear the branch as it is definetly new user logging in, to avoid accidental login to uninted busisness/branch
+        clearData(data: ClearData.Branch);
+        clearData(data: ClearData.Business);
       }
 
       final response = await flipperHttpClient.get(uri);
