@@ -122,6 +122,7 @@ class AppService with ListenableServiceMixin {
     if ((hasMultipleBusinesses || hasMultipleBranches) && !authComplete) {
       throw LoginChoicesException(term: "Choose default business");
     } else {
+      /// we have one
       ProxyService.box
           .writeInt(key: 'branchId', value: branches.first.serverId!);
       ProxyService.box

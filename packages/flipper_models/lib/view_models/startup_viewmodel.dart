@@ -28,10 +28,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     // logOut();
     try {
       // Handle authentication refreshing.
-      if (refreshCredentials) {
-        await appService.isLoggedIn();
-        await appService.appInit();
-      }
+      await appService.isLoggedIn();
+      await appService.appInit();
       if (ProxyService.box.getUserId() == null) {
         throw Exception();
       }
