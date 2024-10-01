@@ -1487,23 +1487,23 @@ class LocalRealmApi
   Future<IPin?> getPin(
       {required String pinString,
       required HttpClientInterface flipperHttpClient}) async {
-    await configureLocal(useInMemory: false);
-    final Uri uri = Uri.parse("$apihub/v2/api/pin/$pinString");
-    final localPin =
-        realm!.query<Pin>(r'userId == $0', [pinString]).firstOrNull;
-    if (localPin != null) {
-      return IPin(
-          id: localPin.id,
-          pin: localPin.pin ?? int.parse(pinString),
-          userId: localPin.userId!,
-          phoneNumber: localPin.phoneNumber!,
-          branchId: localPin.branchId!,
-          businessId: localPin.businessId!,
-          ownerName: localPin.ownerName!,
-          tokenUid: localPin.tokenUid!);
-    }
-
     try {
+      await configureLocal(useInMemory: false);
+      final Uri uri = Uri.parse("$apihub/v2/api/pin/$pinString");
+      final localPin =
+          realm!.query<Pin>(r'userId == $0', [pinString]).firstOrNull;
+      if (localPin != null) {
+        return IPin(
+            id: localPin.id,
+            pin: localPin.pin ?? int.parse(pinString),
+            userId: localPin.userId!,
+            phoneNumber: localPin.phoneNumber!,
+            branchId: localPin.branchId!,
+            businessId: localPin.businessId!,
+            ownerName: localPin.ownerName!,
+            tokenUid: localPin.tokenUid!);
+      }
+
       final response = await flipperHttpClient.get(uri);
 
       if (response.statusCode == 200) {
@@ -1513,8 +1513,8 @@ class LocalRealmApi
       } else {
         throw PinError(term: "Not found");
       }
-    } catch (error,s) {
-      talker.warning(error,s);
+    } catch (error, s) {
+      talker.warning(error, s);
       throw UnknownError(term: error.toString());
     }
   }
