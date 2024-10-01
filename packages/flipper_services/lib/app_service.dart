@@ -110,24 +110,24 @@ class AppService with ListenableServiceMixin {
   /// check the default business/branch
   /// set the env the current user is operating in.
   Future<void> appInit() async {
-    List<Business> businesses = ProxyService.local.businesses();
+    // List<Business> businesses = ProxyService.local.businesses();
 
-    List<Branch> branches = await ProxyService.local
-        .branches(businessId: ProxyService.box.getBusinessId());
+    // List<Branch> branches = await ProxyService.local
+    //     .branches(businessId: ProxyService.box.getBusinessId());
 
-    bool authComplete = await ProxyService.box.authComplete();
+    // bool authComplete = await ProxyService.box.authComplete();
 
-    bool hasMultipleBusinesses = businesses.length > 1;
-    bool hasMultipleBranches = branches.length > 1;
-    if ((hasMultipleBusinesses || hasMultipleBranches) && !authComplete) {
-      throw LoginChoicesException(term: "Choose default business");
-    } else {
-      /// we have one
-      ProxyService.box
-          .writeInt(key: 'branchId', value: branches.first.serverId!);
-      ProxyService.box
-          .writeInt(key: 'businessId', value: businesses.first.serverId!);
-    }
+    // bool hasMultipleBusinesses = businesses.length > 1;
+    // bool hasMultipleBranches = branches.length > 1;
+    // if ((hasMultipleBusinesses || hasMultipleBranches) && !authComplete) {
+    throw LoginChoicesException(term: "Choose default business");
+    // } else {
+    //   /// we have one
+    //   ProxyService.box
+    //       .writeInt(key: 'branchId', value: branches.first.serverId!);
+    //   ProxyService.box
+    //       .writeInt(key: 'businessId', value: businesses.first.serverId!);
+    // }
   }
 
   NFCManager nfc = NFCManager();
