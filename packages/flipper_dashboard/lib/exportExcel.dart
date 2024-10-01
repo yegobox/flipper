@@ -173,6 +173,11 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
+  String normalizePaymentMethod(String method) {
+    // Convert to uppercase and trim any leading/trailing whitespace
+    return method.trim().toUpperCase();
+  }
+
   void _addPaymentMethodSheet(
       excel.Workbook workbook, ExportConfig config, ExcelStyler styler) {
     final paymentMethodSheet =
@@ -188,6 +193,7 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     paymentMethodSheet.getRangeByIndex(1, 1, 1, 2).cellStyle = headerStyle;
 
     // Group transactions by payment type and sum the amounts
+
     final paymentTypeTotals = SplayTreeMap<String, double>();
 
     for (var transaction in config.transactions) {
@@ -197,11 +203,13 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (paymentTypes.isNotEmpty) {
         for (var paymentType in paymentTypes) {
           if (paymentType.paymentMethod != null && paymentType.amount != null) {
-            final String method = paymentType.paymentMethod!;
+            final String rawMethod = paymentType.paymentMethod!;
+            final String normalizedMethod = normalizePaymentMethod(rawMethod);
             final double amount = paymentType.amount!;
 
             // Use update method to add the amount, with a default value of 0.0
-            paymentTypeTotals.update(method, (value) => value + amount,
+            paymentTypeTotals.update(
+                normalizedMethod, (value) => value + amount,
                 ifAbsent: () => amount);
           } else {
             talker.error(
