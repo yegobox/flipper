@@ -4409,7 +4409,10 @@ class LocalRealmApi
   ''';
 
     // Initialize parameters
-    List<dynamic> parameters = [status ?? COMPLETE, branchId];
+    List<dynamic> parameters = [
+      status ?? COMPLETE,
+      branchId ?? 0
+    ]; // Ensure branchId is not null
 
     // Add expense/income condition
     if (isExpense) {
@@ -4425,13 +4428,22 @@ class LocalRealmApi
     } else if (startDate != null) {
       queryString += r' && lastTouched >= $2 ';
       parameters.add(startDate.toUtc());
+    } else if (endDate != null) {
+      queryString += r' && lastTouched <= $2 ';
+      parameters.add(endDate.toUtc());
     }
 
-    // Log query and parameters for debugging
-    // talker.warning('Query: $queryString');
-    // talker.warning('Parameters: $parameters');
+    // Handle includePending flag
+    if (!includePending) {
+      queryString += ' && status != "PENDING" ';
+    }
 
-    // Execute and return the query result, sorted manually by createdAt
+    // Ensure realm is not null
+    if (realm == null) {
+      throw Exception("Realm instance is not initialized.");
+    }
+
+    // Execute the query
     var results = realm!.query<ITransaction>(queryString, parameters).toList();
     // results.sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
     return results;

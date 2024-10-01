@@ -21,15 +21,6 @@ import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/style_widget/button.dart';
 
-class PaymentMethod {
-  String method;
-  double amount;
-  TextEditingController controller;
-
-  PaymentMethod(this.method, this.amount)
-      : controller = TextEditingController(text: amount.toString());
-}
-
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController discountController;
@@ -59,8 +50,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         PreviewcartMixin,
         TransactionItemTable,
         DateCoreWidget {
-  List<PaymentMethod> _paymentMethods = [PaymentMethod('Cash', 0.0)];
-
   double get totalAfterDiscountAndShipping {
     final discount = double.tryParse(widget.discountController.text) ?? 0.0;
     return grandTotal - discount;
@@ -69,37 +58,41 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   @override
   void initState() {
     super.initState();
-    _paymentMethods[0].controller.addListener(_updatePaymentAmounts);
-    for (PaymentMethod payment in _paymentMethods) {
-      ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
-          Payment(amount: payment.amount, method: payment.method));
-    }
+    ref.read(paymentMethodsProvider)[0].controller.addListener(() async {
+      await Future.delayed(Duration(seconds: 5));
+      updatePaymentAmounts();
+    });
   }
 
-  void _updatePaymentAmounts() {
-    if (_paymentMethods.length > 1) {
-      double remainingAmount = totalAfterDiscountAndShipping;
-      for (int i = 0; i < _paymentMethods.length; i++) {
-        if (i == 0) {
-          double enteredAmount =
-              double.tryParse(_paymentMethods[i].controller.text) ?? 0.0;
-          remainingAmount -= enteredAmount;
+  void updatePaymentAmounts() {
+    double remainingAmount = totalAfterDiscountAndShipping;
+    for (int i = 0; i < ref.read(paymentMethodsProvider).length; i++) {
+      if (i == 0) {
+        double enteredAmount = double.tryParse(
+                ref.read(paymentMethodsProvider)[i].controller.text) ??
+            0.0;
+        remainingAmount -= enteredAmount;
+      } else {
+        if (i == ref.read(paymentMethodsProvider).length - 1) {
+          ref.read(paymentMethodsProvider)[i].amount = remainingAmount;
+          ref.read(paymentMethodsProvider)[i].controller.text =
+              remainingAmount.toStringAsFixed(2);
         } else {
-          if (i == _paymentMethods.length - 1) {
-            _paymentMethods[i].amount = remainingAmount;
-            _paymentMethods[i].controller.text =
-                remainingAmount.toStringAsFixed(2);
-          } else {
-            _paymentMethods[i].amount = 0.0;
-            _paymentMethods[i].controller.text = '0.00';
-          }
+          ref.read(paymentMethodsProvider)[i].amount = 0.0;
+          ref.read(paymentMethodsProvider)[i].controller.text = '0.00';
         }
       }
-      for (PaymentMethod payment in _paymentMethods) {
-        ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
-            Payment(amount: payment.amount, method: payment.method));
-      }
+
+      // Update the payment method in the provider
+      ref.read(paymentMethodsProvider.notifier).updatePaymentMethod(
+            i,
+            Payment(
+              amount: ref.read(paymentMethodsProvider)[i].amount,
+              method: ref.read(paymentMethodsProvider)[i].method,
+            ),
+          );
     }
+
     setState(() {});
   }
 
@@ -358,12 +351,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         final receivedAmount = double.tryParse(value);
 
         if (receivedAmount != null) {
-          _paymentMethods[0].controller.text = value;
-          for (PaymentMethod payment in _paymentMethods) {
+          ref.read(paymentMethodsProvider)[0].controller.text = value;
+          if (ref.read(paymentMethodsProvider).length == 1) {
+            /// if it is one payment method just swap
+            ref.read(paymentMethodsProvider.notifier).addPaymentMethod(Payment(
+                amount: receivedAmount,
+                method: ref.read(paymentMethodsProvider)[0].method));
+
+            talker.warning(ref.read(paymentMethodsProvider).first.amount);
+            talker.warning(ref.read(paymentMethodsProvider).first.method);
+            return;
+          }
+          for (Payment payment in ref.read(paymentMethodsProvider)) {
             ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
                 Payment(amount: receivedAmount, method: payment.method));
           }
-          _updatePaymentAmounts();
+          updatePaymentAmounts();
         } // Update payment amounts after received amount changes
       }),
       validator: (String? value) {
@@ -423,7 +426,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   Widget _buildPaymentMethodField() {
     return Column(
       children: [
-        for (int i = 0; i < _paymentMethods.length; i++)
+        for (int i = 0; i < ref.read(paymentMethodsProvider).length; i++)
           _buildPaymentMethodRow(i),
         SizedBox(height: 10),
         FlipperButton(
@@ -444,7 +447,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             Expanded(
               flex: 2,
               child: DropdownButton<String>(
-                value: _paymentMethods[index].method,
+                value: ref.read(paymentMethodsProvider)[index].method,
                 items: paymentTypes.map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
@@ -453,16 +456,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 }).toList(),
                 onChanged: (String? newValue) {
                   setState(() {
-                    _paymentMethods[index].method = newValue!;
+                    ref.read(paymentMethodsProvider)[index].method = newValue!;
 
-                    for (PaymentMethod payment in _paymentMethods) {
+                    for (Payment payment in ref.read(paymentMethodsProvider)) {
                       ref
                           .read(paymentMethodsProvider.notifier)
                           .addPaymentMethod(Payment(
                               amount: payment.amount, method: payment.method));
                     }
 
-                    _updatePaymentAmounts();
+                    updatePaymentAmounts();
                   });
                 },
               ),
@@ -471,7 +474,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             Expanded(
               flex: 3,
               child: TextFormField(
-                controller: _paymentMethods[index].controller,
+                controller: ref.read(paymentMethodsProvider)[index].controller,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: 'Amount',
@@ -479,9 +482,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 ),
                 onChanged: (value) {
                   setState(() {
-                    _paymentMethods[index].amount =
+                    ref.read(paymentMethodsProvider)[index].amount =
                         double.tryParse(value) ?? 0.0;
-                    _updatePaymentAmounts(); // Update payment amounts after amount changes
+                    updatePaymentAmounts(); // Update payment amounts after amount changes
                   });
                 },
                 validator: (value) {
@@ -508,25 +511,43 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   void _addPaymentMethod() {
     setState(() {
-      _paymentMethods.add(PaymentMethod('Cash', 0.0));
-      _paymentMethods.last.controller
-          .addListener(_updatePaymentAmounts); // Add listener to new controller
-      _updatePaymentAmounts(); // Update payment amounts after adding new method
+      ref
+          .read(paymentMethodsProvider)
+          .add(Payment(amount: 0.0, method: 'Cash'));
+      ref
+          .read(paymentMethodsProvider)
+          .last
+          .controller
+          .addListener(updatePaymentAmounts);
+
+      // Add the new payment method to the provider
+      ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
+            Payment(amount: 0.0, method: 'Cash'),
+          );
+
+      updatePaymentAmounts();
     });
   }
 
   void _removePaymentMethod(int index) {
     setState(() {
-      _paymentMethods[index].controller.removeListener(
-          _updatePaymentAmounts); // Remove listener from removed controller
-      _paymentMethods.removeAt(index);
-      _updatePaymentAmounts(); // Update payment amounts after removing a method
+      ref
+          .read(paymentMethodsProvider)[index]
+          .controller
+          .removeListener(updatePaymentAmounts);
+      ref.read(paymentMethodsProvider).removeAt(index);
+
+      // Remove the payment method from the provider
+      ref.read(paymentMethodsProvider.notifier).removePaymentMethod(index);
+
+      updatePaymentAmounts();
     });
   }
 
   String? validatePaymentMethods() {
-    double total =
-        _paymentMethods.fold(0, (sum, method) => sum + method.amount);
+    double total = ref
+        .read(paymentMethodsProvider)
+        .fold(0, (sum, method) => sum + method.amount);
     if ((total - totalAfterDiscountAndShipping).abs() > 0.01) {
       return 'Total received amount does not match the total due';
     }

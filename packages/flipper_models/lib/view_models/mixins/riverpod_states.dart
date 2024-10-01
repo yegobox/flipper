@@ -1092,7 +1092,10 @@ class Payment {
 }
 
 class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
-  PaymentMethodsNotifier() : super([]);
+  PaymentMethodsNotifier()
+      : super([
+          Payment(amount: 0.0, method: 'Cash'),
+        ]);
 
   // Method to add a payment method
   void addPaymentMethod(Payment method) {
@@ -1107,9 +1110,18 @@ class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
     } catch (e) {}
   }
 
+  void updatePaymentMethod(int index, Payment payment) {
+    final updatedList = List<Payment>.from(state);
+    updatedList[index] = payment;
+    state = updatedList;
+  }
+
   // Method to remove a payment method
-  void removePaymentMethod(String method) {
-    state = state.where((Payment) => Payment.method != method).toList();
+  void removePaymentMethod(int index) {
+    state = [
+      for (int i = 0; i < state.length; i++)
+        if (i != index) state[i]
+    ];
   }
 
   // Method to update payment methods
@@ -1120,9 +1132,8 @@ class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
 
 final paymentMethodsProvider =
     StateNotifierProvider<PaymentMethodsNotifier, List<Payment>>(
-  (ref) => PaymentMethodsNotifier(),
+  (ref) => PaymentMethodsNotifier(), // No need to pass initial list here
 );
-
 final stringProvider = StateNotifierProvider<StringState, String>((ref) {
   return StringState(RequestStatus.pending);
 });

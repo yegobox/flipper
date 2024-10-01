@@ -286,9 +286,14 @@ class CheckOutState extends ConsumerState<CheckOut>
           padding: const EdgeInsets.all(8.0),
           child: PayableView(
             mode: SellingMode.forSelling,
-            completeTransaction: () => handleCompleteTransaction(
-                transaction: transaction,
-                paymentMethods: ref.watch(paymentMethodsProvider)),
+            completeTransaction: () {
+              /// I want if the button from payble clicked to call
+              /// QuickView function
+              // ref.refresh(paymentMethodsProvider);
+              handleCompleteTransaction(
+                  transaction: transaction,
+                  paymentMethods: ref.watch(paymentMethodsProvider));
+            },
             ref: ref,
             model: model,
             ticketHandler: () => handleTicketNavigation(transaction),
