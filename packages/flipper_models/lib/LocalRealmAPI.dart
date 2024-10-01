@@ -1515,7 +1515,8 @@ class LocalRealmApi
       }
     } catch (error, s) {
       talker.warning(error, s);
-      throw UnknownError(term: error.toString());
+      rethrow;
+      // throw UnknownError(term: error.toString());
     }
   }
 
