@@ -293,12 +293,13 @@ class LocalRealmApi
 
   Future<IUser> _authenticateUser(String phoneNumber, Pin pin,
       HttpClientInterface flipperHttpClient) async {
-    List<Business> businesses = ProxyService.local.businesses();
-    List<Branch> branches = ProxyService.local.branches();
+    List<Business> businessesE = businesses();
+    List<Branch> branchesE =
+        branches(businessId: ProxyService.box.getBusinessId());
 
-    if (businesses.isNotEmpty && branches.isNotEmpty) {
+    if (businessesE.isNotEmpty && branchesE.isNotEmpty) {
       offlineLogin = true;
-      return _createOfflineUser(phoneNumber, pin, businesses, branches);
+      return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
     }
 
     final http.Response response =
@@ -327,14 +328,14 @@ class LocalRealmApi
       tenants: [
         ITenant(
             id: randomNumber(),
-            name: "name",
+            name: pin.ownerName == null ? "DEFAULT" : pin.ownerName!,
             phoneNumber: phoneNumber,
             permissions: [],
             branches: _convertBranches(branches),
             businesses: _convertBusinesses(businesses),
             businessId: 0,
             nfcEnabled: false,
-            userId: ProxyService.box.getUserId()!,
+            userId: int.parse(pin.userId!),
             isDefault: false)
       ],
     );
@@ -472,7 +473,7 @@ class LocalRealmApi
       /// as soon as possible so I can be able to save real data into realm
       /// then I call login in here after signup as login handle configuring
       IPin? pin = await ProxyService.local.getPin(
-          pin: ProxyService.box.getUserId().toString(),
+          pinString: ProxyService.box.getUserId().toString(),
           flipperHttpClient: ProxyService.http);
       if (pin == null) {
         throw PinError(term: "Not found");
@@ -1484,12 +1485,22 @@ class LocalRealmApi
 
   @override
   Future<IPin?> getPin(
-      {required String pin,
+      {required String pinString,
       required HttpClientInterface flipperHttpClient}) async {
-    final Uri uri = Uri.parse("$apihub/v2/api/pin/$pin");
-    final localPin = realm!.query<Pin>(r'userId == $0', [pin]).firstOrNull;
+    await configureLocal(useInMemory: false);
+    final Uri uri = Uri.parse("$apihub/v2/api/pin/$pinString");
+    final localPin =
+        realm!.query<Pin>(r'userId == $0', [pinString]).firstOrNull;
     if (localPin != null) {
-      return IPin.fromJson(localPin.toEJson().toFlipperJson());
+      return IPin(
+          id: localPin.id,
+          pin: localPin.pin ?? int.parse(pinString),
+          userId: localPin.userId!,
+          phoneNumber: localPin.phoneNumber!,
+          branchId: localPin.branchId!,
+          businessId: localPin.businessId!,
+          ownerName: localPin.ownerName!,
+          tokenUid: localPin.tokenUid!);
     }
 
     try {

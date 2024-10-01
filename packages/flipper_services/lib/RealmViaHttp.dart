@@ -648,7 +648,8 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
 
   @override
   Future<IPin?> getPin(
-      {required String pin, required HttpClientInterface flipperHttpClient}) {
+      {required String pinString,
+      required HttpClientInterface flipperHttpClient}) {
     // TODO: implement getPin
     throw UnimplementedError();
   }

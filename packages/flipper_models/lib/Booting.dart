@@ -110,37 +110,29 @@ mixin Booting {
 
   Future<void> addOrUpdateBranches(List<IBranch> branches,
       {Realm? localRealm}) async {
-    final List<Branch> branchToAdd = [];
-
-    for (IBranch brannch in branches) {
-      Branch branch = Branch(
-        ObjectId(),
-        id: randomNumber(),
-        serverId: brannch.id,
-        description: brannch.description,
-        name: brannch.name,
-        businessId: brannch.businessId,
-        longitude: brannch.longitude,
-        latitude: brannch.latitude,
-
-        /// when we are loading branch from remove we ignore the default behaviour of a user
-        /// what is set to be default branch
-        isDefault: false,
-        active: false,
-        lastTouched: brannch.lastTouched,
-        action: brannch.action,
-        deletedAt: brannch.deletedAt,
-      );
-
-      Branch? exist = localRealm!
-          .query<Branch>(r'serverId == $0', [branch.serverId]).firstOrNull;
-      if (exist == null) {
-        branchToAdd.add(branch);
-      }
-    }
-
     localRealm!.write(() {
-      localRealm.addAll<Branch>(branchToAdd);
+      for (IBranch branch in branches) {
+        if (localRealm
+                .query<Branch>(r'serverId == $0', [branch.id]).firstOrNull ==
+            null) {
+          localRealm.add(Branch(
+            ObjectId(),
+            id: branch.id,
+            serverId: branch.id,
+            description: branch.description,
+            name: branch.name,
+            businessId: branch.businessId,
+            longitude: branch.longitude,
+            latitude: branch.latitude,
+            isDefault: false,
+            active: false,
+            lastTouched: branch.lastTouched,
+            action: branch.action,
+            deletedAt: branch.deletedAt,
+          ));
+          talker.warning("When adding branch");
+        }
+      }
     });
   }
 

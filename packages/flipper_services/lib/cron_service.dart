@@ -16,7 +16,7 @@ import 'package:flipper_models/DownloadQueue.dart';
 // import 'package:realm/realm.dart';
 // import 'package:realm/realm.dart';
 
-class CronService  {
+class CronService {
   final drive = GoogleDrive();
 
   Future<void> companyWideReport() async {
@@ -47,6 +47,7 @@ class CronService  {
   Future<void> _spawnIsolate(String name, dynamic isolateHandler) async {
     if (ProxyService.box.getBusinessId() == null) return;
     try {
+      if (ProxyService.local.realm == null) return;
       Business business = ProxyService.local.realm!.query<Business>(
           r'serverId == $0', [ProxyService.box.getBusinessId()!]).first;
       // talker.warning("Business ID ${ProxyService.box.getBusinessId()}");
@@ -225,10 +226,10 @@ class CronService  {
   }
 
   Duration _getHeartBeatDuration() {
-    return Duration(seconds: kDebugMode ? 60 : 60);
+    return Duration(seconds: kDebugMode ? 60 : 360);
   }
 
   Duration _pull() {
-    return Duration(seconds: kDebugMode ? 10 : 10);
+    return Duration(seconds: kDebugMode ? 10 : 60);
   }
 }

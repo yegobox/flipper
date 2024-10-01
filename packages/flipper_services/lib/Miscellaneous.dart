@@ -5,7 +5,6 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 
 mixin CoreMiscellaneous {
   Future<bool> logOut() async {
@@ -28,15 +27,7 @@ mixin CoreMiscellaneous {
       }
       ProxyService.box.remove(key: 'userId');
       ProxyService.box.remove(key: 'getIsTokenRegistered');
-      ProxyService.box.remove(key: 'bearerToken');
-      ProxyService.box.remove(key: 'branchId');
-      ProxyService.box.remove(key: 'userPhone');
-      ProxyService.box.remove(key: 'UToken');
-      ProxyService.box.remove(key: 'businessId');
       ProxyService.box.remove(key: 'defaultApp');
-      if (kDebugMode) {
-        ProxyService.box.remove(key: 'doneMigrateToLocal');
-      }
 
       // but for shared preference we can just clear them all
       /// We do not clear all variable, this is because even on logout
@@ -64,13 +55,6 @@ mixin CoreMiscellaneous {
           ProxyService.local.realm!.write(() {
             business.isDefault = false;
             business.active = false;
-          });
-        }
-        List<Branch> branches = ProxyService.local.branches();
-        for (Branch branch in branches) {
-          ProxyService.local.realm!.write(() {
-            branch.isDefault = false;
-            branch.active = false;
           });
         }
       }

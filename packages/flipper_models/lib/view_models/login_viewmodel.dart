@@ -56,7 +56,7 @@ class LoginViewModel extends FlipperBaseModel
       setIsprocessing(value: true);
 
       IPin? pin = await ProxyService.local
-          .getPin(pin: pinCode, flipperHttpClient: ProxyService.http);
+          .getPin(pinString: pinCode, flipperHttpClient: ProxyService.http);
       if (pin == null) {
         throw PinError(term: "Not found");
       }
@@ -65,6 +65,7 @@ class LoginViewModel extends FlipperBaseModel
       Pin? savedPin = ProxyService.local.savePin(
           pin: Pin(ObjectId(),
               userId: pin.userId,
+              pin: pin.pin,
               branchId: pin.branchId,
               businessId: pin.businessId,
               ownerName: pin.ownerName,

@@ -1115,20 +1115,20 @@ class IsolateHandler {
     DartPluginRegistrant.ensureInitialized();
     localRealm?.close();
     localRealm = Realm(config);
-    List<UnversalProduct> codes = localRealm!
-        .query<UnversalProduct>(r'branchId==$0', [branchId]).toList();
-    if (codes.isEmpty) {
-      final Completer<void> completer = Completer<void>();
-      Timer(Duration(seconds: 5), () {
-        if (!completer.isCompleted) {
-          sendPort.send(1);
-        }
-      });
-      talker.warning("Empty code fetching now");
-      // fetchDataAndSaveUniversalProducts(businessId, branchId, URI, bhfid);
-      sendPort.send(1);
-      completer.complete();
-    }
+    // List<UnversalProduct> codes = localRealm!
+    //     .query<UnversalProduct>(r'branchId==$0', [branchId]).toList();
+    // if (codes.isEmpty) {
+    //   final Completer<void> completer = Completer<void>();
+    //   Timer(Duration(seconds: 5), () {
+    //     if (!completer.isCompleted) {
+    //       sendPort.send(1);
+    //     }
+    //   });
+    //   talker.warning("Empty code fetching now");
+    //   // fetchDataAndSaveUniversalProducts(businessId, branchId, URI, bhfid);
+    //   sendPort.send(1);
+    //   completer.complete();
+    // }
   }
 
   // Function to fetch data from the URL endpoint
@@ -1343,6 +1343,16 @@ class IsolateHandler {
         });
       }
     }
+
+    /// delete deplicate branches (local branch saved)
+    List<Branch> branches = localRealm.all<Branch>().toList();
+    // for (Branch branch in branches) {
+    //   localRealm.write(() {
+    //     localRealm.delete(branch);
+    //     talker.warning("Deleted branch");
+    //   });
+    // }
+    talker.warning("We have branch ${branches.length}");
 
     /// check for variant that do not have stock assigned asign it
     for (Variant variant in variantsAll) {

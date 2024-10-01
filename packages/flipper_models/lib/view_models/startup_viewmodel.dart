@@ -32,6 +32,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         await appService.isLoggedIn();
         await appService.appInit();
       }
+      if (ProxyService.box.getUserId() == null) {
+        throw Exception();
+      }
       // Ensure realm is initialized before proceeding.
       await ensureRealmInitialized();
       await _hasActiveSubscription();

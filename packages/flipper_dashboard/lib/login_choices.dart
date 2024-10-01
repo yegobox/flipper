@@ -37,10 +37,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (_) {
         ref.refresh(businessesProvider);
-        ref.refresh(branchesProvider((includeSelf: false)));
+        ref.refresh(branchesProvider((includeSelf: true)));
       },
       builder: (context, viewModel, child) {
-        final branches = ref.watch(branchesProvider((includeSelf: false)));
+        final branches = ref.watch(branchesProvider((includeSelf: true)));
         final businesses = ref.watch(businessesProvider);
 
         return Scaffold(
@@ -245,8 +245,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
     ref.read(branchSelectionProvider.notifier).setLoading(true);
 
     try {
-      // ProxyService.realm
-      //     .createOrUpdateBranchOnCloud(branch: branch, isOnline: true);
       await _updateAllBranchesInactive();
       await _updateBranchActive(branch);
       await _syncBranchWithDatabase(branch);
@@ -288,8 +286,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   }
 
   Future<void> _updateAllBranchesInactive() async {
-    final branches = ProxyService.local
-        .branches(businessId: ProxyService.box.getBusinessId());
+    final branches = ProxyService.local.branches(
+        businessId: ProxyService.box.getBusinessId(), includeSelf: true);
     for (final branch in branches) {
       ProxyService.local.realm!.write(() {
         branch.active = false;
@@ -314,7 +312,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
     setState(() {
       _isSelectingBranch = true;
     });
-    ref.refresh(branchesProvider((includeSelf: false)));
+    ref.refresh(branchesProvider((includeSelf: true)));
   }
 
   void _completeAuthenticationFlow() {
@@ -344,6 +342,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
 
   void _refreshBusinessAndBranchProviders() {
     ref.refresh(businessesProvider);
-    ref.refresh(branchesProvider((includeSelf: false)));
+    ref.refresh(branchesProvider((includeSelf: true)));
   }
 }

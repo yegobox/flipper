@@ -382,7 +382,8 @@ abstract class RealmApiInterface {
 
   Future<List<BusinessType>> businessTypes();
   Future<IPin?> getPin(
-      {required String pin, required HttpClientInterface flipperHttpClient});
+      {required String pinString,
+      required HttpClientInterface flipperHttpClient});
 
   Pin? savePin({required Pin pin});
   Stream<List<TransactionItem>> transactionItemsStreams(
