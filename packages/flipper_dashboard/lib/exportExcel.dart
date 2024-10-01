@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
+import 'dart:collection';
 
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:open_filex/open_filex.dart';
@@ -187,29 +188,22 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     paymentMethodSheet.getRangeByIndex(1, 1, 1, 2).cellStyle = headerStyle;
 
     // Group transactions by payment type and sum the amounts
-    Map<String, double> paymentTypeTotals = {};
+    final paymentTypeTotals = SplayTreeMap<String, double>();
 
     for (var transaction in config.transactions) {
-      // Fetch the payment type for the transaction
       final List<TransactionPaymentRecord> paymentTypes =
           ProxyService.local.getPaymentType(transactionId: transaction.id!);
 
       if (paymentTypes.isNotEmpty) {
         for (var paymentType in paymentTypes) {
-          // Ensure the payment method and amount are not null
           if (paymentType.paymentMethod != null && paymentType.amount != null) {
             final String method = paymentType.paymentMethod!;
             final double amount = paymentType.amount!;
 
-            // If the payment method already exists, accumulate the amount
-            if (paymentTypeTotals.containsKey(method)) {
-              paymentTypeTotals[method] = paymentTypeTotals[method]! + amount;
-            } else {
-              // Otherwise, add a new entry with the current amount
-              paymentTypeTotals[method] = amount;
-            }
+            // Use update method to add the amount, with a default value of 0.0
+            paymentTypeTotals.update(method, (value) => value + amount,
+                ifAbsent: () => amount);
           } else {
-            // Handle cases where the payment method or amount is null
             talker.error(
                 "Invalid payment data for transaction: ${transaction.id}");
           }
