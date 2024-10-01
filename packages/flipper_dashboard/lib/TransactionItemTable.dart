@@ -260,18 +260,21 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   void _deleteCompositeItems(TransactionItem item, bool isOrdering) {
-    final coo = ProxyService.local.composite(variantId: item.variantId!);
-    final composites = ProxyService.local.composites(productId: coo.productId!);
+    try {
+      final coo = ProxyService.local.composite(variantId: item.variantId!);
+      final composites =
+          ProxyService.local.composites(productId: coo.productId!);
 
-    for (final composite in composites) {
-      final deletableItem = ProxyService.local
-          .getTransactionItemByVariantId(variantId: composite.variantId!);
-      if (deletableItem != null && deletableItem.isValid) {
-        ProxyService.local.realm!.write(() {
-          ProxyService.local.realm!.delete(deletableItem);
-        });
+      for (final composite in composites) {
+        final deletableItem = ProxyService.local
+            .getTransactionItemByVariantId(variantId: composite.variantId!);
+        if (deletableItem != null && deletableItem.isValid) {
+          ProxyService.local.realm!.write(() {
+            ProxyService.local.realm!.delete(deletableItem);
+          });
+        }
       }
-    }
+    } catch (e) {}
     _refreshTransactionItems(isOrdering);
   }
 

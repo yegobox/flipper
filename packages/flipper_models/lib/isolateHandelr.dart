@@ -902,10 +902,10 @@ class IsolateHandler {
                 ? data['variant_id']
                 : int.tryParse(data['variant_id']) ?? 0,
             action: data['action'],
-            deletedAt: data['deletedAt'] is DateTime
-                ? data['deletedAt']
-                : DateTime.tryParse(data['deletedAt']),
-            ebmSynced: data['ebmSynced'] ?? false,
+            deletedAt: data['deleted_at'] is DateTime
+                ? data['deleted_at']
+                :null,
+            ebmSynced: data['ebm_synced'] ?? false,
           );
         },
         updateRealmObject: (_stock, data) {
