@@ -2647,6 +2647,7 @@ class LocalRealmApi
           tableName: 'stocks',
           writeCallback: () {
             stock.currentStock = qty;
+            stock.initialStock = qty;
             return stock;
           });
     }
