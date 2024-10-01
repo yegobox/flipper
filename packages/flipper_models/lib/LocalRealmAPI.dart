@@ -1513,11 +1513,10 @@ class LocalRealmApi
       } else {
         throw PinError(term: "Not found");
       }
-    } catch (error) {
-      talker.warning(error);
-      PinError(term: "Not found");
+    } catch (error,s) {
+      talker.warning(error,s);
+      throw UnknownError(term: error.toString());
     }
-    throw UnknownError(term: "Check your internet if is connected 😳");
   }
 
   @override

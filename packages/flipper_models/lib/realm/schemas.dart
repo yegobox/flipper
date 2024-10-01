@@ -1110,3 +1110,27 @@ class _TransactionPaymentRecord {
   String? paymentMethod;
   DateTime? createdAt;
 }
+
+/// Mapper, a mapper table that will link any model to another model
+/// for example if StockRequest has items in sql we can't have this nesting
+/// we might have in firestore but we don't want to be locked in to any sync provider
+/// hence when we have model like that in realm
+/// when we are saving we store the items in mappter table like this
+/// To use the mapper table, follow this format:
+/// ->map_to <source_table_name>,<source_object_id>,  <look_up_object_table_name>, <look_up_id>
+/// Example: ->map_to stock_requests, look_up_object_table_name, look_up_id
+/// Database Setup
+// Mapper Table: Create a table called mapper with the following columns:
+// source_table_name (VARCHAR): The name of the source table.
+// source_object_id (INTEGER or UUID): The primary key of the source object.
+// target_table_name (VARCHAR): The name of the target table.
+// target_object_id (INTEGER or UUID): The primary key of the target object.
+// Relationship Mapping
+// When you save a model with nested data:
+// Extract the nested data (e.g., items from your StockRequest model).
+// For each nested item:
+// Insert a row into the mapper table:
+// source_table_name: The name of the parent table (e.g., stock_requests).
+// source_object_id: The primary key of the parent object (e.g., the id of the StockRequest).
+// target_table_name: The name of the table that holds the nested data (e.g., items).
+// target_object_id: The primary key of the nested item (e.g., the id of the Item object).
