@@ -119,15 +119,17 @@ class AppService with ListenableServiceMixin {
 
     bool hasMultipleBusinesses = businesses.length > 1;
     bool hasMultipleBranches = branches.length > 1;
-    if ((hasMultipleBusinesses || hasMultipleBranches) && !authComplete) {
-      throw LoginChoicesException(term: "Choose default business");
-    } else {
-      /// we have one
-      ProxyService.box
-          .writeInt(key: 'branchId', value: branches.first.serverId!);
-      ProxyService.box
-          .writeInt(key: 'businessId', value: businesses.first.serverId!);
-    }
+
+    throw LoginChoicesException(term: "Choose default business");
+    // if ((hasMultipleBusinesses || hasMultipleBranches) && !authComplete) {
+    //   throw LoginChoicesException(term: "Choose default business");
+    // } else {
+    //   /// we have one
+    //   ProxyService.box
+    //       .writeInt(key: 'branchId', value: branches.first.serverId!);
+    //   ProxyService.box
+    //       .writeInt(key: 'businessId', value: businesses.first.serverId!);
+    // }
   }
 
   NFCManager nfc = NFCManager();
