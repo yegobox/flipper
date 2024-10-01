@@ -25,8 +25,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
   }
 
   DataGridRow _buildTransactionItemRow(TransactionItem item) {
-    var taxConfig =
-        ProxyService.local.getByTaxType(taxtype: item.taxTyCd ?? "B");
+    var taxConfig = ProxyService.local
+        .getByTaxType(taxtype: item.isValid ? item.taxTyCd ?? "B" : "B");
     double taxPercentage = taxConfig.taxPercentage ?? 0;
     double adjustedTaxPercentage = taxPercentage == 0 ? 1 : taxPercentage;
 

@@ -190,27 +190,36 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     Map<String, double> paymentTypeTotals = {};
 
     for (var transaction in config.transactions) {
-      // print("times we called");
-      // Get the payment type for the transaction
-      final List<TransactionPaymentRecord> type = ProxyService.local
-          .getPaymentType(transactionId: transaction.transactionId!);
+      // Fetch the payment type for the transaction
+      final List<TransactionPaymentRecord> paymentTypes =
+          ProxyService.local.getPaymentType(transactionId: transaction.id!);
 
-      if (type.isNotEmpty) {
-        // If the payment method already exists, accumulate the amount
-        for (var paymentType in type) {
-          talker.error(paymentType.paymentMethod!);
+      if (paymentTypes.isNotEmpty) {
+        for (var paymentType in paymentTypes) {
+          // Ensure the payment method and amount are not null
+          if (paymentType.paymentMethod != null && paymentType.amount != null) {
+            final String method = paymentType.paymentMethod!;
+            final double amount = paymentType.amount!;
 
-          if (paymentTypeTotals.containsKey(paymentType.paymentMethod!)) {
-            paymentTypeTotals[paymentType.paymentMethod!] =
-                paymentTypeTotals[paymentType.paymentMethod!]! +
-                    paymentType.amount!;
+            // If the payment method already exists, accumulate the amount
+            if (paymentTypeTotals.containsKey(method)) {
+              paymentTypeTotals[method] = paymentTypeTotals[method]! + amount;
+            } else {
+              // Otherwise, add a new entry with the current amount
+              paymentTypeTotals[method] = amount;
+            }
           } else {
-            // Otherwise, add a new entry
-            paymentTypeTotals[paymentType.paymentMethod!] = paymentType.amount!;
+            // Handle cases where the payment method or amount is null
+            talker.error(
+                "Invalid payment data for transaction: ${transaction.id}");
           }
         }
+      } else {
+        talker
+            .error("No payment types found for transaction: ${transaction.id}");
       }
     }
+
     talker.warning(paymentTypeTotals);
 
     int rowIndex = 2;
@@ -399,7 +408,7 @@ class ExportConfig {
   double? netProfit;
   String currencySymbol;
   String currencyFormat;
-  final List<TransactionItem> transactions;
+  final List<ITransaction> transactions;
 
   ExportConfig({
     this.startDate,

@@ -315,9 +315,15 @@ class DataViewState extends ConsumerState<DataView>
       branchId: ProxyService.box.getBranchId(),
     );
 
+    final nonExpense = ProxyService.local.transactions(
+      startDate: widget.startDate,
+      endDate: widget.endDate,
+      isExpense: false,
+      branchId: ProxyService.box.getBranchId(),
+    );
     final isStockRecount = widget.stocks != null && widget.stocks!.isNotEmpty;
     final config = ExportConfig(
-      transactions: widget.transactionItems ?? [],
+      transactions: nonExpense,
       endDate: widget.endDate,
       startDate: widget.startDate,
     );

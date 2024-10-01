@@ -261,9 +261,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   void _deleteCompositeItems(TransactionItem item, bool isOrdering) {
     try {
-      final coo = ProxyService.local.composite(variantId: item.variantId!);
+      Variant? variant = ProxyService.local.variant(variantId: item.variantId!);
+      // final coo = ProxyService.local.composite(variantId: item.variantId!);
       final composites =
-          ProxyService.local.composites(productId: coo.productId!);
+          ProxyService.local.composites(productId: variant!.productId!);
 
       for (final composite in composites) {
         final deletableItem = ProxyService.local

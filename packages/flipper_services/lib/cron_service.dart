@@ -226,10 +226,10 @@ class CronService {
   }
 
   Duration _getHeartBeatDuration() {
-    return Duration(seconds: kDebugMode ? 60 : 360);
+    return Duration(seconds: kDebugMode ? 360 : 360);
   }
 
   Duration _pull() {
-    return Duration(seconds: kDebugMode ? 10 : 60);
+    return Duration(seconds: kDebugMode ? 120 : 60);
   }
 }
