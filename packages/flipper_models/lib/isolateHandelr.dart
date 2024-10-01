@@ -862,17 +862,17 @@ class IsolateHandler {
           return Stock(
             ObjectId(),
             currentStock:
-                data['currentStock'] is int || data['currentStock'] is double
-                    ? data['currentStock'].toDouble()
-                    : double.tryParse(data['currentStock']) ?? 0.0,
+                data['current_stock'] is int || data['current_stock'] is double
+                    ? data['current_stock'].toDouble()
+                    : double.tryParse(data['current_stock']) ?? 0.0,
             sold: data['sold'] is int || data['sold'] is double
                 ? data['sold'].toDouble()
                 : double.tryParse(data['sold']) ?? 0.0,
-            lowStock: data['lowStock'] is int || data['lowStock'] is double
-                ? data['lowStock'].toDouble()
-                : double.tryParse(data['lowStock']) ?? 0.0,
-            canTrackingStock: data['canTrackingStock'] ?? false,
-            showLowStockAlert: data['showLowStockAlert'] ?? false,
+            lowStock: data['low_stock'] is int || data['low_stock'] is double
+                ? data['low_stock'].toDouble()
+                : double.tryParse(data['low_stock']) ?? 0.0,
+            canTrackingStock: data['can_tracking_stock'] ?? false,
+            showLowStockAlert: data['show_low_stock_alert'] ?? false,
             productId: data['product_id'] is int
                 ? data['product_id']
                 : int.tryParse(data['product_id']) ?? 0,
@@ -880,20 +880,21 @@ class IsolateHandler {
             value: data['value'] is int || data['value'] is double
                 ? data['value'].toDouble()
                 : double.tryParse(data['value']) ?? 0.0,
-            rsdQty: data['rsdQty'] is int || data['rsdQty'] is double
-                ? data['rsdQty'].toDouble()
-                : double.tryParse(data['rsdQty']) ?? 0.0,
+            rsdQty: data['rsd_qty'] is int || data['rsd_qty'] is double
+                ? data['rsd_qty'].toDouble()
+                : double.tryParse(data['rsd_qty']) ?? 0.0,
             supplyPrice:
-                data['supplyPrice'] is int || data['supplyPrice'] is double
-                    ? data['supplyPrice'].toDouble()
+                data['supply_price'] is int || data['supply_price'] is double
+                    ? data['supply_price'].toDouble()
                     : double.tryParse(data['supplyPrice']) ?? 0.0,
-            retailPrice:
-                data['retailPrice'] is int || data['retailPrice'] is double
-                    ? data['retailPrice'].toDouble()
-                    : double.tryParse(data['retailPrice']) ?? 0.0,
-            lastTouched: data['lastTouched'] is DateTime
-                ? data['lastTouched']
-                : DateTime.tryParse(data['lastTouched']) ?? DateTime.now(),
+            retailPrice: data['retail_price'] is int ||
+                    data['retail_price'] is double &&
+                        data['retail_price'] != null
+                ? data['retail_price'].toDouble()
+                : double.tryParse(data['retail_price']) ?? 0.0,
+            lastTouched: data['last_touched'] is DateTime
+                ? data['last_touched']
+                : DateTime.tryParse(data['last_touched']) ?? DateTime.now(),
             branchId: data['branch_id'] is int
                 ? data['branch_id']
                 : int.tryParse(data['branch_id']) ?? 0,
@@ -934,7 +935,7 @@ class IsolateHandler {
           }
         },
       );
-      ;
+
       sendPort.send(1);
     } catch (e) {
       talker.error(e);

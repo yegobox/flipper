@@ -117,6 +117,15 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       {required ITransaction transaction,
       required List<Payment> paymentMethods}) {
     final transactionId = transaction.id!;
+    for (var payment in paymentMethods) {
+      ProxyService.local.savePaymentType(
+          paymentRecord: TransactionPaymentRecord(
+        ObjectId(),
+        amount: payment.amount,
+        transactionId: transactionId,
+        paymentMethod: payment.method,
+      ));
+    }
     if (transaction.subTotal != 0) {
       ref.read(loadingProvider.notifier).state = true;
       Customer? customer =
@@ -146,17 +155,6 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
         );
         _refreshTransactionItems(transactionId: transaction.id!);
         ref.read(loadingProvider.notifier).state = false;
-      }
-
-      for (var payment in paymentMethods) {
-      
-        ProxyService.local.savePaymentType(
-            paymentRecord: TransactionPaymentRecord(
-          ObjectId(),
-          amount: payment.amount,
-          transactionId: transactionId,
-          paymentMethod: payment.method,
-        ));
       }
     } else {
       showSimpleNotification(

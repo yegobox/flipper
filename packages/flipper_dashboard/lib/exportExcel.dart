@@ -192,8 +192,8 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     for (var transaction in config.transactions) {
       // print("times we called");
       // Get the payment type for the transaction
-      final List<TransactionPaymentRecord> type =
-          ProxyService.local.getPaymentType(transactionId: transaction.id!);
+      final List<TransactionPaymentRecord> type = ProxyService.local
+          .getPaymentType(transactionId: transaction.transactionId!);
 
       if (type.isNotEmpty) {
         // If the payment method already exists, accumulate the amount
@@ -399,7 +399,7 @@ class ExportConfig {
   double? netProfit;
   String currencySymbol;
   String currencyFormat;
-  final List<ITransaction> transactions;
+  final List<TransactionItem> transactions;
 
   ExportConfig({
     this.startDate,

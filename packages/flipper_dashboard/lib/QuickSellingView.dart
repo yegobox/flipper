@@ -355,13 +355,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         ),
       ),
       onChanged: (value) => setState(() {
-        /// always first row in payment type is equal by received amount
-        _paymentMethods[0].controller.text = value;
-        for (PaymentMethod payment in _paymentMethods) {
-          ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
-              Payment(amount: double.parse(value), method: payment.method));
-        }
-        _updatePaymentAmounts(); // Update payment amounts after received amount changes
+        final receivedAmount = double.tryParse(value);
+
+        if (receivedAmount != null) {
+          _paymentMethods[0].controller.text = value;
+          for (PaymentMethod payment in _paymentMethods) {
+            ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
+                Payment(amount: receivedAmount, method: payment.method));
+          }
+          _updatePaymentAmounts();
+        } // Update payment amounts after received amount changes
       }),
       validator: (String? value) {
         if (value == null || value.isEmpty) {
