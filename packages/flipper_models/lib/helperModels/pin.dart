@@ -14,6 +14,8 @@ class IPin {
     required this.pin,
     required this.branchId,
     required this.businessId,
+    required this.ownerName,
+    required this.tokenUid,
   });
   int? id;
   late String userId;
@@ -21,6 +23,8 @@ class IPin {
   late int pin;
   late int branchId;
   late int businessId;
+  late String ownerName;
+  late String tokenUid;
 
   factory IPin.fromRecord(RecordModel record) => IPin.fromJson(record.toJson());
   factory IPin.fromJson(Map<String, dynamic> json) {

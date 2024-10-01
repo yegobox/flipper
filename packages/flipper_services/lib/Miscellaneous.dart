@@ -1,7 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/proxy.dart';
@@ -78,8 +77,6 @@ mixin CoreMiscellaneous {
       ProxyService.local.close();
       ProxyService.local.realm = null;
       ProxyService.local.realm = null;
-      ProxyService.local.clearData(data: ClearData.Branch);
-      ProxyService.local.clearData(data: ClearData.Business);
       return Future.value(true);
     } catch (e, s) {
       log(e.toString());

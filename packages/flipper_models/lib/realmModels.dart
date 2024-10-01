@@ -37,7 +37,7 @@ final realmModels = [
   Activity.schema,
   TransactionPaymentRecord.schema,
 ];
-int schemaVersion = 13;
+int schemaVersion = 14;
 
 /// for local db
 final localModels = [

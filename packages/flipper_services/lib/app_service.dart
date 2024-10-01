@@ -59,15 +59,9 @@ class AppService with ListenableServiceMixin {
   ///
   Future<bool> isLoggedIn() async {
     firebase.User? user = firebase.FirebaseAuth.instance.currentUser;
-    int? businessId = ProxyService.box.getBusinessId();
 
-    if (ProxyService.box.getUserId() == null &&
-        user != null &&
-        businessId == null) {
-      await ProxyService.local.login(
-          userPhone: user.phoneNumber ?? user.email!,
-          skipDefaultAppSetup: false,
-          flipperHttpClient: ProxyService.http);
+    if (ProxyService.box.getUserId() == null || user != null) {
+      throw Exception();
     }
 
     bool value = await isSocialLoggedin();

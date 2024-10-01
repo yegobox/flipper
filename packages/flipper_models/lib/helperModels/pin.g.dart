@@ -13,6 +13,8 @@ IPin _$IPinFromJson(Map<String, dynamic> json) => IPin(
       pin: (json['pin'] as num).toInt(),
       branchId: (json['branchId'] as num).toInt(),
       businessId: (json['businessId'] as num).toInt(),
+      ownerName: json['ownerName'] as String,
+      tokenUid: json['tokenUid'] as String,
     );
 
 Map<String, dynamic> _$IPinToJson(IPin instance) => <String, dynamic>{
@@ -22,4 +24,6 @@ Map<String, dynamic> _$IPinToJson(IPin instance) => <String, dynamic>{
       'pin': instance.pin,
       'branchId': instance.branchId,
       'businessId': instance.businessId,
+      'ownerName': instance.ownerName,
+      'tokenUid': instance.tokenUid,
     };

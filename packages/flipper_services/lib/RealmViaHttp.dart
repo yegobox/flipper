@@ -32,6 +32,11 @@ abstract class RealmViaHttp {
 
 class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   @override
+  Pin? savePin({required Pin pin}) {
+    return null;
+  }
+
+  @override
   void savePaymentType({required TransactionPaymentRecord paymentRecord}) {}
 
   @override
@@ -1415,6 +1420,7 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   Future<IUser> login(
       {required String userPhone,
       required bool skipDefaultAppSetup,
+      required Pin pin,
       bool stopAfterConfigure = false,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement login

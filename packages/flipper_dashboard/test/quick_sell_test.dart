@@ -1,8 +1,5 @@
-import 'dart:convert';
 
 import 'package:flipper_dashboard/QuickSellingView.dart';
-import 'package:flipper_models/LocalRealmApiMocked.dart';
-import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -26,12 +23,6 @@ void main() {
       // Initialize dependencies for test environment
       await initializeDependenciesForTest();
       ProxyService.local.configureLocal(useInMemory: true);
-      ProxyService.local.configureRemoteRealm(
-          "+250783054871",
-          IUser.fromJson(
-            json.decode(userResponse),
-          ),
-          realm: ProxyService.local.realm);
     });
 
     setUp(() {

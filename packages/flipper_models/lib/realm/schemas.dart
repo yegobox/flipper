@@ -870,6 +870,8 @@ class _Pin {
   int? pin;
   int? branchId;
   int? businessId;
+  String? ownerName;
+  String? tokenUid;
 }
 
 @RealmModel()

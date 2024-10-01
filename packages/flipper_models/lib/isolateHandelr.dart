@@ -1125,9 +1125,9 @@ class IsolateHandler {
         }
       });
       talker.warning("Empty code fetching now");
-      fetchDataAndSaveUniversalProducts(businessId, branchId, URI, bhfid);
-      completer.complete();
+      // fetchDataAndSaveUniversalProducts(businessId, branchId, URI, bhfid);
       sendPort.send(1);
+      completer.complete();
     }
   }
 

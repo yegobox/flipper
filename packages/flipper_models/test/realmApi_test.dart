@@ -15,13 +15,6 @@ void main() {
       // Initialize dependencies for test environment
       await initializeDependenciesForTest();
       ProxyService.local.configureLocal(useInMemory: true);
-      ProxyService.local.configureRemoteRealm(
-        "+250783054871",
-        IUser.fromJson(
-          json.decode(userResponse),
-        ),
-        realm: ProxyService.local.realm,
-      );
 
       CreateMockdata().mockBusiness(local: ProxyService.local.realm!);
       CreateMockdata().mockTransactions(realm: ProxyService.local.realm!);

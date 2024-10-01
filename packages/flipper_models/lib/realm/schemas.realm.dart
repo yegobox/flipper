@@ -6654,6 +6654,8 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
     int? pin,
     int? branchId,
     int? businessId,
+    String? ownerName,
+    String? tokenUid,
   }) {
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
@@ -6662,6 +6664,8 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'pin', pin);
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'ownerName', ownerName);
+    RealmObjectBase.set(this, 'tokenUid', tokenUid);
   }
 
   Pin._();
@@ -6705,6 +6709,18 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
   set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
 
   @override
+  String? get ownerName =>
+      RealmObjectBase.get<String>(this, 'ownerName') as String?;
+  @override
+  set ownerName(String? value) => RealmObjectBase.set(this, 'ownerName', value);
+
+  @override
+  String? get tokenUid =>
+      RealmObjectBase.get<String>(this, 'tokenUid') as String?;
+  @override
+  set tokenUid(String? value) => RealmObjectBase.set(this, 'tokenUid', value);
+
+  @override
   Stream<RealmObjectChanges<Pin>> get changes =>
       RealmObjectBase.getChanges<Pin>(this);
 
@@ -6724,6 +6740,8 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
       'pin': pin.toEJson(),
       'branchId': branchId.toEJson(),
       'businessId': businessId.toEJson(),
+      'ownerName': ownerName.toEJson(),
+      'tokenUid': tokenUid.toEJson(),
     };
   }
 
@@ -6742,6 +6760,8 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
           pin: fromEJson(ejson['pin']),
           branchId: fromEJson(ejson['branchId']),
           businessId: fromEJson(ejson['businessId']),
+          ownerName: fromEJson(ejson['ownerName']),
+          tokenUid: fromEJson(ejson['tokenUid']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -6759,6 +6779,8 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('pin', RealmPropertyType.int, optional: true),
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),
       SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('ownerName', RealmPropertyType.string, optional: true),
+      SchemaProperty('tokenUid', RealmPropertyType.string, optional: true),
     ]);
   }();
 

@@ -53,6 +53,7 @@ class LocalRealmApi
     with Booting, defaultData.Data
     implements RealmApiInterface {
   final talker = TalkerFlutter.init();
+  bool offlineLogin = false;
   @override
   Realm? realm;
   late String apihub;
@@ -148,6 +149,18 @@ class LocalRealmApi
     );
   }
 
+  Future<http.Response> _patchPin(
+      int pin, HttpClientInterface flipperHttpClient, String apihub,
+      {required String ownerName}) async {
+    return await flipperHttpClient.patch(
+      Uri.parse(apihub + '/v2/api/pin/${pin}'),
+      body: jsonEncode(<String, String?>{
+        'ownerName': ownerName,
+        'tokenUid': firebase.FirebaseAuth.instance.currentUser?.uid
+      }),
+    );
+  }
+
   @override
   Future<RealmApiInterface> configureLocal({required bool useInMemory}) async {
     _setApiEndpoints();
@@ -224,10 +237,6 @@ class LocalRealmApi
     return realm?.isClosed ?? true;
   }
 
-  @override
-  Future<void> configureRemoteRealm(String userPhone, IUser user,
-      {Realm? realm}) async {}
-
   Future<void> _suserbaseAuth() async {
     // Check if the user already exists
     final email = '${ProxyService.box.getBranchId()}@flipper.rw';
@@ -254,58 +263,158 @@ class LocalRealmApi
   @override
   Future<IUser> login(
       {required String userPhone,
+      required Pin pin,
       required bool skipDefaultAppSetup,
       bool stopAfterConfigure = false,
       required HttpClientInterface flipperHttpClient}) async {
-    String phoneNumber = userPhone;
-
     await _initializeRealms();
 
-    if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
-      phoneNumber = '+' + phoneNumber;
+    final String phoneNumber = _formatPhoneNumber(userPhone);
+    final IUser user =
+        await _authenticateUser(phoneNumber, pin, flipperHttpClient);
+
+    await _configureSystem(userPhone, user, offlineLogin: offlineLogin);
+
+    if (stopAfterConfigure) return user;
+
+    if (!skipDefaultAppSetup) {
+      await setDefaultApp(user);
+    }
+
+    return user;
+  }
+
+  String _formatPhoneNumber(String userPhone) {
+    if (!isEmail(userPhone) && !userPhone.startsWith('+')) {
+      return '+$userPhone';
+    }
+    return userPhone;
+  }
+
+  Future<IUser> _authenticateUser(String phoneNumber, Pin pin,
+      HttpClientInterface flipperHttpClient) async {
+    List<Business> businesses = ProxyService.local.businesses();
+    List<Branch> branches = ProxyService.local.branches();
+
+    if (businesses.isNotEmpty && branches.isNotEmpty) {
+      offlineLogin = true;
+      return _createOfflineUser(phoneNumber, pin, businesses, branches);
     }
 
     final http.Response response =
         await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
 
     if (response.statusCode == 200 && response.body.isNotEmpty) {
+      /// path the user pin, with
       final IUser user = IUser.fromJson(json.decode(response.body));
-
-      await configureTheBox(userPhone, user);
-      await configureLocal(useInMemory: false);
-
-      // ProxyService.synchronize.listen();
-
-      /// clear any business/branches that was logged in this is to unintentionaly log to the branch
-      /// that I am not supposed to
-
-      clearData(data: ClearData.Branch);
-      clearData(data: ClearData.Business);
-      await configureRemoteRealm(userPhone, user, realm: realm);
-
-      /// before updating local make sure there is realm subscription registered for Access
-
-      /// wait for subscription before we go to downloadAssetSave line
-
-      await updateLocalRealm(user, localRealm: realm);
-      talker.info("Waiting before calling downloadAssetSave");
-      await Future.delayed(Duration(seconds: 2));
-      talker.info("About to call downloadAssetSave");
-
-      talker.info("Finished calling downloadAssetSave");
-      AppInitializer.initialize();
-      await _suserbaseAuth();
-      if (stopAfterConfigure) return user;
-
-      if (!skipDefaultAppSetup) {
-        await setDefaultApp(user);
-      }
-
+      await _patchPin(user.id!, flipperHttpClient, apihub,
+          ownerName: user.tenants.first.name);
       return user;
     } else {
       await _handleLoginError(response);
+      throw Exception("Error during login");
     }
-    throw Exception("Error");
+  }
+
+  IUser _createOfflineUser(String phoneNumber, Pin pin,
+      List<Business> businesses, List<Branch> branches) {
+    return IUser(
+      token: pin.tokenUid!,
+      uid: pin.tokenUid,
+      channels: [],
+      phoneNumber: pin.phoneNumber!,
+      id: int.parse(pin.userId!),
+      tenants: [
+        ITenant(
+            id: randomNumber(),
+            name: "name",
+            phoneNumber: phoneNumber,
+            permissions: [],
+            branches: _convertBranches(branches),
+            businesses: _convertBusinesses(businesses),
+            businessId: 0,
+            nfcEnabled: false,
+            userId: ProxyService.box.getUserId()!,
+            isDefault: false)
+      ],
+    );
+  }
+
+  List<IBranch> _convertBranches(List<Branch> branches) {
+    return branches
+        .map((e) => IBranch(
+            id: e.id,
+            name: e.name,
+            businessId: e.businessId,
+            longitude: e.longitude,
+            latitude: e.latitude,
+            location: e.location,
+            action: e.action ?? "",
+            active: e.active,
+            isDefault: e.isDefault))
+        .toList();
+  }
+
+  List<IBusiness> _convertBusinesses(List<Business> businesses) {
+    return businesses
+        .map((e) => IBusiness(
+              id: e.serverId,
+              action: e.action ?? "",
+              encryptionKey: e.encryptionKey!,
+              name: e.name,
+              currency: e.currency,
+              categoryId: e.categoryId,
+              latitude: e.latitude,
+              longitude: e.longitude,
+              userId: e.userId,
+              timeZone: e.timeZone,
+              country: e.country,
+              businessUrl: e.businessUrl,
+              hexColor: e.hexColor,
+              imageUrl: e.imageUrl,
+              type: e.type,
+              active: e.active,
+              metadata: e.metadata,
+              lastSeen: e.lastSeen,
+              firstName: e.firstName,
+              lastName: e.lastName,
+              deviceToken: e.deviceToken,
+              chatUid: e.chatUid,
+              backUpEnabled: e.backUpEnabled,
+              subscriptionPlan: e.subscriptionPlan,
+              nextBillingDate: e.nextBillingDate,
+              previousBillingDate: e.previousBillingDate,
+              isLastSubscriptionPaymentSucceeded:
+                  e.isLastSubscriptionPaymentSucceeded,
+              backupFileId: e.backupFileId,
+              email: e.email,
+              lastDbBackup: e.lastDbBackup,
+              fullName: e.fullName,
+              role: e.role,
+              tinNumber: e.tinNumber,
+              bhfId: e.bhfId,
+              dvcSrlNo: e.dvcSrlNo,
+              adrs: e.adrs,
+              taxEnabled: e.taxEnabled,
+              taxServerUrl: e.taxServerUrl,
+              isDefault: e.isDefault,
+              businessTypeId: e.businessTypeId,
+              deletedAt: e.deletedAt,
+            ))
+        .toList();
+  }
+
+  Future<void> _configureSystem(String userPhone, IUser user,
+      {required bool offlineLogin}) async {
+    await configureTheBox(userPhone, user);
+    await configureLocal(useInMemory: false);
+    await updateLocalRealm(user, localRealm: realm);
+    await Future.delayed(Duration(seconds: 2));
+
+    AppInitializer.initialize();
+    if (!offlineLogin) {
+      await _suserbaseAuth();
+    }
   }
 
   Future<void> _initializeRealms() async {
@@ -356,14 +465,30 @@ class LocalRealmApi
   Future<List<ITenant>> signup(
       {required Map business,
       required HttpClientInterface flipperHttpClient}) async {
-    talker.info(business.toString());
     final http.Response response = await flipperHttpClient
         .post(Uri.parse("$apihub/v2/api/business"), body: jsonEncode(business));
     if (response.statusCode == 200) {
       /// because we want to close the inMemory realm db
       /// as soon as possible so I can be able to save real data into realm
       /// then I call login in here after signup as login handle configuring
+      IPin? pin = await ProxyService.local.getPin(
+          pin: ProxyService.box.getUserId().toString(),
+          flipperHttpClient: ProxyService.http);
+      if (pin == null) {
+        throw PinError(term: "Not found");
+      }
+
+      ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
+      Pin? savedPin = ProxyService.local.savePin(
+          pin: Pin(ObjectId(),
+              userId: pin.userId,
+              branchId: pin.branchId,
+              businessId: pin.businessId,
+              ownerName: pin.ownerName,
+              tokenUid: pin.tokenUid,
+              phoneNumber: pin.phoneNumber));
       await login(
+          pin: savedPin!,
           userPhone: business['phoneNumber'],
           skipDefaultAppSetup: true,
           flipperHttpClient: flipperHttpClient);
@@ -1362,6 +1487,10 @@ class LocalRealmApi
       {required String pin,
       required HttpClientInterface flipperHttpClient}) async {
     final Uri uri = Uri.parse("$apihub/v2/api/pin/$pin");
+    final localPin = realm!.query<Pin>(r'userId == $0', [pin]).firstOrNull;
+    if (localPin != null) {
+      return IPin.fromJson(localPin.toEJson().toFlipperJson());
+    }
 
     try {
       final response = await flipperHttpClient.get(uri);
@@ -2514,9 +2643,12 @@ class LocalRealmApi
   void updateStock({required int stockId, required double qty}) {
     Stock? stock = realm!.query<Stock>(r'id == $0', [stockId]).firstOrNull;
     if (stock != null) {
-      realm!.write(() {
-        stock.currentStock = qty;
-      });
+      realm!.writeN(
+          tableName: 'stocks',
+          writeCallback: () {
+            stock.currentStock = qty;
+            return stock;
+          });
     }
   }
 
@@ -4606,5 +4738,22 @@ class LocalRealmApi
           }
           return counters;
         });
+  }
+
+  @override
+  Pin savePin({required Pin pin}) {
+    Pin? savedPin;
+    realm!.write(() {
+      savedPin = realm!.query<Pin>(r'userId == $0', [pin.userId]).firstOrNull;
+      if (savedPin == null) {
+        savedPin = realm!.add<Pin>(pin);
+      } else {
+        savedPin!.userId = pin.userId;
+        savedPin!.ownerName = pin.ownerName;
+        savedPin!.tokenUid = pin.tokenUid;
+        savedPin!.phoneNumber = pin.phoneNumber;
+      }
+    });
+    return savedPin!;
   }
 }

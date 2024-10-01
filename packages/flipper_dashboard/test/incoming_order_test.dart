@@ -25,12 +25,7 @@ void main() {
 
       // init db
       ProxyService.local.configureLocal(useInMemory: true);
-      ProxyService.local.configureRemoteRealm(
-          "+250783054871",
-          IUser.fromJson(
-            json.decode(userResponse),
-          ),
-          realm: ProxyService.local.realm);
+
       CreateMockdata()
           .createAndSaveMockStockRequests(realm: ProxyService.local.realm!);
     });

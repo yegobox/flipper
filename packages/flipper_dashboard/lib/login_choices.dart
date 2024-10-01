@@ -277,13 +277,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
       business.isDefault = true;
       business.active = true;
     });
-    if (ProxyService.local.realm == null || ProxyService.local.realm == null) {
-      await ProxyService.local.login(
-        userPhone: ProxyService.box.getUserPhone()!,
-        skipDefaultAppSetup: false,
-        flipperHttpClient: ProxyService.http,
-      );
-    }
   }
 
   void _updateBusinessPreferences(Business business) {

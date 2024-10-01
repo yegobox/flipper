@@ -116,10 +116,7 @@ class EventService
         Device? device = await ProxyService.local.getDevice(
             phone: loginData.phone, linkingCode: loginData.linkingCode);
         try {
-          await ProxyService.local.login(
-              userPhone: loginData.phone,
-              skipDefaultAppSetup: true,
-              flipperHttpClient: ProxyService.http);
+          
           if (device == null) {
             await ProxyService.local.create(
                 data: Device(ObjectId(),

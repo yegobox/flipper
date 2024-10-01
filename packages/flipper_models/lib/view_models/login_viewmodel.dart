@@ -8,7 +8,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:realm/realm.dart';
 import 'package:flipper_services/locator.dart' as loc;
 
 import 'package:flipper_services/app_service.dart';
@@ -61,14 +61,24 @@ class LoginViewModel extends FlipperBaseModel
         throw PinError(term: "Not found");
       }
 
+      ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
+      Pin? savedPin = ProxyService.local.savePin(
+          pin: Pin(ObjectId(),
+              userId: pin.userId,
+              branchId: pin.branchId,
+              businessId: pin.businessId,
+              ownerName: pin.ownerName,
+              tokenUid: pin.tokenUid,
+              phoneNumber: pin.phoneNumber));
+
       ProxyService.box.writeBool(key: 'isAnonymous', value: true);
-      talker.info("${pin.toJson().toString()}");
 
       // Sign out from Firebase before attempting to log in
       await FirebaseAuth.instance.signOut();
 
       // Perform user login with ProxyService
       await ProxyService.local.login(
+        pin: savedPin!,
         flipperHttpClient: ProxyService.http,
         skipDefaultAppSetup: false,
         userPhone: pin.phoneNumber,
@@ -77,7 +87,6 @@ class LoginViewModel extends FlipperBaseModel
 
       // Get the UID after login
       String uid = ProxyService.box.uid();
-      talker.info("tokenLogin:${uid}");
 
       // Attempt to sign in with the custom token
       try {

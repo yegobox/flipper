@@ -384,6 +384,7 @@ abstract class RealmApiInterface {
   Future<IPin?> getPin(
       {required String pin, required HttpClientInterface flipperHttpClient});
 
+  Pin? savePin({required Pin pin});
   Stream<List<TransactionItem>> transactionItemsStreams(
       {required int transactionId,
       required int branchId,
@@ -518,6 +519,7 @@ abstract class RealmApiInterface {
       {required String userPhone,
       required bool skipDefaultAppSetup,
       bool stopAfterConfigure = false,
+      required Pin pin,
       required HttpClientInterface flipperHttpClient});
 
   /// since when we log in we get all business in login response object
@@ -561,9 +563,6 @@ abstract class RealmApiInterface {
 
   Future<http.Response> sendLoginRequest(
       String phoneNumber, HttpClientInterface flipperHttpClient, String apihub);
-
-  Future<void> configureRemoteRealm(String userPhone, IUser user,
-      {Realm? realm});
 
   /// drawers
   bool isDrawerOpen({required int cashierId, required int branchId});

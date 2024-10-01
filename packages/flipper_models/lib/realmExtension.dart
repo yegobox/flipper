@@ -23,7 +23,7 @@ extension RealmExtension on Realm {
         for (var item in result) {
           _syncToFirestore(tableName, item);
         }
-      } else {
+      } else if (result != null) {
         _syncToFirestore(tableName, result);
       }
       return result;
