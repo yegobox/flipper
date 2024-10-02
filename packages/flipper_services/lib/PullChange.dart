@@ -7,6 +7,87 @@ import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PullChange {
+  void cleanUp(
+      {required FirebaseFirestore firestore, required Realm localRealm}) {
+    CloudSync(firestore, localRealm).handleRealmChanges<Product>(
+      results: localRealm.all<Product>(),
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: 'products',
+      idField: 'product_id',
+      getId: (product) => product.id!,
+      convertToMap: (product) => product.toEJson().toFlipperJson(),
+      preProcessMap: (map) => map,
+    );
+    CloudSync(firestore, localRealm).handleRealmChanges<Variant>(
+      results: localRealm.all<Variant>(),
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: 'variants',
+      idField: 'variant_id',
+      getId: (variant) => variant.id!,
+      convertToMap: (variant) => variant.toEJson().toFlipperJson(),
+      preProcessMap: (map) => map,
+    );
+    // for stocks
+    CloudSync(firestore, localRealm).handleRealmChanges<Stock>(
+      results: localRealm.all<Stock>(),
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: 'stocks',
+      idField: 'stock_id',
+      getId: (stock) => stock.id!,
+      convertToMap: (stock) =>
+          stock.toEJson(includeVariant: false).toFlipperJson(),
+      preProcessMap: (map) => map,
+    );
+
+    CloudSync(firestore, localRealm).handleRealmChanges<TransactionItem>(
+      results: localRealm.all<TransactionItem>(),
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: 'transaction_items',
+      idField: 'transaction_item_id',
+      getId: (item) => item.id!,
+      convertToMap: (item) => item.toEJson().toFlipperJson(),
+      preProcessMap: (map) => map,
+    );
+
+    CloudSync(firestore, localRealm).handleRealmChanges<Access>(
+      results: localRealm.all<Access>(),
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: 'accesses',
+      idField: 'access_id',
+      getId: (access) => access.id!,
+      convertToMap: (access) => access.toEJson().toFlipperJson(),
+      preProcessMap: (map) => map,
+    );
+
+    CloudSync(firestore, localRealm).handleRealmChanges<StockRequest>(
+      results: localRealm.all<StockRequest>(),
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: 'stock_requests',
+      idField: 'stock_request_id',
+      getId: (request) => request.id!,
+      convertToMap: (request) => request.toEJson().toFlipperJson(),
+      preProcessMap: (map) => map,
+    );
+    CloudSync(firestore, localRealm).handleRealmChanges<Assets>(
+      results: localRealm.all<Assets>(),
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: 'assets',
+      idField: 'asset_id',
+      getId: (asset) => asset.id!,
+      convertToMap: (asset) => asset.toEJson().toFlipperJson(),
+      preProcessMap: (map) => map,
+    );
+    CloudSync(firestore, localRealm).handleRealmChanges<Setting>(
+      results: localRealm.all<Setting>(),
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: 'settings',
+      idField: 'setting_id',
+      getId: (setting) => setting.id!,
+      convertToMap: (setting) => setting.toEJson().toFlipperJson(),
+      preProcessMap: (map) => map,
+    );
+  }
+
   void start(
       {required FirebaseFirestore firestore, required Realm localRealm}) {
     CloudSync(firestore, localRealm).watchTable<Setting>(

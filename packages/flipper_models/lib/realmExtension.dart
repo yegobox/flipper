@@ -36,16 +36,11 @@ extension RealmExtension on Realm {
     }
   }
 
-//   realm.deleteN(
-//   tableName: 'YourTableName',
-//   deleteCallback: () => objectToDelete,
-// );
   void deleteN<T extends RealmObjectBase>(
       {required String tableName, required T Function() deleteCallback}) {
     T object = deleteCallback();
-
-    delete(object);
     _syncToFirestoreDelete(tableName, object);
+    delete(object);
   }
 
   void put<T extends RealmObject>(

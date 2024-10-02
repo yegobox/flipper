@@ -222,6 +222,7 @@ class CronService {
       }
     }
     PullChange().start(firestore: firestore, localRealm: realm!);
+    PullChange().cleanUp(firestore: firestore, localRealm: realm);
 
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       // backUpPowerSync();

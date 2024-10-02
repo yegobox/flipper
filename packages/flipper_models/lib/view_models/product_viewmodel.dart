@@ -363,14 +363,14 @@ class ProductViewModel extends FlipperBaseModel
     List<Variant> variations = await ProxyService.local
         .variants(branchId: branchId, productId: productId);
     for (Variant variation in variations) {
-      await ProxyService.local.delete(
-          id: variation.id!,
-          endPoint: 'variant',
-          flipperHttpClient: ProxyService.http);
       //get stock->delete
       Stock? stock = await ProxyService.local.stockByVariantId(
           variantId: variation.id!, branchId: ProxyService.box.getBranchId()!);
 
+      await ProxyService.local.delete(
+          id: variation.id!,
+          endPoint: 'variant',
+          flipperHttpClient: ProxyService.http);
       await ProxyService.local.delete(
           id: stock!.id!,
           endPoint: 'stock',

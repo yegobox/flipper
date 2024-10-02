@@ -238,6 +238,8 @@ class CloudSync implements SyncInterface {
     //   'DELETE FROM $tableName WHERE $idField = ?',
     //   [id],
     // );
+    talker.warning("deleting $tableName with id $id");
+
     /// delete record in firestore
     await FirebaseFirestore.instance
         .collection(tableName)

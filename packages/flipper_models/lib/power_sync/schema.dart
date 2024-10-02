@@ -17,6 +17,7 @@ const String productsTable = 'products';
 const String receiptsTable = 'receipts';
 const String settingsTable = 'settings';
 const String stocksTable = 'stocks';
+const String colorsTable = 'colors';
 const String stockRequestsTable = 'stockRequests';
 const String transactionItemsTable = 'transactionItems';
 const String iTransactionsTable = 'iTransactions';
