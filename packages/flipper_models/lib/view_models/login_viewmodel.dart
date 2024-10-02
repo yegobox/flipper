@@ -96,29 +96,13 @@ class LoginViewModel extends FlipperBaseModel
         talker.error("Error during token login: $tokenError");
         // Handle token login failure (e.g., retry or alternative auth method)
       }
-
-      // Check if a logged-in Firebase user exists
-
       final defaultApp = ProxyService.box.getDefaultApp();
       await appService.appInit();
       if (defaultApp == "2") {
-        if (!areDependenciesInitialized) {
-          await initDependencies();
-        }
         final _routerService = locator<RouterService>();
         _routerService.navigateTo(SocialHomeViewRoute());
-      } else if (ProxyService.local.isDrawerOpen(
-          cashierId: ProxyService.box.getUserId()!,
-          branchId: ProxyService.box.getBranchId()!)) {
-        ProxyService.forceDateEntry.dataBootstrapper();
-        if (ProxyService.box.getDefaultApp() == 2) {
-          locator<RouterService>().navigateTo(SocialHomeViewRoute());
-        } else {
-          /// the appInit() trigger the auth flow before navigating to the app
-          locator<RouterService>().navigateTo(FlipperAppRoute());
-        }
       } else {
-        openDrawer();
+        locator<RouterService>().navigateTo(FlipperAppRoute());
       }
     } on LoginChoicesException {
       locator<RouterService>().navigateTo(LoginChoicesRoute());

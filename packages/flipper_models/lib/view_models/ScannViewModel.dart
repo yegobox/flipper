@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/power_sync/schema.dart';
+import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
@@ -145,18 +147,24 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
           scannedVariants.firstWhere((variant) => variant.id == id);
 
       // If the variant is found, update its quantity
-      ProxyService.local.realm!.write(() {
-        variant.qty = newQuantity;
-        variant.ebmSynced = false;
-      });
+      ProxyService.local.realm!.writeN(
+          tableName: variantTable,
+          writeCallback: () {
+            variant.qty = newQuantity;
+            variant.ebmSynced = false;
+            return variant;
+          });
 
       Stock? stock = ProxyService.local.stockByVariantId(
           variantId: variant.id!, branchId: ProxyService.box.getBranchId()!);
-      ProxyService.local.realm!.write(() {
-        stock!.rsdQty = newQuantity;
-        stock.ebmSynced = false;
-        stock.currentStock = newQuantity;
-      });
+      ProxyService.local.realm!.writeN(
+          tableName:stocksTable,
+          writeCallback: () {
+            stock!.rsdQty = newQuantity;
+            stock.ebmSynced = false;
+            stock.currentStock = newQuantity;
+            return stock;
+          });
       notifyListeners();
     } catch (e) {
       // Handle the exception if the variant is not found

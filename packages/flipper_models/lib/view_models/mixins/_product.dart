@@ -4,7 +4,8 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
-
+import 'package:flipper_models/realmExtension.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_services/locator.dart' as loc;
 
 mixin ProductMixin {
@@ -102,7 +103,9 @@ mixin ProductMixin {
         .activeCategory(branchId: ProxyService.box.getBranchId()!);
     List<Variant> variants = await ProxyService.local.variants(
         productId: mproduct.id, branchId: ProxyService.box.getBranchId()!);
-    ProxyService.local.realm!.write(() {
+    ProxyService.local.realm!.writeN(
+          tableName:productsTable,
+          writeCallback: () {
       mproduct.name = productName;
       mproduct.barCode = productService.barCode.toString();
       mproduct.color = color;
@@ -143,6 +146,7 @@ mixin ProductMixin {
         variant.action =
             inUpdateProcess ? AppActions.updated : AppActions.created;
       }
+      return mproduct;
     });
 
     return ProxyService.local.getProduct(id: mproduct.id!);

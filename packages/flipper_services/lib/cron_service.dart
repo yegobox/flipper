@@ -11,7 +11,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_models/DownloadQueue.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
+import 'PullChange.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:flipper_models/CloudSync.dart';
 // import 'package:realm/realm.dart';
 // import 'package:realm/realm.dart';
@@ -133,9 +134,9 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
-    Timer.periodic(_pull(), (Timer t) async {
-      await _spawnIsolate("cloudDownload", IsolateHandler.cloudDownload);
-    });
+    final firestore = FirebaseFirestore.instance;
+    final realm = ProxyService.local.realm;
+    PullChange().start(firestore: firestore, localRealm: realm!);
 
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       // backUpPowerSync();

@@ -48,6 +48,17 @@
 	
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.business</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to the photo library to allow users to select and upload photos.</string>
+
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to take photos for profile pictures or content uploads.</string>
+
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app uses your location to provide personalized recommendations and improve user experience.</string>
+
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location while in use to provide location-based features and services.</string>
 
 </dict>
 </plist>

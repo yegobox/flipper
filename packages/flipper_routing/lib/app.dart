@@ -608,3 +608,7 @@ class App {}
 // Power sync isolate example TODO: when https://github.com/aws-amplify/amplify-flutter/issues/5477 is closed.
 // https://github.com/powersync-ja/powersync.dart/discussions/178
 // https://gist.github.com/rkistner/e1067e51ad340f9447c4e55bc7bc96e1
+
+
+// import 'package:flipper_models/realmExtension.dart';
+// import 'package:flipper_models/power_sync/schema.dart';

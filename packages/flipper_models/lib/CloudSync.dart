@@ -1,5 +1,6 @@
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
@@ -299,7 +300,11 @@ class CloudSync implements SyncInterface {
     if (syncProvider == SyncProvider.FIRESTORE) {
       try {
         // Listen for Firestore collection changes
-        _firestore.collection(tableName).snapshots().listen((querySnapshot) {
+        _firestore
+            .collection(tableName)
+            .where('branch_id', isEqualTo: ProxyService.box.getBranchId())
+            .snapshots()
+            .listen((querySnapshot) {
           for (var docChange in querySnapshot.docChanges) {
             final id = int.parse(docChange.doc.id);
             final data = docChange.doc.data()!;
