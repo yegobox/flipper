@@ -1066,7 +1066,7 @@ final branchesProvider = Provider.autoDispose
   final (:includeSelf) = params;
   final businessId = ProxyService.box.getBusinessId();
   return ProxyService.local
-      .branches(businessId: businessId, includeSelf: includeSelf);
+      .branches(businessId: businessId!, includeSelf: includeSelf);
 });
 
 class StringState extends StateNotifier<String> {

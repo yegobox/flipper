@@ -287,7 +287,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
 
   Future<void> _updateAllBranchesInactive() async {
     final branches = ProxyService.local.branches(
-        businessId: ProxyService.box.getBusinessId(), includeSelf: true);
+        businessId: ProxyService.box.getBusinessId()!, includeSelf: true);
     for (final branch in branches) {
       ProxyService.local.realm!.write(() {
         branch.active = false;

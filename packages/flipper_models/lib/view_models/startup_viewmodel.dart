@@ -129,7 +129,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     List<Business> businesses = await ProxyService.local.businesses();
 
     List<Branch> branches = await ProxyService.local
-        .branches(businessId: ProxyService.box.getBusinessId());
+        .branches(businessId: ProxyService.box.getBusinessId()!);
 
     if (businesses.isEmpty || branches.isEmpty) {
       throw Exception(

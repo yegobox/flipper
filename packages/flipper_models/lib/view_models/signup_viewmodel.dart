@@ -183,7 +183,7 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   List<Branch> getBranches(Business business) {
-    return ProxyService.local.branches(businessId: business.serverId);
+    return ProxyService.local.branches(businessId: business.serverId!);
   }
 
   Future<void> saveBranchId(List<Branch> branches) {

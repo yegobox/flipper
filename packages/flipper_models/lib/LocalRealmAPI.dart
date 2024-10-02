@@ -295,7 +295,7 @@ class LocalRealmApi
       HttpClientInterface flipperHttpClient) async {
     List<Business> businessesE = businesses();
     List<Branch> branchesE =
-        branches(businessId: ProxyService.box.getBusinessId());
+        branches(businessId: ProxyService.box.getBusinessId()!);
 
     if (businessesE.isNotEmpty && branchesE.isNotEmpty) {
       offlineLogin = true;
@@ -455,7 +455,7 @@ class LocalRealmApi
   }
 
   @override
-  List<Branch> branches({int? businessId, bool? includeSelf = false}) {
+  List<Branch> branches({required int businessId, bool? includeSelf = false}) {
     if (businessId == null) {
       throw Exception("BusinessId is required");
     }

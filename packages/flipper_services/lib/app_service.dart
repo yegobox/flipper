@@ -113,7 +113,7 @@ class AppService with ListenableServiceMixin {
     List<Business> businesses = await ProxyService.local.businesses();
 
     List<Branch> branches = await ProxyService.local.branches(
-        businessId: ProxyService.box.getBusinessId(), includeSelf: true);
+        businessId: ProxyService.box.getBusinessId()!, includeSelf: true);
 
     bool authComplete = await ProxyService.box.authComplete();
 

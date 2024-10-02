@@ -1337,7 +1337,7 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   }
 
   @override
-  List<Branch> branches({int? businessId, bool? includeSelf = false}) {
+  List<Branch> branches({required int businessId, bool? includeSelf = false}) {
     // TODO: implement branches
     throw UnimplementedError();
   }

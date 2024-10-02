@@ -61,29 +61,28 @@ class LoginViewModel extends FlipperBaseModel
         throw PinError(term: "Not found");
       }
 
-      ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
-      Pin? savedPin = ProxyService.local.savePin(
-          pin: Pin(ObjectId(),
-              userId: pin.userId,
-              pin: pin.pin,
-              branchId: pin.branchId,
-              businessId: pin.businessId,
-              ownerName: pin.ownerName,
-              tokenUid: pin.tokenUid,
-              phoneNumber: pin.phoneNumber));
-
       ProxyService.box.writeBool(key: 'isAnonymous', value: true);
 
       // Sign out from Firebase before attempting to log in
       // await FirebaseAuth.instance.signOut();
-
+      final thePin = Pin(ObjectId(),
+          userId: pin.userId,
+          pin: pin.pin,
+          branchId: pin.branchId,
+          businessId: pin.businessId,
+          ownerName: pin.ownerName,
+          tokenUid: pin.tokenUid,
+          phoneNumber: pin.phoneNumber);
       // Perform user login with ProxyService
       await ProxyService.local.login(
-        pin: savedPin!,
+        pin: thePin,
         flipperHttpClient: ProxyService.http,
         skipDefaultAppSetup: false,
         userPhone: pin.phoneNumber,
       );
+
+      ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
+      Pin? savedPin = ProxyService.local.savePin(pin: thePin);
       await appService.appInit();
 
       // Get the UID after login

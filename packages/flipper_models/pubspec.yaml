@@ -79,3 +79,4 @@ dev_dependencies:
   mockito: ^5.4.4
   json_serializable: 
   json_annotation: 4.8.1
+  cloud_firestore_odm_generator: ^1.0.0-dev.88
