@@ -27,11 +27,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     final talker = TalkerFlutter.init();
     // logOut();
     try {
-      // Handle authentication refreshing.
-      if (refreshCredentials) {
-        await appService.isLoggedIn();
-        await appService.appInit();
-      }
+      await appService.isLoggedIn();
 
       // Ensure realm is initialized before proceeding.
       await ensureRealmInitialized();

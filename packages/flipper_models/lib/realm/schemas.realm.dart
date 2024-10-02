@@ -4062,7 +4062,9 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       'deletedAt': deletedAt.toEJson(),
       'ebmSynced': ebmSynced.toEJson(),
       'cloudSynced': cloudSynced.toEJson(),
-      'variant': includeVariant ? variant.toEJson() : null,
+      'variant': includeVariant
+          ? (variant as Variant).toEJson(includeStock: false)
+          : null,
       'initialStock': initialStock.toEJson(),
     };
   }
@@ -4613,7 +4615,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
   @override
   Variant freeze() => RealmObjectBase.freezeObject<Variant>(this);
 
-  EJsonValue toEJson() {
+  EJsonValue toEJson({bool includeStock = true}) {
     return <String, dynamic>{
       'id': id.toEJson(),
       '_id': realmId.toEJson(),
@@ -4668,7 +4670,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       'ebmSynced': ebmSynced.toEJson(),
       'taxType': taxType.toEJson(),
       'branchIds': branchIds.toEJson(),
-      'stock': stock.toEJson(),
+      'stock': includeStock ? stock.toEJson() : null,
     };
   }
 

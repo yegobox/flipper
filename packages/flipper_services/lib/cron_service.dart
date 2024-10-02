@@ -13,7 +13,9 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_models/DownloadQueue.dart';
 import 'PullChange.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/realmExtension.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 // import 'package:realm/realm.dart';
 // import 'package:realm/realm.dart';
 
@@ -136,6 +138,77 @@ class CronService {
   Future<void> schedule() async {
     final firestore = FirebaseFirestore.instance;
     final realm = ProxyService.local.realm;
+    talker.warning("Force Sync: ${ProxyService.box.forceUPSERT()}");
+    if (!ProxyService.box.forceUPSERT()) {
+      /// get all Products
+      List<Product> products =
+          ProxyService.local.realm!.all<Product>().toList();
+      for (Product product in products) {
+        CloudSync(firestore, realm!).updateRecord(
+            tableName: productsTable,
+            idField: "${productsTable.singularize()}_id",
+            map: product.toEJson().toFlipperJson(),
+            id: product.id!,
+            syncProvider: SyncProvider.FIRESTORE);
+      }
+
+      List<Variant> variants =
+          ProxyService.local.realm!.all<Variant>().toList();
+      for (Variant variant in variants) {
+        /// find stock
+        CloudSync(firestore, realm!).updateRecord(
+            tableName: variantTable,
+            idField: "${variantTable.singularize()}_id",
+            map: variant.toEJson().toFlipperJson(),
+            id: variant.id!,
+            syncProvider: SyncProvider.FIRESTORE);
+      }
+
+      List<Stock> stocks = ProxyService.local.realm!.all<Stock>().toList();
+      for (Stock stock in stocks) {
+        /// find stock
+        CloudSync(firestore, realm!).updateRecord(
+            tableName: stocksTable,
+            idField: "${stocksTable.singularize()}_id",
+            map: stock.toEJson(includeVariant: true).toFlipperJson(),
+            id: stock.id!,
+            syncProvider: SyncProvider.FIRESTORE);
+      }
+
+      List<TransactionItem> items =
+          ProxyService.local.realm!.all<TransactionItem>().toList();
+      for (TransactionItem item in items) {
+        /// find stock
+        CloudSync(firestore, realm!).updateRecord(
+            tableName: transactionItemsTable,
+            idField: "${transactionItemsTable.singularize()}_id",
+            map: item.toEJson().toFlipperJson(),
+            id: item.id!,
+            syncProvider: SyncProvider.FIRESTORE);
+      }
+
+      List<Access> accesses = ProxyService.local.realm!.all<Access>().toList();
+      for (Access access in accesses) {
+        /// find stock
+        CloudSync(firestore, realm!).updateRecord(
+            tableName: accessesTable,
+            idField: "${accessesTable.singularize()}_id",
+            map: access.toEJson().toFlipperJson(),
+            id: access.id!,
+            syncProvider: SyncProvider.FIRESTORE);
+      }
+      List<StockRequest> requests =
+          ProxyService.local.realm!.all<StockRequest>().toList();
+      for (StockRequest request in requests) {
+        /// find stock
+        CloudSync(firestore, realm!).updateRecord(
+            tableName: stockRequestsTable,
+            idField: "${stockRequestsTable.singularize()}_id",
+            map: request.toEJson().toFlipperJson(),
+            id: request.id!,
+            syncProvider: SyncProvider.FIRESTORE);
+      }
+    }
     PullChange().start(firestore: firestore, localRealm: realm!);
 
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {

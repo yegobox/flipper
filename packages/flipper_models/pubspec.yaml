@@ -59,6 +59,7 @@ dependencies:
   # powersync: ^1.8.2 
   permission_handler: ^11.3.1
   supabase_flutter: ^2.6.0
+  cloud_firestore_odm: ^1.0.0-dev.88
   
 dependency_overrides:
   http: ^1.2.1

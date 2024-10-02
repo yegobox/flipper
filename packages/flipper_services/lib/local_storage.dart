@@ -53,7 +53,8 @@ class SharedPreferenceStorage implements LocalStorage {
         'doneDownloadingAsset',
         'doneMigrateToLocal',
         'forceUPSERT',
-        'dbVersion'
+        'dbVersion',
+        'performBackup'
       },
     ));
     return this;
@@ -321,4 +322,5 @@ class SharedPreferenceStorage implements LocalStorage {
   int? dbVersion() {
     return prefs.getInt('dbVersion') ?? 6;
   }
+  
 }

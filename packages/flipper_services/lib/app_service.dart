@@ -58,9 +58,9 @@ class AppService with ListenableServiceMixin {
   /// is the mother of all apps
   ///
   Future<bool> isLoggedIn() async {
-    firebase.User? user = firebase.FirebaseAuth.instance.currentUser;
-
-    if (ProxyService.box.getUserId() == null || user != null) {
+    if (ProxyService.box.getUserId() == null ||
+        ProxyService.box.getBranchId() == null ||
+        ProxyService.box.getBusinessId() == null) {
       throw Exception();
     }
 
@@ -110,7 +110,19 @@ class AppService with ListenableServiceMixin {
   /// check the default business/branch
   /// set the env the current user is operating in.
   Future<void> appInit() async {
-    throw LoginChoicesException(term: "Choose default business");
+    List<Business> businesses = await ProxyService.local.businesses();
+
+    List<Branch> branches = await ProxyService.local.branches(
+        businessId: ProxyService.box.getBusinessId(), includeSelf: true);
+
+    bool authComplete = await ProxyService.box.authComplete();
+
+    bool hasMultipleBusinesses = businesses.length > 1;
+    bool hasMultipleBranches = branches.length > 1;
+
+    if ((hasMultipleBusinesses || hasMultipleBranches) && !authComplete) {
+      throw LoginChoicesException(term: "Choose default business");
+    }
   }
 
   NFCManager nfc = NFCManager();
