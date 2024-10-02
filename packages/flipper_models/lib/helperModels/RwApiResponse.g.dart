@@ -16,6 +16,25 @@ RwApiResponse _$RwApiResponseFromJson(Map<String, dynamic> json) =>
           : Data.fromJson(json['data'] as Map<String, dynamic>),
     );
 
+const _$RwApiResponseFieldMap = <String, String>{
+  'resultCd': 'resultCd',
+  'resultMsg': 'resultMsg',
+  'resultDt': 'resultDt',
+  'data': 'data',
+};
+
+// ignore: unused_element
+abstract class _$RwApiResponsePerFieldToJson {
+  // ignore: unused_element
+  static Object? resultCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? resultMsg(String instance) => instance;
+  // ignore: unused_element
+  static Object? resultDt(String? instance) => instance;
+  // ignore: unused_element
+  static Object? data(Data? instance) => instance;
+}
+
 Map<String, dynamic> _$RwApiResponseToJson(RwApiResponse instance) =>
     <String, dynamic>{
       'resultCd': instance.resultCd,
@@ -39,6 +58,40 @@ Data _$DataFromJson(Map<String, dynamic> json) => Data(
           ?.map((e) => SaleList.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
+
+const _$DataFieldMap = <String, String>{
+  'rcptNo': 'rcptNo',
+  'intrlData': 'intrlData',
+  'rcptSign': 'rcptSign',
+  'totRcptNo': 'totRcptNo',
+  'vsdcRcptPbctDate': 'vsdcRcptPbctDate',
+  'sdcId': 'sdcId',
+  'mrcNo': 'mrcNo',
+  'itemList': 'itemList',
+  'saleList': 'saleList',
+};
+
+// ignore: unused_element
+abstract class _$DataPerFieldToJson {
+  // ignore: unused_element
+  static Object? rcptNo(int? instance) => instance;
+  // ignore: unused_element
+  static Object? intrlData(String? instance) => instance;
+  // ignore: unused_element
+  static Object? rcptSign(String? instance) => instance;
+  // ignore: unused_element
+  static Object? totRcptNo(int? instance) => instance;
+  // ignore: unused_element
+  static Object? vsdcRcptPbctDate(String? instance) => instance;
+  // ignore: unused_element
+  static Object? sdcId(String? instance) => instance;
+  // ignore: unused_element
+  static Object? mrcNo(String? instance) => instance;
+  // ignore: unused_element
+  static Object? itemList(List<Item>? instance) => instance;
+  // ignore: unused_element
+  static Object? saleList(List<SaleList>? instance) => instance;
+}
 
 Map<String, dynamic> _$DataToJson(Data instance) => <String, dynamic>{
       'rcptNo': instance.rcptNo,
@@ -76,6 +129,79 @@ Item _$ItemFromJson(Map<String, dynamic> json) => Item(
       supplyPrice: (json['supplyPrice'] as num?)?.toDouble(),
       retailPrice: (json['retailPrice'] as num?)?.toDouble(),
     );
+
+const _$ItemFieldMap = <String, String>{
+  'taskCd': 'taskCd',
+  'dclDe': 'dclDe',
+  'itemSeq': 'itemSeq',
+  'dclNo': 'dclNo',
+  'hsCd': 'hsCd',
+  'itemNm': 'itemNm',
+  'imptItemsttsCd': 'imptItemsttsCd',
+  'orgnNatCd': 'orgnNatCd',
+  'exptNatCd': 'exptNatCd',
+  'pkg': 'pkg',
+  'pkgUnitCd': 'pkgUnitCd',
+  'qty': 'qty',
+  'qtyUnitCd': 'qtyUnitCd',
+  'totWt': 'totWt',
+  'netWt': 'netWt',
+  'spplrNm': 'spplrNm',
+  'agntNm': 'agntNm',
+  'invcFcurAmt': 'invcFcurAmt',
+  'invcFcurCd': 'invcFcurCd',
+  'invcFcurExcrt': 'invcFcurExcrt',
+  'supplyPrice': 'supplyPrice',
+  'retailPrice': 'retailPrice',
+};
+
+// ignore: unused_element
+abstract class _$ItemPerFieldToJson {
+  // ignore: unused_element
+  static Object? taskCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? dclDe(String instance) => instance;
+  // ignore: unused_element
+  static Object? itemSeq(int instance) => instance;
+  // ignore: unused_element
+  static Object? dclNo(String instance) => instance;
+  // ignore: unused_element
+  static Object? hsCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? itemNm(String instance) => instance;
+  // ignore: unused_element
+  static Object? imptItemsttsCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? orgnNatCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? exptNatCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? pkg(int instance) => instance;
+  // ignore: unused_element
+  static Object? pkgUnitCd(dynamic instance) => instance;
+  // ignore: unused_element
+  static Object? qty(int instance) => instance;
+  // ignore: unused_element
+  static Object? qtyUnitCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? totWt(int instance) => instance;
+  // ignore: unused_element
+  static Object? netWt(int instance) => instance;
+  // ignore: unused_element
+  static Object? spplrNm(String instance) => instance;
+  // ignore: unused_element
+  static Object? agntNm(String instance) => instance;
+  // ignore: unused_element
+  static Object? invcFcurAmt(int instance) => instance;
+  // ignore: unused_element
+  static Object? invcFcurCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? invcFcurExcrt(double instance) => instance;
+  // ignore: unused_element
+  static Object? supplyPrice(double? instance) => instance;
+  // ignore: unused_element
+  static Object? retailPrice(double? instance) => instance;
+}
 
 Map<String, dynamic> _$ItemToJson(Item instance) => <String, dynamic>{
       'taskCd': instance.taskCd,
@@ -134,6 +260,94 @@ SaleList _$SaleListFromJson(Map<String, dynamic> json) => SaleList(
           .toList(),
     );
 
+const _$SaleListFieldMap = <String, String>{
+  'spplrTin': 'spplrTin',
+  'spplrNm': 'spplrNm',
+  'spplrBhfId': 'spplrBhfId',
+  'spplrInvcNo': 'spplrInvcNo',
+  'rcptTyCd': 'rcptTyCd',
+  'pmtTyCd': 'pmtTyCd',
+  'cfmDt': 'cfmDt',
+  'salesDt': 'salesDt',
+  'stockRlsDt': 'stockRlsDt',
+  'totItemCnt': 'totItemCnt',
+  'taxblAmtA': 'taxblAmtA',
+  'taxblAmtB': 'taxblAmtB',
+  'taxblAmtC': 'taxblAmtC',
+  'taxblAmtD': 'taxblAmtD',
+  'taxRtA': 'taxRtA',
+  'taxRtB': 'taxRtB',
+  'taxRtC': 'taxRtC',
+  'taxRtD': 'taxRtD',
+  'taxAmtA': 'taxAmtA',
+  'taxAmtB': 'taxAmtB',
+  'taxAmtC': 'taxAmtC',
+  'taxAmtD': 'taxAmtD',
+  'totTaxblAmt': 'totTaxblAmt',
+  'totTaxAmt': 'totTaxAmt',
+  'totAmt': 'totAmt',
+  'remark': 'remark',
+  'itemList': 'itemList',
+};
+
+// ignore: unused_element
+abstract class _$SaleListPerFieldToJson {
+  // ignore: unused_element
+  static Object? spplrTin(String instance) => instance;
+  // ignore: unused_element
+  static Object? spplrNm(String instance) => instance;
+  // ignore: unused_element
+  static Object? spplrBhfId(String instance) => instance;
+  // ignore: unused_element
+  static Object? spplrInvcNo(int instance) => instance;
+  // ignore: unused_element
+  static Object? rcptTyCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? pmtTyCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? cfmDt(String instance) => instance;
+  // ignore: unused_element
+  static Object? salesDt(String instance) => instance;
+  // ignore: unused_element
+  static Object? stockRlsDt(String? instance) => instance;
+  // ignore: unused_element
+  static Object? totItemCnt(int instance) => instance;
+  // ignore: unused_element
+  static Object? taxblAmtA(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxblAmtB(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxblAmtC(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxblAmtD(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxRtA(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxRtB(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxRtC(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxRtD(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxAmtA(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxAmtB(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxAmtC(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxAmtD(double instance) => instance;
+  // ignore: unused_element
+  static Object? totTaxblAmt(double instance) => instance;
+  // ignore: unused_element
+  static Object? totTaxAmt(double instance) => instance;
+  // ignore: unused_element
+  static Object? totAmt(double instance) => instance;
+  // ignore: unused_element
+  static Object? remark(String? instance) => instance;
+  // ignore: unused_element
+  static Object? itemList(List<ItemList>? instance) => instance;
+}
+
 Map<String, dynamic> _$SaleListToJson(SaleList instance) => <String, dynamic>{
       'spplrTin': instance.spplrTin,
       'spplrNm': instance.spplrNm,
@@ -183,6 +397,64 @@ ItemList _$ItemListFromJson(Map<String, dynamic> json) => ItemList(
       taxAmt: (json['taxAmt'] as num).toDouble(),
       totAmt: (json['totAmt'] as num).toDouble(),
     );
+
+const _$ItemListFieldMap = <String, String>{
+  'itemSeq': 'itemSeq',
+  'itemCd': 'itemCd',
+  'itemClsCd': 'itemClsCd',
+  'itemNm': 'itemNm',
+  'bcd': 'bcd',
+  'pkgUnitCd': 'pkgUnitCd',
+  'pkg': 'pkg',
+  'qtyUnitCd': 'qtyUnitCd',
+  'qty': 'qty',
+  'prc': 'prc',
+  'splyAmt': 'splyAmt',
+  'dcRt': 'dcRt',
+  'dcAmt': 'dcAmt',
+  'taxTyCd': 'taxTyCd',
+  'taxblAmt': 'taxblAmt',
+  'taxAmt': 'taxAmt',
+  'totAmt': 'totAmt',
+};
+
+// ignore: unused_element
+abstract class _$ItemListPerFieldToJson {
+  // ignore: unused_element
+  static Object? itemSeq(int instance) => instance;
+  // ignore: unused_element
+  static Object? itemCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? itemClsCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? itemNm(String instance) => instance;
+  // ignore: unused_element
+  static Object? bcd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? pkgUnitCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? pkg(int instance) => instance;
+  // ignore: unused_element
+  static Object? qtyUnitCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? qty(int instance) => instance;
+  // ignore: unused_element
+  static Object? prc(double instance) => instance;
+  // ignore: unused_element
+  static Object? splyAmt(double instance) => instance;
+  // ignore: unused_element
+  static Object? dcRt(double instance) => instance;
+  // ignore: unused_element
+  static Object? dcAmt(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxTyCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? taxblAmt(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxAmt(double instance) => instance;
+  // ignore: unused_element
+  static Object? totAmt(double instance) => instance;
+}
 
 Map<String, dynamic> _$ItemListToJson(ItemList instance) => <String, dynamic>{
       'itemSeq': instance.itemSeq,

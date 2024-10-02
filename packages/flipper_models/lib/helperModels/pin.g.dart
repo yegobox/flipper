@@ -17,6 +17,37 @@ IPin _$IPinFromJson(Map<String, dynamic> json) => IPin(
       tokenUid: json['tokenUid'] as String,
     );
 
+const _$IPinFieldMap = <String, String>{
+  'id': 'id',
+  'userId': 'userId',
+  'phoneNumber': 'phoneNumber',
+  'pin': 'pin',
+  'branchId': 'branchId',
+  'businessId': 'businessId',
+  'ownerName': 'ownerName',
+  'tokenUid': 'tokenUid',
+};
+
+// ignore: unused_element
+abstract class _$IPinPerFieldToJson {
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? userId(String instance) => instance;
+  // ignore: unused_element
+  static Object? phoneNumber(String instance) => instance;
+  // ignore: unused_element
+  static Object? pin(int instance) => instance;
+  // ignore: unused_element
+  static Object? branchId(int instance) => instance;
+  // ignore: unused_element
+  static Object? businessId(int instance) => instance;
+  // ignore: unused_element
+  static Object? ownerName(String instance) => instance;
+  // ignore: unused_element
+  static Object? tokenUid(String instance) => instance;
+}
+
 Map<String, dynamic> _$IPinToJson(IPin instance) => <String, dynamic>{
       'id': instance.id,
       'userId': instance.userId,

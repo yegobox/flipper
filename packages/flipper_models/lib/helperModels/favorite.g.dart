@@ -20,6 +20,34 @@ Favorite _$FavoriteFromJson(Map<String, dynamic> json) => Favorite(
           ? null
           : DateTime.parse(json['deletedAt'] as String);
 
+const _$FavoriteFieldMap = <String, String>{
+  'id': 'id',
+  'favIndex': 'favIndex',
+  'productId': 'productId',
+  'branchId': 'branchId',
+  'lastTouched': 'lastTouched',
+  'action': 'action',
+  'deletedAt': 'deletedAt',
+};
+
+// ignore: unused_element
+abstract class _$FavoritePerFieldToJson {
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? favIndex(int? instance) => instance;
+  // ignore: unused_element
+  static Object? productId(int? instance) => instance;
+  // ignore: unused_element
+  static Object? branchId(int? instance) => instance;
+  // ignore: unused_element
+  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? action(String instance) => instance;
+  // ignore: unused_element
+  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
+}
+
 Map<String, dynamic> _$FavoriteToJson(Favorite instance) => <String, dynamic>{
       'id': instance.id,
       'favIndex': instance.favIndex,

@@ -30,6 +30,67 @@ Receipt _$ReceiptFromJson(Map<String, dynamic> json) => Receipt(
         ? null
         : DateTime.parse(json['deletedAt'] as String);
 
+const _$ReceiptFieldMap = <String, String>{
+  'deletedAt': 'deletedAt',
+  'id': 'id',
+  'resultCd': 'resultCd',
+  'resultMsg': 'resultMsg',
+  'resultDt': 'resultDt',
+  'rcptNo': 'rcptNo',
+  'intrlData': 'intrlData',
+  'rcptSign': 'rcptSign',
+  'totRcptNo': 'totRcptNo',
+  'vsdcRcptPbctDate': 'vsdcRcptPbctDate',
+  'sdcId': 'sdcId',
+  'mrcNo': 'mrcNo',
+  'qrCode': 'qrCode',
+  'receiptType': 'receiptType',
+  'branchId': 'branchId',
+  'transactionId': 'transactionId',
+  'lastTouched': 'lastTouched',
+  'action': 'action',
+};
+
+// ignore: unused_element
+abstract class _$ReceiptPerFieldToJson {
+  // ignore: unused_element
+  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? resultCd(String instance) => instance;
+  // ignore: unused_element
+  static Object? resultMsg(String instance) => instance;
+  // ignore: unused_element
+  static Object? resultDt(String instance) => instance;
+  // ignore: unused_element
+  static Object? rcptNo(int instance) => instance;
+  // ignore: unused_element
+  static Object? intrlData(String instance) => instance;
+  // ignore: unused_element
+  static Object? rcptSign(String instance) => instance;
+  // ignore: unused_element
+  static Object? totRcptNo(int instance) => instance;
+  // ignore: unused_element
+  static Object? vsdcRcptPbctDate(String instance) => instance;
+  // ignore: unused_element
+  static Object? sdcId(String instance) => instance;
+  // ignore: unused_element
+  static Object? mrcNo(String instance) => instance;
+  // ignore: unused_element
+  static Object? qrCode(String instance) => instance;
+  // ignore: unused_element
+  static Object? receiptType(String instance) => instance;
+  // ignore: unused_element
+  static Object? branchId(int instance) => instance;
+  // ignore: unused_element
+  static Object? transactionId(int instance) => instance;
+  // ignore: unused_element
+  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? action(String instance) => instance;
+}
+
 Map<String, dynamic> _$ReceiptToJson(Receipt instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'id': instance.id,

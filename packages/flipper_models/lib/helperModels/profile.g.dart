@@ -34,6 +34,76 @@ Profile _$ProfileFromJson(Map<String, dynamic> json) => Profile(
           ? null
           : DateTime.parse(json['lastTouched'] as String);
 
+const _$ProfileFieldMap = <String, String>{
+  'action': 'action',
+  'id': 'id',
+  'name': 'name',
+  'email': 'email',
+  'phone': 'phone',
+  'address': 'address',
+  'city': 'city',
+  'state': 'state',
+  'country': 'country',
+  'pincode': 'pincode',
+  'profilePic': 'profilePic',
+  'coverPic': 'coverPic',
+  'about': 'about',
+  'vaccinationCode': 'vaccinationCode',
+  'livingAt': 'livingAt',
+  'cell': 'cell',
+  'district': 'district',
+  'businessId': 'businessId',
+  'nationalId': 'nationalId',
+  'lastTouched': 'lastTouched',
+  'deletedAt': 'deletedAt',
+};
+
+// ignore: unused_element
+abstract class _$ProfilePerFieldToJson {
+  // ignore: unused_element
+  static Object? action(String instance) => instance;
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? name(String? instance) => instance;
+  // ignore: unused_element
+  static Object? email(String? instance) => instance;
+  // ignore: unused_element
+  static Object? phone(String? instance) => instance;
+  // ignore: unused_element
+  static Object? address(String? instance) => instance;
+  // ignore: unused_element
+  static Object? city(String? instance) => instance;
+  // ignore: unused_element
+  static Object? state(String? instance) => instance;
+  // ignore: unused_element
+  static Object? country(String instance) => instance;
+  // ignore: unused_element
+  static Object? pincode(String? instance) => instance;
+  // ignore: unused_element
+  static Object? profilePic(String? instance) => instance;
+  // ignore: unused_element
+  static Object? coverPic(String? instance) => instance;
+  // ignore: unused_element
+  static Object? about(String? instance) => instance;
+  // ignore: unused_element
+  static Object? vaccinationCode(String instance) => instance;
+  // ignore: unused_element
+  static Object? livingAt(String instance) => instance;
+  // ignore: unused_element
+  static Object? cell(String instance) => instance;
+  // ignore: unused_element
+  static Object? district(String instance) => instance;
+  // ignore: unused_element
+  static Object? businessId(int instance) => instance;
+  // ignore: unused_element
+  static Object? nationalId(String? instance) => instance;
+  // ignore: unused_element
+  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
+}
+
 Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
       'action': instance.action,
       'id': instance.id,

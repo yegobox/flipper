@@ -21,6 +21,40 @@ ICounter _$ICounterFromJson(Map<String, dynamic> json) => ICounter(
         ? null
         : DateTime.parse(json['deletedAt'] as String);
 
+const _$ICounterFieldMap = <String, String>{
+  'deletedAt': 'deletedAt',
+  'id': 'id',
+  'businessId': 'businessId',
+  'branchId': 'branchId',
+  'receiptType': 'receiptType',
+  'totRcptNo': 'totRcptNo',
+  'curRcptNo': 'curRcptNo',
+  'lastTouched': 'lastTouched',
+  'action': 'action',
+};
+
+// ignore: unused_element
+abstract class _$ICounterPerFieldToJson {
+  // ignore: unused_element
+  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? businessId(int instance) => instance;
+  // ignore: unused_element
+  static Object? branchId(int instance) => instance;
+  // ignore: unused_element
+  static Object? receiptType(String instance) => instance;
+  // ignore: unused_element
+  static Object? totRcptNo(int instance) => instance;
+  // ignore: unused_element
+  static Object? curRcptNo(int instance) => instance;
+  // ignore: unused_element
+  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? action(String instance) => instance;
+}
+
 Map<String, dynamic> _$ICounterToJson(ICounter instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'id': instance.id,

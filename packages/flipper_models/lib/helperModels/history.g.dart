@@ -19,6 +19,31 @@ History _$HistoryFromJson(Map<String, dynamic> json) => History(
           ? null
           : DateTime.parse(json['lastTouched'] as String);
 
+const _$HistoryFieldMap = <String, String>{
+  'deletedAt': 'deletedAt',
+  'id': 'id',
+  'modelId': 'modelId',
+  'lastTouched': 'lastTouched',
+  'action': 'action',
+  'createdAt': 'createdAt',
+};
+
+// ignore: unused_element
+abstract class _$HistoryPerFieldToJson {
+  // ignore: unused_element
+  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? modelId(int instance) => instance;
+  // ignore: unused_element
+  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? action(String instance) => instance;
+  // ignore: unused_element
+  static Object? createdAt(DateTime instance) => instance.toIso8601String();
+}
+
 Map<String, dynamic> _$HistoryToJson(History instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'id': instance.id,

@@ -28,6 +28,58 @@ IITenant _$IITenantFromJson(Map<String, dynamic> json) => IITenant(
           ? null
           : DateTime.parse(json['lastTouched'] as String);
 
+const _$IITenantFieldMap = <String, String>{
+  'action': 'action',
+  'id': 'id',
+  'name': 'name',
+  'phoneNumber': 'phoneNumber',
+  'email': 'email',
+  'nfcEnabled': 'nfcEnabled',
+  'businessId': 'businessId',
+  'userId': 'userId',
+  'imageUrl': 'imageUrl',
+  'lastTouched': 'lastTouched',
+  'deletedAt': 'deletedAt',
+  'pin': 'pin',
+  'sessionActive': 'sessionActive',
+  'isDefault': 'isDefault',
+  'isLongPressed': 'isLongPressed',
+};
+
+// ignore: unused_element
+abstract class _$IITenantPerFieldToJson {
+  // ignore: unused_element
+  static Object? action(String instance) => instance;
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? name(String instance) => instance;
+  // ignore: unused_element
+  static Object? phoneNumber(String instance) => instance;
+  // ignore: unused_element
+  static Object? email(String? instance) => instance;
+  // ignore: unused_element
+  static Object? nfcEnabled(bool instance) => instance;
+  // ignore: unused_element
+  static Object? businessId(int instance) => instance;
+  // ignore: unused_element
+  static Object? userId(int instance) => instance;
+  // ignore: unused_element
+  static Object? imageUrl(String? instance) => instance;
+  // ignore: unused_element
+  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? pin(int? instance) => instance;
+  // ignore: unused_element
+  static Object? sessionActive(bool? instance) => instance;
+  // ignore: unused_element
+  static Object? isDefault(bool instance) => instance;
+  // ignore: unused_element
+  static Object? isLongPressed(bool instance) => instance;
+}
+
 Map<String, dynamic> _$IITenantToJson(IITenant instance) => <String, dynamic>{
       'action': instance.action,
       'id': instance.id,

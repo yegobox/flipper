@@ -13,6 +13,22 @@ PayStackCustomer _$PayStackCustomerFromJson(Map<String, dynamic> json) =>
       data: CustomerData.fromJson(json['data'] as Map<String, dynamic>),
     );
 
+const _$PayStackCustomerFieldMap = <String, String>{
+  'status': 'status',
+  'message': 'message',
+  'data': 'data',
+};
+
+// ignore: unused_element
+abstract class _$PayStackCustomerPerFieldToJson {
+  // ignore: unused_element
+  static Object? status(bool instance) => instance;
+  // ignore: unused_element
+  static Object? message(String instance) => instance;
+  // ignore: unused_element
+  static Object? data(CustomerData instance) => instance.toJson();
+}
+
 Map<String, dynamic> _$PayStackCustomerToJson(PayStackCustomer instance) =>
     <String, dynamic>{
       'status': instance.status,
@@ -43,6 +59,76 @@ CustomerData _$CustomerDataFromJson(Map<String, dynamic> json) => CustomerData(
       identified: json['identified'] as bool,
       identifications: json['identifications'],
     );
+
+const _$CustomerDataFieldMap = <String, String>{
+  'transactions': 'transactions',
+  'subscriptions': 'subscriptions',
+  'authorizations': 'authorizations',
+  'firstName': 'first_name',
+  'lastName': 'last_name',
+  'email': 'email',
+  'phone': 'phone',
+  'metadata': 'metadata',
+  'domain': 'domain',
+  'customerCode': 'customer_code',
+  'riskAction': 'risk_action',
+  'id': 'id',
+  'integration': 'integration',
+  'createdAt': 'createdAt',
+  'updatedAt': 'updatedAt',
+  'totalTransactions': 'total_transactions',
+  'totalTransactionValue': 'total_transaction_value',
+  'dedicatedAccount': 'dedicated_account',
+  'dedicatedAccounts': 'dedicated_accounts',
+  'identified': 'identified',
+  'identifications': 'identifications',
+};
+
+// ignore: unused_element
+abstract class _$CustomerDataPerFieldToJson {
+  // ignore: unused_element
+  static Object? transactions(List<dynamic>? instance) => instance;
+  // ignore: unused_element
+  static Object? subscriptions(List<dynamic>? instance) => instance;
+  // ignore: unused_element
+  static Object? authorizations(List<dynamic>? instance) => instance;
+  // ignore: unused_element
+  static Object? firstName(String instance) => instance;
+  // ignore: unused_element
+  static Object? lastName(String instance) => instance;
+  // ignore: unused_element
+  static Object? email(String instance) => instance;
+  // ignore: unused_element
+  static Object? phone(String instance) => instance;
+  // ignore: unused_element
+  static Object? metadata(Map<String, dynamic>? instance) => instance;
+  // ignore: unused_element
+  static Object? domain(String instance) => instance;
+  // ignore: unused_element
+  static Object? customerCode(String instance) => instance;
+  // ignore: unused_element
+  static Object? riskAction(String instance) => instance;
+  // ignore: unused_element
+  static Object? id(int instance) => instance;
+  // ignore: unused_element
+  static Object? integration(int instance) => instance;
+  // ignore: unused_element
+  static Object? createdAt(DateTime instance) => instance.toIso8601String();
+  // ignore: unused_element
+  static Object? updatedAt(DateTime instance) => instance.toIso8601String();
+  // ignore: unused_element
+  static Object? totalTransactions(int? instance) => instance;
+  // ignore: unused_element
+  static Object? totalTransactionValue(List<dynamic>? instance) => instance;
+  // ignore: unused_element
+  static Object? dedicatedAccount(dynamic instance) => instance;
+  // ignore: unused_element
+  static Object? dedicatedAccounts(List<dynamic>? instance) => instance;
+  // ignore: unused_element
+  static Object? identified(bool instance) => instance;
+  // ignore: unused_element
+  static Object? identifications(dynamic instance) => instance;
+}
 
 Map<String, dynamic> _$CustomerDataToJson(CustomerData instance) =>
     <String, dynamic>{

@@ -58,6 +58,148 @@ Purchase _$PurchaseFromJson(Map<String, dynamic> json) => Purchase(
         ? null
         : DateTime.parse(json['deletedAt'] as String);
 
+const _$PurchaseFieldMap = <String, String>{
+  'deletedAt': 'deletedAt',
+  'id': 'id',
+  'itemIds': 'itemIds',
+  'lastTouched': 'lastTouched',
+  'createdAt': 'createdAt',
+  'action': 'action',
+  'tin': 'tin',
+  'bhfId': 'bhfId',
+  'invcNo': 'invcNo',
+  'orgInvcNo': 'orgInvcNo',
+  'spplrTin': 'spplrTin',
+  'spplrBhfId': 'spplrBhfId',
+  'spplrNm': 'spplrNm',
+  'spplrInvcNo': 'spplrInvcNo',
+  'regTyCd': 'regTyCd',
+  'pchsTyCd': 'pchsTyCd',
+  'rcptTyCd': 'rcptTyCd',
+  'pmtTyCd': 'pmtTyCd',
+  'pchsSttsCd': 'pchsSttsCd',
+  'cfmDt': 'cfmDt',
+  'pchsDt': 'pchsDt',
+  'wrhsDt': 'wrhsDt',
+  'cnclReqDt': 'cnclReqDt',
+  'cnclDt': 'cnclDt',
+  'rfdDt': 'rfdDt',
+  'totItemCnt': 'totItemCnt',
+  'taxblAmtA': 'taxblAmtA',
+  'taxblAmtB': 'taxblAmtB',
+  'taxblAmtC': 'taxblAmtC',
+  'taxblAmtD': 'taxblAmtD',
+  'taxRtA': 'taxRtA',
+  'taxRtB': 'taxRtB',
+  'taxRtC': 'taxRtC',
+  'taxRtD': 'taxRtD',
+  'taxAmtA': 'taxAmtA',
+  'taxAmtB': 'taxAmtB',
+  'taxAmtC': 'taxAmtC',
+  'taxAmtD': 'taxAmtD',
+  'totTaxblAmt': 'totTaxblAmt',
+  'totTaxAmt': 'totTaxAmt',
+  'totAmt': 'totAmt',
+  'remark': 'remark',
+  'modrId': 'modrId',
+  'modrNm': 'modrNm',
+  'regrId': 'regrId',
+};
+
+// ignore: unused_element
+abstract class _$PurchasePerFieldToJson {
+  // ignore: unused_element
+  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? itemIds(List<String> instance) => instance;
+  // ignore: unused_element
+  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? createdAt(DateTime instance) => instance.toIso8601String();
+  // ignore: unused_element
+  static Object? action(String instance) => instance;
+  // ignore: unused_element
+  static Object? tin(String? instance) => instance;
+  // ignore: unused_element
+  static Object? bhfId(String? instance) => instance;
+  // ignore: unused_element
+  static Object? invcNo(int? instance) => instance;
+  // ignore: unused_element
+  static Object? orgInvcNo(int? instance) => instance;
+  // ignore: unused_element
+  static Object? spplrTin(String? instance) => instance;
+  // ignore: unused_element
+  static Object? spplrBhfId(String? instance) => instance;
+  // ignore: unused_element
+  static Object? spplrNm(String? instance) => instance;
+  // ignore: unused_element
+  static Object? spplrInvcNo(String? instance) => instance;
+  // ignore: unused_element
+  static Object? regTyCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? pchsTyCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? rcptTyCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? pmtTyCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? pchsSttsCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? cfmDt(String? instance) => instance;
+  // ignore: unused_element
+  static Object? pchsDt(String? instance) => instance;
+  // ignore: unused_element
+  static Object? wrhsDt(String? instance) => instance;
+  // ignore: unused_element
+  static Object? cnclReqDt(String? instance) => instance;
+  // ignore: unused_element
+  static Object? cnclDt(String? instance) => instance;
+  // ignore: unused_element
+  static Object? rfdDt(String? instance) => instance;
+  // ignore: unused_element
+  static Object? totItemCnt(int? instance) => instance;
+  // ignore: unused_element
+  static Object? taxblAmtA(double? instance) => instance;
+  // ignore: unused_element
+  static Object? taxblAmtB(double? instance) => instance;
+  // ignore: unused_element
+  static Object? taxblAmtC(double? instance) => instance;
+  // ignore: unused_element
+  static Object? taxblAmtD(double? instance) => instance;
+  // ignore: unused_element
+  static Object? taxRtA(double? instance) => instance;
+  // ignore: unused_element
+  static Object? taxRtB(double? instance) => instance;
+  // ignore: unused_element
+  static Object? taxRtC(double? instance) => instance;
+  // ignore: unused_element
+  static Object? taxRtD(double? instance) => instance;
+  // ignore: unused_element
+  static Object? taxAmtA(double? instance) => instance;
+  // ignore: unused_element
+  static Object? taxAmtB(double? instance) => instance;
+  // ignore: unused_element
+  static Object? taxAmtC(double? instance) => instance;
+  // ignore: unused_element
+  static Object? taxAmtD(double? instance) => instance;
+  // ignore: unused_element
+  static Object? totTaxblAmt(double? instance) => instance;
+  // ignore: unused_element
+  static Object? totTaxAmt(double? instance) => instance;
+  // ignore: unused_element
+  static Object? totAmt(double? instance) => instance;
+  // ignore: unused_element
+  static Object? remark(String? instance) => instance;
+  // ignore: unused_element
+  static Object? modrId(int? instance) => instance;
+  // ignore: unused_element
+  static Object? modrNm(String? instance) => instance;
+  // ignore: unused_element
+  static Object? regrId(int? instance) => instance;
+}
+
 Map<String, dynamic> _$PurchaseToJson(Purchase instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'id': instance.id,

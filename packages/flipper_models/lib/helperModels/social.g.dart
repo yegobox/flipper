@@ -21,6 +21,40 @@ Social _$SocialFromJson(Map<String, dynamic> json) => Social(
           : DateTime.parse(json['deletedAt'] as String),
     )..action = json['action'] as String;
 
+const _$SocialFieldMap = <String, String>{
+  'action': 'action',
+  'id': 'id',
+  'isAccountSet': 'isAccountSet',
+  'socialType': 'socialType',
+  'socialUrl': 'socialUrl',
+  'branchId': 'branchId',
+  'lastTouched': 'lastTouched',
+  'message': 'message',
+  'deletedAt': 'deletedAt',
+};
+
+// ignore: unused_element
+abstract class _$SocialPerFieldToJson {
+  // ignore: unused_element
+  static Object? action(String instance) => instance;
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? isAccountSet(bool instance) => instance;
+  // ignore: unused_element
+  static Object? socialType(String instance) => instance;
+  // ignore: unused_element
+  static Object? socialUrl(String instance) => instance;
+  // ignore: unused_element
+  static Object? branchId(int instance) => instance;
+  // ignore: unused_element
+  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? message(String? instance) => instance;
+  // ignore: unused_element
+  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
+}
+
 Map<String, dynamic> _$SocialToJson(Social instance) => <String, dynamic>{
       'action': instance.action,
       'id': instance.id,

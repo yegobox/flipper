@@ -63,6 +63,163 @@ IVariant _$IVariantFromJson(Map<String, dynamic> json) => IVariant(
       ebmSynced: json['ebmSynced'] as bool? ?? false,
     );
 
+const _$IVariantFieldMap = <String, String>{
+  'id': 'id',
+  'deletedAt': 'deletedAt',
+  'name': 'name',
+  'color': 'color',
+  'sku': 'sku',
+  'productId': 'productId',
+  'unit': 'unit',
+  'productName': 'productName',
+  'branchId': 'branchId',
+  'taxName': 'taxName',
+  'taxPercentage': 'taxPercentage',
+  'isTaxExempted': 'isTaxExempted',
+  'itemSeq': 'itemSeq',
+  'isrccCd': 'isrccCd',
+  'isrccNm': 'isrccNm',
+  'isrcRt': 'isrcRt',
+  'isrcAmt': 'isrcAmt',
+  'taxTyCd': 'taxTyCd',
+  'bcd': 'bcd',
+  'itemClsCd': 'itemClsCd',
+  'itemTyCd': 'itemTyCd',
+  'itemStdNm': 'itemStdNm',
+  'orgnNatCd': 'orgnNatCd',
+  'pkg': 'pkg',
+  'itemCd': 'itemCd',
+  'pkgUnitCd': 'pkgUnitCd',
+  'qtyUnitCd': 'qtyUnitCd',
+  'itemNm': 'itemNm',
+  'qty': 'qty',
+  'prc': 'prc',
+  'splyAmt': 'splyAmt',
+  'tin': 'tin',
+  'bhfId': 'bhfId',
+  'dftPrc': 'dftPrc',
+  'addInfo': 'addInfo',
+  'isrcAplcbYn': 'isrcAplcbYn',
+  'useYn': 'useYn',
+  'regrId': 'regrId',
+  'regrNm': 'regrNm',
+  'modrId': 'modrId',
+  'modrNm': 'modrNm',
+  'rsdQty': 'rsdQty',
+  'lastTouched': 'lastTouched',
+  'supplyPrice': 'supplyPrice',
+  'retailPrice': 'retailPrice',
+  'action': 'action',
+  'spplrItemClsCd': 'spplrItemClsCd',
+  'spplrItemCd': 'spplrItemCd',
+  'spplrItemNm': 'spplrItemNm',
+  'ebmSynced': 'ebmSynced',
+};
+
+// ignore: unused_element
+abstract class _$IVariantPerFieldToJson {
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? name(String? instance) => instance;
+  // ignore: unused_element
+  static Object? color(String? instance) => instance;
+  // ignore: unused_element
+  static Object? sku(String? instance) => instance;
+  // ignore: unused_element
+  static Object? productId(int? instance) => instance;
+  // ignore: unused_element
+  static Object? unit(String? instance) => instance;
+  // ignore: unused_element
+  static Object? productName(String? instance) => instance;
+  // ignore: unused_element
+  static Object? branchId(int? instance) => instance;
+  // ignore: unused_element
+  static Object? taxName(String? instance) => instance;
+  // ignore: unused_element
+  static Object? taxPercentage(double instance) => instance;
+  // ignore: unused_element
+  static Object? isTaxExempted(bool instance) => instance;
+  // ignore: unused_element
+  static Object? itemSeq(int? instance) => instance;
+  // ignore: unused_element
+  static Object? isrccCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? isrccNm(String? instance) => instance;
+  // ignore: unused_element
+  static Object? isrcRt(int? instance) => instance;
+  // ignore: unused_element
+  static Object? isrcAmt(int? instance) => instance;
+  // ignore: unused_element
+  static Object? taxTyCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? bcd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? itemClsCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? itemTyCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? itemStdNm(String? instance) => instance;
+  // ignore: unused_element
+  static Object? orgnNatCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? pkg(String? instance) => instance;
+  // ignore: unused_element
+  static Object? itemCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? pkgUnitCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? qtyUnitCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? itemNm(String? instance) => instance;
+  // ignore: unused_element
+  static Object? qty(double instance) => instance;
+  // ignore: unused_element
+  static Object? prc(double instance) => instance;
+  // ignore: unused_element
+  static Object? splyAmt(double instance) => instance;
+  // ignore: unused_element
+  static Object? tin(int? instance) => instance;
+  // ignore: unused_element
+  static Object? bhfId(String? instance) => instance;
+  // ignore: unused_element
+  static Object? dftPrc(double? instance) => instance;
+  // ignore: unused_element
+  static Object? addInfo(String? instance) => instance;
+  // ignore: unused_element
+  static Object? isrcAplcbYn(String? instance) => instance;
+  // ignore: unused_element
+  static Object? useYn(String? instance) => instance;
+  // ignore: unused_element
+  static Object? regrId(String? instance) => instance;
+  // ignore: unused_element
+  static Object? regrNm(String? instance) => instance;
+  // ignore: unused_element
+  static Object? modrId(String? instance) => instance;
+  // ignore: unused_element
+  static Object? modrNm(String? instance) => instance;
+  // ignore: unused_element
+  static Object? rsdQty(double instance) => instance;
+  // ignore: unused_element
+  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? supplyPrice(double instance) => instance;
+  // ignore: unused_element
+  static Object? retailPrice(double instance) => instance;
+  // ignore: unused_element
+  static Object? action(String? instance) => instance;
+  // ignore: unused_element
+  static Object? spplrItemClsCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? spplrItemCd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? spplrItemNm(String? instance) => instance;
+  // ignore: unused_element
+  static Object? ebmSynced(bool instance) => instance;
+}
+
 Map<String, dynamic> _$IVariantToJson(IVariant instance) => <String, dynamic>{
       'id': instance.id,
       'deletedAt': instance.deletedAt?.toIso8601String(),

@@ -32,14 +32,14 @@ abstract class StockRequestCollectionReference
     DocumentSnapshot<Map<String, Object?>> snapshot,
     SnapshotOptions? options,
   ) {
-    return StockRequest.fromJson({'id': snapshot.id, ...?snapshot.data()});
+    return StockRequest.fromJson(snapshot.data()!);
   }
 
   static Map<String, Object?> toFirestore(
     StockRequest value,
     SetOptions? options,
   ) {
-    return {...value.toJson()}..remove('id');
+    return value.toJson();
   }
 
   @override
@@ -138,18 +138,19 @@ abstract class StockRequestDocumentReference extends FirestoreDocumentReference<
   Future<void> set(
     StockRequest model, {
     SetOptions? options,
-    FieldValue mainBranchIdFieldValue,
-    FieldValue subBranchIdFieldValue,
-    FieldValue createdAtFieldValue,
+    FieldValue idFieldValue,
+    FieldValue main_branch_idFieldValue,
+    FieldValue sub_branch_idFieldValue,
+    FieldValue created_atFieldValue,
     FieldValue statusFieldValue,
-    FieldValue deliveryDateFieldValue,
-    FieldValue deliveryNoteFieldValue,
-    FieldValue orderNoteFieldValue,
-    FieldValue customerReceivedOrderFieldValue,
-    FieldValue driverRequestDeliveryConfirmationFieldValue,
-    FieldValue driverIdFieldValue,
+    FieldValue delivery_dateFieldValue,
+    FieldValue delivery_noteFieldValue,
+    FieldValue order_noteFieldValue,
+    FieldValue customer_received_orderFieldValue,
+    FieldValue driver_request_delivery_confirmationFieldValue,
+    FieldValue driver_idFieldValue,
     FieldValue itemsFieldValue,
-    FieldValue updatedAtFieldValue,
+    FieldValue updated_atFieldValue,
   });
 
   /// Writes to the document using the transaction API.
@@ -163,18 +164,19 @@ abstract class StockRequestDocumentReference extends FirestoreDocumentReference<
     Transaction transaction,
     StockRequest model, {
     SetOptions? options,
-    FieldValue mainBranchIdFieldValue,
-    FieldValue subBranchIdFieldValue,
-    FieldValue createdAtFieldValue,
+    FieldValue idFieldValue,
+    FieldValue main_branch_idFieldValue,
+    FieldValue sub_branch_idFieldValue,
+    FieldValue created_atFieldValue,
     FieldValue statusFieldValue,
-    FieldValue deliveryDateFieldValue,
-    FieldValue deliveryNoteFieldValue,
-    FieldValue orderNoteFieldValue,
-    FieldValue customerReceivedOrderFieldValue,
-    FieldValue driverRequestDeliveryConfirmationFieldValue,
-    FieldValue driverIdFieldValue,
+    FieldValue delivery_dateFieldValue,
+    FieldValue delivery_noteFieldValue,
+    FieldValue order_noteFieldValue,
+    FieldValue customer_received_orderFieldValue,
+    FieldValue driver_request_delivery_confirmationFieldValue,
+    FieldValue driver_idFieldValue,
     FieldValue itemsFieldValue,
-    FieldValue updatedAtFieldValue,
+    FieldValue updated_atFieldValue,
   });
 
   /// Writes to the document using the batch API.
@@ -188,18 +190,19 @@ abstract class StockRequestDocumentReference extends FirestoreDocumentReference<
     WriteBatch batch,
     StockRequest model, {
     SetOptions? options,
-    FieldValue mainBranchIdFieldValue,
-    FieldValue subBranchIdFieldValue,
-    FieldValue createdAtFieldValue,
+    FieldValue idFieldValue,
+    FieldValue main_branch_idFieldValue,
+    FieldValue sub_branch_idFieldValue,
+    FieldValue created_atFieldValue,
     FieldValue statusFieldValue,
-    FieldValue deliveryDateFieldValue,
-    FieldValue deliveryNoteFieldValue,
-    FieldValue orderNoteFieldValue,
-    FieldValue customerReceivedOrderFieldValue,
-    FieldValue driverRequestDeliveryConfirmationFieldValue,
-    FieldValue driverIdFieldValue,
+    FieldValue delivery_dateFieldValue,
+    FieldValue delivery_noteFieldValue,
+    FieldValue order_noteFieldValue,
+    FieldValue customer_received_orderFieldValue,
+    FieldValue driver_request_delivery_confirmationFieldValue,
+    FieldValue driver_idFieldValue,
     FieldValue itemsFieldValue,
-    FieldValue updatedAtFieldValue,
+    FieldValue updated_atFieldValue,
   });
 
   /// Updates data on the document. Data will be merged with any existing
@@ -207,30 +210,32 @@ abstract class StockRequestDocumentReference extends FirestoreDocumentReference<
   ///
   /// If no document exists yet, the update will fail.
   Future<void> update({
-    int mainBranchId,
-    FieldValue mainBranchIdFieldValue,
-    int subBranchId,
-    FieldValue subBranchIdFieldValue,
-    DateTime createdAt,
-    FieldValue createdAtFieldValue,
+    String? id,
+    FieldValue idFieldValue,
+    int main_branch_id,
+    FieldValue main_branch_idFieldValue,
+    int sub_branch_id,
+    FieldValue sub_branch_idFieldValue,
+    DateTime created_at,
+    FieldValue created_atFieldValue,
     String status,
     FieldValue statusFieldValue,
-    DateTime? deliveryDate,
-    FieldValue deliveryDateFieldValue,
-    String? deliveryNote,
-    FieldValue deliveryNoteFieldValue,
-    String? orderNote,
-    FieldValue orderNoteFieldValue,
-    bool customerReceivedOrder,
-    FieldValue customerReceivedOrderFieldValue,
-    bool driverRequestDeliveryConfirmation,
-    FieldValue driverRequestDeliveryConfirmationFieldValue,
-    int? driverId,
-    FieldValue driverIdFieldValue,
+    DateTime? delivery_date,
+    FieldValue delivery_dateFieldValue,
+    String? delivery_note,
+    FieldValue delivery_noteFieldValue,
+    String? order_note,
+    FieldValue order_noteFieldValue,
+    bool customer_received_order,
+    FieldValue customer_received_orderFieldValue,
+    bool driver_request_delivery_confirmation,
+    FieldValue driver_request_delivery_confirmationFieldValue,
+    int? driver_id,
+    FieldValue driver_idFieldValue,
     List<TransactionItem> items,
     FieldValue itemsFieldValue,
-    DateTime? updatedAt,
-    FieldValue updatedAtFieldValue,
+    DateTime? updated_at,
+    FieldValue updated_atFieldValue,
   });
 
   /// Updates fields in the current document using the transaction API.
@@ -238,30 +243,32 @@ abstract class StockRequestDocumentReference extends FirestoreDocumentReference<
   /// The update will fail if applied to a document that does not exist.
   void transactionUpdate(
     Transaction transaction, {
-    int mainBranchId,
-    FieldValue mainBranchIdFieldValue,
-    int subBranchId,
-    FieldValue subBranchIdFieldValue,
-    DateTime createdAt,
-    FieldValue createdAtFieldValue,
+    String? id,
+    FieldValue idFieldValue,
+    int main_branch_id,
+    FieldValue main_branch_idFieldValue,
+    int sub_branch_id,
+    FieldValue sub_branch_idFieldValue,
+    DateTime created_at,
+    FieldValue created_atFieldValue,
     String status,
     FieldValue statusFieldValue,
-    DateTime? deliveryDate,
-    FieldValue deliveryDateFieldValue,
-    String? deliveryNote,
-    FieldValue deliveryNoteFieldValue,
-    String? orderNote,
-    FieldValue orderNoteFieldValue,
-    bool customerReceivedOrder,
-    FieldValue customerReceivedOrderFieldValue,
-    bool driverRequestDeliveryConfirmation,
-    FieldValue driverRequestDeliveryConfirmationFieldValue,
-    int? driverId,
-    FieldValue driverIdFieldValue,
+    DateTime? delivery_date,
+    FieldValue delivery_dateFieldValue,
+    String? delivery_note,
+    FieldValue delivery_noteFieldValue,
+    String? order_note,
+    FieldValue order_noteFieldValue,
+    bool customer_received_order,
+    FieldValue customer_received_orderFieldValue,
+    bool driver_request_delivery_confirmation,
+    FieldValue driver_request_delivery_confirmationFieldValue,
+    int? driver_id,
+    FieldValue driver_idFieldValue,
     List<TransactionItem> items,
     FieldValue itemsFieldValue,
-    DateTime? updatedAt,
-    FieldValue updatedAtFieldValue,
+    DateTime? updated_at,
+    FieldValue updated_atFieldValue,
   });
 
   /// Updates fields in the current document using the batch API.
@@ -269,30 +276,32 @@ abstract class StockRequestDocumentReference extends FirestoreDocumentReference<
   /// The update will fail if applied to a document that does not exist.
   void batchUpdate(
     WriteBatch batch, {
-    int mainBranchId,
-    FieldValue mainBranchIdFieldValue,
-    int subBranchId,
-    FieldValue subBranchIdFieldValue,
-    DateTime createdAt,
-    FieldValue createdAtFieldValue,
+    String? id,
+    FieldValue idFieldValue,
+    int main_branch_id,
+    FieldValue main_branch_idFieldValue,
+    int sub_branch_id,
+    FieldValue sub_branch_idFieldValue,
+    DateTime created_at,
+    FieldValue created_atFieldValue,
     String status,
     FieldValue statusFieldValue,
-    DateTime? deliveryDate,
-    FieldValue deliveryDateFieldValue,
-    String? deliveryNote,
-    FieldValue deliveryNoteFieldValue,
-    String? orderNote,
-    FieldValue orderNoteFieldValue,
-    bool customerReceivedOrder,
-    FieldValue customerReceivedOrderFieldValue,
-    bool driverRequestDeliveryConfirmation,
-    FieldValue driverRequestDeliveryConfirmationFieldValue,
-    int? driverId,
-    FieldValue driverIdFieldValue,
+    DateTime? delivery_date,
+    FieldValue delivery_dateFieldValue,
+    String? delivery_note,
+    FieldValue delivery_noteFieldValue,
+    String? order_note,
+    FieldValue order_noteFieldValue,
+    bool customer_received_order,
+    FieldValue customer_received_orderFieldValue,
+    bool driver_request_delivery_confirmation,
+    FieldValue driver_request_delivery_confirmationFieldValue,
+    int? driver_id,
+    FieldValue driver_idFieldValue,
     List<TransactionItem> items,
     FieldValue itemsFieldValue,
-    DateTime? updatedAt,
-    FieldValue updatedAtFieldValue,
+    DateTime? updated_at,
+    FieldValue updated_atFieldValue,
   });
 }
 
@@ -327,47 +336,49 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
   Future<void> set(
     StockRequest model, {
     SetOptions? options,
-    FieldValue? mainBranchIdFieldValue,
-    FieldValue? subBranchIdFieldValue,
-    FieldValue? createdAtFieldValue,
+    FieldValue? idFieldValue,
+    FieldValue? main_branch_idFieldValue,
+    FieldValue? sub_branch_idFieldValue,
+    FieldValue? created_atFieldValue,
     FieldValue? statusFieldValue,
-    FieldValue? deliveryDateFieldValue,
-    FieldValue? deliveryNoteFieldValue,
-    FieldValue? orderNoteFieldValue,
-    FieldValue? customerReceivedOrderFieldValue,
-    FieldValue? driverRequestDeliveryConfirmationFieldValue,
-    FieldValue? driverIdFieldValue,
+    FieldValue? delivery_dateFieldValue,
+    FieldValue? delivery_noteFieldValue,
+    FieldValue? order_noteFieldValue,
+    FieldValue? customer_received_orderFieldValue,
+    FieldValue? driver_request_delivery_confirmationFieldValue,
+    FieldValue? driver_idFieldValue,
     FieldValue? itemsFieldValue,
-    FieldValue? updatedAtFieldValue,
+    FieldValue? updated_atFieldValue,
   }) async {
     final json = {
       ...model.toJson(),
-      if (mainBranchIdFieldValue != null)
-        _$StockRequestFieldMap['mainBranchId']!: mainBranchIdFieldValue,
-      if (subBranchIdFieldValue != null)
-        _$StockRequestFieldMap['subBranchId']!: subBranchIdFieldValue,
-      if (createdAtFieldValue != null)
-        _$StockRequestFieldMap['createdAt']!: createdAtFieldValue,
+      if (idFieldValue != null) _$StockRequestFieldMap['id']!: idFieldValue,
+      if (main_branch_idFieldValue != null)
+        _$StockRequestFieldMap['main_branch_id']!: main_branch_idFieldValue,
+      if (sub_branch_idFieldValue != null)
+        _$StockRequestFieldMap['sub_branch_id']!: sub_branch_idFieldValue,
+      if (created_atFieldValue != null)
+        _$StockRequestFieldMap['created_at']!: created_atFieldValue,
       if (statusFieldValue != null)
         _$StockRequestFieldMap['status']!: statusFieldValue,
-      if (deliveryDateFieldValue != null)
-        _$StockRequestFieldMap['deliveryDate']!: deliveryDateFieldValue,
-      if (deliveryNoteFieldValue != null)
-        _$StockRequestFieldMap['deliveryNote']!: deliveryNoteFieldValue,
-      if (orderNoteFieldValue != null)
-        _$StockRequestFieldMap['orderNote']!: orderNoteFieldValue,
-      if (customerReceivedOrderFieldValue != null)
-        _$StockRequestFieldMap['customerReceivedOrder']!:
-            customerReceivedOrderFieldValue,
-      if (driverRequestDeliveryConfirmationFieldValue != null)
-        _$StockRequestFieldMap['driverRequestDeliveryConfirmation']!:
-            driverRequestDeliveryConfirmationFieldValue,
-      if (driverIdFieldValue != null)
-        _$StockRequestFieldMap['driverId']!: driverIdFieldValue,
+      if (delivery_dateFieldValue != null)
+        _$StockRequestFieldMap['delivery_date']!: delivery_dateFieldValue,
+      if (delivery_noteFieldValue != null)
+        _$StockRequestFieldMap['delivery_note']!: delivery_noteFieldValue,
+      if (order_noteFieldValue != null)
+        _$StockRequestFieldMap['order_note']!: order_noteFieldValue,
+      if (customer_received_orderFieldValue != null)
+        _$StockRequestFieldMap['customer_received_order']!:
+            customer_received_orderFieldValue,
+      if (driver_request_delivery_confirmationFieldValue != null)
+        _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
+            driver_request_delivery_confirmationFieldValue,
+      if (driver_idFieldValue != null)
+        _$StockRequestFieldMap['driver_id']!: driver_idFieldValue,
       if (itemsFieldValue != null)
         _$StockRequestFieldMap['items']!: itemsFieldValue,
-      if (updatedAtFieldValue != null)
-        _$StockRequestFieldMap['updatedAt']!: updatedAtFieldValue,
+      if (updated_atFieldValue != null)
+        _$StockRequestFieldMap['updated_at']!: updated_atFieldValue,
     };
 
     final castedReference = reference.withConverter<Map<String, dynamic>>(
@@ -381,47 +392,49 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
     Transaction transaction,
     StockRequest model, {
     SetOptions? options,
-    FieldValue? mainBranchIdFieldValue,
-    FieldValue? subBranchIdFieldValue,
-    FieldValue? createdAtFieldValue,
+    FieldValue? idFieldValue,
+    FieldValue? main_branch_idFieldValue,
+    FieldValue? sub_branch_idFieldValue,
+    FieldValue? created_atFieldValue,
     FieldValue? statusFieldValue,
-    FieldValue? deliveryDateFieldValue,
-    FieldValue? deliveryNoteFieldValue,
-    FieldValue? orderNoteFieldValue,
-    FieldValue? customerReceivedOrderFieldValue,
-    FieldValue? driverRequestDeliveryConfirmationFieldValue,
-    FieldValue? driverIdFieldValue,
+    FieldValue? delivery_dateFieldValue,
+    FieldValue? delivery_noteFieldValue,
+    FieldValue? order_noteFieldValue,
+    FieldValue? customer_received_orderFieldValue,
+    FieldValue? driver_request_delivery_confirmationFieldValue,
+    FieldValue? driver_idFieldValue,
     FieldValue? itemsFieldValue,
-    FieldValue? updatedAtFieldValue,
+    FieldValue? updated_atFieldValue,
   }) {
     final json = {
       ...model.toJson(),
-      if (mainBranchIdFieldValue != null)
-        _$StockRequestFieldMap['mainBranchId']!: mainBranchIdFieldValue,
-      if (subBranchIdFieldValue != null)
-        _$StockRequestFieldMap['subBranchId']!: subBranchIdFieldValue,
-      if (createdAtFieldValue != null)
-        _$StockRequestFieldMap['createdAt']!: createdAtFieldValue,
+      if (idFieldValue != null) _$StockRequestFieldMap['id']!: idFieldValue,
+      if (main_branch_idFieldValue != null)
+        _$StockRequestFieldMap['main_branch_id']!: main_branch_idFieldValue,
+      if (sub_branch_idFieldValue != null)
+        _$StockRequestFieldMap['sub_branch_id']!: sub_branch_idFieldValue,
+      if (created_atFieldValue != null)
+        _$StockRequestFieldMap['created_at']!: created_atFieldValue,
       if (statusFieldValue != null)
         _$StockRequestFieldMap['status']!: statusFieldValue,
-      if (deliveryDateFieldValue != null)
-        _$StockRequestFieldMap['deliveryDate']!: deliveryDateFieldValue,
-      if (deliveryNoteFieldValue != null)
-        _$StockRequestFieldMap['deliveryNote']!: deliveryNoteFieldValue,
-      if (orderNoteFieldValue != null)
-        _$StockRequestFieldMap['orderNote']!: orderNoteFieldValue,
-      if (customerReceivedOrderFieldValue != null)
-        _$StockRequestFieldMap['customerReceivedOrder']!:
-            customerReceivedOrderFieldValue,
-      if (driverRequestDeliveryConfirmationFieldValue != null)
-        _$StockRequestFieldMap['driverRequestDeliveryConfirmation']!:
-            driverRequestDeliveryConfirmationFieldValue,
-      if (driverIdFieldValue != null)
-        _$StockRequestFieldMap['driverId']!: driverIdFieldValue,
+      if (delivery_dateFieldValue != null)
+        _$StockRequestFieldMap['delivery_date']!: delivery_dateFieldValue,
+      if (delivery_noteFieldValue != null)
+        _$StockRequestFieldMap['delivery_note']!: delivery_noteFieldValue,
+      if (order_noteFieldValue != null)
+        _$StockRequestFieldMap['order_note']!: order_noteFieldValue,
+      if (customer_received_orderFieldValue != null)
+        _$StockRequestFieldMap['customer_received_order']!:
+            customer_received_orderFieldValue,
+      if (driver_request_delivery_confirmationFieldValue != null)
+        _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
+            driver_request_delivery_confirmationFieldValue,
+      if (driver_idFieldValue != null)
+        _$StockRequestFieldMap['driver_id']!: driver_idFieldValue,
       if (itemsFieldValue != null)
         _$StockRequestFieldMap['items']!: itemsFieldValue,
-      if (updatedAtFieldValue != null)
-        _$StockRequestFieldMap['updatedAt']!: updatedAtFieldValue,
+      if (updated_atFieldValue != null)
+        _$StockRequestFieldMap['updated_at']!: updated_atFieldValue,
     };
 
     transaction.set(reference, json, options);
@@ -431,193 +444,205 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
     WriteBatch batch,
     StockRequest model, {
     SetOptions? options,
-    FieldValue? mainBranchIdFieldValue,
-    FieldValue? subBranchIdFieldValue,
-    FieldValue? createdAtFieldValue,
+    FieldValue? idFieldValue,
+    FieldValue? main_branch_idFieldValue,
+    FieldValue? sub_branch_idFieldValue,
+    FieldValue? created_atFieldValue,
     FieldValue? statusFieldValue,
-    FieldValue? deliveryDateFieldValue,
-    FieldValue? deliveryNoteFieldValue,
-    FieldValue? orderNoteFieldValue,
-    FieldValue? customerReceivedOrderFieldValue,
-    FieldValue? driverRequestDeliveryConfirmationFieldValue,
-    FieldValue? driverIdFieldValue,
+    FieldValue? delivery_dateFieldValue,
+    FieldValue? delivery_noteFieldValue,
+    FieldValue? order_noteFieldValue,
+    FieldValue? customer_received_orderFieldValue,
+    FieldValue? driver_request_delivery_confirmationFieldValue,
+    FieldValue? driver_idFieldValue,
     FieldValue? itemsFieldValue,
-    FieldValue? updatedAtFieldValue,
+    FieldValue? updated_atFieldValue,
   }) {
     final json = {
       ...model.toJson(),
-      if (mainBranchIdFieldValue != null)
-        _$StockRequestFieldMap['mainBranchId']!: mainBranchIdFieldValue,
-      if (subBranchIdFieldValue != null)
-        _$StockRequestFieldMap['subBranchId']!: subBranchIdFieldValue,
-      if (createdAtFieldValue != null)
-        _$StockRequestFieldMap['createdAt']!: createdAtFieldValue,
+      if (idFieldValue != null) _$StockRequestFieldMap['id']!: idFieldValue,
+      if (main_branch_idFieldValue != null)
+        _$StockRequestFieldMap['main_branch_id']!: main_branch_idFieldValue,
+      if (sub_branch_idFieldValue != null)
+        _$StockRequestFieldMap['sub_branch_id']!: sub_branch_idFieldValue,
+      if (created_atFieldValue != null)
+        _$StockRequestFieldMap['created_at']!: created_atFieldValue,
       if (statusFieldValue != null)
         _$StockRequestFieldMap['status']!: statusFieldValue,
-      if (deliveryDateFieldValue != null)
-        _$StockRequestFieldMap['deliveryDate']!: deliveryDateFieldValue,
-      if (deliveryNoteFieldValue != null)
-        _$StockRequestFieldMap['deliveryNote']!: deliveryNoteFieldValue,
-      if (orderNoteFieldValue != null)
-        _$StockRequestFieldMap['orderNote']!: orderNoteFieldValue,
-      if (customerReceivedOrderFieldValue != null)
-        _$StockRequestFieldMap['customerReceivedOrder']!:
-            customerReceivedOrderFieldValue,
-      if (driverRequestDeliveryConfirmationFieldValue != null)
-        _$StockRequestFieldMap['driverRequestDeliveryConfirmation']!:
-            driverRequestDeliveryConfirmationFieldValue,
-      if (driverIdFieldValue != null)
-        _$StockRequestFieldMap['driverId']!: driverIdFieldValue,
+      if (delivery_dateFieldValue != null)
+        _$StockRequestFieldMap['delivery_date']!: delivery_dateFieldValue,
+      if (delivery_noteFieldValue != null)
+        _$StockRequestFieldMap['delivery_note']!: delivery_noteFieldValue,
+      if (order_noteFieldValue != null)
+        _$StockRequestFieldMap['order_note']!: order_noteFieldValue,
+      if (customer_received_orderFieldValue != null)
+        _$StockRequestFieldMap['customer_received_order']!:
+            customer_received_orderFieldValue,
+      if (driver_request_delivery_confirmationFieldValue != null)
+        _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
+            driver_request_delivery_confirmationFieldValue,
+      if (driver_idFieldValue != null)
+        _$StockRequestFieldMap['driver_id']!: driver_idFieldValue,
       if (itemsFieldValue != null)
         _$StockRequestFieldMap['items']!: itemsFieldValue,
-      if (updatedAtFieldValue != null)
-        _$StockRequestFieldMap['updatedAt']!: updatedAtFieldValue,
+      if (updated_atFieldValue != null)
+        _$StockRequestFieldMap['updated_at']!: updated_atFieldValue,
     };
 
     batch.set(reference, json, options);
   }
 
   Future<void> update({
-    Object? mainBranchId = _sentinel,
-    FieldValue? mainBranchIdFieldValue,
-    Object? subBranchId = _sentinel,
-    FieldValue? subBranchIdFieldValue,
-    Object? createdAt = _sentinel,
-    FieldValue? createdAtFieldValue,
+    Object? id = _sentinel,
+    FieldValue? idFieldValue,
+    Object? main_branch_id = _sentinel,
+    FieldValue? main_branch_idFieldValue,
+    Object? sub_branch_id = _sentinel,
+    FieldValue? sub_branch_idFieldValue,
+    Object? created_at = _sentinel,
+    FieldValue? created_atFieldValue,
     Object? status = _sentinel,
     FieldValue? statusFieldValue,
-    Object? deliveryDate = _sentinel,
-    FieldValue? deliveryDateFieldValue,
-    Object? deliveryNote = _sentinel,
-    FieldValue? deliveryNoteFieldValue,
-    Object? orderNote = _sentinel,
-    FieldValue? orderNoteFieldValue,
-    Object? customerReceivedOrder = _sentinel,
-    FieldValue? customerReceivedOrderFieldValue,
-    Object? driverRequestDeliveryConfirmation = _sentinel,
-    FieldValue? driverRequestDeliveryConfirmationFieldValue,
-    Object? driverId = _sentinel,
-    FieldValue? driverIdFieldValue,
+    Object? delivery_date = _sentinel,
+    FieldValue? delivery_dateFieldValue,
+    Object? delivery_note = _sentinel,
+    FieldValue? delivery_noteFieldValue,
+    Object? order_note = _sentinel,
+    FieldValue? order_noteFieldValue,
+    Object? customer_received_order = _sentinel,
+    FieldValue? customer_received_orderFieldValue,
+    Object? driver_request_delivery_confirmation = _sentinel,
+    FieldValue? driver_request_delivery_confirmationFieldValue,
+    Object? driver_id = _sentinel,
+    FieldValue? driver_idFieldValue,
     Object? items = _sentinel,
     FieldValue? itemsFieldValue,
-    Object? updatedAt = _sentinel,
-    FieldValue? updatedAtFieldValue,
+    Object? updated_at = _sentinel,
+    FieldValue? updated_atFieldValue,
   }) async {
     assert(
-      mainBranchId == _sentinel || mainBranchIdFieldValue == null,
-      "Cannot specify both mainBranchId and mainBranchIdFieldValue",
+      id == _sentinel || idFieldValue == null,
+      "Cannot specify both id and idFieldValue",
     );
     assert(
-      subBranchId == _sentinel || subBranchIdFieldValue == null,
-      "Cannot specify both subBranchId and subBranchIdFieldValue",
+      main_branch_id == _sentinel || main_branch_idFieldValue == null,
+      "Cannot specify both main_branch_id and main_branch_idFieldValue",
     );
     assert(
-      createdAt == _sentinel || createdAtFieldValue == null,
-      "Cannot specify both createdAt and createdAtFieldValue",
+      sub_branch_id == _sentinel || sub_branch_idFieldValue == null,
+      "Cannot specify both sub_branch_id and sub_branch_idFieldValue",
+    );
+    assert(
+      created_at == _sentinel || created_atFieldValue == null,
+      "Cannot specify both created_at and created_atFieldValue",
     );
     assert(
       status == _sentinel || statusFieldValue == null,
       "Cannot specify both status and statusFieldValue",
     );
     assert(
-      deliveryDate == _sentinel || deliveryDateFieldValue == null,
-      "Cannot specify both deliveryDate and deliveryDateFieldValue",
+      delivery_date == _sentinel || delivery_dateFieldValue == null,
+      "Cannot specify both delivery_date and delivery_dateFieldValue",
     );
     assert(
-      deliveryNote == _sentinel || deliveryNoteFieldValue == null,
-      "Cannot specify both deliveryNote and deliveryNoteFieldValue",
+      delivery_note == _sentinel || delivery_noteFieldValue == null,
+      "Cannot specify both delivery_note and delivery_noteFieldValue",
     );
     assert(
-      orderNote == _sentinel || orderNoteFieldValue == null,
-      "Cannot specify both orderNote and orderNoteFieldValue",
+      order_note == _sentinel || order_noteFieldValue == null,
+      "Cannot specify both order_note and order_noteFieldValue",
     );
     assert(
-      customerReceivedOrder == _sentinel ||
-          customerReceivedOrderFieldValue == null,
-      "Cannot specify both customerReceivedOrder and customerReceivedOrderFieldValue",
+      customer_received_order == _sentinel ||
+          customer_received_orderFieldValue == null,
+      "Cannot specify both customer_received_order and customer_received_orderFieldValue",
     );
     assert(
-      driverRequestDeliveryConfirmation == _sentinel ||
-          driverRequestDeliveryConfirmationFieldValue == null,
-      "Cannot specify both driverRequestDeliveryConfirmation and driverRequestDeliveryConfirmationFieldValue",
+      driver_request_delivery_confirmation == _sentinel ||
+          driver_request_delivery_confirmationFieldValue == null,
+      "Cannot specify both driver_request_delivery_confirmation and driver_request_delivery_confirmationFieldValue",
     );
     assert(
-      driverId == _sentinel || driverIdFieldValue == null,
-      "Cannot specify both driverId and driverIdFieldValue",
+      driver_id == _sentinel || driver_idFieldValue == null,
+      "Cannot specify both driver_id and driver_idFieldValue",
     );
     assert(
       items == _sentinel || itemsFieldValue == null,
       "Cannot specify both items and itemsFieldValue",
     );
     assert(
-      updatedAt == _sentinel || updatedAtFieldValue == null,
-      "Cannot specify both updatedAt and updatedAtFieldValue",
+      updated_at == _sentinel || updated_atFieldValue == null,
+      "Cannot specify both updated_at and updated_atFieldValue",
     );
     final json = {
-      if (mainBranchId != _sentinel)
-        _$StockRequestFieldMap['mainBranchId']!:
-            _$StockRequestPerFieldToJson.mainBranchId(mainBranchId as int),
-      if (mainBranchIdFieldValue != null)
-        _$StockRequestFieldMap['mainBranchId']!: mainBranchIdFieldValue,
-      if (subBranchId != _sentinel)
-        _$StockRequestFieldMap['subBranchId']!:
-            _$StockRequestPerFieldToJson.subBranchId(subBranchId as int),
-      if (subBranchIdFieldValue != null)
-        _$StockRequestFieldMap['subBranchId']!: subBranchIdFieldValue,
-      if (createdAt != _sentinel)
-        _$StockRequestFieldMap['createdAt']!:
-            _$StockRequestPerFieldToJson.createdAt(createdAt as DateTime),
-      if (createdAtFieldValue != null)
-        _$StockRequestFieldMap['createdAt']!: createdAtFieldValue,
+      if (id != _sentinel)
+        _$StockRequestFieldMap['id']!:
+            _$StockRequestPerFieldToJson.id(id as String?),
+      if (idFieldValue != null) _$StockRequestFieldMap['id']!: idFieldValue,
+      if (main_branch_id != _sentinel)
+        _$StockRequestFieldMap['main_branch_id']!:
+            _$StockRequestPerFieldToJson.main_branch_id(main_branch_id as int),
+      if (main_branch_idFieldValue != null)
+        _$StockRequestFieldMap['main_branch_id']!: main_branch_idFieldValue,
+      if (sub_branch_id != _sentinel)
+        _$StockRequestFieldMap['sub_branch_id']!:
+            _$StockRequestPerFieldToJson.sub_branch_id(sub_branch_id as int),
+      if (sub_branch_idFieldValue != null)
+        _$StockRequestFieldMap['sub_branch_id']!: sub_branch_idFieldValue,
+      if (created_at != _sentinel)
+        _$StockRequestFieldMap['created_at']!:
+            _$StockRequestPerFieldToJson.created_at(created_at as DateTime),
+      if (created_atFieldValue != null)
+        _$StockRequestFieldMap['created_at']!: created_atFieldValue,
       if (status != _sentinel)
         _$StockRequestFieldMap['status']!:
             _$StockRequestPerFieldToJson.status(status as String),
       if (statusFieldValue != null)
         _$StockRequestFieldMap['status']!: statusFieldValue,
-      if (deliveryDate != _sentinel)
-        _$StockRequestFieldMap['deliveryDate']!: _$StockRequestPerFieldToJson
-            .deliveryDate(deliveryDate as DateTime?),
-      if (deliveryDateFieldValue != null)
-        _$StockRequestFieldMap['deliveryDate']!: deliveryDateFieldValue,
-      if (deliveryNote != _sentinel)
-        _$StockRequestFieldMap['deliveryNote']!:
-            _$StockRequestPerFieldToJson.deliveryNote(deliveryNote as String?),
-      if (deliveryNoteFieldValue != null)
-        _$StockRequestFieldMap['deliveryNote']!: deliveryNoteFieldValue,
-      if (orderNote != _sentinel)
-        _$StockRequestFieldMap['orderNote']!:
-            _$StockRequestPerFieldToJson.orderNote(orderNote as String?),
-      if (orderNoteFieldValue != null)
-        _$StockRequestFieldMap['orderNote']!: orderNoteFieldValue,
-      if (customerReceivedOrder != _sentinel)
-        _$StockRequestFieldMap['customerReceivedOrder']!:
+      if (delivery_date != _sentinel)
+        _$StockRequestFieldMap['delivery_date']!: _$StockRequestPerFieldToJson
+            .delivery_date(delivery_date as DateTime?),
+      if (delivery_dateFieldValue != null)
+        _$StockRequestFieldMap['delivery_date']!: delivery_dateFieldValue,
+      if (delivery_note != _sentinel)
+        _$StockRequestFieldMap['delivery_note']!: _$StockRequestPerFieldToJson
+            .delivery_note(delivery_note as String?),
+      if (delivery_noteFieldValue != null)
+        _$StockRequestFieldMap['delivery_note']!: delivery_noteFieldValue,
+      if (order_note != _sentinel)
+        _$StockRequestFieldMap['order_note']!:
+            _$StockRequestPerFieldToJson.order_note(order_note as String?),
+      if (order_noteFieldValue != null)
+        _$StockRequestFieldMap['order_note']!: order_noteFieldValue,
+      if (customer_received_order != _sentinel)
+        _$StockRequestFieldMap['customer_received_order']!:
             _$StockRequestPerFieldToJson
-                .customerReceivedOrder(customerReceivedOrder as bool),
-      if (customerReceivedOrderFieldValue != null)
-        _$StockRequestFieldMap['customerReceivedOrder']!:
-            customerReceivedOrderFieldValue,
-      if (driverRequestDeliveryConfirmation != _sentinel)
-        _$StockRequestFieldMap['driverRequestDeliveryConfirmation']!:
-            _$StockRequestPerFieldToJson.driverRequestDeliveryConfirmation(
-                driverRequestDeliveryConfirmation as bool),
-      if (driverRequestDeliveryConfirmationFieldValue != null)
-        _$StockRequestFieldMap['driverRequestDeliveryConfirmation']!:
-            driverRequestDeliveryConfirmationFieldValue,
-      if (driverId != _sentinel)
-        _$StockRequestFieldMap['driverId']!:
-            _$StockRequestPerFieldToJson.driverId(driverId as int?),
-      if (driverIdFieldValue != null)
-        _$StockRequestFieldMap['driverId']!: driverIdFieldValue,
+                .customer_received_order(customer_received_order as bool),
+      if (customer_received_orderFieldValue != null)
+        _$StockRequestFieldMap['customer_received_order']!:
+            customer_received_orderFieldValue,
+      if (driver_request_delivery_confirmation != _sentinel)
+        _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
+            _$StockRequestPerFieldToJson.driver_request_delivery_confirmation(
+                driver_request_delivery_confirmation as bool),
+      if (driver_request_delivery_confirmationFieldValue != null)
+        _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
+            driver_request_delivery_confirmationFieldValue,
+      if (driver_id != _sentinel)
+        _$StockRequestFieldMap['driver_id']!:
+            _$StockRequestPerFieldToJson.driver_id(driver_id as int?),
+      if (driver_idFieldValue != null)
+        _$StockRequestFieldMap['driver_id']!: driver_idFieldValue,
       if (items != _sentinel)
         _$StockRequestFieldMap['items']!:
             _$StockRequestPerFieldToJson.items(items as List<TransactionItem>),
       if (itemsFieldValue != null)
         _$StockRequestFieldMap['items']!: itemsFieldValue,
-      if (updatedAt != _sentinel)
-        _$StockRequestFieldMap['updatedAt']!:
-            _$StockRequestPerFieldToJson.updatedAt(updatedAt as DateTime?),
-      if (updatedAtFieldValue != null)
-        _$StockRequestFieldMap['updatedAt']!: updatedAtFieldValue,
+      if (updated_at != _sentinel)
+        _$StockRequestFieldMap['updated_at']!:
+            _$StockRequestPerFieldToJson.updated_at(updated_at as DateTime?),
+      if (updated_atFieldValue != null)
+        _$StockRequestFieldMap['updated_at']!: updated_atFieldValue,
     };
 
     return reference.update(json);
@@ -625,146 +650,156 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
 
   void transactionUpdate(
     Transaction transaction, {
-    Object? mainBranchId = _sentinel,
-    FieldValue? mainBranchIdFieldValue,
-    Object? subBranchId = _sentinel,
-    FieldValue? subBranchIdFieldValue,
-    Object? createdAt = _sentinel,
-    FieldValue? createdAtFieldValue,
+    Object? id = _sentinel,
+    FieldValue? idFieldValue,
+    Object? main_branch_id = _sentinel,
+    FieldValue? main_branch_idFieldValue,
+    Object? sub_branch_id = _sentinel,
+    FieldValue? sub_branch_idFieldValue,
+    Object? created_at = _sentinel,
+    FieldValue? created_atFieldValue,
     Object? status = _sentinel,
     FieldValue? statusFieldValue,
-    Object? deliveryDate = _sentinel,
-    FieldValue? deliveryDateFieldValue,
-    Object? deliveryNote = _sentinel,
-    FieldValue? deliveryNoteFieldValue,
-    Object? orderNote = _sentinel,
-    FieldValue? orderNoteFieldValue,
-    Object? customerReceivedOrder = _sentinel,
-    FieldValue? customerReceivedOrderFieldValue,
-    Object? driverRequestDeliveryConfirmation = _sentinel,
-    FieldValue? driverRequestDeliveryConfirmationFieldValue,
-    Object? driverId = _sentinel,
-    FieldValue? driverIdFieldValue,
+    Object? delivery_date = _sentinel,
+    FieldValue? delivery_dateFieldValue,
+    Object? delivery_note = _sentinel,
+    FieldValue? delivery_noteFieldValue,
+    Object? order_note = _sentinel,
+    FieldValue? order_noteFieldValue,
+    Object? customer_received_order = _sentinel,
+    FieldValue? customer_received_orderFieldValue,
+    Object? driver_request_delivery_confirmation = _sentinel,
+    FieldValue? driver_request_delivery_confirmationFieldValue,
+    Object? driver_id = _sentinel,
+    FieldValue? driver_idFieldValue,
     Object? items = _sentinel,
     FieldValue? itemsFieldValue,
-    Object? updatedAt = _sentinel,
-    FieldValue? updatedAtFieldValue,
+    Object? updated_at = _sentinel,
+    FieldValue? updated_atFieldValue,
   }) {
     assert(
-      mainBranchId == _sentinel || mainBranchIdFieldValue == null,
-      "Cannot specify both mainBranchId and mainBranchIdFieldValue",
+      id == _sentinel || idFieldValue == null,
+      "Cannot specify both id and idFieldValue",
     );
     assert(
-      subBranchId == _sentinel || subBranchIdFieldValue == null,
-      "Cannot specify both subBranchId and subBranchIdFieldValue",
+      main_branch_id == _sentinel || main_branch_idFieldValue == null,
+      "Cannot specify both main_branch_id and main_branch_idFieldValue",
     );
     assert(
-      createdAt == _sentinel || createdAtFieldValue == null,
-      "Cannot specify both createdAt and createdAtFieldValue",
+      sub_branch_id == _sentinel || sub_branch_idFieldValue == null,
+      "Cannot specify both sub_branch_id and sub_branch_idFieldValue",
+    );
+    assert(
+      created_at == _sentinel || created_atFieldValue == null,
+      "Cannot specify both created_at and created_atFieldValue",
     );
     assert(
       status == _sentinel || statusFieldValue == null,
       "Cannot specify both status and statusFieldValue",
     );
     assert(
-      deliveryDate == _sentinel || deliveryDateFieldValue == null,
-      "Cannot specify both deliveryDate and deliveryDateFieldValue",
+      delivery_date == _sentinel || delivery_dateFieldValue == null,
+      "Cannot specify both delivery_date and delivery_dateFieldValue",
     );
     assert(
-      deliveryNote == _sentinel || deliveryNoteFieldValue == null,
-      "Cannot specify both deliveryNote and deliveryNoteFieldValue",
+      delivery_note == _sentinel || delivery_noteFieldValue == null,
+      "Cannot specify both delivery_note and delivery_noteFieldValue",
     );
     assert(
-      orderNote == _sentinel || orderNoteFieldValue == null,
-      "Cannot specify both orderNote and orderNoteFieldValue",
+      order_note == _sentinel || order_noteFieldValue == null,
+      "Cannot specify both order_note and order_noteFieldValue",
     );
     assert(
-      customerReceivedOrder == _sentinel ||
-          customerReceivedOrderFieldValue == null,
-      "Cannot specify both customerReceivedOrder and customerReceivedOrderFieldValue",
+      customer_received_order == _sentinel ||
+          customer_received_orderFieldValue == null,
+      "Cannot specify both customer_received_order and customer_received_orderFieldValue",
     );
     assert(
-      driverRequestDeliveryConfirmation == _sentinel ||
-          driverRequestDeliveryConfirmationFieldValue == null,
-      "Cannot specify both driverRequestDeliveryConfirmation and driverRequestDeliveryConfirmationFieldValue",
+      driver_request_delivery_confirmation == _sentinel ||
+          driver_request_delivery_confirmationFieldValue == null,
+      "Cannot specify both driver_request_delivery_confirmation and driver_request_delivery_confirmationFieldValue",
     );
     assert(
-      driverId == _sentinel || driverIdFieldValue == null,
-      "Cannot specify both driverId and driverIdFieldValue",
+      driver_id == _sentinel || driver_idFieldValue == null,
+      "Cannot specify both driver_id and driver_idFieldValue",
     );
     assert(
       items == _sentinel || itemsFieldValue == null,
       "Cannot specify both items and itemsFieldValue",
     );
     assert(
-      updatedAt == _sentinel || updatedAtFieldValue == null,
-      "Cannot specify both updatedAt and updatedAtFieldValue",
+      updated_at == _sentinel || updated_atFieldValue == null,
+      "Cannot specify both updated_at and updated_atFieldValue",
     );
     final json = {
-      if (mainBranchId != _sentinel)
-        _$StockRequestFieldMap['mainBranchId']!:
-            _$StockRequestPerFieldToJson.mainBranchId(mainBranchId as int),
-      if (mainBranchIdFieldValue != null)
-        _$StockRequestFieldMap['mainBranchId']!: mainBranchIdFieldValue,
-      if (subBranchId != _sentinel)
-        _$StockRequestFieldMap['subBranchId']!:
-            _$StockRequestPerFieldToJson.subBranchId(subBranchId as int),
-      if (subBranchIdFieldValue != null)
-        _$StockRequestFieldMap['subBranchId']!: subBranchIdFieldValue,
-      if (createdAt != _sentinel)
-        _$StockRequestFieldMap['createdAt']!:
-            _$StockRequestPerFieldToJson.createdAt(createdAt as DateTime),
-      if (createdAtFieldValue != null)
-        _$StockRequestFieldMap['createdAt']!: createdAtFieldValue,
+      if (id != _sentinel)
+        _$StockRequestFieldMap['id']!:
+            _$StockRequestPerFieldToJson.id(id as String?),
+      if (idFieldValue != null) _$StockRequestFieldMap['id']!: idFieldValue,
+      if (main_branch_id != _sentinel)
+        _$StockRequestFieldMap['main_branch_id']!:
+            _$StockRequestPerFieldToJson.main_branch_id(main_branch_id as int),
+      if (main_branch_idFieldValue != null)
+        _$StockRequestFieldMap['main_branch_id']!: main_branch_idFieldValue,
+      if (sub_branch_id != _sentinel)
+        _$StockRequestFieldMap['sub_branch_id']!:
+            _$StockRequestPerFieldToJson.sub_branch_id(sub_branch_id as int),
+      if (sub_branch_idFieldValue != null)
+        _$StockRequestFieldMap['sub_branch_id']!: sub_branch_idFieldValue,
+      if (created_at != _sentinel)
+        _$StockRequestFieldMap['created_at']!:
+            _$StockRequestPerFieldToJson.created_at(created_at as DateTime),
+      if (created_atFieldValue != null)
+        _$StockRequestFieldMap['created_at']!: created_atFieldValue,
       if (status != _sentinel)
         _$StockRequestFieldMap['status']!:
             _$StockRequestPerFieldToJson.status(status as String),
       if (statusFieldValue != null)
         _$StockRequestFieldMap['status']!: statusFieldValue,
-      if (deliveryDate != _sentinel)
-        _$StockRequestFieldMap['deliveryDate']!: _$StockRequestPerFieldToJson
-            .deliveryDate(deliveryDate as DateTime?),
-      if (deliveryDateFieldValue != null)
-        _$StockRequestFieldMap['deliveryDate']!: deliveryDateFieldValue,
-      if (deliveryNote != _sentinel)
-        _$StockRequestFieldMap['deliveryNote']!:
-            _$StockRequestPerFieldToJson.deliveryNote(deliveryNote as String?),
-      if (deliveryNoteFieldValue != null)
-        _$StockRequestFieldMap['deliveryNote']!: deliveryNoteFieldValue,
-      if (orderNote != _sentinel)
-        _$StockRequestFieldMap['orderNote']!:
-            _$StockRequestPerFieldToJson.orderNote(orderNote as String?),
-      if (orderNoteFieldValue != null)
-        _$StockRequestFieldMap['orderNote']!: orderNoteFieldValue,
-      if (customerReceivedOrder != _sentinel)
-        _$StockRequestFieldMap['customerReceivedOrder']!:
+      if (delivery_date != _sentinel)
+        _$StockRequestFieldMap['delivery_date']!: _$StockRequestPerFieldToJson
+            .delivery_date(delivery_date as DateTime?),
+      if (delivery_dateFieldValue != null)
+        _$StockRequestFieldMap['delivery_date']!: delivery_dateFieldValue,
+      if (delivery_note != _sentinel)
+        _$StockRequestFieldMap['delivery_note']!: _$StockRequestPerFieldToJson
+            .delivery_note(delivery_note as String?),
+      if (delivery_noteFieldValue != null)
+        _$StockRequestFieldMap['delivery_note']!: delivery_noteFieldValue,
+      if (order_note != _sentinel)
+        _$StockRequestFieldMap['order_note']!:
+            _$StockRequestPerFieldToJson.order_note(order_note as String?),
+      if (order_noteFieldValue != null)
+        _$StockRequestFieldMap['order_note']!: order_noteFieldValue,
+      if (customer_received_order != _sentinel)
+        _$StockRequestFieldMap['customer_received_order']!:
             _$StockRequestPerFieldToJson
-                .customerReceivedOrder(customerReceivedOrder as bool),
-      if (customerReceivedOrderFieldValue != null)
-        _$StockRequestFieldMap['customerReceivedOrder']!:
-            customerReceivedOrderFieldValue,
-      if (driverRequestDeliveryConfirmation != _sentinel)
-        _$StockRequestFieldMap['driverRequestDeliveryConfirmation']!:
-            _$StockRequestPerFieldToJson.driverRequestDeliveryConfirmation(
-                driverRequestDeliveryConfirmation as bool),
-      if (driverRequestDeliveryConfirmationFieldValue != null)
-        _$StockRequestFieldMap['driverRequestDeliveryConfirmation']!:
-            driverRequestDeliveryConfirmationFieldValue,
-      if (driverId != _sentinel)
-        _$StockRequestFieldMap['driverId']!:
-            _$StockRequestPerFieldToJson.driverId(driverId as int?),
-      if (driverIdFieldValue != null)
-        _$StockRequestFieldMap['driverId']!: driverIdFieldValue,
+                .customer_received_order(customer_received_order as bool),
+      if (customer_received_orderFieldValue != null)
+        _$StockRequestFieldMap['customer_received_order']!:
+            customer_received_orderFieldValue,
+      if (driver_request_delivery_confirmation != _sentinel)
+        _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
+            _$StockRequestPerFieldToJson.driver_request_delivery_confirmation(
+                driver_request_delivery_confirmation as bool),
+      if (driver_request_delivery_confirmationFieldValue != null)
+        _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
+            driver_request_delivery_confirmationFieldValue,
+      if (driver_id != _sentinel)
+        _$StockRequestFieldMap['driver_id']!:
+            _$StockRequestPerFieldToJson.driver_id(driver_id as int?),
+      if (driver_idFieldValue != null)
+        _$StockRequestFieldMap['driver_id']!: driver_idFieldValue,
       if (items != _sentinel)
         _$StockRequestFieldMap['items']!:
             _$StockRequestPerFieldToJson.items(items as List<TransactionItem>),
       if (itemsFieldValue != null)
         _$StockRequestFieldMap['items']!: itemsFieldValue,
-      if (updatedAt != _sentinel)
-        _$StockRequestFieldMap['updatedAt']!:
-            _$StockRequestPerFieldToJson.updatedAt(updatedAt as DateTime?),
-      if (updatedAtFieldValue != null)
-        _$StockRequestFieldMap['updatedAt']!: updatedAtFieldValue,
+      if (updated_at != _sentinel)
+        _$StockRequestFieldMap['updated_at']!:
+            _$StockRequestPerFieldToJson.updated_at(updated_at as DateTime?),
+      if (updated_atFieldValue != null)
+        _$StockRequestFieldMap['updated_at']!: updated_atFieldValue,
     };
 
     transaction.update(reference, json);
@@ -772,146 +807,156 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
 
   void batchUpdate(
     WriteBatch batch, {
-    Object? mainBranchId = _sentinel,
-    FieldValue? mainBranchIdFieldValue,
-    Object? subBranchId = _sentinel,
-    FieldValue? subBranchIdFieldValue,
-    Object? createdAt = _sentinel,
-    FieldValue? createdAtFieldValue,
+    Object? id = _sentinel,
+    FieldValue? idFieldValue,
+    Object? main_branch_id = _sentinel,
+    FieldValue? main_branch_idFieldValue,
+    Object? sub_branch_id = _sentinel,
+    FieldValue? sub_branch_idFieldValue,
+    Object? created_at = _sentinel,
+    FieldValue? created_atFieldValue,
     Object? status = _sentinel,
     FieldValue? statusFieldValue,
-    Object? deliveryDate = _sentinel,
-    FieldValue? deliveryDateFieldValue,
-    Object? deliveryNote = _sentinel,
-    FieldValue? deliveryNoteFieldValue,
-    Object? orderNote = _sentinel,
-    FieldValue? orderNoteFieldValue,
-    Object? customerReceivedOrder = _sentinel,
-    FieldValue? customerReceivedOrderFieldValue,
-    Object? driverRequestDeliveryConfirmation = _sentinel,
-    FieldValue? driverRequestDeliveryConfirmationFieldValue,
-    Object? driverId = _sentinel,
-    FieldValue? driverIdFieldValue,
+    Object? delivery_date = _sentinel,
+    FieldValue? delivery_dateFieldValue,
+    Object? delivery_note = _sentinel,
+    FieldValue? delivery_noteFieldValue,
+    Object? order_note = _sentinel,
+    FieldValue? order_noteFieldValue,
+    Object? customer_received_order = _sentinel,
+    FieldValue? customer_received_orderFieldValue,
+    Object? driver_request_delivery_confirmation = _sentinel,
+    FieldValue? driver_request_delivery_confirmationFieldValue,
+    Object? driver_id = _sentinel,
+    FieldValue? driver_idFieldValue,
     Object? items = _sentinel,
     FieldValue? itemsFieldValue,
-    Object? updatedAt = _sentinel,
-    FieldValue? updatedAtFieldValue,
+    Object? updated_at = _sentinel,
+    FieldValue? updated_atFieldValue,
   }) {
     assert(
-      mainBranchId == _sentinel || mainBranchIdFieldValue == null,
-      "Cannot specify both mainBranchId and mainBranchIdFieldValue",
+      id == _sentinel || idFieldValue == null,
+      "Cannot specify both id and idFieldValue",
     );
     assert(
-      subBranchId == _sentinel || subBranchIdFieldValue == null,
-      "Cannot specify both subBranchId and subBranchIdFieldValue",
+      main_branch_id == _sentinel || main_branch_idFieldValue == null,
+      "Cannot specify both main_branch_id and main_branch_idFieldValue",
     );
     assert(
-      createdAt == _sentinel || createdAtFieldValue == null,
-      "Cannot specify both createdAt and createdAtFieldValue",
+      sub_branch_id == _sentinel || sub_branch_idFieldValue == null,
+      "Cannot specify both sub_branch_id and sub_branch_idFieldValue",
+    );
+    assert(
+      created_at == _sentinel || created_atFieldValue == null,
+      "Cannot specify both created_at and created_atFieldValue",
     );
     assert(
       status == _sentinel || statusFieldValue == null,
       "Cannot specify both status and statusFieldValue",
     );
     assert(
-      deliveryDate == _sentinel || deliveryDateFieldValue == null,
-      "Cannot specify both deliveryDate and deliveryDateFieldValue",
+      delivery_date == _sentinel || delivery_dateFieldValue == null,
+      "Cannot specify both delivery_date and delivery_dateFieldValue",
     );
     assert(
-      deliveryNote == _sentinel || deliveryNoteFieldValue == null,
-      "Cannot specify both deliveryNote and deliveryNoteFieldValue",
+      delivery_note == _sentinel || delivery_noteFieldValue == null,
+      "Cannot specify both delivery_note and delivery_noteFieldValue",
     );
     assert(
-      orderNote == _sentinel || orderNoteFieldValue == null,
-      "Cannot specify both orderNote and orderNoteFieldValue",
+      order_note == _sentinel || order_noteFieldValue == null,
+      "Cannot specify both order_note and order_noteFieldValue",
     );
     assert(
-      customerReceivedOrder == _sentinel ||
-          customerReceivedOrderFieldValue == null,
-      "Cannot specify both customerReceivedOrder and customerReceivedOrderFieldValue",
+      customer_received_order == _sentinel ||
+          customer_received_orderFieldValue == null,
+      "Cannot specify both customer_received_order and customer_received_orderFieldValue",
     );
     assert(
-      driverRequestDeliveryConfirmation == _sentinel ||
-          driverRequestDeliveryConfirmationFieldValue == null,
-      "Cannot specify both driverRequestDeliveryConfirmation and driverRequestDeliveryConfirmationFieldValue",
+      driver_request_delivery_confirmation == _sentinel ||
+          driver_request_delivery_confirmationFieldValue == null,
+      "Cannot specify both driver_request_delivery_confirmation and driver_request_delivery_confirmationFieldValue",
     );
     assert(
-      driverId == _sentinel || driverIdFieldValue == null,
-      "Cannot specify both driverId and driverIdFieldValue",
+      driver_id == _sentinel || driver_idFieldValue == null,
+      "Cannot specify both driver_id and driver_idFieldValue",
     );
     assert(
       items == _sentinel || itemsFieldValue == null,
       "Cannot specify both items and itemsFieldValue",
     );
     assert(
-      updatedAt == _sentinel || updatedAtFieldValue == null,
-      "Cannot specify both updatedAt and updatedAtFieldValue",
+      updated_at == _sentinel || updated_atFieldValue == null,
+      "Cannot specify both updated_at and updated_atFieldValue",
     );
     final json = {
-      if (mainBranchId != _sentinel)
-        _$StockRequestFieldMap['mainBranchId']!:
-            _$StockRequestPerFieldToJson.mainBranchId(mainBranchId as int),
-      if (mainBranchIdFieldValue != null)
-        _$StockRequestFieldMap['mainBranchId']!: mainBranchIdFieldValue,
-      if (subBranchId != _sentinel)
-        _$StockRequestFieldMap['subBranchId']!:
-            _$StockRequestPerFieldToJson.subBranchId(subBranchId as int),
-      if (subBranchIdFieldValue != null)
-        _$StockRequestFieldMap['subBranchId']!: subBranchIdFieldValue,
-      if (createdAt != _sentinel)
-        _$StockRequestFieldMap['createdAt']!:
-            _$StockRequestPerFieldToJson.createdAt(createdAt as DateTime),
-      if (createdAtFieldValue != null)
-        _$StockRequestFieldMap['createdAt']!: createdAtFieldValue,
+      if (id != _sentinel)
+        _$StockRequestFieldMap['id']!:
+            _$StockRequestPerFieldToJson.id(id as String?),
+      if (idFieldValue != null) _$StockRequestFieldMap['id']!: idFieldValue,
+      if (main_branch_id != _sentinel)
+        _$StockRequestFieldMap['main_branch_id']!:
+            _$StockRequestPerFieldToJson.main_branch_id(main_branch_id as int),
+      if (main_branch_idFieldValue != null)
+        _$StockRequestFieldMap['main_branch_id']!: main_branch_idFieldValue,
+      if (sub_branch_id != _sentinel)
+        _$StockRequestFieldMap['sub_branch_id']!:
+            _$StockRequestPerFieldToJson.sub_branch_id(sub_branch_id as int),
+      if (sub_branch_idFieldValue != null)
+        _$StockRequestFieldMap['sub_branch_id']!: sub_branch_idFieldValue,
+      if (created_at != _sentinel)
+        _$StockRequestFieldMap['created_at']!:
+            _$StockRequestPerFieldToJson.created_at(created_at as DateTime),
+      if (created_atFieldValue != null)
+        _$StockRequestFieldMap['created_at']!: created_atFieldValue,
       if (status != _sentinel)
         _$StockRequestFieldMap['status']!:
             _$StockRequestPerFieldToJson.status(status as String),
       if (statusFieldValue != null)
         _$StockRequestFieldMap['status']!: statusFieldValue,
-      if (deliveryDate != _sentinel)
-        _$StockRequestFieldMap['deliveryDate']!: _$StockRequestPerFieldToJson
-            .deliveryDate(deliveryDate as DateTime?),
-      if (deliveryDateFieldValue != null)
-        _$StockRequestFieldMap['deliveryDate']!: deliveryDateFieldValue,
-      if (deliveryNote != _sentinel)
-        _$StockRequestFieldMap['deliveryNote']!:
-            _$StockRequestPerFieldToJson.deliveryNote(deliveryNote as String?),
-      if (deliveryNoteFieldValue != null)
-        _$StockRequestFieldMap['deliveryNote']!: deliveryNoteFieldValue,
-      if (orderNote != _sentinel)
-        _$StockRequestFieldMap['orderNote']!:
-            _$StockRequestPerFieldToJson.orderNote(orderNote as String?),
-      if (orderNoteFieldValue != null)
-        _$StockRequestFieldMap['orderNote']!: orderNoteFieldValue,
-      if (customerReceivedOrder != _sentinel)
-        _$StockRequestFieldMap['customerReceivedOrder']!:
+      if (delivery_date != _sentinel)
+        _$StockRequestFieldMap['delivery_date']!: _$StockRequestPerFieldToJson
+            .delivery_date(delivery_date as DateTime?),
+      if (delivery_dateFieldValue != null)
+        _$StockRequestFieldMap['delivery_date']!: delivery_dateFieldValue,
+      if (delivery_note != _sentinel)
+        _$StockRequestFieldMap['delivery_note']!: _$StockRequestPerFieldToJson
+            .delivery_note(delivery_note as String?),
+      if (delivery_noteFieldValue != null)
+        _$StockRequestFieldMap['delivery_note']!: delivery_noteFieldValue,
+      if (order_note != _sentinel)
+        _$StockRequestFieldMap['order_note']!:
+            _$StockRequestPerFieldToJson.order_note(order_note as String?),
+      if (order_noteFieldValue != null)
+        _$StockRequestFieldMap['order_note']!: order_noteFieldValue,
+      if (customer_received_order != _sentinel)
+        _$StockRequestFieldMap['customer_received_order']!:
             _$StockRequestPerFieldToJson
-                .customerReceivedOrder(customerReceivedOrder as bool),
-      if (customerReceivedOrderFieldValue != null)
-        _$StockRequestFieldMap['customerReceivedOrder']!:
-            customerReceivedOrderFieldValue,
-      if (driverRequestDeliveryConfirmation != _sentinel)
-        _$StockRequestFieldMap['driverRequestDeliveryConfirmation']!:
-            _$StockRequestPerFieldToJson.driverRequestDeliveryConfirmation(
-                driverRequestDeliveryConfirmation as bool),
-      if (driverRequestDeliveryConfirmationFieldValue != null)
-        _$StockRequestFieldMap['driverRequestDeliveryConfirmation']!:
-            driverRequestDeliveryConfirmationFieldValue,
-      if (driverId != _sentinel)
-        _$StockRequestFieldMap['driverId']!:
-            _$StockRequestPerFieldToJson.driverId(driverId as int?),
-      if (driverIdFieldValue != null)
-        _$StockRequestFieldMap['driverId']!: driverIdFieldValue,
+                .customer_received_order(customer_received_order as bool),
+      if (customer_received_orderFieldValue != null)
+        _$StockRequestFieldMap['customer_received_order']!:
+            customer_received_orderFieldValue,
+      if (driver_request_delivery_confirmation != _sentinel)
+        _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
+            _$StockRequestPerFieldToJson.driver_request_delivery_confirmation(
+                driver_request_delivery_confirmation as bool),
+      if (driver_request_delivery_confirmationFieldValue != null)
+        _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
+            driver_request_delivery_confirmationFieldValue,
+      if (driver_id != _sentinel)
+        _$StockRequestFieldMap['driver_id']!:
+            _$StockRequestPerFieldToJson.driver_id(driver_id as int?),
+      if (driver_idFieldValue != null)
+        _$StockRequestFieldMap['driver_id']!: driver_idFieldValue,
       if (items != _sentinel)
         _$StockRequestFieldMap['items']!:
             _$StockRequestPerFieldToJson.items(items as List<TransactionItem>),
       if (itemsFieldValue != null)
         _$StockRequestFieldMap['items']!: itemsFieldValue,
-      if (updatedAt != _sentinel)
-        _$StockRequestFieldMap['updatedAt']!:
-            _$StockRequestPerFieldToJson.updatedAt(updatedAt as DateTime?),
-      if (updatedAtFieldValue != null)
-        _$StockRequestFieldMap['updatedAt']!: updatedAtFieldValue,
+      if (updated_at != _sentinel)
+        _$StockRequestFieldMap['updated_at']!:
+            _$StockRequestPerFieldToJson.updated_at(updated_at as DateTime?),
+      if (updated_atFieldValue != null)
+        _$StockRequestFieldMap['updated_at']!: updated_atFieldValue,
     };
 
     batch.update(reference, json);
@@ -981,7 +1026,19 @@ abstract class StockRequestQuery
     bool? isNull,
   });
 
-  StockRequestQuery whereMainBranchId({
+  StockRequestQuery whereId({
+    String? isEqualTo,
+    String? isNotEqualTo,
+    String? isLessThan,
+    String? isLessThanOrEqualTo,
+    String? isGreaterThan,
+    String? isGreaterThanOrEqualTo,
+    List<String?>? whereIn,
+    List<String?>? whereNotIn,
+    bool? isNull,
+  });
+
+  StockRequestQuery whereMain_branch_id({
     int? isEqualTo,
     int? isNotEqualTo,
     int? isLessThan,
@@ -993,7 +1050,7 @@ abstract class StockRequestQuery
     bool? isNull,
   });
 
-  StockRequestQuery whereSubBranchId({
+  StockRequestQuery whereSub_branch_id({
     int? isEqualTo,
     int? isNotEqualTo,
     int? isLessThan,
@@ -1005,7 +1062,7 @@ abstract class StockRequestQuery
     bool? isNull,
   });
 
-  StockRequestQuery whereCreatedAt({
+  StockRequestQuery whereCreated_at({
     DateTime? isEqualTo,
     DateTime? isNotEqualTo,
     DateTime? isLessThan,
@@ -1029,7 +1086,7 @@ abstract class StockRequestQuery
     bool? isNull,
   });
 
-  StockRequestQuery whereDeliveryDate({
+  StockRequestQuery whereDelivery_date({
     DateTime? isEqualTo,
     DateTime? isNotEqualTo,
     DateTime? isLessThan,
@@ -1041,7 +1098,7 @@ abstract class StockRequestQuery
     bool? isNull,
   });
 
-  StockRequestQuery whereDeliveryNote({
+  StockRequestQuery whereDelivery_note({
     String? isEqualTo,
     String? isNotEqualTo,
     String? isLessThan,
@@ -1053,7 +1110,7 @@ abstract class StockRequestQuery
     bool? isNull,
   });
 
-  StockRequestQuery whereOrderNote({
+  StockRequestQuery whereOrder_note({
     String? isEqualTo,
     String? isNotEqualTo,
     String? isLessThan,
@@ -1065,7 +1122,7 @@ abstract class StockRequestQuery
     bool? isNull,
   });
 
-  StockRequestQuery whereCustomerReceivedOrder({
+  StockRequestQuery whereCustomer_received_order({
     bool? isEqualTo,
     bool? isNotEqualTo,
     bool? isLessThan,
@@ -1077,7 +1134,7 @@ abstract class StockRequestQuery
     bool? isNull,
   });
 
-  StockRequestQuery whereDriverRequestDeliveryConfirmation({
+  StockRequestQuery whereDriver_request_delivery_confirmation({
     bool? isEqualTo,
     bool? isNotEqualTo,
     bool? isLessThan,
@@ -1089,7 +1146,7 @@ abstract class StockRequestQuery
     bool? isNull,
   });
 
-  StockRequestQuery whereDriverId({
+  StockRequestQuery whereDriver_id({
     int? isEqualTo,
     int? isNotEqualTo,
     int? isLessThan,
@@ -1113,7 +1170,7 @@ abstract class StockRequestQuery
     bool? isNull,
   });
 
-  StockRequestQuery whereUpdatedAt({
+  StockRequestQuery whereUpdated_at({
     DateTime? isEqualTo,
     DateTime? isNotEqualTo,
     DateTime? isLessThan,
@@ -1170,7 +1227,19 @@ abstract class StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   });
 
-  StockRequestQuery orderByMainBranchId({
+  StockRequestQuery orderById({
+    bool descending = false,
+    String? startAt,
+    String? startAfter,
+    String? endAt,
+    String? endBefore,
+    StockRequestDocumentSnapshot? startAtDocument,
+    StockRequestDocumentSnapshot? endAtDocument,
+    StockRequestDocumentSnapshot? endBeforeDocument,
+    StockRequestDocumentSnapshot? startAfterDocument,
+  });
+
+  StockRequestQuery orderByMain_branch_id({
     bool descending = false,
     int startAt,
     int startAfter,
@@ -1182,7 +1251,7 @@ abstract class StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   });
 
-  StockRequestQuery orderBySubBranchId({
+  StockRequestQuery orderBySub_branch_id({
     bool descending = false,
     int startAt,
     int startAfter,
@@ -1194,7 +1263,7 @@ abstract class StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   });
 
-  StockRequestQuery orderByCreatedAt({
+  StockRequestQuery orderByCreated_at({
     bool descending = false,
     DateTime startAt,
     DateTime startAfter,
@@ -1218,7 +1287,7 @@ abstract class StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   });
 
-  StockRequestQuery orderByDeliveryDate({
+  StockRequestQuery orderByDelivery_date({
     bool descending = false,
     DateTime? startAt,
     DateTime? startAfter,
@@ -1230,7 +1299,7 @@ abstract class StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   });
 
-  StockRequestQuery orderByDeliveryNote({
+  StockRequestQuery orderByDelivery_note({
     bool descending = false,
     String? startAt,
     String? startAfter,
@@ -1242,7 +1311,7 @@ abstract class StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   });
 
-  StockRequestQuery orderByOrderNote({
+  StockRequestQuery orderByOrder_note({
     bool descending = false,
     String? startAt,
     String? startAfter,
@@ -1254,7 +1323,7 @@ abstract class StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   });
 
-  StockRequestQuery orderByCustomerReceivedOrder({
+  StockRequestQuery orderByCustomer_received_order({
     bool descending = false,
     bool startAt,
     bool startAfter,
@@ -1266,7 +1335,7 @@ abstract class StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   });
 
-  StockRequestQuery orderByDriverRequestDeliveryConfirmation({
+  StockRequestQuery orderByDriver_request_delivery_confirmation({
     bool descending = false,
     bool startAt,
     bool startAfter,
@@ -1278,7 +1347,7 @@ abstract class StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   });
 
-  StockRequestQuery orderByDriverId({
+  StockRequestQuery orderByDriver_id({
     bool descending = false,
     int? startAt,
     int? startAfter,
@@ -1302,7 +1371,7 @@ abstract class StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   });
 
-  StockRequestQuery orderByUpdatedAt({
+  StockRequestQuery orderByUpdated_at({
     bool descending = false,
     DateTime? startAt,
     DateTime? startAfter,
@@ -1431,7 +1500,51 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery whereMainBranchId({
+  StockRequestQuery whereId({
+    Object? isEqualTo = _sentinel,
+    Object? isNotEqualTo = _sentinel,
+    Object? isLessThan,
+    Object? isLessThanOrEqualTo,
+    Object? isGreaterThan,
+    Object? isGreaterThanOrEqualTo,
+    List<String?>? whereIn,
+    List<String?>? whereNotIn,
+    bool? isNull,
+  }) {
+    return _$StockRequestQuery(
+      _collection,
+      $referenceWithoutCursor: $referenceWithoutCursor.where(
+        _$StockRequestFieldMap['id']!,
+        isEqualTo: isEqualTo != _sentinel
+            ? _$StockRequestPerFieldToJson.id(isEqualTo as String?)
+            : null,
+        isNotEqualTo: isNotEqualTo != _sentinel
+            ? _$StockRequestPerFieldToJson.id(isNotEqualTo as String?)
+            : null,
+        isLessThan: isLessThan != null
+            ? _$StockRequestPerFieldToJson.id(isLessThan as String?)
+            : null,
+        isLessThanOrEqualTo: isLessThanOrEqualTo != null
+            ? _$StockRequestPerFieldToJson.id(isLessThanOrEqualTo as String?)
+            : null,
+        isGreaterThan: isGreaterThan != null
+            ? _$StockRequestPerFieldToJson.id(isGreaterThan as String?)
+            : null,
+        isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
+            ? _$StockRequestPerFieldToJson.id(isGreaterThanOrEqualTo as String?)
+            : null,
+        whereIn: whereIn?.map((e) => _$StockRequestPerFieldToJson.id(e)),
+        whereNotIn: whereNotIn?.map((e) => _$StockRequestPerFieldToJson.id(e)),
+        isNull: isNull ??
+            (isEqualTo == null ? false : null) ??
+            (isNotEqualTo == null ? true : null),
+      ),
+      $queryCursor: $queryCursor,
+    );
+  }
+
+  @override
+  StockRequestQuery whereMain_branch_id({
     Object? isEqualTo = _sentinel,
     Object? isNotEqualTo = _sentinel,
     Object? isLessThan,
@@ -1445,31 +1558,31 @@ class _$StockRequestQuery
     return _$StockRequestQuery(
       _collection,
       $referenceWithoutCursor: $referenceWithoutCursor.where(
-        _$StockRequestFieldMap['mainBranchId']!,
+        _$StockRequestFieldMap['main_branch_id']!,
         isEqualTo: isEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.mainBranchId(isEqualTo as int)
+            ? _$StockRequestPerFieldToJson.main_branch_id(isEqualTo as int)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.mainBranchId(isNotEqualTo as int)
+            ? _$StockRequestPerFieldToJson.main_branch_id(isNotEqualTo as int)
             : null,
         isLessThan: isLessThan != null
-            ? _$StockRequestPerFieldToJson.mainBranchId(isLessThan as int)
+            ? _$StockRequestPerFieldToJson.main_branch_id(isLessThan as int)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .mainBranchId(isLessThanOrEqualTo as int)
+                .main_branch_id(isLessThanOrEqualTo as int)
             : null,
         isGreaterThan: isGreaterThan != null
-            ? _$StockRequestPerFieldToJson.mainBranchId(isGreaterThan as int)
+            ? _$StockRequestPerFieldToJson.main_branch_id(isGreaterThan as int)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .mainBranchId(isGreaterThanOrEqualTo as int)
+                .main_branch_id(isGreaterThanOrEqualTo as int)
             : null,
         whereIn:
-            whereIn?.map((e) => _$StockRequestPerFieldToJson.mainBranchId(e)),
+            whereIn?.map((e) => _$StockRequestPerFieldToJson.main_branch_id(e)),
         whereNotIn: whereNotIn
-            ?.map((e) => _$StockRequestPerFieldToJson.mainBranchId(e)),
+            ?.map((e) => _$StockRequestPerFieldToJson.main_branch_id(e)),
         isNull: isNull ??
             (isEqualTo == null ? false : null) ??
             (isNotEqualTo == null ? true : null),
@@ -1479,7 +1592,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery whereSubBranchId({
+  StockRequestQuery whereSub_branch_id({
     Object? isEqualTo = _sentinel,
     Object? isNotEqualTo = _sentinel,
     Object? isLessThan,
@@ -1493,31 +1606,31 @@ class _$StockRequestQuery
     return _$StockRequestQuery(
       _collection,
       $referenceWithoutCursor: $referenceWithoutCursor.where(
-        _$StockRequestFieldMap['subBranchId']!,
+        _$StockRequestFieldMap['sub_branch_id']!,
         isEqualTo: isEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.subBranchId(isEqualTo as int)
+            ? _$StockRequestPerFieldToJson.sub_branch_id(isEqualTo as int)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.subBranchId(isNotEqualTo as int)
+            ? _$StockRequestPerFieldToJson.sub_branch_id(isNotEqualTo as int)
             : null,
         isLessThan: isLessThan != null
-            ? _$StockRequestPerFieldToJson.subBranchId(isLessThan as int)
+            ? _$StockRequestPerFieldToJson.sub_branch_id(isLessThan as int)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .subBranchId(isLessThanOrEqualTo as int)
+                .sub_branch_id(isLessThanOrEqualTo as int)
             : null,
         isGreaterThan: isGreaterThan != null
-            ? _$StockRequestPerFieldToJson.subBranchId(isGreaterThan as int)
+            ? _$StockRequestPerFieldToJson.sub_branch_id(isGreaterThan as int)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .subBranchId(isGreaterThanOrEqualTo as int)
+                .sub_branch_id(isGreaterThanOrEqualTo as int)
             : null,
         whereIn:
-            whereIn?.map((e) => _$StockRequestPerFieldToJson.subBranchId(e)),
-        whereNotIn:
-            whereNotIn?.map((e) => _$StockRequestPerFieldToJson.subBranchId(e)),
+            whereIn?.map((e) => _$StockRequestPerFieldToJson.sub_branch_id(e)),
+        whereNotIn: whereNotIn
+            ?.map((e) => _$StockRequestPerFieldToJson.sub_branch_id(e)),
         isNull: isNull ??
             (isEqualTo == null ? false : null) ??
             (isNotEqualTo == null ? true : null),
@@ -1527,7 +1640,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery whereCreatedAt({
+  StockRequestQuery whereCreated_at({
     Object? isEqualTo = _sentinel,
     Object? isNotEqualTo = _sentinel,
     Object? isLessThan,
@@ -1541,30 +1654,31 @@ class _$StockRequestQuery
     return _$StockRequestQuery(
       _collection,
       $referenceWithoutCursor: $referenceWithoutCursor.where(
-        _$StockRequestFieldMap['createdAt']!,
+        _$StockRequestFieldMap['created_at']!,
         isEqualTo: isEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.createdAt(isEqualTo as DateTime)
+            ? _$StockRequestPerFieldToJson.created_at(isEqualTo as DateTime)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.createdAt(isNotEqualTo as DateTime)
+            ? _$StockRequestPerFieldToJson.created_at(isNotEqualTo as DateTime)
             : null,
         isLessThan: isLessThan != null
-            ? _$StockRequestPerFieldToJson.createdAt(isLessThan as DateTime)
+            ? _$StockRequestPerFieldToJson.created_at(isLessThan as DateTime)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .createdAt(isLessThanOrEqualTo as DateTime)
+                .created_at(isLessThanOrEqualTo as DateTime)
             : null,
         isGreaterThan: isGreaterThan != null
-            ? _$StockRequestPerFieldToJson.createdAt(isGreaterThan as DateTime)
+            ? _$StockRequestPerFieldToJson.created_at(isGreaterThan as DateTime)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .createdAt(isGreaterThanOrEqualTo as DateTime)
+                .created_at(isGreaterThanOrEqualTo as DateTime)
             : null,
-        whereIn: whereIn?.map((e) => _$StockRequestPerFieldToJson.createdAt(e)),
+        whereIn:
+            whereIn?.map((e) => _$StockRequestPerFieldToJson.created_at(e)),
         whereNotIn:
-            whereNotIn?.map((e) => _$StockRequestPerFieldToJson.createdAt(e)),
+            whereNotIn?.map((e) => _$StockRequestPerFieldToJson.created_at(e)),
         isNull: isNull ??
             (isEqualTo == null ? false : null) ??
             (isNotEqualTo == null ? true : null),
@@ -1620,7 +1734,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery whereDeliveryDate({
+  StockRequestQuery whereDelivery_date({
     Object? isEqualTo = _sentinel,
     Object? isNotEqualTo = _sentinel,
     Object? isLessThan,
@@ -1634,33 +1748,34 @@ class _$StockRequestQuery
     return _$StockRequestQuery(
       _collection,
       $referenceWithoutCursor: $referenceWithoutCursor.where(
-        _$StockRequestFieldMap['deliveryDate']!,
+        _$StockRequestFieldMap['delivery_date']!,
         isEqualTo: isEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.deliveryDate(isEqualTo as DateTime?)
+            ? _$StockRequestPerFieldToJson.delivery_date(isEqualTo as DateTime?)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
             ? _$StockRequestPerFieldToJson
-                .deliveryDate(isNotEqualTo as DateTime?)
+                .delivery_date(isNotEqualTo as DateTime?)
             : null,
         isLessThan: isLessThan != null
-            ? _$StockRequestPerFieldToJson.deliveryDate(isLessThan as DateTime?)
+            ? _$StockRequestPerFieldToJson
+                .delivery_date(isLessThan as DateTime?)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .deliveryDate(isLessThanOrEqualTo as DateTime?)
+                .delivery_date(isLessThanOrEqualTo as DateTime?)
             : null,
         isGreaterThan: isGreaterThan != null
             ? _$StockRequestPerFieldToJson
-                .deliveryDate(isGreaterThan as DateTime?)
+                .delivery_date(isGreaterThan as DateTime?)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .deliveryDate(isGreaterThanOrEqualTo as DateTime?)
+                .delivery_date(isGreaterThanOrEqualTo as DateTime?)
             : null,
         whereIn:
-            whereIn?.map((e) => _$StockRequestPerFieldToJson.deliveryDate(e)),
+            whereIn?.map((e) => _$StockRequestPerFieldToJson.delivery_date(e)),
         whereNotIn: whereNotIn
-            ?.map((e) => _$StockRequestPerFieldToJson.deliveryDate(e)),
+            ?.map((e) => _$StockRequestPerFieldToJson.delivery_date(e)),
         isNull: isNull ??
             (isEqualTo == null ? false : null) ??
             (isNotEqualTo == null ? true : null),
@@ -1670,7 +1785,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery whereDeliveryNote({
+  StockRequestQuery whereDelivery_note({
     Object? isEqualTo = _sentinel,
     Object? isNotEqualTo = _sentinel,
     Object? isLessThan,
@@ -1684,32 +1799,33 @@ class _$StockRequestQuery
     return _$StockRequestQuery(
       _collection,
       $referenceWithoutCursor: $referenceWithoutCursor.where(
-        _$StockRequestFieldMap['deliveryNote']!,
+        _$StockRequestFieldMap['delivery_note']!,
         isEqualTo: isEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.deliveryNote(isEqualTo as String?)
+            ? _$StockRequestPerFieldToJson.delivery_note(isEqualTo as String?)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.deliveryNote(isNotEqualTo as String?)
+            ? _$StockRequestPerFieldToJson
+                .delivery_note(isNotEqualTo as String?)
             : null,
         isLessThan: isLessThan != null
-            ? _$StockRequestPerFieldToJson.deliveryNote(isLessThan as String?)
+            ? _$StockRequestPerFieldToJson.delivery_note(isLessThan as String?)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .deliveryNote(isLessThanOrEqualTo as String?)
+                .delivery_note(isLessThanOrEqualTo as String?)
             : null,
         isGreaterThan: isGreaterThan != null
             ? _$StockRequestPerFieldToJson
-                .deliveryNote(isGreaterThan as String?)
+                .delivery_note(isGreaterThan as String?)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .deliveryNote(isGreaterThanOrEqualTo as String?)
+                .delivery_note(isGreaterThanOrEqualTo as String?)
             : null,
         whereIn:
-            whereIn?.map((e) => _$StockRequestPerFieldToJson.deliveryNote(e)),
+            whereIn?.map((e) => _$StockRequestPerFieldToJson.delivery_note(e)),
         whereNotIn: whereNotIn
-            ?.map((e) => _$StockRequestPerFieldToJson.deliveryNote(e)),
+            ?.map((e) => _$StockRequestPerFieldToJson.delivery_note(e)),
         isNull: isNull ??
             (isEqualTo == null ? false : null) ??
             (isNotEqualTo == null ? true : null),
@@ -1719,7 +1835,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery whereOrderNote({
+  StockRequestQuery whereOrder_note({
     Object? isEqualTo = _sentinel,
     Object? isNotEqualTo = _sentinel,
     Object? isLessThan,
@@ -1733,30 +1849,31 @@ class _$StockRequestQuery
     return _$StockRequestQuery(
       _collection,
       $referenceWithoutCursor: $referenceWithoutCursor.where(
-        _$StockRequestFieldMap['orderNote']!,
+        _$StockRequestFieldMap['order_note']!,
         isEqualTo: isEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.orderNote(isEqualTo as String?)
+            ? _$StockRequestPerFieldToJson.order_note(isEqualTo as String?)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.orderNote(isNotEqualTo as String?)
+            ? _$StockRequestPerFieldToJson.order_note(isNotEqualTo as String?)
             : null,
         isLessThan: isLessThan != null
-            ? _$StockRequestPerFieldToJson.orderNote(isLessThan as String?)
+            ? _$StockRequestPerFieldToJson.order_note(isLessThan as String?)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .orderNote(isLessThanOrEqualTo as String?)
+                .order_note(isLessThanOrEqualTo as String?)
             : null,
         isGreaterThan: isGreaterThan != null
-            ? _$StockRequestPerFieldToJson.orderNote(isGreaterThan as String?)
+            ? _$StockRequestPerFieldToJson.order_note(isGreaterThan as String?)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .orderNote(isGreaterThanOrEqualTo as String?)
+                .order_note(isGreaterThanOrEqualTo as String?)
             : null,
-        whereIn: whereIn?.map((e) => _$StockRequestPerFieldToJson.orderNote(e)),
+        whereIn:
+            whereIn?.map((e) => _$StockRequestPerFieldToJson.order_note(e)),
         whereNotIn:
-            whereNotIn?.map((e) => _$StockRequestPerFieldToJson.orderNote(e)),
+            whereNotIn?.map((e) => _$StockRequestPerFieldToJson.order_note(e)),
         isNull: isNull ??
             (isEqualTo == null ? false : null) ??
             (isNotEqualTo == null ? true : null),
@@ -1766,7 +1883,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery whereCustomerReceivedOrder({
+  StockRequestQuery whereCustomer_received_order({
     Object? isEqualTo = _sentinel,
     Object? isNotEqualTo = _sentinel,
     Object? isLessThan,
@@ -1780,35 +1897,35 @@ class _$StockRequestQuery
     return _$StockRequestQuery(
       _collection,
       $referenceWithoutCursor: $referenceWithoutCursor.where(
-        _$StockRequestFieldMap['customerReceivedOrder']!,
+        _$StockRequestFieldMap['customer_received_order']!,
         isEqualTo: isEqualTo != _sentinel
             ? _$StockRequestPerFieldToJson
-                .customerReceivedOrder(isEqualTo as bool)
+                .customer_received_order(isEqualTo as bool)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
             ? _$StockRequestPerFieldToJson
-                .customerReceivedOrder(isNotEqualTo as bool)
+                .customer_received_order(isNotEqualTo as bool)
             : null,
         isLessThan: isLessThan != null
             ? _$StockRequestPerFieldToJson
-                .customerReceivedOrder(isLessThan as bool)
+                .customer_received_order(isLessThan as bool)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .customerReceivedOrder(isLessThanOrEqualTo as bool)
+                .customer_received_order(isLessThanOrEqualTo as bool)
             : null,
         isGreaterThan: isGreaterThan != null
             ? _$StockRequestPerFieldToJson
-                .customerReceivedOrder(isGreaterThan as bool)
+                .customer_received_order(isGreaterThan as bool)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .customerReceivedOrder(isGreaterThanOrEqualTo as bool)
+                .customer_received_order(isGreaterThanOrEqualTo as bool)
             : null,
-        whereIn: whereIn
-            ?.map((e) => _$StockRequestPerFieldToJson.customerReceivedOrder(e)),
-        whereNotIn: whereNotIn
-            ?.map((e) => _$StockRequestPerFieldToJson.customerReceivedOrder(e)),
+        whereIn: whereIn?.map(
+            (e) => _$StockRequestPerFieldToJson.customer_received_order(e)),
+        whereNotIn: whereNotIn?.map(
+            (e) => _$StockRequestPerFieldToJson.customer_received_order(e)),
         isNull: isNull ??
             (isEqualTo == null ? false : null) ??
             (isNotEqualTo == null ? true : null),
@@ -1818,7 +1935,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery whereDriverRequestDeliveryConfirmation({
+  StockRequestQuery whereDriver_request_delivery_confirmation({
     Object? isEqualTo = _sentinel,
     Object? isNotEqualTo = _sentinel,
     Object? isLessThan,
@@ -1832,35 +1949,35 @@ class _$StockRequestQuery
     return _$StockRequestQuery(
       _collection,
       $referenceWithoutCursor: $referenceWithoutCursor.where(
-        _$StockRequestFieldMap['driverRequestDeliveryConfirmation']!,
+        _$StockRequestFieldMap['driver_request_delivery_confirmation']!,
         isEqualTo: isEqualTo != _sentinel
             ? _$StockRequestPerFieldToJson
-                .driverRequestDeliveryConfirmation(isEqualTo as bool)
+                .driver_request_delivery_confirmation(isEqualTo as bool)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
             ? _$StockRequestPerFieldToJson
-                .driverRequestDeliveryConfirmation(isNotEqualTo as bool)
+                .driver_request_delivery_confirmation(isNotEqualTo as bool)
             : null,
         isLessThan: isLessThan != null
             ? _$StockRequestPerFieldToJson
-                .driverRequestDeliveryConfirmation(isLessThan as bool)
+                .driver_request_delivery_confirmation(isLessThan as bool)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
-            ? _$StockRequestPerFieldToJson
-                .driverRequestDeliveryConfirmation(isLessThanOrEqualTo as bool)
+            ? _$StockRequestPerFieldToJson.driver_request_delivery_confirmation(
+                isLessThanOrEqualTo as bool)
             : null,
         isGreaterThan: isGreaterThan != null
             ? _$StockRequestPerFieldToJson
-                .driverRequestDeliveryConfirmation(isGreaterThan as bool)
+                .driver_request_delivery_confirmation(isGreaterThan as bool)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
-            ? _$StockRequestPerFieldToJson.driverRequestDeliveryConfirmation(
+            ? _$StockRequestPerFieldToJson.driver_request_delivery_confirmation(
                 isGreaterThanOrEqualTo as bool)
             : null,
-        whereIn: whereIn?.map((e) =>
-            _$StockRequestPerFieldToJson.driverRequestDeliveryConfirmation(e)),
-        whereNotIn: whereNotIn?.map((e) =>
-            _$StockRequestPerFieldToJson.driverRequestDeliveryConfirmation(e)),
+        whereIn: whereIn?.map((e) => _$StockRequestPerFieldToJson
+            .driver_request_delivery_confirmation(e)),
+        whereNotIn: whereNotIn?.map((e) => _$StockRequestPerFieldToJson
+            .driver_request_delivery_confirmation(e)),
         isNull: isNull ??
             (isEqualTo == null ? false : null) ??
             (isNotEqualTo == null ? true : null),
@@ -1870,7 +1987,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery whereDriverId({
+  StockRequestQuery whereDriver_id({
     Object? isEqualTo = _sentinel,
     Object? isNotEqualTo = _sentinel,
     Object? isLessThan,
@@ -1884,29 +2001,30 @@ class _$StockRequestQuery
     return _$StockRequestQuery(
       _collection,
       $referenceWithoutCursor: $referenceWithoutCursor.where(
-        _$StockRequestFieldMap['driverId']!,
+        _$StockRequestFieldMap['driver_id']!,
         isEqualTo: isEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.driverId(isEqualTo as int?)
+            ? _$StockRequestPerFieldToJson.driver_id(isEqualTo as int?)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.driverId(isNotEqualTo as int?)
+            ? _$StockRequestPerFieldToJson.driver_id(isNotEqualTo as int?)
             : null,
         isLessThan: isLessThan != null
-            ? _$StockRequestPerFieldToJson.driverId(isLessThan as int?)
+            ? _$StockRequestPerFieldToJson.driver_id(isLessThan as int?)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
-            ? _$StockRequestPerFieldToJson.driverId(isLessThanOrEqualTo as int?)
+            ? _$StockRequestPerFieldToJson
+                .driver_id(isLessThanOrEqualTo as int?)
             : null,
         isGreaterThan: isGreaterThan != null
-            ? _$StockRequestPerFieldToJson.driverId(isGreaterThan as int?)
+            ? _$StockRequestPerFieldToJson.driver_id(isGreaterThan as int?)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .driverId(isGreaterThanOrEqualTo as int?)
+                .driver_id(isGreaterThanOrEqualTo as int?)
             : null,
-        whereIn: whereIn?.map((e) => _$StockRequestPerFieldToJson.driverId(e)),
+        whereIn: whereIn?.map((e) => _$StockRequestPerFieldToJson.driver_id(e)),
         whereNotIn:
-            whereNotIn?.map((e) => _$StockRequestPerFieldToJson.driverId(e)),
+            whereNotIn?.map((e) => _$StockRequestPerFieldToJson.driver_id(e)),
         isNull: isNull ??
             (isEqualTo == null ? false : null) ??
             (isNotEqualTo == null ? true : null),
@@ -1973,7 +2091,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery whereUpdatedAt({
+  StockRequestQuery whereUpdated_at({
     Object? isEqualTo = _sentinel,
     Object? isNotEqualTo = _sentinel,
     Object? isLessThan,
@@ -1987,30 +2105,32 @@ class _$StockRequestQuery
     return _$StockRequestQuery(
       _collection,
       $referenceWithoutCursor: $referenceWithoutCursor.where(
-        _$StockRequestFieldMap['updatedAt']!,
+        _$StockRequestFieldMap['updated_at']!,
         isEqualTo: isEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.updatedAt(isEqualTo as DateTime?)
+            ? _$StockRequestPerFieldToJson.updated_at(isEqualTo as DateTime?)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.updatedAt(isNotEqualTo as DateTime?)
+            ? _$StockRequestPerFieldToJson.updated_at(isNotEqualTo as DateTime?)
             : null,
         isLessThan: isLessThan != null
-            ? _$StockRequestPerFieldToJson.updatedAt(isLessThan as DateTime?)
+            ? _$StockRequestPerFieldToJson.updated_at(isLessThan as DateTime?)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .updatedAt(isLessThanOrEqualTo as DateTime?)
+                .updated_at(isLessThanOrEqualTo as DateTime?)
             : null,
         isGreaterThan: isGreaterThan != null
-            ? _$StockRequestPerFieldToJson.updatedAt(isGreaterThan as DateTime?)
+            ? _$StockRequestPerFieldToJson
+                .updated_at(isGreaterThan as DateTime?)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .updatedAt(isGreaterThanOrEqualTo as DateTime?)
+                .updated_at(isGreaterThanOrEqualTo as DateTime?)
             : null,
-        whereIn: whereIn?.map((e) => _$StockRequestPerFieldToJson.updatedAt(e)),
+        whereIn:
+            whereIn?.map((e) => _$StockRequestPerFieldToJson.updated_at(e)),
         whereNotIn:
-            whereNotIn?.map((e) => _$StockRequestPerFieldToJson.updatedAt(e)),
+            whereNotIn?.map((e) => _$StockRequestPerFieldToJson.updated_at(e)),
         isNull: isNull ??
             (isEqualTo == null ? false : null) ??
             (isNotEqualTo == null ? true : null),
@@ -2167,7 +2287,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery orderByMainBranchId({
+  StockRequestQuery orderById({
     bool descending = false,
     Object? startAt = _sentinel,
     Object? startAfter = _sentinel,
@@ -2178,8 +2298,7 @@ class _$StockRequestQuery
     StockRequestDocumentSnapshot? endBeforeDocument,
     StockRequestDocumentSnapshot? startAfterDocument,
   }) {
-    final query = $referenceWithoutCursor.orderBy(
-        _$StockRequestFieldMap['mainBranchId']!,
+    final query = $referenceWithoutCursor.orderBy(_$StockRequestFieldMap['id']!,
         descending: descending);
     var queryCursor = $queryCursor;
 
@@ -2241,7 +2360,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery orderBySubBranchId({
+  StockRequestQuery orderByMain_branch_id({
     bool descending = false,
     Object? startAt = _sentinel,
     Object? startAfter = _sentinel,
@@ -2253,7 +2372,7 @@ class _$StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   }) {
     final query = $referenceWithoutCursor.orderBy(
-        _$StockRequestFieldMap['subBranchId']!,
+        _$StockRequestFieldMap['main_branch_id']!,
         descending: descending);
     var queryCursor = $queryCursor;
 
@@ -2315,7 +2434,81 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery orderByCreatedAt({
+  StockRequestQuery orderBySub_branch_id({
+    bool descending = false,
+    Object? startAt = _sentinel,
+    Object? startAfter = _sentinel,
+    Object? endAt = _sentinel,
+    Object? endBefore = _sentinel,
+    StockRequestDocumentSnapshot? startAtDocument,
+    StockRequestDocumentSnapshot? endAtDocument,
+    StockRequestDocumentSnapshot? endBeforeDocument,
+    StockRequestDocumentSnapshot? startAfterDocument,
+  }) {
+    final query = $referenceWithoutCursor.orderBy(
+        _$StockRequestFieldMap['sub_branch_id']!,
+        descending: descending);
+    var queryCursor = $queryCursor;
+
+    if (startAtDocument != null) {
+      queryCursor = queryCursor.copyWith(
+        startAt: const [],
+        startAtDocumentSnapshot: startAtDocument.snapshot,
+      );
+    }
+    if (startAfterDocument != null) {
+      queryCursor = queryCursor.copyWith(
+        startAfter: const [],
+        startAfterDocumentSnapshot: startAfterDocument.snapshot,
+      );
+    }
+    if (endAtDocument != null) {
+      queryCursor = queryCursor.copyWith(
+        endAt: const [],
+        endAtDocumentSnapshot: endAtDocument.snapshot,
+      );
+    }
+    if (endBeforeDocument != null) {
+      queryCursor = queryCursor.copyWith(
+        endBefore: const [],
+        endBeforeDocumentSnapshot: endBeforeDocument.snapshot,
+      );
+    }
+
+    if (startAt != _sentinel) {
+      queryCursor = queryCursor.copyWith(
+        startAt: [...queryCursor.startAt, startAt],
+        startAtDocumentSnapshot: null,
+      );
+    }
+    if (startAfter != _sentinel) {
+      queryCursor = queryCursor.copyWith(
+        startAfter: [...queryCursor.startAfter, startAfter],
+        startAfterDocumentSnapshot: null,
+      );
+    }
+    if (endAt != _sentinel) {
+      queryCursor = queryCursor.copyWith(
+        endAt: [...queryCursor.endAt, endAt],
+        endAtDocumentSnapshot: null,
+      );
+    }
+    if (endBefore != _sentinel) {
+      queryCursor = queryCursor.copyWith(
+        endBefore: [...queryCursor.endBefore, endBefore],
+        endBeforeDocumentSnapshot: null,
+      );
+    }
+
+    return _$StockRequestQuery(
+      _collection,
+      $referenceWithoutCursor: query,
+      $queryCursor: queryCursor,
+    );
+  }
+
+  @override
+  StockRequestQuery orderByCreated_at({
     bool descending = false,
     Object? startAt = _sentinel,
     Object? startAfter = _sentinel,
@@ -2327,7 +2520,7 @@ class _$StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   }) {
     final query = $referenceWithoutCursor
-        .orderBy(_$StockRequestFieldMap['createdAt']!, descending: descending);
+        .orderBy(_$StockRequestFieldMap['created_at']!, descending: descending);
     var queryCursor = $queryCursor;
 
     if (startAtDocument != null) {
@@ -2461,7 +2654,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery orderByDeliveryDate({
+  StockRequestQuery orderByDelivery_date({
     bool descending = false,
     Object? startAt = _sentinel,
     Object? startAfter = _sentinel,
@@ -2473,7 +2666,7 @@ class _$StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   }) {
     final query = $referenceWithoutCursor.orderBy(
-        _$StockRequestFieldMap['deliveryDate']!,
+        _$StockRequestFieldMap['delivery_date']!,
         descending: descending);
     var queryCursor = $queryCursor;
 
@@ -2535,7 +2728,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery orderByDeliveryNote({
+  StockRequestQuery orderByDelivery_note({
     bool descending = false,
     Object? startAt = _sentinel,
     Object? startAfter = _sentinel,
@@ -2547,7 +2740,7 @@ class _$StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   }) {
     final query = $referenceWithoutCursor.orderBy(
-        _$StockRequestFieldMap['deliveryNote']!,
+        _$StockRequestFieldMap['delivery_note']!,
         descending: descending);
     var queryCursor = $queryCursor;
 
@@ -2609,7 +2802,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery orderByOrderNote({
+  StockRequestQuery orderByOrder_note({
     bool descending = false,
     Object? startAt = _sentinel,
     Object? startAfter = _sentinel,
@@ -2621,7 +2814,7 @@ class _$StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   }) {
     final query = $referenceWithoutCursor
-        .orderBy(_$StockRequestFieldMap['orderNote']!, descending: descending);
+        .orderBy(_$StockRequestFieldMap['order_note']!, descending: descending);
     var queryCursor = $queryCursor;
 
     if (startAtDocument != null) {
@@ -2682,7 +2875,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery orderByCustomerReceivedOrder({
+  StockRequestQuery orderByCustomer_received_order({
     bool descending = false,
     Object? startAt = _sentinel,
     Object? startAfter = _sentinel,
@@ -2694,7 +2887,7 @@ class _$StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   }) {
     final query = $referenceWithoutCursor.orderBy(
-        _$StockRequestFieldMap['customerReceivedOrder']!,
+        _$StockRequestFieldMap['customer_received_order']!,
         descending: descending);
     var queryCursor = $queryCursor;
 
@@ -2756,7 +2949,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery orderByDriverRequestDeliveryConfirmation({
+  StockRequestQuery orderByDriver_request_delivery_confirmation({
     bool descending = false,
     Object? startAt = _sentinel,
     Object? startAfter = _sentinel,
@@ -2768,7 +2961,7 @@ class _$StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   }) {
     final query = $referenceWithoutCursor.orderBy(
-        _$StockRequestFieldMap['driverRequestDeliveryConfirmation']!,
+        _$StockRequestFieldMap['driver_request_delivery_confirmation']!,
         descending: descending);
     var queryCursor = $queryCursor;
 
@@ -2830,7 +3023,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery orderByDriverId({
+  StockRequestQuery orderByDriver_id({
     bool descending = false,
     Object? startAt = _sentinel,
     Object? startAfter = _sentinel,
@@ -2842,7 +3035,7 @@ class _$StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   }) {
     final query = $referenceWithoutCursor
-        .orderBy(_$StockRequestFieldMap['driverId']!, descending: descending);
+        .orderBy(_$StockRequestFieldMap['driver_id']!, descending: descending);
     var queryCursor = $queryCursor;
 
     if (startAtDocument != null) {
@@ -2976,7 +3169,7 @@ class _$StockRequestQuery
   }
 
   @override
-  StockRequestQuery orderByUpdatedAt({
+  StockRequestQuery orderByUpdated_at({
     bool descending = false,
     Object? startAt = _sentinel,
     Object? startAfter = _sentinel,
@@ -2988,7 +3181,7 @@ class _$StockRequestQuery
     StockRequestDocumentSnapshot? startAfterDocument,
   }) {
     final query = $referenceWithoutCursor
-        .orderBy(_$StockRequestFieldMap['updatedAt']!, descending: descending);
+        .orderBy(_$StockRequestFieldMap['updated_at']!, descending: descending);
     var queryCursor = $queryCursor;
 
     if (startAtDocument != null) {
@@ -3150,44 +3343,99 @@ class StockRequestQueryDocumentSnapshot
 
 StockRequest _$StockRequestFromJson(Map<String, dynamic> json) => StockRequest(
       id: json['id'] as String?,
-      mainBranchId: (json['mainBranchId'] as num).toInt(),
-      subBranchId: (json['subBranchId'] as num).toInt(),
-      createdAt:
-          const TimestampConverter().fromJson(json['createdAt'] as Timestamp),
+      main_branch_id: (json['main_branch_id'] as num).toInt(),
+      sub_branch_id: (json['sub_branch_id'] as num).toInt(),
+      created_at:
+          const TimestampConverter().fromJson(json['created_at'] as Timestamp),
       status: json['status'] as String,
-      deliveryDate: _$JsonConverterFromJson<Timestamp, DateTime>(
-          json['deliveryDate'], const TimestampConverter().fromJson),
-      deliveryNote: json['deliveryNote'] as String?,
-      orderNote: json['orderNote'] as String?,
-      customerReceivedOrder: json['customerReceivedOrder'] as bool? ?? false,
-      driverRequestDeliveryConfirmation:
-          json['driverRequestDeliveryConfirmation'] as bool? ?? false,
-      driverId: (json['driverId'] as num?)?.toInt(),
+      delivery_date: _$JsonConverterFromJson<Timestamp, DateTime>(
+          json['delivery_date'], const TimestampConverter().fromJson),
+      delivery_note: json['delivery_note'] as String?,
+      order_note: json['order_note'] as String?,
+      customer_received_order:
+          json['customer_received_order'] as bool? ?? false,
+      driver_request_delivery_confirmation:
+          json['driver_request_delivery_confirmation'] as bool? ?? false,
+      driver_id: (json['driver_id'] as num?)?.toInt(),
       items: (json['items'] as List<dynamic>)
           .map((e) => TransactionItem.fromJson(e as Map<String, dynamic>))
           .toList(),
-      updatedAt: _$JsonConverterFromJson<Timestamp, DateTime>(
-          json['updatedAt'], const TimestampConverter().fromJson),
+      updated_at: _$JsonConverterFromJson<Timestamp, DateTime>(
+          json['updated_at'], const TimestampConverter().fromJson),
     );
+
+const _$StockRequestFieldMap = <String, String>{
+  'id': 'id',
+  'main_branch_id': 'main_branch_id',
+  'sub_branch_id': 'sub_branch_id',
+  'created_at': 'created_at',
+  'status': 'status',
+  'delivery_date': 'delivery_date',
+  'delivery_note': 'delivery_note',
+  'order_note': 'order_note',
+  'customer_received_order': 'customer_received_order',
+  'driver_request_delivery_confirmation':
+      'driver_request_delivery_confirmation',
+  'driver_id': 'driver_id',
+  'items': 'items',
+  'updated_at': 'updated_at',
+};
+
+// ignore: unused_element
+abstract class _$StockRequestPerFieldToJson {
+  // ignore: unused_element
+  static Object? id(String? instance) => instance;
+  // ignore: unused_element
+  static Object? main_branch_id(int instance) => instance;
+  // ignore: unused_element
+  static Object? sub_branch_id(int instance) => instance;
+  // ignore: unused_element
+  static Object? created_at(DateTime instance) =>
+      const TimestampConverter().toJson(instance);
+  // ignore: unused_element
+  static Object? status(String instance) => instance;
+  // ignore: unused_element
+  static Object? delivery_date(DateTime? instance) =>
+      _$JsonConverterToJson<Timestamp, DateTime>(
+          instance, const TimestampConverter().toJson);
+  // ignore: unused_element
+  static Object? delivery_note(String? instance) => instance;
+  // ignore: unused_element
+  static Object? order_note(String? instance) => instance;
+  // ignore: unused_element
+  static Object? customer_received_order(bool instance) => instance;
+  // ignore: unused_element
+  static Object? driver_request_delivery_confirmation(bool instance) =>
+      instance;
+  // ignore: unused_element
+  static Object? driver_id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? items(List<TransactionItem> instance) =>
+      instance.map((e) => e.toJson()).toList();
+  // ignore: unused_element
+  static Object? updated_at(DateTime? instance) =>
+      _$JsonConverterToJson<Timestamp, DateTime>(
+          instance, const TimestampConverter().toJson);
+}
 
 Map<String, dynamic> _$StockRequestToJson(StockRequest instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'mainBranchId': instance.mainBranchId,
-      'subBranchId': instance.subBranchId,
-      'createdAt': const TimestampConverter().toJson(instance.createdAt),
+      'main_branch_id': instance.main_branch_id,
+      'sub_branch_id': instance.sub_branch_id,
+      'created_at': const TimestampConverter().toJson(instance.created_at),
       'status': instance.status,
-      'deliveryDate': _$JsonConverterToJson<Timestamp, DateTime>(
-          instance.deliveryDate, const TimestampConverter().toJson),
-      'deliveryNote': instance.deliveryNote,
-      'orderNote': instance.orderNote,
-      'customerReceivedOrder': instance.customerReceivedOrder,
-      'driverRequestDeliveryConfirmation':
-          instance.driverRequestDeliveryConfirmation,
-      'driverId': instance.driverId,
+      'delivery_date': _$JsonConverterToJson<Timestamp, DateTime>(
+          instance.delivery_date, const TimestampConverter().toJson),
+      'delivery_note': instance.delivery_note,
+      'order_note': instance.order_note,
+      'customer_received_order': instance.customer_received_order,
+      'driver_request_delivery_confirmation':
+          instance.driver_request_delivery_confirmation,
+      'driver_id': instance.driver_id,
       'items': instance.items.map((e) => e.toJson()).toList(),
-      'updatedAt': _$JsonConverterToJson<Timestamp, DateTime>(
-          instance.updatedAt, const TimestampConverter().toJson),
+      'updated_at': _$JsonConverterToJson<Timestamp, DateTime>(
+          instance.updated_at, const TimestampConverter().toJson),
     };
 
 Value? _$JsonConverterFromJson<Json, Value>(
@@ -3204,12 +3452,320 @@ Json? _$JsonConverterToJson<Json, Value>(
 
 TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) =>
     TransactionItem(
-      itemId: json['itemId'] as String,
+      item_id: (json['item_id'] as num).toInt(),
       quantity: (json['quantity'] as num).toInt(),
+      id: (json['id'] as num?)?.toInt(),
+      name: json['name'] as String?,
+      quantity_requested: (json['quantity_requested'] as num?)?.toInt(),
+      quantity_approved: (json['quantity_approved'] as num?)?.toInt(),
+      quantity_shipped: (json['quantity_shipped'] as num?)?.toInt(),
+      transaction_id: (json['transaction_id'] as num?)?.toInt(),
+      variant_id: (json['variant_id'] as num?)?.toInt(),
+      qty: (json['qty'] as num?)?.toDouble() ?? 0.0,
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      discount: (json['discount'] as num?)?.toDouble() ?? 0.0,
+      type: json['type'] as String?,
+      remaining_stock: (json['remaining_stock'] as num?)?.toDouble() ?? 0.0,
+      created_at: json['created_at'] as String?,
+      updated_at: json['updated_at'] as String?,
+      is_tax_exempted: json['is_tax_exempted'] as bool? ?? false,
+      is_refunded: json['is_refunded'] as bool? ?? false,
+      done_with_transaction: json['done_with_transaction'] as bool?,
+      active: json['active'] as bool?,
+      dc_rt: (json['dc_rt'] as num?)?.toDouble() ?? 0.0,
+      dc_amt: (json['dc_amt'] as num?)?.toDouble() ?? 0.0,
+      taxbl_amt: (json['taxbl_amt'] as num?)?.toDouble() ?? 0.0,
+      tax_amt: (json['tax_amt'] as num?)?.toDouble() ?? 0.0,
+      tot_amt: (json['tot_amt'] as num?)?.toDouble() ?? 0.0,
+      item_seq: (json['item_seq'] as num?)?.toInt(),
+      isrcc_cd: json['isrcc_cd'] as String?,
+      isrcc_nm: json['isrcc_nm'] as String? ?? "",
+      isrc_rt: (json['isrc_rt'] as num?)?.toInt() ?? 0,
+      isrc_amt: (json['isrc_amt'] as num?)?.toInt() ?? 0,
+      tax_ty_cd: json['tax_ty_cd'] as String?,
+      bcd: json['bcd'] as String?,
+      item_cls_cd: json['item_cls_cd'] as String?,
+      item_ty_cd: json['item_ty_cd'] as String?,
+      item_std_nm: json['item_std_nm'] as String?,
+      orgn_nat_cd: json['orgn_nat_cd'] as String?,
+      pkg: json['pkg'] as String?,
+      item_cd: json['item_cd'] as String?,
+      pkg_unit_cd: json['pkg_unit_cd'] as String? ?? "CT",
+      qty_unit_cd: json['qty_unit_cd'] as String? ?? "BX",
+      item_nm: json['item_nm'] as String?,
+      prc: (json['prc'] as num?)?.toDouble() ?? 0.0,
+      sply_amt: (json['sply_amt'] as num?)?.toDouble() ?? 0.0,
+      tin: (json['tin'] as num?)?.toInt(),
+      bhf_id: json['bhf_id'] as String?,
+      dft_prc: (json['dft_prc'] as num?)?.toDouble(),
+      add_info: json['add_info'] as String?,
+      isrc_aplcby_yn: json['isrc_aplcby_yn'] as String?,
+      use_yn: json['use_yn'] as String?,
+      regr_id: json['regr_id'] as String?,
+      regr_nm: json['regr_nm'] as String?,
+      modr_id: json['modr_id'] as String?,
+      modr_nm: json['modr_nm'] as String?,
+      last_touched: json['last_touched'] == null
+          ? null
+          : DateTime.parse(json['last_touched'] as String),
+      deleted_at: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+      action: json['action'] as String?,
+      branch_id: (json['branch_id'] as num?)?.toInt(),
+      ebm_synced: json['ebm_synced'] as bool? ?? false,
+      part_of_composite: json['part_of_composite'] as bool? ?? false,
+      composite_price: (json['composite_price'] as num?)?.toDouble() ?? 0,
     );
+
+const _$TransactionItemFieldMap = <String, String>{
+  'item_id': 'item_id',
+  'quantity': 'quantity',
+  'id': 'id',
+  'name': 'name',
+  'quantity_requested': 'quantity_requested',
+  'quantity_approved': 'quantity_approved',
+  'quantity_shipped': 'quantity_shipped',
+  'transaction_id': 'transaction_id',
+  'variant_id': 'variant_id',
+  'qty': 'qty',
+  'price': 'price',
+  'discount': 'discount',
+  'type': 'type',
+  'remaining_stock': 'remaining_stock',
+  'created_at': 'created_at',
+  'updated_at': 'updated_at',
+  'is_tax_exempted': 'is_tax_exempted',
+  'is_refunded': 'is_refunded',
+  'done_with_transaction': 'done_with_transaction',
+  'active': 'active',
+  'dc_rt': 'dc_rt',
+  'dc_amt': 'dc_amt',
+  'taxbl_amt': 'taxbl_amt',
+  'tax_amt': 'tax_amt',
+  'tot_amt': 'tot_amt',
+  'item_seq': 'item_seq',
+  'isrcc_cd': 'isrcc_cd',
+  'isrcc_nm': 'isrcc_nm',
+  'isrc_rt': 'isrc_rt',
+  'isrc_amt': 'isrc_amt',
+  'tax_ty_cd': 'tax_ty_cd',
+  'bcd': 'bcd',
+  'item_cls_cd': 'item_cls_cd',
+  'item_ty_cd': 'item_ty_cd',
+  'item_std_nm': 'item_std_nm',
+  'orgn_nat_cd': 'orgn_nat_cd',
+  'pkg': 'pkg',
+  'item_cd': 'item_cd',
+  'pkg_unit_cd': 'pkg_unit_cd',
+  'qty_unit_cd': 'qty_unit_cd',
+  'item_nm': 'item_nm',
+  'prc': 'prc',
+  'sply_amt': 'sply_amt',
+  'tin': 'tin',
+  'bhf_id': 'bhf_id',
+  'dft_prc': 'dft_prc',
+  'add_info': 'add_info',
+  'isrc_aplcby_yn': 'isrc_aplcby_yn',
+  'use_yn': 'use_yn',
+  'regr_id': 'regr_id',
+  'regr_nm': 'regr_nm',
+  'modr_id': 'modr_id',
+  'modr_nm': 'modr_nm',
+  'last_touched': 'last_touched',
+  'deleted_at': 'deleted_at',
+  'action': 'action',
+  'branch_id': 'branch_id',
+  'ebm_synced': 'ebm_synced',
+  'part_of_composite': 'part_of_composite',
+  'composite_price': 'composite_price',
+};
+
+// ignore: unused_element
+abstract class _$TransactionItemPerFieldToJson {
+  // ignore: unused_element
+  static Object? item_id(int instance) => instance;
+  // ignore: unused_element
+  static Object? quantity(int instance) => instance;
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? name(String? instance) => instance;
+  // ignore: unused_element
+  static Object? quantity_requested(int? instance) => instance;
+  // ignore: unused_element
+  static Object? quantity_approved(int? instance) => instance;
+  // ignore: unused_element
+  static Object? quantity_shipped(int? instance) => instance;
+  // ignore: unused_element
+  static Object? transaction_id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? variant_id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? qty(double instance) => instance;
+  // ignore: unused_element
+  static Object? price(double instance) => instance;
+  // ignore: unused_element
+  static Object? discount(double instance) => instance;
+  // ignore: unused_element
+  static Object? type(String? instance) => instance;
+  // ignore: unused_element
+  static Object? remaining_stock(double instance) => instance;
+  // ignore: unused_element
+  static Object? created_at(String? instance) => instance;
+  // ignore: unused_element
+  static Object? updated_at(String? instance) => instance;
+  // ignore: unused_element
+  static Object? is_tax_exempted(bool instance) => instance;
+  // ignore: unused_element
+  static Object? is_refunded(bool instance) => instance;
+  // ignore: unused_element
+  static Object? done_with_transaction(bool? instance) => instance;
+  // ignore: unused_element
+  static Object? active(bool? instance) => instance;
+  // ignore: unused_element
+  static Object? dc_rt(double instance) => instance;
+  // ignore: unused_element
+  static Object? dc_amt(double instance) => instance;
+  // ignore: unused_element
+  static Object? taxbl_amt(double instance) => instance;
+  // ignore: unused_element
+  static Object? tax_amt(double instance) => instance;
+  // ignore: unused_element
+  static Object? tot_amt(double instance) => instance;
+  // ignore: unused_element
+  static Object? item_seq(int? instance) => instance;
+  // ignore: unused_element
+  static Object? isrcc_cd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? isrcc_nm(String? instance) => instance;
+  // ignore: unused_element
+  static Object? isrc_rt(int? instance) => instance;
+  // ignore: unused_element
+  static Object? isrc_amt(int? instance) => instance;
+  // ignore: unused_element
+  static Object? tax_ty_cd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? bcd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? item_cls_cd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? item_ty_cd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? item_std_nm(String? instance) => instance;
+  // ignore: unused_element
+  static Object? orgn_nat_cd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? pkg(String? instance) => instance;
+  // ignore: unused_element
+  static Object? item_cd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? pkg_unit_cd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? qty_unit_cd(String? instance) => instance;
+  // ignore: unused_element
+  static Object? item_nm(String? instance) => instance;
+  // ignore: unused_element
+  static Object? prc(double instance) => instance;
+  // ignore: unused_element
+  static Object? sply_amt(double instance) => instance;
+  // ignore: unused_element
+  static Object? tin(int? instance) => instance;
+  // ignore: unused_element
+  static Object? bhf_id(String? instance) => instance;
+  // ignore: unused_element
+  static Object? dft_prc(double? instance) => instance;
+  // ignore: unused_element
+  static Object? add_info(String? instance) => instance;
+  // ignore: unused_element
+  static Object? isrc_aplcby_yn(String? instance) => instance;
+  // ignore: unused_element
+  static Object? use_yn(String? instance) => instance;
+  // ignore: unused_element
+  static Object? regr_id(String? instance) => instance;
+  // ignore: unused_element
+  static Object? regr_nm(String? instance) => instance;
+  // ignore: unused_element
+  static Object? modr_id(String? instance) => instance;
+  // ignore: unused_element
+  static Object? modr_nm(String? instance) => instance;
+  // ignore: unused_element
+  static Object? last_touched(DateTime? instance) =>
+      instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? deleted_at(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? action(String? instance) => instance;
+  // ignore: unused_element
+  static Object? branch_id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? ebm_synced(bool instance) => instance;
+  // ignore: unused_element
+  static Object? part_of_composite(bool instance) => instance;
+  // ignore: unused_element
+  static Object? composite_price(double instance) => instance;
+}
 
 Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
     <String, dynamic>{
-      'itemId': instance.itemId,
+      'item_id': instance.item_id,
       'quantity': instance.quantity,
+      'id': instance.id,
+      'name': instance.name,
+      'quantity_requested': instance.quantity_requested,
+      'quantity_approved': instance.quantity_approved,
+      'quantity_shipped': instance.quantity_shipped,
+      'transaction_id': instance.transaction_id,
+      'variant_id': instance.variant_id,
+      'qty': instance.qty,
+      'price': instance.price,
+      'discount': instance.discount,
+      'type': instance.type,
+      'remaining_stock': instance.remaining_stock,
+      'created_at': instance.created_at,
+      'updated_at': instance.updated_at,
+      'is_tax_exempted': instance.is_tax_exempted,
+      'is_refunded': instance.is_refunded,
+      'done_with_transaction': instance.done_with_transaction,
+      'active': instance.active,
+      'dc_rt': instance.dc_rt,
+      'dc_amt': instance.dc_amt,
+      'taxbl_amt': instance.taxbl_amt,
+      'tax_amt': instance.tax_amt,
+      'tot_amt': instance.tot_amt,
+      'item_seq': instance.item_seq,
+      'isrcc_cd': instance.isrcc_cd,
+      'isrcc_nm': instance.isrcc_nm,
+      'isrc_rt': instance.isrc_rt,
+      'isrc_amt': instance.isrc_amt,
+      'tax_ty_cd': instance.tax_ty_cd,
+      'bcd': instance.bcd,
+      'item_cls_cd': instance.item_cls_cd,
+      'item_ty_cd': instance.item_ty_cd,
+      'item_std_nm': instance.item_std_nm,
+      'orgn_nat_cd': instance.orgn_nat_cd,
+      'pkg': instance.pkg,
+      'item_cd': instance.item_cd,
+      'pkg_unit_cd': instance.pkg_unit_cd,
+      'qty_unit_cd': instance.qty_unit_cd,
+      'item_nm': instance.item_nm,
+      'prc': instance.prc,
+      'sply_amt': instance.sply_amt,
+      'tin': instance.tin,
+      'bhf_id': instance.bhf_id,
+      'dft_prc': instance.dft_prc,
+      'add_info': instance.add_info,
+      'isrc_aplcby_yn': instance.isrc_aplcby_yn,
+      'use_yn': instance.use_yn,
+      'regr_id': instance.regr_id,
+      'regr_nm': instance.regr_nm,
+      'modr_id': instance.modr_id,
+      'modr_nm': instance.modr_nm,
+      'last_touched': instance.last_touched?.toIso8601String(),
+      'deleted_at': instance.deleted_at?.toIso8601String(),
+      'action': instance.action,
+      'branch_id': instance.branch_id,
+      'ebm_synced': instance.ebm_synced,
+      'part_of_composite': instance.part_of_composite,
+      'composite_price': instance.composite_price,
     };

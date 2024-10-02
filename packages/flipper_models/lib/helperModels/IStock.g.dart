@@ -32,6 +32,70 @@ IStock _$IStockFromJson(Map<String, dynamic> json) => IStock(
       ebmSynced: json['ebmSynced'] as bool? ?? false,
     );
 
+const _$IStockFieldMap = <String, String>{
+  'id': 'id',
+  'tin': 'tin',
+  'bhfId': 'bhfId',
+  'branchId': 'branchId',
+  'variantId': 'variantId',
+  'lowStock': 'lowStock',
+  'currentStock': 'currentStock',
+  'canTrackingStock': 'canTrackingStock',
+  'showLowStockAlert': 'showLowStockAlert',
+  'productId': 'productId',
+  'active': 'active',
+  'value': 'value',
+  'rsdQty': 'rsdQty',
+  'supplyPrice': 'supplyPrice',
+  'retailPrice': 'retailPrice',
+  'lastTouched': 'lastTouched',
+  'action': 'action',
+  'deletedAt': 'deletedAt',
+  'ebmSynced': 'ebmSynced',
+};
+
+// ignore: unused_element
+abstract class _$IStockPerFieldToJson {
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? tin(int? instance) => instance;
+  // ignore: unused_element
+  static Object? bhfId(String? instance) => instance;
+  // ignore: unused_element
+  static Object? branchId(int? instance) => instance;
+  // ignore: unused_element
+  static Object? variantId(int? instance) => instance;
+  // ignore: unused_element
+  static Object? lowStock(double instance) => instance;
+  // ignore: unused_element
+  static Object? currentStock(double instance) => instance;
+  // ignore: unused_element
+  static Object? canTrackingStock(bool? instance) => instance;
+  // ignore: unused_element
+  static Object? showLowStockAlert(bool? instance) => instance;
+  // ignore: unused_element
+  static Object? productId(int? instance) => instance;
+  // ignore: unused_element
+  static Object? active(bool? instance) => instance;
+  // ignore: unused_element
+  static Object? value(double instance) => instance;
+  // ignore: unused_element
+  static Object? rsdQty(double instance) => instance;
+  // ignore: unused_element
+  static Object? supplyPrice(double instance) => instance;
+  // ignore: unused_element
+  static Object? retailPrice(double instance) => instance;
+  // ignore: unused_element
+  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? action(String? instance) => instance;
+  // ignore: unused_element
+  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? ebmSynced(bool instance) => instance;
+}
+
 Map<String, dynamic> _$IStockToJson(IStock instance) => <String, dynamic>{
       'id': instance.id,
       'tin': instance.tin,

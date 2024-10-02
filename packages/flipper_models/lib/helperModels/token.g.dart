@@ -26,6 +26,40 @@ Token _$TokenFromJson(Map<String, dynamic> json) => Token(
           ? null
           : DateTime.parse(json['lastTouched'] as String);
 
+const _$TokenFieldMap = <String, String>{
+  'action': 'action',
+  'id': 'id',
+  'type': 'type',
+  'token': 'token',
+  'validFrom': 'validFrom',
+  'validUntil': 'validUntil',
+  'businessId': 'businessId',
+  'lastTouched': 'lastTouched',
+  'deletedAt': 'deletedAt',
+};
+
+// ignore: unused_element
+abstract class _$TokenPerFieldToJson {
+  // ignore: unused_element
+  static Object? action(String instance) => instance;
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? type(String instance) => instance;
+  // ignore: unused_element
+  static Object? token(String? instance) => instance;
+  // ignore: unused_element
+  static Object? validFrom(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? validUntil(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? businessId(int instance) => instance;
+  // ignore: unused_element
+  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
+}
+
 Map<String, dynamic> _$TokenToJson(Token instance) => <String, dynamic>{
       'action': instance.action,
       'id': instance.id,

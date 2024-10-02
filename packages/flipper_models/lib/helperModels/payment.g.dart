@@ -19,6 +19,43 @@ Payment _$PaymentFromJson(Map<String, dynamic> json) => Payment(
       phoneNumber: json['phoneNumber'] as String,
     );
 
+const _$PaymentFieldMap = <String, String>{
+  'id': 'id',
+  'amount': 'amount',
+  'interval': 'interval',
+  'userId': 'userId',
+  'createdAt': 'createdAt',
+  'paymentType': 'paymentType',
+  'requestGuid': 'requestGuid',
+  'note': 'note',
+  'itemName': 'itemName',
+  'phoneNumber': 'phoneNumber',
+};
+
+// ignore: unused_element
+abstract class _$PaymentPerFieldToJson {
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? amount(int instance) => instance;
+  // ignore: unused_element
+  static Object? interval(int instance) => instance;
+  // ignore: unused_element
+  static Object? userId(int instance) => instance;
+  // ignore: unused_element
+  static Object? createdAt(int instance) => instance;
+  // ignore: unused_element
+  static Object? paymentType(String instance) => instance;
+  // ignore: unused_element
+  static Object? requestGuid(String instance) => instance;
+  // ignore: unused_element
+  static Object? note(String instance) => instance;
+  // ignore: unused_element
+  static Object? itemName(String instance) => instance;
+  // ignore: unused_element
+  static Object? phoneNumber(String instance) => instance;
+}
+
 Map<String, dynamic> _$PaymentToJson(Payment instance) => <String, dynamic>{
       'id': instance.id,
       'amount': instance.amount,

@@ -1,7 +1,5 @@
 import 'package:flipper_models/CloudSync.dart';
 
-// import 'package:flipper_models/realmExtension.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:realm/realm.dart';
@@ -548,7 +546,7 @@ class PullChange {
       createRealmObject: (data) {
         return Variant(
           ObjectId(),
-          id: randomNumber(),
+          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
           branchId: data['branch_id'] is int
               ? data['branch_id']
               : int.tryParse(data['branch_id']) ?? 0,
@@ -732,7 +730,7 @@ class PullChange {
       createRealmObject: (data) {
         return Counter(
           ObjectId(),
-          id: randomNumber(),
+          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
           businessId: data['business_id'] is int
               ? data['business_id']
               : int.tryParse(data['business_id']) ?? 0,
@@ -802,6 +800,7 @@ class PullChange {
       createRealmObject: (data) {
         return Stock(
           ObjectId(),
+          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
           currentStock:
               data['current_stock'] is int || data['current_stock'] is double
                   ? data['current_stock'].toDouble()

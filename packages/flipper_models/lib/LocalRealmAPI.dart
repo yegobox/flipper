@@ -164,7 +164,7 @@ class LocalRealmApi
   @override
   Future<RealmApiInterface> configureLocal({required bool useInMemory}) async {
     _setApiEndpoints();
-    talker.warning("Opening local realm alongside the synced one!");
+
     const isTest =
         const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
 
@@ -238,26 +238,28 @@ class LocalRealmApi
   }
 
   Future<void> _suserbaseAuth() async {
-    // Check if the user already exists
-    final email = '${ProxyService.box.getBranchId()}@flipper.rw';
-    final superUser.User? existingUser =
-        superUser.Supabase.instance.client.auth.currentUser;
+    try {
+      // Check if the user already exists
+      final email = '${ProxyService.box.getBranchId()}@flipper.rw';
+      final superUser.User? existingUser =
+          superUser.Supabase.instance.client.auth.currentUser;
 
-    if (existingUser == null) {
-      // User does not exist, proceed to sign up
-      await superUser.Supabase.instance.client.auth.signUp(
-        email: email,
-        password: email,
-      );
-      // Handle sign-up response if needed
-    } else {
-      // User exists, log them in
-      await superUser.Supabase.instance.client.auth.signInWithPassword(
-        email: email,
-        password: email,
-      );
-      // Handle login response if needed
-    }
+      if (existingUser == null) {
+        // User does not exist, proceed to sign up
+        await superUser.Supabase.instance.client.auth.signUp(
+          email: email,
+          password: email,
+        );
+        // Handle sign-up response if needed
+      } else {
+        // User exists, log them in
+        await superUser.Supabase.instance.client.auth.signInWithPassword(
+          email: email,
+          password: email,
+        );
+        // Handle login response if needed
+      }
+    } catch (e) {}
   }
 
   @override
@@ -294,8 +296,7 @@ class LocalRealmApi
   Future<IUser> _authenticateUser(String phoneNumber, Pin pin,
       HttpClientInterface flipperHttpClient) async {
     List<Business> businessesE = businesses();
-    List<Branch> branchesE =
-        branches(businessId: ProxyService.box.getBusinessId()!);
+    List<Branch> branchesE = branches(businessId: pin.businessId!);
 
     if (businessesE.isNotEmpty && branchesE.isNotEmpty) {
       offlineLogin = true;
@@ -439,6 +440,7 @@ class LocalRealmApi
 
   @override
   List<Business> businesses() {
+    if (realm == null) return [];
     return realm!.all<Business>().toList();
   }
 

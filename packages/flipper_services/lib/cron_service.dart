@@ -14,7 +14,7 @@ import 'package:flipper_models/DownloadQueue.dart';
 import 'PullChange.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/CloudSync.dart';
-import 'package:flipper_models/realmExtension.dart';
+// import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 // import 'package:realm/realm.dart';
 // import 'package:realm/realm.dart';
@@ -139,7 +139,7 @@ class CronService {
     final firestore = FirebaseFirestore.instance;
     final realm = ProxyService.local.realm;
     talker.warning("Force Sync: ${ProxyService.box.forceUPSERT()}");
-    if (!ProxyService.box.forceUPSERT()) {
+    if (ProxyService.box.forceUPSERT()) {
       /// get all Products
       List<Product> products =
           ProxyService.local.realm!.all<Product>().toList();

@@ -41,7 +41,7 @@ dependency_overrides:
   
   web: ^1.0.0
   
-  json_annotation: any
+  json_annotation: ^4.9.0
   
 dev_dependencies:
   flutter_test:

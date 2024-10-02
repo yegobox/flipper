@@ -19,6 +19,34 @@ IUser _$IUserFromJson(Map<String, dynamic> json) => IUser(
       pin: (json['pin'] as num?)?.toInt(),
     );
 
+const _$IUserFieldMap = <String, String>{
+  'id': 'id',
+  'phoneNumber': 'phoneNumber',
+  'token': 'token',
+  'uid': 'uid',
+  'tenants': 'tenants',
+  'channels': 'channels',
+  'pin': 'pin',
+};
+
+// ignore: unused_element
+abstract class _$IUserPerFieldToJson {
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? phoneNumber(String instance) => instance;
+  // ignore: unused_element
+  static Object? token(String instance) => instance;
+  // ignore: unused_element
+  static Object? uid(String? instance) => instance;
+  // ignore: unused_element
+  static Object? tenants(List<ITenant> instance) => instance;
+  // ignore: unused_element
+  static Object? channels(List<String> instance) => instance;
+  // ignore: unused_element
+  static Object? pin(int? instance) => instance;
+}
+
 Map<String, dynamic> _$IUserToJson(IUser instance) => <String, dynamic>{
       'id': instance.id,
       'phoneNumber': instance.phoneNumber,

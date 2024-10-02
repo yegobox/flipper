@@ -87,7 +87,7 @@ dependency_overrides:
   
   web: ^1.0.0
   
-  json_annotation: any
+  json_annotation: ^4.9.0
   
   # realm_dart: 2.1.0
   # realm_generator: 2.1.0
@@ -96,7 +96,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   injectable_generator: ^2.6.0
-  build_runner: ^2.4.12
+  build_runner: ^2.4.13
   test:
 flutter:
   # The following line ensures that the Material Icons font is

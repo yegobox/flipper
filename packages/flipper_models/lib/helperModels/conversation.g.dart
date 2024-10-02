@@ -36,6 +36,73 @@ IConversation _$IConversationFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['lastTouched'] as String);
 
+const _$IConversationFieldMap = <String, String>{
+  'action': 'action',
+  'id': 'id',
+  'userName': 'userName',
+  'body': 'body',
+  'avatar': 'avatar',
+  'channelType': 'channelType',
+  'fromNumber': 'fromNumber',
+  'toNumber': 'toNumber',
+  'createdAt': 'createdAt',
+  'messageType': 'messageType',
+  'phoneNumberId': 'phoneNumberId',
+  'messageId': 'messageId',
+  'respondedBy': 'respondedBy',
+  'conversationId': 'conversationId',
+  'businessPhoneNumber': 'businessPhoneNumber',
+  'businessId': 'businessId',
+  'scheduledAt': 'scheduledAt',
+  'delivered': 'delivered',
+  'lastTouched': 'lastTouched',
+  'deletedAt': 'deletedAt',
+};
+
+// ignore: unused_element
+abstract class _$IConversationPerFieldToJson {
+  // ignore: unused_element
+  static Object? action(String instance) => instance;
+  // ignore: unused_element
+  static Object? id(int? instance) => instance;
+  // ignore: unused_element
+  static Object? userName(String instance) => instance;
+  // ignore: unused_element
+  static Object? body(String instance) => instance;
+  // ignore: unused_element
+  static Object? avatar(String? instance) => instance;
+  // ignore: unused_element
+  static Object? channelType(String? instance) => instance;
+  // ignore: unused_element
+  static Object? fromNumber(String? instance) => instance;
+  // ignore: unused_element
+  static Object? toNumber(String? instance) => instance;
+  // ignore: unused_element
+  static Object? createdAt(String? instance) => instance;
+  // ignore: unused_element
+  static Object? messageType(String? instance) => instance;
+  // ignore: unused_element
+  static Object? phoneNumberId(String? instance) => instance;
+  // ignore: unused_element
+  static Object? messageId(String? instance) => instance;
+  // ignore: unused_element
+  static Object? respondedBy(String? instance) => instance;
+  // ignore: unused_element
+  static Object? conversationId(String? instance) => instance;
+  // ignore: unused_element
+  static Object? businessPhoneNumber(String? instance) => instance;
+  // ignore: unused_element
+  static Object? businessId(int? instance) => instance;
+  // ignore: unused_element
+  static Object? scheduledAt(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? delivered(bool? instance) => instance;
+  // ignore: unused_element
+  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
+  // ignore: unused_element
+  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
+}
+
 Map<String, dynamic> _$IConversationToJson(IConversation instance) =>
     <String, dynamic>{
       'action': instance.action,

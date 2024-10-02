@@ -135,7 +135,7 @@ dependency_overrides:
   
   web: ^1.0.0
   
-  json_annotation: any
+  json_annotation: ^4.9.0
   
   # realm_dart: 2.1.0
   # realm_generator: 2.1.0
@@ -153,7 +153,7 @@ generate: true
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  build_runner: ^2.4.12
+  build_runner: ^2.4.13
   custom_lint:
   riverpod_generator: ^2.3.5
   riverpod_lint: ^2.3.7
