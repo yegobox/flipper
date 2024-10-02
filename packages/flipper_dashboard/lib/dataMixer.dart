@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_models/realmExtension.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 
 mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Widget buildVariantRow({
@@ -57,7 +59,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             ProxyService.local.composites(productId: productId);
         ProxyService.local.realm!.write(() {
           for (Composite composite in composites) {
-            ProxyService.local.realm!.delete(composite);
+            ProxyService.local.realm!.deleteN(
+                tableName: compositesTable, deleteCallback: () => composite);
           }
         });
       }

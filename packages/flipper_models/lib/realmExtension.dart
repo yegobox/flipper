@@ -36,6 +36,18 @@ extension RealmExtension on Realm {
     }
   }
 
+//   realm.deleteN(
+//   tableName: 'YourTableName',
+//   deleteCallback: () => objectToDelete,
+// );
+  void deleteN<T extends RealmObjectBase>(
+      {required String tableName, required T Function() deleteCallback}) {
+    T object = deleteCallback();
+
+    delete(object);
+    _syncToFirestoreDelete(tableName, object);
+  }
+
   void put<T extends RealmObject>(
     T object, {
     required String tableName,
@@ -49,6 +61,19 @@ extension RealmExtension on Realm {
         onAdd(object);
       }
     });
+  }
+
+  void _syncToFirestoreDelete<T>(String tableName, T data) {
+    final firestore = FirebaseFirestore.instance;
+    final map = data is Stock
+        ? data.toEJson(includeVariant: false)!.toFlipperJson()
+        : data.toEJson().toFlipperJson();
+    final id = map['id'];
+    CloudSync(firestore, ProxyService.local.realm!).deleteRecord(
+      tableName: tableName,
+      idField: tableName.singularize() + "_id",
+      id: id,
+    );
   }
 
   void _syncToFirestore<T>(String tableName, T data) {

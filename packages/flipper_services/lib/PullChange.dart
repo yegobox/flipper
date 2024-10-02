@@ -1,4 +1,5 @@
 import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/helperModels/random.dart';
 
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -15,7 +16,9 @@ class PullChange {
       createRealmObject: (data) {
         return Setting(
           ObjectId(),
-          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
+          id: data['setting_id'] is int
+              ? data['setting_id']
+              : int.tryParse(data['setting_id']) ?? 0,
           email: data['email'],
           userId: data['user_id'] is int
               ? data['user_id']
@@ -102,7 +105,9 @@ class PullChange {
       createRealmObject: (data) {
         return TransactionPaymentRecord(
           ObjectId(),
-          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
+          id: data['transaction_payment_record_id'] is int
+              ? data['transaction_payment_record_id']
+              : int.tryParse(data['id']) ?? randomNumber(),
           transactionId: data['transaction_id'] is int
               ? data['transaction_id']
               : int.tryParse(data['transaction_id']) ?? 0,
@@ -144,7 +149,10 @@ class PullChange {
       createRealmObject: (data) {
         return FlipperSaleCompaign(
           ObjectId(),
-          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
+          id: data['flipper_sale_compaign_id'] is int
+              ? data['flipper_sale_compaign_id']
+              : int.tryParse(data['flipper_sale_compaign_id']) ??
+                  randomNumber(),
           compaignId: data['compaign_id'] is int
               ? data['compaign_id']
               : int.tryParse(data['compaign_id']) ?? 0,
@@ -184,7 +192,9 @@ class PullChange {
       createRealmObject: (data) {
         return PaymentPlan(
           ObjectId(),
-          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
+          id: data['payment_plan_id'] is int
+              ? data['payment_plan_id']
+              : int.tryParse(data['payment_plan_id']) ?? randomNumber(),
           businessId: data['business_id'] is int
               ? data['business_id']
               : int.tryParse(data['business_id']) ?? 0,
@@ -259,7 +269,9 @@ class PullChange {
       createRealmObject: (data) {
         return Access(
           ObjectId(),
-          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
+          id: data['access_id'] is int
+              ? data['access_id']
+              : int.tryParse(data['access_id']) ?? randomNumber(),
           branchId: data['branch_id'] is int
               ? data['branch_id']
               : int.tryParse(data['branch_id']) ?? 0,
@@ -317,9 +329,12 @@ class PullChange {
       createRealmObject: (data) {
         return SKU(
           ObjectId(),
-          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
-          sku:
-              data['sku'] is int ? data['sku'] : int.tryParse(data['sku']) ?? 0,
+          id: data['sku_id'] is int
+              ? data['sku_id']
+              : int.tryParse(data['sku_id']) ?? randomNumber(),
+          sku: data['sku'] is int
+              ? data['sku']
+              : int.tryParse(data['sku']) ?? 100,
           branchId: data['branch_id'] is int
               ? data['branch_id']
               : int.tryParse(data['branch_id']) ?? 0,
@@ -357,7 +372,9 @@ class PullChange {
       createRealmObject: (data) {
         return Assets(
           ObjectId(),
-          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
+          id: data['asset_id'] is int
+              ? data['asset_id']
+              : int.tryParse(data['asset_id']) ?? randomNumber(),
           branchId: data['branch_id'] is int
               ? data['branch_id']
               : int.tryParse(data['branch_id']) ?? 0,
@@ -399,7 +416,9 @@ class PullChange {
       createRealmObject: (data) {
         return Composite(
           ObjectId(),
-          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
+          id: data['composite_id'] is int
+              ? data['composite_id']
+              : int.tryParse(data['composite_id']) ?? randomNumber(),
           productId: data['product_id'] is int
               ? data['product_id']
               : int.tryParse(data['product_id']) ?? 0,
@@ -457,7 +476,9 @@ class PullChange {
       createRealmObject: (data) {
         return Product(
           ObjectId(),
-          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
+          id: data['product_id'] is int
+              ? data['product_id']
+              : int.tryParse(data['product_id']) ?? randomNumber(),
           name: data['name'],
           description: data['description'],
           taxId: data['tax_id'],
@@ -546,7 +567,9 @@ class PullChange {
       createRealmObject: (data) {
         return Variant(
           ObjectId(),
-          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
+          id: data['variant_id'] is int
+              ? data['variant_id']
+              : int.tryParse(data['variant_id']) ?? randomNumber(),
           branchId: data['branch_id'] is int
               ? data['branch_id']
               : int.tryParse(data['branch_id']) ?? 0,
@@ -730,7 +753,9 @@ class PullChange {
       createRealmObject: (data) {
         return Counter(
           ObjectId(),
-          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
+          id: data['counter_id'] is int
+              ? data['counter_id']
+              : int.tryParse(data['counter_id']) ?? randomNumber(),
           businessId: data['business_id'] is int
               ? data['business_id']
               : int.tryParse(data['business_id']) ?? 0,
@@ -800,7 +825,9 @@ class PullChange {
       createRealmObject: (data) {
         return Stock(
           ObjectId(),
-          id: data['id'] is int ? data['id'] : int.tryParse(data['id']) ?? 0,
+          id: data['stock_id'] is int
+              ? data['stock_id']
+              : int.tryParse(data['stock_id']) ?? randomNumber(),
           currentStock:
               data['current_stock'] is int || data['current_stock'] is double
                   ? data['current_stock'].toDouble()

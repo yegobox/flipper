@@ -29,7 +29,8 @@ abstract class SyncInterface {
     required Function(Map<String, dynamic>) preProcessMap,
     required SyncProvider syncProvider,
   });
-  Future<void> deleteRecord(String tableName, String idField, int id);
+  Future<void> deleteRecord(
+      {required String tableName, required String idField, required int id});
   Future<void> updateRecord({
     required String tableName,
     required String idField,
@@ -216,7 +217,8 @@ class CloudSync implements SyncInterface {
             // Skip if this ID is currently being processed by watchTable
             if (_processingIds.contains(deletedId)) continue;
 
-            await deleteRecord(tableName, idField, deletedId);
+            await deleteRecord(
+                tableName: tableName, idField: idField, id: deletedId);
           } catch (e, s) {
             print('Error deleting record: $e');
             print(s);
@@ -228,11 +230,19 @@ class CloudSync implements SyncInterface {
   }
 
   @override
-  Future<void> deleteRecord(String tableName, String idField, int id) async {
+  Future<void> deleteRecord(
+      {required String tableName,
+      required String idField,
+      required int id}) async {
     // await db.execute(
     //   'DELETE FROM $tableName WHERE $idField = ?',
     //   [id],
     // );
+    /// delete record in firestore
+    await FirebaseFirestore.instance
+        .collection(tableName)
+        .doc(id.toString())
+        .delete();
   }
 
   @override
