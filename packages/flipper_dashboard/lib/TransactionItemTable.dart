@@ -7,6 +7,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:flipper_models/realmExtension.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 
 mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
@@ -251,7 +253,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   void _deleteSingleItem(TransactionItem item, bool isOrdering) {
     try {
       ProxyService.local.realm!.write(() {
-        ProxyService.local.realm!.delete(item);
+        ProxyService.local.realm!.deleteN(
+            tableName: transactionItemsTable, deleteCallback: () => item);
       });
       _refreshTransactionItems(isOrdering);
     } catch (e) {
@@ -271,7 +274,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             .getTransactionItemByVariantId(variantId: composite.variantId!);
         if (deletableItem != null && deletableItem.isValid) {
           ProxyService.local.realm!.write(() {
-            ProxyService.local.realm!.delete(deletableItem);
+            ProxyService.local.realm!.deleteN(
+                tableName: transactionItemsTable,
+                deleteCallback: () => deletableItem);
           });
         }
       }

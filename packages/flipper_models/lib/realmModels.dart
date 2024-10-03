@@ -36,8 +36,9 @@ final realmModels = [
   Location.schema,
   Activity.schema,
   TransactionPaymentRecord.schema,
+  DeletedObject.schema,
 ];
-int schemaVersion = 14;
+int schemaVersion = 15;
 
 /// for local db
 final localModels = [
@@ -80,4 +81,5 @@ final localModels = [
   Location.schema,
   Activity.schema,
   TransactionPaymentRecord.schema,
+  DeletedObject.schema,
 ];

@@ -80,8 +80,6 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
       }
     } catch (e, s) {
-      talker.error("ProductViewClass:" + s.toString());
-      talker.error("ProductViewClass:" + e.toString());
       ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
     }
   }

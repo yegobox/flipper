@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'package:flipper_models/helperModels/random.dart';
-import 'package:realm/realm.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/services.dart';
@@ -222,7 +220,6 @@ class CronService {
       }
     }
     PullChange().start(firestore: firestore, localRealm: realm!);
-    PullChange().cleanUp(firestore: firestore, localRealm: realm);
 
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       // backUpPowerSync();

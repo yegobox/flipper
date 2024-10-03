@@ -8700,3 +8700,142 @@ class TransactionPaymentRecord extends _TransactionPaymentRecord
   @override
   SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }
+
+class DeletedObject extends _DeletedObject
+    with RealmEntity, RealmObjectBase, RealmObject {
+  DeletedObject(
+    ObjectId realmId, {
+    int? id,
+    int? branchId,
+    int? businessId,
+    String? objectName,
+    String? objectId,
+    int? deviceCount,
+    int? expectedDeviceCount,
+  }) {
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'branchId', branchId);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'objectName', objectName);
+    RealmObjectBase.set(this, 'objectId', objectId);
+    RealmObjectBase.set(this, 'deviceCount', deviceCount);
+    RealmObjectBase.set(this, 'expectedDeviceCount', expectedDeviceCount);
+  }
+
+  DeletedObject._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  String? get objectName =>
+      RealmObjectBase.get<String>(this, 'objectName') as String?;
+  @override
+  set objectName(String? value) =>
+      RealmObjectBase.set(this, 'objectName', value);
+
+  @override
+  String? get objectId =>
+      RealmObjectBase.get<String>(this, 'objectId') as String?;
+  @override
+  set objectId(String? value) => RealmObjectBase.set(this, 'objectId', value);
+
+  @override
+  int? get deviceCount => RealmObjectBase.get<int>(this, 'deviceCount') as int?;
+  @override
+  set deviceCount(int? value) =>
+      RealmObjectBase.set(this, 'deviceCount', value);
+
+  @override
+  int? get expectedDeviceCount =>
+      RealmObjectBase.get<int>(this, 'expectedDeviceCount') as int?;
+  @override
+  set expectedDeviceCount(int? value) =>
+      RealmObjectBase.set(this, 'expectedDeviceCount', value);
+
+  @override
+  Stream<RealmObjectChanges<DeletedObject>> get changes =>
+      RealmObjectBase.getChanges<DeletedObject>(this);
+
+  @override
+  Stream<RealmObjectChanges<DeletedObject>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<DeletedObject>(this, keyPaths);
+
+  @override
+  DeletedObject freeze() => RealmObjectBase.freezeObject<DeletedObject>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'branchId': branchId.toEJson(),
+      'businessId': businessId.toEJson(),
+      'objectName': objectName.toEJson(),
+      'objectId': objectId.toEJson(),
+      'deviceCount': deviceCount.toEJson(),
+      'expectedDeviceCount': expectedDeviceCount.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(DeletedObject value) => value.toEJson();
+  static DeletedObject _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
+    return switch (ejson) {
+      {
+        '_id': EJsonValue realmId,
+      } =>
+        DeletedObject(
+          fromEJson(realmId),
+          id: fromEJson(ejson['id']),
+          branchId: fromEJson(ejson['branchId']),
+          businessId: fromEJson(ejson['businessId']),
+          objectName: fromEJson(ejson['objectName']),
+          objectId: fromEJson(ejson['objectId']),
+          deviceCount: fromEJson(ejson['deviceCount']),
+          expectedDeviceCount: fromEJson(ejson['expectedDeviceCount']),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(DeletedObject._);
+    register(_toEJson, _fromEJson);
+    return const SchemaObject(
+        ObjectType.realmObject, DeletedObject, 'DeletedObject', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('objectName', RealmPropertyType.string, optional: true),
+      SchemaProperty('objectId', RealmPropertyType.string, optional: true),
+      SchemaProperty('deviceCount', RealmPropertyType.int, optional: true),
+      SchemaProperty('expectedDeviceCount', RealmPropertyType.int,
+          optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}

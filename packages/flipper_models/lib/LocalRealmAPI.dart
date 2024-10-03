@@ -2535,7 +2535,8 @@ class LocalRealmApi
     TransactionItem item = realm!
         .query<TransactionItem>(r'id == $0', [transactionItemId.id]).first;
     realm!.write(() {
-      realm!.delete(item);
+      realm!.deleteN(
+          tableName: transactionItemsTable, deleteCallback: () => item);
     });
   }
 
@@ -3075,7 +3076,8 @@ class LocalRealmApi
           /// because there might case where we have non-active transactionItem in the list of
           /// TransactionItem, then we remove it first before completing the transaction
           if (!item.active!) {
-            realm!.delete(item);
+            realm!.deleteN(
+                tableName: transactionItemsTable, deleteCallback: () => item);
           }
           talker.warning("VariantSoldId for debug: ${item.variantId!}");
           Stock? stock =
@@ -3095,20 +3097,26 @@ class LocalRealmApi
             stock.bhfId = stock.bhfId ?? ProxyService.box.bhfId();
             stock.tin = stock.tin ?? ProxyService.box.tin();
           });
-          realm!.write(() {
-            item.doneWithTransaction = true;
-            item.updatedAt = DateTime.now().toUtc().toLocal().toIso8601String();
-          });
+          realm!.writeN(
+              tableName: transactionItemsTable,
+              writeCallback: () {
+                item.doneWithTransaction = true;
+                item.updatedAt =
+                    DateTime.now().toUtc().toLocal().toIso8601String();
+                return item;
+              });
 
           /// search the related product and touch them to make them as most used
           /// hence why we are adding time to it
           Variant? variant = getVariantById(id: item.variantId!);
           Product? product = getProduct(id: variant!.productId!);
           if (product != null) {
-            realm!.write(() {
-              variant.qty = finalStock;
-              product.lastTouched = DateTime.now().toUtc().toLocal();
-            });
+            realm!.writeN(
+                tableName: variantTable,
+                writeCallback: () {
+                  variant.qty = finalStock;
+                  return variant;
+                });
           }
         }
       } catch (e, s) {
@@ -3320,14 +3328,14 @@ class LocalRealmApi
         PColor color = realm!.query<PColor>(r'id == $0 ', [id]).first;
 
         realm!.write(() {
-          realm!.delete(color);
+          realm!.deleteN(tableName: colorsTable, deleteCallback: () => color);
         });
         break;
       case 'device':
         realm!.write(() {
           Device device = realm!.query<Device>(r'id == $0 ', [id]).first;
           realm!.write(() {
-            realm!.delete(device);
+            realm!.deleteN(tableName: devicesTable, deleteCallback: () => device);
           });
           return false;
         });
@@ -3335,7 +3343,7 @@ class LocalRealmApi
       case 'category':
         Category category = realm!.query<Category>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete(category);
+          realm!.deleteN(tableName: categoriesTable, deleteCallback: () => category);
         });
         break;
       case 'product':
@@ -3343,52 +3351,46 @@ class LocalRealmApi
             realm!.query<Product>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
           if (product != null) {
-            realm!.delete(product);
+            realm!.deleteN(tableName: productsTable, deleteCallback: () => product);
           }
         });
         break;
       case 'variant':
         Variant variant = realm!.query<Variant>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete(variant);
+          realm!.deleteN(tableName: variantTable, deleteCallback: () => variant);
         });
         break;
       case 'stock':
         Stock? stock = realm!.query<Stock>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete(stock);
+          realm!.deleteN(tableName: stocksTable, deleteCallback: () => stock);
         });
         break;
       case 'setting':
         Setting setting = realm!.query<Setting>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete(setting);
+          realm!.deleteN(tableName: settingsTable, deleteCallback: () => setting);
         });
         break;
       case 'pin':
         Pin? pin = realm!.query<Pin>(r'id == $0 ', [id]).first;
 
         realm!.write(() {
-          realm!.delete(pin);
+          realm!.deleteN(tableName: pinsTable, deleteCallback: () => pin);
         });
         break;
       case 'business':
         final business = realm!.query<Business>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.delete(business!);
+          realm!.deleteN(tableName: businessesTable, deleteCallback: () => business!);
         });
         break;
-      // case 'branch':
-      //   final business = realm!.query<Branch>(r'id == $0 ', [id]).firstOrNull;
-      //   realm!.write(() {
-      //     realm!.delete(business!);
-      //   });
-      //   break;
 
       case 'voucher':
         final business = realm!.query<Voucher>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.delete(business!);
+          realm!.deleteN(tableName: vouchersTable, deleteCallback: () => business!);
         });
         break;
       case 'transactionItem':
@@ -3396,13 +3398,13 @@ class LocalRealmApi
             realm!.query<TransactionItem>(r'id == $0 ', [id]).first;
 
         realm!.write(() {
-          realm!.delete(transactionItem);
+          realm!.deleteN(tableName: transactionItemsTable, deleteCallback: () => transactionItem);
         });
         break;
       case 'customer':
         Customer? customer = realm!.query<Customer>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete(customer);
+          realm!.deleteN(tableName: customersTable, deleteCallback: () => customer);
         });
         break;
       case 'tenant':
@@ -3411,27 +3413,27 @@ class LocalRealmApi
         if (response.statusCode == 200) {
           Tenant? tenant = realm!.query<Tenant>(r'id == $0 ', [id]).firstOrNull;
           realm!.write(() {
-            realm!.delete(tenant!);
+            realm!.deleteN(tableName: tenantsTable, deleteCallback: () => tenant!);
           });
         }
         break;
       case 'assets':
         Assets? asset = realm!.query<Assets>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete(asset);
+          realm!.deleteN(tableName: assetsTable, deleteCallback: () => asset);
         });
         break;
       case 'permission':
         LPermission? permission =
             realm!.query<LPermission>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete(permission);
+          realm!.deleteN(tableName: lPermissionsTable, deleteCallback: () => permission);
         });
         break;
       case 'access':
         Access? access = realm!.query<Access>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete(access);
+          realm!.deleteN(tableName: accessesTable, deleteCallback: () => access);
         });
         break;
       default:

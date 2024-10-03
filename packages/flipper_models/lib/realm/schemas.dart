@@ -1134,3 +1134,24 @@ class _TransactionPaymentRecord {
 // source_object_id: The primary key of the parent object (e.g., the id of the StockRequest).
 // target_table_name: The name of the table that holds the nested data (e.g., items).
 // target_object_id: The primary key of the nested item (e.g., the id of the Item object).
+
+/// Deleted object table that will be used to store deleted objects
+/// in sync provider
+@RealmModel()
+class _DeletedObject {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  int? branchId;
+  int? businessId;
+  String? objectName;
+  String? objectId;
+
+  /// number of devies reported to delete this object
+  int? deviceCount;
+
+  /// expected devices to delete this object
+  int? expectedDeviceCount;
+}
