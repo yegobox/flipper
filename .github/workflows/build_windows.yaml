@@ -80,26 +80,15 @@ jobs:
  
       - name: Install Firebase Emulator Suite
         run: npm install -g firebase-tools@13.20.2
-
-      - name: Install Dependencies
-        run: npm install
-    
-      - name: Run all the tests
+      - name: Run tests
+        env:
+          FIRESTORE_EMULATOR_HOST: localhost:8081
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
           dart pub global activate melos
           melos bootstrap
           cd apps/flipper
           firebase emulators:start --only firestore --project yegobox-2ee43
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-
-      - name: Run tests
-        env:
-          FIRESTORE_EMULATOR_HOST: localhost:8081
-        run: |
-          dart pub global activate melos
-          melos bootstrap
-          cd apps/flipper
           flutter test --dart-define=EMULATOR_ENABLED=true -d windows integration_test/smoke_windows_test.dart
   build-and-release-windows:
     name: "Build windows app"
