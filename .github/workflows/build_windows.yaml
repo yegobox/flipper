@@ -84,6 +84,7 @@ jobs:
 
       - name: Start Firestore Emulator
         run: |
+          $env:PATH = "$env:APPDATA\npm;$env:PATH"
           Start-Process -NoNewWindow firebase "emulators:start --only firestore"
           Write-Host "Waiting for Firestore emulator to start..."
           Start-Sleep -Seconds 30
