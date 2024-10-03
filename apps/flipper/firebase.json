@@ -32,5 +32,8 @@
     "firestore": {
       "port": 8081
     }
+  },
+  "firestore": {
+    "rules": "firestore.rules"
   }
 }

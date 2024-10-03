@@ -612,3 +612,7 @@ class App {}
 
 // import 'package:flipper_models/realmExtension.dart';
 // import 'package:flipper_models/power_sync/schema.dart';
+
+
+
+// firebase deploy --only firestore:rules
