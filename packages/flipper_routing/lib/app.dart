@@ -612,7 +612,7 @@ class App {}
 
 // import 'package:flipper_models/realmExtension.dart';
 // import 'package:flipper_models/power_sync/schema.dart';
-
+// https://github.com/firebase/flutterfire/blob/master/.github/workflows/scripts/start-firebase-emulator.sh
 
 
 // firebase deploy --only firestore:rules

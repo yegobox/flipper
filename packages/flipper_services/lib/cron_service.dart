@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/services.dart';
@@ -139,6 +140,10 @@ class CronService {
     final firestore = FirebaseFirestore.instance;
     final realm = ProxyService.local.realm;
     talker.warning("Force Sync: ${ProxyService.box.forceUPSERT()}");
+    if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+      await CloudSync(firestore, realm!).firebaseLogin();
+    }
+
     if (ProxyService.box.forceUPSERT()) {
       try {
         /// get all Products

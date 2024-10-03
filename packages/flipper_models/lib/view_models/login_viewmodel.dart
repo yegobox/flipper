@@ -1,5 +1,6 @@
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
@@ -17,7 +18,8 @@ import 'package:talker_flutter/talker_flutter.dart';
 
 mixin TokenLogin {
   Future<void> tokenLogin(String token) async {
-    await FirebaseAuth.instance.signInWithCustomToken(token);
+    final credential = await FirebaseAuth.instance.signInWithCustomToken(token);
+    talker.warning("credentials: $credential");
   }
 }
 
@@ -84,16 +86,8 @@ class LoginViewModel extends FlipperBaseModel
       await ProxyService.local.savePin(pin: thePin);
       await appService.appInit();
 
-      // Get the UID after login
-      String uid = ProxyService.box.uid();
-
       // Attempt to sign in with the custom token
-      try {
-        await tokenLogin(uid);
-      } catch (tokenError) {
-        talker.error("Error during token login: $tokenError");
-        // Handle token login failure (e.g., retry or alternative auth method)
-      }
+
       final defaultApp = ProxyService.box.getDefaultApp();
       await appService.appInit();
       if (defaultApp == "2") {

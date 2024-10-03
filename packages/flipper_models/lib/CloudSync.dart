@@ -9,10 +9,13 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+
 enum SyncProvider { FIRESTORE, POWERSYNC }
 
 abstract class SyncInterface {
   Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch);
+  void firebaseLogin();
   Future<void> handleRealmChanges<T>({
     required RealmResults<T> results,
     required String tableName,
@@ -548,6 +551,15 @@ class CloudSync implements SyncInterface {
         talker.warning(e);
         talker.error(s);
       }
+    }
+  }
+
+  @override
+  Future<void> firebaseLogin() async {
+    String token = ProxyService.box.uid();
+
+    if (FirebaseAuth.instance.currentUser == null) {
+      await FirebaseAuth.instance.signInWithCustomToken(token);
     }
   }
 }
