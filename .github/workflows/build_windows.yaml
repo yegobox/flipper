@@ -84,10 +84,10 @@ jobs:
 
       - name: Start Firestore Emulator
         run: |
-          firebase emulators:start --only firestore &
-          echo "Waiting for Firestore emulator to start..."
-          timeout 30
-        continue-on-error: true
+          Start-Process -NoNewWindow firebase "emulators:start --only firestore"
+          Write-Host "Waiting for Firestore emulator to start..."
+          Start-Sleep -Seconds 30
+        shell: pwsh
 
       - name: Run tests
         env:
