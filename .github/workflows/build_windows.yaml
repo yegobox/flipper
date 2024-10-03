@@ -77,21 +77,17 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}  
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      - uses: actions/setup-node@v1
-        with:
-          node-version: "16"
-      - name: Install Firebase CLI
-        run: |
-          npm install -g firebase-tools
+ 
+      - name: Install Firebase Emulator Suite
+        run: npm install -g firebase-tools@13.20.2
 
-      - name: Start Firestore Emulator
-        run: |
-          npm install -g firebase-tools
-          firebase emulators:start --only firestore &
-          Write-Host "Waiting for Firestore emulator to start..."
-          Start-Sleep -Seconds 30
-        shell: pwsh
-
+      - name: Install Dependencies
+        run: npm install
+    
+      - name: Run all the tests
+        run: firebase emulators:exec --only firestore --project yegobox-2ee43
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
       - name: Run tests
         env:
