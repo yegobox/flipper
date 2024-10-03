@@ -102,7 +102,7 @@ jobs:
           echo "Waiting for Firestore emulator to start..."
           Start-Sleep -Seconds 30
         shell: pwsh
-
+# flutter test --dart-define=EMULATOR_ENABLED=true  integration_test/smoke_windows_test.dart
       - name: Run tests
         env:
           FIRESTORE_EMULATOR_HOST: localhost:8081
@@ -111,7 +111,8 @@ jobs:
           dart pub global activate melos
           melos bootstrap
           cd apps/flipper
-          flutter test --dart-define=EMULATOR_ENABLED=true --release -d windows integration_test/smoke_windows_test.dart
+          
+          flutter drive --dart-define=EMULATOR_ENABLED=true --target=./integration_test/smoke_windows_test.dart --profile
 
   build-and-release-windows:
     name: "Build windows app"
