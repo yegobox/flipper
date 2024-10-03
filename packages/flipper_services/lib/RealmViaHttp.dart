@@ -37,7 +37,7 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   }
 
   @override
-  Pin? savePin({required Pin pin}) {
+  Future<Pin?> savePin({required Pin pin}) async {
     return null;
   }
 

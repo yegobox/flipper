@@ -112,7 +112,7 @@ jobs:
           melos bootstrap
           cd apps/flipper
           
-          flutter drive --dart-define=EMULATOR_ENABLED=true --target=./integration_test/smoke_windows_test.dart --profile
+          flutter drive --dart-define=EMULATOR_ENABLED=true -d windows --target=./integration_test/smoke_windows_test.dart --profile
 
   build-and-release-windows:
     name: "Build windows app"

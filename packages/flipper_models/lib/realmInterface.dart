@@ -385,7 +385,7 @@ abstract class RealmApiInterface {
       {required String pinString,
       required HttpClientInterface flipperHttpClient});
 
-  Pin? savePin({required Pin pin});
+  Future<Pin?> savePin({required Pin pin});
   Stream<List<TransactionItem>> transactionItemsStreams(
       {required int transactionId,
       required int branchId,

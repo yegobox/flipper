@@ -616,3 +616,4 @@ class App {}
 
 
 // firebase deploy --only firestore:rules
+// https://github.com/appium/appium-flutter-driver

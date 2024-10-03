@@ -2,7 +2,6 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/Miscellaneous.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -82,7 +81,7 @@ class LoginViewModel extends FlipperBaseModel
       );
 
       ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
-      Pin? savedPin = ProxyService.local.savePin(pin: thePin);
+      await ProxyService.local.savePin(pin: thePin);
       await appService.appInit();
 
       // Get the UID after login

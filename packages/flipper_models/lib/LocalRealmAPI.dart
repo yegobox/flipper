@@ -207,7 +207,7 @@ class LocalRealmApi
             }
           },
         );
-        realm = Realm(config);
+        realm = await Realm.open(config);
       }
     } catch (e) {
       /// delete this db path
@@ -411,7 +411,6 @@ class LocalRealmApi
     await configureTheBox(userPhone, user);
     await configureLocal(useInMemory: false);
     await updateLocalRealm(user, localRealm: realm);
-    await Future.delayed(Duration(seconds: 2));
 
     AppInitializer.initialize();
     if (!offlineLogin) {
@@ -458,9 +457,6 @@ class LocalRealmApi
 
   @override
   List<Branch> branches({required int businessId, bool? includeSelf = false}) {
-    if (businessId == null) {
-      throw Exception("BusinessId is required");
-    }
     return _getBranches(businessId, includeSelf!);
   }
 
@@ -482,7 +478,7 @@ class LocalRealmApi
       }
 
       ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
-      Pin? savedPin = ProxyService.local.savePin(
+      Pin? savedPin = await ProxyService.local.savePin(
           pin: Pin(ObjectId(),
               userId: pin.userId,
               branchId: pin.branchId,
@@ -3335,7 +3331,8 @@ class LocalRealmApi
         realm!.write(() {
           Device device = realm!.query<Device>(r'id == $0 ', [id]).first;
           realm!.write(() {
-            realm!.deleteN(tableName: devicesTable, deleteCallback: () => device);
+            realm!
+                .deleteN(tableName: devicesTable, deleteCallback: () => device);
           });
           return false;
         });
@@ -3343,7 +3340,8 @@ class LocalRealmApi
       case 'category':
         Category category = realm!.query<Category>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.deleteN(tableName: categoriesTable, deleteCallback: () => category);
+          realm!.deleteN(
+              tableName: categoriesTable, deleteCallback: () => category);
         });
         break;
       case 'product':
@@ -3351,14 +3349,16 @@ class LocalRealmApi
             realm!.query<Product>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
           if (product != null) {
-            realm!.deleteN(tableName: productsTable, deleteCallback: () => product);
+            realm!.deleteN(
+                tableName: productsTable, deleteCallback: () => product);
           }
         });
         break;
       case 'variant':
         Variant variant = realm!.query<Variant>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.deleteN(tableName: variantTable, deleteCallback: () => variant);
+          realm!
+              .deleteN(tableName: variantTable, deleteCallback: () => variant);
         });
         break;
       case 'stock':
@@ -3370,7 +3370,8 @@ class LocalRealmApi
       case 'setting':
         Setting setting = realm!.query<Setting>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.deleteN(tableName: settingsTable, deleteCallback: () => setting);
+          realm!
+              .deleteN(tableName: settingsTable, deleteCallback: () => setting);
         });
         break;
       case 'pin':
@@ -3383,14 +3384,16 @@ class LocalRealmApi
       case 'business':
         final business = realm!.query<Business>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.deleteN(tableName: businessesTable, deleteCallback: () => business!);
+          realm!.deleteN(
+              tableName: businessesTable, deleteCallback: () => business!);
         });
         break;
 
       case 'voucher':
         final business = realm!.query<Voucher>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.deleteN(tableName: vouchersTable, deleteCallback: () => business!);
+          realm!.deleteN(
+              tableName: vouchersTable, deleteCallback: () => business!);
         });
         break;
       case 'transactionItem':
@@ -3398,13 +3401,16 @@ class LocalRealmApi
             realm!.query<TransactionItem>(r'id == $0 ', [id]).first;
 
         realm!.write(() {
-          realm!.deleteN(tableName: transactionItemsTable, deleteCallback: () => transactionItem);
+          realm!.deleteN(
+              tableName: transactionItemsTable,
+              deleteCallback: () => transactionItem);
         });
         break;
       case 'customer':
         Customer? customer = realm!.query<Customer>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.deleteN(tableName: customersTable, deleteCallback: () => customer);
+          realm!.deleteN(
+              tableName: customersTable, deleteCallback: () => customer);
         });
         break;
       case 'tenant':
@@ -3413,7 +3419,8 @@ class LocalRealmApi
         if (response.statusCode == 200) {
           Tenant? tenant = realm!.query<Tenant>(r'id == $0 ', [id]).firstOrNull;
           realm!.write(() {
-            realm!.deleteN(tableName: tenantsTable, deleteCallback: () => tenant!);
+            realm!.deleteN(
+                tableName: tenantsTable, deleteCallback: () => tenant!);
           });
         }
         break;
@@ -3427,13 +3434,15 @@ class LocalRealmApi
         LPermission? permission =
             realm!.query<LPermission>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.deleteN(tableName: lPermissionsTable, deleteCallback: () => permission);
+          realm!.deleteN(
+              tableName: lPermissionsTable, deleteCallback: () => permission);
         });
         break;
       case 'access':
         Access? access = realm!.query<Access>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.deleteN(tableName: accessesTable, deleteCallback: () => access);
+          realm!
+              .deleteN(tableName: accessesTable, deleteCallback: () => access);
         });
         break;
       default:
@@ -4786,9 +4795,11 @@ class LocalRealmApi
   }
 
   @override
-  Pin savePin({required Pin pin}) {
+  Future<Pin?> savePin({required Pin pin}) async {
+    /// delay to avoid race condition on instantiating local realm
+    await Future.delayed(Duration(seconds: 4));
     Pin? savedPin;
-    realm!.write(() {
+    ProxyService.local.realm!.write(() {
       savedPin = realm!.query<Pin>(r'userId == $0', [pin.userId]).firstOrNull;
       if (savedPin == null) {
         savedPin = realm!.add<Pin>(pin);
