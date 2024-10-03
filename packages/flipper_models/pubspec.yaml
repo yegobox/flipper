@@ -35,7 +35,7 @@ dependencies:
   riverpod: ^2.0.0
   hooks_riverpod: ^2.0.0
   freezed_annotation: ^2.4.4
-  cloud_firestore: ^5.4.3
+  cloud_firestore: ^5.4.4
   isolated_worker: ^0.1.1
   # adding realm to replace firestore on desktop in transporting data to cloud
   realm: ^20.0.0

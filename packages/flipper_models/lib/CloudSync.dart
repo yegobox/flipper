@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/realmExtension.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 
 enum SyncProvider { FIRESTORE, POWERSYNC }
 
@@ -62,6 +64,7 @@ abstract class SyncInterface {
     required String encryptionKey,
     required String dbPath,
   });
+  Future<void> deleteDuplicate({required String tableName});
 }
 
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
@@ -74,6 +77,44 @@ class CloudSync implements SyncInterface {
   final FirebaseFirestore _firestore;
   final Realm _realm;
   final Set<int> _processingIds = {};
+
+  @override
+  Future<void> deleteDuplicate({required String tableName}) async {
+    try {
+      final idField = tableName.singularize() + "_id";
+      Map<dynamic, List<String>> idMap = {};
+
+      // Use pagination to handle large collections
+      var query = _firestore.collection(tableName).limit(500);
+      while (true) {
+        final snapshot = await query.get();
+        if (snapshot.docs.isEmpty) break;
+
+        for (var doc in snapshot.docs) {
+          final id = doc.data()[idField];
+          if (id != null) {
+            idMap.putIfAbsent(id, () => []).add(doc.id);
+          }
+        }
+
+        query = query.startAfterDocument(snapshot.docs.last);
+      }
+
+      // Use a batched write for better performance and atomicity
+      final batch = _firestore.batch();
+      for (var entry in idMap.entries) {
+        if (entry.value.length > 1) {
+          for (int i = 1; i < entry.value.length; i++) {
+            batch.delete(_firestore.collection(tableName).doc(entry.value[i]));
+          }
+        }
+      }
+      await batch.commit();
+    } catch (e, s) {
+      talker.error('Error in deleteDuplicate: $e');
+      talker.error(s);
+    }
+  }
 
   Future<void> watchTableAsync<T extends RealmObject>({
     required String tableName,
@@ -240,11 +281,27 @@ class CloudSync implements SyncInterface {
     // );
     talker.warning("Firestore deleting $tableName with id $id");
 
+    _realm.writeN(
+        tableName: deletedObjectTable,
+        writeCallback: () {
+          DeletedObject? obj =
+              _realm.query<DeletedObject>(r'id == $0', [id]).firstOrNull;
+          if (obj != null) {
+            final deletedObject = DeletedObject(
+              ObjectId(),
+              objectName: tableName,
+              branchId: ProxyService.box.getBranchId()!,
+              id: id,
+              businessId: ProxyService.box.getBusinessId()!,
+              deviceCount: 1,
+              expectedDeviceCount: 1,
+            );
+            return deletedObject;
+          }
+        });
+
     /// delete record in firestore
-    await FirebaseFirestore.instance
-        .collection(tableName)
-        .doc(id.toString())
-        .delete();
+    await _firestore.collection(tableName).doc(id.toString()).delete();
   }
 
   @override
@@ -315,6 +372,7 @@ class CloudSync implements SyncInterface {
         _firestore
             .collection(tableName)
             .where('branch_id', isEqualTo: ProxyService.box.getBranchId())
+            .where('deleted_at', isNull: true)
             .snapshots()
             .listen((querySnapshot) {
           for (var docChange in querySnapshot.docChanges) {
@@ -327,10 +385,15 @@ class CloudSync implements SyncInterface {
               case DocumentChangeType.modified:
                 var realmObject = _realm.query<T>('id == "$id"').firstOrNull;
                 if (realmObject == null) {
-                  realmObject = createRealmObject(data);
-                  _realm.write(() {
-                    _realm.add<T>(realmObject!);
-                  });
+                  /// check if this object was deleted and is found in deletedObjects
+                  DeletedObject? deletedObject = _realm
+                      .query<DeletedObject>(r'id == $0', [id]).firstOrNull;
+                  if (deletedObject == null) {
+                    realmObject = createRealmObject(data);
+                    _realm.write(() {
+                      _realm.add<T>(realmObject!);
+                    });
+                  }
                 } else {
                   talker.warning("Firestore changes updateRealmObject: ${id}");
                   updateRealmObject(realmObject, data);
@@ -339,8 +402,8 @@ class CloudSync implements SyncInterface {
                 break;
               case DocumentChangeType.removed:
                 _realm.write(() {
-                  var realmObject =
-                      _realm.query<T>('$idField == "$id"').firstOrNull;
+                  T? realmObject =
+                      _realm.query<T>(r'id == $0', [id]).firstOrNull;
                   if (realmObject != null) {
                     _realm.delete(realmObject);
                   }

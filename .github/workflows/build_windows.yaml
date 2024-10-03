@@ -55,11 +55,6 @@ jobs:
           channel: stable
       - run: flutter doctor -v
 
-      - uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: "17"
-
       - name: submodule init
         run: git submodule update --init
       - name: Configure Missing files

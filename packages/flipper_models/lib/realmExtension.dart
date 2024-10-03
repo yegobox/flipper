@@ -64,6 +64,7 @@ extension RealmExtension on Realm {
         ? data.toEJson(includeVariant: false)!.toFlipperJson()
         : data.toEJson().toFlipperJson();
     final id = map['id'];
+    map['deleted_at'] = DateTime.now().toIso8601String();
     CloudSync(firestore, ProxyService.local.realm!).deleteRecord(
       tableName: tableName,
       idField: tableName.singularize() + "_id",

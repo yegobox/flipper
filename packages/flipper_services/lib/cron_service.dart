@@ -220,6 +220,20 @@ class CronService {
       }
     }
     PullChange().start(firestore: firestore, localRealm: realm!);
+    CloudSync(firestore, realm).deleteDuplicate(tableName: productsTable);
+    CloudSync(firestore, realm).deleteDuplicate(tableName: variantTable);
+    CloudSync(firestore, realm).deleteDuplicate(tableName: stocksTable);
+    CloudSync(firestore, realm)
+        .deleteDuplicate(tableName: transactionItemsTable);
+    CloudSync(firestore, realm).deleteDuplicate(tableName: stockRequestsTable);
+    CloudSync(firestore, realm).deleteDuplicate(tableName: accessesTable);
+    CloudSync(firestore, realm)
+        .deleteDuplicate(tableName: transactionItemsTable);
+    CloudSync(firestore, realm).deleteDuplicate(tableName: assetsTable);
+    CloudSync(firestore, realm).deleteDuplicate(tableName: categoriesTable);
+
+    CloudSync(firestore, realm).deleteDuplicate(tableName: customersTable);
+    CloudSync(firestore, realm).deleteDuplicate(tableName: devicesTable);
 
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       // backUpPowerSync();

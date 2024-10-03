@@ -10,6 +10,7 @@ const String devicesTable = 'devices';
 const String discountsTable = 'discounts';
 const String drawersTable = 'drawers';
 const String ebmsTable = 'ebms';
+const String deletedObjectTable = 'deletedObjects';
 const String favoritesTable = 'favorites';
 const String locationsTable = 'locations';
 const String pcolorsTable = 'pcolors';
