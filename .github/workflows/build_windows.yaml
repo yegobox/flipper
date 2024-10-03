@@ -85,7 +85,11 @@ jobs:
         run: npm install
     
       - name: Run all the tests
-        run: firebase emulators:start --only firestore --project yegobox-2ee43
+        run: |
+          dart pub global activate melos
+          melos bootstrap
+          cd apps/flipper
+          firebase emulators:start --only firestore --project yegobox-2ee43
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
