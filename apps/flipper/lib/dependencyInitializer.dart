@@ -21,6 +21,8 @@ import 'firebase_options.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_app_check/firebase_app_check.dart';
 // TODO: configure https://docs.amplify.aws/gen1/flutter/start/project-setup/platform-setup/ for ios,macos
 // import 'package:firebase_app_check/firebase_app_check.dart';
@@ -81,6 +83,11 @@ Future<void> initializeDependencies() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  const isTest = bool.fromEnvironment('EMULATOR_ENABLED', defaultValue: false);
+  if (isTest) {
+    FirebaseFirestore.instance.settings = const Settings(
+        host: 'localhost:8081', sslEnabled: false, persistenceEnabled: false);
+  }
 
   _configureAmplify();
   if (!isWindows) {

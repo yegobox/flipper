@@ -48,15 +48,18 @@ jobs:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
+
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.24.0"
           channel: stable
+
       - run: flutter doctor -v
 
       - name: submodule init
         run: git submodule update --init
+
       - name: Configure Missing files
         shell: bash
         run: |
@@ -74,11 +77,26 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}  
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      - run: |
+
+      - name: Install Firebase CLI
+        run: |
+          npm install -g firebase-tools
+
+      - name: Start Firestore Emulator
+        run: |
+          firebase emulators:start --only firestore &
+          echo "Waiting for Firestore emulator to start..."
+          timeout 30
+        continue-on-error: true
+
+      - name: Run tests
+        env:
+          FIRESTORE_EMULATOR_HOST: localhost:8081
+        run: |
           dart pub global activate melos
           melos bootstrap
           cd apps/flipper
-          flutter test --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart
+          flutter test --dart-define=EMULATOR_ENABLED=true -d windows integration_test/smoke_windows_test.dart
   build-and-release-windows:
     name: "Build windows app"
     if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'direct-build-windows')
