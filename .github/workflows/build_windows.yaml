@@ -77,18 +77,21 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}  
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-
+      - uses: actions/setup-node@v1
+        with:
+          node-version: "16"
       - name: Install Firebase CLI
         run: |
           npm install -g firebase-tools
 
       - name: Start Firestore Emulator
         run: |
-          $env:PATH = "$env:APPDATA\npm;$env:PATH"
-          Start-Process -NoNewWindow firebase "emulators:start --only firestore"
+          npm install -g firebase-tools
+          firebase emulators:start --only firestore &
           Write-Host "Waiting for Firestore emulator to start..."
           Start-Sleep -Seconds 30
         shell: pwsh
+
 
       - name: Run tests
         env:
