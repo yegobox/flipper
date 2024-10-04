@@ -935,9 +935,7 @@ class PullChange {
               ? data['product_id']
               : int.tryParse(data['product_id']) ?? 0,
           active: data['active'] ?? false,
-          value: data['value'] is int || data['value'] is double
-              ? data['value'].toDouble()
-              : double.tryParse(data['value']) ?? 0.0,
+          value: data['value'] == null ? 0 : data['value'],
           rsdQty: data['rsd_qty'] is int || data['rsd_qty'] is double
               ? data['rsd_qty'].toDouble()
               : double.tryParse(data['rsd_qty']) ?? 0.0,

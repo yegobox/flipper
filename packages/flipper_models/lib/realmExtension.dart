@@ -81,6 +81,17 @@ extension RealmExtension on Realm {
           : data.toEJson().toFlipperJson();
 
       final id = map['id'] == null ? map['id'] = randomNumber() : map['id'];
+
+      /// if the following fields variant,stock,branch_ids exist in the map remove them
+      if (map.containsKey('variant')) {
+        map.remove('variant');
+      }
+      if (map.containsKey('stock')) {
+        map.remove('stock');
+      }
+      if (map.containsKey('branch_ids')) {
+        map.remove('branch_ids');
+      }
       CloudSync(firestore, ProxyService.local.realm!).updateRecord(
         tableName: tableName,
         idField: tableName.singularize() + "_id",
