@@ -616,4 +616,5 @@ class App {}
 
 
 // firebase deploy --only firestore:rules
+// firebase emulators:start --only firestore,auth
 // https://github.com/appium/appium-flutter-driver

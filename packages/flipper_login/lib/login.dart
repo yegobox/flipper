@@ -1,19 +1,21 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
-// import 'package:firebase_ui_auth/firebase_ui_auth.dart';
+import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_models/helperModels/pin.dart';
 import 'dart:ui' as ui;
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/secrets.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/all_routes.dart';
-import 'package:flipper_routing/app.router.dart';
+import 'package:realm/realm.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flutter/foundation.dart';
 
@@ -25,7 +27,6 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  bool _isLogin = false;
   Future<void> isNetAvailable() async {
     if (!areDependenciesInitialized) {
       /// This is high likely that we were logged out and we need to re-init the dependencies
@@ -79,7 +80,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     final deviceType = _getDeviceType(context);
 
-    return ViewModelBuilder<StartupViewModel>.reactive(
+    return ViewModelBuilder<LoginViewModel>.reactive(
       onViewModelReady: (model) async {
         /// on non-windows and when we are logging, we know for sure
         /// logout on firebase works as expected therefore no need to worry that this might re-login a user
@@ -90,27 +91,48 @@ class _LoginState extends State<Login> {
         /// but for some reason or we need to listen for that event of login here for us to re-navigate to startup
         /// page to authorize the user to continue.
         if (!Platform.isWindows) {
+          // final user = await firebase.FirebaseAuth.instance.currentUser;
+
           firebase.FirebaseAuth.instance
               .userChanges()
               .listen((firebase.User? user) async {
             if (user != null) {
-              if (_isLogin == false) {
-                setState(() {
-                  _isLogin = true;
-                });
-                if (!areDependenciesInitialized) {
-                  /// This is high likely that we were logged out and we need to re-init the dependencies
-                  await initDependencies();
-                }
-                final _routerService = locator<RouterService>();
-                _routerService
-                    .clearStackAndShow(StartUpViewRoute(invokeLogin: true));
+              final key = user.phoneNumber ?? user.email!;
+              final response = await ProxyService.local.sendLoginRequest(
+                  key, ProxyService.http, AppSecrets.apihubProd);
+              final IUser iUser = IUser.fromJson(json.decode(response.body));
+
+              /// pre-configure the system beore sending login request to
+
+              talker.warning("iUser: ${iUser.id}");
+
+              try {
+                IPin? pin = await ProxyService.local.getPin(
+                    pinString: iUser.id.toString(),
+                    flipperHttpClient: ProxyService.http);
+                final thePin = Pin(ObjectId(),
+                    userId: pin!.userId,
+                    pin: pin.pin,
+                    branchId: pin.branchId,
+                    businessId: pin.businessId,
+                    ownerName: pin.ownerName,
+                    tokenUid: iUser.uid,
+                    phoneNumber: iUser.phoneNumber);
+                ProxyService.local.login(
+                    userPhone: key,
+                    skipDefaultAppSetup: false,
+                    pin: thePin,
+                    flipperHttpClient: ProxyService.http);
+
+                model.completeLogin(thePin);
+              } catch (e) {
+                rethrow;
               }
             }
           });
         }
       },
-      viewModelBuilder: () => StartupViewModel(),
+      viewModelBuilder: () => LoginViewModel(),
       builder: (context, model, child) {
         final data = ui.PlatformDispatcher.instance.views.first;
         final ui.Size size = data.physicalSize;

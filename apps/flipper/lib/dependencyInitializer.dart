@@ -85,8 +85,7 @@ Future<void> initializeDependencies() async {
   );
   const isTest = bool.fromEnvironment('EMULATOR_ENABLED', defaultValue: false);
   if (isTest) {
-    FirebaseFirestore.instance.settings = const Settings(
-        host: 'localhost:8081', sslEnabled: false, persistenceEnabled: false);
+    FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8081);
   }
 
   _configureAmplify();

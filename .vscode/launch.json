@@ -12,6 +12,12 @@
             "args": ["--dart-define=FLUTTER_TEST_ENV=true"]
         },
         {
+            "name": "LocalFirestore",
+            "request": "launch",
+            "type": "dart",
+            "args": ["--dart-define=EMULATOR_ENABLED=true"]
+        },
+        {
             "name": "flipper",
             "request": "launch",
             "type": "dart",

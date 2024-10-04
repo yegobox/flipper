@@ -384,7 +384,9 @@ abstract class RealmApiInterface {
   Future<IPin?> getPin(
       {required String pinString,
       required HttpClientInterface flipperHttpClient});
-
+  Pin? getPinLocal({required int userId});
+  Future<void> configureSystem(String userPhone, IUser user,
+      {required bool offlineLogin});
   Future<Pin?> savePin({required Pin pin});
   Stream<List<TransactionItem>> transactionItemsStreams(
       {required int transactionId,
@@ -532,7 +534,7 @@ abstract class RealmApiInterface {
   Future<List<ITenant>> signup(
       {required Map business, required HttpClientInterface flipperHttpClient});
   Business getBusiness({int? businessId});
-  Business? getBusinessById({required  int businessId});
+  Business? getBusinessById({required int businessId});
   Future<Business> getBusinessFuture({int? businessId});
   Future<Business?> defaultBusiness();
   Branch? defaultBranch();

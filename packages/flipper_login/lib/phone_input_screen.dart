@@ -1,10 +1,9 @@
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
-
-import 'universal_button.dart' as uni;
+import 'package:flipper_ui/style_widget/button.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, MultiFactorSession, PhoneMultiFactorInfo;
-import 'package:flutter/widgets.dart';
 
 import 'phone_input_view.dart' as view;
 
@@ -99,38 +98,39 @@ class PhoneInputScreen extends StatelessWidget {
     final flowKey = Object();
     final l = FirebaseUILocalizations.labelsOf(context);
 
-    return FirebaseUIActions(
-      actions: actions ?? [SMSCodeRequestedAction(_next)],
-      child: b.ResponsivePage(
-        desktopLayoutDirection: desktopLayoutDirection,
-        sideBuilder: sideBuilder,
-        headerBuilder: headerBuilder,
-        headerMaxExtent: headerMaxExtent,
-        breakpoint: breakpoint,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              view.PhoneInputView(
-                auth: auth,
-                action: action,
-                pickedCountryCode: countryCode,
-                subtitleBuilder: subtitleBuilder,
-                footerBuilder: footerBuilder,
-                flowKey: flowKey,
-                multiFactorSession: multiFactorSession,
-                mfaHint: mfaHint,
-              ),
-              const SizedBox(height: 8),
-              uni.UniversalButton(
-                text: l.goBackButtonLabel,
-                variant: ButtonVariant.text,
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
+    return Scaffold(
+      body: FirebaseUIActions(
+        actions: actions ?? [SMSCodeRequestedAction(_next)],
+        child: b.ResponsivePage(
+          desktopLayoutDirection: desktopLayoutDirection,
+          sideBuilder: sideBuilder,
+          headerBuilder: headerBuilder,
+          headerMaxExtent: headerMaxExtent,
+          breakpoint: breakpoint,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                view.PhoneInputView(
+                  auth: auth,
+                  action: action,
+                  pickedCountryCode: countryCode,
+                  subtitleBuilder: subtitleBuilder,
+                  footerBuilder: footerBuilder,
+                  flowKey: flowKey,
+                  multiFactorSession: multiFactorSession,
+                  mfaHint: mfaHint,
+                ),
+                const SizedBox(height: 8),
+                FlipperButton(
+                  text: l.goBackButtonLabel,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

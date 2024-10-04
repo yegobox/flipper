@@ -15,6 +15,7 @@ import 'package:flipper_models/DownloadQueue.dart';
 import 'PullChange.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/CloudSync.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 // import 'package:realm/realm.dart';
@@ -139,10 +140,11 @@ class CronService {
   Future<void> schedule() async {
     final firestore = FirebaseFirestore.instance;
     final realm = ProxyService.local.realm;
-    talker.warning("Force Sync: ${ProxyService.box.forceUPSERT()}");
+
     if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
       await CloudSync(firestore, realm!).firebaseLogin();
     }
+    talker.warning("FirebaseUser ${FirebaseAuth.instance.currentUser}");
 
     if (ProxyService.box.forceUPSERT()) {
       try {

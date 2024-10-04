@@ -31,6 +31,9 @@
     "singleProjectMode": true,
     "firestore": {
       "port": 8081
+    },
+    "auth": {
+      "port": 9099
     }
   },
   "firestore": {

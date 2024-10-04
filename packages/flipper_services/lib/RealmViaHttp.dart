@@ -37,6 +37,17 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   }
 
   @override
+  Pin? getPinLocal({required int userId}) {
+    return null;
+  }
+
+  @override
+  Future<void> configureSystem(String userPhone, IUser user,
+      {required bool offlineLogin}) async {
+    // return null;
+  }
+
+  @override
   Future<Pin?> savePin({required Pin pin}) async {
     return null;
   }

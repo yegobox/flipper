@@ -2,12 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flutter/widgets.dart' hide Title;
+import 'package:flipper_ui/flipper_ui.dart';
 
+import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
-
-import 'universal_button.dart';
 
 typedef SMSCodeRequestedCallback = void Function(
   BuildContext context,
@@ -138,7 +137,8 @@ class _PhoneInputViewState extends State<PhoneInputView> {
                 key: phoneInputKey,
               ),
               const SizedBox(height: 16),
-              UniversalButton(
+              FlipperButton(
+                color: Colors.black,
                 text: localization.verifyPhoneNumberButtonText,
                 onPressed: () => _next(ctrl),
               ),

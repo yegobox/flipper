@@ -1,6 +1,7 @@
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
@@ -73,18 +74,24 @@ extension RealmExtension on Realm {
   }
 
   void _syncToFirestore<T>(String tableName, T data) {
-    final firestore = FirebaseFirestore.instance;
-    final map = data is Stock
-        ? data.toEJson(includeVariant: false)!.toFlipperJson()
-        : data.toEJson().toFlipperJson();
-    final id = map['id'];
-    CloudSync(firestore, ProxyService.local.realm!).updateRecord(
-      tableName: tableName,
-      idField: tableName.singularize() + "_id",
-      map: map,
-      id: id,
-      syncProvider: SyncProvider.FIRESTORE,
-    );
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final map = data is Stock
+          ? data.toEJson(includeVariant: false)!.toFlipperJson()
+          : data.toEJson().toFlipperJson();
+
+      final id = map['id'] == null ? map['id'] = randomNumber() : map['id'];
+      CloudSync(firestore, ProxyService.local.realm!).updateRecord(
+        tableName: tableName,
+        idField: tableName.singularize() + "_id",
+        map: map,
+        id: id,
+        syncProvider: SyncProvider.FIRESTORE,
+      );
+    } catch (e) {
+      print(e);
+      rethrow;
+    }
   }
 
   bool _isSubtype<S, T>() => <S>[] is List<T>;

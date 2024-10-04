@@ -138,6 +138,8 @@ class LocalRealmApi
     talker.info("Opened in-memory realm.");
   }
 
+  /// login and send uid to server to get custom token to use for firebase login
+  /// on other devices, the login is supposed to start from the phone or mobile
   @override
   Future<http.Response> sendLoginRequest(String phoneNumber,
       HttpClientInterface flipperHttpClient, String apihub) async {
@@ -275,7 +277,7 @@ class LocalRealmApi
     final IUser user =
         await _authenticateUser(phoneNumber, pin, flipperHttpClient);
 
-    await _configureSystem(userPhone, user, offlineLogin: offlineLogin);
+    await configureSystem(userPhone, user, offlineLogin: offlineLogin);
 
     if (stopAfterConfigure) return user;
 
@@ -406,7 +408,8 @@ class LocalRealmApi
         .toList();
   }
 
-  Future<void> _configureSystem(String userPhone, IUser user,
+  @override
+  Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin}) async {
     await configureTheBox(userPhone, user);
     await configureLocal(useInMemory: false);
@@ -1484,6 +1487,11 @@ class LocalRealmApi
       return BusinessType.fromJsonList(jsonEncode(responseJson));
     }
     return BusinessType.fromJsonList(jsonEncode(responseJson));
+  }
+
+  @override
+  Pin? getPinLocal({required int userId}) {
+    return realm!.query<Pin>(r'userId == $0', [userId]).firstOrNull;
   }
 
   @override
@@ -3028,44 +3036,47 @@ class LocalRealmApi
           transactionId: transaction.id!,
           doneWithTransaction: false,
           active: true);
-      // items
-      //     .map((item) => await ProxyService.backUp.save<TransactionItem>(data: item));
-      realm!.write(() {
-        transaction.lastTouched = DateTime.now().toUtc().toLocal();
-        transaction.status = COMPLETE;
-        transaction.isIncome = isIncome;
-        transaction.isExpense = !isIncome;
-        double subTotal = items.fold(0, (num a, b) => a + (b.price * b.qty));
 
-        /// if we are dealing with expenses then subTotal equal to the amount received
-        final subTotalFinalied = !isIncome ? cashReceived : subTotal;
-        transaction.customerChangeDue = (cashReceived - subTotalFinalied);
-        transaction.paymentType = paymentType;
-        transaction.cashReceived = cashReceived;
+      realm!.writeN(
+          tableName: iTransactionsTable,
+          writeCallback: () {
+            transaction.lastTouched = DateTime.now().toUtc().toLocal();
+            transaction.status = COMPLETE;
+            transaction.isIncome = isIncome;
+            transaction.isExpense = !isIncome;
+            double subTotal =
+                items.fold(0, (num a, b) => a + (b.price * b.qty));
 
-        transaction.subTotal = subTotalFinalied;
+            /// if we are dealing with expenses then subTotal equal to the amount received
+            final subTotalFinalied = !isIncome ? cashReceived : subTotal;
+            transaction.customerChangeDue = (cashReceived - subTotalFinalied);
+            transaction.paymentType = paymentType;
+            transaction.cashReceived = cashReceived;
 
-        /// for now receipt type to be printed is in box shared preference
-        /// this ofcause has limitation that if more than two users are using device
-        /// one user will use configuration set by probably a different user, this need to change soon.
-        String receiptType = TransactionReceptType.NS;
-        if (isProformaMode) {
-          receiptType = TransactionReceptType.PS;
-        }
-        if (isTrainingMode) {
-          receiptType = TransactionReceptType.TS;
-        }
-        transaction.receiptType = receiptType;
+            transaction.subTotal = subTotalFinalied;
 
-        /// refresh created as well to reflect when this transaction was created and completed
+            /// for now receipt type to be printed is in box shared preference
+            /// this ofcause has limitation that if more than two users are using device
+            /// one user will use configuration set by probably a different user, this need to change soon.
+            String receiptType = TransactionReceptType.NS;
+            if (isProformaMode) {
+              receiptType = TransactionReceptType.PS;
+            }
+            if (isTrainingMode) {
+              receiptType = TransactionReceptType.TS;
+            }
+            transaction.receiptType = receiptType;
 
-        transaction.updatedAt =
-            DateTime.now().toUtc().toLocal().toIso8601String();
-        transaction.createdAt =
-            DateTime.now().toUtc().toLocal().toIso8601String();
-        transaction.transactionType = transactionType;
-        transaction.categoryId = categoryId ?? "0";
-      });
+            /// refresh created as well to reflect when this transaction was created and completed
+
+            transaction.updatedAt =
+                DateTime.now().toUtc().toLocal().toIso8601String();
+            transaction.createdAt =
+                DateTime.now().toUtc().toLocal().toIso8601String();
+            transaction.transactionType = transactionType;
+            transaction.categoryId = categoryId ?? "0";
+            return transaction;
+          });
 
       try {
         for (TransactionItem item in items) {
@@ -3079,20 +3090,23 @@ class LocalRealmApi
           Stock? stock =
               stockByVariantId(variantId: item.variantId!, branchId: branchId);
           final finalStock = (stock!.currentStock - item.qty);
-          realm!.write(() {
-            item.dcAmt = discount;
-            item.discount = discount;
-            item.lastTouched = DateTime.now().toUtc().toLocal();
-            stock.rsdQty = finalStock;
-            stock.currentStock = finalStock;
-            stock.sold = stock.sold! + item.qty;
-            // stock value after item deduct
-            stock.value = finalStock * (stock.retailPrice);
-            stock.action = AppActions.updated;
-            stock.ebmSynced = false;
-            stock.bhfId = stock.bhfId ?? ProxyService.box.bhfId();
-            stock.tin = stock.tin ?? ProxyService.box.tin();
-          });
+          realm!.writeN(
+              tableName: stocksTable,
+              writeCallback: () {
+                item.dcAmt = discount;
+                item.discount = discount;
+                item.lastTouched = DateTime.now().toUtc().toLocal();
+                stock.rsdQty = finalStock;
+                stock.currentStock = finalStock;
+                stock.sold = stock.sold! + item.qty;
+                // stock value after item deduct
+                stock.value = finalStock * (stock.retailPrice);
+                stock.action = AppActions.updated;
+                stock.ebmSynced = false;
+                stock.bhfId = stock.bhfId ?? ProxyService.box.bhfId();
+                stock.tin = stock.tin ?? ProxyService.box.tin();
+                return stock;
+              });
           realm!.writeN(
               tableName: transactionItemsTable,
               writeCallback: () {
@@ -4797,19 +4811,28 @@ class LocalRealmApi
   @override
   Future<Pin?> savePin({required Pin pin}) async {
     /// delay to avoid race condition on instantiating local realm
-    await Future.delayed(Duration(seconds: 4));
-    Pin? savedPin;
-    ProxyService.local.realm!.write(() {
-      savedPin = realm!.query<Pin>(r'userId == $0', [pin.userId]).firstOrNull;
-      if (savedPin == null) {
-        savedPin = realm!.add<Pin>(pin);
-      } else {
-        savedPin!.userId = pin.userId;
-        savedPin!.ownerName = pin.ownerName;
-        savedPin!.tokenUid = pin.tokenUid;
-        savedPin!.phoneNumber = pin.phoneNumber;
-      }
-    });
-    return savedPin!;
+    try {
+      await Future.delayed(Duration(seconds: 4));
+      Pin? savedPin;
+      ProxyService.local.realm!.writeN(
+          tableName: pinsTable,
+          writeCallback: () {
+            savedPin =
+                realm!.query<Pin>(r'userId == $0', [pin.userId]).firstOrNull;
+            if (savedPin == null) {
+              savedPin = realm!.add<Pin>(pin);
+            } else {
+              savedPin!.userId = pin.userId;
+              savedPin!.ownerName = pin.ownerName;
+              savedPin!.tokenUid = pin.tokenUid;
+              savedPin!.phoneNumber = pin.phoneNumber;
+              savedPin!.tokenUid = pin.tokenUid;
+            }
+            return savedPin!;
+          });
+      return savedPin!;
+    } catch (e) {
+      rethrow;
+    }
   }
 }

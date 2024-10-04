@@ -1,14 +1,169 @@
 import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PullChange {
   void start(
       {required FirebaseFirestore firestore, required Realm localRealm}) {
+    CloudSync(firestore, localRealm).watchTable<Pin>(
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: pinsTable,
+      idField: pinsTable.singularize() + "_id",
+      createRealmObject: (data) {
+        return Pin(
+          ObjectId(),
+          id: data['pin'],
+          userId: data['user_id'],
+          branchId: data['branch_id'],
+          businessId: data['business_id'],
+          ownerName: data['owner_name'],
+          tokenUid: data['token_uid'],
+          phoneNumber: data['phone_number'],
+        );
+      },
+      updateRealmObject: (_pin, data) {
+        Pin? pin = localRealm
+            .query<Pin>(r'userId == $0', [data['user_id']]).firstOrNull;
+
+        if (pin != null) {
+          localRealm.write(() {
+            pin.tokenUid = data['token_uid'];
+          });
+        }
+      },
+    );
+    CloudSync(firestore, localRealm).watchTable<ITransaction>(
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: iTransactionsTable,
+      idField: iTransactionsTable.singularize() + "_id",
+      createRealmObject: (data) {
+        return ITransaction(
+          ObjectId(),
+          id: data['asset_id'] == null ? randomNumber() : data['asset_id'],
+          branchId: data['branch_id'] == null
+              ? ProxyService.box.getBranchId()
+              : data['branch_id'],
+          receiptType: data['receipt_type'] == null ? "" : data['receipt_type'],
+          status: data['status'] == null ? "" : data['status'],
+          transactionType:
+              data['transaction_type'] == null ? "" : data['transaction_type'],
+          subTotal: data['sub_total'] == null ? 0.0 : data['sub_total'],
+          paymentType: data['payment_type'] == null ? "" : data['payment_type'],
+          cashReceived:
+              data['cash_received'] == null ? 0.0 : data['cash_received'],
+          customerChangeDue: data['customer_change_due'] == null
+              ? 0.0
+              : data['customer_change_due'],
+          createdAt:
+              data['created_at'] == null ? DateTime.now() : data['created_at'],
+          updatedAt:
+              data['updated_at'] == null ? DateTime.now() : data['updated_at'],
+          customerId: data['customer_id'] == null ? 0 : data['customer_id'],
+          customerType:
+              data['customer_type'] == null ? "" : data['customer_type'],
+          note: data['note'] == null ? "" : data['note'],
+          lastTouched: data['last_touched'] == null
+              ? DateTime.now()
+              : DateTime.tryParse(data['last_touched']),
+          action: data['action'] == null ? "" : data['action'],
+          ticketName: data['ticket_name'] == null ? "" : data['ticket_name'],
+          deletedAt: data['deleted_at'] == null
+              ? DateTime.now()
+              : DateTime.parse(data['deleted_at']),
+          supplierId: data['supplier_id'] == null ? 0 : data['supplier_id'],
+          ebmSynced: data['ebm_synced'] == null ? false : data['ebm_synced'],
+          isIncome: data['is_income'] == null ? false : data['is_income'],
+          isExpense: data['is_expense'] == null ? false : data['is_expense'],
+          isRefunded: data['is_refunded'] == null ? false : data['is_refunded'],
+        );
+      },
+      updateRealmObject: (_transaction, data) {
+        ITransaction? transaction = localRealm.query<ITransaction>(r'id == $0',
+            [data[iTransactionsTable.singularize() + "_id"]]).firstOrNull;
+
+        if (transaction != null) {
+          localRealm.write(() {
+            transaction.lastTouched = data['last_touched'] == null
+                ? DateTime.now()
+                : DateTime.parse(data['last_touched']);
+            transaction.status = data['status'] == null ? "" : data['status'];
+            transaction.transactionType = data['transaction_type'] == null
+                ? ""
+                : data['transaction_type'];
+            transaction.subTotal =
+                data['sub_total'] == null ? 0.0 : data['sub_total'];
+            transaction.paymentType =
+                data['payment_type'] == null ? "" : data['payment_type'];
+            transaction.cashReceived =
+                data['cash_received'] == null ? 0.0 : data['cash_received'];
+            transaction.customerChangeDue = data['customer_change_due'] == null
+                ? 0.0
+                : data['customer_change_due'];
+            transaction.createdAt = data['created_at'] == null
+                ? DateTime.now().toIso8601String()
+                : data['created_at'];
+            transaction.updatedAt = data['updated_at'] == null
+                ? DateTime.now().toIso8601String()
+                : data['updated_at'];
+            transaction.customerId =
+                data['customer_id'] == null ? 0 : data['customer_id'];
+            transaction.customerType =
+                data['customer_type'] == null ? "" : data['customer_type'];
+            transaction.note = data['note'] == null ? "" : data['note'];
+            transaction.ticketName =
+                data['ticket_name'] == null ? "" : data['ticket_name'];
+            transaction.deletedAt = data['deleted_at'] == null
+                ? DateTime.now()
+                : DateTime.parse(data['deleted_at']);
+            transaction.supplierId =
+                data['supplier_id'] == null ? 0 : data['supplier_id'];
+            transaction.ebmSynced =
+                data['ebm_synced'] == null ? false : data['ebm_synced'];
+            transaction.isIncome =
+                data['is_income'] == null ? false : data['is_income'];
+            transaction.isExpense =
+                data['is_expense'] == null ? false : data['is_expense'];
+            transaction.isRefunded =
+                data['is_refunded'] == null ? false : data['is_refunded'];
+          });
+        }
+      },
+    );
+    CloudSync(firestore, localRealm).watchTable<Assets>(
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: 'assets',
+      idField: 'asset_id',
+      createRealmObject: (data) {
+        return Assets(
+          ObjectId(),
+          id: data['asset_id'] == null ? 0 : data['asset_id'],
+          branchId: data['branch_id'] == null ? 0 : data['branch_id'],
+          businessId: data['business_id'] == null ? 0 : data['business_id'],
+          assetName: data['asset_name'] == null ? "" : data['asset_name'],
+          productId: data['product_id'] == null ? 0 : data['product_id'],
+        );
+      },
+      updateRealmObject: (_asset, data) {
+        // Find related Assets
+        Assets? asset = localRealm
+            .query<Assets>(r'id == $0', [data['asset_id']]).firstOrNull;
+
+        if (asset != null) {
+          localRealm.write(() {
+            asset.assetName =
+                data['asset_name'] == null ? "" : data['asset_name'];
+            asset.productId =
+                data['product_id'] == null ? 0 : data['product_id'];
+          });
+        }
+      },
+    );
     CloudSync(firestore, localRealm).watchTable<Setting>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'settings',
@@ -107,7 +262,8 @@ class PullChange {
           ObjectId(),
           id: data['transaction_payment_record_id'] is int
               ? data['transaction_payment_record_id']
-              : int.tryParse(data['id']) ?? randomNumber(),
+              : int.tryParse(data['transaction_payment_record_id']) ??
+                  randomNumber(),
           transactionId: data['transaction_id'] is int
               ? data['transaction_id']
               : int.tryParse(data['transaction_id']) ?? 0,
@@ -284,12 +440,11 @@ class PullChange {
           featureName: data['feature_name'],
           userType: data['user_type'],
           accessLevel: data['access_level'],
-          createdAt: data['created_at'] is DateTime
-              ? data['created_at']
-              : DateTime.tryParse(data['created_at']),
-          expiresAt: data['expires_at'] is DateTime
-              ? data['expires_at']
-              : DateTime.tryParse(data['expires_at']),
+          createdAt:
+              data['expires_at'] == null ? DateTime.now() : data['expires_at'],
+          expiresAt: data['expires_at'] == null
+              ? DateTime.now()
+              : DateTime.parse(data['expires_at']),
           status: data['status'],
         );
       },
@@ -305,18 +460,18 @@ class PullChange {
             access.businessId = data['business_id'] is int
                 ? data['business_id']
                 : int.tryParse(data['business_id']) ?? access.businessId;
-            access.userId = data['user_id'] is int
-                ? data['user_id']
-                : int.tryParse(data['user_id']) ?? access.userId;
+            access.userId = data['user_id'] == null
+                ? ProxyService.box.getUserId()
+                : data['user_id'];
             access.featureName = data['feature_name'] ?? access.featureName;
             access.userType = data['user_type'] ?? access.userType;
             access.accessLevel = data['access_level'] ?? access.accessLevel;
-            access.createdAt = data['created_at'] is DateTime
-                ? data['created_at']
-                : DateTime.tryParse(data['created_at']) ?? access.createdAt;
-            access.expiresAt = data['expires_at'] is DateTime
-                ? data['expires_at']
-                : DateTime.tryParse(data['expires_at']) ?? access.expiresAt;
+            access.createdAt = data['created_at'] == null
+                ? DateTime.now()
+                : DateTime.parse(data['created_at']);
+            access.expiresAt = data['expires_at'] == null
+                ? DateTime.now()
+                : DateTime.parse(data['expires_at']);
             access.status = data['status'] ?? access.status;
           });
         }
@@ -360,50 +515,6 @@ class PullChange {
                 ? data['business_id']
                 : int.tryParse(data['business_id']) ?? sku.businessId;
             sku.consumed = data['consumed'] ?? sku.consumed;
-          });
-        }
-      },
-    );
-
-    CloudSync(firestore, localRealm).watchTable<Assets>(
-      syncProvider: SyncProvider.FIRESTORE,
-      tableName: 'assets',
-      idField: 'asset_id',
-      createRealmObject: (data) {
-        return Assets(
-          ObjectId(),
-          id: data['asset_id'] is int
-              ? data['asset_id']
-              : int.tryParse(data['asset_id']) ?? randomNumber(),
-          branchId: data['branch_id'] is int
-              ? data['branch_id']
-              : int.tryParse(data['branch_id']) ?? 0,
-          businessId: data['business_id'] is int
-              ? data['business_id']
-              : int.tryParse(data['business_id']) ?? 0,
-          assetName: data['asset_name'],
-          productId: data['product_id'] is int
-              ? data['product_id']
-              : int.tryParse(data['product_id']) ?? 0,
-        );
-      },
-      updateRealmObject: (_stock, data) {
-        // Find related Assets
-        Assets? asset = localRealm
-            .query<Assets>(r'id == $0', [data['asset_id']]).firstOrNull;
-
-        if (asset != null) {
-          localRealm.write(() {
-            asset.branchId = data['branch_id'] is int
-                ? data['branch_id']
-                : int.tryParse(data['branch_id']) ?? asset.branchId;
-            asset.businessId = data['business_id'] is int
-                ? data['business_id']
-                : int.tryParse(data['business_id']) ?? asset.businessId;
-            asset.assetName = data['asset_name'];
-            asset.productId = data['product_id'] is int
-                ? data['product_id']
-                : int.tryParse(data['product_id']) ?? asset.productId;
           });
         }
       },
@@ -476,41 +587,38 @@ class PullChange {
       createRealmObject: (data) {
         return Product(
           ObjectId(),
-          id: data['product_id'] is int
-              ? data['product_id']
-              : int.tryParse(data['product_id']) ?? randomNumber(),
-          name: data['name'],
+          id: data['product_id'] == null ? randomNumber() : data['product_id'],
+          name: data['name'] == null ? "" : data['name'],
           description: data['description'],
           taxId: data['tax_id'],
           color: data['color'] ?? "#e74c3c",
-          businessId: data['business_id'] is int
-              ? data['business_id']
-              : int.tryParse(data['business_id']) ?? 0,
-          branchId: data['branch_id'] is int
-              ? data['branch_id']
-              : int.tryParse(data['branch_id']) ?? 0,
-          supplierId: data['supplier_id'],
-          categoryId: data['category_id'] is int
-              ? data['category_id']
-              : int.tryParse(data['category_id']) ?? 0,
-          createdAt: data['created_at'],
-          unit: data['unit'],
-          imageUrl: data['image_url'],
-          expiryDate: data['expiry_date'],
+          businessId: data['business_id'] == null
+              ? ProxyService.box.getBusinessId()
+              : data['business_id'],
+          branchId: data['branch_id'] == null
+              ? ProxyService.box.getBranchId()
+              : data['branch_id'],
+          supplierId: data['supplier_id'] == null ? "" : data['supplier_id'],
+          categoryId: data['category_id'] == null ? 0 : data['category_id'],
+          createdAt: data['created_at'] == null
+              ? DateTime.now().toIso8601String()
+              : data['created_at'],
+          unit: data['unit'] == null ? "" : data['unit'],
+          imageUrl: data['image_url'] == null ? "" : data['image_url'],
+          expiryDate: data['expiry_date'] == null ? "" : data['expiry_date'],
           barCode: data['bar_code'],
           nfcEnabled: data['nfc_enabled'] ?? false,
-          bindedToTenantId: data['binded_to_tenant_id'] is int
-              ? data['binded_to_tenant_id']
-              : int.tryParse(data['binded_to_tenant_id']) ?? 0,
+          bindedToTenantId: data['binded_to_tenant_id'] == null
+              ? 0
+              : data['binded_to_tenant_id'],
           isFavorite: data['is_favorite'] ?? false,
-          lastTouched: data['last_touched'] is DateTime
-              ? data['last_touched']
-              : DateTime.tryParse(data['last_touched']),
-          action: data['action'],
-          deletedAt: data['deleted_at'] is DateTime
-              ? data['deleted_at']
-              : DateTime.tryParse(data['deleted_at']),
-          spplrNm: data['spplr_nm'],
+          lastTouched: data['last_touched'] == null
+              ? DateTime.now()
+              : DateTime.parse(data['last_touched']),
+          action: data['action'] == null ? "" : data['action'],
+          deletedAt:
+              data['deleted_at'] == null ? DateTime.now() : data['deleted_at'],
+          spplrNm: data['spplr_nm'] == null ? "" : data['spplr_nm'],
         );
       },
       updateRealmObject: (_product, data) {
@@ -523,35 +631,36 @@ class PullChange {
             product.description = data['description'] ?? product.description;
             product.taxId = data['tax_id'] ?? product.taxId;
             product.color = data['color'] ?? product.color;
-            product.businessId = data['business_id'] is int
-                ? data['business_id']
-                : int.tryParse(data['business_id']) ?? product.businessId;
-            product.branchId = data['branch_id'] is int
-                ? data['branch_id']
-                : int.tryParse(data['branch_id']) ?? product.branchId;
+            product.businessId = data['business_id'] == null
+                ? ProxyService.box.getBusinessId()
+                : data['business_id'];
+            product.branchId = data['branch_id'] == null
+                ? ProxyService.box.getBranchId()
+                : data['branch_id'];
+
             product.supplierId = data['supplier_id'] ?? product.supplierId;
-            product.categoryId = data['category_id'] is int
-                ? data['category_id']
-                : int.tryParse(data['category_id']) ?? product.categoryId;
-            product.createdAt = data['created_at'] ?? product.createdAt;
+            product.categoryId =
+                data['category_id'] == null ? 0 : data['category_id'];
+            product.createdAt = data['created_at'] == null
+                ? DateTime.now().toIso8601String()
+                : data['created_at'];
+
             product.unit = data['unit'] ?? product.unit;
             product.imageUrl = data['image_url'] ?? product.imageUrl;
             product.expiryDate = data['expiry_date'] ?? product.expiryDate;
             product.barCode = data['bar_code'] ?? product.barCode;
             product.nfcEnabled = data['nfc_enabled'] ?? product.nfcEnabled;
-            product.bindedToTenantId = data['binded_to_tenant_id'] is int
-                ? data['binded_to_tenant_id']
-                : int.tryParse(data['binded_to_tenant_id']) ??
-                    product.bindedToTenantId;
+            product.bindedToTenantId = data['binded_to_tenant_id'] == null
+                ? 0
+                : data['binded_to_tenant_id'];
             product.isFavorite = data['is_favorite'] ?? product.isFavorite;
-            product.lastTouched = data['last_touched'] is DateTime
-                ? data['last_touched']
-                : DateTime.tryParse(data['last_touched']) ??
-                    product.lastTouched;
+            product.lastTouched = data['last_touched'] == null
+                ? DateTime.now()
+                : DateTime.parse(data['last_touched']);
             product.action = data['action'] ?? product.action;
-            product.deletedAt = data['deleted_at'] is DateTime
-                ? data['deleted_at']
-                : DateTime.tryParse(data['deleted_at']) ?? product.deletedAt;
+            product.deletedAt = data['deleted_at'] == null
+                ? DateTime.now()
+                : DateTime.parse(data['deleted_at']);
             product.searchMatch = data['search_match'] ?? product.searchMatch;
             product.spplrNm = data['spplr_nm'] ?? product.spplrNm;
             product.isComposite = data['is_composite'] ?? product.isComposite;
@@ -567,87 +676,67 @@ class PullChange {
       createRealmObject: (data) {
         return Variant(
           ObjectId(),
-          id: data['variant_id'] is int
-              ? data['variant_id']
-              : int.tryParse(data['variant_id']) ?? randomNumber(),
-          branchId: data['branch_id'] is int
-              ? data['branch_id']
-              : int.tryParse(data['branch_id']) ?? 0,
-          lastTouched: data['last_touched'] is DateTime
-              ? data['last_touched']
-              : DateTime.tryParse(data['last_touched']) ?? DateTime.now(),
-          name: data['name'],
-          color: data['color'],
-          sku: data['sku'],
-          productId: data['product_id'] is int
-              ? data['product_id']
-              : int.tryParse(data['product_id']) ?? 0,
-          unit: data['unit'],
-          productName: data['product_name'],
-          taxName: data['tax_name'],
-          taxPercentage: data['tax_percentage'] is double
-              ? data['tax_percentage']
-              : double.tryParse(data['tax_percentage']) ?? 0.0,
+          id: data['variant_id'] == null ? 0 : data['variant_id'],
+          branchId: data['branch_id'] == null
+              ? ProxyService.box.getBranchId()
+              : data['branch_id'],
+          lastTouched: data['last_touched'] == null
+              ? DateTime.now()
+              : DateTime.parse(data['last_touched']),
+          name: data['name'] == null ? "" : data['name'],
+          color: data['color'] == null ? "#e74c3c" : data['color'],
+          sku: data['sku'] == null ? "" : data['sku'],
+          productId: data['product_id'] == null ? 0 : data['product_id'],
+          unit: data['unit'] == null ? "" : data['unit'],
+          productName: data['product_name'] == null ? "" : data['product_name'],
+          taxName: data['tax_name'] == null ? "" : data['tax_name'],
+          taxPercentage:
+              data['tax_percentage'] == null ? 0.0 : data['tax_percentage'],
           isTaxExempted: data['is_tax_exempted'] ?? false,
-          itemSeq: data['item_seq'] is int
-              ? data['item_seq']
-              : int.tryParse(data['item_seq']) ?? 0,
-          isrccCd: data['isrcc_cd'],
-          isrccNm: data['isrcc_nm'],
-          isrcRt: data['isrc_rt'] is int
-              ? data['isrc_rt']
-              : int.tryParse(data['isrc_rt']) ?? 0,
-          isrcAmt: data['isrc_amt'] is int
-              ? data['isrc_amt']
-              : int.tryParse(data['isrc_amt']) ?? 0,
-          taxTyCd: data['tax_ty_cd'],
-          bcd: data['bcd'],
-          itemClsCd: data['item_cls_cd'],
-          itemTyCd: data['item_ty_cd'],
-          itemStdNm: data['item_std_nm'],
-          orgnNatCd: data['orgn_nat_cd'],
-          pkg: data['pkg'],
-          itemCd: data['item_cd'],
-          pkgUnitCd: data['pkg_unit_cd'],
-          qtyUnitCd: data['qty_unit_cd'],
+          itemSeq: data['item_seq'] == null ? 0 : data['item_seq'],
+          isrccCd: data['isrcc_cd'] == null ? "" : data['isrcc_cd'],
+          isrccNm: data['isrcc_nm'] == null ? "" : data['isrcc_nm'],
+          isrcRt: data['isrc_rt'] == null ? 0 : data['isrc_rt'],
+          isrcAmt: data['isrc_amt'] == null ? 0 : data['isrc_amt'],
+          taxTyCd: data['tax_ty_cd'] == null ? "" : data['tax_ty_cd'],
+          bcd: data['bcd'] == null ? "" : data['bcd'],
+          itemClsCd: data['item_cls_cd'] == null ? "" : data['item_cls_cd'],
+          itemTyCd: data['item_ty_cd'] == null ? "" : data['item_ty_cd'],
+          itemStdNm: data['item_std_nm'] == null ? "" : data['item_std_nm'],
+          orgnNatCd: data['orgn_nat_cd'] == null ? "" : data['orgn_nat_cd'],
+          pkg: data['pkg'] == null ? "" : data['pkg'],
+          itemCd: data['item_cd'] == null ? "" : data['item_cd'],
+          pkgUnitCd: data['pkg_unit_cd'] == null ? "" : data['pkg_unit_cd'],
+          qtyUnitCd: data['qty_unit_cd'] == null ? "" : data['qty_unit_cd'],
           itemNm: data['item_nm'],
-          qty: data['qty'] is double
-              ? data['qty']
-              : double.tryParse(data['qty']) ?? 0.0,
-          prc: data['prc'] is double
-              ? data['prc']
-              : double.tryParse(data['prc']) ?? 0.0,
-          splyAmt: data['sply_amt'] is double
-              ? data['sply_amt']
-              : double.tryParse(data['sply_amt']) ?? 0.0,
-          tin:
-              data['tin'] is int ? data['tin'] : int.tryParse(data['tin']) ?? 0,
-          bhfId: data['bhf_id'],
-          dftPrc: data['dft_prc'] is double
-              ? data['dft_prc']
-              : double.tryParse(data['dft_prc']) ?? 0.0,
-          addInfo: data['add_info'],
-          isrcAplcbYn: data['isrc_aplcby_yn'],
-          useYn: data['use_yn'],
-          regrId: data['regr_id'],
-          regrNm: data['regr_nm'],
-          modrId: data['modr_id'],
-          modrNm: data['modr_nm'],
-          rsdQty: data['rsd_qty'] is double
-              ? data['rsd_qty']
-              : double.tryParse(data['rsd_qty']) ?? 0.0,
-          supplyPrice: data['supply_price'] is double
-              ? data['supply_price']
-              : double.tryParse(data['supply_price']) ?? 0.0,
-          retailPrice: data['retail_price'] is double
-              ? data['retail_price']
-              : double.tryParse(data['retail_price']) ?? 0.0,
-          action: data['action'],
-          spplrItemClsCd: data['spplr_item_cls_cd'],
-          spplrItemCd: data['spplr_item_cd'],
-          spplrItemNm: data['spplr_item_nm'],
+          qty: data['qty'] == null ? 0.0 : data['qty'],
+          prc: data['prc'] == null ? 0.0 : data['prc'],
+          splyAmt: data['sply_amt'] == null ? 0.0 : data['sply_amt'],
+          tin: data['tin'] == null ? 0 : data['tin'],
+          bhfId: data['bhf_id'] == null ? "" : data['bhf_id'],
+          dftPrc: data['dft_prc'] == null ? 0.0 : data['dft_prc'],
+          addInfo: data['add_info'] == null ? "" : data['add_info'],
+          isrcAplcbYn:
+              data['isrc_aplcby_yn'] == null ? "" : data['isrc_aplcby_yn'],
+          useYn: data['use_yn'] == null ? "" : data['use_yn'],
+          regrId: data['regr_id'] == null ? "" : data['regr_id'],
+          regrNm: data['regr_nm'] == null ? "" : data['regr_nm'],
+          modrId: data['modr_id'] == null ? "" : data['modr_id'],
+          modrNm: data['modr_nm'] == null ? "" : data['modr_nm'],
+          rsdQty: data['rsd_qty'] == null ? 0.0 : data['rsd_qty'],
+          supplyPrice:
+              data['supply_price'] == null ? 0.0 : data['supply_price'],
+          retailPrice:
+              data['retail_price'] == null ? 0.0 : data['retail_price'],
+          spplrItemClsCd: data['spplr_item_cls_cd'] == null
+              ? ""
+              : data['spplr_item_cls_cd'],
+          spplrItemCd:
+              data['spplr_item_cd'] == null ? "" : data['spplr_item_cd'],
+          spplrItemNm:
+              data['spplr_item_nm'] == null ? "" : data['spplr_item_nm'],
           ebmSynced: data['ebm_synced'] ?? false,
-          taxType: data['tax_type'],
+          taxType: data['tax_type'] == null ? "" : data['tax_type'],
         );
       },
       updateRealmObject: (_variant, data) {
@@ -688,9 +777,7 @@ class PullChange {
             variant.isrcRt = data['isrc_rt'] is int
                 ? data['isrc_rt']
                 : int.tryParse(data['isrc_rt']) ?? variant.isrcRt;
-            variant.isrcAmt = data['isrc_amt'] is int
-                ? data['isrc_amt']
-                : int.tryParse(data['isrc_amt']) ?? variant.isrcAmt;
+            variant.isrcAmt = data['isrc_amt'] == null ? 0 : data['isrc_amt'];
             variant.taxTyCd = data['tax_ty_cd'] ?? variant.taxTyCd;
             variant.bcd = data['bcd'] ?? variant.bcd;
             variant.itemClsCd = data['item_cls_cd'] ?? variant.itemClsCd;
@@ -772,9 +859,9 @@ class PullChange {
           invcNo: data['invc_no'] is int
               ? data['invc_no']
               : int.tryParse(data['invc_no']) ?? 0,
-          lastTouched: data['last_touched'] is DateTime
-              ? data['last_touched']
-              : DateTime.tryParse(data['last_touched']) ?? DateTime.now(),
+          lastTouched: data['last_touched'] == null
+              ? DateTime.now()
+              : DateTime.parse(data['last_touched']),
         );
       },
       updateRealmObject: (_stock, data) {

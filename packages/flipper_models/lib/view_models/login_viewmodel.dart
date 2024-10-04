@@ -52,7 +52,7 @@ class LoginViewModel extends FlipperBaseModel
   get isProcessing => _isProceeding;
   Future<void> desktopLogin({required String pinCode}) async {
     ProxyService.box.remove(key: 'authComplete');
-    logOut();
+    // logOut();
     try {
       setIsprocessing(value: true);
 
@@ -83,6 +83,23 @@ class LoginViewModel extends FlipperBaseModel
       );
 
       ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
+      await completeLogin(thePin);
+    } on LoginChoicesException {
+      locator<RouterService>().navigateTo(LoginChoicesRoute());
+    } catch (error, s) {
+      talker.error("Login error: $error");
+      talker.error("Login trace: $s");
+      talker.info(s);
+      setIsprocessing(value: false);
+      await Sentry.captureException(error, stackTrace: s);
+      rethrow;
+    } finally {
+      setIsprocessing(value: false);
+    }
+  }
+
+  Future<void> completeLogin(Pin thePin) async {
+    try {
       await ProxyService.local.savePin(pin: thePin);
       await appService.appInit();
 
@@ -96,17 +113,9 @@ class LoginViewModel extends FlipperBaseModel
       } else {
         locator<RouterService>().navigateTo(FlipperAppRoute());
       }
-    } on LoginChoicesException {
-      locator<RouterService>().navigateTo(LoginChoicesRoute());
-    } catch (error, s) {
-      talker.error("Login error: $error");
-      talker.error("Login trace: $s");
-      talker.info(s);
-      setIsprocessing(value: false);
-      await Sentry.captureException(error, stackTrace: s);
+    } catch (e) {
+      print(e);
       rethrow;
-    } finally {
-      setIsprocessing(value: false);
     }
   }
 

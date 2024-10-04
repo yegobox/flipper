@@ -137,7 +137,7 @@ class CloudSync implements SyncInterface {
 
             // Process the document based on the change type
             // Assuming all changes are either added or modified for this example
-            var realmObject = _realm.query<T>('id == "$id"').firstOrNull;
+            var realmObject = _realm.query<T>(r'id == $0', [id]).firstOrNull;
             if (realmObject == null) {
               realmObject = createRealmObject(data);
               _realm.write(() {
@@ -347,6 +347,7 @@ class CloudSync implements SyncInterface {
       } catch (e, s) {
         talker.warning(e);
         talker.error(s);
+        rethrow;
       }
     }
   }
@@ -371,11 +372,11 @@ class CloudSync implements SyncInterface {
   }) async {
     if (syncProvider == SyncProvider.FIRESTORE) {
       try {
+        final branchId = ProxyService.box.getBranchId();
         // Listen for Firestore collection changes
         _firestore
             .collection(tableName)
-            .where('branch_id', isEqualTo: ProxyService.box.getBranchId())
-            .where('deleted_at', isNull: true)
+            .where('branch_id', isEqualTo: branchId)
             .snapshots()
             .listen((querySnapshot) {
           for (var docChange in querySnapshot.docChanges) {
@@ -386,20 +387,27 @@ class CloudSync implements SyncInterface {
             switch (docChange.type) {
               case DocumentChangeType.added:
               case DocumentChangeType.modified:
-                var realmObject = _realm.query<T>('id == "$id"').firstOrNull;
-                if (realmObject == null) {
-                  /// check if this object was deleted and is found in deletedObjects
-                  DeletedObject? deletedObject = _realm
-                      .query<DeletedObject>(r'id == $0', [id]).firstOrNull;
-                  if (deletedObject == null) {
-                    realmObject = createRealmObject(data);
-                    _realm.write(() {
-                      _realm.add<T>(realmObject!);
-                    });
+                try {
+                  T? realmObject =
+                      _realm.query<T>(r'id == $0', [id]).firstOrNull;
+                  if (realmObject == null) {
+                    /// check if this object was deleted and is found in deletedObjects
+                    DeletedObject? deletedObject = _realm
+                        .query<DeletedObject>(r'id == $0', [id]).firstOrNull;
+                    if (deletedObject == null) {
+                      realmObject = createRealmObject(data);
+                      _realm.write(() {
+                        _realm.add<T>(realmObject!);
+                      });
+                    }
+                  } else {
+                    talker
+                        .warning("Firestore changes updateRealmObject: ${id}");
+                    updateRealmObject(realmObject, data);
                   }
-                } else {
-                  talker.warning("Firestore changes updateRealmObject: ${id}");
-                  updateRealmObject(realmObject, data);
+                } catch (e, s) {
+                  talker.warning("E: ${e}");
+                  talker.warning("S: ${s}");
                 }
 
                 break;
@@ -419,6 +427,7 @@ class CloudSync implements SyncInterface {
         });
       } catch (e) {
         talker.error("Error setting up Firestore listener: $e");
+        throw Exception("Error syncing: $e");
       }
     }
     if (syncProvider == "POWERSYNC") {
@@ -556,10 +565,15 @@ class CloudSync implements SyncInterface {
 
   @override
   Future<void> firebaseLogin() async {
-    String token = ProxyService.box.uid();
-
     if (FirebaseAuth.instance.currentUser == null) {
-      await FirebaseAuth.instance.signInWithCustomToken(token);
+      try {
+        Pin? pin = ProxyService.local
+            .getPinLocal(userId: ProxyService.box.getUserId()!);
+        String token = pin!.tokenUid!;
+        await FirebaseAuth.instance.signInWithCustomToken(token);
+      } catch (e) {
+        talker.error(e);
+      }
     }
   }
 }
