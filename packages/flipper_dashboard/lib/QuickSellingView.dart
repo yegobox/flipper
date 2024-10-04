@@ -217,6 +217,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             ],
           ),
           if (isOrdering) ...[
+            
             Padding(
               padding: const EdgeInsets.only(left: 20.0),
               child: Column(

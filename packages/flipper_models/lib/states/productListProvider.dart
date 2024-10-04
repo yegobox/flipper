@@ -55,57 +55,63 @@ class CartListNotifier extends StateNotifier<List<Variant>> {
 final productFromSupplier =
     FutureProvider.autoDispose<List<Variant>>((ref) async {
   final supplier = ref.watch(selectedSupplierProvider);
-  var headers = {
-    'api-key': AppSecrets.apikey,
-    'Content-Type': 'application/json'
-  };
+
   var data = json.encode({
-    "collection": AppSecrets.variantCollection,
-    "database": AppSecrets.database,
-    "dataSource": AppSecrets.dataSource,
-    "filter": {
-      "\$and": [
-        {"branchId": supplier.value?.serverId},
-        {
-          "name": {"\$ne": "Custom Amount"}
-        },
-        {
-          "rsdQty": {"\$ne": 0}
-        },
-        {
-          "productName": {"\$ne": "temp"}
+    "structuredQuery": {
+      "from": [
+        {"collectionId": AppSecrets.queryableModel}
+      ],
+      "where": {
+        "fieldFilter": {
+          "field": {"fieldPath": "branch_id"},
+          "op": "EQUAL",
+          "value": {"integerValue": supplier.value?.serverId}
         }
-      ]
+      }
     }
   });
 
   var dio = Dio();
   try {
     var response = await dio.post(
-      AppSecrets.mongoBaseUrl + '/data/v1/action/find',
-      options: Options(headers: headers),
+      AppSecrets.apiEndPoints,
       data: data,
     );
 
-    final List<dynamic> documents = response.data['documents'] ?? [];
+    final List<dynamic> documents = response.data ?? [];
 
-    List<Variant> variants = documents.map<Variant>((item) {
-      // Check data types if known to be integers
+    // Filtering out any documents that don't have a 'document' field
+    List<Variant> variants = documents
+        .where(
+            (item) => item['document'] != null) // Safeguard for null documents
+        .map<Variant>((item) {
+      var fields = item['document']?['fields'] ?? {};
 
-      // Handle potential decimals otherwise
-      double retailPrice = item['retailPrice'].toDouble();
-      double supplyPrice = item['supplyPrice'].toDouble();
+      // Safely retrieve values with null checks
+      String name = fields['name']?['stringValue'] ?? 'Unknown';
+      String productName = fields['product_name']?['stringValue'] ?? 'Unknown';
+      String productId =
+          fields['product_id']?['integerValue']?.toString() ?? '';
+      int branchId = int.tryParse(
+              fields['branch_id']?['integerValue']?.toString() ?? '0') ??
+          0;
+      int id =
+          int.tryParse(fields['id']?['integerValue']?.toString() ?? '0') ?? 0;
+      String color = fields['color']?['stringValue'] ?? '#FFFFFF';
+
+      int retailPrice = fields['retail_price']?['doubleValue'] ?? 0.0;
+      int supplyPrice = fields['supply_price']?['doubleValue'] ?? 0.0;
 
       return Variant(
         ObjectId(),
-        name: item['name'],
-        productName: item['productName'],
-        productId: item['productId'],
-        branchId: item['branchId'],
-        id: item['id'] as int,
-        color: item['color'],
-        retailPrice: retailPrice,
-        supplyPrice: supplyPrice,
+        name: name,
+        productName: productName,
+        productId: int.parse(productId),
+        branchId: branchId,
+        id: id,
+        color: color,
+        retailPrice: retailPrice.toDouble(),
+        supplyPrice: supplyPrice.toDouble(),
       );
     }).toList();
 

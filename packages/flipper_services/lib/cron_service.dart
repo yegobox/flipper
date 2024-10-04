@@ -138,6 +138,7 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
+    ProxyService.box.writeBool(key: 'isOrdering', value: false);
     final firestore = FirebaseFirestore.instance;
     final realm = ProxyService.local.realm;
 

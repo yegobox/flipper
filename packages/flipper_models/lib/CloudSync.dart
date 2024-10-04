@@ -399,6 +399,7 @@ class CloudSync implements SyncInterface {
               case DocumentChangeType.added:
               case DocumentChangeType.modified:
                 try {
+                  if (_realm.isClosed) return;
                   T? realmObject =
                       _realm.query<T>(r'id == $0', [id]).firstOrNull;
                   if (realmObject == null) {

@@ -249,7 +249,9 @@ class CheckOutState extends ConsumerState<CheckOut>
                 child: Column(
                   children: [
                     _buildIconRow(),
-                    SearchInputWithDropdown(transaction: transaction)
+                    transaction.isValid
+                        ? SearchInputWithDropdown(transaction: transaction)
+                        : SizedBox.shrink()
                   ],
                 ),
               ),
@@ -304,6 +306,7 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildQuickSellingView() {
+    // return SizedBox.shrink();
     return QuickSellingView(
       deliveryNoteCotroller: deliveryNoteCotroller,
       formKey: formKey,
