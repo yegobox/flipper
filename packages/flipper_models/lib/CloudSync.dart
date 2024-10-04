@@ -129,29 +129,40 @@ class CloudSync implements SyncInterface {
   }) async {
     if (syncProvider == SyncProvider.FIRESTORE) {
       try {
+        final branchId = ProxyService.box.getBranchId();
         // Get Firestore collection changes without listening
-        _firestore.collection(tableName).get().then((querySnapshot) {
-          for (var docChange in querySnapshot.docs) {
-            final id = int.parse(docChange.id);
-            final data = docChange.data();
+        final querySnapshot = await _firestore
+            .collection(tableName)
+            .where('branch_id', isEqualTo: branchId)
+            .get();
 
-            // Process the document based on the change type
-            // Assuming all changes are either added or modified for this example
-            var realmObject = _realm.query<T>(r'id == $0', [id]).firstOrNull;
-            if (realmObject == null) {
-              realmObject = createRealmObject(data);
-              _realm.write(() {
-                _realm.add<T>(realmObject!);
-              });
-            } else {
-              updateRealmObject(realmObject, data);
-            }
+        print(
+            "Retrieved ${querySnapshot.docs.length} documents from Firestore");
+
+        for (var docChange in querySnapshot.docs) {
+          final id = int.parse(docChange.id);
+          final data = docChange.data();
+
+          print("Processing document with ID: $id");
+
+          // Process the document based on the change type
+          // Assuming all changes are either added or modified for this example
+          var realmObject = _realm.query<T>(r'id == $0', [id]).firstOrNull;
+          if (realmObject == null) {
+            realmObject = createRealmObject(data);
+            _realm.write(() {
+              _realm.add<T>(realmObject!);
+            });
+            print("Added new object to Realm with ID: $id");
+          } else {
+            updateRealmObject(realmObject, data);
+            print("Updated existing object in Realm with ID: $id");
           }
-        }, onError: (error) {
-          talker.error("Error fetching Firestore changes: $error");
-        });
+        }
+
+        print("Finished processing all documents");
       } catch (e) {
-        talker.error("Error fetching Firestore changes: $e");
+        print("Error fetching or processing Firestore changes: $e");
       }
     }
   }
@@ -401,8 +412,8 @@ class CloudSync implements SyncInterface {
                       });
                     }
                   } else {
-                    talker
-                        .warning("Firestore changes updateRealmObject: ${id}");
+                    talker.warning(
+                        "Firestore changes updateRealmObject $tableName: ${id}");
                     updateRealmObject(realmObject, data);
                   }
                 } catch (e, s) {
@@ -412,13 +423,13 @@ class CloudSync implements SyncInterface {
 
                 break;
               case DocumentChangeType.removed:
-                _realm.write(() {
-                  T? realmObject =
-                      _realm.query<T>(r'id == $0', [id]).firstOrNull;
-                  if (realmObject != null) {
-                    _realm.delete(realmObject);
-                  }
-                });
+                // _realm.write(() {
+                //   T? realmObject =
+                //       _realm.query<T>(r'id == $0', [id]).firstOrNull;
+                //   if (realmObject != null) {
+                //     _realm.delete(realmObject);
+                //   }
+                // });
                 break;
             }
           }

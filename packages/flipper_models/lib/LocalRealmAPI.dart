@@ -484,6 +484,7 @@ class LocalRealmApi
       Pin? savedPin = await ProxyService.local.savePin(
           pin: Pin(ObjectId(),
               userId: pin.userId,
+              id: int.parse(pin.userId),
               branchId: pin.branchId,
               businessId: pin.businessId,
               ownerName: pin.ownerName,
@@ -1491,7 +1492,7 @@ class LocalRealmApi
 
   @override
   Pin? getPinLocal({required int userId}) {
-    return realm!.query<Pin>(r'userId == $0', [userId]).firstOrNull;
+    return realm!.query<Pin>(r'userId == $0', [userId.toString()]).firstOrNull;
   }
 
   @override

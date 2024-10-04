@@ -11,6 +11,261 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class PullChange {
   void start(
       {required FirebaseFirestore firestore, required Realm localRealm}) {
+    /// delete all product from firestore where brnach_id ==1
+
+    CloudSync(firestore, localRealm).watchTable<Product>(
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: 'products',
+      idField: 'product_id',
+      createRealmObject: (data) {
+        return Product(
+          ObjectId(),
+          id: data['product_id'] == null ? randomNumber() : data['product_id'],
+          name: data['name'] == null ? "" : data['name'],
+          description: data['description'],
+          taxId: data['tax_id'],
+          color: data['color'] ?? "#e74c3c",
+          businessId: data['business_id'] == null
+              ? ProxyService.box.getBusinessId()
+              : data['business_id'],
+          branchId: data['branch_id'] == null
+              ? ProxyService.box.getBranchId()
+              : data['branch_id'],
+          supplierId: data['supplier_id'] == null ? "" : data['supplier_id'],
+          categoryId: data['category_id'] == null ? 0 : data['category_id'],
+          createdAt: data['created_at'] == null
+              ? DateTime.now().toIso8601String()
+              : data['created_at'],
+          unit: data['unit'] == null ? "" : data['unit'],
+          imageUrl: data['image_url'] == null ? "" : data['image_url'],
+          expiryDate: data['expiry_date'] == null ? "" : data['expiry_date'],
+          barCode: data['bar_code'],
+          nfcEnabled: data['nfc_enabled'] ?? false,
+          bindedToTenantId: data['binded_to_tenant_id'] == null
+              ? 0
+              : data['binded_to_tenant_id'],
+          isFavorite: data['is_favorite'] ?? false,
+          lastTouched: data['last_touched'] == null
+              ? DateTime.now()
+              : DateTime.parse(data['last_touched']),
+          action: data['action'] == null ? "" : data['action'],
+          deletedAt:
+              data['deleted_at'] == null ? DateTime.now() : data['deleted_at'],
+          spplrNm: data['spplr_nm'] == null ? "" : data['spplr_nm'],
+        );
+      },
+      updateRealmObject: (_product, data) {
+        Product? product = localRealm
+            .query<Product>(r'id == $0', [data['product_id']]).firstOrNull;
+
+        if (product != null) {
+          localRealm.write(() {
+            product.name = data['name'] ?? product.name;
+            product.description = data['description'] ?? product.description;
+            product.taxId = data['tax_id'] ?? product.taxId;
+            product.color = data['color'] ?? product.color;
+            product.businessId = data['business_id'] == null
+                ? ProxyService.box.getBusinessId()
+                : data['business_id'];
+            product.branchId = data['branch_id'] == null
+                ? ProxyService.box.getBranchId()
+                : data['branch_id'];
+
+            product.supplierId = data['supplier_id'] ?? product.supplierId;
+            product.categoryId =
+                data['category_id'] == null ? 0 : data['category_id'];
+            product.createdAt = data['created_at'] == null
+                ? DateTime.now().toIso8601String()
+                : data['created_at'];
+
+            product.unit = data['unit'] ?? product.unit;
+            product.imageUrl = data['image_url'] ?? product.imageUrl;
+            product.expiryDate = data['expiry_date'] ?? product.expiryDate;
+            product.barCode = data['bar_code'] ?? product.barCode;
+            product.nfcEnabled = data['nfc_enabled'] ?? product.nfcEnabled;
+            product.bindedToTenantId = data['binded_to_tenant_id'] == null
+                ? 0
+                : data['binded_to_tenant_id'];
+            product.isFavorite = data['is_favorite'] ?? product.isFavorite;
+            product.lastTouched = data['last_touched'] == null
+                ? DateTime.now()
+                : DateTime.parse(data['last_touched']);
+            product.action = data['action'] ?? product.action;
+            product.deletedAt = data['deleted_at'] == null
+                ? DateTime.now()
+                : DateTime.parse(data['deleted_at']);
+            product.searchMatch = data['search_match'] ?? product.searchMatch;
+            product.spplrNm = data['spplr_nm'] ?? product.spplrNm;
+            product.isComposite = data['is_composite'] ?? product.isComposite;
+          });
+        }
+      },
+    );
+
+    CloudSync(firestore, localRealm).watchTable<Variant>(
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: 'variants',
+      idField: 'variant_id',
+      createRealmObject: (data) {
+        return Variant(
+          ObjectId(),
+          id: data['variant_id'] == null ? 0 : data['variant_id'],
+          branchId: data['branch_id'] == null
+              ? ProxyService.box.getBranchId()
+              : data['branch_id'],
+          lastTouched: data['last_touched'] == null
+              ? DateTime.now()
+              : DateTime.parse(data['last_touched']),
+          name: data['name'] == null ? "" : data['name'],
+          color: data['color'] == null ? "#e74c3c" : data['color'],
+          sku: data['sku'] == null ? "" : data['sku'],
+          productId: data['product_id'] == null ? 0 : data['product_id'],
+          unit: data['unit'] == null ? "" : data['unit'],
+          productName: data['product_name'] == null ? "" : data['product_name'],
+          taxName: data['tax_name'] == null ? "" : data['tax_name'],
+          taxPercentage:
+              data['tax_percentage'] == null ? 0.0 : data['tax_percentage'],
+          isTaxExempted: data['is_tax_exempted'] ?? false,
+          itemSeq: data['item_seq'] == null ? 0 : data['item_seq'],
+          isrccCd: data['isrcc_cd'] == null ? "" : data['isrcc_cd'],
+          isrccNm: data['isrcc_nm'] == null ? "" : data['isrcc_nm'],
+          isrcRt: data['isrc_rt'] == null ? 0 : data['isrc_rt'],
+          isrcAmt: data['isrc_amt'] == null ? 0 : data['isrc_amt'],
+          taxTyCd: data['tax_ty_cd'] == null ? "" : data['tax_ty_cd'],
+          bcd: data['bcd'] == null ? "" : data['bcd'],
+          itemClsCd: data['item_cls_cd'] == null ? "" : data['item_cls_cd'],
+          itemTyCd: data['item_ty_cd'] == null ? "" : data['item_ty_cd'],
+          itemStdNm: data['item_std_nm'] == null ? "" : data['item_std_nm'],
+          orgnNatCd: data['orgn_nat_cd'] == null ? "" : data['orgn_nat_cd'],
+          pkg: data['pkg'] == null ? "" : data['pkg'],
+          itemCd: data['item_cd'] == null ? "" : data['item_cd'],
+          pkgUnitCd: data['pkg_unit_cd'] == null ? "" : data['pkg_unit_cd'],
+          qtyUnitCd: data['qty_unit_cd'] == null ? "" : data['qty_unit_cd'],
+          itemNm: data['item_nm'],
+          qty: data['qty'] == null ? 0.0 : data['qty'],
+          prc: data['prc'] == null ? 0.0 : data['prc'],
+          splyAmt: data['sply_amt'] == null ? 0.0 : data['sply_amt'],
+          tin: data['tin'] == null ? 0 : data['tin'],
+          bhfId: data['bhf_id'] == null ? "" : data['bhf_id'],
+          dftPrc: data['dft_prc'] == null ? 0.0 : data['dft_prc'],
+          addInfo: data['add_info'] == null ? "" : data['add_info'],
+          isrcAplcbYn:
+              data['isrc_aplcby_yn'] == null ? "" : data['isrc_aplcby_yn'],
+          useYn: data['use_yn'] == null ? "" : data['use_yn'],
+          regrId: data['regr_id'] == null ? "" : data['regr_id'],
+          regrNm: data['regr_nm'] == null ? "" : data['regr_nm'],
+          modrId: data['modr_id'] == null ? "" : data['modr_id'],
+          modrNm: data['modr_nm'] == null ? "" : data['modr_nm'],
+          rsdQty: data['rsd_qty'] == null ? 0.0 : data['rsd_qty'],
+          supplyPrice:
+              data['supply_price'] == null ? 0.0 : data['supply_price'],
+          retailPrice:
+              data['retail_price'] == null ? 0.0 : data['retail_price'],
+          spplrItemClsCd: data['spplr_item_cls_cd'] == null
+              ? ""
+              : data['spplr_item_cls_cd'],
+          spplrItemCd:
+              data['spplr_item_cd'] == null ? "" : data['spplr_item_cd'],
+          spplrItemNm:
+              data['spplr_item_nm'] == null ? "" : data['spplr_item_nm'],
+          ebmSynced: data['ebm_synced'] ?? false,
+          taxType: data['tax_type'] == null ? "" : data['tax_type'],
+        );
+      },
+      updateRealmObject: (_variant, data) {
+        // Find related variant
+        Variant? variant = localRealm
+            .query<Variant>(r'id == $0', [data['variant_id']]).firstOrNull;
+
+        if (variant != null) {
+          localRealm.write(() {
+            variant.lastTouched = data['last_touched'] is DateTime
+                ? data['last_touched']
+                : DateTime.tryParse(data['last_touched']) ??
+                    variant.lastTouched;
+            variant.name = data['name'];
+            variant.branchId = data['branch_id'] is int
+                ? data['branch_id']
+                : int.tryParse(data['branch_id']) ?? variant.branchId;
+            variant.color = data['color'];
+            variant.sku = data['sku'];
+            variant.productId = data['product_id'] is int
+                ? data['product_id']
+                : int.tryParse(data['product_id']) ?? variant.productId;
+            variant.unit = data['unit'];
+            // ... add other properties here ...
+            variant.productName = data['product_name'];
+            variant.taxName = data['tax_name'];
+            variant.taxPercentage = data['tax_percentage'] is double
+                ? data['tax_percentage']
+                : double.tryParse(data['tax_percentage']) ??
+                    variant.taxPercentage;
+            variant.isTaxExempted =
+                data['is_tax_exempted'] ?? variant.isTaxExempted;
+            variant.itemSeq = data['item_seq'] is int
+                ? data['item_seq']
+                : int.tryParse(data['item_seq']) ?? variant.itemSeq;
+            variant.isrccCd = data['isrcc_cd'] ?? variant.isrccCd;
+            variant.isrccNm = data['isrcc_nm'] ?? variant.isrccNm;
+            variant.isrcRt = data['isrc_rt'] is int
+                ? data['isrc_rt']
+                : int.tryParse(data['isrc_rt']) ?? variant.isrcRt;
+            variant.isrcAmt = data['isrc_amt'] == null ? 0 : data['isrc_amt'];
+            variant.taxTyCd = data['tax_ty_cd'] ?? variant.taxTyCd;
+            variant.bcd = data['bcd'] ?? variant.bcd;
+            variant.itemClsCd = data['item_cls_cd'] ?? variant.itemClsCd;
+            variant.itemTyCd = data['item_ty_cd'] ?? variant.itemTyCd;
+            variant.itemStdNm = data['item_std_nm'] ?? variant.itemStdNm;
+            variant.orgnNatCd = data['orgn_nat_cd'] ?? variant.orgnNatCd;
+            variant.pkg = data['pkg'] ?? variant.pkg;
+            variant.itemCd = data['item_cd'] ?? variant.itemCd;
+            variant.pkgUnitCd = data['pkg_unit_cd'] ?? variant.pkgUnitCd;
+            variant.qtyUnitCd = data['qty_unit_cd'] ?? variant.qtyUnitCd;
+            variant.itemNm = data['item_nm'] ?? variant.itemNm;
+            variant.qty = data['qty'] is double
+                ? data['qty']
+                : double.tryParse(data['qty']) ?? variant.qty;
+            variant.prc = data['prc'] is double
+                ? data['prc']
+                : double.tryParse(data['prc']) ?? variant.prc;
+            variant.splyAmt = data['sply_amt'] is double
+                ? data['sply_amt']
+                : double.tryParse(data['sply_amt']) ?? variant.splyAmt;
+            variant.tin = data['tin'] is int
+                ? data['tin']
+                : int.tryParse(data['tin']) ?? variant.tin;
+            variant.bhfId = data['bhf_id'] ?? variant.bhfId;
+            variant.dftPrc = data['dft_prc'] is double
+                ? data['dft_prc']
+                : double.tryParse(data['dft_prc']) ?? variant.dftPrc;
+            variant.addInfo = data['add_info'] ?? variant.addInfo;
+            variant.isrcAplcbYn = data['isrc_aplcby_yn'] ?? variant.isrcAplcbYn;
+            variant.useYn = data['use_yn'] ?? variant.useYn;
+            variant.regrId = data['regr_id'] ?? variant.regrId;
+            variant.regrNm = data['regr_nm'] ?? variant.regrNm;
+            variant.modrId = data['modr_id'] ?? variant.modrId;
+            variant.modrNm = data['modr_nm'] ?? variant.modrNm;
+            variant.rsdQty = data['rsd_qty'] is double
+                ? data['rsd_qty']
+                : double.tryParse(data['rsd_qty']) ?? variant.rsdQty;
+            variant.supplyPrice = data['supply_price'] is double
+                ? data['supply_price']
+                : double.tryParse(data['supply_price']) ?? variant.supplyPrice;
+            variant.retailPrice = data['retail_price'] is double
+                ? data['retail_price']
+                : double.tryParse(data['retail_price']) ?? variant.retailPrice;
+            variant.action = data['action'] ?? variant.action;
+            variant.spplrItemClsCd =
+                data['spplr_item_cls_cd'] ?? variant.spplrItemClsCd;
+            variant.spplrItemCd = data['spplr_item_cd'] ?? variant.spplrItemCd;
+            variant.spplrItemNm = data['spplr_item_nm'] ?? variant.spplrItemNm;
+            variant.ebmSynced = data['ebm_synced'] ?? variant.ebmSynced;
+            variant.taxType = data['tax_type'] ?? variant.taxType;
+          });
+        }
+      },
+    );
+
     CloudSync(firestore, localRealm).watchTable<Pin>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: pinsTable,
@@ -18,7 +273,7 @@ class PullChange {
       createRealmObject: (data) {
         return Pin(
           ObjectId(),
-          id: data['pin'],
+          id: data['user_id'] == null ? 0 : int.parse(data['user_id']),
           userId: data['user_id'],
           branchId: data['branch_id'],
           businessId: data['business_id'],
@@ -100,8 +355,9 @@ class PullChange {
                 data['sub_total'] == null ? 0.0 : data['sub_total'];
             transaction.paymentType =
                 data['payment_type'] == null ? "" : data['payment_type'];
-            transaction.cashReceived =
-                data['cash_received'] == null ? 0.0 : data['cash_received'];
+            transaction.cashReceived = data['cash_received'] == null
+                ? 0.0
+                : double.parse(data['cash_received']);
             transaction.customerChangeDue = data['customer_change_due'] == null
                 ? 0.0
                 : data['customer_change_due'];
@@ -576,258 +832,6 @@ class PullChange {
                 ? data['actual_price']
                 : double.tryParse(data['actual_price']) ??
                     composite.actualPrice;
-          });
-        }
-      },
-    );
-    CloudSync(firestore, localRealm).watchTable<Product>(
-      syncProvider: SyncProvider.FIRESTORE,
-      tableName: 'products',
-      idField: 'product_id',
-      createRealmObject: (data) {
-        return Product(
-          ObjectId(),
-          id: data['product_id'] == null ? randomNumber() : data['product_id'],
-          name: data['name'] == null ? "" : data['name'],
-          description: data['description'],
-          taxId: data['tax_id'],
-          color: data['color'] ?? "#e74c3c",
-          businessId: data['business_id'] == null
-              ? ProxyService.box.getBusinessId()
-              : data['business_id'],
-          branchId: data['branch_id'] == null
-              ? ProxyService.box.getBranchId()
-              : data['branch_id'],
-          supplierId: data['supplier_id'] == null ? "" : data['supplier_id'],
-          categoryId: data['category_id'] == null ? 0 : data['category_id'],
-          createdAt: data['created_at'] == null
-              ? DateTime.now().toIso8601String()
-              : data['created_at'],
-          unit: data['unit'] == null ? "" : data['unit'],
-          imageUrl: data['image_url'] == null ? "" : data['image_url'],
-          expiryDate: data['expiry_date'] == null ? "" : data['expiry_date'],
-          barCode: data['bar_code'],
-          nfcEnabled: data['nfc_enabled'] ?? false,
-          bindedToTenantId: data['binded_to_tenant_id'] == null
-              ? 0
-              : data['binded_to_tenant_id'],
-          isFavorite: data['is_favorite'] ?? false,
-          lastTouched: data['last_touched'] == null
-              ? DateTime.now()
-              : DateTime.parse(data['last_touched']),
-          action: data['action'] == null ? "" : data['action'],
-          deletedAt:
-              data['deleted_at'] == null ? DateTime.now() : data['deleted_at'],
-          spplrNm: data['spplr_nm'] == null ? "" : data['spplr_nm'],
-        );
-      },
-      updateRealmObject: (_product, data) {
-        Product? product = localRealm
-            .query<Product>(r'id == $0', [data['product_id']]).firstOrNull;
-
-        if (product != null) {
-          localRealm.write(() {
-            product.name = data['name'] ?? product.name;
-            product.description = data['description'] ?? product.description;
-            product.taxId = data['tax_id'] ?? product.taxId;
-            product.color = data['color'] ?? product.color;
-            product.businessId = data['business_id'] == null
-                ? ProxyService.box.getBusinessId()
-                : data['business_id'];
-            product.branchId = data['branch_id'] == null
-                ? ProxyService.box.getBranchId()
-                : data['branch_id'];
-
-            product.supplierId = data['supplier_id'] ?? product.supplierId;
-            product.categoryId =
-                data['category_id'] == null ? 0 : data['category_id'];
-            product.createdAt = data['created_at'] == null
-                ? DateTime.now().toIso8601String()
-                : data['created_at'];
-
-            product.unit = data['unit'] ?? product.unit;
-            product.imageUrl = data['image_url'] ?? product.imageUrl;
-            product.expiryDate = data['expiry_date'] ?? product.expiryDate;
-            product.barCode = data['bar_code'] ?? product.barCode;
-            product.nfcEnabled = data['nfc_enabled'] ?? product.nfcEnabled;
-            product.bindedToTenantId = data['binded_to_tenant_id'] == null
-                ? 0
-                : data['binded_to_tenant_id'];
-            product.isFavorite = data['is_favorite'] ?? product.isFavorite;
-            product.lastTouched = data['last_touched'] == null
-                ? DateTime.now()
-                : DateTime.parse(data['last_touched']);
-            product.action = data['action'] ?? product.action;
-            product.deletedAt = data['deleted_at'] == null
-                ? DateTime.now()
-                : DateTime.parse(data['deleted_at']);
-            product.searchMatch = data['search_match'] ?? product.searchMatch;
-            product.spplrNm = data['spplr_nm'] ?? product.spplrNm;
-            product.isComposite = data['is_composite'] ?? product.isComposite;
-          });
-        }
-      },
-    );
-
-    CloudSync(firestore, localRealm).watchTable<Variant>(
-      syncProvider: SyncProvider.FIRESTORE,
-      tableName: 'variants',
-      idField: 'variant_id',
-      createRealmObject: (data) {
-        return Variant(
-          ObjectId(),
-          id: data['variant_id'] == null ? 0 : data['variant_id'],
-          branchId: data['branch_id'] == null
-              ? ProxyService.box.getBranchId()
-              : data['branch_id'],
-          lastTouched: data['last_touched'] == null
-              ? DateTime.now()
-              : DateTime.parse(data['last_touched']),
-          name: data['name'] == null ? "" : data['name'],
-          color: data['color'] == null ? "#e74c3c" : data['color'],
-          sku: data['sku'] == null ? "" : data['sku'],
-          productId: data['product_id'] == null ? 0 : data['product_id'],
-          unit: data['unit'] == null ? "" : data['unit'],
-          productName: data['product_name'] == null ? "" : data['product_name'],
-          taxName: data['tax_name'] == null ? "" : data['tax_name'],
-          taxPercentage:
-              data['tax_percentage'] == null ? 0.0 : data['tax_percentage'],
-          isTaxExempted: data['is_tax_exempted'] ?? false,
-          itemSeq: data['item_seq'] == null ? 0 : data['item_seq'],
-          isrccCd: data['isrcc_cd'] == null ? "" : data['isrcc_cd'],
-          isrccNm: data['isrcc_nm'] == null ? "" : data['isrcc_nm'],
-          isrcRt: data['isrc_rt'] == null ? 0 : data['isrc_rt'],
-          isrcAmt: data['isrc_amt'] == null ? 0 : data['isrc_amt'],
-          taxTyCd: data['tax_ty_cd'] == null ? "" : data['tax_ty_cd'],
-          bcd: data['bcd'] == null ? "" : data['bcd'],
-          itemClsCd: data['item_cls_cd'] == null ? "" : data['item_cls_cd'],
-          itemTyCd: data['item_ty_cd'] == null ? "" : data['item_ty_cd'],
-          itemStdNm: data['item_std_nm'] == null ? "" : data['item_std_nm'],
-          orgnNatCd: data['orgn_nat_cd'] == null ? "" : data['orgn_nat_cd'],
-          pkg: data['pkg'] == null ? "" : data['pkg'],
-          itemCd: data['item_cd'] == null ? "" : data['item_cd'],
-          pkgUnitCd: data['pkg_unit_cd'] == null ? "" : data['pkg_unit_cd'],
-          qtyUnitCd: data['qty_unit_cd'] == null ? "" : data['qty_unit_cd'],
-          itemNm: data['item_nm'],
-          qty: data['qty'] == null ? 0.0 : data['qty'],
-          prc: data['prc'] == null ? 0.0 : data['prc'],
-          splyAmt: data['sply_amt'] == null ? 0.0 : data['sply_amt'],
-          tin: data['tin'] == null ? 0 : data['tin'],
-          bhfId: data['bhf_id'] == null ? "" : data['bhf_id'],
-          dftPrc: data['dft_prc'] == null ? 0.0 : data['dft_prc'],
-          addInfo: data['add_info'] == null ? "" : data['add_info'],
-          isrcAplcbYn:
-              data['isrc_aplcby_yn'] == null ? "" : data['isrc_aplcby_yn'],
-          useYn: data['use_yn'] == null ? "" : data['use_yn'],
-          regrId: data['regr_id'] == null ? "" : data['regr_id'],
-          regrNm: data['regr_nm'] == null ? "" : data['regr_nm'],
-          modrId: data['modr_id'] == null ? "" : data['modr_id'],
-          modrNm: data['modr_nm'] == null ? "" : data['modr_nm'],
-          rsdQty: data['rsd_qty'] == null ? 0.0 : data['rsd_qty'],
-          supplyPrice:
-              data['supply_price'] == null ? 0.0 : data['supply_price'],
-          retailPrice:
-              data['retail_price'] == null ? 0.0 : data['retail_price'],
-          spplrItemClsCd: data['spplr_item_cls_cd'] == null
-              ? ""
-              : data['spplr_item_cls_cd'],
-          spplrItemCd:
-              data['spplr_item_cd'] == null ? "" : data['spplr_item_cd'],
-          spplrItemNm:
-              data['spplr_item_nm'] == null ? "" : data['spplr_item_nm'],
-          ebmSynced: data['ebm_synced'] ?? false,
-          taxType: data['tax_type'] == null ? "" : data['tax_type'],
-        );
-      },
-      updateRealmObject: (_variant, data) {
-        // Find related variant
-        Variant? variant = localRealm
-            .query<Variant>(r'id == $0', [data['variant_id']]).firstOrNull;
-
-        if (variant != null) {
-          localRealm.write(() {
-            variant.lastTouched = data['last_touched'] is DateTime
-                ? data['last_touched']
-                : DateTime.tryParse(data['last_touched']) ??
-                    variant.lastTouched;
-            variant.name = data['name'];
-            variant.branchId = data['branch_id'] is int
-                ? data['branch_id']
-                : int.tryParse(data['branch_id']) ?? variant.branchId;
-            variant.color = data['color'];
-            variant.sku = data['sku'];
-            variant.productId = data['product_id'] is int
-                ? data['product_id']
-                : int.tryParse(data['product_id']) ?? variant.productId;
-            variant.unit = data['unit'];
-            // ... add other properties here ...
-            variant.productName = data['product_name'];
-            variant.taxName = data['tax_name'];
-            variant.taxPercentage = data['tax_percentage'] is double
-                ? data['tax_percentage']
-                : double.tryParse(data['tax_percentage']) ??
-                    variant.taxPercentage;
-            variant.isTaxExempted =
-                data['is_tax_exempted'] ?? variant.isTaxExempted;
-            variant.itemSeq = data['item_seq'] is int
-                ? data['item_seq']
-                : int.tryParse(data['item_seq']) ?? variant.itemSeq;
-            variant.isrccCd = data['isrcc_cd'] ?? variant.isrccCd;
-            variant.isrccNm = data['isrcc_nm'] ?? variant.isrccNm;
-            variant.isrcRt = data['isrc_rt'] is int
-                ? data['isrc_rt']
-                : int.tryParse(data['isrc_rt']) ?? variant.isrcRt;
-            variant.isrcAmt = data['isrc_amt'] == null ? 0 : data['isrc_amt'];
-            variant.taxTyCd = data['tax_ty_cd'] ?? variant.taxTyCd;
-            variant.bcd = data['bcd'] ?? variant.bcd;
-            variant.itemClsCd = data['item_cls_cd'] ?? variant.itemClsCd;
-            variant.itemTyCd = data['item_ty_cd'] ?? variant.itemTyCd;
-            variant.itemStdNm = data['item_std_nm'] ?? variant.itemStdNm;
-            variant.orgnNatCd = data['orgn_nat_cd'] ?? variant.orgnNatCd;
-            variant.pkg = data['pkg'] ?? variant.pkg;
-            variant.itemCd = data['item_cd'] ?? variant.itemCd;
-            variant.pkgUnitCd = data['pkg_unit_cd'] ?? variant.pkgUnitCd;
-            variant.qtyUnitCd = data['qty_unit_cd'] ?? variant.qtyUnitCd;
-            variant.itemNm = data['item_nm'] ?? variant.itemNm;
-            variant.qty = data['qty'] is double
-                ? data['qty']
-                : double.tryParse(data['qty']) ?? variant.qty;
-            variant.prc = data['prc'] is double
-                ? data['prc']
-                : double.tryParse(data['prc']) ?? variant.prc;
-            variant.splyAmt = data['sply_amt'] is double
-                ? data['sply_amt']
-                : double.tryParse(data['sply_amt']) ?? variant.splyAmt;
-            variant.tin = data['tin'] is int
-                ? data['tin']
-                : int.tryParse(data['tin']) ?? variant.tin;
-            variant.bhfId = data['bhf_id'] ?? variant.bhfId;
-            variant.dftPrc = data['dft_prc'] is double
-                ? data['dft_prc']
-                : double.tryParse(data['dft_prc']) ?? variant.dftPrc;
-            variant.addInfo = data['add_info'] ?? variant.addInfo;
-            variant.isrcAplcbYn = data['isrc_aplcby_yn'] ?? variant.isrcAplcbYn;
-            variant.useYn = data['use_yn'] ?? variant.useYn;
-            variant.regrId = data['regr_id'] ?? variant.regrId;
-            variant.regrNm = data['regr_nm'] ?? variant.regrNm;
-            variant.modrId = data['modr_id'] ?? variant.modrId;
-            variant.modrNm = data['modr_nm'] ?? variant.modrNm;
-            variant.rsdQty = data['rsd_qty'] is double
-                ? data['rsd_qty']
-                : double.tryParse(data['rsd_qty']) ?? variant.rsdQty;
-            variant.supplyPrice = data['supply_price'] is double
-                ? data['supply_price']
-                : double.tryParse(data['supply_price']) ?? variant.supplyPrice;
-            variant.retailPrice = data['retail_price'] is double
-                ? data['retail_price']
-                : double.tryParse(data['retail_price']) ?? variant.retailPrice;
-            variant.action = data['action'] ?? variant.action;
-            variant.spplrItemClsCd =
-                data['spplr_item_cls_cd'] ?? variant.spplrItemClsCd;
-            variant.spplrItemCd = data['spplr_item_cd'] ?? variant.spplrItemCd;
-            variant.spplrItemNm = data['spplr_item_nm'] ?? variant.spplrItemNm;
-            variant.ebmSynced = data['ebm_synced'] ?? variant.ebmSynced;
-            variant.taxType = data['tax_type'] ?? variant.taxType;
           });
         }
       },
