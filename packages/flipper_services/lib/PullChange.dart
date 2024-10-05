@@ -7,7 +7,6 @@ import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realm_model_export.dart' as mod;
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -88,27 +87,26 @@ class PullChange {
             );
             items.add(transactionItem);
           }
-          localRealm.writeN(
-              tableName: stockRequestsTable,
-              writeCallback: () {
-                return mod.StockRequest(
-                  ObjectId(),
-                  id: stockRequest.id,
-                  mainBranchId: stockRequest.main_branch_id,
-                  subBranchId: stockRequest.sub_branch_id,
-                  createdAt: stockRequest.created_at,
-                  status: stockRequest.status,
-                  deliveryDate: stockRequest.delivery_date,
-                  deliveryNote: stockRequest.delivery_note,
-                  orderNote: stockRequest.order_note,
-                  customerReceivedOrder: stockRequest.customer_received_order,
-                  driverRequestDeliveryConfirmation:
-                      stockRequest.driver_request_delivery_confirmation,
-                  driverId: stockRequest.driver_id,
-                  items: items,
-                  updatedAt: stockRequest.updated_at,
-                );
-              });
+          localRealm.write(() {
+            talker.warning("Incoming stock Requests: Saved");
+            localRealm.add<mod.StockRequest>(mod.StockRequest(
+              ObjectId(),
+              id: stockRequest.id,
+              mainBranchId: stockRequest.main_branch_id,
+              subBranchId: stockRequest.sub_branch_id,
+              createdAt: stockRequest.created_at,
+              status: stockRequest.status,
+              deliveryDate: stockRequest.delivery_date,
+              deliveryNote: stockRequest.delivery_note,
+              orderNote: stockRequest.order_note,
+              customerReceivedOrder: stockRequest.customer_received_order,
+              driverRequestDeliveryConfirmation:
+                  stockRequest.driver_request_delivery_confirmation,
+              driverId: stockRequest.driver_id,
+              items: items,
+              updatedAt: stockRequest.updated_at,
+            ));
+          });
         }
       }, onError: (error, s) {
         talker.error('$s');
