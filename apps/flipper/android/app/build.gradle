@@ -34,7 +34,6 @@ if (keystorePropertiesFile.exists()) {
 }
 android {
     namespace "rw.flipper"
-    // compileSdkVersion flutter.compileSdkVersion
     compileSdkVersion 34
     testOptions {
         execution "ANDROIDX_TEST_ORCHESTRATOR"

@@ -11,6 +11,8 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:intl/intl.dart';
+import 'package:flipper_models/realmExtension.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 
 class IncomingOrdersWidget extends HookConsumerWidget
     with StockRequestApprovalLogic {
@@ -374,7 +376,9 @@ class IncomingOrdersWidget extends HookConsumerWidget
               onPressed: () {
                 Navigator.of(context).pop();
                 ProxyService.local.realm!.write(() {
-                  ProxyService.local.realm!.delete<StockRequest>(request);
+                  ProxyService.local.realm!.deleteN<StockRequest>(
+                      tableName: stockRequestsTable,
+                      deleteCallback: () => request);
                 });
                 final stringValue = ref.watch(stringProvider);
                 ref.refresh(stockRequestsProvider((filter: stringValue)));
