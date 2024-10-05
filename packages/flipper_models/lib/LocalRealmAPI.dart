@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 
@@ -4820,5 +4821,10 @@ class LocalRealmApi
     } catch (e) {
       rethrow;
     }
+  }
+
+  @override
+  Future<String> getIdToken() async {
+    return await FirebaseAuth.instance.currentUser?.getIdToken()??"NONE";
   }
 }

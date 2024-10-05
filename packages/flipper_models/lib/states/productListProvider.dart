@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:realm/realm.dart';
@@ -56,6 +58,14 @@ final productFromSupplier =
     FutureProvider.autoDispose<List<Variant>>((ref) async {
   final supplier = ref.watch(selectedSupplierProvider);
 
+  String idToken = await ProxyService.local.getIdToken();
+
+  var headers = {
+    'Authorization': 'Bearer $idToken',
+    'Content-Type': 'application/json'
+  };
+  talker.warning("Supplier Id: ${supplier.value?.serverId}");
+
   var data = json.encode({
     "structuredQuery": {
       "from": [
@@ -75,6 +85,7 @@ final productFromSupplier =
   try {
     var response = await dio.post(
       AppSecrets.apiEndPoints,
+      options: Options(headers: headers),
       data: data,
     );
 

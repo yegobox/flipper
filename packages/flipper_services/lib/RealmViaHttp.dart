@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
@@ -1510,7 +1511,10 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
     // TODO: implement universalProductNames
     throw UnimplementedError();
   }
-
+   @override
+  Future<String> getIdToken() async {
+    return await FirebaseAuth.instance.currentUser?.getIdToken()??"NONE";
+  }
   @override
   void createNewStock(
       {required Variant variant,

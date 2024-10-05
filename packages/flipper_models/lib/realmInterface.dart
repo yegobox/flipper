@@ -586,4 +586,6 @@ abstract class RealmApiInterface {
     required List<Counter> counters,
     required RwApiResponse receiptSignature,
   });
+  // get idToken
+  Future<String> getIdToken();
 }
