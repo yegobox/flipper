@@ -21,92 +21,97 @@ class PullChange {
           .snapshots()
           .listen((querySnapshot) {
         List<mod.TransactionItem> items = [];
-        for (var doc in querySnapshot.docs) {
-          final stockRequest = doc.data;
-          for (odm.TransactionItem item in stockRequest.items!) {
-            mod.TransactionItem? transactionItem = mod.TransactionItem(
-              ObjectId(),
-              id: item.id,
-              name: item.name,
-              quantityRequested: item.quantityRequested,
-              quantityApproved: item.quantityApproved,
-              quantityShipped: item.quantityShipped,
-              transactionId: item.transactionId,
-              variantId: item.variantId,
-              qty: item.qty ?? 0,
-              price: item.price ?? 0,
-              discount: item.discount ?? 0,
-              type: item.type,
-              remainingStock: item.remainingStock ?? 0,
-              createdAt: item.createdAt,
-              updatedAt: item.updatedAt,
-              isTaxExempted: item.isTaxExempted ?? false,
-              isRefunded: item.isRefunded ?? false,
-              doneWithTransaction: item.doneWithTransaction,
-              active: item.active,
-              dcRt: item.dcRt ?? 0,
-              dcAmt: item.dcAmt ?? 0,
-              taxblAmt: item.taxblAmt ?? 0,
-              taxAmt: item.taxAmt ?? 0,
-              totAmt: item.totAmt ?? 0,
-              itemSeq: item.itemSeq,
-              isrccCd: item.isrccCd,
-              isrccNm: item.isrccNm,
-              isrcRt: item.isrcRt,
-              isrcAmt: item.isrcAmt,
-              taxTyCd: item.taxTyCd,
-              bcd: item.bcd,
-              itemClsCd: item.itemClsCd,
-              itemTyCd: item.itemTyCd,
-              itemStdNm: item.itemStdNm,
-              orgnNatCd: item.orgnNatCd,
-              pkg: item.pkg,
-              itemCd: item.itemCd,
-              pkgUnitCd: item.pkgUnitCd,
-              qtyUnitCd: item.qtyUnitCd,
-              itemNm: item.itemNm,
-              prc: item.prc ?? 0,
-              splyAmt: item.splyAmt ?? 0,
-              tin: item.tin,
-              bhfId: item.bhfId,
-              dftPrc: item.dftPrc,
-              addInfo: item.addInfo,
-              isrcAplcbYn: item.isrcAplcbYn,
-              useYn: item.useYn,
-              regrId: item.regrId,
-              regrNm: item.regrNm,
-              modrId: item.modrId,
-              modrNm: item.modrNm,
-              lastTouched: item.lastTouched,
-              deletedAt: item.deletedAt,
-              action: item.action,
-              branchId: item.branchId,
-              ebmSynced: item.ebmSynced ?? false,
-              partOfComposite: item.partOfComposite ?? false,
-              compositePrice: item.compositePrice ?? 0,
-            );
-            items.add(transactionItem);
+        for (var docChange in querySnapshot.docChanges) {
+          if (docChange.type == DocumentChangeType.added) {
+            for (var doc in querySnapshot.docs) {
+              final stockRequest = doc.data;
+
+              for (odm.TransactionItem item in stockRequest.items!) {
+                mod.TransactionItem? transactionItem = mod.TransactionItem(
+                  ObjectId(),
+                  id: item.id,
+                  name: item.name,
+                  quantityRequested: item.quantityRequested,
+                  quantityApproved: item.quantityApproved,
+                  quantityShipped: item.quantityShipped,
+                  transactionId: item.transactionId,
+                  variantId: item.variantId,
+                  qty: item.qty ?? 0,
+                  price: item.price ?? 0,
+                  discount: item.discount ?? 0,
+                  type: item.type,
+                  remainingStock: item.remainingStock ?? 0,
+                  createdAt: item.createdAt,
+                  updatedAt: item.updatedAt,
+                  isTaxExempted: item.isTaxExempted ?? false,
+                  isRefunded: item.isRefunded ?? false,
+                  doneWithTransaction: item.doneWithTransaction,
+                  active: item.active,
+                  dcRt: item.dcRt ?? 0,
+                  dcAmt: item.dcAmt ?? 0,
+                  taxblAmt: item.taxblAmt ?? 0,
+                  taxAmt: item.taxAmt ?? 0,
+                  totAmt: item.totAmt ?? 0,
+                  itemSeq: item.itemSeq,
+                  isrccCd: item.isrccCd,
+                  isrccNm: item.isrccNm,
+                  isrcRt: item.isrcRt,
+                  isrcAmt: item.isrcAmt,
+                  taxTyCd: item.taxTyCd,
+                  bcd: item.bcd,
+                  itemClsCd: item.itemClsCd,
+                  itemTyCd: item.itemTyCd,
+                  itemStdNm: item.itemStdNm,
+                  orgnNatCd: item.orgnNatCd,
+                  pkg: item.pkg,
+                  itemCd: item.itemCd,
+                  pkgUnitCd: item.pkgUnitCd,
+                  qtyUnitCd: item.qtyUnitCd,
+                  itemNm: item.itemNm,
+                  prc: item.prc ?? 0,
+                  splyAmt: item.splyAmt ?? 0,
+                  tin: item.tin,
+                  bhfId: item.bhfId,
+                  dftPrc: item.dftPrc,
+                  addInfo: item.addInfo,
+                  isrcAplcbYn: item.isrcAplcbYn,
+                  useYn: item.useYn,
+                  regrId: item.regrId,
+                  regrNm: item.regrNm,
+                  modrId: item.modrId,
+                  modrNm: item.modrNm,
+                  lastTouched: item.lastTouched,
+                  deletedAt: item.deletedAt,
+                  action: item.action,
+                  branchId: item.branchId,
+                  ebmSynced: item.ebmSynced ?? false,
+                  partOfComposite: item.partOfComposite ?? false,
+                  compositePrice: item.compositePrice ?? 0,
+                );
+                items.add(transactionItem);
+              }
+              localRealm.write(() {
+                talker.warning("Incoming stock Requests: Saved");
+                localRealm.add<mod.StockRequest>(mod.StockRequest(
+                  ObjectId(),
+                  id: stockRequest.id,
+                  mainBranchId: stockRequest.main_branch_id,
+                  subBranchId: stockRequest.sub_branch_id,
+                  createdAt: stockRequest.created_at,
+                  status: stockRequest.status,
+                  deliveryDate: stockRequest.delivery_date,
+                  deliveryNote: stockRequest.delivery_note,
+                  orderNote: stockRequest.order_note,
+                  customerReceivedOrder: stockRequest.customer_received_order,
+                  driverRequestDeliveryConfirmation:
+                      stockRequest.driver_request_delivery_confirmation,
+                  driverId: stockRequest.driver_id,
+                  items: items,
+                  updatedAt: stockRequest.updated_at,
+                ));
+              });
+            }
           }
-          localRealm.write(() {
-            talker.warning("Incoming stock Requests: Saved");
-            localRealm.add<mod.StockRequest>(mod.StockRequest(
-              ObjectId(),
-              id: stockRequest.id,
-              mainBranchId: stockRequest.main_branch_id,
-              subBranchId: stockRequest.sub_branch_id,
-              createdAt: stockRequest.created_at,
-              status: stockRequest.status,
-              deliveryDate: stockRequest.delivery_date,
-              deliveryNote: stockRequest.delivery_note,
-              orderNote: stockRequest.order_note,
-              customerReceivedOrder: stockRequest.customer_received_order,
-              driverRequestDeliveryConfirmation:
-                  stockRequest.driver_request_delivery_confirmation,
-              driverId: stockRequest.driver_id,
-              items: items,
-              updatedAt: stockRequest.updated_at,
-            ));
-          });
         }
       }, onError: (error, s) {
         talker.error('$s');
