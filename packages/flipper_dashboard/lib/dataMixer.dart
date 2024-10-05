@@ -79,7 +79,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         await model.deleteProduct(productId: productId);
         ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
       }
-    } catch (e, s) {
+    } catch (e) {
       ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
     }
   }

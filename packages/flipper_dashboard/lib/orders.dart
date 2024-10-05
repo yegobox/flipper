@@ -47,12 +47,12 @@ class Orders extends HookConsumerWidget {
               style: TextStyle(fontWeight: FontWeight.bold)),
           elevation: 1,
           actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: ShopIconWithStatus(
-                statusColor: Colors.green,
-              ),
-            )
+            // Padding(
+            //   padding: const EdgeInsets.only(right: 8.0),
+            //   child: ShopIconWithStatus(
+            //     statusColor: Colors.green,
+            //   ),
+            // )
           ],
         ),
         body: LayoutBuilder(

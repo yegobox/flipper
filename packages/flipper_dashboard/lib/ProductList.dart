@@ -32,94 +32,131 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
         PreviewcartMixin {
   @override
   Widget build(BuildContext context) {
-    final items = ref.watch(productFromSupplier);
     final isOrdering = ProxyService.box.isOrdering()!;
-    talker.warning("ProductListScreen:isOrdering: ${isOrdering}");
-    final orders = ref
-        .watch(transactionItemsProvider((isExpense: isOrdering)))
-        .value!
-        .length;
 
     return ViewModelBuilder.nonReactive(
-        viewModelBuilder: () => ProductViewModel(),
-        onViewModelReady: (model) {},
-        builder: (context, model, child) {
-          return Scaffold(
-            body: items.when(
-              data: (products) {
-                if (products.isEmpty) {
-                  return Center(child: Text('No products available'));
-                }
-                return !ref.watch(previewingCart)
-                    ? GridView.builder(
-                        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 200,
-                          mainAxisSpacing: 5.0,
-                          crossAxisSpacing: 2.0,
-                        ),
-                        itemCount: products.length,
-                        itemBuilder: (context, index) {
-                          // Double-check the index before accessing the list
-                          if (index < 0 || index >= products.length) {
-                            return SizedBox.shrink();
-                          }
-                          return buildVariantRow(
-                            forceRemoteUrl: true,
-                            context: context,
-                            model: model,
-                            variant: products[index],
-                            isOrdering: true,
-                          );
-                        },
-                        shrinkWrap: true,
-                      )
-                    : QuickSellingView(
-                        deliveryNoteCotroller: deliveryNoteCotroller,
-                        formKey: formKey,
-                        discountController: discountController,
-                        receivedAmountController: receivedAmountController,
-                        customerPhoneNumberController:
-                            customerPhoneNumberController,
-                        paymentTypeController: paymentTypeController,
-                      );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text('Error: $stack')),
-            ),
-            floatingActionButton: SizedBox(
-              width: 200,
-              child: PreviewSaleButton(
-                wording: ref.watch(previewingCart)
-                    ? "Place order"
-                    : orders > 0
-                        ? "Preview Cart (${orders})"
-                        : "Preview Cart",
-                mode: SellingMode.forOrdering,
-                previewCart: () async {
-                  if (orders > 0) {
-                    final transaction = ref.watch(
-                        pendingTransactionProviderNonStream((isOrdering
-                            ? (mode: TransactionType.cashOut, isExpense: true)
-                            : (mode: TransactionType.sale, isExpense: false))));
+      viewModelBuilder: () => ProductViewModel(),
+      onViewModelReady: (model) {},
+      builder: (context, model, child) {
+        return Scaffold(
+          body: Consumer(
+            builder: (context, ref, child) {
+              // Watch productFromSupplier and previewingCart states
+              final items = ref.watch(productFromSupplier);
+              final isPreviewing = ref.watch(previewingCart);
 
-                    /// now if we are not previewing we can place order
-                    await previewOrOrder(transaction: transaction);
+              return items.when(
+                data: (products) {
+                  if (products.isEmpty) {
+                    return const Center(child: Text('No products available'));
+                  }
 
-                    await Future.delayed(Duration(microseconds: 600));
-
-                    /// refresh
-                    ref.refresh(pendingTransactionProviderNonStream((isOrdering
-                        ? (mode: TransactionType.cashOut, isExpense: true)
-                        : (mode: TransactionType.sale, isExpense: false))));
-                    ref.refresh(
-                        transactionItemsProvider((isExpense: isOrdering)));
+                  // Check if we are previewing or showing the product list
+                  if (!isPreviewing) {
+                    return GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 200,
+                        mainAxisSpacing: 5.0,
+                        crossAxisSpacing: 2.0,
+                      ),
+                      itemCount: products.length,
+                      itemBuilder: (context, index) {
+                        if (index < 0 || index >= products.length) {
+                          return const SizedBox.shrink();
+                        }
+                        return buildVariantRow(
+                          forceRemoteUrl: true,
+                          context: context,
+                          model: model,
+                          variant: products[index],
+                          isOrdering: true,
+                        );
+                      },
+                      shrinkWrap: true,
+                    );
                   } else {
-                    toast("The cart is empty");
+                    return QuickSellingView(
+                      deliveryNoteCotroller: deliveryNoteCotroller,
+                      formKey: formKey,
+                      discountController: discountController,
+                      receivedAmountController: receivedAmountController,
+                      customerPhoneNumberController:
+                          customerPhoneNumberController,
+                      paymentTypeController: paymentTypeController,
+                    );
                   }
                 },
-              ),
-            ),
-          );
-        });
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text('Error: $error')),
+              );
+            },
+          ),
+          floatingActionButton: Consumer(
+            builder: (context, ref, child) {
+              // Watch the transaction items provider to get the updated order count
+              final orders = ref
+                      .watch(transactionItemsProvider((isExpense: isOrdering)))
+                      .value
+                      ?.length ??
+                  0;
+
+              return SizedBox(
+                width: 200,
+                child: PreviewSaleButton(
+                  wording: ref.watch(previewingCart)
+                      ? "Place order"
+                      : orders > 0
+                          ? "Preview Cart ($orders)"
+                          : "Preview Cart",
+                  mode: SellingMode.forOrdering,
+                  previewCart: () async {
+                    if (orders > 0) {
+                      if (!ref.read(previewingCart)) {
+                        // Toggle to preview mode
+                        ref.read(previewingCart.notifier).state = true;
+                      } else {
+                        // Place order
+                        final transaction = ref.read(
+                          pendingTransactionProviderNonStream((isOrdering
+                              ? (mode: TransactionType.cashOut, isExpense: true)
+                              : (
+                                  mode: TransactionType.sale,
+                                  isExpense: false
+                                ))),
+                        );
+
+                        await previewOrOrder(transaction: transaction);
+
+                        await Future.delayed(const Duration(milliseconds: 600));
+
+                        // Refresh transaction providers
+                        ref.refresh(pendingTransactionProviderNonStream(
+                            (isOrdering
+                                ? (
+                                    mode: TransactionType.cashOut,
+                                    isExpense: true
+                                  )
+                                : (
+                                    mode: TransactionType.sale,
+                                    isExpense: false
+                                  ))));
+                        ref.refresh(
+                            transactionItemsProvider((isExpense: isOrdering)));
+
+                        // Exit preview mode after order placement
+                        ref.read(previewingCart.notifier).state = false;
+                      }
+                    } else {
+                      toast("The cart is empty");
+                    }
+                  },
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 }

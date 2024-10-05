@@ -59,6 +59,7 @@ final productFromSupplier =
   final supplier = ref.watch(selectedSupplierProvider);
 
   String idToken = await ProxyService.local.getIdToken();
+  // talker.warning("idToken $idToken");
 
   var headers = {
     'Authorization': 'Bearer $idToken',
@@ -72,10 +73,24 @@ final productFromSupplier =
         {"collectionId": AppSecrets.queryableModel}
       ],
       "where": {
-        "fieldFilter": {
-          "field": {"fieldPath": "branch_id"},
-          "op": "EQUAL",
-          "value": {"integerValue": supplier.value?.serverId}
+        "compositeFilter": {
+          "op": "AND",
+          "filters": [
+            {
+              "fieldFilter": {
+                "field": {"fieldPath": "branch_id"},
+                "op": "EQUAL",
+                "value": {"integerValue": supplier.value?.serverId}
+              }
+            },
+            {
+              "fieldFilter": {
+                "field": {"fieldPath": "product_name"},
+                "op": "NOT_EQUAL",
+                "value": {"stringValue": "temp"}
+              }
+            }
+          ]
         }
       }
     }
