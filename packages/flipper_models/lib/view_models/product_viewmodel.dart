@@ -117,7 +117,6 @@ class ProductViewModel extends FlipperBaseModel
         ObjectId(),
         id: randomNumber(),
         name: TEMP_PRODUCT,
-        action: AppActions.created,
         lastTouched: DateTime.now(),
         businessId: ProxyService.box.getBusinessId()!,
         color: COLOR,
@@ -304,16 +303,13 @@ class ProductViewModel extends FlipperBaseModel
           if (variation.name == "Regular") {
             variation.supplyPrice = supplyPrice;
             variation.productName = product!.name;
-            variation.action =
-                inUpdateProcess ? AppActions.updated : AppActions.created;
+
             variation.productId = variation.productId;
             Stock? stock = await ProxyService.local.stockByVariantId(
                 variantId: variation.id!,
                 branchId: ProxyService.box.getBranchId()!);
 
             stock!.supplyPrice = supplyPrice;
-            stock.action =
-                inUpdateProcess ? AppActions.updated : AppActions.created;
           }
         }
       }
@@ -324,16 +320,13 @@ class ProductViewModel extends FlipperBaseModel
             variation.retailPrice = retailPrice;
             variation.productId = variation.productId;
             variation.prc = retailPrice;
-            variation.action =
-                inUpdateProcess ? AppActions.updated : AppActions.created;
+
             variation.productName = product!.name;
             Stock? stock = await ProxyService.local.stockByVariantId(
                 variantId: variation.id!,
                 branchId: ProxyService.box.getBranchId()!);
 
             stock!.retailPrice = retailPrice;
-            stock.action =
-                inUpdateProcess ? AppActions.updated : AppActions.created;
           }
         }
       }
@@ -348,7 +341,6 @@ class ProductViewModel extends FlipperBaseModel
       favIndex: favIndex,
       productId: productId,
       branchId: ProxyService.box.getBranchId(),
-      action: AppActions.created,
     );
 
     int res = await ProxyService.local.addFavorite(data: favorite);

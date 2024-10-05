@@ -234,7 +234,6 @@ class CoreViewModel extends FlipperBaseModel
         ObjectId(),
         id: randomNumber(),
         qty: 1,
-        action: AppActions.created,
         price: amount,
         variantId: variation.id!,
         name: name,
@@ -249,7 +248,7 @@ class CoreViewModel extends FlipperBaseModel
         isTaxExempted: variation.isTaxExempted,
         remainingStock: stock?.currentStock ?? 0 - 1,
       );
-      newItem.action = AppActions.created;
+
       ProxyService.local.addTransactionItem(
         transaction: pendingTransaction,
         item: newItem,
@@ -302,7 +301,6 @@ class CoreViewModel extends FlipperBaseModel
           ObjectId(),
           id: randomNumber(),
           qty: 1,
-          action: AppActions.created,
           price: amount,
           variantId: variation.id!,
           name: name,
@@ -333,7 +331,6 @@ class CoreViewModel extends FlipperBaseModel
           pendingTransaction.subTotal =
               items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
           pendingTransaction.updatedAt = DateTime.now().toIso8601String();
-          newItem.action = AppActions.created;
         });
       }
     } else {
@@ -528,7 +525,6 @@ class CoreViewModel extends FlipperBaseModel
           ObjectId(),
           custNm: name,
           id: randomNumber(),
-          action: AppActions.created,
           custTin: tinNumber,
           email: email,
           telNo: phone,

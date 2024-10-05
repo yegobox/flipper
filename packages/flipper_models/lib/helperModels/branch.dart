@@ -11,7 +11,6 @@ part 'branch.g.dart';
 class IBranch extends IJsonSerializable {
   IBranch({
     required this.isDefault,
-    required this.action,
     required this.id,
     this.active,
     this.description,
@@ -24,7 +23,6 @@ class IBranch extends IJsonSerializable {
   });
   IBranch.copy(IBranch other, {bool? active, String? name})
       : isDefault = other.isDefault,
-        action = other.action,
         name = name ?? other.name,
         id = other.id,
         location = other.location,
@@ -43,8 +41,6 @@ class IBranch extends IJsonSerializable {
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
-
-  String action;
 
   DateTime? deletedAt;
   factory IBranch.fromRecord(RecordModel record) =>

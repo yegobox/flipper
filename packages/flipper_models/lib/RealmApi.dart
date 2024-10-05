@@ -557,7 +557,7 @@ class RealmAPI<M extends IJsonSerializable>
         lastTouched: obj.lastTouched,
         supplyPrice: obj.supplyPrice,
         retailPrice: obj.retailPrice,
-        action: obj.action,
+
         spplrItemClsCd: obj.spplrItemClsCd,
         spplrItemCd: obj.spplrItemCd,
         spplrItemNm: obj.spplrItemNm,
@@ -585,7 +585,7 @@ class RealmAPI<M extends IJsonSerializable>
         supplyPrice: obj.supplyPrice,
         retailPrice: obj.retailPrice,
         lastTouched: obj.lastTouched,
-        action: obj.action,
+
         deletedAt: obj.deletedAt,
         ebmSynced: obj.ebmSynced,
 
@@ -637,7 +637,6 @@ class RealmAPI<M extends IJsonSerializable>
                 lastTouched: obj.lastTouched,
                 supplyPrice: obj.supplyPrice,
                 retailPrice: obj.retailPrice,
-                action: obj.action,
                 spplrItemClsCd: obj.variant!.spplrItemClsCd,
                 spplrItemCd: obj.variant!.spplrItemCd,
                 spplrItemNm: obj.variant!.spplrItemNm,
@@ -657,7 +656,6 @@ class RealmAPI<M extends IJsonSerializable>
         branchId: obj.branchId,
         deletedAt: obj.deletedAt,
         lastTouched: obj.lastTouched,
-        action: obj.action,
       ) as T;
     } else if (obj is PColor) {
       return PColor(
@@ -668,7 +666,7 @@ class RealmAPI<M extends IJsonSerializable>
         branchId: obj.branchId,
         active: obj.active,
         lastTouched: obj.lastTouched,
-        action: obj.action,
+
         deletedAt: obj.deletedAt,
       ) as T;
     } else if (obj is Counter) {
@@ -682,7 +680,6 @@ class RealmAPI<M extends IJsonSerializable>
         curRcptNo: obj.curRcptNo,
         invcNo: obj.invcNo,
         lastTouched: obj.lastTouched,
-        action: obj.action,
       ) as T;
     } else if (obj is Customer) {
       return Customer(
@@ -702,7 +699,7 @@ class RealmAPI<M extends IJsonSerializable>
         modrId: obj.modrId,
         ebmSynced: obj.ebmSynced,
         lastTouched: obj.lastTouched,
-        action: obj.action,
+
         deletedAt: obj.deletedAt,
         tin: obj.tin,
         bhfId: obj.bhfId,
@@ -724,7 +721,6 @@ class RealmAPI<M extends IJsonSerializable>
         defaultApp: obj.defaultApp,
         lastTouched: obj.lastTouched,
         deletedAt: obj.deletedAt,
-        action: obj.action,
       ) as T;
     } else if (obj is Drawers) {
       return Drawers(
@@ -773,7 +769,7 @@ class RealmAPI<M extends IJsonSerializable>
         productId: obj.productId,
         branchId: obj.branchId,
         lastTouched: obj.lastTouched,
-        action: obj.action,
+
         deletedAt: obj.deletedAt,
       ) as T;
     } else if (obj is Receipt) {
@@ -795,7 +791,7 @@ class RealmAPI<M extends IJsonSerializable>
         branchId: obj.branchId,
         transactionId: obj.transactionId,
         lastTouched: obj.lastTouched,
-        action: obj.action,
+
         invcNo: obj.invcNo,
       ) as T;
     } else if (obj is Composite) {
@@ -832,7 +828,6 @@ class RealmAPI<M extends IJsonSerializable>
         createdAt: obj.createdAt,
         lastTouched: obj.lastTouched,
         deletedAt: obj.deletedAt,
-        action: obj.action,
       ) as T;
     } else if (obj is StockRequest) {
       return StockRequest(
@@ -905,7 +900,6 @@ class RealmAPI<M extends IJsonSerializable>
                   modrNm: e.modrNm,
                   lastTouched: e.lastTouched,
                   deletedAt: e.deletedAt,
-                  action: e.action,
                   branchId: e.branchId,
                   ebmSynced: e.ebmSynced,
                   partOfComposite: e.partOfComposite,
@@ -970,7 +964,6 @@ class RealmAPI<M extends IJsonSerializable>
         modrNm: obj.modrNm,
         lastTouched: obj.lastTouched,
         deletedAt: obj.deletedAt,
-        action: obj.action,
         branchId: obj.branchId,
         ebmSynced: obj.ebmSynced,
         partOfComposite: obj.partOfComposite,
@@ -997,7 +990,6 @@ class RealmAPI<M extends IJsonSerializable>
         customerType: obj.customerType,
         note: obj.note,
         lastTouched: obj.lastTouched,
-        action: obj.action,
         ticketName: obj.ticketName,
         deletedAt: obj.deletedAt,
         supplierId: obj.supplierId,
@@ -1015,7 +1007,6 @@ class RealmAPI<M extends IJsonSerializable>
         value: obj.value,
         active: obj.active,
         lastTouched: obj.lastTouched,
-        action: obj.action,
         createdAt: obj.createdAt,
         deletedAt: obj.deletedAt,
       ) as T;

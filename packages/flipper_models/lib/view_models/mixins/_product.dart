@@ -1,7 +1,6 @@
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/realmExtension.dart';
@@ -104,50 +103,44 @@ mixin ProductMixin {
     List<Variant> variants = await ProxyService.local.variants(
         productId: mproduct.id, branchId: ProxyService.box.getBranchId()!);
     ProxyService.local.realm!.writeN(
-          tableName:productsTable,
-          writeCallback: () {
-      mproduct.name = productName;
-      mproduct.barCode = productService.barCode.toString();
-      mproduct.color = color;
+        tableName: productsTable,
+        writeCallback: () {
+          mproduct.name = productName;
+          mproduct.barCode = productService.barCode.toString();
+          mproduct.color = color;
 
-      // Update activeCat only if necessary
-      if (activeCat?.active != false) {
-        activeCat?.active = false;
-      }
-      if (activeCat?.focused != false) {
-        activeCat?.focused = false;
-      }
+          // Update activeCat only if necessary
+          if (activeCat?.active != false) {
+            activeCat?.active = false;
+          }
+          if (activeCat?.focused != false) {
+            activeCat?.focused = false;
+          }
 
-      // Update mproduct.id only if it hasn't been set yet
-      if (mproduct.categoryId == null) {
-        mproduct.categoryId = activeCat?.id!;
-      }
+          // Update mproduct.id only if it hasn't been set yet
+          if (mproduct.categoryId == null) {
+            mproduct.categoryId = activeCat?.id!;
+          }
 
-      mproduct.action =
-          inUpdateProcess ? AppActions.updated : AppActions.created;
+          // Fetch variants asynchronously outside the loop
 
-      // Fetch variants asynchronously outside the loop
+          // Update variants efficiently using a for loop with conditional updates
+          for (Variant variant in variants) {
+            if (variant.productName != productName) {
+              variant.productName = productName;
+            }
 
-      // Update variants efficiently using a for loop with conditional updates
-      for (Variant variant in variants) {
-        if (variant.productName != productName) {
-          variant.productName = productName;
-        }
+            if (variant.productId != mproduct.id) {
+              variant.productId = mproduct.id!;
+            }
 
-        if (variant.productId != mproduct.id) {
-          variant.productId = mproduct.id!;
-        }
-
-        // Update pkgUnitCd only if necessary (assuming it's not always changing)
-        if (variant.pkgUnitCd != "NT") {
-          variant.pkgUnitCd = "NT";
-        }
-
-        variant.action =
-            inUpdateProcess ? AppActions.updated : AppActions.created;
-      }
-      return mproduct;
-    });
+            // Update pkgUnitCd only if necessary (assuming it's not always changing)
+            if (variant.pkgUnitCd != "NT") {
+              variant.pkgUnitCd = "NT";
+            }
+          }
+          return mproduct;
+        });
 
     return ProxyService.local.getProduct(id: mproduct.id!);
   }

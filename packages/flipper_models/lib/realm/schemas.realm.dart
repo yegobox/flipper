@@ -23,7 +23,6 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
     String? location,
     bool isDefault = false,
     DateTime? lastTouched,
-    String? action,
     DateTime? deletedAt,
     bool? isOnline = false,
   }) {
@@ -45,7 +44,6 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'location', location);
     RealmObjectBase.set(this, 'isDefault', isDefault);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
-    RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'isOnline', isOnline);
   }
@@ -121,11 +119,6 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'lastTouched', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   DateTime? get deletedAt =>
       RealmObjectBase.get<DateTime>(this, 'deletedAt') as DateTime?;
   @override
@@ -162,7 +155,6 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
       'location': location.toEJson(),
       'isDefault': isDefault.toEJson(),
       'lastTouched': lastTouched.toEJson(),
-      'action': action.toEJson(),
       'deletedAt': deletedAt.toEJson(),
       'isOnline': isOnline.toEJson(),
     };
@@ -188,7 +180,6 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
           location: fromEJson(ejson['location']),
           isDefault: fromEJson(ejson['isDefault'], defaultValue: false),
           lastTouched: fromEJson(ejson['lastTouched']),
-          action: fromEJson(ejson['action']),
           deletedAt: fromEJson(ejson['deletedAt']),
           isOnline: fromEJson(ejson['isOnline'], defaultValue: false),
         ),
@@ -214,7 +205,6 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('isDefault', RealmPropertyType.bool),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('isOnline', RealmPropertyType.bool, optional: true),
     ]);
@@ -241,7 +231,6 @@ class Location extends _Location
     String? location,
     bool isDefault = false,
     DateTime? lastTouched,
-    String? action,
     DateTime? deletedAt,
     bool? isOnline = false,
   }) {
@@ -263,7 +252,6 @@ class Location extends _Location
     RealmObjectBase.set(this, 'location', location);
     RealmObjectBase.set(this, 'isDefault', isDefault);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
-    RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'isOnline', isOnline);
   }
@@ -339,11 +327,6 @@ class Location extends _Location
       RealmObjectBase.set(this, 'lastTouched', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   DateTime? get deletedAt =>
       RealmObjectBase.get<DateTime>(this, 'deletedAt') as DateTime?;
   @override
@@ -380,7 +363,6 @@ class Location extends _Location
       'location': location.toEJson(),
       'isDefault': isDefault.toEJson(),
       'lastTouched': lastTouched.toEJson(),
-      'action': action.toEJson(),
       'deletedAt': deletedAt.toEJson(),
       'isOnline': isOnline.toEJson(),
     };
@@ -406,7 +388,6 @@ class Location extends _Location
           location: fromEJson(ejson['location']),
           isDefault: fromEJson(ejson['isDefault'], defaultValue: false),
           lastTouched: fromEJson(ejson['lastTouched']),
-          action: fromEJson(ejson['action']),
           deletedAt: fromEJson(ejson['deletedAt']),
           isOnline: fromEJson(ejson['isOnline'], defaultValue: false),
         ),
@@ -432,7 +413,6 @@ class Location extends _Location
       SchemaProperty('isDefault', RealmPropertyType.bool),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('isOnline', RealmPropertyType.bool, optional: true),
     ]);
@@ -486,7 +466,6 @@ class Business extends _Business
     bool? isDefault,
     int? businessTypeId,
     DateTime? lastTouched,
-    String? action,
     DateTime? deletedAt,
     String? encryptionKey,
   }) {
@@ -532,7 +511,6 @@ class Business extends _Business
     RealmObjectBase.set(this, 'isDefault', isDefault);
     RealmObjectBase.set(this, 'businessTypeId', businessTypeId);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
-    RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'encryptionKey', encryptionKey);
   }
@@ -787,11 +765,6 @@ class Business extends _Business
       RealmObjectBase.set(this, 'lastTouched', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   DateTime? get deletedAt =>
       RealmObjectBase.get<DateTime>(this, 'deletedAt') as DateTime?;
   @override
@@ -860,7 +833,6 @@ class Business extends _Business
       'isDefault': isDefault.toEJson(),
       'businessTypeId': businessTypeId.toEJson(),
       'lastTouched': lastTouched.toEJson(),
-      'action': action.toEJson(),
       'deletedAt': deletedAt.toEJson(),
       'encryptionKey': encryptionKey.toEJson(),
     };
@@ -916,7 +888,6 @@ class Business extends _Business
           isDefault: fromEJson(ejson['isDefault']),
           businessTypeId: fromEJson(ejson['businessTypeId']),
           lastTouched: fromEJson(ejson['lastTouched']),
-          action: fromEJson(ejson['action']),
           deletedAt: fromEJson(ejson['deletedAt']),
           encryptionKey: fromEJson(ejson['encryptionKey']),
         ),
@@ -975,7 +946,6 @@ class Business extends _Business
       SchemaProperty('businessTypeId', RealmPropertyType.int, optional: true),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('encryptionKey', RealmPropertyType.string, optional: true),
     ]);
@@ -998,7 +968,6 @@ class Category extends _Category
     int? branchId,
     DateTime? deletedAt,
     DateTime? lastTouched,
-    String? action,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Category>({
@@ -1013,7 +982,6 @@ class Category extends _Category
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
-    RealmObjectBase.set(this, 'action', action);
   }
 
   Category._();
@@ -1064,11 +1032,6 @@ class Category extends _Category
       RealmObjectBase.set(this, 'lastTouched', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   Stream<RealmObjectChanges<Category>> get changes =>
       RealmObjectBase.getChanges<Category>(this);
 
@@ -1089,7 +1052,6 @@ class Category extends _Category
       'branchId': branchId.toEJson(),
       'deletedAt': deletedAt.toEJson(),
       'lastTouched': lastTouched.toEJson(),
-      'action': action.toEJson(),
     };
   }
 
@@ -1109,7 +1071,6 @@ class Category extends _Category
           branchId: fromEJson(ejson['branchId']),
           deletedAt: fromEJson(ejson['deletedAt']),
           lastTouched: fromEJson(ejson['lastTouched']),
-          action: fromEJson(ejson['action']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -1129,7 +1090,6 @@ class Category extends _Category
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
     ]);
   }();
 
@@ -1148,7 +1108,6 @@ class PColor extends _PColor with RealmEntity, RealmObjectBase, RealmObject {
     int? branchId,
     bool active = false,
     DateTime? lastTouched,
-    String? action,
     DateTime? deletedAt,
   }) {
     if (!_defaultsSet) {
@@ -1164,7 +1123,6 @@ class PColor extends _PColor with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'active', active);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
-    RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
   }
 
@@ -1211,11 +1169,6 @@ class PColor extends _PColor with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'lastTouched', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   DateTime? get deletedAt =>
       RealmObjectBase.get<DateTime>(this, 'deletedAt') as DateTime?;
   @override
@@ -1242,7 +1195,6 @@ class PColor extends _PColor with RealmEntity, RealmObjectBase, RealmObject {
       'branchId': branchId.toEJson(),
       'active': active.toEJson(),
       'lastTouched': lastTouched.toEJson(),
-      'action': action.toEJson(),
       'deletedAt': deletedAt.toEJson(),
     };
   }
@@ -1262,7 +1214,6 @@ class PColor extends _PColor with RealmEntity, RealmObjectBase, RealmObject {
           branchId: fromEJson(ejson['branchId']),
           active: fromEJson(ejson['active'], defaultValue: false),
           lastTouched: fromEJson(ejson['lastTouched']),
-          action: fromEJson(ejson['action']),
           deletedAt: fromEJson(ejson['deletedAt']),
         ),
       _ => raiseInvalidEJson(ejson),
@@ -1283,7 +1234,6 @@ class PColor extends _PColor with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('active', RealmPropertyType.bool),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
     ]);
   }();
@@ -1583,7 +1533,6 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
     int? curRcptNo,
     int? invcNo,
     DateTime? lastTouched,
-    String? action,
   }) {
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
@@ -1594,7 +1543,6 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'curRcptNo', curRcptNo);
     RealmObjectBase.set(this, 'invcNo', invcNo);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
-    RealmObjectBase.set(this, 'action', action);
   }
 
   Counter._();
@@ -1650,11 +1598,6 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'lastTouched', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   Stream<RealmObjectChanges<Counter>> get changes =>
       RealmObjectBase.getChanges<Counter>(this);
 
@@ -1676,7 +1619,6 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
       'curRcptNo': curRcptNo.toEJson(),
       'invcNo': invcNo.toEJson(),
       'lastTouched': lastTouched.toEJson(),
-      'action': action.toEJson(),
     };
   }
 
@@ -1697,7 +1639,6 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
           curRcptNo: fromEJson(ejson['curRcptNo']),
           invcNo: fromEJson(ejson['invcNo']),
           lastTouched: fromEJson(ejson['lastTouched']),
-          action: fromEJson(ejson['action']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -1718,7 +1659,6 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('invcNo', RealmPropertyType.int, optional: true),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
     ]);
   }();
 
@@ -1747,7 +1687,6 @@ class Customer extends _Customer
     String? modrId,
     bool ebmSynced = false,
     DateTime? lastTouched,
-    String? action,
     DateTime? deletedAt,
     int? tin,
     String? bhfId,
@@ -1776,7 +1715,6 @@ class Customer extends _Customer
     RealmObjectBase.set(this, 'modrId', modrId);
     RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
-    RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'tin', tin);
     RealmObjectBase.set(this, 'bhfId', bhfId);
@@ -1873,11 +1811,6 @@ class Customer extends _Customer
       RealmObjectBase.set(this, 'lastTouched', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   DateTime? get deletedAt =>
       RealmObjectBase.get<DateTime>(this, 'deletedAt') as DateTime?;
   @override
@@ -1935,7 +1868,6 @@ class Customer extends _Customer
       'modrId': modrId.toEJson(),
       'ebmSynced': ebmSynced.toEJson(),
       'lastTouched': lastTouched.toEJson(),
-      'action': action.toEJson(),
       'deletedAt': deletedAt.toEJson(),
       'tin': tin.toEJson(),
       'bhfId': bhfId.toEJson(),
@@ -1968,7 +1900,6 @@ class Customer extends _Customer
           modrId: fromEJson(ejson['modrId']),
           ebmSynced: fromEJson(ejson['ebmSynced'], defaultValue: false),
           lastTouched: fromEJson(ejson['lastTouched']),
-          action: fromEJson(ejson['action']),
           deletedAt: fromEJson(ejson['deletedAt']),
           tin: fromEJson(ejson['tin']),
           bhfId: fromEJson(ejson['bhfId']),
@@ -2001,7 +1932,6 @@ class Customer extends _Customer
       SchemaProperty('ebmSynced', RealmPropertyType.bool),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('tin', RealmPropertyType.int, optional: true),
       SchemaProperty('bhfId', RealmPropertyType.string, optional: true),
@@ -2029,7 +1959,6 @@ class Device extends _Device with RealmEntity, RealmObjectBase, RealmObject {
     String? defaultApp,
     DateTime? lastTouched,
     DateTime? deletedAt,
-    String? action,
   }) {
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
@@ -2044,7 +1973,6 @@ class Device extends _Device with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'defaultApp', defaultApp);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
-    RealmObjectBase.set(this, 'action', action);
   }
 
   Device._();
@@ -2130,11 +2058,6 @@ class Device extends _Device with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'deletedAt', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   Stream<RealmObjectChanges<Device>> get changes =>
       RealmObjectBase.getChanges<Device>(this);
 
@@ -2160,7 +2083,6 @@ class Device extends _Device with RealmEntity, RealmObjectBase, RealmObject {
       'defaultApp': defaultApp.toEJson(),
       'lastTouched': lastTouched.toEJson(),
       'deletedAt': deletedAt.toEJson(),
-      'action': action.toEJson(),
     };
   }
 
@@ -2185,7 +2107,6 @@ class Device extends _Device with RealmEntity, RealmObjectBase, RealmObject {
           defaultApp: fromEJson(ejson['defaultApp']),
           lastTouched: fromEJson(ejson['lastTouched']),
           deletedAt: fromEJson(ejson['deletedAt']),
-          action: fromEJson(ejson['action']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -2210,7 +2131,6 @@ class Device extends _Device with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
     ]);
   }();
 
@@ -2803,7 +2723,6 @@ class Favorite extends _Favorite
     int? productId,
     int? branchId,
     DateTime? lastTouched,
-    String? action,
     DateTime? deletedAt,
   }) {
     RealmObjectBase.set(this, 'id', id);
@@ -2812,7 +2731,6 @@ class Favorite extends _Favorite
     RealmObjectBase.set(this, 'productId', productId);
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
-    RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
   }
 
@@ -2852,11 +2770,6 @@ class Favorite extends _Favorite
       RealmObjectBase.set(this, 'lastTouched', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   DateTime? get deletedAt =>
       RealmObjectBase.get<DateTime>(this, 'deletedAt') as DateTime?;
   @override
@@ -2882,7 +2795,6 @@ class Favorite extends _Favorite
       'productId': productId.toEJson(),
       'branchId': branchId.toEJson(),
       'lastTouched': lastTouched.toEJson(),
-      'action': action.toEJson(),
       'deletedAt': deletedAt.toEJson(),
     };
   }
@@ -2901,7 +2813,6 @@ class Favorite extends _Favorite
           productId: fromEJson(ejson['productId']),
           branchId: fromEJson(ejson['branchId']),
           lastTouched: fromEJson(ejson['lastTouched']),
-          action: fromEJson(ejson['action']),
           deletedAt: fromEJson(ejson['deletedAt']),
         ),
       _ => raiseInvalidEJson(ejson),
@@ -2920,7 +2831,6 @@ class Favorite extends _Favorite
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
     ]);
   }();
@@ -2952,7 +2862,6 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
     int? bindedToTenantId,
     bool isFavorite = false,
     DateTime? lastTouched,
-    String? action,
     DateTime? deletedAt,
     String? spplrNm,
     bool? isComposite = false,
@@ -2985,7 +2894,6 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'bindedToTenantId', bindedToTenantId);
     RealmObjectBase.set(this, 'isFavorite', isFavorite);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
-    RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'spplrNm', spplrNm);
     RealmObjectBase.set(this, 'isComposite', isComposite);
@@ -3105,11 +3013,6 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'lastTouched', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   DateTime? get deletedAt =>
       RealmObjectBase.get<DateTime>(this, 'deletedAt') as DateTime?;
   @override
@@ -3169,7 +3072,6 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
       'bindedToTenantId': bindedToTenantId.toEJson(),
       'isFavorite': isFavorite.toEJson(),
       'lastTouched': lastTouched.toEJson(),
-      'action': action.toEJson(),
       'deletedAt': deletedAt.toEJson(),
       'spplrNm': spplrNm.toEJson(),
       'isComposite': isComposite.toEJson(),
@@ -3204,7 +3106,6 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
           bindedToTenantId: fromEJson(ejson['bindedToTenantId']),
           isFavorite: fromEJson(ejson['isFavorite'], defaultValue: false),
           lastTouched: fromEJson(ejson['lastTouched']),
-          action: fromEJson(ejson['action']),
           deletedAt: fromEJson(ejson['deletedAt']),
           spplrNm: fromEJson(ejson['spplrNm']),
           isComposite: fromEJson(ejson['isComposite'], defaultValue: false),
@@ -3239,7 +3140,6 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('isFavorite', RealmPropertyType.bool),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('spplrNm', RealmPropertyType.string, optional: true),
       SchemaProperty('isComposite', RealmPropertyType.bool, optional: true),
@@ -3271,7 +3171,6 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
     int? branchId,
     int? transactionId,
     DateTime? lastTouched,
-    String? action,
     int? invcNo,
   }) {
     RealmObjectBase.set(this, 'id', id);
@@ -3291,7 +3190,6 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'transactionId', transactionId);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
-    RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'invcNo', invcNo);
   }
 
@@ -3397,11 +3295,6 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'lastTouched', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   int? get invcNo => RealmObjectBase.get<int>(this, 'invcNo') as int?;
   @override
   set invcNo(int? value) => RealmObjectBase.set(this, 'invcNo', value);
@@ -3436,7 +3329,6 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
       'branchId': branchId.toEJson(),
       'transactionId': transactionId.toEJson(),
       'lastTouched': lastTouched.toEJson(),
-      'action': action.toEJson(),
       'invcNo': invcNo.toEJson(),
     };
   }
@@ -3466,7 +3358,6 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
           branchId: fromEJson(ejson['branchId']),
           transactionId: fromEJson(ejson['transactionId']),
           lastTouched: fromEJson(ejson['lastTouched']),
-          action: fromEJson(ejson['action']),
           invcNo: fromEJson(ejson['invcNo']),
         ),
       _ => raiseInvalidEJson(ejson),
@@ -3497,7 +3388,6 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('transactionId', RealmPropertyType.int, optional: true),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('invcNo', RealmPropertyType.int, optional: true),
     ]);
   }();
@@ -3531,7 +3421,6 @@ class Setting extends _Setting with RealmEntity, RealmObjectBase, RealmObject {
     String? createdAt,
     DateTime? lastTouched,
     DateTime? deletedAt,
-    String? action,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Setting>({
@@ -3560,7 +3449,6 @@ class Setting extends _Setting with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'createdAt', createdAt);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
-    RealmObjectBase.set(this, 'action', action);
   }
 
   Setting._();
@@ -3695,11 +3583,6 @@ class Setting extends _Setting with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'deletedAt', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   Stream<RealmObjectChanges<Setting>> get changes =>
       RealmObjectBase.getChanges<Setting>(this);
 
@@ -3733,7 +3616,6 @@ class Setting extends _Setting with RealmEntity, RealmObjectBase, RealmObject {
       'createdAt': createdAt.toEJson(),
       'lastTouched': lastTouched.toEJson(),
       'deletedAt': deletedAt.toEJson(),
-      'action': action.toEJson(),
     };
   }
 
@@ -3767,7 +3649,6 @@ class Setting extends _Setting with RealmEntity, RealmObjectBase, RealmObject {
           createdAt: fromEJson(ejson['createdAt']),
           lastTouched: fromEJson(ejson['lastTouched']),
           deletedAt: fromEJson(ejson['deletedAt']),
-          action: fromEJson(ejson['action']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -3805,7 +3686,6 @@ class Setting extends _Setting with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
     ]);
   }();
 
@@ -3835,7 +3715,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     double supplyPrice = 0.0,
     double retailPrice = 0.0,
     DateTime? lastTouched,
-    String? action,
     DateTime? deletedAt,
     bool ebmSynced = false,
     bool cloudSynced = true,
@@ -3875,7 +3754,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'supplyPrice', supplyPrice);
     RealmObjectBase.set(this, 'retailPrice', retailPrice);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
-    RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
     RealmObjectBase.set(this, 'cloudSynced', cloudSynced);
@@ -3990,11 +3868,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'lastTouched', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   DateTime? get deletedAt =>
       RealmObjectBase.get<DateTime>(this, 'deletedAt') as DateTime?;
   @override
@@ -4058,7 +3931,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       'supplyPrice': supplyPrice.toEJson(),
       'retailPrice': retailPrice.toEJson(),
       'lastTouched': lastTouched.toEJson(),
-      'action': action.toEJson(),
       'deletedAt': deletedAt.toEJson(),
       'ebmSynced': ebmSynced.toEJson(),
       'cloudSynced': cloudSynced.toEJson(),
@@ -4097,7 +3969,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
           supplyPrice: fromEJson(ejson['supplyPrice'], defaultValue: 0.0),
           retailPrice: fromEJson(ejson['retailPrice'], defaultValue: 0.0),
           lastTouched: fromEJson(ejson['lastTouched']),
-          action: fromEJson(ejson['action']),
           deletedAt: fromEJson(ejson['deletedAt']),
           ebmSynced: fromEJson(ejson['ebmSynced'], defaultValue: false),
           cloudSynced: fromEJson(ejson['cloudSynced'], defaultValue: true),
@@ -4134,7 +4005,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('retailPrice', RealmPropertyType.double),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('ebmSynced', RealmPropertyType.bool),
       SchemaProperty('cloudSynced', RealmPropertyType.bool),
@@ -4198,7 +4068,6 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     DateTime? lastTouched,
     double supplyPrice = 0.0,
     double retailPrice = 0.0,
-    String? action,
     String? spplrItemClsCd,
     String? spplrItemCd,
     String? spplrItemNm,
@@ -4284,7 +4153,6 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'supplyPrice', supplyPrice);
     RealmObjectBase.set(this, 'retailPrice', retailPrice);
-    RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'spplrItemClsCd', spplrItemClsCd);
     RealmObjectBase.set(this, 'spplrItemCd', spplrItemCd);
     RealmObjectBase.set(this, 'spplrItemNm', spplrItemNm);
@@ -4556,11 +4424,6 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'retailPrice', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   String? get spplrItemClsCd =>
       RealmObjectBase.get<String>(this, 'spplrItemClsCd') as String?;
   @override
@@ -4663,7 +4526,6 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       'lastTouched': lastTouched.toEJson(),
       'supplyPrice': supplyPrice.toEJson(),
       'retailPrice': retailPrice.toEJson(),
-      'action': action.toEJson(),
       'spplrItemClsCd': spplrItemClsCd.toEJson(),
       'spplrItemCd': spplrItemCd.toEJson(),
       'spplrItemNm': spplrItemNm.toEJson(),
@@ -4728,7 +4590,6 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
           lastTouched: fromEJson(ejson['lastTouched']),
           supplyPrice: fromEJson(ejson['supplyPrice'], defaultValue: 0.0),
           retailPrice: fromEJson(ejson['retailPrice'], defaultValue: 0.0),
-          action: fromEJson(ejson['action']),
           spplrItemClsCd: fromEJson(ejson['spplrItemClsCd']),
           spplrItemCd: fromEJson(ejson['spplrItemCd']),
           spplrItemNm: fromEJson(ejson['spplrItemNm']),
@@ -4793,7 +4654,6 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
           optional: true),
       SchemaProperty('supplyPrice', RealmPropertyType.double),
       SchemaProperty('retailPrice', RealmPropertyType.double),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('spplrItemClsCd', RealmPropertyType.string,
           optional: true),
       SchemaProperty('spplrItemCd', RealmPropertyType.string, optional: true),
@@ -5102,7 +4962,6 @@ class TransactionItem extends _TransactionItem
     String? modrNm,
     DateTime? lastTouched,
     DateTime? deletedAt,
-    String? action,
     int? branchId,
     bool ebmSynced = false,
     bool partOfComposite = false,
@@ -5187,7 +5046,6 @@ class TransactionItem extends _TransactionItem
     RealmObjectBase.set(this, 'modrNm', modrNm);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
-    RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
     RealmObjectBase.set(this, 'partOfComposite', partOfComposite);
@@ -5502,11 +5360,6 @@ class TransactionItem extends _TransactionItem
       RealmObjectBase.set(this, 'deletedAt', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
   @override
   set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
@@ -5599,7 +5452,6 @@ class TransactionItem extends _TransactionItem
       'modrNm': modrNm.toEJson(),
       'lastTouched': lastTouched.toEJson(),
       'deletedAt': deletedAt.toEJson(),
-      'action': action.toEJson(),
       'branchId': branchId.toEJson(),
       'ebmSynced': ebmSynced.toEJson(),
       'partOfComposite': partOfComposite.toEJson(),
@@ -5669,7 +5521,6 @@ class TransactionItem extends _TransactionItem
           modrNm: fromEJson(ejson['modrNm']),
           lastTouched: fromEJson(ejson['lastTouched']),
           deletedAt: fromEJson(ejson['deletedAt']),
-          action: fromEJson(ejson['action']),
           branchId: fromEJson(ejson['branchId']),
           ebmSynced: fromEJson(ejson['ebmSynced'], defaultValue: false),
           partOfComposite:
@@ -5743,7 +5594,6 @@ class TransactionItem extends _TransactionItem
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),
       SchemaProperty('ebmSynced', RealmPropertyType.bool),
       SchemaProperty('partOfComposite', RealmPropertyType.bool),
@@ -5779,7 +5629,6 @@ class ITransaction extends _ITransaction
     String? customerType,
     String? note,
     DateTime? lastTouched,
-    String? action,
     String? ticketName,
     DateTime? deletedAt,
     int? supplierId,
@@ -5818,7 +5667,6 @@ class ITransaction extends _ITransaction
     RealmObjectBase.set(this, 'customerType', customerType);
     RealmObjectBase.set(this, 'note', note);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
-    RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'ticketName', ticketName);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'supplierId', supplierId);
@@ -5949,11 +5797,6 @@ class ITransaction extends _ITransaction
       RealmObjectBase.set(this, 'lastTouched', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   String? get ticketName =>
       RealmObjectBase.get<String>(this, 'ticketName') as String?;
   @override
@@ -6025,7 +5868,6 @@ class ITransaction extends _ITransaction
       'customerType': customerType.toEJson(),
       'note': note.toEJson(),
       'lastTouched': lastTouched.toEJson(),
-      'action': action.toEJson(),
       'ticketName': ticketName.toEJson(),
       'deletedAt': deletedAt.toEJson(),
       'supplierId': supplierId.toEJson(),
@@ -6064,7 +5906,6 @@ class ITransaction extends _ITransaction
           customerType: fromEJson(ejson['customerType']),
           note: fromEJson(ejson['note']),
           lastTouched: fromEJson(ejson['lastTouched']),
-          action: fromEJson(ejson['action']),
           ticketName: fromEJson(ejson['ticketName']),
           deletedAt: fromEJson(ejson['deletedAt']),
           supplierId: fromEJson(ejson['supplierId']),
@@ -6109,7 +5950,6 @@ class ITransaction extends _ITransaction
       SchemaProperty('note', RealmPropertyType.string, optional: true),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('ticketName', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('supplierId', RealmPropertyType.int, optional: true),
@@ -6135,7 +5975,6 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
     String? value,
     bool active = false,
     DateTime? lastTouched,
-    String? action,
     String? createdAt,
     DateTime? deletedAt,
   }) {
@@ -6151,7 +5990,6 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'value', value);
     RealmObjectBase.set(this, 'active', active);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
-    RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'createdAt', createdAt);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
   }
@@ -6197,11 +6035,6 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'lastTouched', value);
 
   @override
-  String? get action => RealmObjectBase.get<String>(this, 'action') as String?;
-  @override
-  set action(String? value) => RealmObjectBase.set(this, 'action', value);
-
-  @override
   String? get createdAt =>
       RealmObjectBase.get<String>(this, 'createdAt') as String?;
   @override
@@ -6234,7 +6067,6 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
       'value': value.toEJson(),
       'active': active.toEJson(),
       'lastTouched': lastTouched.toEJson(),
-      'action': action.toEJson(),
       'createdAt': createdAt.toEJson(),
       'deletedAt': deletedAt.toEJson(),
     };
@@ -6255,7 +6087,6 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
           value: fromEJson(ejson['value']),
           active: fromEJson(ejson['active'], defaultValue: false),
           lastTouched: fromEJson(ejson['lastTouched']),
-          action: fromEJson(ejson['action']),
           createdAt: fromEJson(ejson['createdAt']),
           deletedAt: fromEJson(ejson['deletedAt']),
         ),
@@ -6276,7 +6107,6 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('active', RealmPropertyType.bool),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
-      SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('createdAt', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
     ]);

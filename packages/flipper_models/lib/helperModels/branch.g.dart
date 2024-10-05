@@ -8,7 +8,6 @@ part of 'branch.dart';
 
 IBranch _$IBranchFromJson(Map<String, dynamic> json) => IBranch(
       isDefault: json['isDefault'] as bool,
-      action: json['action'] as String,
       id: (json['id'] as num?)?.toInt(),
       active: json['active'] as bool?,
       description: json['description'] as String?,

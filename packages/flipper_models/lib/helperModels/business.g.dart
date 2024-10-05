@@ -8,7 +8,6 @@ part of 'business.dart';
 
 IBusiness _$IBusinessFromJson(Map<String, dynamic> json) => IBusiness(
       id: (json['id'] as num?)?.toInt(),
-      action: json['action'] as String,
       encryptionKey: json['encryptionKey'] as String,
       name: json['name'] as String?,
       currency: json['currency'] as String?,

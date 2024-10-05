@@ -692,6 +692,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () async {
+                        /// close the dialog
                         Navigator.maybePop(context);
                       },
                       style: ElevatedButton.styleFrom(
@@ -1012,7 +1013,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             lastTouched: DateTime.now(),
                             branchId: variant.branchId,
                             variantId: variant.id!,
-                            action: AppActions.created,
                             retailPrice: variant.retailPrice,
                             supplyPrice: variant.supplyPrice,
                             currentStock: variant.qty,

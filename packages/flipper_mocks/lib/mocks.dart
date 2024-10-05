@@ -230,7 +230,6 @@ final List<Map<String, dynamic>> mockUnits = [
 
 // variation mock
 final variationMock = Variant(ObjectId(),
-    action: 'create',
     color: '#cc',
     name: 'Regular',
     lastTouched: DateTime.now(),
@@ -256,14 +255,15 @@ final variationMock = Variant(ObjectId(),
   ..supplyPrice = 0.0;
 
 // stock
-final stockMock = Stock(ObjectId(),
-    lastTouched: DateTime.now(),
-    branchId: 11,
-    id: randomNumber(),
-    variantId: 1,
-    currentStock: 0.0,
-    productId: 2,
-    action: 'create')
+final stockMock = Stock(
+  ObjectId(),
+  lastTouched: DateTime.now(),
+  branchId: 11,
+  id: randomNumber(),
+  variantId: 1,
+  currentStock: 0.0,
+  productId: 2,
+)
   ..id = randomNumber()
   ..branchId = 11
   ..variantId = 1
@@ -280,7 +280,6 @@ final AppService _appService = getIt<AppService>();
 
 final customProductMock = Product(ObjectId(),
     id: randomNumber(),
-    action: 'create',
     lastTouched: DateTime.now(),
     name: "temp",
     businessId: _appService.businessId!,
@@ -300,7 +299,6 @@ final customProductMock = Product(ObjectId(),
 final productMock = Product(ObjectId(),
     id: randomNumber(),
     lastTouched: DateTime.now(),
-    action: 'create',
     name: "temp",
     businessId: _appService.businessId!,
     color: "#e74c3c",
@@ -318,7 +316,6 @@ final productMock = Product(ObjectId(),
 
 final branchMock = Branch(
   ObjectId(),
-  action: AppActions.created,
   serverId: randomNumber(),
   active: false,
   description: 'desc',
@@ -331,7 +328,6 @@ final branchMock = Branch(
 
 final businessMock = Business(
   ObjectId(),
-  action: AppActions.created,
   serverId: randomNumber(),
   active: true,
   latitude: '0',

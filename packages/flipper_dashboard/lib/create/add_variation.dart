@@ -176,7 +176,6 @@ class _AddVariationState extends State<AddVariation> {
         name: nameController.text,
         sku: sku,
         lastTouched: DateTime.now(),
-        action: "create",
         productId: model.product!.id!,
         unit: model.productService.currentUnit!,
         productName: nameController.text,

@@ -82,7 +82,6 @@ class PullChange {
                   modrNm: item.modrNm,
                   lastTouched: item.lastTouched,
                   deletedAt: item.deletedAt,
-                  action: item.action,
                   branchId: item.branchId,
                   ebmSynced: item.ebmSynced ?? false,
                   partOfComposite: item.partOfComposite ?? false,
@@ -156,7 +155,6 @@ class PullChange {
           lastTouched: data['last_touched'] == null
               ? DateTime.now()
               : DateTime.parse(data['last_touched']),
-          action: data['action'] == null ? "" : data['action'],
           deletedAt:
               data['deleted_at'] == null ? DateTime.now() : data['deleted_at'],
           spplrNm: data['spplr_nm'] == null ? "" : data['spplr_nm'],
@@ -198,7 +196,7 @@ class PullChange {
             product.lastTouched = data['last_touched'] == null
                 ? DateTime.now()
                 : DateTime.parse(data['last_touched']);
-            product.action = data['action'] ?? product.action;
+
             product.deletedAt = data['deleted_at'] == null
                 ? DateTime.now()
                 : DateTime.parse(data['deleted_at']);
@@ -362,7 +360,7 @@ class PullChange {
             variant.retailPrice = data['retail_price'] is double
                 ? data['retail_price']
                 : double.tryParse(data['retail_price']) ?? variant.retailPrice;
-            variant.action = data['action'] ?? variant.action;
+
             variant.spplrItemClsCd =
                 data['spplr_item_cls_cd'] ?? variant.spplrItemClsCd;
             variant.spplrItemCd = data['spplr_item_cd'] ?? variant.spplrItemCd;
@@ -438,7 +436,6 @@ class PullChange {
           lastTouched: data['last_touched'] == null
               ? DateTime.now()
               : DateTime.tryParse(data['last_touched']),
-          action: data['action'] == null ? "" : data['action'],
           ticketName: data['ticket_name'] == null ? "" : data['ticket_name'],
           deletedAt: data['deleted_at'] == null
               ? DateTime.now()
@@ -569,7 +566,6 @@ class PullChange {
           deletedAt: data['deleted_at'] is DateTime
               ? data['deleted_at']
               : DateTime.tryParse(data['deleted_at']),
-          action: data['action'],
         );
       },
       updateRealmObject: (_stock, data) {
@@ -615,7 +611,6 @@ class PullChange {
             setting.deletedAt = data['deleted_at'] is DateTime
                 ? data['deleted_at']
                 : DateTime.tryParse(data['deleted_at']) ?? setting.deletedAt;
-            setting.action = data['action'] ?? setting.action;
           });
         }
       },
@@ -1067,7 +1062,6 @@ class PullChange {
           variantId: data['variant_id'] is int
               ? data['variant_id']
               : int.tryParse(data['variant_id']) ?? 0,
-          action: data['action'],
           deletedAt: data['deleted_at'] is DateTime ? data['deleted_at'] : null,
           ebmSynced: data['ebm_synced'] ?? false,
         );

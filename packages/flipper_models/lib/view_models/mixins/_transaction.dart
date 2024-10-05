@@ -93,7 +93,6 @@ mixin TransactionMixin {
           ObjectId(),
           compositePrice: partOfComposite == true ? compositePrice! : 0.0,
           id: randomNumber(),
-          action: AppActions.created,
           price: variation.retailPrice,
           variantId: variation.id!,
           name: name,

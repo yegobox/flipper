@@ -22,7 +22,6 @@ part 'business.g.dart';
 class IBusiness extends IJsonSerializable {
   IBusiness({
     required this.id,
-    required this.action,
     required this.encryptionKey,
     this.name,
     this.currency,
@@ -66,10 +65,9 @@ class IBusiness extends IJsonSerializable {
   });
 
   IBusiness.copy(IBusiness original,
-      {bool? active, String? action, String? encryptionKey, String? name})
+      {bool? active, String? encryptionKey, String? name})
       : id = original.id,
         name = name ?? original.name,
-        action = action ?? original.action,
         encryptionKey = encryptionKey ?? original.encryptionKey,
         active = active ?? original.active;
   int? id;
@@ -117,8 +115,6 @@ class IBusiness extends IJsonSerializable {
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
-
-  String action;
 
   DateTime? deletedAt;
 

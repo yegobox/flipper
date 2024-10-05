@@ -77,7 +77,6 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
         productName: kProductName ?? product.name,
         branchId: branchId,
         isTaxExempted: isTaxExempted,
-        action: AppActions.created,
         lastTouched: DateTime.now(),
         qty: 1,
       ),
@@ -100,7 +99,6 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
         color: COLOR,
         businessId: businessId,
         branchId: branchId,
-        action: AppActions.created,
         id: randomNumber(),
         lastTouched: DateTime.now(),
       ),
@@ -158,7 +156,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
       Stock? stock = ProxyService.local.stockByVariantId(
           variantId: variant.id!, branchId: ProxyService.box.getBranchId()!);
       ProxyService.local.realm!.writeN(
-          tableName:stocksTable,
+          tableName: stocksTable,
           writeCallback: () {
             stock!.rsdQty = newQuantity;
             stock.ebmSynced = false;

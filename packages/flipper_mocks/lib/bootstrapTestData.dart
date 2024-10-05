@@ -19,7 +19,6 @@ class CreateMockdata {
         realm.add<ITransaction>(ITransaction(
           ObjectId(),
           lastTouched: DateTime(2023, 10, 28),
-          action: AppActions.created,
           id: randomNumber(),
           supplierId: 1,
           reference: "2333",

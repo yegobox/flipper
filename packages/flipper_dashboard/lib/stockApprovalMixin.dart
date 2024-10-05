@@ -106,7 +106,6 @@ mixin StockRequestApprovalLogic {
           stock.currentStock + item.quantityRequested!.toDouble();
       stock.rsdQty = stock.rsdQty + item.quantityRequested!.toDouble();
       stock.value = (stock.currentStock * variant.retailPrice);
-      stock.action = AppActions.updated;
     });
   }
 
@@ -363,7 +362,6 @@ mixin StockRequestApprovalLogic {
       branchId: variant.branchId!,
       variantId: variant.id!,
       variant: variant,
-      action: AppActions.created,
       retailPrice: variant.retailPrice,
       supplyPrice: variant.supplyPrice,
       currentStock: approvedQuantity.toDouble(),
@@ -383,7 +381,6 @@ mixin StockRequestApprovalLogic {
     stock.currentStock = stock.currentStock + approvedQuantity.toDouble();
     stock.rsdQty = stock.rsdQty + approvedQuantity.toDouble();
     stock.value = (stock.currentStock * variant.retailPrice);
-    stock.action = AppActions.updated;
   }
 
   void _updateMainBranchStock(
@@ -398,7 +395,7 @@ mixin StockRequestApprovalLogic {
       mainBranchStock.currentStock =
           mainBranchStock.currentStock - approvedQuantity.toDouble();
       mainBranchStock.lastTouched = DateTime.now();
-      mainBranchStock.action = AppActions.updated;
+
       variant!.qty = mainBranchStock.currentStock;
       variant.rsdQty = mainBranchStock.currentStock;
     }

@@ -25,7 +25,6 @@ class AppService with ListenableServiceMixin {
     serverId: randomNumber(),
     isDefault: false,
     encryptionKey: "11",
-    action: AppActions.created,
   ));
   Business get business => _business.value;
   setBusiness({required Business business}) {

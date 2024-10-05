@@ -27,8 +27,6 @@ class _Branch {
 
   DateTime? lastTouched;
 
-  String? action;
-
   DateTime? deletedAt;
   bool? isOnline = false;
 }
@@ -53,8 +51,6 @@ class _Location {
   bool isDefault = false;
 
   DateTime? lastTouched;
-
-  String? action;
 
   DateTime? deletedAt;
   bool? isOnline = false;
@@ -109,8 +105,6 @@ class _Business {
 
   DateTime? lastTouched;
 
-  String? action;
-
   DateTime? deletedAt;
 
   String? encryptionKey;
@@ -129,7 +123,6 @@ class _Category {
   int? branchId;
   DateTime? deletedAt;
   DateTime? lastTouched;
-  String? action;
 }
 
 @RealmModel()
@@ -144,8 +137,6 @@ class _PColor {
   bool active = false;
 
   DateTime? lastTouched;
-
-  String? action;
 
   DateTime? deletedAt;
 }
@@ -197,7 +188,6 @@ class _Counter {
   int? curRcptNo;
   int? invcNo;
   DateTime? lastTouched;
-  String? action;
 }
 
 @RealmModel()
@@ -238,8 +228,6 @@ class _Customer {
   bool ebmSynced = false;
   DateTime? lastTouched;
 
-  String? action;
-
   DateTime? deletedAt;
 
   /// this is the tin of the business adding this customer
@@ -270,8 +258,6 @@ class _Device {
 
   DateTime? lastTouched;
   DateTime? deletedAt;
-
-  String? action;
 }
 
 @RealmModel()
@@ -352,8 +338,6 @@ class _Favorite {
 
   DateTime? lastTouched;
 
-  String? action;
-
   DateTime? deletedAt;
 }
 
@@ -386,7 +370,6 @@ class _Product {
 
   DateTime? lastTouched;
 
-  String? action;
   DateTime? deletedAt;
 
   /// this is helper to highlight a product when is found in search
@@ -422,7 +405,7 @@ class _Receipt {
   int? transactionId;
 
   DateTime? lastTouched;
-  String? action;
+
   int? invcNo;
 }
 
@@ -455,7 +438,6 @@ class _Setting {
   DateTime? lastTouched;
 
   DateTime? deletedAt;
-  String? action;
 }
 
 @RealmModel()
@@ -487,8 +469,6 @@ class _Stock {
   double retailPrice = 0.0;
 
   DateTime? lastTouched;
-
-  String? action;
 
   DateTime? deletedAt;
 
@@ -588,8 +568,6 @@ class _Variant {
   double supplyPrice = 0.0;
 
   double retailPrice = 0.0;
-
-  String? action;
 
   /// these fields are empty in normal business when this item is owned by a business
   /// but in case when this item is owned by a supplier then these fields will be filled
@@ -728,7 +706,6 @@ class _TransactionItem {
 
   DateTime? lastTouched;
   DateTime? deletedAt;
-  String? action;
 
   int? branchId;
   bool ebmSynced = false;
@@ -769,8 +746,6 @@ class _ITransaction {
 
   DateTime? lastTouched;
 
-  String? action;
-
   // int categoryId;
 
   String? ticketName;
@@ -805,8 +780,6 @@ class _IUnit {
   bool active = false;
 
   DateTime? lastTouched;
-
-  String? action;
 
   String? createdAt;
   DateTime? deletedAt;

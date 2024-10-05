@@ -623,3 +623,6 @@ class App {}
 // https://github.com/firebase/flutterfire/issues/11547
 //https://firebase.google.com/docs/crashlytics/get-started?platform=flutter
 // https://stackoverflow.com/questions/48390821/unable-to-upload-crashlytics-dsym-file-during-build-phase-due-to-script-error
+
+// FIXME: use latest flutter, I have to keep watching this issue as it affect me on android
+// https://github.com/flutter/flutter/issues/9707

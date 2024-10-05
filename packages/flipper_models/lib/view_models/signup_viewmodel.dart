@@ -219,7 +219,6 @@ class SignupViewModel extends ReactiveViewModel {
       ],
       active: false,
       lastTouched: DateTime.now(),
-      action: AppActions.created,
       branchId: branches[0].serverId,
       name: 'color',
     );

@@ -353,7 +353,6 @@ class LocalRealmApi
             longitude: e.longitude,
             latitude: e.latitude,
             location: e.location,
-            action: e.action ?? "",
             active: e.active,
             isDefault: e.isDefault))
         .toList();
@@ -363,7 +362,6 @@ class LocalRealmApi
     return businesses
         .map((e) => IBusiness(
               id: e.serverId,
-              action: e.action ?? "",
               encryptionKey: e.encryptionKey!,
               name: e.name,
               currency: e.currency,
@@ -556,7 +554,6 @@ class LocalRealmApi
               isDefault: business.isDefault,
               businessTypeId: business.businessTypeId,
               lastTouched: business.lastTouched,
-              action: business.action,
               deletedAt: business.deletedAt,
               encryptionKey: business.encryptionKey);
           businessToAdd.add(biz);
@@ -576,7 +573,6 @@ class LocalRealmApi
               latitude: brannch.latitude,
               isDefault: brannch.isDefault,
               lastTouched: brannch.lastTouched,
-              action: brannch.action,
               deletedAt: brannch.deletedAt);
           branchToAdd.add(branch);
         }
@@ -718,7 +714,6 @@ class LocalRealmApi
               isDefault: business.isDefault,
               businessTypeId: business.businessTypeId,
               lastTouched: business.lastTouched,
-              action: business.action,
               deletedAt: business.deletedAt,
               encryptionKey: business.encryptionKey);
           Business? exist = realm!
@@ -739,7 +734,6 @@ class LocalRealmApi
               latitude: brannch.latitude,
               isDefault: brannch.isDefault,
               lastTouched: brannch.lastTouched,
-              action: brannch.action,
               deletedAt: brannch.deletedAt);
           Branch? exist =
               realm!.query<Branch>(r'serverId == $0', [brannch.id]).firstOrNull;
@@ -929,7 +923,6 @@ class LocalRealmApi
                 isDefault: business.isDefault,
                 businessTypeId: business.businessTypeId,
                 lastTouched: business.lastTouched,
-                action: business.action,
                 deletedAt: business.deletedAt,
                 encryptionKey: business.encryptionKey));
           }
@@ -946,7 +939,6 @@ class LocalRealmApi
                 serverId: branch.id,
                 name: branch.name,
                 businessId: branch.businessId,
-                action: branch.action,
                 active: branch.active,
                 lastTouched: branch.lastTouched,
                 latitude: branch.latitude,
@@ -1197,7 +1189,6 @@ class LocalRealmApi
               lastTouched: DateTime.now(),
               branchId: branchId,
               variantId: variation.id!,
-              action: AppActions.created,
               retailPrice: variation.retailPrice,
               supplyPrice: variation.supplyPrice,
               currentStock: variation.qty,
@@ -1210,7 +1201,6 @@ class LocalRealmApi
 
         stock!.currentStock = stock.currentStock + variation.qty;
         stock.rsdQty = stock.currentStock + variation.qty;
-        stock.action = AppActions.updated;
         stock.lastTouched = DateTime.now().toLocal();
         stock.value = (variation.qty * (variation.retailPrice)).toDouble();
         realm!.put<Stock>(stock, tableName: 'stocks');
@@ -1218,7 +1208,6 @@ class LocalRealmApi
         variant.qty = variation.qty;
         variant.retailPrice = variation.retailPrice;
         variant.supplyPrice = variation.supplyPrice;
-        variant.action = AppActions.updated;
         variant.lastTouched = DateTime.now().toLocal();
         realm!.put<Variant>(variant, tableName: 'variants');
       } else {
@@ -1234,7 +1223,6 @@ class LocalRealmApi
             branchId: branchId,
             variant: variation,
             variantId: variation.id,
-            action: AppActions.created,
             retailPrice: variation.retailPrice,
             supplyPrice: variation.supplyPrice,
             currentStock: variation.qty,
@@ -1296,7 +1284,6 @@ class LocalRealmApi
         lastTouched: DateTime.now(),
         name: product?.name ?? name,
         sku: sku,
-        action: 'create',
         productId: product?.id ?? productId,
         color: product?.color,
         unit: 'Per Item',
@@ -1372,7 +1359,6 @@ class LocalRealmApi
             name: product!.name,
             color: product.color,
             sku: 'sku',
-            action: 'create',
             productId: product.id!,
             unit: 'Per Item',
             productName: product.name,
@@ -1423,7 +1409,6 @@ class LocalRealmApi
         Stock stock = Stock(ObjectId(),
             lastTouched: DateTime.now(),
             id: randomNumber(),
-            action: 'create',
             branchId: branchId,
             variantId: variantId,
             currentStock: 0.0,
@@ -2045,7 +2030,6 @@ class LocalRealmApi
           lastTouched: DateTime.now(),
           id: randomNumber(),
           variant: newVariant,
-          action: 'create',
           branchId: branchId,
           variantId: newVariant.id!,
           currentStock: qty,
@@ -2559,7 +2543,6 @@ class LocalRealmApi
         branchId: subBranchId,
         variant: variant,
         variantId: variant.id!,
-        action: AppActions.created,
         retailPrice: variant.retailPrice,
         supplyPrice: variant.supplyPrice,
         currentStock: item.quantityRequested!.toDouble(),
@@ -2892,7 +2875,6 @@ class LocalRealmApi
             branchId: branchId,
             id: randomNumber(),
             name: map['name'],
-            action: AppActions.created,
             lastTouched: DateTime.now(),
             value: map['value']);
 
@@ -3112,7 +3094,6 @@ class LocalRealmApi
                 stock.sold = stock.sold! + item.qty;
                 // stock value after item deduct
                 stock.value = finalStock * (stock.retailPrice);
-                stock.action = AppActions.updated;
                 stock.ebmSynced = false;
                 stock.bhfId = stock.bhfId ?? ProxyService.box.bhfId();
                 stock.tin = stock.tin ?? ProxyService.box.tin();
@@ -3216,7 +3197,6 @@ class LocalRealmApi
         colorsToAdd.add(PColor(ObjectId(),
             id: randomNumber(),
             lastTouched: DateTime.now(),
-            action: AppActions.created,
             name: colorName,
             active: color.active,
             branchId: color.branchId));
@@ -3566,7 +3546,6 @@ class LocalRealmApi
               id: randomNumber(),
               lastTouched: DateTime.now(),
               name: CUSTOM_PRODUCT,
-              action: 'create',
               businessId: businessId,
               color: "#e74c3c",
               createdAt: DateTime.now().toIso8601String(),
@@ -4002,7 +3981,6 @@ class LocalRealmApi
           id: id,
           supplierId: businessId,
           reference: randomNumber().toString(),
-          action: AppActions.created,
           transactionNumber: randomNumber().toString(),
           status: PENDING,
           transactionType: transactionType,
@@ -4043,7 +4021,6 @@ class LocalRealmApi
         lastTouched: DateTime.now(),
         id: id,
         reference: randomNumber().toString(),
-        action: AppActions.created,
         transactionNumber: randomNumber().toString(),
         status: PENDING,
         isExpense: isExpense,
@@ -4089,7 +4066,6 @@ class LocalRealmApi
           lastTouched: DateTime.now(),
           id: id,
           reference: randomNumber().toString(),
-          action: AppActions.created,
           transactionNumber: randomNumber().toString(),
           status: PENDING,
           isExpense: isExpense,
@@ -4769,7 +4745,6 @@ class LocalRealmApi
         branchId: variant.branchId,
         variant: variant,
         variantId: variant.id!,
-        action: AppActions.created,
         retailPrice: variant.retailPrice,
         supplyPrice: variant.supplyPrice,
         currentStock: variant.qty,

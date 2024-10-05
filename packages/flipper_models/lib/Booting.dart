@@ -127,7 +127,6 @@ mixin Booting {
             isDefault: false,
             active: false,
             lastTouched: branch.lastTouched,
-            action: branch.action,
             deletedAt: branch.deletedAt,
           ));
           talker.warning("When adding branch");
@@ -184,7 +183,6 @@ mixin Booting {
         isDefault: business.isDefault,
         businessTypeId: business.businessTypeId,
         lastTouched: business.lastTouched,
-        action: business.action,
         deletedAt: business.deletedAt,
         encryptionKey: business.encryptionKey,
       );

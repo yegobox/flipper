@@ -116,7 +116,6 @@ class EventService
         Device? device = await ProxyService.local.getDevice(
             phone: loginData.phone, linkingCode: loginData.linkingCode);
         try {
-          
           if (device == null) {
             await ProxyService.local.create(
                 data: Device(ObjectId(),
@@ -124,7 +123,6 @@ class EventService
                     pubNubPublished: false,
                     branchId: loginData.branchId,
                     businessId: loginData.businessId,
-                    action: AppActions.created,
                     defaultApp: loginData.defaultApp,
                     phone: loginData.phone,
                     userId: loginData.userId,
@@ -186,7 +184,6 @@ class EventService
             data: Device(ObjectId(),
                 id: randomNumber(),
                 pubNubPublished: true,
-                action: AppActions.created,
                 branchId: deviceEvent.branchId,
                 businessId: deviceEvent.businessId,
                 defaultApp: deviceEvent.defaultApp,
