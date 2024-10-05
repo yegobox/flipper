@@ -161,8 +161,8 @@ class PullChange {
         );
       },
       updateRealmObject: (_product, data) {
-        Product? product = localRealm
-            .query<Product>(r'id == $0', [data['product_id']]).firstOrNull;
+        Product? product = localRealm.query<Product>(r'id == $0 && branch_id',
+            [data['product_id'], ProxyService.box.getBranchId()]).firstOrNull;
 
         if (product != null) {
           localRealm.write(() {
@@ -280,8 +280,8 @@ class PullChange {
       },
       updateRealmObject: (_variant, data) {
         // Find related variant
-        Variant? variant = localRealm
-            .query<Variant>(r'id == $0', [data['variant_id']]).firstOrNull;
+        Variant? variant = localRealm.query<Variant>(r'id == $0 && branch_id',
+            [data['variant_id'], ProxyService.box.getBranchId()]).firstOrNull;
 
         if (variant != null) {
           localRealm.write(() {
@@ -448,8 +448,11 @@ class PullChange {
         );
       },
       updateRealmObject: (_transaction, data) {
-        ITransaction? transaction = localRealm.query<ITransaction>(r'id == $0',
-            [data[iTransactionsTable.singularize() + "_id"]]).firstOrNull;
+        ITransaction? transaction = localRealm.query<ITransaction>(
+            r'id == $0 && branch_id', [
+          data[iTransactionsTable.singularize() + "_id"],
+          ProxyService.box.getBranchId()
+        ]).firstOrNull;
 
         if (transaction != null) {
           localRealm.write(() {
@@ -975,8 +978,8 @@ class PullChange {
         );
       },
       updateRealmObject: (_stock, data) {
-        Counter? counter = localRealm
-            .query<Counter>(r'id == $0', [data['counter_id']]).firstOrNull;
+        Counter? counter = localRealm.query<Counter>(r'id == $0 && branch_id',
+            [data['counter_id'], ProxyService.box.getBranchId()]).firstOrNull;
 
         if (counter != null) {
           localRealm.write(() {

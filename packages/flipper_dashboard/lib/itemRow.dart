@@ -297,40 +297,23 @@ class _RowItemState extends ConsumerState<RowItem> with Refresh {
       );
     } else {
       if (widget.forceRemoteUrl) {
+        // get preSigned URL
         return FutureBuilder<String>(
           future: preSignedUrl(
               branchId: widget.variant!.branchId!, imageInS3: widget.imageUrl!),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
+              return CircularProgressIndicator();
             } else if (snapshot.hasError || !snapshot.hasData) {
-              return AspectRatio(
-                aspectRatio: 1.0, // Ensures a consistent square aspect ratio
-                child: Image.asset(
-                  'assets/default_placeholder.png', // Default image path
+              return Image.asset(
                   package: 'flipper_dashboard',
-                  fit: BoxFit
-                      .cover, // Scale the image to cover the entire container
-                ),
-              );
+                  'assets/default_placeholder.png');
             } else {
-              return AspectRatio(
-                aspectRatio: 1.0, // Ensures the image fits a square ratio
-                child: Image.network(
-                  snapshot.data!,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  errorBuilder: (context, error, stackTrace) {
-                    return AspectRatio(
-                      aspectRatio: 1.0,
-                      child: Image.asset(
-                        'assets/default_placeholder.png',
-                        package: 'flipper_dashboard',
-                        fit: BoxFit.cover,
-                      ),
-                    );
-                  },
-                ),
+              return Image.network(
+                snapshot.data!,
+                width: double.infinity,
+                height: 130,
+                fit: BoxFit.cover,
               );
             }
           },
@@ -341,37 +324,37 @@ class _RowItemState extends ConsumerState<RowItem> with Refresh {
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data != null) {
               final imageFilePath = snapshot.data!;
-              return AspectRatio(
-                aspectRatio: 1.0, // Ensure square layout
-                child: Image.file(
-                  File(imageFilePath),
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[300],
-                      child: Center(
-                        child: Icon(
-                          Icons.image,
-                          size: 50,
-                          color: Colors.grey[500],
-                        ),
+
+              return Image.file(
+                File(imageFilePath),
+                width: double.infinity,
+                height: 130,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: double.infinity,
+                    height: 130,
+                    color: Colors.grey[300],
+                    child: Center(
+                      child: Icon(
+                        Icons.image,
+                        size: 50,
+                        color: Colors.grey[500],
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               );
             } else {
-              return AspectRatio(
-                aspectRatio: 1.0,
-                child: Container(
-                  color: Colors.grey[300],
-                  child: Center(
-                    child: Icon(
-                      Icons.image,
-                      size: 50,
-                      color: Colors.grey[500],
-                    ),
+              return Container(
+                width: double.infinity,
+                height: 130,
+                color: Colors.grey[300],
+                child: Center(
+                  child: Icon(
+                    Icons.image,
+                    size: 50,
+                    color: Colors.grey[500],
                   ),
                 ),
               );

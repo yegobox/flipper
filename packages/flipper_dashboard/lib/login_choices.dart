@@ -2,7 +2,6 @@
 
 import 'dart:developer';
 
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -10,7 +9,6 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -304,7 +302,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   }
 
   Future<void> _syncBranchWithDatabase(Branch branch) async {
-    talker.warning("The chosen branch: ${branch.serverId}");
     await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
   }
 
