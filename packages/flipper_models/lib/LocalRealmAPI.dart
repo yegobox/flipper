@@ -327,7 +327,7 @@ class LocalRealmApi
       uid: pin.tokenUid,
       channels: [],
       phoneNumber: pin.phoneNumber!,
-      id: int.parse(pin.userId!),
+      id: pin.userId!,
       tenants: [
         ITenant(
             id: randomNumber(),
@@ -338,7 +338,7 @@ class LocalRealmApi
             businesses: _convertBusinesses(businesses),
             businessId: 0,
             nfcEnabled: false,
-            userId: int.parse(pin.userId!),
+            userId: pin.userId!,
             isDefault: false)
       ],
     );
@@ -483,7 +483,7 @@ class LocalRealmApi
       ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
       Pin? savedPin = await ProxyService.local.savePin(
           pin: Pin(ObjectId(),
-              userId: pin.userId,
+              userId: int.parse(pin.userId),
               id: int.parse(pin.userId),
               branchId: pin.branchId,
               businessId: pin.businessId,
@@ -1512,7 +1512,7 @@ class LocalRealmApi
           return IPin(
               id: localPin.id,
               pin: localPin.pin ?? int.parse(pinString),
-              userId: localPin.userId!,
+              userId: localPin.userId!.toString(),
               phoneNumber: localPin.phoneNumber!,
               branchId: localPin.branchId!,
               businessId: localPin.businessId!,
@@ -2213,6 +2213,7 @@ class LocalRealmApi
     if (realm == null) {
       return Stream.value([]);
     }
+
     if (filter == RequestStatus.approved) {
       final query = realm!.query<StockRequest>(
           r'mainBranchId == $0 && status == $1',
@@ -2650,21 +2651,30 @@ class LocalRealmApi
       DateTime? deliveryDate,
       required int mainBranchId}) {
     int orderId = randomNumber();
-    realm!.write(() {
-      final stockRequest = StockRequest(
-        ObjectId(),
-        id: orderId,
-        deliveryDate: deliveryDate,
-        deliveryNote: deliveryNote,
-        mainBranchId: mainBranchId,
-        subBranchId: ProxyService.box.getBranchId(),
-        status: RequestStatus.pending,
-        items: items,
-        updatedAt: DateTime.now().toUtc().toLocal(),
-        createdAt: DateTime.now().toUtc().toLocal(),
-      );
-      realm!.add<StockRequest>(stockRequest);
-    });
+    for (TransactionItem item in items) {
+      realm!.writeN(
+          tableName: transactionItemsTable,
+          writeCallback: () {
+            return item;
+          });
+    }
+    realm!.writeN(
+        tableName: stockRequestsTable,
+        writeCallback: () {
+          final stockRequest = StockRequest(
+            ObjectId(),
+            id: orderId,
+            deliveryDate: deliveryDate,
+            deliveryNote: deliveryNote,
+            mainBranchId: mainBranchId,
+            subBranchId: ProxyService.box.getBranchId(),
+            status: RequestStatus.pending,
+            items: items,
+            updatedAt: DateTime.now().toUtc().toLocal(),
+            createdAt: DateTime.now().toUtc().toLocal(),
+          );
+          return stockRequest;
+        });
     return orderId;
   }
 

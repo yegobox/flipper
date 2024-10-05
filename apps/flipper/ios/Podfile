@@ -1,8 +1,6 @@
 # Uncomment this line to define a global platform for your project
-platform :ios, '15.7'
-# platform :ios, '14.4.99'
-# adding this line https://github.com/juliansteenbakker/mobile_scanner/issues/1165 as a temporal fix for issue mention on the link
-# $FirebaseSDKVersion = '10.29.0'
+platform :ios, '13.0'
+
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -39,25 +37,8 @@ target 'Runner' do
   end
 end
 
-# https://firebase.google.com/docs/firestore/quickstart#dart
-target 'Runner' do
-  use_frameworks!
-  use_modular_headers!
-
-  pod 'FirebaseFirestore',
-    :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git',
-    :tag => '10.29.0'
-
-  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-  target 'RunnerTests' do
-    inherit! :search_paths
-  end
-end
-
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
   end
 end
-
-

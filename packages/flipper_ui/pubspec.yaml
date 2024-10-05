@@ -26,7 +26,7 @@ dependencies:
   
   
 dependency_overrides:
-  http: ^1.2.1
+  http: ^1.2.2
   meta: ^1.12.0
   
   

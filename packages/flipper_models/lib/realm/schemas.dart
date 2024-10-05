@@ -865,7 +865,7 @@ class _Pin {
   @PrimaryKey()
   @MapTo('_id')
   ObjectId? realmId;
-  String? userId;
+  int? userId;
   String? phoneNumber;
   int? pin;
   int? branchId;

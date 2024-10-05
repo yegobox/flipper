@@ -111,7 +111,7 @@ class _LoginState extends State<Login> {
                     pinString: iUser.id.toString(),
                     flipperHttpClient: ProxyService.http);
                 final thePin = Pin(ObjectId(),
-                    userId: pin!.userId,
+                    userId: int.parse(pin!.userId),
                     pin: pin.pin,
                     id: int.parse(pin.userId),
                     branchId: pin.branchId,

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+// import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
@@ -84,6 +84,8 @@ Future<void> initializeDependencies() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   const isTest = bool.fromEnvironment('EMULATOR_ENABLED', defaultValue: false);
+  FirebaseFirestore.instance.settings =
+      const Settings(persistenceEnabled: false);
   if (isTest) {
     FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8081);
   }
@@ -113,7 +115,7 @@ Future<void> initializeDependencies() async {
       FlutterError.dumpErrorToConsole(details);
 
       // Send the error to Firebase Crashlytics.
-      FirebaseCrashlytics.instance.recordFlutterError(details);
+      // FirebaseCrashlytics.instance.recordFlutterError(details);
     };
   }
   if (isAndroid && foundation.kReleaseMode && !isWeb & !isWindows && !isMacOs) {

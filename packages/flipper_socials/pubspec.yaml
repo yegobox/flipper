@@ -35,7 +35,7 @@ dependencies:
   flipper_dashboard: ^0.0.1-dev.5
   url_launcher: ^6.3.0
 dependency_overrides:
-  http: ^1.2.1
+  http: ^1.2.2
   meta: ^1.12.0
   
   

@@ -281,8 +281,7 @@ class RemoteConfigService implements Remote {
 
   @override
   bool isMultiUserEnabled() {
-    // TODO: implement isMultiUserEnabled
-    throw UnimplementedError();
+    return true;
   }
 }
 

@@ -12,18 +12,18 @@ mixin CoreMiscellaneous {
       ProxyService.box.remove(key: 'authComplete');
       if (ProxyService.box.getUserId() != null &&
           ProxyService.box.getBusinessId() != null) {
-        ProxyService.event.publish(loginDetails: {
-          'channel': "${ProxyService.box.getUserId()!}-logout",
-          'userId': ProxyService.box.getUserId(),
-          'businessId': ProxyService.box.getBusinessId(),
-          'branchId': ProxyService.box.getBranchId(),
-          'phone': ProxyService.box.getUserPhone(),
-          'defaultApp': ProxyService.box.getDefaultApp(),
-          'deviceName': Platform.operatingSystem,
-          'uid': (await FirebaseAuth.instance.currentUser?.getIdToken()) ?? "",
-          'deviceVersion': Platform.operatingSystemVersion,
-          'linkingCode': randomNumber().toString()
-        });
+        // ProxyService.event.publish(loginDetails: {
+        //   'channel': "${ProxyService.box.getUserId()!}-logout",
+        //   'userId': ProxyService.box.getUserId(),
+        //   'businessId': ProxyService.box.getBusinessId(),
+        //   'branchId': ProxyService.box.getBranchId(),
+        //   'phone': ProxyService.box.getUserPhone(),
+        //   'defaultApp': ProxyService.box.getDefaultApp(),
+        //   'deviceName': Platform.operatingSystem,
+        //   'uid': (await FirebaseAuth.instance.currentUser?.getIdToken()) ?? "",
+        //   'deviceVersion': Platform.operatingSystemVersion,
+        //   'linkingCode': randomNumber().toString()
+        // });
       }
       ProxyService.box.remove(key: 'userId');
       ProxyService.box.remove(key: 'branchId');

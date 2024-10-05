@@ -160,7 +160,7 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   void _configureInMemory() {
-    Configuration config = Configuration.inMemory(realmModels);
+    Configuration config = Configuration.inMemory(localModels);
     oldRealm = Realm(config);
     talker.info("Opened in-memory realm.");
   }

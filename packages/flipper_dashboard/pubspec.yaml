@@ -129,7 +129,7 @@ dependencies:
   # lifecycle: ^0.9.0
 
 dependency_overrides:
-  http: ^1.2.1
+  http: ^1.2.2
   meta: ^1.12.0
   
   

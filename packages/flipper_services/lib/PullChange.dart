@@ -1,9 +1,13 @@
 import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/firestore/all.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/firestore/all.dart' as odm;
 import 'package:flipper_models/power_sync/schema.dart';
 
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/realm_model_export.dart' as mod;
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,7 +15,108 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class PullChange {
   void start(
       {required FirebaseFirestore firestore, required Realm localRealm}) {
-    /// delete all product from firestore where brnach_id ==1
+    /// https://stackoverflow.com/questions/52905836/how-to-query-nested-objects-in-firestore
+    try {
+      stockRequestsRef
+          .whereMain_branch_id(isEqualTo: ProxyService.box.getBranchId())
+          .snapshots()
+          .listen((querySnapshot) {
+        List<mod.TransactionItem> items = [];
+        for (var doc in querySnapshot.docs) {
+          final stockRequest = doc.data;
+          for (odm.TransactionItem item in stockRequest.items!) {
+            mod.TransactionItem? transactionItem = mod.TransactionItem(
+              ObjectId(),
+              id: item.id,
+              name: item.name,
+              quantityRequested: item.quantityRequested,
+              quantityApproved: item.quantityApproved,
+              quantityShipped: item.quantityShipped,
+              transactionId: item.transactionId,
+              variantId: item.variantId,
+              qty: item.qty ?? 0,
+              price: item.price ?? 0,
+              discount: item.discount ?? 0,
+              type: item.type,
+              remainingStock: item.remainingStock ?? 0,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt,
+              isTaxExempted: item.isTaxExempted ?? false,
+              isRefunded: item.isRefunded ?? false,
+              doneWithTransaction: item.doneWithTransaction,
+              active: item.active,
+              dcRt: item.dcRt ?? 0,
+              dcAmt: item.dcAmt ?? 0,
+              taxblAmt: item.taxblAmt ?? 0,
+              taxAmt: item.taxAmt ?? 0,
+              totAmt: item.totAmt ?? 0,
+              itemSeq: item.itemSeq,
+              isrccCd: item.isrccCd,
+              isrccNm: item.isrccNm,
+              isrcRt: item.isrcRt,
+              isrcAmt: item.isrcAmt,
+              taxTyCd: item.taxTyCd,
+              bcd: item.bcd,
+              itemClsCd: item.itemClsCd,
+              itemTyCd: item.itemTyCd,
+              itemStdNm: item.itemStdNm,
+              orgnNatCd: item.orgnNatCd,
+              pkg: item.pkg,
+              itemCd: item.itemCd,
+              pkgUnitCd: item.pkgUnitCd,
+              qtyUnitCd: item.qtyUnitCd,
+              itemNm: item.itemNm,
+              prc: item.prc ?? 0,
+              splyAmt: item.splyAmt ?? 0,
+              tin: item.tin,
+              bhfId: item.bhfId,
+              dftPrc: item.dftPrc,
+              addInfo: item.addInfo,
+              isrcAplcbYn: item.isrcAplcbYn,
+              useYn: item.useYn,
+              regrId: item.regrId,
+              regrNm: item.regrNm,
+              modrId: item.modrId,
+              modrNm: item.modrNm,
+              lastTouched: item.lastTouched,
+              deletedAt: item.deletedAt,
+              action: item.action,
+              branchId: item.branchId,
+              ebmSynced: item.ebmSynced ?? false,
+              partOfComposite: item.partOfComposite ?? false,
+              compositePrice: item.compositePrice ?? 0,
+            );
+            items.add(transactionItem);
+          }
+          localRealm.writeN(
+              tableName: stockRequestsTable,
+              writeCallback: () {
+                return mod.StockRequest(
+                  ObjectId(),
+                  id: stockRequest.id,
+                  mainBranchId: stockRequest.main_branch_id,
+                  subBranchId: stockRequest.sub_branch_id,
+                  createdAt: stockRequest.created_at,
+                  status: stockRequest.status,
+                  deliveryDate: stockRequest.delivery_date,
+                  deliveryNote: stockRequest.delivery_note,
+                  orderNote: stockRequest.order_note,
+                  customerReceivedOrder: stockRequest.customer_received_order,
+                  driverRequestDeliveryConfirmation:
+                      stockRequest.driver_request_delivery_confirmation,
+                  driverId: stockRequest.driver_id,
+                  items: items,
+                  updatedAt: stockRequest.updated_at,
+                );
+              });
+        }
+      }, onError: (error, s) {
+        talker.error('$s');
+      });
+    } catch (e, s) {
+      talker.warning(e);
+      talker.warning(s);
+    }
 
     CloudSync(firestore, localRealm).watchTable<Product>(
       syncProvider: SyncProvider.FIRESTORE,
@@ -273,7 +378,11 @@ class PullChange {
       createRealmObject: (data) {
         return Pin(
           ObjectId(),
-          id: data['user_id'] == null ? 0 : int.parse(data['user_id']),
+          id: data['user_id'] == null
+              ? 0
+              : (data['user_id'] is int
+                  ? data['user_id']
+                  : int.tryParse(data['user_id']) ?? 0),
           userId: data['user_id'],
           branchId: data['branch_id'],
           businessId: data['business_id'],
@@ -355,9 +464,8 @@ class PullChange {
                 data['sub_total'] == null ? 0.0 : data['sub_total'];
             transaction.paymentType =
                 data['payment_type'] == null ? "" : data['payment_type'];
-            transaction.cashReceived = data['cash_received'] == null
-                ? 0.0
-                : double.parse(data['cash_received']);
+            transaction.cashReceived =
+                data['cash_received'] == null ? 0.0 : data['cash_received'];
             transaction.customerChangeDue = data['customer_change_due'] == null
                 ? 0.0
                 : data['customer_change_due'];

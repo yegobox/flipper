@@ -6651,7 +6651,7 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
   Pin(
     ObjectId? realmId, {
     int? id,
-    String? userId,
+    int? userId,
     String? phoneNumber,
     int? pin,
     int? branchId,
@@ -6684,9 +6684,9 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
   set realmId(ObjectId? value) => RealmObjectBase.set(this, '_id', value);
 
   @override
-  String? get userId => RealmObjectBase.get<String>(this, 'userId') as String?;
+  int? get userId => RealmObjectBase.get<int>(this, 'userId') as int?;
   @override
-  set userId(String? value) => RealmObjectBase.set(this, 'userId', value);
+  set userId(int? value) => RealmObjectBase.set(this, 'userId', value);
 
   @override
   String? get phoneNumber =>
@@ -6776,7 +6776,7 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', optional: true, primaryKey: true),
-      SchemaProperty('userId', RealmPropertyType.string, optional: true),
+      SchemaProperty('userId', RealmPropertyType.int, optional: true),
       SchemaProperty('phoneNumber', RealmPropertyType.string, optional: true),
       SchemaProperty('pin', RealmPropertyType.int, optional: true),
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),

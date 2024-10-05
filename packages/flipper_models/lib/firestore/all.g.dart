@@ -210,15 +210,15 @@ abstract class StockRequestDocumentReference extends FirestoreDocumentReference<
   ///
   /// If no document exists yet, the update will fail.
   Future<void> update({
-    String? id,
+    int? id,
     FieldValue idFieldValue,
-    int main_branch_id,
+    int? main_branch_id,
     FieldValue main_branch_idFieldValue,
-    int sub_branch_id,
+    int? sub_branch_id,
     FieldValue sub_branch_idFieldValue,
-    DateTime created_at,
+    DateTime? created_at,
     FieldValue created_atFieldValue,
-    String status,
+    String? status,
     FieldValue statusFieldValue,
     DateTime? delivery_date,
     FieldValue delivery_dateFieldValue,
@@ -226,13 +226,13 @@ abstract class StockRequestDocumentReference extends FirestoreDocumentReference<
     FieldValue delivery_noteFieldValue,
     String? order_note,
     FieldValue order_noteFieldValue,
-    bool customer_received_order,
+    bool? customer_received_order,
     FieldValue customer_received_orderFieldValue,
-    bool driver_request_delivery_confirmation,
+    bool? driver_request_delivery_confirmation,
     FieldValue driver_request_delivery_confirmationFieldValue,
     int? driver_id,
     FieldValue driver_idFieldValue,
-    List<TransactionItem> items,
+    List<TransactionItem>? items,
     FieldValue itemsFieldValue,
     DateTime? updated_at,
     FieldValue updated_atFieldValue,
@@ -243,15 +243,15 @@ abstract class StockRequestDocumentReference extends FirestoreDocumentReference<
   /// The update will fail if applied to a document that does not exist.
   void transactionUpdate(
     Transaction transaction, {
-    String? id,
+    int? id,
     FieldValue idFieldValue,
-    int main_branch_id,
+    int? main_branch_id,
     FieldValue main_branch_idFieldValue,
-    int sub_branch_id,
+    int? sub_branch_id,
     FieldValue sub_branch_idFieldValue,
-    DateTime created_at,
+    DateTime? created_at,
     FieldValue created_atFieldValue,
-    String status,
+    String? status,
     FieldValue statusFieldValue,
     DateTime? delivery_date,
     FieldValue delivery_dateFieldValue,
@@ -259,13 +259,13 @@ abstract class StockRequestDocumentReference extends FirestoreDocumentReference<
     FieldValue delivery_noteFieldValue,
     String? order_note,
     FieldValue order_noteFieldValue,
-    bool customer_received_order,
+    bool? customer_received_order,
     FieldValue customer_received_orderFieldValue,
-    bool driver_request_delivery_confirmation,
+    bool? driver_request_delivery_confirmation,
     FieldValue driver_request_delivery_confirmationFieldValue,
     int? driver_id,
     FieldValue driver_idFieldValue,
-    List<TransactionItem> items,
+    List<TransactionItem>? items,
     FieldValue itemsFieldValue,
     DateTime? updated_at,
     FieldValue updated_atFieldValue,
@@ -276,15 +276,15 @@ abstract class StockRequestDocumentReference extends FirestoreDocumentReference<
   /// The update will fail if applied to a document that does not exist.
   void batchUpdate(
     WriteBatch batch, {
-    String? id,
+    int? id,
     FieldValue idFieldValue,
-    int main_branch_id,
+    int? main_branch_id,
     FieldValue main_branch_idFieldValue,
-    int sub_branch_id,
+    int? sub_branch_id,
     FieldValue sub_branch_idFieldValue,
-    DateTime created_at,
+    DateTime? created_at,
     FieldValue created_atFieldValue,
-    String status,
+    String? status,
     FieldValue statusFieldValue,
     DateTime? delivery_date,
     FieldValue delivery_dateFieldValue,
@@ -292,13 +292,13 @@ abstract class StockRequestDocumentReference extends FirestoreDocumentReference<
     FieldValue delivery_noteFieldValue,
     String? order_note,
     FieldValue order_noteFieldValue,
-    bool customer_received_order,
+    bool? customer_received_order,
     FieldValue customer_received_orderFieldValue,
-    bool driver_request_delivery_confirmation,
+    bool? driver_request_delivery_confirmation,
     FieldValue driver_request_delivery_confirmationFieldValue,
     int? driver_id,
     FieldValue driver_idFieldValue,
-    List<TransactionItem> items,
+    List<TransactionItem>? items,
     FieldValue itemsFieldValue,
     DateTime? updated_at,
     FieldValue updated_atFieldValue,
@@ -577,26 +577,26 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
     final json = {
       if (id != _sentinel)
         _$StockRequestFieldMap['id']!:
-            _$StockRequestPerFieldToJson.id(id as String?),
+            _$StockRequestPerFieldToJson.id(id as int?),
       if (idFieldValue != null) _$StockRequestFieldMap['id']!: idFieldValue,
       if (main_branch_id != _sentinel)
         _$StockRequestFieldMap['main_branch_id']!:
-            _$StockRequestPerFieldToJson.main_branch_id(main_branch_id as int),
+            _$StockRequestPerFieldToJson.main_branch_id(main_branch_id as int?),
       if (main_branch_idFieldValue != null)
         _$StockRequestFieldMap['main_branch_id']!: main_branch_idFieldValue,
       if (sub_branch_id != _sentinel)
         _$StockRequestFieldMap['sub_branch_id']!:
-            _$StockRequestPerFieldToJson.sub_branch_id(sub_branch_id as int),
+            _$StockRequestPerFieldToJson.sub_branch_id(sub_branch_id as int?),
       if (sub_branch_idFieldValue != null)
         _$StockRequestFieldMap['sub_branch_id']!: sub_branch_idFieldValue,
       if (created_at != _sentinel)
         _$StockRequestFieldMap['created_at']!:
-            _$StockRequestPerFieldToJson.created_at(created_at as DateTime),
+            _$StockRequestPerFieldToJson.created_at(created_at as DateTime?),
       if (created_atFieldValue != null)
         _$StockRequestFieldMap['created_at']!: created_atFieldValue,
       if (status != _sentinel)
         _$StockRequestFieldMap['status']!:
-            _$StockRequestPerFieldToJson.status(status as String),
+            _$StockRequestPerFieldToJson.status(status as String?),
       if (statusFieldValue != null)
         _$StockRequestFieldMap['status']!: statusFieldValue,
       if (delivery_date != _sentinel)
@@ -617,14 +617,14 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
       if (customer_received_order != _sentinel)
         _$StockRequestFieldMap['customer_received_order']!:
             _$StockRequestPerFieldToJson
-                .customer_received_order(customer_received_order as bool),
+                .customer_received_order(customer_received_order as bool?),
       if (customer_received_orderFieldValue != null)
         _$StockRequestFieldMap['customer_received_order']!:
             customer_received_orderFieldValue,
       if (driver_request_delivery_confirmation != _sentinel)
         _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
             _$StockRequestPerFieldToJson.driver_request_delivery_confirmation(
-                driver_request_delivery_confirmation as bool),
+                driver_request_delivery_confirmation as bool?),
       if (driver_request_delivery_confirmationFieldValue != null)
         _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
             driver_request_delivery_confirmationFieldValue,
@@ -635,7 +635,7 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
         _$StockRequestFieldMap['driver_id']!: driver_idFieldValue,
       if (items != _sentinel)
         _$StockRequestFieldMap['items']!:
-            _$StockRequestPerFieldToJson.items(items as List<TransactionItem>),
+            _$StockRequestPerFieldToJson.items(items as List<TransactionItem>?),
       if (itemsFieldValue != null)
         _$StockRequestFieldMap['items']!: itemsFieldValue,
       if (updated_at != _sentinel)
@@ -734,26 +734,26 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
     final json = {
       if (id != _sentinel)
         _$StockRequestFieldMap['id']!:
-            _$StockRequestPerFieldToJson.id(id as String?),
+            _$StockRequestPerFieldToJson.id(id as int?),
       if (idFieldValue != null) _$StockRequestFieldMap['id']!: idFieldValue,
       if (main_branch_id != _sentinel)
         _$StockRequestFieldMap['main_branch_id']!:
-            _$StockRequestPerFieldToJson.main_branch_id(main_branch_id as int),
+            _$StockRequestPerFieldToJson.main_branch_id(main_branch_id as int?),
       if (main_branch_idFieldValue != null)
         _$StockRequestFieldMap['main_branch_id']!: main_branch_idFieldValue,
       if (sub_branch_id != _sentinel)
         _$StockRequestFieldMap['sub_branch_id']!:
-            _$StockRequestPerFieldToJson.sub_branch_id(sub_branch_id as int),
+            _$StockRequestPerFieldToJson.sub_branch_id(sub_branch_id as int?),
       if (sub_branch_idFieldValue != null)
         _$StockRequestFieldMap['sub_branch_id']!: sub_branch_idFieldValue,
       if (created_at != _sentinel)
         _$StockRequestFieldMap['created_at']!:
-            _$StockRequestPerFieldToJson.created_at(created_at as DateTime),
+            _$StockRequestPerFieldToJson.created_at(created_at as DateTime?),
       if (created_atFieldValue != null)
         _$StockRequestFieldMap['created_at']!: created_atFieldValue,
       if (status != _sentinel)
         _$StockRequestFieldMap['status']!:
-            _$StockRequestPerFieldToJson.status(status as String),
+            _$StockRequestPerFieldToJson.status(status as String?),
       if (statusFieldValue != null)
         _$StockRequestFieldMap['status']!: statusFieldValue,
       if (delivery_date != _sentinel)
@@ -774,14 +774,14 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
       if (customer_received_order != _sentinel)
         _$StockRequestFieldMap['customer_received_order']!:
             _$StockRequestPerFieldToJson
-                .customer_received_order(customer_received_order as bool),
+                .customer_received_order(customer_received_order as bool?),
       if (customer_received_orderFieldValue != null)
         _$StockRequestFieldMap['customer_received_order']!:
             customer_received_orderFieldValue,
       if (driver_request_delivery_confirmation != _sentinel)
         _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
             _$StockRequestPerFieldToJson.driver_request_delivery_confirmation(
-                driver_request_delivery_confirmation as bool),
+                driver_request_delivery_confirmation as bool?),
       if (driver_request_delivery_confirmationFieldValue != null)
         _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
             driver_request_delivery_confirmationFieldValue,
@@ -792,7 +792,7 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
         _$StockRequestFieldMap['driver_id']!: driver_idFieldValue,
       if (items != _sentinel)
         _$StockRequestFieldMap['items']!:
-            _$StockRequestPerFieldToJson.items(items as List<TransactionItem>),
+            _$StockRequestPerFieldToJson.items(items as List<TransactionItem>?),
       if (itemsFieldValue != null)
         _$StockRequestFieldMap['items']!: itemsFieldValue,
       if (updated_at != _sentinel)
@@ -891,26 +891,26 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
     final json = {
       if (id != _sentinel)
         _$StockRequestFieldMap['id']!:
-            _$StockRequestPerFieldToJson.id(id as String?),
+            _$StockRequestPerFieldToJson.id(id as int?),
       if (idFieldValue != null) _$StockRequestFieldMap['id']!: idFieldValue,
       if (main_branch_id != _sentinel)
         _$StockRequestFieldMap['main_branch_id']!:
-            _$StockRequestPerFieldToJson.main_branch_id(main_branch_id as int),
+            _$StockRequestPerFieldToJson.main_branch_id(main_branch_id as int?),
       if (main_branch_idFieldValue != null)
         _$StockRequestFieldMap['main_branch_id']!: main_branch_idFieldValue,
       if (sub_branch_id != _sentinel)
         _$StockRequestFieldMap['sub_branch_id']!:
-            _$StockRequestPerFieldToJson.sub_branch_id(sub_branch_id as int),
+            _$StockRequestPerFieldToJson.sub_branch_id(sub_branch_id as int?),
       if (sub_branch_idFieldValue != null)
         _$StockRequestFieldMap['sub_branch_id']!: sub_branch_idFieldValue,
       if (created_at != _sentinel)
         _$StockRequestFieldMap['created_at']!:
-            _$StockRequestPerFieldToJson.created_at(created_at as DateTime),
+            _$StockRequestPerFieldToJson.created_at(created_at as DateTime?),
       if (created_atFieldValue != null)
         _$StockRequestFieldMap['created_at']!: created_atFieldValue,
       if (status != _sentinel)
         _$StockRequestFieldMap['status']!:
-            _$StockRequestPerFieldToJson.status(status as String),
+            _$StockRequestPerFieldToJson.status(status as String?),
       if (statusFieldValue != null)
         _$StockRequestFieldMap['status']!: statusFieldValue,
       if (delivery_date != _sentinel)
@@ -931,14 +931,14 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
       if (customer_received_order != _sentinel)
         _$StockRequestFieldMap['customer_received_order']!:
             _$StockRequestPerFieldToJson
-                .customer_received_order(customer_received_order as bool),
+                .customer_received_order(customer_received_order as bool?),
       if (customer_received_orderFieldValue != null)
         _$StockRequestFieldMap['customer_received_order']!:
             customer_received_orderFieldValue,
       if (driver_request_delivery_confirmation != _sentinel)
         _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
             _$StockRequestPerFieldToJson.driver_request_delivery_confirmation(
-                driver_request_delivery_confirmation as bool),
+                driver_request_delivery_confirmation as bool?),
       if (driver_request_delivery_confirmationFieldValue != null)
         _$StockRequestFieldMap['driver_request_delivery_confirmation']!:
             driver_request_delivery_confirmationFieldValue,
@@ -949,7 +949,7 @@ class _$StockRequestDocumentReference extends FirestoreDocumentReference<
         _$StockRequestFieldMap['driver_id']!: driver_idFieldValue,
       if (items != _sentinel)
         _$StockRequestFieldMap['items']!:
-            _$StockRequestPerFieldToJson.items(items as List<TransactionItem>),
+            _$StockRequestPerFieldToJson.items(items as List<TransactionItem>?),
       if (itemsFieldValue != null)
         _$StockRequestFieldMap['items']!: itemsFieldValue,
       if (updated_at != _sentinel)
@@ -1027,14 +1027,14 @@ abstract class StockRequestQuery
   });
 
   StockRequestQuery whereId({
-    String? isEqualTo,
-    String? isNotEqualTo,
-    String? isLessThan,
-    String? isLessThanOrEqualTo,
-    String? isGreaterThan,
-    String? isGreaterThanOrEqualTo,
-    List<String?>? whereIn,
-    List<String?>? whereNotIn,
+    int? isEqualTo,
+    int? isNotEqualTo,
+    int? isLessThan,
+    int? isLessThanOrEqualTo,
+    int? isGreaterThan,
+    int? isGreaterThanOrEqualTo,
+    List<int?>? whereIn,
+    List<int?>? whereNotIn,
     bool? isNull,
   });
 
@@ -1045,8 +1045,8 @@ abstract class StockRequestQuery
     int? isLessThanOrEqualTo,
     int? isGreaterThan,
     int? isGreaterThanOrEqualTo,
-    List<int>? whereIn,
-    List<int>? whereNotIn,
+    List<int?>? whereIn,
+    List<int?>? whereNotIn,
     bool? isNull,
   });
 
@@ -1057,8 +1057,8 @@ abstract class StockRequestQuery
     int? isLessThanOrEqualTo,
     int? isGreaterThan,
     int? isGreaterThanOrEqualTo,
-    List<int>? whereIn,
-    List<int>? whereNotIn,
+    List<int?>? whereIn,
+    List<int?>? whereNotIn,
     bool? isNull,
   });
 
@@ -1069,8 +1069,8 @@ abstract class StockRequestQuery
     DateTime? isLessThanOrEqualTo,
     DateTime? isGreaterThan,
     DateTime? isGreaterThanOrEqualTo,
-    List<DateTime>? whereIn,
-    List<DateTime>? whereNotIn,
+    List<DateTime?>? whereIn,
+    List<DateTime?>? whereNotIn,
     bool? isNull,
   });
 
@@ -1081,8 +1081,8 @@ abstract class StockRequestQuery
     String? isLessThanOrEqualTo,
     String? isGreaterThan,
     String? isGreaterThanOrEqualTo,
-    List<String>? whereIn,
-    List<String>? whereNotIn,
+    List<String?>? whereIn,
+    List<String?>? whereNotIn,
     bool? isNull,
   });
 
@@ -1129,8 +1129,8 @@ abstract class StockRequestQuery
     bool? isLessThanOrEqualTo,
     bool? isGreaterThan,
     bool? isGreaterThanOrEqualTo,
-    List<bool>? whereIn,
-    List<bool>? whereNotIn,
+    List<bool?>? whereIn,
+    List<bool?>? whereNotIn,
     bool? isNull,
   });
 
@@ -1141,8 +1141,8 @@ abstract class StockRequestQuery
     bool? isLessThanOrEqualTo,
     bool? isGreaterThan,
     bool? isGreaterThanOrEqualTo,
-    List<bool>? whereIn,
-    List<bool>? whereNotIn,
+    List<bool?>? whereIn,
+    List<bool?>? whereNotIn,
     bool? isNull,
   });
 
@@ -1229,10 +1229,10 @@ abstract class StockRequestQuery
 
   StockRequestQuery orderById({
     bool descending = false,
-    String? startAt,
-    String? startAfter,
-    String? endAt,
-    String? endBefore,
+    int? startAt,
+    int? startAfter,
+    int? endAt,
+    int? endBefore,
     StockRequestDocumentSnapshot? startAtDocument,
     StockRequestDocumentSnapshot? endAtDocument,
     StockRequestDocumentSnapshot? endBeforeDocument,
@@ -1241,10 +1241,10 @@ abstract class StockRequestQuery
 
   StockRequestQuery orderByMain_branch_id({
     bool descending = false,
-    int startAt,
-    int startAfter,
-    int endAt,
-    int endBefore,
+    int? startAt,
+    int? startAfter,
+    int? endAt,
+    int? endBefore,
     StockRequestDocumentSnapshot? startAtDocument,
     StockRequestDocumentSnapshot? endAtDocument,
     StockRequestDocumentSnapshot? endBeforeDocument,
@@ -1253,10 +1253,10 @@ abstract class StockRequestQuery
 
   StockRequestQuery orderBySub_branch_id({
     bool descending = false,
-    int startAt,
-    int startAfter,
-    int endAt,
-    int endBefore,
+    int? startAt,
+    int? startAfter,
+    int? endAt,
+    int? endBefore,
     StockRequestDocumentSnapshot? startAtDocument,
     StockRequestDocumentSnapshot? endAtDocument,
     StockRequestDocumentSnapshot? endBeforeDocument,
@@ -1265,10 +1265,10 @@ abstract class StockRequestQuery
 
   StockRequestQuery orderByCreated_at({
     bool descending = false,
-    DateTime startAt,
-    DateTime startAfter,
-    DateTime endAt,
-    DateTime endBefore,
+    DateTime? startAt,
+    DateTime? startAfter,
+    DateTime? endAt,
+    DateTime? endBefore,
     StockRequestDocumentSnapshot? startAtDocument,
     StockRequestDocumentSnapshot? endAtDocument,
     StockRequestDocumentSnapshot? endBeforeDocument,
@@ -1277,10 +1277,10 @@ abstract class StockRequestQuery
 
   StockRequestQuery orderByStatus({
     bool descending = false,
-    String startAt,
-    String startAfter,
-    String endAt,
-    String endBefore,
+    String? startAt,
+    String? startAfter,
+    String? endAt,
+    String? endBefore,
     StockRequestDocumentSnapshot? startAtDocument,
     StockRequestDocumentSnapshot? endAtDocument,
     StockRequestDocumentSnapshot? endBeforeDocument,
@@ -1325,10 +1325,10 @@ abstract class StockRequestQuery
 
   StockRequestQuery orderByCustomer_received_order({
     bool descending = false,
-    bool startAt,
-    bool startAfter,
-    bool endAt,
-    bool endBefore,
+    bool? startAt,
+    bool? startAfter,
+    bool? endAt,
+    bool? endBefore,
     StockRequestDocumentSnapshot? startAtDocument,
     StockRequestDocumentSnapshot? endAtDocument,
     StockRequestDocumentSnapshot? endBeforeDocument,
@@ -1337,10 +1337,10 @@ abstract class StockRequestQuery
 
   StockRequestQuery orderByDriver_request_delivery_confirmation({
     bool descending = false,
-    bool startAt,
-    bool startAfter,
-    bool endAt,
-    bool endBefore,
+    bool? startAt,
+    bool? startAfter,
+    bool? endAt,
+    bool? endBefore,
     StockRequestDocumentSnapshot? startAtDocument,
     StockRequestDocumentSnapshot? endAtDocument,
     StockRequestDocumentSnapshot? endBeforeDocument,
@@ -1361,10 +1361,10 @@ abstract class StockRequestQuery
 
   StockRequestQuery orderByItems({
     bool descending = false,
-    List<TransactionItem> startAt,
-    List<TransactionItem> startAfter,
-    List<TransactionItem> endAt,
-    List<TransactionItem> endBefore,
+    List<TransactionItem>? startAt,
+    List<TransactionItem>? startAfter,
+    List<TransactionItem>? endAt,
+    List<TransactionItem>? endBefore,
     StockRequestDocumentSnapshot? startAtDocument,
     StockRequestDocumentSnapshot? endAtDocument,
     StockRequestDocumentSnapshot? endBeforeDocument,
@@ -1507,8 +1507,8 @@ class _$StockRequestQuery
     Object? isLessThanOrEqualTo,
     Object? isGreaterThan,
     Object? isGreaterThanOrEqualTo,
-    List<String?>? whereIn,
-    List<String?>? whereNotIn,
+    List<int?>? whereIn,
+    List<int?>? whereNotIn,
     bool? isNull,
   }) {
     return _$StockRequestQuery(
@@ -1516,22 +1516,22 @@ class _$StockRequestQuery
       $referenceWithoutCursor: $referenceWithoutCursor.where(
         _$StockRequestFieldMap['id']!,
         isEqualTo: isEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.id(isEqualTo as String?)
+            ? _$StockRequestPerFieldToJson.id(isEqualTo as int?)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.id(isNotEqualTo as String?)
+            ? _$StockRequestPerFieldToJson.id(isNotEqualTo as int?)
             : null,
         isLessThan: isLessThan != null
-            ? _$StockRequestPerFieldToJson.id(isLessThan as String?)
+            ? _$StockRequestPerFieldToJson.id(isLessThan as int?)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
-            ? _$StockRequestPerFieldToJson.id(isLessThanOrEqualTo as String?)
+            ? _$StockRequestPerFieldToJson.id(isLessThanOrEqualTo as int?)
             : null,
         isGreaterThan: isGreaterThan != null
-            ? _$StockRequestPerFieldToJson.id(isGreaterThan as String?)
+            ? _$StockRequestPerFieldToJson.id(isGreaterThan as int?)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
-            ? _$StockRequestPerFieldToJson.id(isGreaterThanOrEqualTo as String?)
+            ? _$StockRequestPerFieldToJson.id(isGreaterThanOrEqualTo as int?)
             : null,
         whereIn: whereIn?.map((e) => _$StockRequestPerFieldToJson.id(e)),
         whereNotIn: whereNotIn?.map((e) => _$StockRequestPerFieldToJson.id(e)),
@@ -1551,8 +1551,8 @@ class _$StockRequestQuery
     Object? isLessThanOrEqualTo,
     Object? isGreaterThan,
     Object? isGreaterThanOrEqualTo,
-    List<int>? whereIn,
-    List<int>? whereNotIn,
+    List<int?>? whereIn,
+    List<int?>? whereNotIn,
     bool? isNull,
   }) {
     return _$StockRequestQuery(
@@ -1560,24 +1560,24 @@ class _$StockRequestQuery
       $referenceWithoutCursor: $referenceWithoutCursor.where(
         _$StockRequestFieldMap['main_branch_id']!,
         isEqualTo: isEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.main_branch_id(isEqualTo as int)
+            ? _$StockRequestPerFieldToJson.main_branch_id(isEqualTo as int?)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.main_branch_id(isNotEqualTo as int)
+            ? _$StockRequestPerFieldToJson.main_branch_id(isNotEqualTo as int?)
             : null,
         isLessThan: isLessThan != null
-            ? _$StockRequestPerFieldToJson.main_branch_id(isLessThan as int)
+            ? _$StockRequestPerFieldToJson.main_branch_id(isLessThan as int?)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .main_branch_id(isLessThanOrEqualTo as int)
+                .main_branch_id(isLessThanOrEqualTo as int?)
             : null,
         isGreaterThan: isGreaterThan != null
-            ? _$StockRequestPerFieldToJson.main_branch_id(isGreaterThan as int)
+            ? _$StockRequestPerFieldToJson.main_branch_id(isGreaterThan as int?)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .main_branch_id(isGreaterThanOrEqualTo as int)
+                .main_branch_id(isGreaterThanOrEqualTo as int?)
             : null,
         whereIn:
             whereIn?.map((e) => _$StockRequestPerFieldToJson.main_branch_id(e)),
@@ -1599,8 +1599,8 @@ class _$StockRequestQuery
     Object? isLessThanOrEqualTo,
     Object? isGreaterThan,
     Object? isGreaterThanOrEqualTo,
-    List<int>? whereIn,
-    List<int>? whereNotIn,
+    List<int?>? whereIn,
+    List<int?>? whereNotIn,
     bool? isNull,
   }) {
     return _$StockRequestQuery(
@@ -1608,24 +1608,24 @@ class _$StockRequestQuery
       $referenceWithoutCursor: $referenceWithoutCursor.where(
         _$StockRequestFieldMap['sub_branch_id']!,
         isEqualTo: isEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.sub_branch_id(isEqualTo as int)
+            ? _$StockRequestPerFieldToJson.sub_branch_id(isEqualTo as int?)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.sub_branch_id(isNotEqualTo as int)
+            ? _$StockRequestPerFieldToJson.sub_branch_id(isNotEqualTo as int?)
             : null,
         isLessThan: isLessThan != null
-            ? _$StockRequestPerFieldToJson.sub_branch_id(isLessThan as int)
+            ? _$StockRequestPerFieldToJson.sub_branch_id(isLessThan as int?)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .sub_branch_id(isLessThanOrEqualTo as int)
+                .sub_branch_id(isLessThanOrEqualTo as int?)
             : null,
         isGreaterThan: isGreaterThan != null
-            ? _$StockRequestPerFieldToJson.sub_branch_id(isGreaterThan as int)
+            ? _$StockRequestPerFieldToJson.sub_branch_id(isGreaterThan as int?)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .sub_branch_id(isGreaterThanOrEqualTo as int)
+                .sub_branch_id(isGreaterThanOrEqualTo as int?)
             : null,
         whereIn:
             whereIn?.map((e) => _$StockRequestPerFieldToJson.sub_branch_id(e)),
@@ -1647,8 +1647,8 @@ class _$StockRequestQuery
     Object? isLessThanOrEqualTo,
     Object? isGreaterThan,
     Object? isGreaterThanOrEqualTo,
-    List<DateTime>? whereIn,
-    List<DateTime>? whereNotIn,
+    List<DateTime?>? whereIn,
+    List<DateTime?>? whereNotIn,
     bool? isNull,
   }) {
     return _$StockRequestQuery(
@@ -1656,24 +1656,25 @@ class _$StockRequestQuery
       $referenceWithoutCursor: $referenceWithoutCursor.where(
         _$StockRequestFieldMap['created_at']!,
         isEqualTo: isEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.created_at(isEqualTo as DateTime)
+            ? _$StockRequestPerFieldToJson.created_at(isEqualTo as DateTime?)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.created_at(isNotEqualTo as DateTime)
+            ? _$StockRequestPerFieldToJson.created_at(isNotEqualTo as DateTime?)
             : null,
         isLessThan: isLessThan != null
-            ? _$StockRequestPerFieldToJson.created_at(isLessThan as DateTime)
+            ? _$StockRequestPerFieldToJson.created_at(isLessThan as DateTime?)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .created_at(isLessThanOrEqualTo as DateTime)
+                .created_at(isLessThanOrEqualTo as DateTime?)
             : null,
         isGreaterThan: isGreaterThan != null
-            ? _$StockRequestPerFieldToJson.created_at(isGreaterThan as DateTime)
+            ? _$StockRequestPerFieldToJson
+                .created_at(isGreaterThan as DateTime?)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .created_at(isGreaterThanOrEqualTo as DateTime)
+                .created_at(isGreaterThanOrEqualTo as DateTime?)
             : null,
         whereIn:
             whereIn?.map((e) => _$StockRequestPerFieldToJson.created_at(e)),
@@ -1695,8 +1696,8 @@ class _$StockRequestQuery
     Object? isLessThanOrEqualTo,
     Object? isGreaterThan,
     Object? isGreaterThanOrEqualTo,
-    List<String>? whereIn,
-    List<String>? whereNotIn,
+    List<String?>? whereIn,
+    List<String?>? whereNotIn,
     bool? isNull,
   }) {
     return _$StockRequestQuery(
@@ -1704,23 +1705,24 @@ class _$StockRequestQuery
       $referenceWithoutCursor: $referenceWithoutCursor.where(
         _$StockRequestFieldMap['status']!,
         isEqualTo: isEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.status(isEqualTo as String)
+            ? _$StockRequestPerFieldToJson.status(isEqualTo as String?)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
-            ? _$StockRequestPerFieldToJson.status(isNotEqualTo as String)
+            ? _$StockRequestPerFieldToJson.status(isNotEqualTo as String?)
             : null,
         isLessThan: isLessThan != null
-            ? _$StockRequestPerFieldToJson.status(isLessThan as String)
+            ? _$StockRequestPerFieldToJson.status(isLessThan as String?)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
-            ? _$StockRequestPerFieldToJson.status(isLessThanOrEqualTo as String)
+            ? _$StockRequestPerFieldToJson
+                .status(isLessThanOrEqualTo as String?)
             : null,
         isGreaterThan: isGreaterThan != null
-            ? _$StockRequestPerFieldToJson.status(isGreaterThan as String)
+            ? _$StockRequestPerFieldToJson.status(isGreaterThan as String?)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .status(isGreaterThanOrEqualTo as String)
+                .status(isGreaterThanOrEqualTo as String?)
             : null,
         whereIn: whereIn?.map((e) => _$StockRequestPerFieldToJson.status(e)),
         whereNotIn:
@@ -1890,8 +1892,8 @@ class _$StockRequestQuery
     Object? isLessThanOrEqualTo,
     Object? isGreaterThan,
     Object? isGreaterThanOrEqualTo,
-    List<bool>? whereIn,
-    List<bool>? whereNotIn,
+    List<bool?>? whereIn,
+    List<bool?>? whereNotIn,
     bool? isNull,
   }) {
     return _$StockRequestQuery(
@@ -1900,27 +1902,27 @@ class _$StockRequestQuery
         _$StockRequestFieldMap['customer_received_order']!,
         isEqualTo: isEqualTo != _sentinel
             ? _$StockRequestPerFieldToJson
-                .customer_received_order(isEqualTo as bool)
+                .customer_received_order(isEqualTo as bool?)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
             ? _$StockRequestPerFieldToJson
-                .customer_received_order(isNotEqualTo as bool)
+                .customer_received_order(isNotEqualTo as bool?)
             : null,
         isLessThan: isLessThan != null
             ? _$StockRequestPerFieldToJson
-                .customer_received_order(isLessThan as bool)
+                .customer_received_order(isLessThan as bool?)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .customer_received_order(isLessThanOrEqualTo as bool)
+                .customer_received_order(isLessThanOrEqualTo as bool?)
             : null,
         isGreaterThan: isGreaterThan != null
             ? _$StockRequestPerFieldToJson
-                .customer_received_order(isGreaterThan as bool)
+                .customer_received_order(isGreaterThan as bool?)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .customer_received_order(isGreaterThanOrEqualTo as bool)
+                .customer_received_order(isGreaterThanOrEqualTo as bool?)
             : null,
         whereIn: whereIn?.map(
             (e) => _$StockRequestPerFieldToJson.customer_received_order(e)),
@@ -1942,8 +1944,8 @@ class _$StockRequestQuery
     Object? isLessThanOrEqualTo,
     Object? isGreaterThan,
     Object? isGreaterThanOrEqualTo,
-    List<bool>? whereIn,
-    List<bool>? whereNotIn,
+    List<bool?>? whereIn,
+    List<bool?>? whereNotIn,
     bool? isNull,
   }) {
     return _$StockRequestQuery(
@@ -1952,27 +1954,27 @@ class _$StockRequestQuery
         _$StockRequestFieldMap['driver_request_delivery_confirmation']!,
         isEqualTo: isEqualTo != _sentinel
             ? _$StockRequestPerFieldToJson
-                .driver_request_delivery_confirmation(isEqualTo as bool)
+                .driver_request_delivery_confirmation(isEqualTo as bool?)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
             ? _$StockRequestPerFieldToJson
-                .driver_request_delivery_confirmation(isNotEqualTo as bool)
+                .driver_request_delivery_confirmation(isNotEqualTo as bool?)
             : null,
         isLessThan: isLessThan != null
             ? _$StockRequestPerFieldToJson
-                .driver_request_delivery_confirmation(isLessThan as bool)
+                .driver_request_delivery_confirmation(isLessThan as bool?)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson.driver_request_delivery_confirmation(
-                isLessThanOrEqualTo as bool)
+                isLessThanOrEqualTo as bool?)
             : null,
         isGreaterThan: isGreaterThan != null
             ? _$StockRequestPerFieldToJson
-                .driver_request_delivery_confirmation(isGreaterThan as bool)
+                .driver_request_delivery_confirmation(isGreaterThan as bool?)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson.driver_request_delivery_confirmation(
-                isGreaterThanOrEqualTo as bool)
+                isGreaterThanOrEqualTo as bool?)
             : null,
         whereIn: whereIn?.map((e) => _$StockRequestPerFieldToJson
             .driver_request_delivery_confirmation(e)),
@@ -2051,27 +2053,27 @@ class _$StockRequestQuery
         _$StockRequestFieldMap['items']!,
         isEqualTo: isEqualTo != _sentinel
             ? _$StockRequestPerFieldToJson
-                .items(isEqualTo as List<TransactionItem>)
+                .items(isEqualTo as List<TransactionItem>?)
             : null,
         isNotEqualTo: isNotEqualTo != _sentinel
             ? _$StockRequestPerFieldToJson
-                .items(isNotEqualTo as List<TransactionItem>)
+                .items(isNotEqualTo as List<TransactionItem>?)
             : null,
         isLessThan: isLessThan != null
             ? _$StockRequestPerFieldToJson
-                .items(isLessThan as List<TransactionItem>)
+                .items(isLessThan as List<TransactionItem>?)
             : null,
         isLessThanOrEqualTo: isLessThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .items(isLessThanOrEqualTo as List<TransactionItem>)
+                .items(isLessThanOrEqualTo as List<TransactionItem>?)
             : null,
         isGreaterThan: isGreaterThan != null
             ? _$StockRequestPerFieldToJson
-                .items(isGreaterThan as List<TransactionItem>)
+                .items(isGreaterThan as List<TransactionItem>?)
             : null,
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
             ? _$StockRequestPerFieldToJson
-                .items(isGreaterThanOrEqualTo as List<TransactionItem>)
+                .items(isGreaterThanOrEqualTo as List<TransactionItem>?)
             : null,
         arrayContains: arrayContains != null
             ? (_$StockRequestPerFieldToJson
@@ -3342,26 +3344,25 @@ class StockRequestQueryDocumentSnapshot
 // **************************************************************************
 
 StockRequest _$StockRequestFromJson(Map<String, dynamic> json) => StockRequest(
-      id: json['id'] as String?,
-      main_branch_id: (json['main_branch_id'] as num).toInt(),
-      sub_branch_id: (json['sub_branch_id'] as num).toInt(),
-      created_at:
-          const TimestampConverter().fromJson(json['created_at'] as Timestamp),
-      status: json['status'] as String,
-      delivery_date: _$JsonConverterFromJson<Timestamp, DateTime>(
-          json['delivery_date'], const TimestampConverter().fromJson),
+      id: const NullableIntConverter().fromJson(json['id']),
+      main_branch_id:
+          const NullableIntConverter().fromJson(json['main_branch_id']),
+      sub_branch_id:
+          const NullableIntConverter().fromJson(json['sub_branch_id']),
+      created_at: const TimestampConverter().fromJson(json['created_at']),
+      status: json['status'] as String?,
+      delivery_date: const TimestampConverter().fromJson(json['delivery_date']),
       delivery_note: json['delivery_note'] as String?,
       order_note: json['order_note'] as String?,
       customer_received_order:
           json['customer_received_order'] as bool? ?? false,
       driver_request_delivery_confirmation:
           json['driver_request_delivery_confirmation'] as bool? ?? false,
-      driver_id: (json['driver_id'] as num?)?.toInt(),
-      items: (json['items'] as List<dynamic>)
-          .map((e) => TransactionItem.fromJson(e as Map<String, dynamic>))
+      driver_id: const NullableIntConverter().fromJson(json['driver_id']),
+      items: (json['items'] as List<dynamic>?)
+          ?.map((e) => TransactionItem.fromJson(e as Map<String, dynamic>))
           .toList(),
-      updated_at: _$JsonConverterFromJson<Timestamp, DateTime>(
-          json['updated_at'], const TimestampConverter().fromJson),
+      updated_at: const TimestampConverter().fromJson(json['updated_at']),
     );
 
 const _$StockRequestFieldMap = <String, String>{
@@ -3384,388 +3385,402 @@ const _$StockRequestFieldMap = <String, String>{
 // ignore: unused_element
 abstract class _$StockRequestPerFieldToJson {
   // ignore: unused_element
-  static Object? id(String? instance) => instance;
+  static Object? id(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? main_branch_id(int instance) => instance;
+  static Object? main_branch_id(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? sub_branch_id(int instance) => instance;
+  static Object? sub_branch_id(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? created_at(DateTime instance) =>
+  static Object? created_at(DateTime? instance) =>
       const TimestampConverter().toJson(instance);
   // ignore: unused_element
-  static Object? status(String instance) => instance;
+  static Object? status(String? instance) => instance;
   // ignore: unused_element
   static Object? delivery_date(DateTime? instance) =>
-      _$JsonConverterToJson<Timestamp, DateTime>(
-          instance, const TimestampConverter().toJson);
+      const TimestampConverter().toJson(instance);
   // ignore: unused_element
   static Object? delivery_note(String? instance) => instance;
   // ignore: unused_element
   static Object? order_note(String? instance) => instance;
   // ignore: unused_element
-  static Object? customer_received_order(bool instance) => instance;
+  static Object? customer_received_order(bool? instance) => instance;
   // ignore: unused_element
-  static Object? driver_request_delivery_confirmation(bool instance) =>
+  static Object? driver_request_delivery_confirmation(bool? instance) =>
       instance;
   // ignore: unused_element
-  static Object? driver_id(int? instance) => instance;
+  static Object? driver_id(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? items(List<TransactionItem> instance) =>
-      instance.map((e) => e.toJson()).toList();
+  static Object? items(List<TransactionItem>? instance) =>
+      instance?.map((e) => e.toJson()).toList();
   // ignore: unused_element
   static Object? updated_at(DateTime? instance) =>
-      _$JsonConverterToJson<Timestamp, DateTime>(
-          instance, const TimestampConverter().toJson);
+      const TimestampConverter().toJson(instance);
 }
 
 Map<String, dynamic> _$StockRequestToJson(StockRequest instance) =>
     <String, dynamic>{
-      'id': instance.id,
-      'main_branch_id': instance.main_branch_id,
-      'sub_branch_id': instance.sub_branch_id,
+      'id': const NullableIntConverter().toJson(instance.id),
+      'main_branch_id':
+          const NullableIntConverter().toJson(instance.main_branch_id),
+      'sub_branch_id':
+          const NullableIntConverter().toJson(instance.sub_branch_id),
       'created_at': const TimestampConverter().toJson(instance.created_at),
       'status': instance.status,
-      'delivery_date': _$JsonConverterToJson<Timestamp, DateTime>(
-          instance.delivery_date, const TimestampConverter().toJson),
+      'delivery_date':
+          const TimestampConverter().toJson(instance.delivery_date),
       'delivery_note': instance.delivery_note,
       'order_note': instance.order_note,
       'customer_received_order': instance.customer_received_order,
       'driver_request_delivery_confirmation':
           instance.driver_request_delivery_confirmation,
-      'driver_id': instance.driver_id,
-      'items': instance.items.map((e) => e.toJson()).toList(),
-      'updated_at': _$JsonConverterToJson<Timestamp, DateTime>(
-          instance.updated_at, const TimestampConverter().toJson),
+      'driver_id': const NullableIntConverter().toJson(instance.driver_id),
+      'items': instance.items?.map((e) => e.toJson()).toList(),
+      'updated_at': const TimestampConverter().toJson(instance.updated_at),
     };
-
-Value? _$JsonConverterFromJson<Json, Value>(
-  Object? json,
-  Value? Function(Json json) fromJson,
-) =>
-    json == null ? null : fromJson(json as Json);
-
-Json? _$JsonConverterToJson<Json, Value>(
-  Value? value,
-  Json? Function(Value value) toJson,
-) =>
-    value == null ? null : toJson(value);
 
 TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) =>
     TransactionItem(
-      item_id: (json['item_id'] as num).toInt(),
-      quantity: (json['quantity'] as num).toInt(),
-      id: (json['id'] as num?)?.toInt(),
+      isTaxExempted: json['isTaxExempted'] as bool?,
+      isRefunded: json['isRefunded'] as bool?,
+      doneWithTransaction: json['doneWithTransaction'] as bool?,
+      dcRt: const NullableDoubleConverter().fromJson(json['dcRt']),
+      dcAmt: const NullableDoubleConverter().fromJson(json['dcAmt']),
+      taxblAmt: const NullableDoubleConverter().fromJson(json['taxblAmt']),
+      taxAmt: const NullableDoubleConverter().fromJson(json['taxAmt']),
+      totAmt: const NullableDoubleConverter().fromJson(json['totAmt']),
+      itemSeq: const NullableIntConverter().fromJson(json['itemSeq']),
+      id: const NullableIntConverter().fromJson(json['id']),
       name: json['name'] as String?,
-      quantity_requested: (json['quantity_requested'] as num?)?.toInt(),
-      quantity_approved: (json['quantity_approved'] as num?)?.toInt(),
-      quantity_shipped: (json['quantity_shipped'] as num?)?.toInt(),
-      transaction_id: (json['transaction_id'] as num?)?.toInt(),
-      variant_id: (json['variant_id'] as num?)?.toInt(),
-      qty: (json['qty'] as num?)?.toDouble() ?? 0.0,
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      discount: (json['discount'] as num?)?.toDouble() ?? 0.0,
+      quantityRequested:
+          const NullableIntConverter().fromJson(json['quantityRequested']),
+      quantityApproved:
+          const NullableIntConverter().fromJson(json['quantityApproved']),
+      quantityShipped:
+          const NullableIntConverter().fromJson(json['quantityShipped']),
+      transactionId:
+          const NullableIntConverter().fromJson(json['transactionId']),
+      variantId: const NullableIntConverter().fromJson(json['variantId']),
+      qty: const NullableDoubleConverter().fromJson(json['qty']),
+      price: const NullableDoubleConverter().fromJson(json['price']),
+      discount: const NullableDoubleConverter().fromJson(json['discount']),
       type: json['type'] as String?,
-      remaining_stock: (json['remaining_stock'] as num?)?.toDouble() ?? 0.0,
-      created_at: json['created_at'] as String?,
-      updated_at: json['updated_at'] as String?,
-      is_tax_exempted: json['is_tax_exempted'] as bool? ?? false,
-      is_refunded: json['is_refunded'] as bool? ?? false,
-      done_with_transaction: json['done_with_transaction'] as bool?,
+      remainingStock:
+          const NullableDoubleConverter().fromJson(json['remainingStock']),
+      createdAt: json['createdAt'] as String?,
+      updatedAt: json['updatedAt'] as String?,
       active: json['active'] as bool?,
-      dc_rt: (json['dc_rt'] as num?)?.toDouble() ?? 0.0,
-      dc_amt: (json['dc_amt'] as num?)?.toDouble() ?? 0.0,
-      taxbl_amt: (json['taxbl_amt'] as num?)?.toDouble() ?? 0.0,
-      tax_amt: (json['tax_amt'] as num?)?.toDouble() ?? 0.0,
-      tot_amt: (json['tot_amt'] as num?)?.toDouble() ?? 0.0,
-      item_seq: (json['item_seq'] as num?)?.toInt(),
-      isrcc_cd: json['isrcc_cd'] as String?,
-      isrcc_nm: json['isrcc_nm'] as String? ?? "",
-      isrc_rt: (json['isrc_rt'] as num?)?.toInt() ?? 0,
-      isrc_amt: (json['isrc_amt'] as num?)?.toInt() ?? 0,
-      tax_ty_cd: json['tax_ty_cd'] as String?,
+      isrccCd: json['isrccCd'] as String?,
+      isrccNm: json['isrccNm'] as String?,
+      isrcRt: const NullableIntConverter().fromJson(json['isrcRt']),
+      isrcAmt: const NullableIntConverter().fromJson(json['isrcAmt']),
+      taxTyCd: json['taxTyCd'] as String?,
       bcd: json['bcd'] as String?,
-      item_cls_cd: json['item_cls_cd'] as String?,
-      item_ty_cd: json['item_ty_cd'] as String?,
-      item_std_nm: json['item_std_nm'] as String?,
-      orgn_nat_cd: json['orgn_nat_cd'] as String?,
+      itemClsCd: json['itemClsCd'] as String?,
+      itemTyCd: json['itemTyCd'] as String?,
+      itemStdNm: json['itemStdNm'] as String?,
+      orgnNatCd: json['orgnNatCd'] as String?,
       pkg: json['pkg'] as String?,
-      item_cd: json['item_cd'] as String?,
-      pkg_unit_cd: json['pkg_unit_cd'] as String? ?? "CT",
-      qty_unit_cd: json['qty_unit_cd'] as String? ?? "BX",
-      item_nm: json['item_nm'] as String?,
-      prc: (json['prc'] as num?)?.toDouble() ?? 0.0,
-      sply_amt: (json['sply_amt'] as num?)?.toDouble() ?? 0.0,
-      tin: (json['tin'] as num?)?.toInt(),
-      bhf_id: json['bhf_id'] as String?,
-      dft_prc: (json['dft_prc'] as num?)?.toDouble(),
-      add_info: json['add_info'] as String?,
-      isrc_aplcby_yn: json['isrc_aplcby_yn'] as String?,
-      use_yn: json['use_yn'] as String?,
-      regr_id: json['regr_id'] as String?,
-      regr_nm: json['regr_nm'] as String?,
-      modr_id: json['modr_id'] as String?,
-      modr_nm: json['modr_nm'] as String?,
-      last_touched: json['last_touched'] == null
-          ? null
-          : DateTime.parse(json['last_touched'] as String),
-      deleted_at: json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
+      itemCd: json['itemCd'] as String?,
+      pkgUnitCd: json['pkgUnitCd'] as String?,
+      qtyUnitCd: json['qtyUnitCd'] as String?,
+      itemNm: json['itemNm'] as String?,
+      prc: const NullableDoubleConverter().fromJson(json['prc']),
+      splyAmt: const NullableDoubleConverter().fromJson(json['splyAmt']),
+      tin: const NullableIntConverter().fromJson(json['tin']),
+      bhfId: json['bhfId'] as String?,
+      dftPrc: const NullableDoubleConverter().fromJson(json['dftPrc']),
+      addInfo: json['addInfo'] as String?,
+      isrcAplcbYn: json['isrcAplcbYn'] as String?,
+      useYn: json['useYn'] as String?,
+      regrId: json['regrId'] as String?,
+      regrNm: json['regrNm'] as String?,
+      modrId: json['modrId'] as String?,
+      modrNm: json['modrNm'] as String?,
+      lastTouched: const TimestampConverter().fromJson(json['lastTouched']),
+      deletedAt: const TimestampConverter().fromJson(json['deletedAt']),
       action: json['action'] as String?,
-      branch_id: (json['branch_id'] as num?)?.toInt(),
-      ebm_synced: json['ebm_synced'] as bool? ?? false,
-      part_of_composite: json['part_of_composite'] as bool? ?? false,
-      composite_price: (json['composite_price'] as num?)?.toDouble() ?? 0,
+      branchId: const NullableIntConverter().fromJson(json['branchId']),
+      ebmSynced: json['ebmSynced'] as bool?,
+      partOfComposite: json['partOfComposite'] as bool?,
+      compositePrice:
+          const NullableDoubleConverter().fromJson(json['compositePrice']),
     );
 
 const _$TransactionItemFieldMap = <String, String>{
-  'item_id': 'item_id',
-  'quantity': 'quantity',
   'id': 'id',
   'name': 'name',
-  'quantity_requested': 'quantity_requested',
-  'quantity_approved': 'quantity_approved',
-  'quantity_shipped': 'quantity_shipped',
-  'transaction_id': 'transaction_id',
-  'variant_id': 'variant_id',
+  'quantityRequested': 'quantityRequested',
+  'quantityApproved': 'quantityApproved',
+  'quantityShipped': 'quantityShipped',
+  'transactionId': 'transactionId',
+  'variantId': 'variantId',
   'qty': 'qty',
   'price': 'price',
   'discount': 'discount',
   'type': 'type',
-  'remaining_stock': 'remaining_stock',
-  'created_at': 'created_at',
-  'updated_at': 'updated_at',
-  'is_tax_exempted': 'is_tax_exempted',
-  'is_refunded': 'is_refunded',
-  'done_with_transaction': 'done_with_transaction',
+  'remainingStock': 'remainingStock',
+  'createdAt': 'createdAt',
+  'updatedAt': 'updatedAt',
+  'isTaxExempted': 'isTaxExempted',
+  'isRefunded': 'isRefunded',
+  'doneWithTransaction': 'doneWithTransaction',
   'active': 'active',
-  'dc_rt': 'dc_rt',
-  'dc_amt': 'dc_amt',
-  'taxbl_amt': 'taxbl_amt',
-  'tax_amt': 'tax_amt',
-  'tot_amt': 'tot_amt',
-  'item_seq': 'item_seq',
-  'isrcc_cd': 'isrcc_cd',
-  'isrcc_nm': 'isrcc_nm',
-  'isrc_rt': 'isrc_rt',
-  'isrc_amt': 'isrc_amt',
-  'tax_ty_cd': 'tax_ty_cd',
+  'dcRt': 'dcRt',
+  'dcAmt': 'dcAmt',
+  'taxblAmt': 'taxblAmt',
+  'taxAmt': 'taxAmt',
+  'totAmt': 'totAmt',
+  'itemSeq': 'itemSeq',
+  'isrccCd': 'isrccCd',
+  'isrccNm': 'isrccNm',
+  'isrcRt': 'isrcRt',
+  'isrcAmt': 'isrcAmt',
+  'taxTyCd': 'taxTyCd',
   'bcd': 'bcd',
-  'item_cls_cd': 'item_cls_cd',
-  'item_ty_cd': 'item_ty_cd',
-  'item_std_nm': 'item_std_nm',
-  'orgn_nat_cd': 'orgn_nat_cd',
+  'itemClsCd': 'itemClsCd',
+  'itemTyCd': 'itemTyCd',
+  'itemStdNm': 'itemStdNm',
+  'orgnNatCd': 'orgnNatCd',
   'pkg': 'pkg',
-  'item_cd': 'item_cd',
-  'pkg_unit_cd': 'pkg_unit_cd',
-  'qty_unit_cd': 'qty_unit_cd',
-  'item_nm': 'item_nm',
+  'itemCd': 'itemCd',
+  'pkgUnitCd': 'pkgUnitCd',
+  'qtyUnitCd': 'qtyUnitCd',
+  'itemNm': 'itemNm',
   'prc': 'prc',
-  'sply_amt': 'sply_amt',
+  'splyAmt': 'splyAmt',
   'tin': 'tin',
-  'bhf_id': 'bhf_id',
-  'dft_prc': 'dft_prc',
-  'add_info': 'add_info',
-  'isrc_aplcby_yn': 'isrc_aplcby_yn',
-  'use_yn': 'use_yn',
-  'regr_id': 'regr_id',
-  'regr_nm': 'regr_nm',
-  'modr_id': 'modr_id',
-  'modr_nm': 'modr_nm',
-  'last_touched': 'last_touched',
-  'deleted_at': 'deleted_at',
+  'bhfId': 'bhfId',
+  'dftPrc': 'dftPrc',
+  'addInfo': 'addInfo',
+  'isrcAplcbYn': 'isrcAplcbYn',
+  'useYn': 'useYn',
+  'regrId': 'regrId',
+  'regrNm': 'regrNm',
+  'modrId': 'modrId',
+  'modrNm': 'modrNm',
+  'lastTouched': 'lastTouched',
+  'deletedAt': 'deletedAt',
   'action': 'action',
-  'branch_id': 'branch_id',
-  'ebm_synced': 'ebm_synced',
-  'part_of_composite': 'part_of_composite',
-  'composite_price': 'composite_price',
+  'branchId': 'branchId',
+  'ebmSynced': 'ebmSynced',
+  'partOfComposite': 'partOfComposite',
+  'compositePrice': 'compositePrice',
 };
 
 // ignore: unused_element
 abstract class _$TransactionItemPerFieldToJson {
   // ignore: unused_element
-  static Object? item_id(int instance) => instance;
-  // ignore: unused_element
-  static Object? quantity(int instance) => instance;
-  // ignore: unused_element
-  static Object? id(int? instance) => instance;
+  static Object? id(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
   static Object? name(String? instance) => instance;
   // ignore: unused_element
-  static Object? quantity_requested(int? instance) => instance;
+  static Object? quantityRequested(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? quantity_approved(int? instance) => instance;
+  static Object? quantityApproved(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? quantity_shipped(int? instance) => instance;
+  static Object? quantityShipped(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? transaction_id(int? instance) => instance;
+  static Object? transactionId(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? variant_id(int? instance) => instance;
+  static Object? variantId(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? qty(double instance) => instance;
+  static Object? qty(double? instance) =>
+      const NullableDoubleConverter().toJson(instance);
   // ignore: unused_element
-  static Object? price(double instance) => instance;
+  static Object? price(double? instance) =>
+      const NullableDoubleConverter().toJson(instance);
   // ignore: unused_element
-  static Object? discount(double instance) => instance;
+  static Object? discount(double? instance) =>
+      const NullableDoubleConverter().toJson(instance);
   // ignore: unused_element
   static Object? type(String? instance) => instance;
   // ignore: unused_element
-  static Object? remaining_stock(double instance) => instance;
+  static Object? remainingStock(double? instance) =>
+      const NullableDoubleConverter().toJson(instance);
   // ignore: unused_element
-  static Object? created_at(String? instance) => instance;
+  static Object? createdAt(String? instance) => instance;
   // ignore: unused_element
-  static Object? updated_at(String? instance) => instance;
+  static Object? updatedAt(String? instance) => instance;
   // ignore: unused_element
-  static Object? is_tax_exempted(bool instance) => instance;
+  static Object? isTaxExempted(bool? instance) => instance;
   // ignore: unused_element
-  static Object? is_refunded(bool instance) => instance;
+  static Object? isRefunded(bool? instance) => instance;
   // ignore: unused_element
-  static Object? done_with_transaction(bool? instance) => instance;
+  static Object? doneWithTransaction(bool? instance) => instance;
   // ignore: unused_element
   static Object? active(bool? instance) => instance;
   // ignore: unused_element
-  static Object? dc_rt(double instance) => instance;
+  static Object? dcRt(double? instance) =>
+      const NullableDoubleConverter().toJson(instance);
   // ignore: unused_element
-  static Object? dc_amt(double instance) => instance;
+  static Object? dcAmt(double? instance) =>
+      const NullableDoubleConverter().toJson(instance);
   // ignore: unused_element
-  static Object? taxbl_amt(double instance) => instance;
+  static Object? taxblAmt(double? instance) =>
+      const NullableDoubleConverter().toJson(instance);
   // ignore: unused_element
-  static Object? tax_amt(double instance) => instance;
+  static Object? taxAmt(double? instance) =>
+      const NullableDoubleConverter().toJson(instance);
   // ignore: unused_element
-  static Object? tot_amt(double instance) => instance;
+  static Object? totAmt(double? instance) =>
+      const NullableDoubleConverter().toJson(instance);
   // ignore: unused_element
-  static Object? item_seq(int? instance) => instance;
+  static Object? itemSeq(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? isrcc_cd(String? instance) => instance;
+  static Object? isrccCd(String? instance) => instance;
   // ignore: unused_element
-  static Object? isrcc_nm(String? instance) => instance;
+  static Object? isrccNm(String? instance) => instance;
   // ignore: unused_element
-  static Object? isrc_rt(int? instance) => instance;
+  static Object? isrcRt(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? isrc_amt(int? instance) => instance;
+  static Object? isrcAmt(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? tax_ty_cd(String? instance) => instance;
+  static Object? taxTyCd(String? instance) => instance;
   // ignore: unused_element
   static Object? bcd(String? instance) => instance;
   // ignore: unused_element
-  static Object? item_cls_cd(String? instance) => instance;
+  static Object? itemClsCd(String? instance) => instance;
   // ignore: unused_element
-  static Object? item_ty_cd(String? instance) => instance;
+  static Object? itemTyCd(String? instance) => instance;
   // ignore: unused_element
-  static Object? item_std_nm(String? instance) => instance;
+  static Object? itemStdNm(String? instance) => instance;
   // ignore: unused_element
-  static Object? orgn_nat_cd(String? instance) => instance;
+  static Object? orgnNatCd(String? instance) => instance;
   // ignore: unused_element
   static Object? pkg(String? instance) => instance;
   // ignore: unused_element
-  static Object? item_cd(String? instance) => instance;
+  static Object? itemCd(String? instance) => instance;
   // ignore: unused_element
-  static Object? pkg_unit_cd(String? instance) => instance;
+  static Object? pkgUnitCd(String? instance) => instance;
   // ignore: unused_element
-  static Object? qty_unit_cd(String? instance) => instance;
+  static Object? qtyUnitCd(String? instance) => instance;
   // ignore: unused_element
-  static Object? item_nm(String? instance) => instance;
+  static Object? itemNm(String? instance) => instance;
   // ignore: unused_element
-  static Object? prc(double instance) => instance;
+  static Object? prc(double? instance) =>
+      const NullableDoubleConverter().toJson(instance);
   // ignore: unused_element
-  static Object? sply_amt(double instance) => instance;
+  static Object? splyAmt(double? instance) =>
+      const NullableDoubleConverter().toJson(instance);
   // ignore: unused_element
-  static Object? tin(int? instance) => instance;
+  static Object? tin(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? bhf_id(String? instance) => instance;
+  static Object? bhfId(String? instance) => instance;
   // ignore: unused_element
-  static Object? dft_prc(double? instance) => instance;
+  static Object? dftPrc(double? instance) =>
+      const NullableDoubleConverter().toJson(instance);
   // ignore: unused_element
-  static Object? add_info(String? instance) => instance;
+  static Object? addInfo(String? instance) => instance;
   // ignore: unused_element
-  static Object? isrc_aplcby_yn(String? instance) => instance;
+  static Object? isrcAplcbYn(String? instance) => instance;
   // ignore: unused_element
-  static Object? use_yn(String? instance) => instance;
+  static Object? useYn(String? instance) => instance;
   // ignore: unused_element
-  static Object? regr_id(String? instance) => instance;
+  static Object? regrId(String? instance) => instance;
   // ignore: unused_element
-  static Object? regr_nm(String? instance) => instance;
+  static Object? regrNm(String? instance) => instance;
   // ignore: unused_element
-  static Object? modr_id(String? instance) => instance;
+  static Object? modrId(String? instance) => instance;
   // ignore: unused_element
-  static Object? modr_nm(String? instance) => instance;
+  static Object? modrNm(String? instance) => instance;
   // ignore: unused_element
-  static Object? last_touched(DateTime? instance) =>
-      instance?.toIso8601String();
+  static Object? lastTouched(DateTime? instance) =>
+      const TimestampConverter().toJson(instance);
   // ignore: unused_element
-  static Object? deleted_at(DateTime? instance) => instance?.toIso8601String();
+  static Object? deletedAt(DateTime? instance) =>
+      const TimestampConverter().toJson(instance);
   // ignore: unused_element
   static Object? action(String? instance) => instance;
   // ignore: unused_element
-  static Object? branch_id(int? instance) => instance;
+  static Object? branchId(int? instance) =>
+      const NullableIntConverter().toJson(instance);
   // ignore: unused_element
-  static Object? ebm_synced(bool instance) => instance;
+  static Object? ebmSynced(bool? instance) => instance;
   // ignore: unused_element
-  static Object? part_of_composite(bool instance) => instance;
+  static Object? partOfComposite(bool? instance) => instance;
   // ignore: unused_element
-  static Object? composite_price(double instance) => instance;
+  static Object? compositePrice(double? instance) =>
+      const NullableDoubleConverter().toJson(instance);
 }
 
 Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
     <String, dynamic>{
-      'item_id': instance.item_id,
-      'quantity': instance.quantity,
-      'id': instance.id,
+      'id': const NullableIntConverter().toJson(instance.id),
       'name': instance.name,
-      'quantity_requested': instance.quantity_requested,
-      'quantity_approved': instance.quantity_approved,
-      'quantity_shipped': instance.quantity_shipped,
-      'transaction_id': instance.transaction_id,
-      'variant_id': instance.variant_id,
-      'qty': instance.qty,
-      'price': instance.price,
-      'discount': instance.discount,
+      'quantityRequested':
+          const NullableIntConverter().toJson(instance.quantityRequested),
+      'quantityApproved':
+          const NullableIntConverter().toJson(instance.quantityApproved),
+      'quantityShipped':
+          const NullableIntConverter().toJson(instance.quantityShipped),
+      'transactionId':
+          const NullableIntConverter().toJson(instance.transactionId),
+      'variantId': const NullableIntConverter().toJson(instance.variantId),
+      'qty': const NullableDoubleConverter().toJson(instance.qty),
+      'price': const NullableDoubleConverter().toJson(instance.price),
+      'discount': const NullableDoubleConverter().toJson(instance.discount),
       'type': instance.type,
-      'remaining_stock': instance.remaining_stock,
-      'created_at': instance.created_at,
-      'updated_at': instance.updated_at,
-      'is_tax_exempted': instance.is_tax_exempted,
-      'is_refunded': instance.is_refunded,
-      'done_with_transaction': instance.done_with_transaction,
+      'remainingStock':
+          const NullableDoubleConverter().toJson(instance.remainingStock),
+      'createdAt': instance.createdAt,
+      'updatedAt': instance.updatedAt,
+      'isTaxExempted': instance.isTaxExempted,
+      'isRefunded': instance.isRefunded,
+      'doneWithTransaction': instance.doneWithTransaction,
       'active': instance.active,
-      'dc_rt': instance.dc_rt,
-      'dc_amt': instance.dc_amt,
-      'taxbl_amt': instance.taxbl_amt,
-      'tax_amt': instance.tax_amt,
-      'tot_amt': instance.tot_amt,
-      'item_seq': instance.item_seq,
-      'isrcc_cd': instance.isrcc_cd,
-      'isrcc_nm': instance.isrcc_nm,
-      'isrc_rt': instance.isrc_rt,
-      'isrc_amt': instance.isrc_amt,
-      'tax_ty_cd': instance.tax_ty_cd,
+      'dcRt': const NullableDoubleConverter().toJson(instance.dcRt),
+      'dcAmt': const NullableDoubleConverter().toJson(instance.dcAmt),
+      'taxblAmt': const NullableDoubleConverter().toJson(instance.taxblAmt),
+      'taxAmt': const NullableDoubleConverter().toJson(instance.taxAmt),
+      'totAmt': const NullableDoubleConverter().toJson(instance.totAmt),
+      'itemSeq': const NullableIntConverter().toJson(instance.itemSeq),
+      'isrccCd': instance.isrccCd,
+      'isrccNm': instance.isrccNm,
+      'isrcRt': const NullableIntConverter().toJson(instance.isrcRt),
+      'isrcAmt': const NullableIntConverter().toJson(instance.isrcAmt),
+      'taxTyCd': instance.taxTyCd,
       'bcd': instance.bcd,
-      'item_cls_cd': instance.item_cls_cd,
-      'item_ty_cd': instance.item_ty_cd,
-      'item_std_nm': instance.item_std_nm,
-      'orgn_nat_cd': instance.orgn_nat_cd,
+      'itemClsCd': instance.itemClsCd,
+      'itemTyCd': instance.itemTyCd,
+      'itemStdNm': instance.itemStdNm,
+      'orgnNatCd': instance.orgnNatCd,
       'pkg': instance.pkg,
-      'item_cd': instance.item_cd,
-      'pkg_unit_cd': instance.pkg_unit_cd,
-      'qty_unit_cd': instance.qty_unit_cd,
-      'item_nm': instance.item_nm,
-      'prc': instance.prc,
-      'sply_amt': instance.sply_amt,
-      'tin': instance.tin,
-      'bhf_id': instance.bhf_id,
-      'dft_prc': instance.dft_prc,
-      'add_info': instance.add_info,
-      'isrc_aplcby_yn': instance.isrc_aplcby_yn,
-      'use_yn': instance.use_yn,
-      'regr_id': instance.regr_id,
-      'regr_nm': instance.regr_nm,
-      'modr_id': instance.modr_id,
-      'modr_nm': instance.modr_nm,
-      'last_touched': instance.last_touched?.toIso8601String(),
-      'deleted_at': instance.deleted_at?.toIso8601String(),
+      'itemCd': instance.itemCd,
+      'pkgUnitCd': instance.pkgUnitCd,
+      'qtyUnitCd': instance.qtyUnitCd,
+      'itemNm': instance.itemNm,
+      'prc': const NullableDoubleConverter().toJson(instance.prc),
+      'splyAmt': const NullableDoubleConverter().toJson(instance.splyAmt),
+      'tin': const NullableIntConverter().toJson(instance.tin),
+      'bhfId': instance.bhfId,
+      'dftPrc': const NullableDoubleConverter().toJson(instance.dftPrc),
+      'addInfo': instance.addInfo,
+      'isrcAplcbYn': instance.isrcAplcbYn,
+      'useYn': instance.useYn,
+      'regrId': instance.regrId,
+      'regrNm': instance.regrNm,
+      'modrId': instance.modrId,
+      'modrNm': instance.modrNm,
+      'lastTouched': const TimestampConverter().toJson(instance.lastTouched),
+      'deletedAt': const TimestampConverter().toJson(instance.deletedAt),
       'action': instance.action,
-      'branch_id': instance.branch_id,
-      'ebm_synced': instance.ebm_synced,
-      'part_of_composite': instance.part_of_composite,
-      'composite_price': instance.composite_price,
+      'branchId': const NullableIntConverter().toJson(instance.branchId),
+      'ebmSynced': instance.ebmSynced,
+      'partOfComposite': instance.partOfComposite,
+      'compositePrice':
+          const NullableDoubleConverter().toJson(instance.compositePrice),
     };

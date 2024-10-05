@@ -67,9 +67,9 @@ class LoginViewModel extends FlipperBaseModel
       // Sign out from Firebase before attempting to log in
       // await FirebaseAuth.instance.signOut();
       final thePin = Pin(ObjectId(),
-          userId: pin.userId,
-          pin: pin.pin,
-          id: int.parse(pin.userId),
+          userId: int.tryParse(pin.userId),
+          pin: int.tryParse(pin.userId),
+          id: int.tryParse(pin.userId),
           branchId: pin.branchId,
           businessId: pin.businessId,
           ownerName: pin.ownerName,

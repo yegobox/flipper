@@ -294,6 +294,7 @@ class CloudSync implements SyncInterface {
     //   [id],
     // );
     talker.warning("Firestore deleting $tableName with id $id");
+    await _firestore.collection(tableName).doc(id.toString()).delete();
 
     _realm.writeN(
         tableName: deletedObjectTable,
@@ -315,7 +316,6 @@ class CloudSync implements SyncInterface {
         });
 
     /// delete record in firestore
-    await _firestore.collection(tableName).doc(id.toString()).delete();
   }
 
   @override
@@ -424,13 +424,13 @@ class CloudSync implements SyncInterface {
 
                 break;
               case DocumentChangeType.removed:
-                // _realm.write(() {
-                //   T? realmObject =
-                //       _realm.query<T>(r'id == $0', [id]).firstOrNull;
-                //   if (realmObject != null) {
-                //     _realm.delete(realmObject);
-                //   }
-                // });
+                _realm.write(() {
+                  T? realmObject =
+                      _realm.query<T>(r'id == $0', [id]).firstOrNull;
+                  if (realmObject != null) {
+                    _realm.delete(realmObject);
+                  }
+                });
                 break;
             }
           }

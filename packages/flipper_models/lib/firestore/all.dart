@@ -5,10 +5,83 @@ import 'package:flipper_models/power_sync/schema.dart';
 
 part 'all.g.dart';
 
+class NullableNumConverter implements JsonConverter<num?, dynamic> {
+  const NullableNumConverter();
+
+  @override
+  num? fromJson(dynamic value) {
+    // Handle null directly
+    if (value == null) return null;
+
+    if (value is num) return value;
+    if (value is String) {
+      final parsed = num.tryParse(value);
+      if (parsed != null) return parsed;
+    }
+    if (value is Map<String, dynamic>) {
+      if (value.containsKey('integerValue')) {
+        return int.tryParse(value['integerValue']);
+      }
+      if (value.containsKey('doubleValue')) {
+        return value['doubleValue'];
+      }
+    }
+    // Return null for any other type.
+    return null;
+  }
+
+  @override
+  dynamic toJson(num? value) => value;
+}
+
+class NullableIntConverter implements JsonConverter<int?, dynamic> {
+  const NullableIntConverter();
+
+  @override
+  int? fromJson(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) {
+      final parsed = int.tryParse(value);
+      if (parsed != null) return parsed;
+    }
+    if (value is Map<String, dynamic> && value.containsKey('integerValue')) {
+      return int.tryParse(value['integerValue']);
+    }
+    return null; // Return null instead of throwing an error
+  }
+
+  @override
+  dynamic toJson(int? value) => value;
+}
+
+class NullableDoubleConverter implements JsonConverter<double?, dynamic> {
+  const NullableDoubleConverter();
+
+  @override
+  double? fromJson(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      final parsed = double.tryParse(value);
+      if (parsed != null) return parsed;
+    }
+    if (value is Map<String, dynamic> && value.containsKey('doubleValue')) {
+      return value['doubleValue'];
+    }
+    return null; // Return null instead of throwing an error
+  }
+
+  @override
+  dynamic toJson(double? value) => value;
+}
+
 @JsonSerializable(explicitToJson: true)
 class StockRequest {
   StockRequest({
-    this.id,
+    required this.id,
     required this.main_branch_id,
     required this.sub_branch_id,
     required this.created_at,
@@ -23,182 +96,209 @@ class StockRequest {
     this.updated_at,
   });
 
-  factory StockRequest.fromJson(Map<String, Object?> json) =>
+  factory StockRequest.fromJson(Map<String, dynamic> json) =>
       _$StockRequestFromJson(json);
 
-  // @Id()
-  final String? id;
-
-  final int main_branch_id;
-  final int sub_branch_id;
+  @NullableIntConverter()
+  final int? id; // Changed to nullable
+  @NullableIntConverter()
+  final int? main_branch_id; // Changed to nullable
+  @NullableIntConverter()
+  final int? sub_branch_id; // Changed to nullable
   @TimestampConverter()
-  final DateTime created_at;
-  final String status;
+  final DateTime? created_at; // Changed to nullable
+  final String? status; // Changed to nullable
   @TimestampConverter()
   final DateTime? delivery_date;
   final String? delivery_note;
   final String? order_note;
-  final bool customer_received_order;
-  final bool driver_request_delivery_confirmation;
+  final bool? customer_received_order;
+  final bool? driver_request_delivery_confirmation;
+  @NullableIntConverter()
   final int? driver_id;
-  final List<TransactionItem> items;
+  final List<TransactionItem>? items; // Changed to nullable
   @TimestampConverter()
   final DateTime? updated_at;
 
-  Map<String, Object?> toJson() => _$StockRequestToJson(this);
+  Map<String, dynamic> toJson() => _$StockRequestToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
 class TransactionItem {
   TransactionItem({
-    required this.item_id,
-    required this.quantity,
+    this.isTaxExempted,
+    this.isRefunded,
+    this.doneWithTransaction,
+    this.dcRt,
+    this.dcAmt,
+    this.taxblAmt,
+    this.taxAmt,
+    this.totAmt,
+    this.itemSeq,
     this.id,
     this.name,
-    this.quantity_requested,
-    this.quantity_approved,
-    this.quantity_shipped,
-    this.transaction_id,
-    this.variant_id,
-    this.qty = 0.0,
-    this.price = 0.0,
-    this.discount = 0.0,
+    this.quantityRequested,
+    this.quantityApproved,
+    this.quantityShipped,
+    this.transactionId,
+    this.variantId,
+    this.qty,
+    this.price,
+    this.discount,
     this.type,
-    this.remaining_stock = 0.0,
-    this.created_at,
-    this.updated_at,
-    this.is_tax_exempted = false,
-    this.is_refunded = false,
-    this.done_with_transaction,
+    this.remainingStock,
+    this.createdAt,
+    this.updatedAt,
     this.active,
-    this.dc_rt = 0.0,
-    this.dc_amt = 0.0,
-    this.taxbl_amt = 0.0,
-    this.tax_amt = 0.0,
-    this.tot_amt = 0.0,
-    this.item_seq,
-    this.isrcc_cd,
-    this.isrcc_nm = "",
-    this.isrc_rt = 0,
-    this.isrc_amt = 0,
-    this.tax_ty_cd,
+    this.isrccCd,
+    this.isrccNm,
+    this.isrcRt,
+    this.isrcAmt,
+    this.taxTyCd,
     this.bcd,
-    this.item_cls_cd,
-    this.item_ty_cd,
-    this.item_std_nm,
-    this.orgn_nat_cd,
+    this.itemClsCd,
+    this.itemTyCd,
+    this.itemStdNm,
+    this.orgnNatCd,
     this.pkg,
-    this.item_cd,
-    this.pkg_unit_cd = "CT",
-    this.qty_unit_cd = "BX",
-    this.item_nm,
-    this.prc = 0.0,
-    this.sply_amt = 0.0,
+    this.itemCd,
+    this.pkgUnitCd,
+    this.qtyUnitCd,
+    this.itemNm,
+    this.prc,
+    this.splyAmt,
     this.tin,
-    this.bhf_id,
-    this.dft_prc,
-    this.add_info,
-    this.isrc_aplcby_yn,
-    this.use_yn,
-    this.regr_id,
-    this.regr_nm,
-    this.modr_id,
-    this.modr_nm,
-    this.last_touched,
-    this.deleted_at,
+    this.bhfId,
+    this.dftPrc,
+    this.addInfo,
+    this.isrcAplcbYn,
+    this.useYn,
+    this.regrId,
+    this.regrNm,
+    this.modrId,
+    this.modrNm,
+    this.lastTouched,
+    this.deletedAt,
     this.action,
-    this.branch_id,
-    this.ebm_synced = false,
-    this.part_of_composite = false,
-    this.composite_price = 0,
+    this.branchId,
+    this.ebmSynced,
+    this.partOfComposite,
+    this.compositePrice,
   });
 
-  factory TransactionItem.fromJson(Map<String, Object?> json) =>
+  factory TransactionItem.fromJson(Map<String, dynamic> json) =>
       _$TransactionItemFromJson(json);
 
-  final int item_id;
-  final int quantity;
-
-  // Common fields
-  // @Id()
+  @NullableIntConverter()
   final int? id;
   final String? name;
-  final int? quantity_requested;
-  final int? quantity_approved;
-  final int? quantity_shipped;
-  final int? transaction_id;
-  final int? variant_id;
-  final double qty;
-  final double price;
-  final double discount;
+  @NullableIntConverter()
+  final int? quantityRequested;
+  @NullableIntConverter()
+  final int? quantityApproved;
+  @NullableIntConverter()
+  final int? quantityShipped;
+  @NullableIntConverter()
+  final int? transactionId;
+  @NullableIntConverter()
+  final int? variantId;
+  @NullableDoubleConverter()
+  final double? qty;
+  @NullableDoubleConverter()
+  final double? price;
+  @NullableDoubleConverter()
+  final double? discount;
   final String? type;
-  final double remaining_stock;
-  final String? created_at;
-  final String? updated_at;
-  final bool is_tax_exempted;
-  final bool is_refunded;
-
-  // Transaction-related fields
-  final bool? done_with_transaction;
+  @NullableDoubleConverter()
+  final double? remainingStock;
+  final String? createdAt;
+  final String? updatedAt;
+  final bool? isTaxExempted;
+  final bool? isRefunded;
+  final bool? doneWithTransaction;
   final bool? active;
-
-  // RRA fields
-  final double dc_rt;
-  final double dc_amt;
-  final double taxbl_amt;
-  final double tax_amt;
-  final double tot_amt;
-
-  // Variant-related fields
-  final int? item_seq;
-  final String? isrcc_cd;
-  final String? isrcc_nm;
-  final int? isrc_rt;
-  final int? isrc_amt;
-  final String? tax_ty_cd;
+  @NullableDoubleConverter()
+  final double? dcRt;
+  @NullableDoubleConverter()
+  final double? dcAmt;
+  @NullableDoubleConverter()
+  final double? taxblAmt;
+  @NullableDoubleConverter()
+  final double? taxAmt;
+  @NullableDoubleConverter()
+  final double? totAmt;
+  @NullableIntConverter()
+  final int? itemSeq;
+  final String? isrccCd;
+  final String? isrccNm;
+  @NullableIntConverter()
+  final int? isrcRt;
+  @NullableIntConverter()
+  final int? isrcAmt;
+  final String? taxTyCd;
   final String? bcd;
-  final String? item_cls_cd;
-  final String? item_ty_cd;
-  final String? item_std_nm;
-  final String? orgn_nat_cd;
+  final String? itemClsCd;
+  final String? itemTyCd;
+  final String? itemStdNm;
+  final String? orgnNatCd;
   final String? pkg;
-  final String? item_cd;
-  final String? pkg_unit_cd;
-  final String? qty_unit_cd;
-  final String? item_nm;
-  final double prc;
-  final double sply_amt;
+  final String? itemCd;
+  final String? pkgUnitCd;
+  final String? qtyUnitCd;
+  final String? itemNm;
+  @NullableDoubleConverter()
+  final double? prc;
+  @NullableDoubleConverter()
+  final double? splyAmt;
+  @NullableIntConverter()
   final int? tin;
-  final String? bhf_id;
-  final double? dft_prc;
-  final String? add_info;
-  final String? isrc_aplcby_yn;
-  final String? use_yn;
-  final String? regr_id;
-  final String? regr_nm;
-  final String? modr_id;
-  final String? modr_nm;
-
-  final DateTime? last_touched;
-  final DateTime? deleted_at;
+  final String? bhfId;
+  @NullableDoubleConverter()
+  final double? dftPrc;
+  final String? addInfo;
+  final String? isrcAplcbYn;
+  final String? useYn;
+  final String? regrId;
+  final String? regrNm;
+  final String? modrId;
+  final String? modrNm;
+  @TimestampConverter()
+  final DateTime? lastTouched;
+  @TimestampConverter()
+  final DateTime? deletedAt;
   final String? action;
+  @NullableIntConverter()
+  final int? branchId;
+  final bool? ebmSynced;
+  final bool? partOfComposite;
+  @NullableDoubleConverter()
+  final double? compositePrice;
 
-  final int? branch_id;
-  final bool ebm_synced;
-  final bool part_of_composite;
-  final double composite_price;
-
-  Map<String, Object?> toJson() => _$TransactionItemToJson(this);
+  Map<String, dynamic> toJson() => _$TransactionItemToJson(this);
 }
 
-class TimestampConverter implements JsonConverter<DateTime, Timestamp> {
+class TimestampConverter implements JsonConverter<DateTime?, dynamic> {
   const TimestampConverter();
 
   @override
-  DateTime fromJson(Timestamp timestamp) => timestamp.toDate();
+  DateTime? fromJson(dynamic timestamp) {
+    if (timestamp == null) return null;
+
+    if (timestamp is Timestamp) {
+      return timestamp.toDate();
+    } else if (timestamp is String) {
+      return DateTime.tryParse(timestamp);
+    } else {
+      throw ArgumentError(
+          'Unsupported timestamp type: ${timestamp.runtimeType}');
+    }
+  }
 
   @override
-  Timestamp toJson(DateTime date) => Timestamp.fromDate(date);
+  dynamic toJson(DateTime? date) {
+    if (date == null) return null;
+    return Timestamp.fromDate(date);
+  }
 }
 
 @Collection<StockRequest>(stockRequestsTable)
@@ -208,12 +308,7 @@ final stockRequestsRef = StockRequestCollectionReference();
 //   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
 //   // Get a reference to the collection.
-//   CollectionReference<StockRequest> get ref =>
-//       _firestore.collection(stockRequestsTable).withConverter<StockRequest>(
-//             fromFirestore: (snapshot, _) => StockRequest.fromJson(
-//                 snapshot.data() as Map<String, dynamic>),
-//             toFirestore: (stockRequest, _) => stockRequest.toJson(),
-//           );
+
 
 //   // Add a new stock request.
 //   Future<void> addStockRequest(StockRequest stockRequest) async {

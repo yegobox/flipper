@@ -13,7 +13,7 @@ dependencies:
   flipper_services: ^1.0.0-dev
   meta: ^1.12.0
 dependency_overrides:
-  http: ^1.2.1
+  http: ^1.2.2
   meta: ^1.12.0
   
   

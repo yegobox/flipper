@@ -21,13 +21,12 @@ dependencies:
   flipper_services: ^1.0.0-dev
   flipper_routing: ^0.0.1-dev.3
   connectivity_plus: ^6.0.3
-  pocketbase: ^0.17.0
-  stock: ^1.0.1
+  
   sentry: ^8.6.0
   sentry_flutter: ^8.9.0
   
   path_provider: ^2.1.4
-  http: ^1.2.1
+  http: ^1.2.2
   html_unescape: ^2.0.0
   flutter_riverpod: ^2.4.5
   riverpod_annotation: ^2.3.0
@@ -63,7 +62,7 @@ dependencies:
   json_annotation: ^4.9.0
 
 dependency_overrides:
-  http: ^1.2.1
+  http: ^1.2.2
   meta: ^1.12.0
   analyzer: ^6.0.0
   
