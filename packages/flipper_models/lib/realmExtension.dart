@@ -60,13 +60,12 @@ extension RealmExtension on Realm {
   }
 
   void _syncToFirestoreDelete<T>(String tableName, T data) {
-    final firestore = FirebaseFirestore.instance;
     final map = data is Stock
         ? data.toEJson(includeVariant: false)!.toFlipperJson()
         : data.toEJson().toFlipperJson();
     final id = map['id'];
     map['deleted_at'] = DateTime.now().toIso8601String();
-    CloudSync(firestore, ProxyService.local.realm!).deleteRecord(
+    ProxyService.syncFirestore.deleteRecord(
       tableName: tableName,
       idField: tableName.singularize() + "_id",
       id: id,
@@ -75,7 +74,6 @@ extension RealmExtension on Realm {
 
   void _syncToFirestore<T>(String tableName, T data) {
     try {
-      final firestore = FirebaseFirestore.instance;
       final map = data is Stock
           ? data.toEJson(includeVariant: false)!.toFlipperJson()
           : data.toEJson().toFlipperJson();
@@ -92,7 +90,7 @@ extension RealmExtension on Realm {
       if (map.containsKey('branch_ids')) {
         map.remove('branch_ids');
       }
-      CloudSync(firestore, ProxyService.local.realm!).updateRecord(
+      ProxyService.syncFirestore.updateRecord(
         tableName: tableName,
         idField: tableName.singularize() + "_id",
         map: map,

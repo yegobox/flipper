@@ -15,6 +15,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/AppInitializer.dart';
+import 'package:flipper_services/abstractions/storage.dart';
 import 'package:path/path.dart' as p;
 import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/secrets.dart';
@@ -165,7 +166,8 @@ class LocalRealmApi
   }
 
   @override
-  Future<RealmApiInterface> configureLocal({required bool useInMemory}) async {
+  Future<RealmApiInterface> configureLocal(
+      {required bool useInMemory, required LocalStorage box}) async {
     _setApiEndpoints();
 
     const isTest =
@@ -185,9 +187,9 @@ class LocalRealmApi
     realm?.close();
     try {
       if (useInMemory ||
-          ProxyService.box.encryptionKey().isEmpty ||
+          box.encryptionKey().isEmpty ||
           isTest ||
-          ProxyService.box.getBusinessId() == null) {
+          box.getBusinessId() == null) {
         talker.error("Using in Memory db");
         _configureInMemory();
       } else {
@@ -411,7 +413,7 @@ class LocalRealmApi
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin}) async {
     await configureTheBox(userPhone, user);
-    await configureLocal(useInMemory: false);
+    await configureLocal(useInMemory: false, box: ProxyService.box);
     await updateLocalRealm(user, localRealm: realm);
 
     AppInitializer.initialize();
@@ -422,7 +424,7 @@ class LocalRealmApi
 
   Future<void> _initializeRealms() async {
     if (realm == null) {
-      await configureLocal(useInMemory: false);
+      await configureLocal(useInMemory: false, box: ProxyService.box);
     }
   }
 
@@ -495,7 +497,7 @@ class LocalRealmApi
           skipDefaultAppSetup: true,
           flipperHttpClient: flipperHttpClient);
 
-      await configureLocal(useInMemory: false);
+      await configureLocal(useInMemory: false, box: ProxyService.box);
 
       final tenantToAdd = <Tenant>[];
       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
@@ -657,7 +659,7 @@ class LocalRealmApi
         .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
     if (response.statusCode == 200) {
       if (realm == null) {
-        await configureLocal(useInMemory: false);
+        await configureLocal(useInMemory: false, box: ProxyService.box);
       }
       final tenantToAdd = <Tenant>[];
       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
@@ -1486,7 +1488,7 @@ class LocalRealmApi
       {required String pinString,
       required HttpClientInterface flipperHttpClient}) async {
     try {
-      await configureLocal(useInMemory: false);
+      await configureLocal(useInMemory: false, box: ProxyService.box);
       final Uri uri = Uri.parse("$apihub/v2/api/pin/$pinString");
       final localPin =
           realm!.query<Pin>(r'userId == $0', [pinString]).firstOrNull;
@@ -2459,6 +2461,16 @@ class LocalRealmApi
       required bool active}) {
     String queryString = "";
 
+    /// fint all and delete
+    // List<TransactionItem> itemss = realm!.query<TransactionItem>(
+    //     r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3',
+    //     [transactionId, doneWithTransaction, branchId, active]).toList();
+
+    // for (TransactionItem item in itemss) {
+    //   realm!.write(() {
+    //     realm!.delete(item);
+    //   });
+    // }
     queryString =
         r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3';
 
@@ -4825,6 +4837,6 @@ class LocalRealmApi
 
   @override
   Future<String> getIdToken() async {
-    return await FirebaseAuth.instance.currentUser?.getIdToken()??"NONE";
+    return await FirebaseAuth.instance.currentUser?.getIdToken() ?? "NONE";
   }
 }

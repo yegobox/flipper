@@ -15,7 +15,8 @@ void main() {
     setUpAll(() async {
       // Initialize dependencies for test environment
       await initializeDependenciesForTest();
-      ProxyService.local.configureLocal(useInMemory: true);
+      ProxyService.local
+          .configureLocal(useInMemory: true, box: ProxyService.box);
     });
 
     setUp(() {});

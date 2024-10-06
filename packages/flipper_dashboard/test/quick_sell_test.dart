@@ -1,4 +1,3 @@
-
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flipper_services/proxy.dart';
@@ -22,7 +21,8 @@ void main() {
     setUpAll(() async {
       // Initialize dependencies for test environment
       await initializeDependenciesForTest();
-      ProxyService.local.configureLocal(useInMemory: true);
+      ProxyService.local
+          .configureLocal(useInMemory: true, box: ProxyService.box);
     });
 
     setUp(() {

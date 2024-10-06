@@ -49,7 +49,8 @@ class CreateMockdata {
   Future<void> ensureRealmInitialized() async {
     if (ProxyService.box.encryptionKey().isNotEmpty &&
         ProxyService.local.realm == null) {
-      await ProxyService.local.configureLocal(useInMemory: false);
+      await ProxyService.local
+          .configureLocal(useInMemory: false, box: ProxyService.box);
     }
   }
 

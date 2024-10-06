@@ -272,7 +272,8 @@ mixin Booting {
 
   Future<void> initializeRealms() async {
     if (ProxyService.local.realm == null) {
-      await ProxyService.local.configureLocal(useInMemory: false);
+      await ProxyService.local
+          .configureLocal(useInMemory: false, box: ProxyService.box);
     }
   }
 }

@@ -10,6 +10,7 @@ import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/sync.dart';
 import 'package:flipper_models/sync_service.dart';
+import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:realm/realm.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -48,7 +49,8 @@ abstract class DataMigratorToLocal {
 abstract class RealmApiInterface {
   Future<List<Product>> products({required int branchId});
 
-  Future<RealmApiInterface> configureLocal({required bool useInMemory});
+  Future<RealmApiInterface> configureLocal(
+      {required bool useInMemory, required LocalStorage box});
 
   Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password});

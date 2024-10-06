@@ -24,7 +24,8 @@ void main() {
       await initializeDependenciesForTest();
 
       // init db
-      ProxyService.local.configureLocal(useInMemory: true);
+      ProxyService.local
+          .configureLocal(useInMemory: true, box: ProxyService.box);
 
       CreateMockdata()
           .createAndSaveMockStockRequests(realm: ProxyService.local.realm!);

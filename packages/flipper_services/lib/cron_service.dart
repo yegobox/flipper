@@ -143,7 +143,7 @@ class CronService {
     final realm = ProxyService.local.realm;
 
     if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
-      await CloudSync(firestore, realm!).firebaseLogin();
+      ProxyService.syncFirestore.firebaseLogin();
     }
     talker.warning("FirebaseUser ${FirebaseAuth.instance.currentUser}");
 
@@ -153,7 +153,7 @@ class CronService {
         List<Product> products =
             ProxyService.local.realm!.all<Product>().toList();
         for (Product product in products) {
-          CloudSync(firestore, realm!).updateRecord(
+          ProxyService.syncFirestore.updateRecord(
               tableName: productsTable,
               idField: "${productsTable.singularize()}_id",
               map: product.toEJson().toFlipperJson(),
@@ -162,7 +162,7 @@ class CronService {
         }
         List<Assets> assets = ProxyService.local.realm!.all<Assets>().toList();
         for (Assets asset in assets) {
-          CloudSync(firestore, realm!).updateRecord(
+          ProxyService.syncFirestore.updateRecord(
               tableName: assetsTable,
               idField: "${assetsTable.singularize()}_id",
               map: asset.toEJson().toFlipperJson(),
@@ -173,7 +173,7 @@ class CronService {
         List<Variant> variants =
             ProxyService.local.realm!.all<Variant>().toList();
         for (Variant variant in variants) {
-          CloudSync(firestore, realm!).updateRecord(
+          ProxyService.syncFirestore.updateRecord(
               tableName: variantTable,
               idField: "${variantTable.singularize()}_id",
               map: variant.toEJson().toFlipperJson(),
@@ -183,7 +183,7 @@ class CronService {
 
         List<Stock> stocks = ProxyService.local.realm!.all<Stock>().toList();
         for (Stock stock in stocks) {
-          CloudSync(firestore, realm!).updateRecord(
+          ProxyService.syncFirestore.updateRecord(
               tableName: stocksTable,
               idField: "${stocksTable.singularize()}_id",
               map: stock.toEJson(includeVariant: true).toFlipperJson(),
@@ -194,7 +194,7 @@ class CronService {
         List<TransactionItem> items =
             ProxyService.local.realm!.all<TransactionItem>().toList();
         for (TransactionItem item in items) {
-          CloudSync(firestore, realm!).updateRecord(
+          ProxyService.syncFirestore.updateRecord(
               tableName: transactionItemsTable,
               idField: "${transactionItemsTable.singularize()}_id",
               map: item.toEJson().toFlipperJson(),
@@ -205,7 +205,7 @@ class CronService {
         List<Access> accesses =
             ProxyService.local.realm!.all<Access>().toList();
         for (Access access in accesses) {
-          CloudSync(firestore, realm!).updateRecord(
+          ProxyService.syncFirestore.updateRecord(
               tableName: accessesTable,
               idField: "${accessesTable.singularize()}_id",
               map: access.toEJson().toFlipperJson(),
@@ -215,7 +215,7 @@ class CronService {
         List<StockRequest> requests =
             ProxyService.local.realm!.all<StockRequest>().toList();
         for (StockRequest request in requests) {
-          CloudSync(firestore, realm!).updateRecord(
+          ProxyService.syncFirestore.updateRecord(
               tableName: stockRequestsTable,
               idField: "${stockRequestsTable.singularize()}_id",
               map: request.toEJson().toFlipperJson(),
@@ -316,7 +316,6 @@ class CronService {
 
   Future<void> _setupFirebaseMessaging() async {
     Business? business = await ProxyService.local.getBusiness();
-    ProxyService.syncFirestore.configure();
     String? token;
 
     if (!Platform.isWindows && !isMacOs && !isIos) {

@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
+import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/PullChange.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
@@ -43,8 +45,7 @@ abstract class SyncInterface {
     required int id,
     required SyncProvider syncProvider,
   });
-  void listen();
-  SyncInterface instance();
+
   Future<void> watchTable<T extends RealmObject>({
     required String tableName,
     required String idField,
@@ -74,12 +75,12 @@ abstract class SyncInterface {
 /// anotherone to acheive sync for flipper app
 
 class CloudSync implements SyncInterface {
-  // static final CloudSync _instance = CloudSync._internal();
-  // CloudSync._internal();
-
-  final FirebaseFirestore _firestore;
-  final Realm _realm;
+  StreamSubscription<QuerySnapshot>? _subscription;
+  final FirebaseFirestore? _firestore;
+  final RealmApiInterface _realm;
   final Set<int> _processingIds = {};
+
+  CloudSync(this._firestore, this._realm);
 
   @override
   Future<void> deleteDuplicate({required String tableName}) async {
@@ -88,7 +89,7 @@ class CloudSync implements SyncInterface {
       Map<dynamic, List<String>> idMap = {};
 
       // Use pagination to handle large collections
-      var query = _firestore.collection(tableName).limit(500);
+      var query = _firestore!.collection(tableName).limit(500);
       while (true) {
         final snapshot = await query.get();
         if (snapshot.docs.isEmpty) break;
@@ -104,11 +105,11 @@ class CloudSync implements SyncInterface {
       }
 
       // Use a batched write for better performance and atomicity
-      final batch = _firestore.batch();
+      final batch = _firestore!.batch();
       for (var entry in idMap.entries) {
         if (entry.value.length > 1) {
           for (int i = 1; i < entry.value.length; i++) {
-            batch.delete(_firestore.collection(tableName).doc(entry.value[i]));
+            batch.delete(_firestore!.collection(tableName).doc(entry.value[i]));
           }
         }
       }
@@ -131,7 +132,7 @@ class CloudSync implements SyncInterface {
       try {
         final branchId = ProxyService.box.getBranchId();
         // Get Firestore collection changes without listening
-        final querySnapshot = await _firestore
+        final querySnapshot = await _firestore!
             .collection(tableName)
             .where('branch_id', isEqualTo: branchId)
             .get();
@@ -147,11 +148,12 @@ class CloudSync implements SyncInterface {
 
           // Process the document based on the change type
           // Assuming all changes are either added or modified for this example
-          var realmObject = _realm.query<T>(r'id == $0', [id]).firstOrNull;
+          var realmObject =
+              _realm.realm!.query<T>(r'id == $0', [id]).firstOrNull;
           if (realmObject == null) {
             realmObject = createRealmObject(data);
-            _realm.write(() {
-              _realm.add<T>(realmObject!);
+            _realm.realm!.write(() {
+              _realm.realm!.add<T>(realmObject!);
             });
             print("Added new object to Realm with ID: $id");
           } else {
@@ -167,22 +169,17 @@ class CloudSync implements SyncInterface {
     }
   }
 
-  CloudSync(this._firestore, this._realm);
-  @override
-  SyncInterface instance() {
-    return this;
-  }
-
   @override
   Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch) async {
-    WriteBatch writeBatch = _firestore.batch();
+    WriteBatch writeBatch = _firestore!.batch();
 
     for (T item in batch) {
       // Changed TransactionItem to T
 
       final data = item.toEJson().toFlipperJson();
-      final docRef =
-          _firestore.collection('transactionsItems').doc(data['id'].toString());
+      final docRef = _firestore!
+          .collection('transactionsItems')
+          .doc(data['id'].toString());
 
       // Check if the document exists
       final docSnapshot = await docRef.get();
@@ -294,13 +291,14 @@ class CloudSync implements SyncInterface {
     //   [id],
     // );
     talker.warning("Firestore deleting $tableName with id $id");
-    await _firestore.collection(tableName).doc(id.toString()).delete();
+    _subscription?.cancel();
+    await _firestore!.collection(tableName).doc(id.toString()).delete();
 
-    _realm.writeN(
+    _realm.realm!.writeN(
         tableName: deletedObjectTable,
         writeCallback: () {
           DeletedObject? obj =
-              _realm.query<DeletedObject>(r'id == $0', [id]).firstOrNull;
+              _realm.realm!.query<DeletedObject>(r'id == $0', [id]).firstOrNull;
           if (obj != null) {
             final deletedObject = DeletedObject(
               ObjectId(),
@@ -314,6 +312,8 @@ class CloudSync implements SyncInterface {
             return deletedObject;
           }
         });
+    // re-start pull change
+    // PullChange().start(firestore: _firestore!, localRealm: _realm.realm!);
 
     /// delete record in firestore
   }
@@ -343,8 +343,11 @@ class CloudSync implements SyncInterface {
     if (syncProvider == SyncProvider.FIRESTORE) {
       try {
         // Check if the document already exists
-        final docRef = _firestore.collection(tableName).doc(id.toString());
+        final docRef = _firestore!.collection(tableName).doc(id.toString());
         final docSnapshot = await docRef.get();
+
+        /// first cancel the subscription to avoid re-writing back into the same document
+        _subscription?.cancel();
 
         if (docSnapshot.exists) {
           talker.warning("UpdatedFirestore ${id}");
@@ -355,21 +358,14 @@ class CloudSync implements SyncInterface {
           // Create new document
           await docRef.set(modifiedMap);
         }
+        // re-start pull change
+        // PullChange().start(firestore: _firestore!, localRealm: _realm.realm!);
       } catch (e, s) {
         talker.warning(e);
         talker.error(s);
         rethrow;
       }
     }
-  }
-
-  bool compareChanges(Map<String, dynamic> item, Map<String, dynamic> map) {
-    for (final key in item.keys) {
-      if (map[key]?.toString() != item[key]?.toString()) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @override
@@ -385,7 +381,7 @@ class CloudSync implements SyncInterface {
       try {
         final branchId = ProxyService.box.getBranchId();
         // Listen for Firestore collection changes
-        _firestore
+        _subscription = _firestore!
             .collection(tableName)
             .where('branch_id', isEqualTo: branchId)
             .snapshots()
@@ -399,17 +395,17 @@ class CloudSync implements SyncInterface {
               case DocumentChangeType.added:
               case DocumentChangeType.modified:
                 try {
-                  if (_realm.isClosed) return;
+                  if (_realm.realm!.isClosed) return;
                   T? realmObject =
-                      _realm.query<T>(r'id == $0', [id]).firstOrNull;
+                      _realm.realm!.query<T>(r'id == $0', [id]).firstOrNull;
                   if (realmObject == null) {
                     /// check if this object was deleted and is found in deletedObjects
-                    DeletedObject? deletedObject = _realm
+                    DeletedObject? deletedObject = _realm.realm!
                         .query<DeletedObject>(r'id == $0', [id]).firstOrNull;
                     if (deletedObject == null) {
                       realmObject = createRealmObject(data);
-                      _realm.write(() {
-                        _realm.add<T>(realmObject!);
+                      _realm.realm!.write(() {
+                        _realm.realm!.add<T>(realmObject!);
                       });
                     }
                   } else {
@@ -424,11 +420,11 @@ class CloudSync implements SyncInterface {
 
                 break;
               case DocumentChangeType.removed:
-                _realm.write(() {
+                _realm.realm!.write(() {
                   T? realmObject =
-                      _realm.query<T>(r'id == $0', [id]).firstOrNull;
+                      _realm.realm!.query<T>(r'id == $0', [id]).firstOrNull;
                   if (realmObject != null) {
-                    _realm.delete(realmObject);
+                    _realm.realm!.delete(realmObject);
                   }
                 });
                 break;
@@ -456,10 +452,10 @@ class CloudSync implements SyncInterface {
 
           //     // Find existing object or create a new one
           //     var realmObject =
-          //         _realm.query<T>('id == $id').firstOrNull;
+          //         _realm.realm!.query<T>('id == $id').firstOrNull;
           //     if (realmObject == null) {
           //       realmObject = createRealmObject(item);
-          //       _realm.add<T>(realmObject);
+          //       _realm.realm!.add<T>(realmObject);
           //     } else {
           //       updateRealmObject(realmObject, item);
           //     }
@@ -481,10 +477,10 @@ class CloudSync implements SyncInterface {
 
           //   // Find existing object or create a new one
           //   var realmObject =
-          //       _realm.query<T>('id == $id').firstOrNull;
+          //       _realm.realm!.query<T>('id == $id').firstOrNull;
           //   if (realmObject == null) {
           //     realmObject = createRealmObject(data);
-          //     _realm.add<T>(realmObject);
+          //     _realm.realm!.add<T>(realmObject);
           //   } else {
           //     updateRealmObject(realmObject, data);
           //   }
@@ -501,9 +497,13 @@ class CloudSync implements SyncInterface {
     }
   }
 
-  @override
-  void listen() {
-    ///watchers for upload
+  bool compareChanges(Map<String, dynamic> item, Map<String, dynamic> map) {
+    for (final key in item.keys) {
+      if (map[key]?.toString() != item[key]?.toString()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   static const int BATCH_SIZE = 100;
@@ -513,8 +513,8 @@ class CloudSync implements SyncInterface {
       required String encryptionKey,
       required String dbPath}) async {
     try {
-      List<TransactionItem> items =
-          _realm.query<TransactionItem>(r'branchId == $0', [branchId]).toList();
+      List<TransactionItem> items = _realm.realm!
+          .query<TransactionItem>(r'branchId == $0', [branchId]).toList();
       List<List<TransactionItem>> batches =
           _splitIntoBatches(items, BATCH_SIZE);
 

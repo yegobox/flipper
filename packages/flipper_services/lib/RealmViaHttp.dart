@@ -12,6 +12,7 @@ import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:http/src/response.dart';
 import 'package:realm_dart/src/realm_class.dart';
@@ -1366,7 +1367,8 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   }
 
   @override
-  Future<RealmApiInterface> configureLocal({required bool useInMemory}) {
+  Future<RealmApiInterface> configureLocal(
+      {required bool useInMemory, required LocalStorage box}) {
     // TODO: implement configureLocal
     throw UnimplementedError();
   }
@@ -1511,10 +1513,12 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
     // TODO: implement universalProductNames
     throw UnimplementedError();
   }
-   @override
+
+  @override
   Future<String> getIdToken() async {
-    return await FirebaseAuth.instance.currentUser?.getIdToken()??"NONE";
+    return await FirebaseAuth.instance.currentUser?.getIdToken() ?? "NONE";
   }
+
   @override
   void createNewStock(
       {required Variant variant,

@@ -1,12 +1,9 @@
-import 'package:flipper_models/FirestoreSync.dart';
+import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
-import 'package:flipper_models/RealmAPIMocked.dart';
-import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/MockHttpClient.dart';
 import 'package:flipper_models/realmInterface.dart';
-import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
@@ -15,7 +12,7 @@ import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/PayStackService.dart';
 import 'package:flipper_services/RealmViaHttp.dart';
 import 'package:flutter/foundation.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as httP;
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
@@ -64,6 +61,46 @@ import 'package:flipper_services/DeviceIdService.dart' as dev;
 
 @module
 abstract class ServicesModule {
+  @singleton
+  FirebaseFirestore get firestore => FirebaseFirestore.instance;
+
+  @LazySingleton()
+  SyncInterface provideSyncInterface(
+    FirebaseFirestore firestore,
+    RealmApiInterface realm,
+  ) {
+    return CloudSync(firestore, realm);
+  }
+
+  @preResolve
+  @LazySingleton()
+  Future<LocalStorage> box() async {
+    const isTest =
+        const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
+    talker.warning("running in test env: $isTest");
+
+    if (isTest) {
+      return await SharedPreferenceStorageMock().initializePreferences();
+    } else {
+      return await SharedPreferenceStorage().initializePreferences();
+    }
+  }
+
+  @preResolve
+  @LazySingleton()
+  Future<RealmApiInterface> localRealm(
+    LocalStorage box,
+  ) async {
+    if (!kIsWeb) {
+      return await LocalRealmApi().configureLocal(
+        box: box,
+        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
+      );
+    } else {
+      return RealmViaHttpService();
+    }
+  }
+
   @LazySingleton()
   dev.Device get device {
     return dev.DeviceIdService();
@@ -277,32 +314,6 @@ abstract class ServicesModule {
     return SentryService();
   }
 
-  @preResolve
-  @LazySingleton()
-  Future<LocalStorage> box() async {
-    const isTest =
-        const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
-    talker.warning("running in test env: $isTest");
-
-    if (isTest) {
-      return await SharedPreferenceStorageMock().initializePreferences();
-    } else {
-      return await SharedPreferenceStorage().initializePreferences();
-    }
-  }
-
-  @preResolve
-  @LazySingleton()
-  Future<RealmApiInterface> localRealm() async {
-    if (!kIsWeb) {
-      return await LocalRealmApi().configureLocal(
-        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
-      );
-    } else {
-      return RealmViaHttpService();
-    }
-  }
-
   //TODOcheck if code from LanguageService can work fully on windows
   @LazySingleton()
   Language get languageService {
@@ -367,11 +378,6 @@ abstract class ServicesModule {
   }
 
   @LazySingleton()
-  SyncFirestore syncFirestore() {
-    return SyncFirestore.create();
-  }
-
-  @LazySingleton()
   SyncReaml syncRealm() {
     return SyncReaml.create();
   }
@@ -385,9 +391,4 @@ abstract class ServicesModule {
   BillingService billing() {
     return BillingService();
   }
-
-  // @LazySingleton()
-  // SyncInterface synchronize() {
-  //   return CloudSync().instance();
-  // }
 }

@@ -1,4 +1,3 @@
-import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/CloudSync.dart';
@@ -59,7 +58,6 @@ final Crash _crash = getIt<Crash>();
 final LNotification _notification = getIt<LNotification>();
 final Review _review = getIt<Review>();
 final Sync _syncApi = getIt<Sync>();
-final SyncFirestore _syncFirestore = getIt<SyncFirestore>();
 final SystemTime _systemTime = getIt<SystemTime>();
 final EventInterface _event = getIt<EventInterface>();
 final BillingService _billingService = getIt<BillingService>();
@@ -77,8 +75,10 @@ final RealmViaHttp _realmHttp = getIt<RealmViaHttp>();
 
 final RealmApiInterface _localRealm = getIt<RealmApiInterface>();
 final SyncInterface _synchronize = getIt<SyncInterface>();
+final SyncInterface _syncFirestore = getIt<SyncInterface>();
 
 abstract class ProxyService {
+  static SyncInterface get syncFirestore => _syncFirestore;
   static RealmApiInterface get local => _localRealm;
   static SyncInterface get synchronize => _synchronize;
 
@@ -108,7 +108,6 @@ abstract class ProxyService {
   static LNotification get notification => _notification;
   static Review get review => _review;
   static Sync get sync => _syncApi;
-  static SyncFirestore get syncFirestore => _syncFirestore;
   static SystemTime get systemTime => _systemTime;
   static BillingService get billing => _billingService;
   static WhatsApp get whatsApp => _whatsApp;

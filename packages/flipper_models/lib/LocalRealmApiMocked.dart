@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:flipper_models/realm_model_export.dart';
 
@@ -30,7 +31,7 @@ class LocalRealmApiMocked extends LocalRealmApi {
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       final IUser user = IUser.fromJson(json.decode(response.body));
 
-      await configureLocal(useInMemory: false);
+      await configureLocal(useInMemory: false, box: ProxyService.box);
 
       if (stopAfterConfigure) return user;
 

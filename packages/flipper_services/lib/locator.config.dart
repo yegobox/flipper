@@ -8,7 +8,8 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:flipper_models/FirestoreSync.dart' as _i94;
+import 'package:cloud_firestore/cloud_firestore.dart' as _i974;
+import 'package:flipper_models/CloudSync.dart' as _i562;
 import 'package:flipper_models/flipper_http_client.dart' as _i843;
 import 'package:flipper_models/realmInterface.dart' as _i756;
 import 'package:flipper_models/sync_service.dart' as _i211;
@@ -61,6 +62,7 @@ extension GetItInjectableX on _i174.GetIt {
     );
     final servicesModule = _$ServicesModule();
     gh.factory<_i290.SettingsService>(() => servicesModule.settingsService);
+    gh.singleton<_i974.FirebaseFirestore>(() => servicesModule.firestore);
     gh.lazySingleton<_i844.Device>(() => servicesModule.device);
     gh.lazySingleton<_i457.NotificationStream>(() => servicesModule.notie);
     gh.lazySingleton<_i103.UploadT>(() => servicesModule.upload);
@@ -81,6 +83,10 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i97.TaxApi>(() => servicesModule.taxApiService);
     gh.lazySingleton<_i445.LNotification>(() => servicesModule.notification);
     gh.lazySingleton<_i299.FlipperLocation>(() => servicesModule.location);
+    await gh.lazySingletonAsync<_i740.LocalStorage>(
+      () => servicesModule.box(),
+      preResolve: true,
+    );
     gh.lazySingleton<_i843.HttpClientInterface>(() => servicesModule.http());
     gh.lazySingleton<_i918.PayStackServiceInterface>(
         () => servicesModule.payStack());
@@ -88,26 +94,24 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i172.Remote>(() => servicesModule.remote());
     gh.lazySingleton<_i107.SentryServiceInterface>(
         () => servicesModule.sentry());
-    await gh.lazySingletonAsync<_i740.LocalStorage>(
-      () => servicesModule.box(),
-      preResolve: true,
-    );
-
-    await gh.lazySingletonAsync<_i756.RealmApiInterface>(
-      () => servicesModule.localRealm(),
-      preResolve: true,
-    );
     gh.lazySingleton<_i403.AppService>(() => servicesModule.appService());
     gh.lazySingleton<_i777.ProductService>(
         () => servicesModule.productService());
     gh.lazySingleton<_i1069.CronService>(() => servicesModule.cron());
-    gh.lazySingleton<_i94.SyncFirestore<_i211.IJsonSerializable>>(
-        () => servicesModule.syncFirestore());
     gh.lazySingleton<_i756.SyncReaml<_i211.IJsonSerializable>>(
         () => servicesModule.syncRealm());
     gh.lazySingleton<_i798.ForceDataEntryService>(
         () => servicesModule.forcedataEntry());
     gh.lazySingleton<_i36.BillingService>(() => servicesModule.billing());
+    await gh.lazySingletonAsync<_i756.RealmApiInterface>(
+      () => servicesModule.localRealm(gh<_i740.LocalStorage>()),
+      preResolve: true,
+    );
+    gh.lazySingleton<_i562.SyncInterface>(
+        () => servicesModule.provideSyncInterface(
+              gh<_i974.FirebaseFirestore>(),
+              gh<_i756.RealmApiInterface>(),
+            ));
     return this;
   }
 }

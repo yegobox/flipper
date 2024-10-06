@@ -1,5 +1,6 @@
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -88,6 +89,8 @@ onWillPop(
                   ),
                   onPressed: () {
                     if (navigationPurpose == NavigationPurpose.home) {
+                      ProxyService.box
+                          .writeBool(key: 'isOrdering', value: false);
                       locator<RouterService>().replaceWithFlipperApp();
                       return;
                     }

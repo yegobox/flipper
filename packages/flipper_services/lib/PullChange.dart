@@ -27,87 +27,104 @@ class PullChange {
               final stockRequest = doc.data;
 
               for (odm.TransactionItem item in stockRequest.items!) {
-                mod.TransactionItem? transactionItem = mod.TransactionItem(
-                  ObjectId(),
-                  id: item.id,
-                  name: item.name,
-                  quantityRequested: item.quantityRequested,
-                  quantityApproved: item.quantityApproved,
-                  quantityShipped: item.quantityShipped,
-                  transactionId: item.transactionId,
-                  variantId: item.variantId,
-                  qty: item.qty ?? 0,
-                  price: item.price ?? 0,
-                  discount: item.discount ?? 0,
-                  type: item.type,
-                  remainingStock: item.remainingStock ?? 0,
-                  createdAt: item.createdAt,
-                  updatedAt: item.updatedAt,
-                  isTaxExempted: item.isTaxExempted ?? false,
-                  isRefunded: item.isRefunded ?? false,
-                  doneWithTransaction: item.doneWithTransaction,
-                  active: item.active,
-                  dcRt: item.dcRt ?? 0,
-                  dcAmt: item.dcAmt ?? 0,
-                  taxblAmt: item.taxblAmt ?? 0,
-                  taxAmt: item.taxAmt ?? 0,
-                  totAmt: item.totAmt ?? 0,
-                  itemSeq: item.itemSeq,
-                  isrccCd: item.isrccCd,
-                  isrccNm: item.isrccNm,
-                  isrcRt: item.isrcRt,
-                  isrcAmt: item.isrcAmt,
-                  taxTyCd: item.taxTyCd,
-                  bcd: item.bcd,
-                  itemClsCd: item.itemClsCd,
-                  itemTyCd: item.itemTyCd,
-                  itemStdNm: item.itemStdNm,
-                  orgnNatCd: item.orgnNatCd,
-                  pkg: item.pkg,
-                  itemCd: item.itemCd,
-                  pkgUnitCd: item.pkgUnitCd,
-                  qtyUnitCd: item.qtyUnitCd,
-                  itemNm: item.itemNm,
-                  prc: item.prc ?? 0,
-                  splyAmt: item.splyAmt ?? 0,
-                  tin: item.tin,
-                  bhfId: item.bhfId,
-                  dftPrc: item.dftPrc,
-                  addInfo: item.addInfo,
-                  isrcAplcbYn: item.isrcAplcbYn,
-                  useYn: item.useYn,
-                  regrId: item.regrId,
-                  regrNm: item.regrNm,
-                  modrId: item.modrId,
-                  modrNm: item.modrNm,
-                  lastTouched: item.lastTouched,
-                  deletedAt: item.deletedAt,
-                  branchId: item.branchId,
-                  ebmSynced: item.ebmSynced ?? false,
-                  partOfComposite: item.partOfComposite ?? false,
-                  compositePrice: item.compositePrice ?? 0,
-                );
-                items.add(transactionItem);
+                /// query if this item exist in the database
+                mod.TransactionItem? transactionItem =
+                    localRealm.query<mod.TransactionItem>(
+                  r'id == $0 && branchId == $1',
+                  [item.id, ProxyService.box.getBranchId()],
+                ).firstOrNull;
+                if (transactionItem == null) {
+                  mod.TransactionItem? transactionItem = mod.TransactionItem(
+                    ObjectId(),
+                    id: item.id,
+                    name: item.name,
+                    quantityRequested: item.quantityRequested,
+                    quantityApproved: item.quantityApproved,
+                    quantityShipped: item.quantityShipped,
+                    transactionId: item.transactionId,
+                    variantId: item.variantId,
+                    qty: item.qty ?? 0,
+                    price: item.price ?? 0,
+                    discount: item.discount ?? 0,
+                    type: item.type,
+                    remainingStock: item.remainingStock ?? 0,
+                    createdAt: item.createdAt,
+                    updatedAt: item.updatedAt,
+                    isTaxExempted: item.isTaxExempted ?? false,
+                    isRefunded: item.isRefunded ?? false,
+                    doneWithTransaction: item.doneWithTransaction,
+                    active: item.active,
+                    dcRt: item.dcRt ?? 0,
+                    dcAmt: item.dcAmt ?? 0,
+                    taxblAmt: item.taxblAmt ?? 0,
+                    taxAmt: item.taxAmt ?? 0,
+                    totAmt: item.totAmt ?? 0,
+                    itemSeq: item.itemSeq,
+                    isrccCd: item.isrccCd,
+                    isrccNm: item.isrccNm,
+                    isrcRt: item.isrcRt,
+                    isrcAmt: item.isrcAmt,
+                    taxTyCd: item.taxTyCd,
+                    bcd: item.bcd,
+                    itemClsCd: item.itemClsCd,
+                    itemTyCd: item.itemTyCd,
+                    itemStdNm: item.itemStdNm,
+                    orgnNatCd: item.orgnNatCd,
+                    pkg: item.pkg,
+                    itemCd: item.itemCd,
+                    pkgUnitCd: item.pkgUnitCd,
+                    qtyUnitCd: item.qtyUnitCd,
+                    itemNm: item.itemNm,
+                    prc: item.prc ?? 0,
+                    splyAmt: item.splyAmt ?? 0,
+                    tin: item.tin,
+                    bhfId: item.bhfId,
+                    dftPrc: item.dftPrc,
+                    addInfo: item.addInfo,
+                    isrcAplcbYn: item.isrcAplcbYn,
+                    useYn: item.useYn,
+                    regrId: item.regrId,
+                    regrNm: item.regrNm,
+                    modrId: item.modrId,
+                    modrNm: item.modrNm,
+                    lastTouched: item.lastTouched,
+                    deletedAt: item.deletedAt,
+                    branchId: item.branchId,
+                    ebmSynced: item.ebmSynced ?? false,
+                    partOfComposite: item.partOfComposite ?? false,
+                    compositePrice: item.compositePrice ?? 0,
+                  );
+                  localRealm.write(() {
+                    localRealm.add<mod.TransactionItem>(transactionItem);
+                  });
+
+                  items.add(transactionItem);
+                }
               }
               localRealm.write(() {
                 talker.warning("Incoming stock Requests: Saved");
-                localRealm.add<mod.StockRequest>(mod.StockRequest(
-                  ObjectId(),
-                  id: stockRequest.id,
-                  mainBranchId: stockRequest.main_branch_id,
-                  subBranchId: stockRequest.sub_branch_id,
-                  createdAt: stockRequest.created_at,
-                  status: stockRequest.status,
-                  deliveryDate: stockRequest.delivery_date,
-                  deliveryNote: stockRequest.delivery_note,
-                  orderNote: stockRequest.order_note,
-                  customerReceivedOrder: stockRequest.customer_received_order,
-                  driverRequestDeliveryConfirmation:
-                      stockRequest.driver_request_delivery_confirmation,
-                  driverId: stockRequest.driver_id,
-                  items: items,
-                  updatedAt: stockRequest.updated_at,
-                ));
+                // check if this stock request already exist
+                final stockRequestExist = localRealm.query<mod.StockRequest>(
+                    r'id == $0', [stockRequest.id]).firstOrNull;
+                if (stockRequestExist == null) {
+                  localRealm.add<mod.StockRequest>(mod.StockRequest(
+                    ObjectId(),
+                    id: stockRequest.id,
+                    mainBranchId: stockRequest.main_branch_id,
+                    subBranchId: stockRequest.sub_branch_id,
+                    createdAt: stockRequest.created_at,
+                    status: stockRequest.status,
+                    deliveryDate: stockRequest.delivery_date,
+                    deliveryNote: stockRequest.delivery_note,
+                    orderNote: stockRequest.order_note,
+                    customerReceivedOrder: stockRequest.customer_received_order,
+                    driverRequestDeliveryConfirmation:
+                        stockRequest.driver_request_delivery_confirmation,
+                    driverId: stockRequest.driver_id,
+                    items: items,
+                    updatedAt: stockRequest.updated_at,
+                  ));
+                }
               });
             }
           }
@@ -120,7 +137,7 @@ class PullChange {
       talker.warning(s);
     }
 
-    CloudSync(firestore, localRealm).watchTable<Product>(
+    ProxyService.syncFirestore.watchTable<Product>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'products',
       idField: 'product_id',
@@ -161,7 +178,8 @@ class PullChange {
         );
       },
       updateRealmObject: (_product, data) {
-        Product? product = localRealm.query<Product>(r'id == $0 && branch_id',
+        Product? product = localRealm.query<Product>(
+            r'id == $0 && branchId == $1',
             [data['product_id'], ProxyService.box.getBranchId()]).firstOrNull;
 
         if (product != null) {
@@ -208,7 +226,7 @@ class PullChange {
       },
     );
 
-    CloudSync(firestore, localRealm).watchTable<Variant>(
+    ProxyService.syncFirestore.watchTable<Variant>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'variants',
       idField: 'variant_id',
@@ -280,7 +298,8 @@ class PullChange {
       },
       updateRealmObject: (_variant, data) {
         // Find related variant
-        Variant? variant = localRealm.query<Variant>(r'id == $0 && branch_id',
+        Variant? variant = localRealm.query<Variant>(
+            r'id == $0 && branchId == $1',
             [data['variant_id'], ProxyService.box.getBranchId()]).firstOrNull;
 
         if (variant != null) {
@@ -372,7 +391,7 @@ class PullChange {
       },
     );
 
-    CloudSync(firestore, localRealm).watchTable<Pin>(
+    ProxyService.syncFirestore.watchTable<Pin>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: pinsTable,
       idField: pinsTable.singularize() + "_id",
@@ -403,7 +422,7 @@ class PullChange {
         }
       },
     );
-    CloudSync(firestore, localRealm).watchTable<ITransaction>(
+    ProxyService.syncFirestore.watchTable<ITransaction>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: iTransactionsTable,
       idField: iTransactionsTable.singularize() + "_id",
@@ -449,7 +468,7 @@ class PullChange {
       },
       updateRealmObject: (_transaction, data) {
         ITransaction? transaction = localRealm.query<ITransaction>(
-            r'id == $0 && branch_id', [
+            r'id == $0 && branchId == $1', [
           data[iTransactionsTable.singularize() + "_id"],
           ProxyService.box.getBranchId()
         ]).firstOrNull;
@@ -502,7 +521,7 @@ class PullChange {
         }
       },
     );
-    CloudSync(firestore, localRealm).watchTable<Assets>(
+    ProxyService.syncFirestore.watchTable<Assets>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'assets',
       idField: 'asset_id',
@@ -531,7 +550,7 @@ class PullChange {
         }
       },
     );
-    CloudSync(firestore, localRealm).watchTable<Setting>(
+    ProxyService.syncFirestore.watchTable<Setting>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'settings',
       idField: 'setting_id',
@@ -618,7 +637,7 @@ class PullChange {
         }
       },
     );
-    CloudSync(firestore, localRealm).watchTable<TransactionPaymentRecord>(
+    ProxyService.syncFirestore.watchTable<TransactionPaymentRecord>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'transaction_payment_records',
       idField: 'transaction_payment_record_id',
@@ -663,7 +682,7 @@ class PullChange {
         }
       },
     );
-    CloudSync(firestore, localRealm).watchTable<FlipperSaleCompaign>(
+    ProxyService.syncFirestore.watchTable<FlipperSaleCompaign>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'flipper_sale_compaigns',
       idField: 'flipper_sale_compaign_id',
@@ -706,7 +725,7 @@ class PullChange {
         }
       },
     );
-    CloudSync(firestore, localRealm).watchTable<PaymentPlan>(
+    ProxyService.syncFirestore.watchTable<PaymentPlan>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'payment_plans',
       idField: 'payment_plan_id',
@@ -783,7 +802,7 @@ class PullChange {
         }
       },
     );
-    CloudSync(firestore, localRealm).watchTable<Access>(
+    ProxyService.syncFirestore.watchTable<Access>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'accesses',
       idField: 'access_id',
@@ -842,7 +861,7 @@ class PullChange {
         }
       },
     );
-    CloudSync(firestore, localRealm).watchTable<SKU>(
+    ProxyService.syncFirestore.watchTable<SKU>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'skus',
       idField: 'sku_id',
@@ -885,7 +904,7 @@ class PullChange {
       },
     );
 
-    CloudSync(firestore, localRealm).watchTable<Composite>(
+    ProxyService.syncFirestore.watchTable<Composite>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'composites',
       idField: 'composite_id',
@@ -946,7 +965,7 @@ class PullChange {
       },
     );
 
-    CloudSync(firestore, localRealm).watchTable<Counter>(
+    ProxyService.syncFirestore.watchTable<Counter>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'counters',
       idField: 'counter_id',
@@ -978,7 +997,8 @@ class PullChange {
         );
       },
       updateRealmObject: (_stock, data) {
-        Counter? counter = localRealm.query<Counter>(r'id == $0 && branch_id',
+        Counter? counter = localRealm.query<Counter>(
+            r'id == $0 && branchId == $1',
             [data['counter_id'], ProxyService.box.getBranchId()]).firstOrNull;
 
         if (counter != null) {
@@ -1018,7 +1038,7 @@ class PullChange {
         }
       },
     );
-    CloudSync(firestore, localRealm).watchTable<Stock>(
+    ProxyService.syncFirestore.watchTable<Stock>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'stocks',
       idField: 'stock_id',

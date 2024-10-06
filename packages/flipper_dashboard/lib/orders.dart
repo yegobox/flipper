@@ -22,9 +22,8 @@ class Orders extends HookConsumerWidget {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic other) {
-        if (didPop) {
-          ProxyService.box.writeBool(key: 'isOrdering', value: false);
-        } else {
+        ProxyService.box.writeBool(key: 'isOrdering', value: false);
+        if (!didPop) {
           ProxyService.box.writeBool(key: 'isOrdering', value: true);
         }
 
