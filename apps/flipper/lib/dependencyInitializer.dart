@@ -84,8 +84,8 @@ Future<void> initializeDependencies() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   const isTest = bool.fromEnvironment('EMULATOR_ENABLED', defaultValue: false);
-  FirebaseFirestore.instance.settings =
-      const Settings(persistenceEnabled: false);
+  // FirebaseFirestore.instance.settings =
+  //     const Settings(persistenceEnabled: false);
   if (isTest) {
     FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8081);
   }

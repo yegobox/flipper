@@ -313,7 +313,7 @@ class CloudSync implements SyncInterface {
           }
         });
     // re-start pull change
-    // PullChange().start(firestore: _firestore!, localRealm: _realm.realm!);
+    PullChange().start(firestore: _firestore!, localRealm: _realm.realm!);
 
     /// delete record in firestore
   }
@@ -359,7 +359,7 @@ class CloudSync implements SyncInterface {
           await docRef.set(modifiedMap);
         }
         // re-start pull change
-        // PullChange().start(firestore: _firestore!, localRealm: _realm.realm!);
+        PullChange().start(firestore: _firestore!, localRealm: _realm.realm!);
       } catch (e, s) {
         talker.warning(e);
         talker.error(s);
