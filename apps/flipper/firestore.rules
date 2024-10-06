@@ -2,13 +2,13 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Allow read access to the 'pins' collection for everyone
     match /pin/{document=**} {
-      allow read: if true;  // Public read access
+      allow read, write: if request.auth != null;
       allow write: if request.auth != null;  // Write access only for authenticated users
     }
 
     // Allow read/write access on all other documents to any user signed in to the app
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if request.auth != null;
     }
   }
 }

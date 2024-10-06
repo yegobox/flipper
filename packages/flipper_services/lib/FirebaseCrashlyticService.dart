@@ -1,4 +1,4 @@
-// import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
 abstract class Crash {
@@ -35,21 +35,21 @@ class FirebaseCrashlyticService implements Crash {
 
     if (_kTestingCrashlytics) {
       // Force enable crashlytics collection enabled if we're testing it.
-      // await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
     } else {
       // Else only enable it in non-debug builds.
       // You could additionally extend this to allow users to opt-in.
-      // await FirebaseCrashlytics.instance
-      //     .setCrashlyticsCollectionEnabled(!kDebugMode);
+      await FirebaseCrashlytics.instance
+          .setCrashlyticsCollectionEnabled(!kDebugMode);
     }
 
     // Pass all uncaught errors to Crashlytics.
-    // Function originalOnError = FlutterError.onError as Function;
-    // FlutterError.onError = (FlutterErrorDetails errorDetails) async {
-    //   await FirebaseCrashlytics.instance.recordFlutterError(errorDetails);
-    //   // Forward to original handler.
-    //   originalOnError(errorDetails);
-    // };
+    Function originalOnError = FlutterError.onError as Function;
+    FlutterError.onError = (FlutterErrorDetails errorDetails) async {
+      await FirebaseCrashlytics.instance.recordFlutterError(errorDetails);
+      // Forward to original handler.
+      originalOnError(errorDetails);
+    };
 
     if (_kShouldTestAsyncErrorOnInit) {
       await testAsyncErrorOnInit();
@@ -66,11 +66,11 @@ class FirebaseCrashlyticService implements Crash {
 
   @override
   Future<void> log(data) async {
-    // FirebaseCrashlytics.instance.log(data.toString());
+    FirebaseCrashlytics.instance.log(data.toString());
   }
 
   @override
   void reportError(dynamic error, dynamic stackTrace) {
-    // FirebaseCrashlytics.instance.recordError(error, stackTrace);
+    FirebaseCrashlytics.instance.recordError(error, stackTrace);
   }
 }
