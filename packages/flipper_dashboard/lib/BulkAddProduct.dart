@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -147,6 +148,9 @@ class _BulkAddProductState extends State<BulkAddProduct> {
 
     // Print all items to console
     for (var item in items) {
+      // talker.warning(item.name);
+      // talker.warning(item.barCode);
+
       /// create a new product
       Product product = Product(
         ObjectId(),
@@ -166,11 +170,14 @@ class _BulkAddProductState extends State<BulkAddProduct> {
         productId: product.id!,
         sku: product.barCode,
         name: product.barCode,
+        productName: product.name,
         qty: 1,
         retailPrice: double.parse(item.price),
         supplyPrice: double.parse(item.price),
-        color: 'Color',
+        color: '#FF0000',
         itemSeq: 1,
+        tin: ProxyService.box.tin(),
+        bhfId: ProxyService.box.bhfId() ?? "00",
         isTaxExempted: false,
         itemNm: product.name,
         ebmSynced: false,
@@ -225,7 +232,10 @@ class _BulkAddProductState extends State<BulkAddProduct> {
       /// add the stock to the Realm
       ProxyService.local.realm!
           .writeN(tableName: stocksTable, writeCallback: () => stock);
+
+      //pop
     }
+    Navigator.maybePop(context);
   }
 
   @override

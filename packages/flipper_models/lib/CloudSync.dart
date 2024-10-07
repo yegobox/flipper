@@ -321,10 +321,10 @@ class CloudSync implements SyncInterface {
           }
         });
     // re-start pull change
-    PullChange().start(
-        firestore: _firestore!,
-        localRealm: _realm.realm!,
-        tableName: tableName);
+    // PullChange().start(
+    //     firestore: _firestore!,
+    //     localRealm: _realm.realm!,
+    //     tableName: tableName);
 
     /// delete record in firestore
   }
@@ -370,10 +370,10 @@ class CloudSync implements SyncInterface {
           await docRef.set(modifiedMap);
         }
         // re-start pull change
-        PullChange().start(
-            firestore: _firestore!,
-            localRealm: _realm.realm!,
-            tableName: tableName);
+        // PullChange().start(
+        //     firestore: _firestore!,
+        //     localRealm: _realm.realm!,
+        //     tableName: tableName);
       } catch (e, s) {
         talker.warning(e);
         talker.error(s);

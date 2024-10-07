@@ -949,14 +949,12 @@ class PullChange {
                 : double.tryParse(data['prc']) ?? variant.prc;
             variant.splyAmt = data['sply_amt'] is double
                 ? data['sply_amt']
-                : double.tryParse(data['sply_amt']) ?? variant.splyAmt;
-            variant.tin = data['tin'] is int
-                ? data['tin']
-                : int.tryParse(data['tin']) ?? variant.tin;
-            variant.bhfId = data['bhf_id'] ?? variant.bhfId;
-            variant.dftPrc = data['dft_prc'] is double
-                ? data['dft_prc']
-                : double.tryParse(data['dft_prc']) ?? variant.dftPrc;
+                : double.tryParse(data['sply_amt']) ?? 0;
+            variant.tin =
+                data['tin'] == null ? 0 : int.tryParse(data['tin']) ?? 0;
+            variant.bhfId = data['bhf_id'] == null ? "00" : variant.bhfId;
+            variant.dftPrc =
+                data['dft_prc'] == null ? 0 : double.tryParse(data['dft_prc']);
             variant.addInfo = data['add_info'] ?? variant.addInfo;
             variant.isrcAplcbYn = data['isrc_aplcby_yn'] ?? variant.isrcAplcbYn;
             variant.useYn = data['use_yn'] ?? variant.useYn;

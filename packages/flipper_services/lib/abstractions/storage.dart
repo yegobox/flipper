@@ -57,4 +57,5 @@ abstract class LocalStorage {
   bool forceUPSERT();
   int? dbVersion();
   bool? pinLogin();
+  String? customerName();
 }

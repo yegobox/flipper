@@ -83,6 +83,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
                       receivedAmountController: receivedAmountController,
                       customerPhoneNumberController:
                           customerPhoneNumberController,
+                          customerNameController: customerNameController,
                       paymentTypeController: paymentTypeController,
                     );
                   }

@@ -314,6 +314,7 @@ class CheckOutState extends ConsumerState<CheckOut>
       receivedAmountController: receivedAmountController,
       customerPhoneNumberController: customerPhoneNumberController,
       paymentTypeController: paymentTypeController,
+      customerNameController: customerNameController,
     );
   }
 

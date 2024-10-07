@@ -252,4 +252,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
   bool doneDownloadingAsset() {
     return false;
   }
+
+  @override
+  String? customerName() {
+    // TODO: implement customerName
+    return "N/A";
+  }
 }

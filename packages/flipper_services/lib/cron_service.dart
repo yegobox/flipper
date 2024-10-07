@@ -4,6 +4,8 @@ import 'dart:isolate';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_models/realmExtension.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/drive_service.dart';
@@ -143,6 +145,20 @@ class CronService {
     if (ConnectivityResult.none != await Connectivity().checkConnectivity()) {
       await ProxyService.syncFirestore.firebaseLogin();
     }
+    // List<Variant> variantsAll =
+    //     ProxyService.local.realm!.all<Variant>().toList();
+
+    // for (Variant variant in variantsAll) {
+    //   if (variant.color == "Color") {
+    //     talker.warning("variant.color == Color");
+    //     ProxyService.local.realm!.writeN(
+    //         tableName: variantTable,
+    //         writeCallback: () {
+    //           variant.color = '#FF0000';
+    //           return variant;
+    //         });
+    //   }
+    // }
 
     PullChange().start(
         firestore: FirebaseFirestore.instance,

@@ -55,7 +55,8 @@ class SharedPreferenceStorage implements LocalStorage {
         'forceUPSERT',
         'dbVersion',
         'performBackup',
-        'pinLogin'
+        'pinLogin',
+        'customerName'
       },
     ));
     return this;
@@ -327,5 +328,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   bool? pinLogin() {
     return prefs.getBool('pinLogin') ?? false;
+  }
+  
+  @override
+  String? customerName() {
+   return prefs.getString('customerName')?? "N/A";
   }
 }

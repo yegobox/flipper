@@ -440,13 +440,9 @@ class RWTax implements TaxApi {
     Configurations taxConfigTaxD =
         ProxyService.local.getByTaxType(taxtype: "D");
 
-    /// because other rate for tax are not known are set to 1/1
     final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118);
-    // final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118) +
-    //     ((taxTotals['A'] ?? 0.0) * 1 / 1) +
-    //     ((taxTotals['C'] ?? 0.0) * 1 / 1) +
-    //     ((taxTotals['D'] ?? 0.0) * 1 / 1);
-    return {
+
+    final json = {
       "tin": business?.tinNumber ?? 999909695,
       "bhfId": ProxyService.box.bhfId() ?? "00",
       "invcNo": counter.invcNo,
@@ -496,23 +492,24 @@ class RWTax implements TaxApi {
       "modrNm": transaction.id,
       "rfdRsnCd": ProxyService.box.getRefundReason(),
 
-      "custNm": customer?.custNm ?? "N/A",
+      "custNm": customer?.custNm ?? ProxyService.box.customerName(),
       "remark": "",
       "prchrAcptcYn": "Y",
-      // Receipt info
       "receipt": {
-        "prchrAcptcYn": "Y", // Ensure this is not null
+        "prchrAcptcYn": "Y",
         "rptNo": counter.invcNo,
-        "adrs": business?.adrs?? "Kigali, Rwanda",
+        "adrs": business?.adrs?.isNotEmpty ?? "Kigali, Rwanda",
         "topMsg":
-            "${business?.name}\n\nAddress:${business?.adrs ?? "Kigali, Rwanda"}\nTEL: ${ProxyService.box.getUserPhone()}\nTIN: ${business?.tinNumber}",
-        "btmMsg": "Welcome",
+            "${business?.name}\n${ProxyService.box.getUserPhone()!.replaceAll("+", "")}\n${business?.adrs?.isNotEmpty == true ? business?.adrs : 'Kigali, Rwanda'}\n${business?.tinNumber ?? '999909695'}",
+        "btmMsg": "THANK YOUCOME BACK AGAIN",
         "custMblNo": customer == null
             ? ProxyService.box.currentSaleCustomerPhoneNumber()
             : customer.telNo,
       },
       "itemList": itemsList,
     };
+    // print(json);
+    return json;
   }
 
 // Helper function to update transaction and item statuses

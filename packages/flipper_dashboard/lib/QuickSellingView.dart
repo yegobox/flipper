@@ -27,6 +27,7 @@ class QuickSellingView extends StatefulHookConsumerWidget {
   final TextEditingController deliveryNoteCotroller;
   final TextEditingController receivedAmountController;
   final TextEditingController customerPhoneNumberController;
+  final TextEditingController customerNameController;
   final TextEditingController paymentTypeController;
 
   const QuickSellingView({
@@ -36,6 +37,7 @@ class QuickSellingView extends StatefulHookConsumerWidget {
     required this.receivedAmountController,
     required this.deliveryNoteCotroller,
     required this.customerPhoneNumberController,
+    required this.customerNameController,
     required this.paymentTypeController,
   }) : super(key: key);
 
@@ -217,7 +219,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             ],
           ),
           if (isOrdering) ...[
-            
             Padding(
               padding: const EdgeInsets.only(left: 20.0),
               child: Column(
@@ -233,6 +234,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               ),
             )
           ],
+          SizedBox(height: 6.0),
+          Row(
+            children: [
+              if (!isOrdering) Expanded(child: _customerNameField()),
+            ],
+          ),
           SizedBox(height: 6.0),
           Row(
             children: [
@@ -386,6 +393,29 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
         return null;
       },
+    );
+  }
+
+  Widget _customerNameField() {
+    return TextFormField(
+      controller: widget.customerNameController,
+      onChanged: (value) {
+        ProxyService.box.writeString(key: "customerName", value: value);
+      },
+      decoration: InputDecoration(
+        labelText: 'Customer  Name',
+        labelStyle: const TextStyle(color: Colors.black),
+        suffixIcon: Icon(FluentIcons.call_20_regular, color: Colors.blue),
+        border: OutlineInputBorder(),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.0),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.0),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+        ),
+      ),
     );
   }
 

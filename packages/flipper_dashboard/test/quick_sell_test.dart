@@ -13,6 +13,7 @@ void main() {
     late GlobalKey<FormState> formKey;
     late TextEditingController discountController;
     late TextEditingController deliveryNoteCotroller;
+    late TextEditingController customerNameController;
 
     late TextEditingController receivedAmountController;
     late TextEditingController customerPhoneNumberController;
@@ -29,6 +30,7 @@ void main() {
       formKey = GlobalKey<FormState>();
       discountController = TextEditingController();
       receivedAmountController = TextEditingController();
+      customerNameController = TextEditingController();
       customerPhoneNumberController = TextEditingController();
       paymentTypeController = TextEditingController();
       deliveryNoteCotroller = TextEditingController();
@@ -42,6 +44,7 @@ void main() {
             child: QuickSellingView(
               deliveryNoteCotroller: deliveryNoteCotroller,
               formKey: formKey,
+              customerNameController: customerNameController,
               discountController: discountController,
               receivedAmountController: receivedAmountController,
               customerPhoneNumberController: customerPhoneNumberController,
@@ -76,6 +79,7 @@ void main() {
             child: QuickSellingView(
               deliveryNoteCotroller: deliveryNoteCotroller,
               formKey: formKey,
+              customerNameController: customerPhoneNumberController,
               discountController: discountController,
               receivedAmountController: receivedAmountController,
               customerPhoneNumberController: customerPhoneNumberController,

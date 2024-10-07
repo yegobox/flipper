@@ -336,11 +336,9 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     CustomersRoute.name: (routeData) {
-      final args =
-          routeData.argsAs<CustomersArgs>(orElse: () => const CustomersArgs());
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.Customers(key: args.key),
+        child: const _i1.Customers(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -597,6 +595,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
           receivedAmountController: args.receivedAmountController,
           deliveryNoteCotroller: args.deliveryNoteCotroller,
           customerPhoneNumberController: args.customerPhoneNumberController,
+          customerNameController: args.customerNameController,
           paymentTypeController: args.paymentTypeController,
         ),
         opaque: true,
@@ -1683,26 +1682,14 @@ class OrdersRoute extends _i4.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.Customers]
-class CustomersRoute extends _i4.PageRouteInfo<CustomersArgs> {
-  CustomersRoute({_i5.Key? key})
+class CustomersRoute extends _i4.PageRouteInfo<void> {
+  const CustomersRoute()
       : super(
           CustomersRoute.name,
           path: '/Customers',
-          args: CustomersArgs(key: key),
         );
 
   static const String name = 'Customers';
-}
-
-class CustomersArgs {
-  const CustomersArgs({this.key});
-
-  final _i5.Key? key;
-
-  @override
-  String toString() {
-    return 'CustomersArgs{key: $key}';
-  }
 }
 
 /// generated route for
@@ -2275,6 +2262,7 @@ class QuickSellingViewRoute extends _i4.PageRouteInfo<QuickSellingViewArgs> {
     required _i5.TextEditingController receivedAmountController,
     required _i5.TextEditingController deliveryNoteCotroller,
     required _i5.TextEditingController customerPhoneNumberController,
+    required _i5.TextEditingController customerNameController,
     required _i5.TextEditingController paymentTypeController,
   }) : super(
           QuickSellingViewRoute.name,
@@ -2286,6 +2274,7 @@ class QuickSellingViewRoute extends _i4.PageRouteInfo<QuickSellingViewArgs> {
             receivedAmountController: receivedAmountController,
             deliveryNoteCotroller: deliveryNoteCotroller,
             customerPhoneNumberController: customerPhoneNumberController,
+            customerNameController: customerNameController,
             paymentTypeController: paymentTypeController,
           ),
         );
@@ -2301,6 +2290,7 @@ class QuickSellingViewArgs {
     required this.receivedAmountController,
     required this.deliveryNoteCotroller,
     required this.customerPhoneNumberController,
+    required this.customerNameController,
     required this.paymentTypeController,
   });
 
@@ -2316,11 +2306,13 @@ class QuickSellingViewArgs {
 
   final _i5.TextEditingController customerPhoneNumberController;
 
+  final _i5.TextEditingController customerNameController;
+
   final _i5.TextEditingController paymentTypeController;
 
   @override
   String toString() {
-    return 'QuickSellingViewArgs{key: $key, formKey: $formKey, discountController: $discountController, receivedAmountController: $receivedAmountController, deliveryNoteCotroller: $deliveryNoteCotroller, customerPhoneNumberController: $customerPhoneNumberController, paymentTypeController: $paymentTypeController}';
+    return 'QuickSellingViewArgs{key: $key, formKey: $formKey, discountController: $discountController, receivedAmountController: $receivedAmountController, deliveryNoteCotroller: $deliveryNoteCotroller, customerPhoneNumberController: $customerPhoneNumberController, customerNameController: $customerNameController, paymentTypeController: $paymentTypeController}';
   }
 }
 
@@ -2753,14 +2745,10 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> navigateToCustomers({
-    _i5.Key? key,
-    void Function(_i4.NavigationFailure)? onFailure,
-  }) async {
+  Future<dynamic> navigateToCustomers(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
-      CustomersRoute(
-        key: key,
-      ),
+      const CustomersRoute(),
       onFailure: onFailure,
     );
   }
@@ -3044,6 +3032,7 @@ extension RouterStateExtension on _i3.RouterService {
     required _i5.TextEditingController receivedAmountController,
     required _i5.TextEditingController deliveryNoteCotroller,
     required _i5.TextEditingController customerPhoneNumberController,
+    required _i5.TextEditingController customerNameController,
     required _i5.TextEditingController paymentTypeController,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
@@ -3055,6 +3044,7 @@ extension RouterStateExtension on _i3.RouterService {
         receivedAmountController: receivedAmountController,
         deliveryNoteCotroller: deliveryNoteCotroller,
         customerPhoneNumberController: customerPhoneNumberController,
+        customerNameController: customerNameController,
         paymentTypeController: paymentTypeController,
       ),
       onFailure: onFailure,
@@ -3460,14 +3450,10 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> replaceWithCustomers({
-    _i5.Key? key,
-    void Function(_i4.NavigationFailure)? onFailure,
-  }) async {
+  Future<dynamic> replaceWithCustomers(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
-      CustomersRoute(
-        key: key,
-      ),
+      const CustomersRoute(),
       onFailure: onFailure,
     );
   }
@@ -3751,6 +3737,7 @@ extension RouterStateExtension on _i3.RouterService {
     required _i5.TextEditingController receivedAmountController,
     required _i5.TextEditingController deliveryNoteCotroller,
     required _i5.TextEditingController customerPhoneNumberController,
+    required _i5.TextEditingController customerNameController,
     required _i5.TextEditingController paymentTypeController,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
@@ -3762,6 +3749,7 @@ extension RouterStateExtension on _i3.RouterService {
         receivedAmountController: receivedAmountController,
         deliveryNoteCotroller: deliveryNoteCotroller,
         customerPhoneNumberController: customerPhoneNumberController,
+        customerNameController: customerNameController,
         paymentTypeController: paymentTypeController,
       ),
       onFailure: onFailure,

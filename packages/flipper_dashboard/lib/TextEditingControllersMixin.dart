@@ -15,4 +15,5 @@ mixin TextEditingControllersMixin {
   final TextEditingController paymentTypeController = TextEditingController();
 
   final TextEditingController purchasecodecontroller = TextEditingController();
+  final TextEditingController customerNameController = TextEditingController();
 }

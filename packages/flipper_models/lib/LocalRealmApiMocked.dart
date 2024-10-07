@@ -49,8 +49,9 @@ class LocalRealmApiMocked extends LocalRealmApi {
   }
 
   @override
-  Future<http.Response> sendLoginRequest(String phoneNumber,
-      HttpClientInterface flipperHttpClient, String apihub) async {
+  Future<http.Response> sendLoginRequest(
+      String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
+      {String? uid}) async {
     return http.Response(userResponse, 200);
   }
 
