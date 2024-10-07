@@ -104,8 +104,9 @@ Future<void> initializeDependencies() async {
     //   webProvider: ReCaptchaV3Provider(kWebRecaptchaSiteKey),
     // );
   }
+  final comparable = !Platform.isWindows && !isWeb;
   // TODO: to support Ios following these instruction https://developers.google.com/admob/flutter/quick-start#ios
-  if (!isWindows && !isWeb && !isMacOs && !isLinux) {
+  if (comparable) {
     // MapboxOptions.setAccessToken(AppSecrets.MAPBOX_TOKEN);
 
     /// init admob
@@ -125,7 +126,8 @@ Future<void> initializeDependencies() async {
       };
     };
   }
-  if (isAndroid && foundation.kReleaseMode && !isWeb & !isWindows && !isMacOs) {
+  final newrelic = isAndroid && foundation.kReleaseMode && !isWeb & !isWindows && !isMacOs;
+  if (newrelic) {
     NewRelic.initialize();
   }
   if (!isWindows) {

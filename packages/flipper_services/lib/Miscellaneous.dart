@@ -38,7 +38,7 @@ mixin CoreMiscellaneous {
       // await FirebaseAuth.instance.signOut();
 
       /// refreshing the user token will invalidate any session
-      await FirebaseAuth.instance.currentUser?.getIdToken(true);
+      await FirebaseAuth.instance.signOut();
 
       await ProxyService.local.amplifyLogout();
 

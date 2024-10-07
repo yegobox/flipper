@@ -59,6 +59,10 @@
 
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app uses your location while in use to provide location-based features and services.</string>
-
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

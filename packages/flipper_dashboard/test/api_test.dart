@@ -2,6 +2,7 @@ import 'package:flipper_models/LocalRealmApi.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:test/test.dart';
 
@@ -11,7 +12,7 @@ void main() {
 
     setUpAll(() async {
       // Initialize the Realm API with an in-memory database for testing
-      await realm.configureLocal(useInMemory: true);
+      await realm.configureLocal(useInMemory: true, box: ProxyService.box);
     });
 
     tearDownAll(() async {
