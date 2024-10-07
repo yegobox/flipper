@@ -50,10 +50,6 @@ class TenantWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    talker.info("Current BranchId:${ProxyService.box.getBranchId()}");
-    talker.info("Current BusinessId:${ProxyService.box.getBusinessId()}");
-    talker.info("Current UserId:${ProxyService.box.getUserId()}");
-    ref.refresh(tenantProvider);
     final tenant = ref.watch(tenantProvider);
 
     return Column(
@@ -61,7 +57,8 @@ class TenantWidget extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(right: 12.0),
           child: CircleAvatarWidget(
-            text: tenant?.name ?? "U",
+            text:
+                tenant != null && tenant.isValid ? tenant.name ?? "N/A" : "N/A",
             size: 40,
           ),
         ),

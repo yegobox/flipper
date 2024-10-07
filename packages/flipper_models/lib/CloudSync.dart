@@ -1,11 +1,16 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/realmInterface.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/PullChange.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'dart:async';
+import 'package:http/http.dart' as http;
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realmExtension.dart';
@@ -17,7 +22,9 @@ enum SyncProvider { FIRESTORE, POWERSYNC }
 
 abstract class SyncInterface {
   Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch);
-  void firebaseLogin();
+  Future<bool> firebaseLogin({String? token});
+  void cancelWatch({required String tableName});
+  void cancelAll();
   Future<void> handleRealmChanges<T>({
     required RealmResults<T> results,
     required String tableName,
@@ -75,7 +82,8 @@ abstract class SyncInterface {
 /// anotherone to acheive sync for flipper app
 
 class CloudSync implements SyncInterface {
-  StreamSubscription<QuerySnapshot>? _subscription;
+  final Map<String, StreamSubscription<QuerySnapshot>> _subscriptions = {};
+
   final FirebaseFirestore? _firestore;
   final RealmApiInterface _realm;
   final Set<int> _processingIds = {};
@@ -291,7 +299,7 @@ class CloudSync implements SyncInterface {
     //   [id],
     // );
     talker.warning("Firestore deleting $tableName with id $id");
-    _subscription?.cancel();
+    cancelWatch(tableName: tableName);
     await _firestore!.collection(tableName).doc(id.toString()).delete();
 
     _realm.realm!.writeN(
@@ -313,7 +321,10 @@ class CloudSync implements SyncInterface {
           }
         });
     // re-start pull change
-    PullChange().start(firestore: _firestore!, localRealm: _realm.realm!);
+    PullChange().start(
+        firestore: _firestore!,
+        localRealm: _realm.realm!,
+        tableName: tableName);
 
     /// delete record in firestore
   }
@@ -347,7 +358,7 @@ class CloudSync implements SyncInterface {
         final docSnapshot = await docRef.get();
 
         /// first cancel the subscription to avoid re-writing back into the same document
-        _subscription?.cancel();
+        cancelWatch(tableName: tableName);
 
         if (docSnapshot.exists) {
           talker.warning("UpdatedFirestore ${id}");
@@ -359,7 +370,10 @@ class CloudSync implements SyncInterface {
           await docRef.set(modifiedMap);
         }
         // re-start pull change
-        PullChange().start(firestore: _firestore!, localRealm: _realm.realm!);
+        PullChange().start(
+            firestore: _firestore!,
+            localRealm: _realm.realm!,
+            tableName: tableName);
       } catch (e, s) {
         talker.warning(e);
         talker.error(s);
@@ -381,7 +395,7 @@ class CloudSync implements SyncInterface {
       try {
         final branchId = ProxyService.box.getBranchId();
         // Listen for Firestore collection changes
-        _subscription = _firestore!
+        final subscription = _firestore!
             .collection(tableName)
             .where('branch_id', isEqualTo: branchId)
             .snapshots()
@@ -433,6 +447,7 @@ class CloudSync implements SyncInterface {
         }, onError: (error) {
           talker.error("Error listening to Firestore changes: $error");
         });
+        _subscriptions[tableName] = subscription;
       } catch (e) {
         talker.error("Error setting up Firestore listener: $e");
         throw Exception("Error syncing: $e");
@@ -576,16 +591,52 @@ class CloudSync implements SyncInterface {
   }
 
   @override
-  Future<void> firebaseLogin() async {
-    if (FirebaseAuth.instance.currentUser == null) {
-      try {
-        Pin? pin = ProxyService.local
-            .getPinLocal(userId: ProxyService.box.getUserId()!);
-        String token = pin!.tokenUid!;
+  Future<bool> firebaseLogin({String? token}) async {
+    final pinLocal =
+        ProxyService.local.getPinLocal(userId: ProxyService.box.getUserId()!);
+    try {
+      token ??= pinLocal?.tokenUid;
+// Edwige
+      if (token != null) {
+        talker.warning(token);
         await FirebaseAuth.instance.signInWithCustomToken(token);
-      } catch (e) {
-        talker.error(e);
+
+        return true;
       }
+      return FirebaseAuth.instance.currentUser != null;
+    } catch (e) {
+      talker.error(e);
+      // talker.info("Retry ${pinLocal?.uid ?? "NULL"}");
+      final http.Response response = await ProxyService.local.sendLoginRequest(
+          pinLocal!.phoneNumber!, ProxyService.http, AppSecrets.apihubProd,
+          uid: pinLocal.uid!);
+      if (response.statusCode == 200 && response.body.isNotEmpty) {
+        /// path the user pin, with
+        final IUser user = IUser.fromJson(json.decode(response.body));
+        ProxyService.local.realm!.write(() {
+          pinLocal.tokenUid = user.uid;
+        });
+      }
+
+      return false;
+    }
+  }
+
+  @override
+  void cancelAll() {
+    for (final subscription in _subscriptions.values) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
+  }
+
+  @override
+  void cancelWatch({required String tableName}) {
+    final subscription = _subscriptions[tableName];
+    if (subscription != null) {
+      subscription.cancel();
+      _subscriptions
+          .remove(tableName); // Remove it from the map after cancellation
     }
   }
 }

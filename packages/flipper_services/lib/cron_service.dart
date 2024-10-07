@@ -138,13 +138,17 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
-    ProxyService.box.writeBool(key: 'isOrdering', value: false);
-    final firestore = FirebaseFirestore.instance;
-    final realm = ProxyService.local.realm;
-
-    if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
-      ProxyService.syncFirestore.firebaseLogin();
+    ProxyService.notification.sendLocalNotification(body: "Test notification");
+    //if there is network connection
+    if (ConnectivityResult.none != await Connectivity().checkConnectivity()) {
+      await ProxyService.syncFirestore.firebaseLogin();
     }
+
+    PullChange().start(
+        firestore: FirebaseFirestore.instance,
+        localRealm: ProxyService.local.realm!);
+    ProxyService.box.writeBool(key: 'isOrdering', value: false);
+
     talker.warning("FirebaseUser ${FirebaseAuth.instance.currentUser}");
 
     if (ProxyService.box.forceUPSERT()) {
@@ -227,7 +231,7 @@ class CronService {
         talker.error(s);
       }
     }
-    PullChange().start(firestore: firestore, localRealm: realm!);
+
     // CloudSync(firestore, realm).deleteDuplicate(tableName: productsTable);
     // CloudSync(firestore, realm).deleteDuplicate(tableName: variantTable);
     // CloudSync(firestore, realm).deleteDuplicate(tableName: stocksTable);

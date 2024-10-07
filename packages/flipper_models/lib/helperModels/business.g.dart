@@ -54,12 +54,14 @@ IBusiness _$IBusinessFromJson(Map<String, dynamic> json) => IBusiness(
           ? null
           : DateTime.parse(json['deletedAt'] as String),
     )
+      ..action = json['action'] as String
       ..createdAt = json['createdAt'] as String?
       ..lastTouched = json['lastTouched'] == null
           ? null
           : DateTime.parse(json['lastTouched'] as String);
 
 const _$IBusinessFieldMap = <String, String>{
+  'action': 'action',
   'id': 'id',
   'name': 'name',
   'currency': 'currency',
@@ -101,13 +103,14 @@ const _$IBusinessFieldMap = <String, String>{
   'isDefault': 'isDefault',
   'businessTypeId': 'businessTypeId',
   'lastTouched': 'lastTouched',
-  'action': 'action',
   'deletedAt': 'deletedAt',
   'encryptionKey': 'encryptionKey',
 };
 
 // ignore: unused_element
 abstract class _$IBusinessPerFieldToJson {
+  // ignore: unused_element
+  static Object? action(String instance) => instance;
   // ignore: unused_element
   static Object? id(int? instance) => instance;
   // ignore: unused_element
@@ -191,14 +194,13 @@ abstract class _$IBusinessPerFieldToJson {
   // ignore: unused_element
   static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
   // ignore: unused_element
-  static Object? action(String instance) => instance;
-  // ignore: unused_element
   static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
   // ignore: unused_element
   static Object? encryptionKey(String instance) => instance;
 }
 
 Map<String, dynamic> _$IBusinessToJson(IBusiness instance) => <String, dynamic>{
+      'action': instance.action,
       'id': instance.id,
       'name': instance.name,
       'currency': instance.currency,
@@ -241,7 +243,6 @@ Map<String, dynamic> _$IBusinessToJson(IBusiness instance) => <String, dynamic>{
       'isDefault': instance.isDefault,
       'businessTypeId': instance.businessTypeId,
       'lastTouched': instance.lastTouched?.toIso8601String(),
-      'action': instance.action,
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'encryptionKey': instance.encryptionKey,
     };

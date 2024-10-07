@@ -7,21 +7,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 mixin Refresh<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> refreshTransactionItems({required int transactionId}) async {
-    final isOrdering = ProxyService.box.isOrdering() ?? false;
+    try {
+      final isOrdering = ProxyService.box.isOrdering() ?? false;
 
-    /// clear the current cart
-    ref.refresh(freshtransactionItemsProviderByIdProvider(
-        (transactionId: transactionId)));
+      /// clear the current cart
+      ref.refresh(freshtransactionItemsProviderByIdProvider(
+          (transactionId: transactionId)));
 
-    ref.refresh(pendingTransactionProviderNonStream(
-        (isExpense: isOrdering, mode: TransactionType.sale)));
+      ref.refresh(pendingTransactionProviderNonStream(
+          (isExpense: isOrdering, mode: TransactionType.sale)));
 
-    /// get new transaction id
-    ref.refresh(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: isOrdering)));
+      /// get new transaction id
+      ref.refresh(pendingTransactionProvider(
+          (mode: TransactionType.sale, isExpense: isOrdering)));
 
-    ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
-    ref.read(loadingProvider.notifier).state = false;
+      ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
+      ref.read(loadingProvider.notifier).state = false;
+    } catch (e) {}
   }
 
   Future<void> refreshPendingTransactionWithExpense() async {

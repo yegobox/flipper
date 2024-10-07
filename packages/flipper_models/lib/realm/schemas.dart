@@ -845,6 +845,7 @@ class _Pin {
   int? businessId;
   String? ownerName;
   String? tokenUid;
+  String? uid;
 }
 
 @RealmModel()

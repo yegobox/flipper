@@ -1488,7 +1488,7 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
 
   @override
   Future<Response> sendLoginRequest(String phoneNumber,
-      HttpClientInterface flipperHttpClient, String apihub) {
+      HttpClientInterface flipperHttpClient, String apihub,{String? uid}) {
     // TODO: implement sendLoginRequest
     throw UnimplementedError();
   }

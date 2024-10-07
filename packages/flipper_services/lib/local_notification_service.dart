@@ -22,7 +22,24 @@ class UnSupportedLocalNotification implements LNotification {
   }
 }
 
+
 class LocalNotificationService implements LNotification {
+  // Initialize the NotificationsCubit instance
+  static late NotificationsCubit _notificationsCubit;
+
+  LocalNotificationService() {
+    // Initialize the NotificationsCubit in the constructor
+    _initNotificationsCubit();
+  }
+
+  // Initialize the NotificationsCubit (ideally this should be done
+  // in your main function or a global setup method)
+  void _initNotificationsCubit() async {
+    _notificationsCubit = await NotificationsCubit.initialize(
+      flutterLocalNotificationsPlugin: flutterLocalNotificationsPlugin,
+    );
+  }
+
   @override
   Future<void> sendLocalNotification(
       {required String body, String? userName = "Flipper"}) async {
@@ -36,7 +53,9 @@ class LocalNotificationService implements LNotification {
         id: randomNumber(),
         businessId: ProxyService.box.getBusinessId(),
       );
-      await NotificationsCubit.instance.scheduleNotification(conversation);
+
+      // Now you can use _notificationsCubit safely
+      await _notificationsCubit.scheduleNotification(conversation);
     } catch (e) {
       rethrow;
     }

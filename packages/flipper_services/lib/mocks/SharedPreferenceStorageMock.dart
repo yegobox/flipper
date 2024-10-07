@@ -8,6 +8,11 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
+  bool pinLogin() {
+    return false;
+  }
+
+  @override
   int? dbVersion() {
     return 3;
   }

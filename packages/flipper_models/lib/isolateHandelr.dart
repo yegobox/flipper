@@ -103,6 +103,9 @@ class IsolateHandler {
           IVariant iVariant =
               IVariant.fromJson(variant.toEJson().toFlipperJson());
 
+          iVariant.isrcAplcbYn =
+              variant.isrcAplcbYn?.isEmpty ?? true ? "N" : variant.isrcAplcbYn;
+
           /// do not attempt saving a variant with missing fields
           if (variant.qtyUnitCd == null ||
               variant.taxTyCd == null ||

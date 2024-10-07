@@ -33,13 +33,6 @@ class NotificationsCubit {
     instance = this;
     _checkAppStartup();
   }
-  //  NotificationsCubit._(
-  //   this._notificationsPlugin,
-  // ) : super(NotificationsState.initial()) {
-  //   instance = this;
-  //   _checkAppStartup();
-  // }
-  /// Singleton instance.
   static late NotificationsCubit instance;
 
   /// Initialize the cubit.

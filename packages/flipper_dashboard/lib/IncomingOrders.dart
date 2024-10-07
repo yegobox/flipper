@@ -108,7 +108,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
               },
             ),
             Text(
-              'Request #${request.id}',
+              'Request From #${ProxyService.local.branch(serverId: request.subBranchId!)?.name ?? "Unknown"}',
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

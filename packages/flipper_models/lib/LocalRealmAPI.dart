@@ -144,8 +144,8 @@ class LocalRealmApi
   /// on other devices, the login is supposed to start from the phone or mobile
   @override
   Future<http.Response> sendLoginRequest(String phoneNumber,
-      HttpClientInterface flipperHttpClient, String apihub) async {
-    final String? uid = firebase.FirebaseAuth.instance.currentUser?.uid;
+      HttpClientInterface flipperHttpClient, String apihub,{String? uid}) async {
+   uid = uid ?? firebase.FirebaseAuth.instance.currentUser?.uid;
     return await flipperHttpClient.post(
       Uri.parse(apihub + '/v2/api/user'),
       body:
@@ -185,6 +185,7 @@ class LocalRealmApi
 
     // Close any existing local realm instance
     realm?.close();
+
     try {
       if (useInMemory ||
           box.encryptionKey().isEmpty ||
@@ -287,7 +288,7 @@ class LocalRealmApi
     if (!skipDefaultAppSetup) {
       await setDefaultApp(user);
     }
-
+    ProxyService.box.writeBool(key: 'pinLogin', value: false);
     return user;
   }
 
@@ -305,6 +306,7 @@ class LocalRealmApi
 
     if (businessesE.isNotEmpty && branchesE.isNotEmpty) {
       offlineLogin = true;
+
       return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
     }
 
@@ -316,6 +318,7 @@ class LocalRealmApi
       final IUser user = IUser.fromJson(json.decode(response.body));
       await _patchPin(user.id!, flipperHttpClient, apihub,
           ownerName: user.tenants.first.name);
+      await ProxyService.syncFirestore.firebaseLogin(token: user.uid);
       return user;
     } else {
       await _handleLoginError(response);
@@ -4819,9 +4822,14 @@ class LocalRealmApi
             savedPin =
                 realm!.query<Pin>(r'userId == $0', [pin.userId]).firstOrNull;
             if (savedPin == null) {
+              pin.uid = FirebaseAuth.instance.currentUser!.uid;
               savedPin = realm!.add<Pin>(pin);
             } else {
               savedPin!.userId = pin.userId;
+              if (FirebaseAuth.instance.currentUser != null) {
+                savedPin!.uid = FirebaseAuth.instance.currentUser?.uid;
+              }
+
               savedPin!.ownerName = pin.ownerName;
               savedPin!.tokenUid = pin.tokenUid;
               savedPin!.phoneNumber = pin.phoneNumber;

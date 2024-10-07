@@ -126,7 +126,8 @@ Future<void> initializeDependencies() async {
       };
     };
   }
-  final newrelic = isAndroid && foundation.kReleaseMode && !isWeb & !isWindows && !isMacOs;
+  final newrelic =
+      isAndroid && foundation.kReleaseMode && !isWeb & !isWindows && !isMacOs;
   if (newrelic) {
     NewRelic.initialize();
   }
@@ -150,7 +151,7 @@ Future<void> initializeDependencies() async {
   loadSupabase();
 
   ///Will switch to localNotification when it support windows
-  if (isAndroid || isIos && !isWeb) {
+  if (!isWeb && !isWindows) {
     await NotificationsCubit.initialize(
       flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
     );

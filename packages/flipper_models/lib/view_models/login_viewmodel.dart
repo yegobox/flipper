@@ -55,6 +55,7 @@ class LoginViewModel extends FlipperBaseModel
     // logOut();
     try {
       setIsprocessing(value: true);
+      ProxyService.box.writeBool(key: 'pinLogin', value: true);
 
       IPin? pin = await ProxyService.local
           .getPin(pinString: pinCode, flipperHttpClient: ProxyService.http);

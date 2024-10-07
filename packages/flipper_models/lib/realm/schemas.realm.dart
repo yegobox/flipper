@@ -6488,6 +6488,7 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
     int? businessId,
     String? ownerName,
     String? tokenUid,
+    String? uid,
   }) {
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
@@ -6498,6 +6499,7 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'businessId', businessId);
     RealmObjectBase.set(this, 'ownerName', ownerName);
     RealmObjectBase.set(this, 'tokenUid', tokenUid);
+    RealmObjectBase.set(this, 'uid', uid);
   }
 
   Pin._();
@@ -6553,6 +6555,11 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
   set tokenUid(String? value) => RealmObjectBase.set(this, 'tokenUid', value);
 
   @override
+  String? get uid => RealmObjectBase.get<String>(this, 'uid') as String?;
+  @override
+  set uid(String? value) => RealmObjectBase.set(this, 'uid', value);
+
+  @override
   Stream<RealmObjectChanges<Pin>> get changes =>
       RealmObjectBase.getChanges<Pin>(this);
 
@@ -6574,6 +6581,7 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
       'businessId': businessId.toEJson(),
       'ownerName': ownerName.toEJson(),
       'tokenUid': tokenUid.toEJson(),
+      'uid': uid.toEJson(),
     };
   }
 
@@ -6594,6 +6602,7 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
           businessId: fromEJson(ejson['businessId']),
           ownerName: fromEJson(ejson['ownerName']),
           tokenUid: fromEJson(ejson['tokenUid']),
+          uid: fromEJson(ejson['uid']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -6613,6 +6622,7 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('businessId', RealmPropertyType.int, optional: true),
       SchemaProperty('ownerName', RealmPropertyType.string, optional: true),
       SchemaProperty('tokenUid', RealmPropertyType.string, optional: true),
+      SchemaProperty('uid', RealmPropertyType.string, optional: true),
     ]);
   }();
 

@@ -568,7 +568,8 @@ abstract class RealmApiInterface {
   Branch? branch({required int serverId});
 
   Future<http.Response> sendLoginRequest(
-      String phoneNumber, HttpClientInterface flipperHttpClient, String apihub);
+      String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
+      {String? uid});
 
   /// drawers
   bool isDrawerOpen({required int cashierId, required int branchId});

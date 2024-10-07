@@ -19,11 +19,14 @@ IBranch _$IBranchFromJson(Map<String, dynamic> json) => IBranch(
           ? null
           : DateTime.parse(json['deletedAt'] as String),
       location: json['location'] as String?,
-    )..lastTouched = json['lastTouched'] == null
-        ? null
-        : DateTime.parse(json['lastTouched'] as String);
+    )
+      ..action = json['action'] as String
+      ..lastTouched = json['lastTouched'] == null
+          ? null
+          : DateTime.parse(json['lastTouched'] as String);
 
 const _$IBranchFieldMap = <String, String>{
+  'action': 'action',
   'id': 'id',
   'active': 'active',
   'description': 'description',
@@ -34,12 +37,13 @@ const _$IBranchFieldMap = <String, String>{
   'location': 'location',
   'isDefault': 'isDefault',
   'lastTouched': 'lastTouched',
-  'action': 'action',
   'deletedAt': 'deletedAt',
 };
 
 // ignore: unused_element
 abstract class _$IBranchPerFieldToJson {
+  // ignore: unused_element
+  static Object? action(String instance) => instance;
   // ignore: unused_element
   static Object? id(int? instance) => instance;
   // ignore: unused_element
@@ -61,12 +65,11 @@ abstract class _$IBranchPerFieldToJson {
   // ignore: unused_element
   static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
   // ignore: unused_element
-  static Object? action(String instance) => instance;
-  // ignore: unused_element
   static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
 }
 
 Map<String, dynamic> _$IBranchToJson(IBranch instance) => <String, dynamic>{
+      'action': instance.action,
       'id': instance.id,
       'active': instance.active,
       'description': instance.description,
@@ -77,6 +80,5 @@ Map<String, dynamic> _$IBranchToJson(IBranch instance) => <String, dynamic>{
       'location': instance.location,
       'isDefault': instance.isDefault,
       'lastTouched': instance.lastTouched?.toIso8601String(),
-      'action': instance.action,
       'deletedAt': instance.deletedAt?.toIso8601String(),
     };

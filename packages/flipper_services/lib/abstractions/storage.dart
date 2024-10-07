@@ -56,4 +56,5 @@ abstract class LocalStorage {
   bool doneMigrateToLocal();
   bool forceUPSERT();
   int? dbVersion();
+  bool? pinLogin();
 }

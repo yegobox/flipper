@@ -96,7 +96,7 @@ class _LoginState extends State<Login> {
           firebase.FirebaseAuth.instance
               .userChanges()
               .listen((firebase.User? user) async {
-            if (user != null) {
+            if (user != null && !ProxyService.box.pinLogin()!) {
               final key = user.phoneNumber ?? user.email!;
               final response = await ProxyService.local.sendLoginRequest(
                   key, ProxyService.http, AppSecrets.apihubProd);
