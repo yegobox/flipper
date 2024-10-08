@@ -103,9 +103,7 @@ class PullChange {
       createRealmObject: (data) {
         return Stock(
           ObjectId(),
-          id: data['stock_id'] is int
-              ? data['stock_id']
-              : int.tryParse(data['stock_id']) ?? randomNumber(),
+          id: data['stock_id'] == null ? randomNumber() : data['stock_id'],
           currentStock:
               data['current_stock'] is int || data['current_stock'] is double
                   ? data['current_stock'].toDouble()
@@ -183,9 +181,7 @@ class PullChange {
       createRealmObject: (data) {
         return Counter(
           ObjectId(),
-          id: data['counter_id'] is int
-              ? data['counter_id']
-              : int.tryParse(data['counter_id']) ?? randomNumber(),
+          id: data['counter_id'] == null ? randomNumber() : data['counter_id'],
           businessId: data['business_id'] is int
               ? data['business_id']
               : int.tryParse(data['business_id']) ?? 0,
@@ -259,9 +255,9 @@ class PullChange {
       createRealmObject: (data) {
         return Composite(
           ObjectId(),
-          id: data['composite_id'] is int
-              ? data['composite_id']
-              : int.tryParse(data['composite_id']) ?? randomNumber(),
+          id: data['composite_id'] == null
+              ? randomNumber()
+              : data['composite_id'],
           productId: data['product_id'] is int
               ? data['product_id']
               : int.tryParse(data['product_id']) ?? 0,
@@ -322,9 +318,7 @@ class PullChange {
       createRealmObject: (data) {
         return SKU(
           ObjectId(),
-          id: data['sku_id'] is int
-              ? data['sku_id']
-              : int.tryParse(data['sku_id']) ?? randomNumber(),
+          id: data['sku_id'] == null ? randomNumber() : data['sku_id'],
           sku: data['sku'] is int
               ? data['sku']
               : int.tryParse(data['sku']) ?? 100,
@@ -367,9 +361,7 @@ class PullChange {
       createRealmObject: (data) {
         return Access(
           ObjectId(),
-          id: data['access_id'] is int
-              ? data['access_id']
-              : int.tryParse(data['access_id']) ?? randomNumber(),
+          id: data['access_id'] == null ? randomNumber() : data['access_id'],
           branchId: data['branch_id'] is int
               ? data['branch_id']
               : int.tryParse(data['branch_id']) ?? 0,
@@ -429,9 +421,9 @@ class PullChange {
       createRealmObject: (data) {
         return PaymentPlan(
           ObjectId(),
-          id: data['payment_plan_id'] is int
-              ? data['payment_plan_id']
-              : int.tryParse(data['payment_plan_id']) ?? randomNumber(),
+          id: data['payment_plan_id'] == null
+              ? randomNumber()
+              : data['payment_plan_id'],
           businessId: data['business_id'] is int
               ? data['business_id']
               : int.tryParse(data['business_id']) ?? 0,
@@ -509,10 +501,9 @@ class PullChange {
       createRealmObject: (data) {
         return FlipperSaleCompaign(
           ObjectId(),
-          id: data['flipper_sale_compaign_id'] is int
-              ? data['flipper_sale_compaign_id']
-              : int.tryParse(data['flipper_sale_compaign_id']) ??
-                  randomNumber(),
+          id: data['flipper_sale_compaign_id'] == null
+              ? randomNumber()
+              : data['flipper_sale_compaign_id'],
           compaignId: data['compaign_id'] is int
               ? data['compaign_id']
               : int.tryParse(data['compaign_id']) ?? 0,
@@ -555,10 +546,9 @@ class PullChange {
       createRealmObject: (data) {
         return TransactionPaymentRecord(
           ObjectId(),
-          id: data['transaction_payment_record_id'] is int
-              ? data['transaction_payment_record_id']
-              : int.tryParse(data['transaction_payment_record_id']) ??
-                  randomNumber(),
+          id: data['transaction_payment_record_id'] == null
+              ? randomNumber()
+              : data['transaction_payment_record_id'],
           transactionId: data['transaction_id'] is int
               ? data['transaction_id']
               : int.tryParse(data['transaction_id']) ?? 0,
@@ -635,9 +625,7 @@ class PullChange {
       createRealmObject: (data) {
         return Setting(
           ObjectId(),
-          id: data['setting_id'] is int
-              ? data['setting_id']
-              : int.tryParse(data['setting_id']) ?? 0,
+          id: data['setting_id'] == null ? randomNumber() : data['setting_id'],
           email: data['email'],
           userId: data['user_id'] is int
               ? data['user_id']
@@ -723,9 +711,12 @@ class PullChange {
       tableName: transactionTable,
       idField: "transaction_id",
       createRealmObject: (data) {
+        // check if there
         return ITransaction(
           ObjectId(),
-          id: data['asset_id'] == null ? randomNumber() : data['asset_id'],
+          id: data['transaction_id'] == null
+              ? randomNumber()
+              : data['transaction_id'],
           branchId: data['branch_id'] == null
               ? ProxyService.box.getBranchId()
               : data['branch_id'],
@@ -1201,11 +1192,7 @@ class PullChange {
       createRealmObject: (data) {
         return Pin(
           ObjectId(),
-          id: data['user_id'] == null
-              ? 0
-              : (data['user_id'] is int
-                  ? data['user_id']
-                  : int.tryParse(data['user_id']) ?? 0),
+          id: data['user_id'] == null ? 0 : data['user_id'],
           userId: data['user_id'],
           branchId: data['branch_id'],
           businessId: data['business_id'],

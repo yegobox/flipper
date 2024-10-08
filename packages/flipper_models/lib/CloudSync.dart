@@ -2,11 +2,11 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/PullChange.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'dart:async';
@@ -437,7 +437,26 @@ class CloudSync implements SyncInterface {
                 _realm.realm!.write(() {
                   T? realmObject =
                       _realm.realm!.query<T>(r'id == $0', [id]).firstOrNull;
+
                   if (realmObject != null) {
+                    var eJson = (realmObject is Stock)
+                        ? realmObject
+                            .toEJson(includeVariant: false)
+                            .toFlipperJson()
+                        : realmObject.toEJson().toFlipperJson();
+
+                    _realm.realm!.add<DeletedObject>(
+                      DeletedObject(
+                        ObjectId(),
+                        id: (realmObject is Stock)
+                            ? realmObject.id!
+                            : eJson['id'],
+                        branchId: eJson['branch_id'],
+                        businessId: eJson['business_id'],
+                        deviceCount: 1,
+                      ),
+                    );
+
                     _realm.realm!.delete(realmObject);
                   }
                 });
