@@ -319,6 +319,7 @@ class LocalRealmApi
       final IUser user = IUser.fromJson(json.decode(response.body));
       await _patchPin(user.id!, flipperHttpClient, apihub,
           ownerName: user.tenants.first.name);
+      ProxyService.box.writeInt(key: 'userId', value: user.id!);
       await ProxyService.syncFirestore.firebaseLogin(token: user.uid);
       return user;
     } else {

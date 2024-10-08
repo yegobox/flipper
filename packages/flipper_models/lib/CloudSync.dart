@@ -393,6 +393,7 @@ class CloudSync implements SyncInterface {
   }) async {
     if (syncProvider == SyncProvider.FIRESTORE) {
       try {
+        if (_firestore == null) return;
         final branchId = ProxyService.box.getBranchId();
         // Listen for Firestore collection changes
         final subscription = _firestore!
@@ -611,8 +612,9 @@ class CloudSync implements SyncInterface {
 
   @override
   Future<bool> firebaseLogin({String? token}) async {
-    final pinLocal =
-        ProxyService.local.getPinLocal(userId: ProxyService.box.getUserId()!);
+    int? userId = ProxyService.box.getUserId();
+    if (userId == null) return false;
+    final pinLocal = ProxyService.local.getPinLocal(userId: userId);
     try {
       token ??= pinLocal?.tokenUid;
 // Edwige

@@ -384,7 +384,7 @@ class _RowItemState extends ConsumerState<RowItem> with Refresh {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Name: ${widget.productName}",
+          "${widget.productName}",
           style: const TextStyle(color: Colors.black, fontSize: 16.0),
           overflow: TextOverflow.ellipsis,
         ),
