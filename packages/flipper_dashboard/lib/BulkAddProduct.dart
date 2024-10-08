@@ -12,6 +12,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:realm/realm.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
+import 'package:flipper_models/helperModels/extensions.dart';
 
 class Item {
   final String barCode;
@@ -42,6 +43,28 @@ class BulkAddProduct extends StatefulHookConsumerWidget {
 class BulkAddProductState extends ConsumerState<BulkAddProduct> {
   PlatformFile? _selectedFile;
   List<Map<String, dynamic>>? _excelData;
+  Map<String, TextEditingController> _controllers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeControllers();
+  }
+
+  void _initializeControllers() {
+    if (_excelData != null) {
+      for (var product in _excelData!) {
+        String barCode = product['BarCode'] ?? '';
+        _controllers[barCode] = TextEditingController(text: product['Price']);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controllers.forEach((_, controller) => controller.dispose());
+    super.dispose();
+  }
 
   Future<void> _selectFile() async {
     try {
@@ -102,8 +125,6 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           }
         }
 
-
-       
         // Parse data rows
         for (int i = headerRowIndex + 1; i < sheet.rows.length; i++) {
           Map<String, dynamic> rowData = {};
@@ -156,7 +177,6 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
 
     // Print all items to console
     for (var item in items) {
-    
       try {
         /// create a new product
         Product product = Product(
@@ -185,6 +205,16 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           supplyPrice: double.parse(item.price),
           color: randomizeColor(),
           itemSeq: 1,
+          pkg: "1",
+
+          /// TODO allow user to specify tax type
+          taxTyCd: "B",
+
+          /// TODO: get itemClsCd from RRA
+          itemClsCd: "5020230602",
+          spplrItemCd: "",
+          spplrItemClsCd: "",
+          qtyUnitCd: "U",
           tin: ProxyService.box.tin(),
           bhfId: ProxyService.box.bhfId() ?? "00",
           isTaxExempted: false,
@@ -194,14 +224,14 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           orgnNatCd: "RW",
           prc: double.parse(item.price),
           splyAmt: double.parse(item.price),
-          itemCd: "5020230602",
+          itemCd: DateTime.now().generateFlipperClip(),
           modrNm: product.name,
           modrId: product.barCode,
           pkgUnitCd: "BJ",
           regrId: product.barCode,
           rsdQty: 1,
-          useYn:"",
-          itemTyCd: "PR",
+          useYn: "N",
+          itemTyCd: "2",
           lastTouched: DateTime.now(),
           branchId: ProxyService.box.getBranchId()!,
           taxPercentage: 18,
@@ -341,6 +371,11 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
                       ),
                     ],
                     rows: _excelData!.map((product) {
+                      String barCode = product['BarCode'] ?? '';
+                      if (!_controllers.containsKey(barCode)) {
+                        _controllers[barCode] =
+                            TextEditingController(text: product['Price']);
+                      }
                       return DataRow(
                         cells: [
                           DataCell(Text(product['BarCode'] ?? '')),
@@ -348,8 +383,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
                           DataCell(Text(product['Category'] ?? '')),
                           DataCell(
                             TextField(
-                              controller:
-                                  TextEditingController(text: product['Price']),
+                              controller: _controllers[barCode],
                               onChanged: (value) {
                                 _updatePrice(product['BarCode'], value);
                               },

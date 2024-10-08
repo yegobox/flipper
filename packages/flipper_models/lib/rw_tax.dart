@@ -442,8 +442,14 @@ class RWTax implements TaxApi {
 
     final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118);
 
+    final topMessage =
+        "${business?.name}\n${ProxyService.box.getUserPhone()!.replaceAll("+", "")}\n${business?.adrs?.isNotEmpty == true ? business?.adrs : 'Kigali, Rwanda'}\n${business?.tinNumber ?? '999909695'}";
+
+    talker.error("TopMessage: $topMessage");
+    talker.error("TINN: ${business?.tinNumber}");
+
     final json = {
-      "tin": business?.tinNumber ?? 999909695,
+      "tin": business?.tinNumber.toString() ?? "999909695",
       "bhfId": ProxyService.box.bhfId() ?? "00",
       "invcNo": counter.invcNo,
       "orgInvcNo": 0,
@@ -498,10 +504,10 @@ class RWTax implements TaxApi {
       "receipt": {
         "prchrAcptcYn": "Y",
         "rptNo": counter.invcNo,
-        "adrs": business?.adrs?.isNotEmpty ?? "Kigali, Rwanda",
-        "topMsg":
-            "${business?.name}\n${ProxyService.box.getUserPhone()!.replaceAll("+", "")}\n${business?.adrs?.isNotEmpty == true ? business?.adrs : 'Kigali, Rwanda'}\n${business?.tinNumber ?? '999909695'}",
-        "btmMsg": "THANK YOUCOME BACK AGAIN",
+        "adrs":
+            business?.adrs?.isEmpty == true ? "Kigali, Rwanda" : business?.adrs,
+        "topMsg": topMessage,
+        "btmMsg": "THANK YOU COME BACK AGAIN",
         "custMblNo": customer == null
             ? ProxyService.box.currentSaleCustomerPhoneNumber()
             : customer.telNo,

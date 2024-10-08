@@ -22,9 +22,6 @@ mixin ProductMixin {
       ProxyService.local.realm!.write(() {
         List<Variant> updatables = [];
         for (var i = 0; i < variations!.length; i++) {
-          String itemPrefix = "FLIPPER-";
-          String clip = itemPrefix +
-              DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
           variations[i].pkgUnitCd = packagingUnit;
           final number = randomNumber().toString().substring(0, 5);
 
@@ -33,7 +30,7 @@ mixin ProductMixin {
           variations[i].isrcRt = 0;
           variations[i].color = currentColor;
           variations[i].pkg = "1";
-          variations[i].itemCd = clip;
+          variations[i].itemCd = DateTime.now().generateFlipperClip();
           variations[i].modrNm = number;
           variations[i].modrId = number;
           variations[i].itemNm = variations[i].name;

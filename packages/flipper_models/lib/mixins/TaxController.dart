@@ -196,7 +196,6 @@ class TaxController<OBJ> {
     Customer? customer =
         ProxyService.local.getCustomer(id: transaction.customerId ?? 0);
 
-    talker.warning("BBBB${totalTaxB}");
     Print print = Print();
 
     await print.print(
@@ -234,7 +233,7 @@ class TaxController<OBJ> {
       brandFooter: business.name!,
       emails: ['info@yegobox.com'],
       customerTin: customer?.custTin ??
-          ProxyService.box.currentSaleCustomerPhoneNumber(),
+          "0" + ProxyService.box.currentSaleCustomerPhoneNumber()!,
       receiptType: receiptType,
       customerName: customer?.custNm ?? ProxyService.box.customerName()!,
       printCallback: (Uint8List bytes) {

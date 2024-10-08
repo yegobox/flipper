@@ -3102,11 +3102,29 @@ class LocalRealmApi
               stockByVariantId(variantId: item.variantId!, branchId: branchId);
           final finalStock = (stock!.currentStock - item.qty);
           realm!.writeN(
-              tableName: stocksTable,
+              tableName: transactionItemsTable,
               writeCallback: () {
+                Configurations taxConfig =
+                    ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
+
+                double taxAmount =
+                    (((item.price * item.qty) * taxConfig.taxPercentage!) /
+                        (100 + taxConfig.taxPercentage!));
+
+                item.taxAmt =
+                    (double.parse(taxAmount.round().toStringAsFixed(2)) * 100)
+                            .round() /
+                        100;
+
                 item.dcAmt = discount;
                 item.discount = discount;
+                item.taxblAmt = item.price * item.qty;
                 item.lastTouched = DateTime.now().toUtc().toLocal();
+                return item;
+              });
+          realm!.writeN(
+              tableName: stocksTable,
+              writeCallback: () {
                 stock.rsdQty = finalStock;
                 stock.currentStock = finalStock;
                 stock.sold = stock.sold! + item.qty;

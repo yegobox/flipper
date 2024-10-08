@@ -37,6 +37,7 @@ class PullChange {
         watchComposites(localRealm);
         watchCounters(localRealm);
         watchStocks(localRealm);
+        watchConfiguration(localRealm);
       } else {
         // Start only the specified table
         switch (tableName.toLowerCase()) {
@@ -84,6 +85,9 @@ class PullChange {
             break;
           case 'stocks':
             watchStocks(localRealm);
+            break;
+          case 'configurations':
+            watchConfiguration(localRealm);
             break;
           default:
             print('Unknown table name: $tableName');
@@ -211,27 +215,17 @@ class PullChange {
         if (counter != null) {
           localRealm.write(() {
             try {
-              counter.businessId = data['business_id'] is int
-                  ? data['business_id']
-                  : int.tryParse(data['business_id']) ?? counter.businessId;
+              counter.businessId = data['business_id'];
 
-              counter.branchId = data['branch_id'] is int
-                  ? data['branch_id']
-                  : int.tryParse(data['branch_id']) ?? counter.branchId;
+              counter.branchId = data['branch_id'];
 
-              counter.receiptType = data['receipt_type'] ?? counter.receiptType;
+              counter.receiptType = data['receipt_type'];
 
-              counter.totRcptNo = data['tot_rcpt_no'] is int
-                  ? data['tot_rcpt_no']
-                  : int.tryParse(data['tot_rcpt_no']) ?? counter.totRcptNo;
+              counter.totRcptNo = data['tot_rcpt_no'];
 
-              counter.curRcptNo = data['cur_rcpt_no'] is int
-                  ? data['cur_rcpt_no']
-                  : int.tryParse(data['cur_rcpt_no']) ?? counter.curRcptNo;
+              counter.curRcptNo = data['cur_rcpt_no'];
 
-              counter.invcNo = data['invc_no'] is int
-                  ? data['invc_no']
-                  : int.tryParse(data['invc_no']) ?? counter.invcNo;
+              counter.invcNo = data['invc_no'];
 
               counter.lastTouched = data['last_touched'] is DateTime
                   ? data['last_touched']
@@ -1208,6 +1202,35 @@ class PullChange {
         if (pin != null) {
           localRealm.write(() {
             pin.tokenUid = data['token_uid'];
+          });
+        }
+      },
+    );
+  }
+
+  void watchConfiguration(Realm localRealm) {
+    ProxyService.syncFirestore.watchTable<Configurations>(
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: configurationsTable,
+      idField: "configuration_id",
+      createRealmObject: (data) {
+        return Configurations(
+          ObjectId(),
+          id: data['configuration_id'] == null ? 0 : data['configuration_id'],
+          branchId: data['branch_id'],
+          businessId: data['business_id'],
+          taxPercentage: data['tax_percentage'],
+          taxType: data['tax_type'],
+        );
+      },
+      updateRealmObject: (_pin, data) {
+        Configurations? configuration = localRealm.query<Configurations>(
+            r'id == $0', [data['configuration_id']]).firstOrNull;
+
+        if (configuration != null) {
+          localRealm.write(() {
+            configuration.taxPercentage = data['tax_percentage'];
+            configuration.taxType = data['tax_type'];
           });
         }
       },

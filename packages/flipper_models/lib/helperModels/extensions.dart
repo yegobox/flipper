@@ -233,7 +233,6 @@ String camelToSnakeCase(String input) {
   );
 }
 
-
 extension StringSingularize on String {
   String singularize() {
     // Handle common irregular plurals
@@ -263,6 +262,13 @@ extension StringSingularize on String {
     return this;
   }
 }
+
+extension FlipperClip on DateTime {
+  String generateFlipperClip({String prefix = "FLIPPER-"}) {
+    return prefix + this.microsecondsSinceEpoch.toString().substring(0, 5);
+  }
+}
+
 
 // Example usage:
 // void main() {
