@@ -143,9 +143,10 @@ class LocalRealmApi
   /// login and send uid to server to get custom token to use for firebase login
   /// on other devices, the login is supposed to start from the phone or mobile
   @override
-  Future<http.Response> sendLoginRequest(String phoneNumber,
-      HttpClientInterface flipperHttpClient, String apihub,{String? uid}) async {
-   uid = uid ?? firebase.FirebaseAuth.instance.currentUser?.uid;
+  Future<http.Response> sendLoginRequest(
+      String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
+      {String? uid}) async {
+    uid = uid ?? firebase.FirebaseAuth.instance.currentUser?.uid;
     return await flipperHttpClient.post(
       Uri.parse(apihub + '/v2/api/user'),
       body:
@@ -2177,7 +2178,7 @@ class LocalRealmApi
   @override
   bool isAdmin({required int userId, required String appFeature}) {
     try {
-      final Access? permission = realm!.query<Access>(
+      final Access? permission = realm?.query<Access>(
           r'userId == $0 && featureName == $1',
           [userId, appFeature]).firstOrNull;
       talker.warning(permission?.accessLevel?.toLowerCase());
@@ -2657,6 +2658,7 @@ class LocalRealmApi
             return item;
           });
     }
+
     realm!.writeN(
         tableName: stockRequestsTable,
         writeCallback: () {
@@ -3047,7 +3049,7 @@ class LocalRealmApi
           active: true);
 
       realm!.writeN(
-          tableName: iTransactionsTable,
+          tableName: transactionTable,
           writeCallback: () {
             transaction.lastTouched = DateTime.now().toUtc().toLocal();
             transaction.status = COMPLETE;
@@ -4393,7 +4395,7 @@ class LocalRealmApi
 
   @override
   Stream<List<ITransaction>> ticketsStreams() {
-    int branchId = ProxyService.box.getBranchId()!;
+    int? branchId = ProxyService.box.getBranchId();
 
     final subject = ReplaySubject<List<ITransaction>>();
 

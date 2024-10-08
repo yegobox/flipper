@@ -52,7 +52,7 @@ class PullChange {
           case variantTable:
             watchVariants(localRealm);
             break;
-          case iTransactionsTable:
+          case transactionTable:
             watchTransactions(localRealm);
             break;
           case assetsTable:
@@ -720,8 +720,8 @@ class PullChange {
   Future<void> watchTransactions(Realm localRealm) {
     return ProxyService.syncFirestore.watchTable<ITransaction>(
       syncProvider: SyncProvider.FIRESTORE,
-      tableName: iTransactionsTable,
-      idField: iTransactionsTable.singularize() + "_id",
+      tableName: transactionTable,
+      idField: "transaction_id",
       createRealmObject: (data) {
         return ITransaction(
           ObjectId(),
@@ -765,7 +765,7 @@ class PullChange {
       updateRealmObject: (_transaction, data) {
         ITransaction? transaction = localRealm.query<ITransaction>(
             r'id == $0 && branchId == $1', [
-          data[iTransactionsTable.singularize() + "_id"],
+          data['transaction_id'],
           ProxyService.box.getBranchId()
         ]).firstOrNull;
 
@@ -950,8 +950,7 @@ class PullChange {
             variant.splyAmt = data['sply_amt'] is double
                 ? data['sply_amt']
                 : double.tryParse(data['sply_amt']) ?? 0;
-            variant.tin =
-                data['tin'] == null ? 0 : int.tryParse(data['tin']) ?? 0;
+            variant.tin = data['tin'] == null ? 0 : data['tin'];
             variant.bhfId = data['bhf_id'] == null ? "00" : variant.bhfId;
             variant.dftPrc =
                 data['dft_prc'] == null ? 0 : double.tryParse(data['dft_prc']);

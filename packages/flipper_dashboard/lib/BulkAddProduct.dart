@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -7,6 +8,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:realm/realm.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
@@ -30,14 +32,14 @@ class Item {
   }
 }
 
-class BulkAddProduct extends StatefulWidget {
+class BulkAddProduct extends StatefulHookConsumerWidget {
   const BulkAddProduct({super.key});
 
   @override
-  State<BulkAddProduct> createState() => _BulkAddProductState();
+  BulkAddProductState createState() => BulkAddProductState();
 }
 
-class _BulkAddProductState extends State<BulkAddProduct> {
+class BulkAddProductState extends ConsumerState<BulkAddProduct> {
   PlatformFile? _selectedFile;
   List<Map<String, dynamic>>? _excelData;
 
@@ -100,6 +102,8 @@ class _BulkAddProductState extends State<BulkAddProduct> {
           }
         }
 
+
+       
         // Parse data rows
         for (int i = headerRowIndex + 1; i < sheet.rows.length; i++) {
           Map<String, dynamic> rowData = {};
@@ -135,6 +139,10 @@ class _BulkAddProductState extends State<BulkAddProduct> {
     });
   }
 
+  String randomizeColor() {
+    return '#${(Random().nextInt(0x1000000) | 0x800000).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+  }
+
   void _saveAll() {
     // Convert each row from the table to an Item model
     List<Item> items = _excelData!.map((product) {
@@ -148,93 +156,103 @@ class _BulkAddProductState extends State<BulkAddProduct> {
 
     // Print all items to console
     for (var item in items) {
-      // talker.warning(item.name);
-      // talker.warning(item.barCode);
+    
+      try {
+        /// create a new product
+        Product product = Product(
+          ObjectId(),
+          id: randomNumber(),
+          name: item.name,
+          barCode: item.barCode,
+        );
 
-      /// create a new product
-      Product product = Product(
-        ObjectId(),
-        id: randomNumber(),
-        name: item.name,
-        barCode: item.barCode,
-      );
+        /// add the product to the Realm
+        ProxyService.local.realm!.writeN(
+            tableName: productsTable,
+            writeCallback: () =>
+                ProxyService.local.realm!.add<Product>(product));
 
-      /// add the product to the Realm
-      ProxyService.local.realm!
-          .writeN(tableName: productsTable, writeCallback: () => product);
+        /// create variant for the product
+        Variant variant = Variant(
+          ObjectId(),
+          id: randomNumber(),
+          productId: product.id!,
+          sku: product.barCode,
+          name: product.barCode,
+          productName: product.name,
+          qty: 1,
+          retailPrice: double.parse(item.price),
+          supplyPrice: double.parse(item.price),
+          color: randomizeColor(),
+          itemSeq: 1,
+          tin: ProxyService.box.tin(),
+          bhfId: ProxyService.box.bhfId() ?? "00",
+          isTaxExempted: false,
+          itemNm: product.name,
+          ebmSynced: false,
+          itemStdNm: product.name,
+          orgnNatCd: "RW",
+          prc: double.parse(item.price),
+          splyAmt: double.parse(item.price),
+          itemCd: "5020230602",
+          modrNm: product.name,
+          modrId: product.barCode,
+          pkgUnitCd: "BJ",
+          regrId: product.barCode,
+          rsdQty: 1,
+          useYn:"",
+          itemTyCd: "PR",
+          lastTouched: DateTime.now(),
+          branchId: ProxyService.box.getBranchId()!,
+          taxPercentage: 18,
+        );
 
-      /// create variant for the product
-      Variant variant = Variant(
-        ObjectId(),
-        id: randomNumber(),
-        productId: product.id!,
-        sku: product.barCode,
-        name: product.barCode,
-        productName: product.name,
-        qty: 1,
-        retailPrice: double.parse(item.price),
-        supplyPrice: double.parse(item.price),
-        color: '#FF0000',
-        itemSeq: 1,
-        tin: ProxyService.box.tin(),
-        bhfId: ProxyService.box.bhfId() ?? "00",
-        isTaxExempted: false,
-        itemNm: product.name,
-        ebmSynced: false,
-        itemStdNm: product.name,
-        orgnNatCd: "RW",
-        prc: double.parse(item.price),
-        splyAmt: double.parse(item.price),
-        itemCd: "5020230602",
-        modrNm: product.name,
-        modrId: product.barCode,
-        pkgUnitCd: "BJ",
-        regrId: product.barCode,
-        rsdQty: 1,
-        lastTouched: DateTime.now(),
-        branchId: ProxyService.box.getBranchId()!,
-        taxPercentage: 18,
-      );
+        /// add the variant to the Realm
+        ProxyService.local.realm!.writeN(
+            tableName: variantTable,
+            writeCallback: () =>
+                ProxyService.local.realm!.add<Variant>(variant));
 
-      /// add the variant to the Realm
-      ProxyService.local.realm!
-          .writeN(tableName: variantTable, writeCallback: () => variant);
+        /// create stock for the variant
+        Stock stock = Stock(
+          ObjectId(),
+          id: randomNumber(),
+          variantId: variant.id!,
+          currentStock: variant.qty,
+          sold: 0,
+          lowStock: 0,
+          canTrackingStock: false,
+          showLowStockAlert: true,
+          productId: variant.productId,
+          active: true,
+          value: variant.qty,
+          rsdQty: variant.qty,
+          supplyPrice: variant.supplyPrice,
+          retailPrice: variant.retailPrice,
+          lastTouched: DateTime.now(),
+          variant: variant,
+          branchId: ProxyService.box.getBranchId()!,
+          ebmSynced: false,
+        );
+        // update variant with stock
+        ProxyService.local.realm!.writeN(
+            tableName: variantTable,
+            writeCallback: () {
+              variant.stock = stock;
+              return variant;
+            });
 
-      /// create stock for the variant
-      Stock stock = Stock(
-        ObjectId(),
-        id: randomNumber(),
-        variantId: variant.id!,
-        currentStock: variant.qty,
-        sold: 0,
-        lowStock: 0,
-        canTrackingStock: false,
-        showLowStockAlert: true,
-        productId: variant.productId,
-        active: true,
-        value: variant.qty,
-        rsdQty: variant.qty,
-        supplyPrice: variant.supplyPrice,
-        retailPrice: variant.retailPrice,
-        lastTouched: DateTime.now(),
-        variant: variant,
-        branchId: ProxyService.box.getBranchId()!,
-        ebmSynced: false,
-      );
-      // update variant with stock
-      ProxyService.local.realm!.writeN(
-          tableName: variantTable,
-          writeCallback: () {
-            variant.stock = stock;
-            return variant;
-          });
-
-      /// add the stock to the Realm
-      ProxyService.local.realm!
-          .writeN(tableName: stocksTable, writeCallback: () => stock);
-
+        /// add the stock to the Realm
+        ProxyService.local.realm!.writeN(
+            tableName: stocksTable,
+            writeCallback: () => ProxyService.local.realm!.add<Stock>(stock));
+      } catch (e) {
+        talker.error(e);
+      }
       //pop
     }
+    final combinedNotifier = ref.read(refreshProvider);
+    combinedNotifier.performActions(productName: "", scanMode: true);
     Navigator.maybePop(context);
   }
 

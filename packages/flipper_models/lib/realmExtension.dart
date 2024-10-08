@@ -8,7 +8,6 @@ import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/CloudSync.dart';
 
 extension RealmExtension on Realm {
@@ -18,7 +17,6 @@ extension RealmExtension on Realm {
     final transaction = beginWrite();
     try {
       T result = writeCallback();
-      transaction.commit();
 
       if (result is Iterable) {
         for (var item in result) {
@@ -27,6 +25,8 @@ extension RealmExtension on Realm {
       } else if (result != null) {
         _syncToFirestore(tableName, result);
       }
+
+      transaction.commit();
       return result;
     } catch (e, s) {
       talker.error(s);

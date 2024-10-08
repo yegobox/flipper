@@ -676,7 +676,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           );
 
                           /// refresh the list
-                          final combinedNotifier = ref.read(refreshPrivider);
+                          final combinedNotifier = ref.read(refreshProvider);
                           combinedNotifier.performActions(
                               productName: "", scanMode: true);
                           ref

@@ -842,7 +842,7 @@ final loadingProvider = StateProvider<bool>((ref) => false);
 final toggleProvider = StateProvider<bool>((ref) => false);
 final previewingCart = StateProvider<bool>((ref) => false);
 
-final refreshPrivider = Provider((ref) {
+final refreshProvider = Provider((ref) {
   return CombinedNotifier(ref);
 });
 
