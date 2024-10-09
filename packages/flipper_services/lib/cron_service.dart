@@ -244,9 +244,9 @@ class CronService {
     // CloudSync(firestore, realm).deleteDuplicate(tableName: devicesTable);
     Timer.periodic(Duration(seconds: 10), (Timer t) async {
       if (Platform.isWindows) {
-        await ProxyService.syncFirestore.firebaseLogin();
         if (FirebaseAuth.instance.currentUser != null) {
           // https://github.com/firebase/flutterfire/issues/12055
+          await ProxyService.syncFirestore.firebaseLogin();
           PullChange().start(
               firestore: FirebaseFirestore.instance,
               localRealm: ProxyService.local.realm!);
