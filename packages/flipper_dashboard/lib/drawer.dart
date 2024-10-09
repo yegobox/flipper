@@ -231,7 +231,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
           _routerService.navigateTo(LoginRoute());
         },
         child: Text(
-          "Logout without closing drawer 🙂",
+          "Logout without closing drawer ",
           style: TextStyle(fontSize: 18, color: Colors.grey),
         ),
       ),

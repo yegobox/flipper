@@ -8,7 +8,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:flutter/scheduler.dart';
 import 'package:flipper_dashboard/TransactionList.dart';
 
 enum ViewMode { products, stocks }
@@ -108,6 +108,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                   return Text('No Products available.');
                 }
                 if (!variants.first.isValid) {
+                  SchedulerBinding.instance.addPostFrameCallback((_) {
+                    ref.refresh(outerVariantsProvider(
+                        ProxyService.box.getBranchId() ?? 0));
+                  });
+
                   return Center(
                       child: Text("There was issue, please restart the app"));
                 }

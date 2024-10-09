@@ -271,8 +271,8 @@ class CronService {
       try {
         final downloadQueue = DownloadQueue(3);
 
-        int branchId = ProxyService.box.getBranchId()!;
-        if (ProxyService.local.realm == null) {
+        int? branchId = ProxyService.box.getBranchId();
+        if (ProxyService.local.realm == null || branchId == null) {
           talker.warning("realm is null");
           return;
         }

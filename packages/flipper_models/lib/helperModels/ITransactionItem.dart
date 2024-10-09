@@ -122,7 +122,7 @@ class ITransactionItem {
   // Item origin
   String? orgnNatCd;
   // packaging unit code
-  String? pkg;
+  int? pkg;
   // item code
   String? itemCd;
 

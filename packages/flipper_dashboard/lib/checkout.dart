@@ -250,7 +250,9 @@ class CheckOutState extends ConsumerState<CheckOut>
                   children: [
                     _buildIconRow(),
                     transaction.isValid
-                        ? SearchInputWithDropdown(transaction: transaction)
+                        ? SearchInputWithDropdown(
+                            transaction:
+                                transaction.isValid ? transaction : null)
                         : SizedBox.shrink()
                   ],
                 ),

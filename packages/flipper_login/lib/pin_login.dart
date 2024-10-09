@@ -1,11 +1,18 @@
-import 'dart:developer';
-
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
+import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:realm/realm.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_services/locator.dart' as loc;
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.locator.dart';
 
 class PinLogin extends StatefulWidget {
   PinLogin({Key? key}) : super(key: key);
@@ -18,8 +25,29 @@ class _PinLoginState extends State<PinLogin> {
   final GlobalKey<FormState> _form = GlobalKey<FormState>();
 
   final TextEditingController _pin = TextEditingController();
-
+  bool isProcessing = false;
   bool _isObscure = true;
+
+  Future<void> completeLogin(Pin thePin) async {
+    try {
+      await ProxyService.local.savePin(pin: thePin);
+      await loc.getIt<AppService>().appInit();
+
+      // Attempt to sign in with the custom token
+
+      final defaultApp = ProxyService.box.getDefaultApp();
+      
+      if (defaultApp == "2") {
+        final _routerService = locator<RouterService>();
+        _routerService.navigateTo(SocialHomeViewRoute());
+      } else {
+        locator<RouterService>().navigateTo(FlipperAppRoute());
+      }
+    } catch (e) {
+      print(e);
+      rethrow;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,12 +112,77 @@ class _PinLoginState extends State<PinLogin> {
                                           onTap: () async {
                                             if (_form.currentState!
                                                 .validate()) {
-                                             
                                               try {
-                                                log("initiating pin login flow");
-                                                await model.desktopLogin(
-                                                  pinCode: _pin.text,
-                                                );
+                                                try {
+                                                  setState(() {
+                                                    isProcessing = true;
+                                                  });
+                                                  await ProxyService.box
+                                                      .writeBool(
+                                                          key: 'pinLogin',
+                                                          value: true);
+
+                                                  IPin? pin = await ProxyService
+                                                      .local
+                                                      .getPin(
+                                                          pinString: _pin.text,
+                                                          flipperHttpClient:
+                                                              ProxyService
+                                                                  .http);
+                                                  if (pin == null) {
+                                                    throw PinError(
+                                                        term: "Not found");
+                                                  }
+
+                                                  ProxyService.box.writeBool(
+                                                      key: 'isAnonymous',
+                                                      value: true);
+
+                                                  // Sign out from Firebase before attempting to log in
+                                                  // await FirebaseAuth.instance.signOut();
+                                                  final thePin = Pin(ObjectId(),
+                                                      userId: int.tryParse(
+                                                          pin.userId),
+                                                      pin: int.tryParse(
+                                                          pin.userId),
+                                                      id: int.tryParse(
+                                                          pin.userId),
+                                                      branchId: pin.branchId,
+                                                      businessId:
+                                                          pin.businessId,
+                                                      ownerName: pin.ownerName,
+                                                      tokenUid: pin.tokenUid,
+                                                      phoneNumber:
+                                                          pin.phoneNumber);
+                                                  // Perform user login with ProxyService
+                                                  await ProxyService.local
+                                                      .login(
+                                                    pin: thePin,
+                                                    flipperHttpClient:
+                                                        ProxyService.http,
+                                                    skipDefaultAppSetup: false,
+                                                    userPhone: pin.phoneNumber,
+                                                  );
+
+                                                  ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
+                                                  await completeLogin(thePin);
+                                                } on LoginChoicesException {
+                                                  locator<RouterService>()
+                                                      .navigateTo(
+                                                          LoginChoicesRoute());
+                                                } catch (error, s) {
+                                                  setState(() {
+                                                    isProcessing = false;
+                                                  });
+                                                  await Sentry.captureException(
+                                                      error,
+                                                      stackTrace: s);
+                                                  rethrow;
+                                                } finally {
+                                                  setState(() {
+                                                    isProcessing = false;
+                                                  });
+                                                }
                                               } catch (e) {
                                                 if (e
                                                     is BusinessNotFoundException) {
@@ -133,13 +226,14 @@ class _PinLoginState extends State<PinLogin> {
                                                     ),
                                                   );
                                                 }
-                                                model.setIsprocessing(
-                                                    value: false);
+                                                setState(() {
+                                                  isProcessing = false;
+                                                });
                                               }
                                             }
                                           },
                                           title: 'Log in',
-                                          busy: model.isProcessing,
+                                          busy: isProcessing,
                                         )
                                       : const Padding(
                                           key: Key('busyButton'),

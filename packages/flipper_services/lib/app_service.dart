@@ -114,12 +114,10 @@ class AppService with ListenableServiceMixin {
     List<Branch> branches = await ProxyService.local.branches(
         businessId: ProxyService.box.getBusinessId()!, includeSelf: true);
 
-    bool authComplete = await ProxyService.box.authComplete();
-
     bool hasMultipleBusinesses = businesses.length > 1;
     bool hasMultipleBranches = branches.length > 1;
 
-    if ((hasMultipleBusinesses || hasMultipleBranches) && !authComplete) {
+    if ((hasMultipleBusinesses || hasMultipleBranches)) {
       throw LoginChoicesException(term: "Choose default business");
     }
   }

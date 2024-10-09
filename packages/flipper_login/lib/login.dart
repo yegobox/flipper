@@ -96,7 +96,9 @@ class _LoginState extends State<Login> {
           firebase.FirebaseAuth.instance
               .userChanges()
               .listen((firebase.User? user) async {
-            if (user != null && !ProxyService.box.pinLogin()!) {
+            if (user != null &&
+                !await ProxyService.box.pinLogin()! &&
+                !await ProxyService.box.authComplete()) {
               final key = user.phoneNumber ?? user.email!;
               final response = await ProxyService.local.sendLoginRequest(
                   key, ProxyService.http, AppSecrets.apihubProd);
@@ -124,7 +126,8 @@ class _LoginState extends State<Login> {
                     skipDefaultAppSetup: false,
                     pin: thePin,
                     flipperHttpClient: ProxyService.http);
-
+                await ProxyService.box
+                    .writeBool(key: 'authComplete', value: true);
                 model.completeLogin(thePin);
               } catch (e) {
                 rethrow;

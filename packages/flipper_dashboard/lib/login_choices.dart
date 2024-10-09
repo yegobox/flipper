@@ -1,9 +1,10 @@
 // ignore_for_file: unused_result
 
 import 'dart:developer';
-
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -33,13 +34,16 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   Widget build(BuildContext context) {
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
-      onViewModelReady: (_) {
-        ref.refresh(businessesProvider);
-        ref.refresh(branchesProvider((includeSelf: true)));
-      },
       builder: (context, viewModel, child) {
-        final branches = ref.watch(branchesProvider((includeSelf: true)));
         final businesses = ref.watch(businessesProvider);
+        final branches = ref.watch(branchesProvider((includeSelf: true)));
+
+        if (!businesses.first.isValid || !branches.first.isValid) {
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            ref.refresh(businessesProvider);
+            ref.refresh(branchesProvider((includeSelf: true)));
+          });
+        }
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -105,11 +109,12 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
       itemBuilder: (context, index) {
         final business = businesses[index];
         return _buildSelectionTile(
-          title: business.name!,
+          title: business.isValid ? business.name! : "",
           isSelected: business == _selectedBusiness,
           onTap: () => _handleBusinessSelection(business),
           icon: Icons.business,
-          isLoading: _loadingItemId == business.serverId?.toString(),
+          isLoading: _loadingItemId ==
+              (business.isValid ? business.serverId?.toString() : false),
         );
       },
     );

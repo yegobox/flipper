@@ -50,55 +50,6 @@ class LoginViewModel extends FlipperBaseModel
   bool _isProceeding = false;
   final talker = TalkerFlutter.init();
   get isProcessing => _isProceeding;
-  Future<void> desktopLogin({required String pinCode}) async {
-    ProxyService.box.remove(key: 'authComplete');
-    // logOut();
-    try {
-      setIsprocessing(value: true);
-      ProxyService.box.writeBool(key: 'pinLogin', value: true);
-
-      IPin? pin = await ProxyService.local
-          .getPin(pinString: pinCode, flipperHttpClient: ProxyService.http);
-      if (pin == null) {
-        throw PinError(term: "Not found");
-      }
-
-      ProxyService.box.writeBool(key: 'isAnonymous', value: true);
-
-      // Sign out from Firebase before attempting to log in
-      // await FirebaseAuth.instance.signOut();
-      final thePin = Pin(ObjectId(),
-          userId: int.tryParse(pin.userId),
-          pin: int.tryParse(pin.userId),
-          id: int.tryParse(pin.userId),
-          branchId: pin.branchId,
-          businessId: pin.businessId,
-          ownerName: pin.ownerName,
-          tokenUid: pin.tokenUid,
-          phoneNumber: pin.phoneNumber);
-      // Perform user login with ProxyService
-      await ProxyService.local.login(
-        pin: thePin,
-        flipperHttpClient: ProxyService.http,
-        skipDefaultAppSetup: false,
-        userPhone: pin.phoneNumber,
-      );
-
-      ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
-      await completeLogin(thePin);
-    } on LoginChoicesException {
-      locator<RouterService>().navigateTo(LoginChoicesRoute());
-    } catch (error, s) {
-      talker.error("Login error: $error");
-      talker.error("Login trace: $s");
-      talker.info(s);
-      setIsprocessing(value: false);
-      await Sentry.captureException(error, stackTrace: s);
-      rethrow;
-    } finally {
-      setIsprocessing(value: false);
-    }
-  }
 
   Future<void> completeLogin(Pin thePin) async {
     try {
@@ -121,8 +72,5 @@ class LoginViewModel extends FlipperBaseModel
     }
   }
 
-  void setIsprocessing({required bool value}) {
-    _isProceeding = value;
-    notifyListeners();
-  }
+  
 }

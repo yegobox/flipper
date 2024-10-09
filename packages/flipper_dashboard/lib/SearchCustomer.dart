@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -46,6 +48,12 @@ class _SearchInputWithDropdownState
   void _updateSearchBoxFromTransaction() {
     final transaction = ref.read(pendingTransactionProviderNonStream(
         (mode: TransactionType.sale, isExpense: false)));
+    if (!transaction.isValid) {
+      ref.refresh(pendingTransactionProviderNonStream(
+          (mode: TransactionType.sale, isExpense: false)));
+      return;
+    }
+
     if (transaction.customerId != null) {
       final customer =
           ProxyService.local.getCustomer(id: transaction.customerId);
@@ -84,12 +92,13 @@ class _SearchInputWithDropdownState
       pendingTransactionProviderNonStream(
           (mode: TransactionType.sale, isExpense: false)),
       (previous, next) {
-        if (previous?.customerId != next.customerId) {
+        if (previous?.isValid ??
+            true && (previous?.customerId != next.customerId)) {
           _updateSearchBoxFromTransaction();
         }
       },
     );
-
+    if (!transaction.isValid) return SizedBox.shrink();
     final attachedCustomer = transaction.customerId != null
         ? ProxyService.local.getCustomer(id: transaction.customerId)
         : null;

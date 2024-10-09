@@ -39,7 +39,7 @@ ITransactionItem _$ITransactionItemFromJson(Map<String, dynamic> json) =>
       itemTyCd: json['itemTyCd'] as String?,
       itemStdNm: json['itemStdNm'] as String?,
       orgnNatCd: json['orgnNatCd'] as String?,
-      pkg: json['pkg'] as String?,
+      pkg: json['pkg'] as int?,
       itemCd: json['itemCd'] as String?,
       pkgUnitCd: json['pkgUnitCd'] as String?,
       qtyUnitCd: json['qtyUnitCd'] as String?,

@@ -283,6 +283,7 @@ class LocalRealmApi
         await _authenticateUser(phoneNumber, pin, flipperHttpClient);
 
     await configureSystem(userPhone, user, offlineLogin: offlineLogin);
+    await ProxyService.box.writeBool(key: 'authComplete', value: true);
 
     if (stopAfterConfigure) return user;
 
@@ -3102,27 +3103,27 @@ class LocalRealmApi
           Stock? stock =
               stockByVariantId(variantId: item.variantId!, branchId: branchId);
           final finalStock = (stock!.currentStock - item.qty);
-          realm!.writeN(
-              tableName: transactionItemsTable,
-              writeCallback: () {
-                Configurations taxConfig =
-                    ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
+          // realm!.writeN(
+          //     tableName: transactionItemsTable,
+          //     writeCallback: () {
+          //       Configurations taxConfig =
+          //           ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
 
-                double taxAmount =
-                    (((item.price * item.qty) * taxConfig.taxPercentage!) /
-                        (100 + taxConfig.taxPercentage!));
+          //       double taxAmount =
+          //           (((item.price * item.qty) * taxConfig.taxPercentage!) /
+          //               (100 + taxConfig.taxPercentage!));
 
-                item.taxAmt =
-                    (double.parse(taxAmount.round().toStringAsFixed(2)) * 100)
-                            .round() /
-                        100;
-
-                item.dcAmt = discount;
-                item.discount = discount;
-                item.taxblAmt = item.price * item.qty;
-                item.lastTouched = DateTime.now().toUtc().toLocal();
-                return item;
-              });
+          //       item.taxAmt =
+          //           (double.parse(taxAmount.round().toStringAsFixed(2)) * 100)
+          //                   .round() /
+          //               100;
+          //       item.totAmt = item.price * item.qty;
+          //       item.dcAmt = discount;
+          //       item.discount = discount;
+          //       item.taxblAmt = item.price * item.qty;
+          //       item.lastTouched = DateTime.now().toUtc().toLocal();
+          //       return item;
+          //     });
           realm!.writeN(
               tableName: stocksTable,
               writeCallback: () {
@@ -4418,10 +4419,10 @@ class LocalRealmApi
 
     final subject = ReplaySubject<List<ITransaction>>();
 
-    final query = realm!.query<ITransaction>(
+    final query = realm?.query<ITransaction>(
         r'status == $0 AND branchId == $1', [PARKED, branchId]);
 
-    query.changes.listen((results) {
+    query?.changes.listen((results) {
       subject.add(results.results.toList());
     });
 
