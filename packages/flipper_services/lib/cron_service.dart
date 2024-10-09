@@ -4,7 +4,6 @@ import 'dart:isolate';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -18,10 +17,6 @@ import 'PullChange.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/CloudSync.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:flipper_models/realmExtension.dart';
-import 'package:flipper_models/power_sync/schema.dart';
-// import 'package:realm/realm.dart';
-// import 'package:realm/realm.dart';
 
 class CronService {
   final drive = GoogleDrive();
@@ -140,25 +135,10 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
-    ProxyService.notification.sendLocalNotification(body: "Test notification");
     //if there is network connection
     if (ConnectivityResult.none != await Connectivity().checkConnectivity()) {
       await ProxyService.syncFirestore.firebaseLogin();
     }
-    // List<Variant> variantsAll =
-    //     ProxyService.local.realm!.all<Variant>().toList();
-
-    // for (Variant variant in variantsAll) {
-    //   if (variant.color == "Color") {
-    //     talker.warning("variant.color == Color");
-    //     ProxyService.local.realm!.writeN(
-    //         tableName: variantTable,
-    //         writeCallback: () {
-    //           variant.color = '#FF0000';
-    //           return variant;
-    //         });
-    //   }
-    // }
 
     PullChange().start(
         firestore: FirebaseFirestore.instance,
@@ -262,7 +242,17 @@ class CronService {
 
     // CloudSync(firestore, realm).deleteDuplicate(tableName: customersTable);
     // CloudSync(firestore, realm).deleteDuplicate(tableName: devicesTable);
-
+    Timer.periodic(Duration(seconds: 10), (Timer t) async {
+      if (Platform.isWindows) {
+        await ProxyService.syncFirestore.firebaseLogin();
+        if (FirebaseAuth.instance.currentUser != null) {
+          // https://github.com/firebase/flutterfire/issues/12055
+          PullChange().start(
+              firestore: FirebaseFirestore.instance,
+              localRealm: ProxyService.local.realm!);
+        }
+      }
+    });
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       // backUpPowerSync();
       if (ProxyService.box.getUserId() == null ||

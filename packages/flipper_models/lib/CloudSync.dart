@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/secrets.dart';
@@ -617,7 +616,7 @@ class CloudSync implements SyncInterface {
     final pinLocal = ProxyService.local.getPinLocal(userId: userId);
     try {
       token ??= pinLocal?.tokenUid;
-// Edwige
+
       if (token != null) {
         talker.warning(token);
         await FirebaseAuth.instance.signInWithCustomToken(token);
