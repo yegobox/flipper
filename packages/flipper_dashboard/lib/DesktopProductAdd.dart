@@ -37,8 +37,7 @@ class QuantityCell extends StatelessWidget {
       child: Row(
         children: [
           Text(quantity.toString()),
-          const Icon(
-              Icons.edit), // You can replace this icon with your edit icon
+          const Icon(Icons.edit),
         ],
       ),
     );

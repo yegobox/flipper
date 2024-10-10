@@ -249,7 +249,6 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           id: randomNumber(),
           variantId: variant.id!,
           currentStock: variant.qty,
-          sold: 0,
           lowStock: 0,
           canTrackingStock: false,
           showLowStockAlert: true,

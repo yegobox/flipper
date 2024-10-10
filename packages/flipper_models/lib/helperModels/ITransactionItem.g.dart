@@ -39,7 +39,7 @@ ITransactionItem _$ITransactionItemFromJson(Map<String, dynamic> json) =>
       itemTyCd: json['itemTyCd'] as String?,
       itemStdNm: json['itemStdNm'] as String?,
       orgnNatCd: json['orgnNatCd'] as String?,
-      pkg: json['pkg'] as int?,
+      pkg: (json['pkg'] as num?)?.toInt(),
       itemCd: json['itemCd'] as String?,
       pkgUnitCd: json['pkgUnitCd'] as String?,
       qtyUnitCd: json['qtyUnitCd'] as String?,
@@ -186,7 +186,7 @@ abstract class _$ITransactionItemPerFieldToJson {
   // ignore: unused_element
   static Object? orgnNatCd(String? instance) => instance;
   // ignore: unused_element
-  static Object? pkg(String? instance) => instance;
+  static Object? pkg(int? instance) => instance;
   // ignore: unused_element
   static Object? itemCd(String? instance) => instance;
   // ignore: unused_element

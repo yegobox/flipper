@@ -112,9 +112,8 @@ class PullChange {
               data['current_stock'] is int || data['current_stock'] is double
                   ? data['current_stock'].toDouble()
                   : double.tryParse(data['current_stock']) ?? 0.0,
-          sold: data['sold'] is int || data['sold'] is double
-              ? data['sold'].toDouble()
-              : double.tryParse(data['sold']) ?? 0.0,
+          initialStock:
+              data['initial_stock'] == null ? 0.0 : data['initial_stock'],
           lowStock: data['low_stock'] is int || data['low_stock'] is double
               ? data['low_stock'].toDouble()
               : double.tryParse(data['low_stock']) ?? 0.0,

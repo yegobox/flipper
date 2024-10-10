@@ -325,21 +325,20 @@ class IsolateHandler {
   /// handle properties added later as the app grow but needed to support old clients
   static void _selfHeal({Realm? localRealm}) {
     // Query stocks where sold == 0.0
-    List<Stock> stocks = localRealm!.query<Stock>(r'sold == NULL').toList();
+    List<Stock> stocks = localRealm!.query<Stock>(r'variant == NULL').toList();
 
     // Loop through each stock to calculate and update sold quantity
     for (Stock stock in stocks) {
       // Query past transaction items for the stock's variant
-      List<TransactionItem> items = localRealm.query<TransactionItem>(
-          r'variantId == $0', [stock.variantId]).toList();
-
-      // Calculate total quantity sold
-      int totalQuantitySold = items.fold(0, (a, b) => a + b.qty.toInt());
+      Variant? variant =
+          localRealm.query<Variant>(r'id == $0', [stock.variantId]).firstOrNull;
 
       // Write updated sold quantity to realm
       localRealm.write(() {
-        stock.sold = totalQuantitySold.toDouble();
-        talker.warning("healedStock: ${stock.id}");
+        if (variant != null) {
+          stock.variant = variant;
+          talker.warning("Healed Stock: ${stock.id}");
+        }
       });
     }
 

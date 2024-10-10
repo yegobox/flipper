@@ -567,14 +567,14 @@ class RealmAPI<M extends IJsonSerializable>
       ) as T;
     } else if (obj is Stock) {
       return Stock(
-        obj.realmId, // ObjectId
+        obj.realmId,
         id: obj.id,
         tin: obj.tin,
         bhfId: obj.bhfId,
         branchId: obj.branchId,
         variantId: obj.variantId,
         currentStock: obj.currentStock,
-        sold: obj.sold,
+        initialStock: obj.initialStock,
         lowStock: obj.lowStock,
         canTrackingStock: obj.canTrackingStock,
         showLowStockAlert: obj.showLowStockAlert,

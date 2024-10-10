@@ -159,6 +159,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
           tableName: stocksTable,
           writeCallback: () {
             stock!.rsdQty = newQuantity;
+            stock.initialStock = newQuantity;
             stock.ebmSynced = false;
             stock.currentStock = newQuantity;
             return stock;

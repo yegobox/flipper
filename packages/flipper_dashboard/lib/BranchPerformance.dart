@@ -226,17 +226,16 @@ class StockBarChartPainter extends CustomPainter {
           ? Colors.red.withOpacity(animationValue)
           : Colors.indigo.withOpacity(animationValue);
       canvas.drawRect(rect, paint);
-
-      _drawText(
-        canvas,
-        _formatNumber(item.currentStock.toInt()),
-        Offset((i * 2 + 1.5) * barWidth, size.height - barHeight - 15),
-        10,
-        FontWeight.bold,
-        Colors.black,
-      );
-
-      // Removed the bottom label drawing
+      item.id.toString() == selectedItemId
+          ? _drawText(
+              canvas,
+              _formatNumber(item.currentStock.toInt()),
+              Offset((i * 2 + 1.5) * barWidth, size.height - barHeight - 15),
+              10,
+              FontWeight.bold,
+              Colors.black,
+            )
+          : SizedBox.shrink();
     }
   }
 
@@ -306,7 +305,7 @@ class ItemDetailCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     SizedBox(height: 8),
-                    Text('Sold: ${item.sold}',
+                    Text('Sold: ${item.initialStock ?? 0 - item.currentStock}',
                         style: Theme.of(context).textTheme.bodyMedium),
                     Text('In Stock: ${item.currentStock}',
                         style: Theme.of(context).textTheme.bodyMedium),
@@ -324,7 +323,6 @@ class ItemDetailCard extends StatelessWidget {
     );
   }
 }
-// ... (previous code remains the same)
 
 class BestSellingItemCard extends StatelessWidget {
   final List<Stock> items;
@@ -333,7 +331,17 @@ class BestSellingItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bestSeller = items.reduce((a, b) => a.sold! > b.sold! ? a : b);
+    talker.warning("LENGTH:" + items.length.toString());
+
+    /// best selling item is the item that has the currentStock is the lowest
+    final bestSeller = items.reduce((a, b) {
+      double aSold = a.initialStock! - a.currentStock;
+      double bSold = b.initialStock! - b.currentStock;
+      return aSold > bSold ? a : b;
+    });
+    double itemsSold = bestSeller.initialStock == bestSeller.currentStock
+        ? 1
+        : bestSeller.initialStock! - bestSeller.currentStock;
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -363,7 +371,7 @@ class BestSellingItemCard extends StatelessWidget {
                               ),
                     ),
                     Text(
-                      'Sold: ${bestSeller.sold}',
+                      'Sold: $itemsSold',
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ],
@@ -400,7 +408,7 @@ class CircularStockIndicator extends StatelessWidget {
         ),
         child: Center(
           child: Text(
-            '${(stock / maxStock * 100).round()}%',
+            '${(stock / maxStock * 100).roundToDouble() / 100}%',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 12,

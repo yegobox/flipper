@@ -3704,7 +3704,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     int? branchId,
     int? variantId,
     double currentStock = 0.0,
-    double? sold = 0.0,
     double lowStock = 0,
     bool? canTrackingStock = true,
     bool? showLowStockAlert = true,
@@ -3724,7 +3723,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Stock>({
         'currentStock': 0.0,
-        'sold': 0.0,
         'lowStock': 0,
         'canTrackingStock': true,
         'showLowStockAlert': true,
@@ -3743,7 +3741,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'variantId', variantId);
     RealmObjectBase.set(this, 'currentStock', currentStock);
-    RealmObjectBase.set(this, 'sold', sold);
     RealmObjectBase.set(this, 'lowStock', lowStock);
     RealmObjectBase.set(this, 'canTrackingStock', canTrackingStock);
     RealmObjectBase.set(this, 'showLowStockAlert', showLowStockAlert);
@@ -3800,11 +3797,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
   @override
   set currentStock(double value) =>
       RealmObjectBase.set(this, 'currentStock', value);
-
-  @override
-  double? get sold => RealmObjectBase.get<double>(this, 'sold') as double?;
-  @override
-  set sold(double? value) => RealmObjectBase.set(this, 'sold', value);
 
   @override
   double get lowStock =>
@@ -3920,7 +3912,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       'branchId': branchId.toEJson(),
       'variantId': variantId.toEJson(),
       'currentStock': currentStock.toEJson(),
-      'sold': sold.toEJson(),
       'lowStock': lowStock.toEJson(),
       'canTrackingStock': canTrackingStock.toEJson(),
       'showLowStockAlert': showLowStockAlert.toEJson(),
@@ -3956,7 +3947,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
           branchId: fromEJson(ejson['branchId']),
           variantId: fromEJson(ejson['variantId']),
           currentStock: fromEJson(ejson['currentStock'], defaultValue: 0.0),
-          sold: fromEJson(ejson['sold'], defaultValue: 0.0),
           lowStock: fromEJson(ejson['lowStock'], defaultValue: 0),
           canTrackingStock:
               fromEJson(ejson['canTrackingStock'], defaultValue: true),
@@ -3991,7 +3981,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),
       SchemaProperty('variantId', RealmPropertyType.int, optional: true),
       SchemaProperty('currentStock', RealmPropertyType.double),
-      SchemaProperty('sold', RealmPropertyType.double, optional: true),
       SchemaProperty('lowStock', RealmPropertyType.double),
       SchemaProperty('canTrackingStock', RealmPropertyType.bool,
           optional: true),
@@ -4532,7 +4521,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       'ebmSynced': ebmSynced.toEJson(),
       'taxType': taxType.toEJson(),
       'branchIds': branchIds.toEJson(),
-      'stock': includeStock ? stock.toEJson() : null,
+      'stock': stock.toEJson(),
     };
   }
 

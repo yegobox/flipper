@@ -452,7 +452,6 @@ class _Stock {
   int? branchId;
   int? variantId;
   double currentStock = 0.0;
-  double? sold = 0.0;
   double lowStock = 0;
 
   bool? canTrackingStock = true;

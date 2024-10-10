@@ -3129,7 +3129,6 @@ class LocalRealmApi
               writeCallback: () {
                 stock.rsdQty = finalStock;
                 stock.currentStock = finalStock;
-                stock.sold = stock.sold! + item.qty;
                 // stock value after item deduct
                 stock.value = finalStock * (stock.retailPrice);
                 stock.ebmSynced = false;
