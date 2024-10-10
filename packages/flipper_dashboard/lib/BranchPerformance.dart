@@ -331,8 +331,6 @@ class BestSellingItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    talker.warning("LENGTH:" + items.length.toString());
-
     /// best selling item is the item that has the currentStock is the lowest
     final bestSeller = items.reduce((a, b) {
       double aSold = a.initialStock! - a.currentStock;
