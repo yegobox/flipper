@@ -381,7 +381,7 @@ class RWTax implements TaxApi {
       isrcAplcbYn: "N",
       useYn: "Y",
       regrId:
-          item.regrId ?? "RegistrarID", // Ensure regrId and modrId are not null
+          item.regrId?.toString() ?? randomNumber().toString().substring(0, 20),
       modrId: item.modrId ?? "ModifierID",
       modrNm: item.modrNm ?? "Modifier", // Ensure modrNm is not null
       name: item.name,
@@ -510,7 +510,7 @@ class RWTax implements TaxApi {
         "topMsg": topMessage,
         "btmMsg": "THANK YOU COME BACK AGAIN",
         "custMblNo": customer == null
-            ? ProxyService.box.currentSaleCustomerPhoneNumber()
+            ? "0" + ProxyService.box.currentSaleCustomerPhoneNumber()!
             : customer.telNo,
       },
       "itemList": itemsList,

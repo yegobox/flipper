@@ -36,7 +36,7 @@ dependencies:
   #    sdk: flutter
   firebase_ui_auth: ^1.15.0
   azlistview: ^2.0.0
-  qr_code_scanner: ^1.0.1
+  
   # I will abandon qr_code_scanner and switch to mobile_scanner even though this
   
   # will increase app size.

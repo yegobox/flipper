@@ -8,9 +8,6 @@
 [submodule "open-sources/receipt"]
 	path = open-sources/receipt
 	url = https://github.com/yegobox/receipt.git
-[submodule "open-sources/qr_code_scanner"]
-	path = open-sources/qr_code_scanner
-	url = https://github.com/yegobox/qr_code_scanner.git
 [submodule "open-sources/system_time_check"]
 	path = open-sources/system_time_check
 	url = https://github.com/yegobox/system_time_check.git

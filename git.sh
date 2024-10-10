@@ -6,7 +6,6 @@ cd .. && cd flutter.widgets &&  git checkout main  && git add . && git commit -a
 cd .. && cd qr.flutter &&  git checkout main  && git add . && git commit -am "clean-up" && git push origin main
 cd .. && cd receipt &&  git checkout main  && git add .   && git commit -am "clean-up" && git push origin main
 # cd .. && cd kds &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
-cd .. && cd qr_code_scanner &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
 
 # cd .. && cd flutter_list_drag_and_drop && git stash &&  git checkout main  && git add .  && git commit -am "clean-up" && git push origin main
 

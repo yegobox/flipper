@@ -136,11 +136,11 @@ class App {}
 // git config submodule.recurse false
 // git pull https://github.com/joelhigi/flipper.git stable
 // flutterfire configure
-// git submodule deinit -f open-sources/kds
+// git submodule deinit -f open-sources/qr_code_scanner
 // STEPS to remove submodule
-///git submodule deinit -f open-sources/kds
-///git rm -rf open-sources/kds
-///rm -rf open-sources/kds
+///git submodule deinit -f open-sources/qr_code_scanner
+///git rm -rf open-sources/qr_code_scanner
+///rm -rf open-sources/qr_code_scanner
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 ///rm -rf path/to/submodule
 ///git submodule add https://github.com/yegobox/dart_pdf.git open-sources/dart_pdf
@@ -627,3 +627,5 @@ class App {}
 
 // FIXME: use latest flutter, I have to keep watching this issue as it affect me on android
 // https://github.com/flutter/flutter/issues/9707
+
+// xcrun simctl runtime add "~/Downloads/iOS_17.5_Simulator_Runtime.dmg"

@@ -3772,8 +3772,7 @@ class LocalRealmApi
 
   @override
   Product? getProduct({required int id}) {
-    return realm!
-        .query<Product>(r'id == $0 AND deletedAt == nil', [id]).firstOrNull;
+    return realm!.query<Product>(r'id == $0', [id]).firstOrNull;
   }
 
   @override

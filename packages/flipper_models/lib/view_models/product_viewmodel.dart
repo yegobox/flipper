@@ -97,38 +97,43 @@ class ProductViewModel extends FlipperBaseModel
   /// the same product will be use if it is still temp product
   String? kProductName;
   Future<Product> getProduct({int? productId}) async {
-    if (productId != null) {
-      Product? product = ProxyService.local.getProduct(id: productId);
+    try {
+      if (productId != null) {
+        Product? product = ProxyService.local.getProduct(id: productId);
+        setCurrentProduct(currentProduct: product!);
+        setCurrentProduct(currentProduct: product);
+        kProductName = product.name!;
+        setCurrentColor(color: product.color);
+        notifyListeners();
+        return product;
+      }
+
+      /// create a temp product or return it if it exists
+      Product? product = await ProxyService.local.createProduct(
+        tinNumber: ProxyService.box.tin(),
+        bhFId: ProxyService.box.bhfId() ?? "00",
+        businessId: ProxyService.box.getBusinessId()!,
+        branchId: ProxyService.box.getBranchId()!,
+        product: Product(
+          ObjectId(),
+          id: randomNumber(),
+          name: TEMP_PRODUCT,
+          lastTouched: DateTime.now(),
+          businessId: ProxyService.box.getBusinessId()!,
+          color: COLOR,
+          branchId: ProxyService.box.getBranchId()!,
+        ),
+      );
+
       setCurrentProduct(currentProduct: product!);
-      setCurrentProduct(currentProduct: product);
       kProductName = product.name!;
       setCurrentColor(color: product.color);
-      notifyListeners();
+      rebuildUi();
       return product;
+    } catch (e, s) {
+      talker.error(s);
+      rethrow;
     }
-
-    /// create a temp product or return it if it exists
-    Product? product = await ProxyService.local.createProduct(
-      tinNumber: ProxyService.box.tin(),
-      bhFId: ProxyService.box.bhfId() ?? "00",
-      businessId: ProxyService.box.getBusinessId()!,
-      branchId: ProxyService.box.getBranchId()!,
-      product: Product(
-        ObjectId(),
-        id: randomNumber(),
-        name: TEMP_PRODUCT,
-        lastTouched: DateTime.now(),
-        businessId: ProxyService.box.getBusinessId()!,
-        color: COLOR,
-        branchId: ProxyService.box.getBranchId()!,
-      ),
-    );
-
-    setCurrentProduct(currentProduct: product!);
-    kProductName = product.name!;
-    setCurrentColor(color: product.color);
-    rebuildUi();
-    return product;
   }
 
   void setProductName({String? name}) {
