@@ -40,7 +40,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
 
   final talker = TalkerFlutter.init();
   void onAddVariant(
-      {required String variantName,
+      {required String barCode,
       required bool isTaxExempted,
       required Product product,
       required bool editmode}) {
@@ -50,7 +50,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     /// then its quantity will be incremented otherwise if the item is not found
     /// a new item will be created and added to the scannedVariants list
     for (var variant in scannedVariants) {
-      if (variant.name == variantName) {
+      if (variant.name == barCode) {
         // If found, update it
         variant.retailPrice = retailPrice;
         variant.supplyPrice = supplyPrice;
@@ -65,12 +65,15 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     scannedVariants.add(
       Variant(
         ObjectId(),
-        name: variantName,
+        name: product.name,
         retailPrice: retailPrice,
         supplyPrice: supplyPrice,
         prc: retailPrice,
+
+        /// bcd is bar code
+        bcd: barCode,
         id: randomNumber(),
-        sku: variantName,
+        sku: barCode,
         productId: product.id,
         color: currentColor,
         unit: 'Per Item',

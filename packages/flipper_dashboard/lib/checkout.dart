@@ -291,9 +291,10 @@ class CheckOutState extends ConsumerState<CheckOut>
           child: PayableView(
             mode: SellingMode.forSelling,
             completeTransaction: () {
-              /// I want if the button from payble clicked to call
-              /// QuickView function
-              // ref.refresh(paymentMethodsProvider);
+              if (customerNameController.text.isEmpty) {
+                /// remove old customer added maybe from previous sale
+                ProxyService.box.remove(key: 'customerName');
+              }
               handleCompleteTransaction(
                   transaction: transaction,
                   paymentMethods: ref.watch(paymentMethodsProvider));

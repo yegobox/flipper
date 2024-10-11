@@ -44,11 +44,12 @@ mixin ProductMixin {
           variations[i].useYn = "N";
           variations[i].itemSeq = i;
           variations[i].itemStdNm = variations[i].name;
+
           variations[i].taxPercentage = 18.0;
           variations[i].tin = business.tinNumber;
 
           variations[i].bhfId = business.bhfId ?? "00";
-          variations[i].bcd = variations[i].name;
+          variations[i].bcd = variations[i].bcd;
           variations[i].splyAmt = variations[i].supplyPrice;
 
           /// country of origin for this item we default until we support something different

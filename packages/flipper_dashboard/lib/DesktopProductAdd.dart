@@ -830,13 +830,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
         ),
         textInputAction: TextInputAction.done,
-        onFieldSubmitted: (scannedInput) {
+        onFieldSubmitted: (barCodeInput) {
           _inputTimer?.cancel();
           _inputTimer = Timer(const Duration(seconds: 1), () {
-            if (scannedInput.isNotEmpty) {
+            if (barCodeInput.isNotEmpty) {
               model.onAddVariant(
                 editmode: widget.productId != null,
-                variantName: scannedInput,
+                barCode: barCodeInput,
                 isTaxExempted: false,
                 product: productRef!,
               );

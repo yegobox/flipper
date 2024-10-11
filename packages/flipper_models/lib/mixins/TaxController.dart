@@ -235,7 +235,8 @@ class TaxController<OBJ> {
       customerTin: customer?.custTin ??
           "0" + ProxyService.box.currentSaleCustomerPhoneNumber()!,
       receiptType: receiptType,
-      customerName: customer?.custNm ?? ProxyService.box.customerName()!,
+      customerName:
+          customer?.custNm ?? ProxyService.box.customerName() ?? "N/A",
       printCallback: (Uint8List bytes) {
         printCallback(bytes);
       },

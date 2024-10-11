@@ -246,14 +246,8 @@ class RWTax implements TaxApi {
     try {
       final response = await sendPostRequest(url, data);
       if (response.statusCode == 200) {
-        // sendEmailLogging(
-        //   requestBody: data.toString(),
-        //   subject: "Worked",
-        //   body: response.data.toString(),
-        // );
         return true;
       } else {
-        // print(response.reasonPhrase);
         return false;
       }
     } catch (e) {
@@ -340,6 +334,10 @@ class RWTax implements TaxApi {
 
 // Helper function to map TransactionItem to JSON
   Map<String, dynamic> mapItemToJson(TransactionItem item, Business? business) {
+    Configurations taxConfig =
+        ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
+    double taxAmount = (((item.price * item.qty) * taxConfig.taxPercentage!) /
+        (100 + taxConfig.taxPercentage!));
     final itemJson = ITransactionItem(
       id: item.id,
       qty: item.qty,
@@ -349,24 +347,20 @@ class RWTax implements TaxApi {
       variantId: item.id,
       qtyUnitCd: item.qtyUnitCd ?? "U",
       prc: item.price,
-      regrNm: item.regrNm ?? "Registrar", // Ensure regrNm is not null
+      regrNm: item.regrNm ?? "Registrar",
       dcRt: 0,
-      pkg: 1,
-      // pkg: item.pkg,
+      pkg: item.qty.toInt(),
       dcAmt: 0,
       taxblAmt: (item.price * item.qty),
-      taxAmt: double.parse(((item.taxTyCd == "B")
-              ? ((item.price * item.qty * 0.15254) * 100).round() / 100
-              : 0)
-          .toStringAsFixed(2)),
+      taxAmt: ((taxAmount) * 100).round() / 100,
       itemClsCd: item.itemClsCd,
       itemNm: item.name,
       totAmt: item.price * item.qty,
       itemSeq: item.itemSeq,
       isrccCd: "",
       isrccNm: "",
-      isrcRt: item.isrcRt,
-      isrcAmt: item.isrcAmt,
+      isrcRt: 0,
+      isrcAmt: 0,
       taxTyCd: item.taxTyCd,
       bcd: item.bcd,
       itemTyCd: item.itemTyCd,
@@ -499,14 +493,13 @@ class RWTax implements TaxApi {
       "modrNm": transaction.id,
       "rfdRsnCd": ProxyService.box.getRefundReason(),
 
-      "custNm": customer?.custNm ?? ProxyService.box.customerName(),
+      "custNm": customer?.custNm ?? ProxyService.box.customerName() ?? "N/A",
       "remark": "",
       "prchrAcptcYn": "Y",
       "receipt": {
         "prchrAcptcYn": "Y",
         "rptNo": counter.invcNo,
-        "adrs":
-            business?.adrs?.isEmpty == true ? "Kigali, Rwanda" : business?.adrs,
+        "adrs": "Kigali, Rwanda",
         "topMsg": topMessage,
         "btmMsg": "THANK YOU COME BACK AGAIN",
         "custMblNo": customer == null
