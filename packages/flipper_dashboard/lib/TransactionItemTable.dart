@@ -35,10 +35,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         : total + compositeTotal;
   }
 
-  String getDeviceType(BuildContext context) {
-    return DeviceType.getDeviceType(context);
-  }
-
+ 
   Widget buildTransactionItemsTable(bool isOrdering) {
     return Table(
       columnWidths: {

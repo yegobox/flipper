@@ -32,10 +32,6 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
       if (value.isNotEmpty) {
         Variant? variant = ProxyService.local.variant(name: value);
         if (variant != null) {
-          Stock? stock = ProxyService.local.stockByVariantId(
-              variantId: variant.id!,
-              nonZeroValue: false,
-              branchId: ProxyService.box.getBranchId()!);
           ITransaction currentTransaction = ProxyService.local
               .manageTransaction(
                   branchId: ProxyService.box.getBranchId()!,
@@ -47,12 +43,11 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
               amountTotal: variant.retailPrice,
               customItem: false,
               pendingTransaction: currentTransaction,
-              currentStock: stock!.currentStock,
+              currentStock: variant.stock!.currentStock,
               partOfComposite: false);
 
-          await Future.delayed(Duration(microseconds: 500));
           ref.refresh(transactionItemsProvider((isExpense: false)));
-          await Future.delayed(Duration(microseconds: 500));
+
           ref.refresh(transactionItemsProvider((isExpense: false)));
           ref.read(searchStringProvider.notifier).emitString(value: '');
         }

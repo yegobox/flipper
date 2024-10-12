@@ -1,5 +1,4 @@
 // ignore_for_file: unused_result
-
 import 'package:feather_icons/feather_icons.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
@@ -105,10 +104,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         ref.watch(transactionItemsProvider((isExpense: isOrdering)));
     final transactionAsyncValue = ref.watch(pendingTransactionProvider(
         (mode: TransactionType.sale, isExpense: false)));
-    final deviceType = getDeviceType(context);
-    final isSmallDevice = deviceType == "Phone" ||
-        deviceType == "Phablet" ||
-        deviceType == "Tablet";
 
     transactionItemsAsyncValue.whenData((items) {
       try {
@@ -126,11 +121,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return ViewModelBuilder.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
-          return isSmallDevice
+          return context.isSmallDevice
               ? _buildSmallDeviceScaffold(
                   isOrdering, transactionAsyncValue, model)
               : _buildSharedView(
-                  transactionAsyncValue, isSmallDevice, isOrdering);
+                  transactionAsyncValue, context.isSmallDevice, isOrdering);
         });
   }
 
@@ -477,28 +472,41 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           children: [
             Expanded(
               flex: 2,
-              child: DropdownButton<String>(
-                value: ref.read(paymentMethodsProvider)[index].method,
-                items: paymentTypes.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    ref.read(paymentMethodsProvider)[index].method = newValue!;
+              child: ClipRect(
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    value: ref.read(paymentMethodsProvider)[index].method,
+                    items: paymentTypes.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(
+                          value,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        ref.read(paymentMethodsProvider)[index].method =
+                            newValue!;
 
-                    for (Payment payment in ref.read(paymentMethodsProvider)) {
-                      ref
-                          .read(paymentMethodsProvider.notifier)
-                          .addPaymentMethod(Payment(
-                              amount: payment.amount, method: payment.method));
-                    }
+                        for (Payment payment
+                            in ref.read(paymentMethodsProvider)) {
+                          ref
+                              .read(paymentMethodsProvider.notifier)
+                              .addPaymentMethod(
+                                Payment(
+                                    amount: payment.amount,
+                                    method: payment.method),
+                              );
+                        }
 
-                    updatePaymentAmounts();
-                  });
-                },
+                        updatePaymentAmounts();
+                      });
+                    },
+                  ),
+                ),
               ),
             ),
             SizedBox(width: 10, height: 5),

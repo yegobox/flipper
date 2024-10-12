@@ -1,5 +1,6 @@
 import 'dart:math';
-
+import 'dart:io';
+import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -269,6 +270,22 @@ extension FlipperClip on DateTime {
   }
 }
 
+extension DeviceTypeExtension on BuildContext {
+  String getDeviceType() {
+    return DeviceType.getDeviceType(this);
+  }
+
+  bool get isSmallDevice {
+    final deviceType = getDeviceType();
+    return (deviceType == "Phone" ||
+            deviceType == "Phablet" ||
+            deviceType == "Tablet") &&
+        !(Platform.isMacOS ||
+            Platform.isWindows ||
+            Platform.isLinux ||
+            Platform.isFuchsia);
+  }
+}
 
 // Example usage:
 // void main() {

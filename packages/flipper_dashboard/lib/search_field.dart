@@ -87,7 +87,7 @@ class SearchFieldState extends ConsumerState<SearchField>
       child: ViewModelBuilder<CoreViewModel>.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) {
-          _textSubject.debounceTime(Duration(seconds: 2)).listen((value) {
+          _textSubject.debounceTime(Duration(microseconds: 2)).listen((value) {
             processDebouncedValue(value, model, widget.controller);
           });
         },
@@ -194,28 +194,11 @@ class SearchFieldState extends ConsumerState<SearchField>
     final deviceType = _getDeviceType(context);
     ProxyService.box.writeBool(key: 'isOrdering', value: true);
 
-    /// before navigating refresh the pending transaction to not mix transaction
     refreshPendingTransactionWithExpense();
     if (deviceType == 'Phone' || deviceType == 'Phablet') {
       _routerService.navigateTo(OrdersRoute());
     } else {
       _routerService.navigateTo(OrdersRoute());
-      //    WoltModalSheet.show(
-      //   pageListBuilder: (BuildContext context) {
-      //     return [RootSheetPage.build(context)];
-      //   },
-      //   context: context,
-      //   modalTypeBuilder: (BuildContext context) {
-      //     final width = MediaQuery.sizeOf(context).width;
-      //     if (width < 523) {
-      //       return WoltModalType.bottomSheet();
-      //     } else if (width < 800) {
-      //       return WoltModalType.dialog();
-      //     } else {
-      //       return WoltModalType.sideSheet();
-      //     }
-      //   },
-      // );
     }
   }
 

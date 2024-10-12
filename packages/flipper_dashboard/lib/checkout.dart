@@ -309,7 +309,6 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildQuickSellingView() {
-    // return SizedBox.shrink();
     return QuickSellingView(
       deliveryNoteCotroller: deliveryNoteCotroller,
       formKey: formKey,
