@@ -2,7 +2,6 @@
 
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +34,6 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         : total + compositeTotal;
   }
 
- 
   Widget buildTransactionItemsTable(bool isOrdering) {
     return Table(
       columnWidths: {
@@ -262,7 +260,6 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   void _deleteCompositeItems(TransactionItem item, bool isOrdering) {
     try {
       Variant? variant = ProxyService.local.variant(variantId: item.variantId!);
-      // final coo = ProxyService.local.composite(variantId: item.variantId!);
       final composites =
           ProxyService.local.composites(productId: variant!.productId!);
 

@@ -264,7 +264,6 @@ class LocalRealmApi
           email: email,
           password: email,
         );
-        // Handle login response if needed
       }
     } catch (e) {}
   }

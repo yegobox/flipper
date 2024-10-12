@@ -111,16 +111,6 @@ abstract class ServicesModule {
     return NotificationStream();
   }
 
-  // @preResolve
-  // Future<RemoteInterface> remoteApi() async {
-  //   try {
-  //     return await RemoteService();
-  //   } catch (e) {
-  //     // Handle the error or retry logic here
-  //     return await Future.error(e);
-  //   }
-  // }
-
   @LazySingleton()
   UploadT get upload {
     UploadT upload;
