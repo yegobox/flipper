@@ -363,10 +363,10 @@ class BestSellingItemCard extends StatelessWidget {
                   children: [
                     Text(
                       bestSeller.variant!.productName!,
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     Text(
                       'Sold: $itemsSold',

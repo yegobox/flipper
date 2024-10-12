@@ -628,4 +628,4 @@ class App {}
 // FIXME: use latest flutter, I have to keep watching this issue as it affect me on android
 // https://github.com/flutter/flutter/issues/9707
 
-// xcrun simctl runtime add "~/Downloads/iOS_17.5_Simulator_Runtime.dmg"
+// xcrun simctl runtime add "~/Downloads/iOS_18_Simulator_Runtime.dmg"

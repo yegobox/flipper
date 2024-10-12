@@ -23,16 +23,15 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
       TextEditingController controller) async {
     controller.clear();
     hasText = false;
-
+    // 121312121
     /// if the state is not true then we are not in search mode, we are in scan mode
     /// this means that we can simply search and display item as user search
     /// this is useful when a customer want to search item mabybe want to edit it while not in
     /// selling mode.
     if (!ref.read(toggleProvider.notifier).state) {
-      ref.read(searchStringProvider.notifier).emitString(value: '');
       if (value.isNotEmpty) {
         Variant? variant = ProxyService.local.variant(name: value);
-        if (variant != null && variant.id != null) {
+        if (variant != null) {
           Stock? stock = ProxyService.local.stockByVariantId(
               variantId: variant.id!,
               nonZeroValue: false,
@@ -55,10 +54,9 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           ref.refresh(transactionItemsProvider((isExpense: false)));
           await Future.delayed(Duration(microseconds: 500));
           ref.refresh(transactionItemsProvider((isExpense: false)));
+          ref.read(searchStringProvider.notifier).emitString(value: '');
         }
       }
-    } else {
-      /// we do normal search of item
     }
   }
 }

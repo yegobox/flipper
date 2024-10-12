@@ -3106,12 +3106,12 @@ class LocalRealmApi
           // realm!.writeN(
           //     tableName: transactionItemsTable,
           //     writeCallback: () {
-                // Configurations taxConfig =
-                //     ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
+          // Configurations taxConfig =
+          //     ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
 
-                // double taxAmount =
-                //     (((item.price * item.qty) * taxConfig.taxPercentage!) /
-                //         (100 + taxConfig.taxPercentage!));
+          // double taxAmount =
+          //     (((item.price * item.qty) * taxConfig.taxPercentage!) /
+          //         (100 + taxConfig.taxPercentage!));
 
           //       item.taxAmt =
           //           (double.parse(taxAmount.round().toStringAsFixed(2)) * 100)
@@ -4690,7 +4690,8 @@ class LocalRealmApi
       return realm!.query<Variant>(r'id == $0', [variantId]).firstOrNull;
     }
     if (name != null) {
-      return realm!.query<Variant>(r'name == $0', [name]).firstOrNull;
+      return realm!
+          .query<Variant>(r'name == $0 || bcd == $0', [name]).firstOrNull;
     }
     return null;
   }
