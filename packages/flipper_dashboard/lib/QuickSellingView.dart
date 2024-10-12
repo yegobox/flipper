@@ -400,7 +400,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       decoration: InputDecoration(
         labelText: 'Customer  Name',
         labelStyle: const TextStyle(color: Colors.black),
-        suffixIcon: Icon(FluentIcons.call_20_regular, color: Colors.blue),
+        suffixIcon: Icon(FluentIcons.person_20_regular, color: Colors.blue),
         border: OutlineInputBorder(),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),

@@ -354,7 +354,7 @@ class _RowItemState extends ConsumerState<RowItem> with Refresh {
                   child: Icon(
                     Icons.image,
                     size: 50,
-                    color: Colors.grey[500],
+                    color: Colors.blue[500],
                   ),
                 ),
               );

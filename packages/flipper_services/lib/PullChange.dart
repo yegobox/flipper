@@ -96,6 +96,7 @@ class PullChange {
       }
     } catch (e) {
       print('Error in start function: $e');
+      throw e;
     }
   }
 
@@ -936,8 +937,7 @@ class PullChange {
                 : double.tryParse(data['sply_amt']) ?? 0;
             variant.tin = data['tin'] == null ? 0 : data['tin'];
             variant.bhfId = data['bhf_id'] == null ? "00" : variant.bhfId;
-            variant.dftPrc =
-                data['dft_prc'] == null ? 0 : double.tryParse(data['dft_prc']);
+            variant.dftPrc = data['dft_prc'] == null ? 0 : data['dft_prc'];
             variant.addInfo = data['add_info'] ?? variant.addInfo;
             variant.isrcAplcbYn = data['isrc_aplcby_yn'] ?? variant.isrcAplcbYn;
             variant.useYn = data['use_yn'] ?? variant.useYn;
@@ -1174,6 +1174,7 @@ class PullChange {
       }
     }, onError: (error, s) {
       talker.error('$s');
+      throw error;
     });
   }
 
