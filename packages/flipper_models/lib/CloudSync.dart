@@ -393,11 +393,19 @@ class CloudSync implements SyncInterface {
     if (syncProvider == SyncProvider.FIRESTORE) {
       try {
         if (_firestore == null) return;
-        final branchId = ProxyService.box.getBranchId();
+        List<int> branchIds = ProxyService.local
+            .branches(
+                businessId: ProxyService.box.getBusinessId()!,
+                includeSelf: true)
+            .map((branch) => branch.serverId!)
+            .toList();
+        talker.warning("QueryingOn: ${branchIds}");
         // Listen for Firestore collection changes
         final subscription = _firestore!
             .collection(tableName)
-            .where('branch_id', isEqualTo: branchId)
+            .where('branch_id', whereIn: branchIds)
+            // .orderBy('created_at', descending: true)
+            .limit(100)
             .snapshots()
             .listen((querySnapshot) {
           for (var docChange in querySnapshot.docChanges) {
