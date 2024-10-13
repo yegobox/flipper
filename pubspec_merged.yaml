@@ -292,11 +292,11 @@ dependencies:
   flutter_keyboard_visibility: ^6.0.0
   bloc: ^8.0.1
   # flipper_actionable: ^0.0.1
-  amplify_core: ^2.0.0
-  amplify_api: ^2.0.0
+  amplify_core: ^2.4.1
+  amplify_api: ^2.4.1
   amplify_flutter: ^2.0.0
-  amplify_auth_cognito: ^2.0.0
-  amplify_storage_s3: ^2.0.0
+  amplify_auth_cognito: ^2.4.1
+  amplify_storage_s3: ^2.4.1
   
   
 

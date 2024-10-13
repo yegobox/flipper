@@ -294,6 +294,7 @@ class CheckOutState extends ConsumerState<CheckOut>
               if (customerNameController.text.isEmpty) {
                 /// remove old customer added maybe from previous sale
                 ProxyService.box.remove(key: 'customerName');
+                ProxyService.box.remove(key: 'getRefundReason');
               }
               handleCompleteTransaction(
                   transaction: transaction,

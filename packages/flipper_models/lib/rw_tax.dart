@@ -345,7 +345,7 @@ class RWTax implements TaxApi {
       remainingStock: item.remainingStock,
       itemCd: item.itemCd,
       variantId: item.id,
-      qtyUnitCd: item.qtyUnitCd ?? "U",
+      qtyUnitCd: "U",
       prc: item.price,
       regrNm: item.regrNm ?? "Registrar",
       dcRt: 0,
@@ -366,7 +366,7 @@ class RWTax implements TaxApi {
       itemTyCd: item.itemTyCd,
       itemStdNm: item.name,
       orgnNatCd: "RW",
-      pkgUnitCd: item.pkgUnitCd ?? "U",
+      pkgUnitCd: "NT",
       splyAmt: item.price,
       tin: item.tin ?? business?.tinNumber,
       bhfId: item.bhfId ?? ProxyService.box.bhfId(),
@@ -467,15 +467,16 @@ class RWTax implements TaxApi {
               (taxConfigTaxA.taxPercentage ?? 0) /
               (100 + (taxConfigTaxA.taxPercentage ?? 0)))
           .toStringAsFixed(2),
-      "taxAmtB": ((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2),
-      "taxAmtC": ((taxTotals['C'] ?? 0.0) *
+      "taxAmtB":
+          double.parse(((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2)),
+      "taxAmtC": double.parse(((taxTotals['C'] ?? 0.0) *
               (taxConfigTaxC.taxPercentage ?? 0) /
               (100 + (taxConfigTaxC.taxPercentage ?? 0)))
-          .toStringAsFixed(2),
-      "taxAmtD": ((taxTotals['D'] ?? 0.0) *
+          .toStringAsFixed(2)),
+      "taxAmtD": double.parse(((taxTotals['D'] ?? 0.0) *
               (taxConfigTaxD.taxPercentage ?? 0) /
               (100 + (taxConfigTaxD.taxPercentage ?? 0)))
-          .toStringAsFixed(2),
+          .toStringAsFixed(2)),
 
       "taxRtA": taxConfigTaxA.taxPercentage,
       "taxRtB": taxConfigTaxB.taxPercentage,
@@ -484,7 +485,7 @@ class RWTax implements TaxApi {
 
       "totTaxblAmt": totalTaxable,
 
-      "totTaxAmt": totalTax.toStringAsFixed(2),
+      "totTaxAmt": double.parse(totalTax.toStringAsFixed(2)),
       "totAmt": totalTaxable,
 
       "regrId": transaction.id,

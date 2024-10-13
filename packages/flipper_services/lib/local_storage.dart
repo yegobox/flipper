@@ -256,7 +256,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String? getRefundReason() {
-    return prefs.getString("getRefundReason");
+    return prefs.getString("getRefundReason") ?? "";
   }
 
   @override
@@ -329,9 +329,9 @@ class SharedPreferenceStorage implements LocalStorage {
   bool? pinLogin() {
     return prefs.getBool('pinLogin') ?? false;
   }
-  
+
   @override
   String? customerName() {
-   return prefs.getString('customerName')?? "N/A";
+    return prefs.getString('customerName') ?? "N/A";
   }
 }
