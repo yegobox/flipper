@@ -177,6 +177,8 @@ class PMobile extends StatelessWidget {
           .getBusinessFuture(businessId: widget.branch.businessId),
       builder: (context, snapshot) {
         return GestureDetector(
+          onLongPress: () => locator<RouterService>()
+              .navigateTo(ScannViewRoute(intent: 'login')),
           onTap: () {
             dialogService.showCustomDialog(
                 variant: DialogType.logOut, title: 'Log out');

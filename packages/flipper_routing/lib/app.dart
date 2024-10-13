@@ -629,3 +629,4 @@ class App {}
 // https://github.com/flutter/flutter/issues/9707
 
 // xcrun simctl runtime add "~/Downloads/iOS_18_Simulator_Runtime.dmg"
+// https://www.youtube.com/watch?v=CagpigPskeM
