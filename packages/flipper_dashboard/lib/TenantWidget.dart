@@ -8,6 +8,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CircleAvatarWidget extends StatelessWidget {
   final String text;
@@ -78,7 +79,9 @@ class TenantWidget extends ConsumerWidget {
                 },
                 style: IconButton.styleFrom(
                   shape: const CircleBorder(),
-                  backgroundColor: Theme.of(context).primaryColor,
+                  backgroundColor: FirebaseAuth.instance.currentUser == null
+                      ? Colors.red
+                      : Colors.green,
                   foregroundColor: Colors.white,
                 ),
               ),
