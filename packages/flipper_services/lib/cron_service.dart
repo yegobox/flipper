@@ -140,12 +140,12 @@ class CronService {
       await ProxyService.syncFirestore.firebaseLogin();
     }
 
-    try {
-      PullChange().start(
-          firestore: FirebaseFirestore.instance,
-          localRealm: ProxyService.local.realm!);
-      ProxyService.box.writeBool(key: 'isOrdering', value: false);
-    } catch (e) {}
+    // try {
+    //   PullChange().start(
+    //       firestore: FirebaseFirestore.instance,
+    //       localRealm: ProxyService.local.realm!);
+    //   ProxyService.box.writeBool(key: 'isOrdering', value: false);
+    // } catch (e) {}
 
     talker.warning("FirebaseUser ${FirebaseAuth.instance.currentUser}");
 
