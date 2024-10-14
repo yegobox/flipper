@@ -634,3 +634,4 @@ class App {}
 
 
 // https://www.hungrimind.com/articles/flutter-apple-pay
+// https://medium.com/blocship/integrate-apple-sign-in-on-android-using-flutter-bf5d61c85332

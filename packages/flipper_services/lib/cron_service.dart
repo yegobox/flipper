@@ -126,12 +126,12 @@ class CronService {
       if (ConnectivityResult.none != await Connectivity().checkConnectivity()) {
         if (FirebaseAuth.instance.currentUser == null) {
           await ProxyService.syncFirestore.firebaseLogin();
-          if (!doneInitializingDataPull) {
-            PullChange().start(
-                firestore: FirebaseFirestore.instance,
-                localRealm: ProxyService.local.realm!);
-            doneInitializingDataPull = true;
-          }
+        }
+        if (!doneInitializingDataPull) {
+          PullChange().start(
+              firestore: FirebaseFirestore.instance,
+              localRealm: ProxyService.local.realm!);
+          doneInitializingDataPull = true;
         }
       }
     });

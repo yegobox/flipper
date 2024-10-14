@@ -174,8 +174,7 @@ class PullChange {
             stock.rsdQty = finalStock;
             stock.lastTouched = data['last_touched'] == null
                 ? DateTime.now()
-                : DateTime.tryParse(data['last_touched'].toString()) ??
-                    stock.lastTouched;
+                : DateTime.tryParse(data['last_touched'].toString());
           });
         }
       },
