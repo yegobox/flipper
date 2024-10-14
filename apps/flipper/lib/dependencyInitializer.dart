@@ -34,6 +34,15 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
 // Generated in previous step
 import 'amplifyconfiguration.dart';
 
+Future clearFirestoreCache() async {
+  try {
+    await FirebaseFirestore.instance.clearPersistence();
+    print("Firestore cache cleared successfully.");
+  } catch (e) {
+    print("Failed to clear Firestore cache: $e");
+  }
+}
+
 Future<void> _configureAmplify() async {
   // Add any Amplify plugins you want to use
   final authPlugin = cognito.AmplifyAuthCognito();
@@ -83,6 +92,9 @@ Future<void> initializeDependencies() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  if (Platform.isWindows) {
+    await clearFirestoreCache();
+  }
   const isTest = bool.fromEnvironment('EMULATOR_ENABLED', defaultValue: false);
   // FirebaseFirestore.instance.settings =
   //     const Settings(persistenceEnabled: false);

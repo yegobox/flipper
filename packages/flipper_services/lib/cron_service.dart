@@ -140,14 +140,11 @@ class CronService {
       await ProxyService.syncFirestore.firebaseLogin();
     }
 
-    // try {
-    //   PullChange().start(
-    //       firestore: FirebaseFirestore.instance,
-    //       localRealm: ProxyService.local.realm!);
-    //   ProxyService.box.writeBool(key: 'isOrdering', value: false);
-    // } catch (e) {}
-
     talker.warning("FirebaseUser ${FirebaseAuth.instance.currentUser}");
+    PullChange().start(
+        firestore: FirebaseFirestore.instance,
+        localRealm: ProxyService.local.realm!);
+    ProxyService.box.writeBool(key: 'isOrdering', value: false);
 
     if (ProxyService.box.forceUPSERT()) {
       try {
@@ -255,6 +252,7 @@ class CronService {
         }
       }
     });
+
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       // backUpPowerSync();
       if (ProxyService.box.getUserId() == null ||

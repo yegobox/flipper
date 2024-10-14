@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:io';
 import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/firestore/all.dart';
 import 'package:flipper_models/helperModels/random.dart';
@@ -21,11 +22,21 @@ class PullChange {
     if (FirebaseAuth.instance.currentUser == null) return;
     try {
       if (tableName == null) {
+        // if (Platform.isWindows) {
+        //   /// on windows registering many listener might be causing the issues.
+        //   watchStocks(localRealm);
+        //   watchProducts(localRealm);
+        //   watchVariants(localRealm);
+        //   watchRequests(localRealm);
+        //   watchCounters(localRealm);
+        // } else {
         // Start all tables
-        watchPin(localRealm);
+        watchStocks(localRealm);
         watchRequests(localRealm);
+
         watchProducts(localRealm);
         watchVariants(localRealm);
+        watchPin(localRealm);
         watchTransactions(localRealm);
         watchAssets(localRealm);
         watchSettings(localRealm);
@@ -36,8 +47,9 @@ class PullChange {
         watchSkus(localRealm);
         watchComposites(localRealm);
         watchCounters(localRealm);
-        watchStocks(localRealm);
+
         watchConfiguration(localRealm);
+        // }
       } else {
         // Start only the specified table
         switch (tableName.toLowerCase()) {

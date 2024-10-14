@@ -310,9 +310,7 @@ class CloudSync implements SyncInterface {
             final deletedObject = DeletedObject(
               ObjectId(),
               objectName: tableName,
-              branchId: ProxyService.box.getBranchId()!,
               id: id,
-              businessId: ProxyService.box.getBusinessId()!,
               deviceCount: 1,
               expectedDeviceCount: 1,
             );
