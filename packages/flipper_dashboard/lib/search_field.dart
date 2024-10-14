@@ -48,11 +48,12 @@ class SearchField extends StatefulHookConsumerWidget {
 class SearchFieldState extends ConsumerState<SearchField>
     with DateCoreWidget, HandleScannWhileSelling, Refresh {
   final _textSubject = BehaviorSubject<String>();
+  late FocusNode focusNode;
+  bool hasText = false;
 
   @override
   void initState() {
     super.initState();
-    hasText = false;
     focusNode = FocusNode();
     widget.controller.addListener(_handleTextChange);
   }
@@ -65,7 +66,9 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   @override
   void dispose() {
+    widget.controller.removeListener(_handleTextChange);
     focusNode.dispose();
+    _textSubject.close();
     super.dispose();
   }
 
@@ -73,8 +76,6 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   @override
   Widget build(BuildContext context) {
-    // final orders = ref.watch(ordersStreamProvider);
-
     final stringValue = ref.watch(stringProvider);
     final orders = ref.watch(stockRequestsProvider((filter: stringValue)));
 
@@ -87,18 +88,16 @@ class SearchFieldState extends ConsumerState<SearchField>
       child: ViewModelBuilder<CoreViewModel>.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) {
-          _textSubject.debounceTime(Duration(microseconds: 2)).listen((value) {
+          _textSubject.debounceTime(const Duration(seconds: 2)).listen((value) {
             processDebouncedValue(value, model, widget.controller);
           });
         },
-        builder: (a, model, b) {
+        builder: (context, model, _) {
           return TextFormField(
             controller: widget.controller,
-            maxLines: null,
             focusNode: focusNode,
             textInputAction: TextInputAction.done,
             keyboardType: TextInputType.text,
-            onFieldSubmitted: (value) => _textSubject,
             onChanged: (value) {
               _textSubject.add(value);
             },
@@ -120,17 +119,17 @@ class SearchFieldState extends ConsumerState<SearchField>
                 children: [
                   toggleSearch(),
                   calc(model: model),
-                  (deviceType == 'Phone' || deviceType == 'Phablet') == true
-                      ? SizedBox.shrink()
-                      : orders.when(
-                          data: (orders) => widget.showOrderButton
-                              ? orderButton(orders)
-                              : SizedBox.shrink(),
-                          loading: () => SizedBox.shrink(),
-                          error: (err, stack) => Text('Error: $err'),
-                        ),
+                  if (deviceType != 'Phone' && deviceType != 'Phablet')
+                    orders.when(
+                      data: (orders) => widget.showOrderButton
+                          ? orderButton(orders)
+                          : const SizedBox.shrink(),
+                      loading: () => const SizedBox.shrink(),
+                      error: (err, stack) => Text('Error: $err'),
+                    ),
                   if (widget.showIncomingButton &&
-                      (deviceType != 'Phone' || deviceType != 'Phablet'))
+                      deviceType != 'Phone' &&
+                      deviceType != 'Phablet')
                     incomingButton(),
                   if (widget.showAddButton)
                     addButton().shouldSeeTheApp(ref, AppFeature.Sales),
@@ -185,27 +184,22 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   IconButton orderButton(List<StockRequest> orders) {
     return IconButton(
-      onPressed: () => _handleReceiveOrderToggle(),
+      onPressed: _handleReceiveOrderToggle,
       icon: _buildOrderIcon(orders),
     );
   }
 
   void _handleReceiveOrderToggle() {
-    final deviceType = _getDeviceType(context);
     ProxyService.box.writeBool(key: 'isOrdering', value: true);
 
     refreshPendingTransactionWithExpense();
-    if (deviceType == 'Phone' || deviceType == 'Phablet') {
-      _routerService.navigateTo(OrdersRoute());
-    } else {
-      _routerService.navigateTo(OrdersRoute());
-    }
+    _routerService.navigateTo(OrdersRoute());
   }
 
   Widget _buildOrderIcon(List<StockRequest> orders) {
     return badges.Badge(
-      badgeContent:
-          Text(orders.length.toString(), style: TextStyle(color: Colors.white)),
+      badgeContent: Text(orders.length.toString(),
+          style: const TextStyle(color: Colors.white)),
       child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
     );
   }
@@ -229,7 +223,7 @@ class SearchFieldState extends ConsumerState<SearchField>
       builder: (context) => OptionModal(
         child: _getDeviceType(context) == "Phone" ||
                 _getDeviceType(context) == "Phablet"
-            ? SizedBox.shrink()
+            ? const SizedBox.shrink()
             : ImportPurchasePage(),
       ),
     );
@@ -242,18 +236,17 @@ class SearchFieldState extends ConsumerState<SearchField>
       builder: (context) => Dialog(
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxWidth: 400, // Adjust this value as needed
-            maxHeight: MediaQuery.of(context).size.height *
-                0.8, // 80% of screen height
+            maxWidth: 400,
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
           ),
           child: SingleChildScrollView(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SizedBox(
-                    width: double.infinity, // Ensure full width
+                    width: double.infinity,
                     height: 800,
                     child: KeyPadView(
                       isBigScreen: true,
@@ -276,7 +269,6 @@ class SearchFieldState extends ConsumerState<SearchField>
       context: context,
       builder: (context) => AddProductDialog(
         onChoiceSelected: (isBulk) {
-          // Navigator.of(context).pop();
           if (isBulk) {
             showDialog(
               barrierDismissible: true,
@@ -284,10 +276,10 @@ class SearchFieldState extends ConsumerState<SearchField>
               builder: (context) => OptionModal(
                 child: _getDeviceType(context) == "Phone" ||
                         _getDeviceType(context) == "Phablet"
-                    ? AddProductButtons()
-                    : BulkAddProduct(),
+                    ? const AddProductButtons()
+                    : const BulkAddProduct(),
               ),
-            ).then((value) {});
+            );
           } else {
             showDialog(
               barrierDismissible: true,
@@ -295,10 +287,10 @@ class SearchFieldState extends ConsumerState<SearchField>
               builder: (context) => OptionModal(
                 child: _getDeviceType(context) == "Phone" ||
                         _getDeviceType(context) == "Phablet"
-                    ? AddProductButtons()
-                    : ProductEntryScreen(),
+                    ? const AddProductButtons()
+                    : const ProductEntryScreen(),
               ),
-            ).then((value) {});
+            );
           }
         },
       ),

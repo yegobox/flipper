@@ -109,7 +109,7 @@
 
 #       - uses: subosito/flutter-action@v2
 #         with:
-#           flutter-version: "3.24.0"
+#           flutter-version: "3.24.3"
 #           channel: "stable"
 
 #       - run: git submodule update --init
@@ -165,7 +165,7 @@
 #       - name: Clone Flutter repository with stable channel
 #         uses: subosito/flutter-action@v2
 #         with:
-#           flutter-version: "3.24.0"
+#           flutter-version: "3.24.3"
 #           channel: stable
 #       - run: flutter doctor -v
 
@@ -222,7 +222,7 @@
 #       - name: Clone Flutter repository with stable channel
 #         uses: subosito/flutter-action@v2
 #         with:
-#           flutter-version: "3.24.0"
+#           flutter-version: "3.24.3"
 #           channel: stable
 #       - run: flutter doctor -v
 
@@ -310,7 +310,7 @@
 #       - name: Clone Flutter repository with stable channel
 #         uses: subosito/flutter-action@v2
 #         with:
-#           flutter-version: "3.24.0"
+#           flutter-version: "3.24.3"
 #           channel: stable
 #       - name: Configure Git with PAT
 #         env:
@@ -383,7 +383,7 @@
 #   #     - name: Setup Flutter
 #   #       uses: subosito/flutter-action@v2
 #   #       with:
-#   #         flutter-version: "3.24.0"
+#   #         flutter-version: "3.24.3"
 #   #         channel: stable
 
 #   #     - name: Flutter doctor
@@ -463,7 +463,7 @@
 #       - name: Clone Flutter repository with stable channel
 #         uses: subosito/flutter-action@v2
 #         with:
-#           flutter-version: "3.24.0" #firebase_auth_desktop is broken with  3.10.6
+#           flutter-version: "3.24.3" #firebase_auth_desktop is broken with  3.10.6
 #           channel: stable
 #       - run: flutter doctor -v
 
