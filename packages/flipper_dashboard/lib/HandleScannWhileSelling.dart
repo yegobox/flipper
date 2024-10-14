@@ -47,8 +47,6 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
               partOfComposite: false);
 
           ref.refresh(transactionItemsProvider((isExpense: false)));
-
-          ref.refresh(transactionItemsProvider((isExpense: false)));
         }
       }
     }

@@ -53,7 +53,7 @@ export 'package:flipper_login/login.dart';
 export 'package:flipper_login/desktop_login_view.dart';
 
 export 'package:flipper_login/landing.dart';
-export 'package:flipper_login/Auth.dart';
+export 'package:flipper_login/AuthWithMultipleProviders.dart';
 export 'package:flipper_login/country_picking_page.dart';
 export 'package:flipper_login/phone_input_screen.dart';
 

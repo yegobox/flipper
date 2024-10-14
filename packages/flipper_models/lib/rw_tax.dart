@@ -364,7 +364,7 @@ class RWTax implements TaxApi {
       itemStdNm: item.name,
       orgnNatCd: "RW",
       pkgUnitCd: "NT",
-      splyAmt: item.price,
+      splyAmt: item.price * item.qty,
       tin: item.tin ?? business?.tinNumber,
       bhfId: item.bhfId ?? ProxyService.box.bhfId(),
       dftPrc: item.price,
