@@ -135,10 +135,13 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
-    //if there is network connection
-    if (ConnectivityResult.none != await Connectivity().checkConnectivity()) {
-      await ProxyService.syncFirestore.firebaseLogin();
-    }
+    Timer.periodic(Duration(seconds: 15), (Timer t) async {
+      if (ConnectivityResult.none != await Connectivity().checkConnectivity()) {
+        if (FirebaseAuth.instance.currentUser == null) {
+          await ProxyService.syncFirestore.firebaseLogin();
+        }
+      }
+    });
 
     talker.warning("FirebaseUser ${FirebaseAuth.instance.currentUser}");
     PullChange().start(
