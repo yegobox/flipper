@@ -162,12 +162,10 @@ class PullChange {
         );
       },
       updateRealmObject: (_stock, data) {
-        final Stock? stock = localRealm.query<Stock>(
-            r'variantId ==$0 && branchId == $1',
-            [data['variant_id'], data['branch_id']]).firstOrNull;
-        final Variant? variant = localRealm
-            .query<Variant>(r'id == $0', [data['variant_id']]).firstOrNull;
-        if (variant != null && stock != null) {
+        final Stock? stock =
+            localRealm.query<Stock>(r'id ==$0', [data['stock_id']]).firstOrNull;
+
+        if (stock != null) {
           localRealm.write(() {
             final finalStock = data['current_stock'] is int ||
                     data['current_stock'] is double
@@ -179,10 +177,6 @@ class PullChange {
                 ? data['last_touched']
                 : DateTime.tryParse(data['last_touched'].toString()) ??
                     stock.lastTouched;
-
-            variant.qty = finalStock;
-            variant.rsdQty = finalStock;
-            variant.ebmSynced = false;
           });
         }
       },
