@@ -48,7 +48,7 @@ class SearchField extends StatefulHookConsumerWidget {
 class SearchFieldState extends ConsumerState<SearchField>
     with DateCoreWidget, HandleScannWhileSelling, Refresh {
   final _textSubject = BehaviorSubject<String>();
-  late FocusNode focusNode;
+
   bool hasText = false;
 
   @override
@@ -60,6 +60,10 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   void _handleTextChange() {
     setState(() {
+      if (widget.controller.text.isNotEmpty) {
+        _textSubject.add(widget.controller.text);
+      }
+
       hasText = widget.controller.text.isNotEmpty;
     });
   }
@@ -98,9 +102,6 @@ class SearchFieldState extends ConsumerState<SearchField>
             focusNode: focusNode,
             textInputAction: TextInputAction.done,
             keyboardType: TextInputType.text,
-            onChanged: (value) {
-              _textSubject.add(value);
-            },
             decoration: InputDecoration(
               focusedBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
@@ -205,7 +206,11 @@ class SearchFieldState extends ConsumerState<SearchField>
   }
 
   void _clearSearchText() {
-    ref.read(searchStringProvider.notifier).emitString(value: '');
+    /// if we are not in search mode then automaticaly clear input
+    if (!ref.read(toggleProvider)) {
+      ref.read(searchStringProvider.notifier).emitString(value: '');
+    }
+
     widget.controller.clear();
     setState(() {
       hasText = false;

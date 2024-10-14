@@ -49,7 +49,6 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           ref.refresh(transactionItemsProvider((isExpense: false)));
 
           ref.refresh(transactionItemsProvider((isExpense: false)));
-          ref.read(searchStringProvider.notifier).emitString(value: '');
         }
       }
     }
