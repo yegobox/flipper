@@ -22,34 +22,34 @@ class PullChange {
     if (FirebaseAuth.instance.currentUser == null) return;
     try {
       if (tableName == null) {
-        // if (Platform.isWindows) {
-        //   /// on windows registering many listener might be causing the issues.
-        //   watchStocks(localRealm);
-        //   watchProducts(localRealm);
-        //   watchVariants(localRealm);
-        //   watchRequests(localRealm);
-        //   watchCounters(localRealm);
-        // } else {
-        // Start all tables
-        watchStocks(localRealm);
-        watchRequests(localRealm);
+        if (Platform.isWindows) {
+          //   /// on windows registering many listener might be causing the issues.
+          watchStocks(localRealm);
+          watchProducts(localRealm);
+          watchVariants(localRealm);
+          watchRequests(localRealm);
+          watchCounters(localRealm);
+        } else {
+          // Start all tables
+          watchStocks(localRealm);
+          watchRequests(localRealm);
 
-        watchProducts(localRealm);
-        watchVariants(localRealm);
-        watchPin(localRealm);
-        watchTransactions(localRealm);
-        watchAssets(localRealm);
-        watchSettings(localRealm);
-        watchPaymentRecords(localRealm);
-        watchCompaigns(localRealm);
-        watchPlans(localRealm);
-        watchAccesses(localRealm);
-        watchSkus(localRealm);
-        watchComposites(localRealm);
-        watchCounters(localRealm);
+          watchProducts(localRealm);
+          watchVariants(localRealm);
+          watchPin(localRealm);
+          watchTransactions(localRealm);
+          watchAssets(localRealm);
+          watchSettings(localRealm);
+          watchPaymentRecords(localRealm);
+          watchCompaigns(localRealm);
+          watchPlans(localRealm);
+          watchAccesses(localRealm);
+          watchSkus(localRealm);
+          watchComposites(localRealm);
+          watchCounters(localRealm);
 
-        watchConfiguration(localRealm);
-        // }
+          watchConfiguration(localRealm);
+        }
       } else {
         // Start only the specified table
         switch (tableName.toLowerCase()) {
