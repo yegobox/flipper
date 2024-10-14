@@ -20,6 +20,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class CronService {
   final drive = GoogleDrive();
+  bool doneInitializingDataPull = false;
 
   Future<void> companyWideReport() async {
     // Implement company-wide report logic
@@ -121,18 +122,20 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
-    Timer.periodic(Duration(seconds: 15), (Timer t) async {
+    Timer.periodic(Duration(seconds: 10), (Timer t) async {
       if (ConnectivityResult.none != await Connectivity().checkConnectivity()) {
         if (FirebaseAuth.instance.currentUser == null) {
           await ProxyService.syncFirestore.firebaseLogin();
+          if (!doneInitializingDataPull) {
+            PullChange().start(
+                firestore: FirebaseFirestore.instance,
+                localRealm: ProxyService.local.realm!);
+            doneInitializingDataPull = true;
+          }
         }
       }
     });
 
-    talker.warning("FirebaseUser ${FirebaseAuth.instance.currentUser}");
-    PullChange().start(
-        firestore: FirebaseFirestore.instance,
-        localRealm: ProxyService.local.realm!);
     ProxyService.box.writeBool(key: 'isOrdering', value: false);
 
     if (ProxyService.box.forceUPSERT()) {

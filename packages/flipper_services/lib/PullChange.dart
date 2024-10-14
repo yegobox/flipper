@@ -167,15 +167,13 @@ class PullChange {
 
         if (stock != null) {
           localRealm.write(() {
-            final finalStock = data['current_stock'] is int ||
-                    data['current_stock'] is double
-                ? data['current_stock'].toDouble()
-                : double.tryParse(data['current_stock']) ?? stock.currentStock;
+            final finalStock =
+                data['current_stock'] == null ? 0 : data['current_stock'];
             stock.currentStock = finalStock;
             stock.initialStock = data['initial_stock'];
             stock.rsdQty = finalStock;
-            stock.lastTouched = data['last_touched'] is DateTime
-                ? data['last_touched']
+            stock.lastTouched = data['last_touched'] == null
+                ? DateTime.now()
                 : DateTime.tryParse(data['last_touched'].toString()) ??
                     stock.lastTouched;
           });

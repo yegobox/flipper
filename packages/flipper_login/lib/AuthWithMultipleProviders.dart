@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flipper_login/apple_logo_painter.dart';
+// import 'package:flipper_login/apple_logo_painter.dart';
+// import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_ui/style_widget/button.dart';
+// import 'package:flipper_ui/style_widget/button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,8 +14,6 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
-const _appleIconSizeScale = 28 / 44;
 
 class Auth extends StatefulWidget {
   @override
@@ -154,54 +153,43 @@ class _AuthState extends State<Auth> {
                   },
                   iconPath: 'assets/google.svg',
                 ),
-                Container(
-                  width: _appleIconSizeScale * 44,
-                  height: _appleIconSizeScale * 44 + 2,
-                  padding: EdgeInsets.only(
-                    // Properly aligns the Apple icon with the text of the button
-                    bottom: (4 / 44) * 44,
-                  ),
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        // Add your onTap functionality here
-                      },
-                      child: SizedBox(
-                        width: (44 * 0.43) * (25 / 31),
-                        height: (44 * 0.43),
-                        child: CustomPaint(
-                          painter: AppleLogoPainter(
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                //  FlipperButton(
-                //   text: "Sign in with apple",
-                //   key: Key("googleLogin"),
-                //   onPressed: () async {
-                //     try {
-                //       setState(() {
-                //         isAddingUser = true;
-                //       });
-                //       final provider = AppleAuthProvider();
-                //       final user = await FirebaseAuth.instance
-                //           .signInWithProvider(provider);
-                //       if (user.user != null) {
-                //         _authController.notifySignedIn();
-                //         _routerService.clearStackAndShow(
-                //             StartUpViewRoute(invokeLogin: true));
-                //       }
-                //     } on FirebaseAuthException catch (e) {
-                //       if (e.code == 'popup-closed-by-user' ||
-                //           e.code == 'canceled' ||
-                //           e.code == 'web-context-canceled') {
-                //         // User canceled the operation, return null or handle accordingly
-                //         return null;
-                //       } else {
-                //         // Handle other FirebaseAuthExceptions
+                // SizedBox(height: screenHeight * 0.02),
+                // AuthButton(
+                //     key: Key("applelogin"),
+                //     onPressed: () async {
+                //       try {
+                //         setState(() {
+                //           isAddingUser = true;
+                //         });
+                //         final provider = AppleAuthProvider();
+                //         final user = await FirebaseAuth.instance
+                //             .signInWithProvider(provider);
+                //         if (user.user != null) {
+                //           _authController.notifySignedIn();
+                //           _routerService.clearStackAndShow(
+                //               StartUpViewRoute(invokeLogin: true));
+                //         }
+                //       } on FirebaseAuthException catch (e) {
+                //         if (e.code == 'popup-closed-by-user' ||
+                //             e.code == 'canceled' ||
+                //             e.code == 'web-context-canceled') {
+                //           // User canceled the operation, return null or handle accordingly
+                //           return null;
+                //         } else {
+                //           // Handle other FirebaseAuthExceptions
+                //           Sentry.captureException(e,
+                //               stackTrace: StackTrace.current);
+                //           setState(() {
+                //             isAddingUser = false;
+                //           });
+                //           talker.warning(e);
+                //           showSimpleNotification(
+                //             Text(e.message ?? "Error happened"),
+                //             background: Colors.red,
+                //             position: NotificationPosition.bottom,
+                //           );
+                //         }
+                //       } catch (e) {
                 //         Sentry.captureException(e,
                 //             stackTrace: StackTrace.current);
                 //         setState(() {
@@ -213,21 +201,15 @@ class _AuthState extends State<Auth> {
                 //           position: NotificationPosition.bottom,
                 //         );
                 //       }
-                //     } catch (e) {
-                //       Sentry.captureException(e,
-                //           stackTrace: StackTrace.current);
-                //       setState(() {
-                //         isAddingUser = false;
-                //       });
-                //       showSimpleNotification(
-                //         Text("Error happened"),
-                //         background: Colors.red,
-                //         position: NotificationPosition.bottom,
-                //       );
-                //     }
-                //   },
-                //  color: Colors.black,
-                // ),
+                //     },
+                //     customIcon: SizedBox(
+                //       width: 24,
+                //       height: 24,
+                //       child: CustomPaint(
+                //         painter: AppleLogoPainter(color: Colors.black),
+                //       ),
+                //     )),
+
                 SizedBox(height: screenHeight * 0.02),
                 AuthButton(
                   key: Key("microsoftLogin"),
@@ -322,11 +304,13 @@ class AuthButton extends StatelessWidget {
   const AuthButton({
     Key? key,
     required this.onPressed,
-    required this.iconPath,
+    this.iconPath,
+    this.customIcon,
   }) : super(key: key);
 
   final VoidCallback onPressed;
-  final String iconPath;
+  final String? iconPath;
+  final Widget? customIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -345,25 +329,26 @@ class AuthButton extends StatelessWidget {
           ],
           borderRadius: BorderRadius.circular(4),
         ),
-        child: IconButton(
+        child: ElevatedButton(
           onPressed: onPressed,
-          icon: SvgPicture.asset(
-            iconPath,
-            package: 'flipper_login',
-          ),
-          style: primaryButtonStyle.copyWith(
-            backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
-            side: WidgetStateProperty.resolveWith<BorderSide>(
-              (states) => BorderSide(
-                color: Colors.grey.withOpacity(.1),
-              ),
-            ),
-            shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
-              (states) => RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+          style: ElevatedButton.styleFrom(
+            // primary: Colors.white,
+            // onPrimary: Colors.black,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+              side: BorderSide(color: Colors.grey.withOpacity(0.1)),
             ),
           ),
+          child: customIcon != null
+              ? customIcon!
+              : (iconPath != null
+                  ? SvgPicture.asset(
+                      iconPath!,
+                      package: 'flipper_login',
+                      width: 24,
+                      height: 24,
+                    )
+                  : SizedBox()),
         ),
       ),
     );
