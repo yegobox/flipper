@@ -403,7 +403,7 @@ class CloudSync implements SyncInterface {
             .collection(tableName)
             .where('branch_id', whereIn: branchIds)
             // .orderBy('created_at', descending: true)
-            .limit(100)
+            .limit(2000)
             .snapshots()
             .listen((querySnapshot) {
           for (var docChange in querySnapshot.docChanges) {
