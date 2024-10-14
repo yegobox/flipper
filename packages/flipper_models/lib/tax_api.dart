@@ -5,7 +5,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 
 abstract class TaxApi {
-  Future<bool> saveStock(
+  Future<RwApiResponse> saveStock(
       {required IStock stock, required IVariant variant, required String URI});
   Future saveCustomer({required ICustomer customer, required String URI});
   Future<bool> initApi(
@@ -25,7 +25,8 @@ abstract class TaxApi {
       required Counter counter,
       String? purchaseCode,
       required String URI});
-  Future<bool> saveItem({required IVariant variation, required String URI});
+  Future<RwApiResponse> saveItem(
+      {required IVariant variation, required String URI});
 
   Future<RwApiResponse> savePurchases(
       {required SaleList item, required String URI});

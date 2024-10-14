@@ -85,21 +85,7 @@ class CronService {
             /// if we are in sync with EBM server for all models we have inside our app
             String identifier = message as String;
             List<String> separator = identifier.split(":");
-            // talker.warning(
-            //     "About to update model ${separator.first} with ${separator.last}");
-            if (separator.first == "variant") {
-              // find this variant in db
-              Variant variant = ProxyService.local.realm!
-                  .query<Variant>(r'id == $0', [separator.last]).first;
-              ProxyService.local.markModelForEbmUpdate<Variant>(model: variant);
-            }
-            if (separator.first == "stock") {
-              // find this variant in db
-              Stock stock = ProxyService.local.realm!
-                  .query<Stock>(r'id == $0', [separator.last]).first;
 
-              ProxyService.local.markModelForEbmUpdate<Stock>(model: stock);
-            }
             if (separator.first == "notification") {
               /// in event when we are done with work in isolate
               /// then we kill current isolate, but it is very important to know
@@ -109,7 +95,7 @@ class CronService {
               /// that is hanging somewhere around
               isolate?.kill();
               ProxyService.notification
-                  .sendLocalNotification(body: "System is up to date with EBM");
+                  .sendLocalNotification(body: separator.last);
             }
           },
         );

@@ -85,27 +85,23 @@ class RWTax implements TaxApi {
   /// we ended up mixing data for stock and variant but data stay in related model
   /// we just borrow properties to simplify the accesibility
   @override
-  Future<bool> saveStock(
+  Future<RwApiResponse> saveStock(
       {required IStock stock,
       required IVariant variant,
       required String URI}) async {
     try {
+      final url = Uri.parse(URI)
+          .replace(path: Uri.parse(URI).path + 'stockMaster/saveStockMaster')
+          .toString();
+
       /// update the remaining stock of this item in rra
       variant.rsdQty = stock.currentStock;
-      Response response = await sendPostRequest(
-          URI + "/stockMaster/saveStockMaster", variant.toJson());
-      // sendEmailLogging(
-      //     requestBody: response.requestOptions.data,
-      //     subject: "Worked",
-      //     body: stringResponse);
-      _talker!.warning(response.data);
+      Response response = await sendPostRequest(url, variant.toJson());
+
       final data = RwApiResponse.fromJson(
         response.data,
       );
-      if (data.resultCd != "000") {
-        throw Exception(data.resultMsg);
-      }
-      return response.statusCode == 200;
+      return data;
     } catch (e) {
       rethrow;
     }
@@ -195,22 +191,18 @@ class RWTax implements TaxApi {
   /// the server. For more information, refer to '3.2.4.1 ItemSaveReq/Res'
   /// After saving item then we can use items/selectItems endPoint to get the item information. of item saved before
   @override
-  Future<bool> saveItem(
+  Future<RwApiResponse> saveItem(
       {required IVariant variation, required String URI}) async {
-    final url = '${URI}/items/saveItems';
+    final url = Uri.parse(URI)
+        .replace(path: Uri.parse(URI).path + 'items/saveItems')
+        .toString();
+
     try {
       final response = await sendPostRequest(url, variation.toJson());
       if (response.statusCode == 200) {
         final data = RwApiResponse.fromJson(response.data);
-        if (data.resultCd != "000") {
-          throw Exception(data.resultMsg);
-        }
-        // sendEmailLogging(
-        //   requestBody: variation.toJson().toString(),
-        //   subject: "Worked",
-        //   body: response.data.toString(),
-        // );
-        return true;
+
+        return data;
       } else {
         throw Exception("failed to save item");
       }
@@ -235,8 +227,10 @@ class RWTax implements TaxApi {
     if (ebm == null) {
       return false;
     }
+    final url = Uri.parse(URI)
+        .replace(path: Uri.parse(URI).path + 'items/selectItems')
+        .toString();
 
-    final url = '${ebm.taxServerUrl}/items/selectItems';
     final data = {
       "tin": tinNumber,
       "bhfId": bhfId,
@@ -309,7 +303,10 @@ class RWTax implements TaxApi {
 
     try {
       // Send request
-      final url = '$URI/trnsSales/saveSales';
+      final url = Uri.parse(URI)
+          .replace(path: Uri.parse(URI).path + 'trnsSales/saveSales')
+          .toString();
+
       final response = await sendPostRequest(url, requestData);
 
       // Handle response
@@ -561,7 +558,10 @@ class RWTax implements TaxApi {
   @override
   Future<RwApiResponse> saveCustomer(
       {required ICustomer customer, required String URI}) async {
-    final url = '${URI}/branches/saveBrancheCustomers';
+    talker.info("URI::1:${URI}");
+    final url = Uri.parse(URI)
+        .replace(path: Uri.parse(URI).path + 'branches/saveBrancheCustomers')
+        .toString();
 
     try {
       final response = await sendPostRequest(url, customer.toJson());
@@ -598,7 +598,10 @@ class RWTax implements TaxApi {
   @override
   Future<RwApiResponse> savePurchases(
       {required SaleList item, required String URI}) async {
-    final baseUrl = URI + '/trnsPurchase/savePurchases';
+    final url = Uri.parse(URI)
+        .replace(path: Uri.parse(URI).path + 'trnsPurchase/savePurchases')
+        .toString();
+
     //TODO: finalize the remove the hardcoded value such as 999909695 and "00"
     Map<String, dynamic> data = item.toJson();
     data['tin'] = 999909695;
@@ -617,7 +620,7 @@ class RWTax implements TaxApi {
     data['rcptTyCd'] = "P";
     final talker = Talker();
     try {
-      final response = await sendPostRequest(baseUrl, data);
+      final response = await sendPostRequest(url, data);
       if (response.statusCode == 200) {
         final jsonResponse = response.data;
         final respond = RwApiResponse.fromJson(jsonResponse);
@@ -666,7 +669,10 @@ class RWTax implements TaxApi {
       required String bhfId,
       required String lastReqDt,
       required String URI}) async {
-    final baseUrl = URI + '/imports/selectImportItems';
+    final url = Uri.parse(URI)
+        .replace(path: Uri.parse(URI).path + 'imports/selectImportItems')
+        .toString();
+
     final talker = Talker();
     final data = {
       'tin': tin,
@@ -675,7 +681,7 @@ class RWTax implements TaxApi {
     };
 
     try {
-      final response = await sendPostRequest(baseUrl, data);
+      final response = await sendPostRequest(url, data);
       if (response.statusCode == 200) {
         final jsonResponse = response.data;
         final respond = RwApiResponse.fromJson(jsonResponse);
@@ -699,7 +705,11 @@ class RWTax implements TaxApi {
       required String bhfId,
       required String URI,
       required String lastReqDt}) async {
-    final baseUrl = URI + '/trnsPurchase/selectTrnsPurchaseSales';
+    final url = Uri.parse(URI)
+        .replace(
+            path: Uri.parse(URI).path + 'trnsPurchase/selectTrnsPurchaseSales')
+        .toString();
+
     final data = {
       'tin': tin,
       'bhfId': bhfId,
@@ -707,7 +717,7 @@ class RWTax implements TaxApi {
     };
     final talker = Talker();
     try {
-      final response = await sendPostRequest(baseUrl, data);
+      final response = await sendPostRequest(url, data);
       if (response.statusCode == 200) {
         final jsonResponse = response.data;
         final respond = RwApiResponse.fromJson(jsonResponse);
@@ -728,12 +738,15 @@ class RWTax implements TaxApi {
   @override
   Future<RwApiResponse> updateImportItems(
       {required Item item, required String URI}) async {
-    final baseUrl = URI + '/imports/updateImportItems';
+    final url = Uri.parse(URI)
+        .replace(path: Uri.parse(URI).path + 'imports/updateImportItems')
+        .toString();
+
     final data = item.toJson();
     final talker = Talker();
 
     try {
-      final response = await sendPostRequest(baseUrl, data);
+      final response = await sendPostRequest(url, data);
       if (response.statusCode == 200) {
         final jsonResponse = response.data;
         final respond = RwApiResponse.fromJson(jsonResponse);

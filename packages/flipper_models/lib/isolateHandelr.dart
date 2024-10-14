@@ -110,15 +110,18 @@ class IsolateHandler {
               variant.taxTyCd == null ||
               variant.bhfId == null ||
               variant.bhfId!.isEmpty) return;
-          await RWTax().saveItem(variation: iVariant, URI: URI);
+          final response =
+              await RWTax().saveItem(variation: iVariant, URI: URI);
           gvariantIds.add(variant);
-          talker.warning("Successfully saved Item.");
-          sendPort.send('variant:${variant.id}');
+          if (response.resultCd == 000) {
+            localRealm!.write(() {
+              variant.ebmSynced = true;
+            });
+          }
+          sendPort.send('notification:${response.resultMsg}');
           anythingUpdated = true;
         } catch (e, s) {
           talker.error(s);
-        } finally {
-          sendPort.send('notification:${1}');
         }
       }
     }
@@ -147,14 +150,17 @@ class IsolateHandler {
           IVariant iVariant =
               IVariant.fromJson(variant.toEJson().toFlipperJson());
 
-          await RWTax().saveStock(stock: iStock, variant: iVariant, URI: URI);
-          sendPort.send('stock:${stock.id}');
-          talker.warning("Successfully saved Stock.");
+          final response = await RWTax()
+              .saveStock(stock: iStock, variant: iVariant, URI: URI);
+          if (response.resultCd == 000) {
+            localRealm!.write(() {
+              stock.ebmSynced = true;
+            });
+          }
+          sendPort.send('notification:${response.resultMsg}');
           anythingUpdated = true;
         } catch (e, s) {
           talker.error(s);
-        } finally {
-          sendPort.send('notification:${1}');
         }
       }
     }
@@ -171,18 +177,21 @@ class IsolateHandler {
             customer.tin = tinNumber;
             customer.bhfId = bhfId;
           });
-          talker.info("saving Customer on EBM server ${customer.toEJson()}");
+
           if ((customer.custTin?.length ?? 0) < 9) return;
           ICustomer iCustomer =
               ICustomer.fromJson(customer.toEJson().toFlipperJson());
 
-          await RWTax().saveCustomer(customer: iCustomer, URI: URI);
-          sendPort.send('customer:${customer.id}');
+          final response =
+              await RWTax().saveCustomer(customer: iCustomer, URI: URI);
+          if (response.resultCd == 000) {
+            localRealm!.write(() {
+              customer.ebmSynced = true;
+            });
+          }
+          sendPort.send('notification:${response.resultMsg.substring(0, 10)}');
           anythingUpdated = true;
-        } catch (e) {
-        } finally {
-          sendPort.send('notification:${1}');
-        }
+        } catch (e) {}
       }
     }
 
@@ -218,7 +227,7 @@ class IsolateHandler {
 
   static Future<void> localData(List<dynamic> args) async {
     final rootIsolateToken = args[0] as RootIsolateToken;
-    final sendPort = args[1] as SendPort;
+    // final sendPort = args[1] as SendPort;
     final dbPatch = args[3] as String;
     String? key = args[4] as String?;
 
