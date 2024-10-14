@@ -141,9 +141,9 @@ class CronService {
     }
 
     talker.warning("FirebaseUser ${FirebaseAuth.instance.currentUser}");
-    PullChange().start(
-        firestore: FirebaseFirestore.instance,
-        localRealm: ProxyService.local.realm!);
+    // PullChange().start(
+    //     firestore: FirebaseFirestore.instance,
+    //     localRealm: ProxyService.local.realm!);
     ProxyService.box.writeBool(key: 'isOrdering', value: false);
 
     if (ProxyService.box.forceUPSERT()) {

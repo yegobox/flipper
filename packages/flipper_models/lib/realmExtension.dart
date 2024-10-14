@@ -18,6 +18,8 @@ extension RealmExtension on Realm {
     try {
       T result = writeCallback();
 
+      /// intentionally put  transaction.commit() at line 21 instead of line 29 because on windows peforming firestore write take forever.
+      transaction.commit();
       if (result is Iterable) {
         for (var item in result) {
           _syncToFirestore(tableName, item);
@@ -25,8 +27,6 @@ extension RealmExtension on Realm {
       } else if (result != null) {
         _syncToFirestore(tableName, result);
       }
-
-      transaction.commit();
       return result;
     } catch (e, s) {
       talker.error(s);
