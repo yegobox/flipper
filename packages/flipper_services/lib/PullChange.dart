@@ -172,6 +172,7 @@ class PullChange {
                 ? data['current_stock'].toDouble()
                 : double.tryParse(data['current_stock']) ?? stock.currentStock;
             stock.currentStock = finalStock;
+            stock.initialStock = data['initial_stock'];
             stock.rsdQty = finalStock;
             stock.lastTouched = data['last_touched'] is DateTime
                 ? data['last_touched']
