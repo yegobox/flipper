@@ -363,18 +363,16 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
       final filteredVariants = searchString.isNotEmpty
           ? variants
               // match the variant name
-              .where((variant) => variant.name!
-                          .toLowerCase()
-                          .contains(searchString.toLowerCase()) ||
-                      // match the productName
-                      variant.productName!
-                          .toLowerCase()
-                          .contains(searchString.toLowerCase()) ||
-
-                      /// match the bar code
-                      variant.bcd == null
-                  ? false
-                  : variant.bcd!.contains(searchString.toLowerCase()))
+              .where((variant) =>
+                  variant.name!
+                      .toLowerCase()
+                      .contains(searchString.toLowerCase()) ||
+                  // match the productName
+                  variant.productName!
+                      .toLowerCase()
+                      .contains(searchString.toLowerCase()) ||
+                  (variant.bcd != null &&
+                      variant.bcd!.contains(searchString.toLowerCase())))
               .toList()
           : variants;
 
