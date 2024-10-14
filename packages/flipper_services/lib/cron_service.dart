@@ -241,17 +241,7 @@ class CronService {
 
     // CloudSync(firestore, realm).deleteDuplicate(tableName: customersTable);
     // CloudSync(firestore, realm).deleteDuplicate(tableName: devicesTable);
-    Timer.periodic(Duration(seconds: 10), (Timer t) async {
-      if (Platform.isWindows) {
-        if (FirebaseAuth.instance.currentUser != null) {
-          // https://github.com/firebase/flutterfire/issues/12055
-          await ProxyService.syncFirestore.firebaseLogin();
-          PullChange().start(
-              firestore: FirebaseFirestore.instance,
-              localRealm: ProxyService.local.realm!);
-        }
-      }
-    });
+  
 
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       // backUpPowerSync();
