@@ -93,7 +93,7 @@ Future<void> initializeDependencies() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   if (Platform.isWindows) {
-    await clearFirestoreCache();
+    // await clearFirestoreCache();
   }
   const isTest = bool.fromEnvironment('EMULATOR_ENABLED', defaultValue: false);
   // FirebaseFirestore.instance.settings =

@@ -358,7 +358,7 @@ class CloudSync implements SyncInterface {
         cancelWatch(tableName: tableName);
 
         if (docSnapshot.exists) {
-          talker.warning("UpdatedFirestore ${id}");
+          talker.warning("UpdatedFirestore ${tableName} ${id}");
           // Update existing document
           await docRef.update(modifiedMap);
         } else {
