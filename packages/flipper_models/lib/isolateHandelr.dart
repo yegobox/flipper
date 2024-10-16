@@ -79,8 +79,6 @@ class IsolateHandler {
         bhfId == null ||
         URI == null) return;
 
-    bool anythingUpdated = false;
-
     LocalConfiguration configLocal =
         localConfig(encryptionKey.toIntList(), local!);
 
@@ -113,13 +111,12 @@ class IsolateHandler {
           final response =
               await RWTax().saveItem(variation: iVariant, URI: URI);
           gvariantIds.add(variant);
-          if (response.resultCd == 000) {
+          if (response.resultCd == "000") {
             localRealm!.write(() {
               variant.ebmSynced = true;
             });
+            sendPort.send('notification:${response.resultMsg}');
           }
-          sendPort.send('notification:${response.resultMsg}');
-          anythingUpdated = true;
         } catch (e, s) {
           talker.error(s);
         }
@@ -152,13 +149,12 @@ class IsolateHandler {
 
           final response = await RWTax()
               .saveStock(stock: iStock, variant: iVariant, URI: URI);
-          if (response.resultCd == 000) {
+          if (response.resultCd == "000") {
             localRealm!.write(() {
               stock.ebmSynced = true;
             });
+            sendPort.send('notification:${response.resultMsg}');
           }
-          sendPort.send('notification:${response.resultMsg}');
-          anythingUpdated = true;
         } catch (e, s) {
           talker.error(s);
         }
@@ -184,21 +180,17 @@ class IsolateHandler {
 
           final response =
               await RWTax().saveCustomer(customer: iCustomer, URI: URI);
-          if (response.resultCd == 000) {
+          if (response.resultCd == "000") {
             localRealm!.write(() {
               customer.ebmSynced = true;
             });
+            sendPort
+                .send('notification:${response.resultMsg.substring(0, 10)}');
           }
-          sendPort.send('notification:${response.resultMsg.substring(0, 10)}');
-          anythingUpdated = true;
         } catch (e) {}
       }
     }
 
-    if (anythingUpdated) {
-      /// send Trigger to send notification
-      sendPort.send('notification:${1}');
-    }
     localRealm?.close();
   }
 

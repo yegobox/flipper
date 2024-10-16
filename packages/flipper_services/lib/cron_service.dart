@@ -234,7 +234,7 @@ class CronService {
     // CloudSync(firestore, realm).deleteDuplicate(tableName: customersTable);
     // CloudSync(firestore, realm).deleteDuplicate(tableName: devicesTable);
 
-    Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
+    Timer.periodic(Duration(seconds: 40), (Timer t) async {
       // backUpPowerSync();
       if (ProxyService.box.getUserId() == null ||
           ProxyService.box.getBusinessId() == null) return;
@@ -319,13 +319,5 @@ class CronService {
 
   Duration _downloadFileSchedule() {
     return Duration(minutes: kDebugMode ? 1 : 2);
-  }
-
-  Duration _getHeartBeatDuration() {
-    return Duration(seconds: kDebugMode ? 360 : 360);
-  }
-
-  Duration _pull() {
-    return Duration(seconds: kDebugMode ? 120 : 60);
   }
 }
