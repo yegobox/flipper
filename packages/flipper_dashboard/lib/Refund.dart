@@ -1,6 +1,4 @@
 import 'dart:typed_data';
-
-import 'package:flipper_dashboard/add_discount.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_dashboard/RefundReasonForm.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
