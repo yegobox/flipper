@@ -54,7 +54,7 @@ final CronService _reportService = getIt<CronService>();
 final Printer _printService = getIt<Printer>();
 final Analytic _analytics = getIt<Analytic>();
 final ForceDataEntryService _forceDataEntry = getIt<ForceDataEntryService>();
-final Crash _crash = getIt<Crash>();
+
 final LNotification _notification = getIt<LNotification>();
 final Review _review = getIt<Review>();
 final Sync _syncApi = getIt<Sync>();
@@ -76,8 +76,9 @@ final RealmViaHttp _realmHttp = getIt<RealmViaHttp>();
 final RealmApiInterface _localRealm = getIt<RealmApiInterface>();
 final SyncInterface _synchronize = getIt<SyncInterface>();
 final SyncInterface _syncFirestore = getIt<SyncInterface>();
-
+final Crash _crash = getIt<Crash>();
 abstract class ProxyService {
+   static Crash get crash => _crash;
   static SyncInterface get syncFirestore => _syncFirestore;
   static RealmApiInterface get local => _localRealm;
   static SyncInterface get synchronize => _synchronize;
@@ -88,7 +89,7 @@ abstract class ProxyService {
   static TaxApi get tax => _tax;
 
   static EventInterface get event => _event;
-  static Crash get crash => _crash;
+ 
   static Shareable get share => _share;
   static DynamicLink get dynamicLink => _dynamicLink;
   static FlipperLocation get location => _location;

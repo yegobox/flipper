@@ -3,6 +3,7 @@
 import 'package:flipper_dashboard/DownloadCard.dart';
 import 'package:flipper_dashboard/ReportCard.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +44,6 @@ class ReportsState extends ConsumerState<Reports>
     final soldStock =
         ref.watch(soldStockValueProvider(ProxyService.box.getBranchId()!));
     final reports = ref.watch(reportsProvider(ProxyService.box.getBranchId()!));
-
 
     return SafeArea(
       child: Scaffold(

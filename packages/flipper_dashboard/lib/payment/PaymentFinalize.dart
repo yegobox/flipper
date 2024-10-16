@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
@@ -162,7 +163,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
       bool keepLoop = true;
       do {
         /// force instant update from remote db
-       
+
         PaymentPlan? plan = ProxyService.local
             .getPaymentPlan(businessId: paymentPlan.businessId!);
         if (plan != null && plan.paymentCompletedByUser!) {

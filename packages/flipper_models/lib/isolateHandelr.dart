@@ -9,10 +9,11 @@ import 'package:flipper_models/helperModels/IStock.dart';
 import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/helperModels/UniversalProduct.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+
 import 'firebase_options.dart';
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';

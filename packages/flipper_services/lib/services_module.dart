@@ -1,6 +1,8 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/MockHttpClient.dart';
 import 'package:flipper_models/realmInterface.dart';
@@ -61,6 +63,22 @@ import 'package:flipper_services/DeviceIdService.dart' as dev;
 
 @module
 abstract class ServicesModule {
+  @singleton
+  FirebaseCrashlytics get crashlytics => FirebaseCrashlytics.instance;
+
+  @lazySingleton
+  Crash get crash {
+    Crash crash;
+    if (UniversalPlatform.isAndroid ||
+        UniversalPlatform.isIOS ||
+        UniversalPlatform.isMacOS) {
+      crash = CrashlitycsTalkerObserver(crashlytics: crashlytics);
+    } else {
+      crash = CrashlitycsTalkerObserverUnsupported();
+    }
+    return crash;
+  }
+
   @singleton
   FirebaseFirestore get firestore => FirebaseFirestore.instance;
 
@@ -155,19 +173,6 @@ abstract class ServicesModule {
       messaging = FirebaseMessagingDesktop();
     }
     return messaging;
-  }
-
-  @LazySingleton()
-  Crash get crash {
-    Crash crash;
-    if (UniversalPlatform.isAndroid ||
-        UniversalPlatform.isIOS ||
-        UniversalPlatform.isMacOS) {
-      crash = FirebaseCrashlyticService();
-    } else {
-      crash = FirebaseCrashlyticServiceUnsupportedDevice();
-    }
-    return crash;
   }
 
   @LazySingleton()

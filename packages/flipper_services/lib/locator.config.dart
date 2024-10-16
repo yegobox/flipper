@@ -9,6 +9,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:cloud_firestore/cloud_firestore.dart' as _i974;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart' as _i141;
 import 'package:flipper_models/CloudSync.dart' as _i562;
 import 'package:flipper_models/flipper_http_client.dart' as _i843;
 import 'package:flipper_models/realmInterface.dart' as _i756;
@@ -62,14 +63,15 @@ extension GetItInjectableX on _i174.GetIt {
     );
     final servicesModule = _$ServicesModule();
     gh.factory<_i290.SettingsService>(() => servicesModule.settingsService);
+    gh.singleton<_i141.FirebaseCrashlytics>(() => servicesModule.crashlytics);
     gh.singleton<_i974.FirebaseFirestore>(() => servicesModule.firestore);
+    gh.lazySingleton<_i628.Crash>(() => servicesModule.crash);
     gh.lazySingleton<_i844.Device>(() => servicesModule.device);
     gh.lazySingleton<_i457.NotificationStream>(() => servicesModule.notie);
     gh.lazySingleton<_i103.UploadT>(() => servicesModule.upload);
     gh.lazySingleton<_i23.Shareable>(() => servicesModule.share);
     gh.lazySingleton<_i118.Review>(() => servicesModule.review);
     gh.lazySingleton<_i251.Messaging>(() => servicesModule.messaging);
-    gh.lazySingleton<_i628.Crash>(() => servicesModule.crash);
     gh.lazySingleton<_i0.DynamicLink>(() => servicesModule.dynamicLink);
     gh.lazySingleton<_i289.Printer>(() => servicesModule.printService);
     gh.lazySingleton<_i271.Analytic>(() => servicesModule.appAnalytic);

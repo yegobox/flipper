@@ -1,14 +1,11 @@
-import 'package:flipper_models/helperModels/pin.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:realm/realm.dart';
 import 'package:flipper_services/locator.dart' as loc;
 
 import 'package:flipper_services/app_service.dart';
@@ -71,6 +68,4 @@ class LoginViewModel extends FlipperBaseModel
       rethrow;
     }
   }
-
-  
 }

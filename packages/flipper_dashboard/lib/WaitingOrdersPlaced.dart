@@ -1,4 +1,4 @@
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

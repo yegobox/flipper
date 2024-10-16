@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 
@@ -54,7 +55,6 @@ import 'package:path/path.dart' as path;
 class LocalRealmApi
     with Booting, defaultData.Data
     implements RealmApiInterface {
-  final talker = TalkerFlutter.init();
   bool offlineLogin = false;
   @override
   Realm? realm;

@@ -1,4 +1,5 @@
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realm_model_export.dart' as cat;
 import 'package:flipper_services/constants.dart';
@@ -205,8 +206,6 @@ final pendingTransactionProvider = StreamProvider.autoDispose
     );
   },
 );
-
-final talker = TalkerFlutter.init();
 
 final freshtransactionItemsProviderByIdProvider =
     StateNotifierProvider.autoDispose.family<TransactionItemsNotifier,

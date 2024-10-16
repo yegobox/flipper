@@ -40,7 +40,7 @@ Future<void> main() async {
                 brightness: Brightness.light,
                 primaryColor: Colors.blue,
                 colorScheme: const ColorScheme.light(
-                  primary: Colors.blue, 
+                  primary: Colors.blue,
                   secondary: Colors.blueAccent,
                 ).copyWith(surface: Colors.white),
                 cardTheme: CardTheme(
@@ -73,5 +73,3 @@ Future<void> main() async {
     ),
   );
 }
-
-

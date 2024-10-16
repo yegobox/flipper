@@ -1,5 +1,6 @@
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/helperModels/paystack_customer.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';

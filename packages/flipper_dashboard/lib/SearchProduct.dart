@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/CompositeVariation.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';

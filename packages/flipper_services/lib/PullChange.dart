@@ -4,6 +4,7 @@ import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/firestore/all.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/firestore/all.dart' as odm;
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 
 import 'package:flipper_models/realm_model_export.dart';
@@ -19,7 +20,7 @@ class PullChange {
     required Realm localRealm,
     String? tableName,
   }) async {
-    if (FirebaseAuth.instance.currentUser == null) return;
+    // if (FirebaseAuth.instance.currentUser == null) return;
     try {
       if (tableName == null) {
         if (Platform.isWindows) {

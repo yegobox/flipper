@@ -4,6 +4,7 @@ import 'dart:developer';
 
 // import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';

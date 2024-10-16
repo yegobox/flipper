@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/pin.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'dart:ui' as ui;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/secrets.dart';
