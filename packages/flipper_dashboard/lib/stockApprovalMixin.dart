@@ -1,5 +1,4 @@
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:realm/realm.dart';
