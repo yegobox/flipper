@@ -6,9 +6,10 @@ import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:intl/intl.dart';
 
 import 'package:flipper_services/proxy.dart';
-import 'package:intl/intl.dart';
+// import 'package:intl/intl.dart';
 import 'package:realm/realm.dart';
 import 'package:receipt/print.dart';
 
@@ -380,6 +381,24 @@ class TaxController<OBJ> {
   }
 
   String generateQRCode(String formattedDate, RwApiResponse receiptSignature) {
-    return '$formattedDate#${DateTime.now().toString().substring(11, 19)}#${receiptSignature.data?.sdcId}#${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}#${receiptSignature.data?.intrlData}#${receiptSignature.data?.rcptSign}';
+    final now = DateTime.now();
+    final timeFormatter = DateFormat('HH:mm:ss');
+    final currentTime = timeFormatter.format(now);
+
+    final data = receiptSignature.data;
+    if (data == null) {
+      throw ArgumentError('Receipt signature data is null');
+    }
+
+    final qrCodeParts = [
+      formattedDate,
+      currentTime,
+      data.sdcId ?? 'N/A',
+      '${data.rcptNo ?? 'N/A'}/${data.totRcptNo ?? 'N/A'}',
+      data.intrlData ?? 'N/A',
+      data.rcptSign ?? 'N/A',
+    ];
+
+    return qrCodeParts.join('#');
   }
 }

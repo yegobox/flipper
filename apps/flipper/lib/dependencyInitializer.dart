@@ -168,6 +168,7 @@ Future<void> initializeDependencies() async {
       flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
     );
   }
+  
 
   if (!kIsWeb) {
     HttpOverrides.global = MyHttpOverrides();

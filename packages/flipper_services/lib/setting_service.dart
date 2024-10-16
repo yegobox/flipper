@@ -66,7 +66,7 @@ class SettingsService with ListenableServiceMixin {
         autoPrint: kMap['autoPrint'] ?? false,
         isAttendanceEnabled: kMap['isAttendanceEnabled'] ?? false,
       );
-      await ProxyService.local.createSetting(setting: setting);
+      // await ProxyService.local.createSetting(setting: setting);
       return true;
     }
   }

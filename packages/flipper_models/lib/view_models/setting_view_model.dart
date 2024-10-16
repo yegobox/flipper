@@ -123,7 +123,6 @@ class SettingViewModel extends CoreViewModel {
       if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email!)) {
         callback(1);
       } else {
-        await ProxyService.local.createGoogleSheetDoc(email: setting.email!);
         ProxyService.local.realm!.writeAsync(() async {
           Business business = await ProxyService.local.getBusiness();
           business.email = setting.email;

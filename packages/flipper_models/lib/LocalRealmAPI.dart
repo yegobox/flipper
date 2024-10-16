@@ -3298,12 +3298,6 @@ class LocalRealmApi
   }
 
   @override
-  Future<void> createGoogleSheetDoc({required String email}) {
-    // TODO: implement createGoogleSheetDoc
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
       required ITransaction transaction,
@@ -3314,7 +3308,6 @@ class LocalRealmApi
 
     Receipt receipt = Receipt(ObjectId(),
         id: randomNumber(),
-        // Consider using a more robust ID generation
         branchId: branchId,
         resultCd: signature.resultCd,
         resultMsg: signature.resultMsg,
@@ -3332,28 +3325,20 @@ class LocalRealmApi
         resultDt: signature.resultDt ?? "");
 
     try {
-      realm!.write(() => realm!.add<Receipt>(receipt));
+      realm!.writeN(
+          tableName: receiptsTable,
+          writeCallback: () => realm!.add<Receipt>(receipt));
 
       return receipt;
-    } catch (error, s) {
-      // Handle error during write operation
-      talker.error(s);
+    } catch (error) {
       rethrow;
     }
-  }
-
-  @override
-  Future<Setting?> createSetting({required Setting setting}) {
-    // TODO: implement createSetting
-    throw UnimplementedError();
   }
 
   @override
   List<Customer> customers({required int branchId}) {
     return realm!.query<Customer>(r'branchId == $0 ', [branchId]).toList();
   }
-
-  // FlipperHttpClient flipperHttpClient = FlipperHttpClient(http.Client());
 
   @override
   Future<bool> delete(

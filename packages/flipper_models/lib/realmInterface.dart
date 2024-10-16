@@ -186,7 +186,6 @@ abstract class RealmApiInterface {
 // app settings and users settings
   Future<Setting?> getSetting({required int businessId});
 
-  Future<Setting?> createSetting({required Setting setting});
   // Stream<List<Conversation>> conversationStreamList({int? receiverId});
   // void sendMessage({required int receiverId, required Message message});
   // Stream<List<Message>> messages({required int conversationId});
@@ -219,7 +218,7 @@ abstract class RealmApiInterface {
   Stream<List<Variant>> getVariantByProductIdStream({int? productId});
 
   Future<int> sendReport({required List<TransactionItem> transactionItems});
-  Future<void> createGoogleSheetDoc({required String email});
+
   TransactionItem? getTransactionItemByVariantId(
       {required int variantId, int? transactionId});
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(

@@ -98,15 +98,28 @@ extension DateTimeToDateTimeString on DateTime {
 }
 
 extension StringToDashedString on String {
-  String toDashedString() {
-    if (isEmpty) {
-      return '';
-    }
-    var x = 0;
-    final dashesInternalData = {2, 3, 4, 12, 6, 7};
-    final replacedInternalData = splitMapJoin(RegExp('....'),
-        onNonMatch: (s) => dashesInternalData.contains(x++) ? '-' : '');
-    return replacedInternalData;
+  /// for RcptSign it is always 16 characters
+  /// we group them into 4 characters separated by dash
+  String toDashedStringRcptSign() {
+    if (length != 16) return this;
+    return '${substring(0, 4)}-'
+        '${substring(4, 8)}-'
+        '${substring(8, 12)}-'
+        '${substring(12, 16)}';
+  }
+
+  /// for internal data is is always 26 characters, we group them into 4 characters separated by dash
+  /// the last characters are 2
+  String toDashedStringInternalData() {
+    if (length != 26) return this;
+
+    return '${substring(0, 4)}-'
+        '${substring(4, 8)}-'
+        '${substring(8, 12)}-'
+        '${substring(12, 16)}-'
+        '${substring(16, 20)}-'
+        '${substring(20, 24)}-'
+        '${substring(24)}';
   }
 }
 
