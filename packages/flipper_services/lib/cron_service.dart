@@ -88,6 +88,16 @@ class CronService {
             List<String> separator = identifier.split(":");
 
             if (separator.first == "notification") {
+              if (separator.length < 3) return;
+              if (separator[1] != "variant") {
+                final variantId = int.tryParse(separator[2]);
+                Variant? variant =
+                    ProxyService.local.variant(variantId: variantId);
+                if (variant != null) {
+                  variant.ebmSynced = true;
+                }
+              }
+
               /// in event when we are done with work in isolate
               /// then we kill current isolate, but it is very important to know
               /// that we receive this notification from isolate only when some work was done inside isolate
@@ -96,7 +106,7 @@ class CronService {
               /// that is hanging somewhere around
               isolate?.kill();
               ProxyService.notification
-                  .sendLocalNotification(body: separator.last);
+                  .sendLocalNotification(body: separator[1]);
             }
           },
         );

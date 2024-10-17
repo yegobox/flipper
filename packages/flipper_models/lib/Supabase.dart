@@ -1,11 +1,21 @@
+import 'package:flipper_models/secrets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class SupabaseInterface {
-  late SupabaseClient client;
+  SupabaseClient? client;
+  Future<void> init();
 }
 
 class SupabaseImpl implements SupabaseInterface {
   @override
-  late SupabaseClient client;
-  SupabaseImpl({required SupabaseClient client}) : client = client;
+  SupabaseClient? client;
+  SupabaseImpl({SupabaseClient? client}) : client = client;
+
+  @override
+  Future<void> init() async {
+    await Supabase.initialize(
+      url: AppSecrets.superbaseurl,
+      anonKey: AppSecrets.supabaseAnonKey,
+    );
+  }
 }

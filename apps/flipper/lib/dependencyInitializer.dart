@@ -151,10 +151,6 @@ Future<void> initializeDependencies() async {
       badge: true,
     );
   }
-  await Supabase.initialize(
-    url: AppSecrets.superbaseurl,
-    anonKey: AppSecrets.supabaseAnonKey,
-  );
 
   //FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 

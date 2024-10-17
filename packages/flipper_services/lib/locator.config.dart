@@ -20,7 +20,6 @@ import 'package:flipper_models/view_models/NotificationStream.dart' as _i457;
 import 'package:flipper_models/whatsapp.dart' as _i632;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
-import 'package:supabase_flutter/supabase_flutter.dart' as _i454;
 
 import 'abstractions/analytic.dart' as _i271;
 import 'abstractions/dynamic_link.dart' as _i0;
@@ -66,7 +65,6 @@ extension GetItInjectableX on _i174.GetIt {
     final servicesModule = _$ServicesModule();
     gh.factory<_i290.SettingsService>(() => servicesModule.settingsService);
     gh.singleton<_i141.FirebaseCrashlytics>(() => servicesModule.crashlytics);
-    gh.singleton<_i454.SupabaseClient>(() => servicesModule.supaBaseClient);
     gh.singleton<_i974.FirebaseFirestore>(() => servicesModule.firestore);
     gh.lazySingleton<_i163.SupabaseInterface>(() => servicesModule.supaBase);
     gh.lazySingleton<_i628.Crash>(() => servicesModule.crash);

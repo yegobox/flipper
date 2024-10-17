@@ -58,7 +58,6 @@ import 'local_notification_service.dart';
 import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:flipper_services/DeviceIdService.dart' as dev;
 
 @module
@@ -66,13 +65,9 @@ abstract class ServicesModule {
   @singleton
   FirebaseCrashlytics get crashlytics => FirebaseCrashlytics.instance;
 
-  @singleton
-  supabase.SupabaseClient get supaBaseClient =>
-      supabase.Supabase.instance.client;
-
   @lazySingleton
   SupabaseInterface get supaBase {
-    return SupabaseImpl(client: supaBaseClient);
+    return SupabaseImpl();
   }
 
   @lazySingleton
@@ -96,7 +91,7 @@ abstract class ServicesModule {
     FirebaseFirestore firestore,
     RealmApiInterface realm,
   ) {
-    return CloudSync(firestore, realm, supaBaseClient);
+    return CloudSync(firestore, realm);
   }
 
   @preResolve

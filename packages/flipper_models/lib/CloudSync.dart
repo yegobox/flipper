@@ -84,12 +84,13 @@ abstract class SyncInterface {
 
 class CloudSync extends SupabaseImpl implements SyncInterface {
   final Map<String, StreamSubscription<QuerySnapshot>> _subscriptions = {};
- 
+
   final FirebaseFirestore? _firestore;
   final RealmApiInterface _realm;
   final Set<int> _processingIds = {};
 
-  CloudSync(this._firestore, this._realm, SupabaseClient client) : super(client: client);
+  CloudSync(this._firestore, this._realm, {SupabaseClient? client})
+      : super(client: client);
   @override
   Future<void> deleteDuplicate({required String tableName}) async {
     try {

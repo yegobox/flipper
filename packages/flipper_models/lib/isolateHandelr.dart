@@ -109,11 +109,8 @@ class IsolateHandler {
         final response = await RWTax().saveItem(variation: iVariant, URI: URI);
 
         if (response.resultCd == "000") {
-          localRealm!.write(() {
-            // talker.warning("in write here");
-            variant.ebmSynced = true;
-          });
-          sendPort.send('notification:${response.resultMsg}');
+          sendPort
+              .send('notification:${response.resultMsg}:variant:${variant.id}');
         }
       } catch (e, s) {
         talker.error(s);
