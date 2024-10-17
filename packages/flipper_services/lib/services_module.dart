@@ -66,7 +66,7 @@ abstract class ServicesModule {
   FirebaseCrashlytics get crashlytics => FirebaseCrashlytics.instance;
 
   @lazySingleton
-  SupabaseInterface get supaBase {
+  SupabaseInterface get supa {
     return SupabaseImpl();
   }
 

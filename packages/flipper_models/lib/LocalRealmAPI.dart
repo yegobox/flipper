@@ -4853,4 +4853,27 @@ class LocalRealmApi
   Future<String> getIdToken() async {
     return await FirebaseAuth.instance.currentUser?.getIdToken() ?? "NONE";
   }
+
+  @override
+  Future<String?> getPlatformDeviceId() async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+
+    if (foundation.defaultTargetPlatform == foundation.TargetPlatform.android) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      return androidInfo.serialNumber;
+    } else if (foundation.defaultTargetPlatform ==
+        foundation.TargetPlatform.iOS) {
+      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+      return iosInfo.systemVersion;
+    } else if (foundation.defaultTargetPlatform ==
+        foundation.TargetPlatform.macOS) {
+      MacOsDeviceInfo macOsInfo = await deviceInfo.macOsInfo;
+      return macOsInfo.systemGUID;
+    } else if (foundation.defaultTargetPlatform ==
+        foundation.TargetPlatform.windows) {
+      WindowsDeviceInfo windowsInfo = await deviceInfo.windowsInfo;
+      return windowsInfo.deviceId;
+    }
+    return null;
+  }
 }

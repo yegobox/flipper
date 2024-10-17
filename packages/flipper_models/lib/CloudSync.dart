@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
@@ -82,15 +81,13 @@ abstract class SyncInterface {
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
 
-class CloudSync extends SupabaseImpl implements SyncInterface {
+class CloudSync implements SyncInterface {
   final Map<String, StreamSubscription<QuerySnapshot>> _subscriptions = {};
-
   final FirebaseFirestore? _firestore;
   final RealmApiInterface _realm;
   final Set<int> _processingIds = {};
 
-  CloudSync(this._firestore, this._realm, {SupabaseClient? client})
-      : super(client: client);
+  CloudSync(this._firestore, this._realm, {SupabaseClient? client});
   @override
   Future<void> deleteDuplicate({required String tableName}) async {
     try {
@@ -146,14 +143,9 @@ class CloudSync extends SupabaseImpl implements SyncInterface {
             .where('branch_id', isEqualTo: branchId)
             .get();
 
-        print(
-            "Retrieved ${querySnapshot.docs.length} documents from Firestore");
-
         for (var docChange in querySnapshot.docs) {
           final id = int.parse(docChange.id);
           final data = docChange.data();
-
-          print("Processing document with ID: $id");
 
           // Process the document based on the change type
           // Assuming all changes are either added or modified for this example
@@ -244,30 +236,6 @@ class CloudSync extends SupabaseImpl implements SyncInterface {
             talker.warning(e);
             talker.error(s);
           }
-
-          // final item = await db.getOptional(
-          //   'SELECT * FROM $tableName WHERE $idField = ?',
-          //   [id],
-          // );
-
-          // if (item != null) {
-          //   try {
-          //     preProcessMap(map);
-
-          //     bool hasChanges = compareChanges(item, map);
-
-          //     if (hasChanges) {
-          //       await updateRecord(
-          //           tableName: tableName,
-          //           idField: idField,
-          //           map: map,
-          //           id: id,
-          //           syncProvider: SyncProvider.POWERSYNC);
-          //     }
-          //   } catch (e) {
-          //     throw Exception();
-          //   }
-          // }
         }
 
         // Handle deleted objects if necessary
@@ -295,10 +263,6 @@ class CloudSync extends SupabaseImpl implements SyncInterface {
       {required String tableName,
       required String idField,
       required int id}) async {
-    // await db.execute(
-    //   'DELETE FROM $tableName WHERE $idField = ?',
-    //   [id],
-    // );
     talker.warning("Firestore deleting $tableName with id $id");
     cancelWatch(tableName: tableName);
     await _firestore!.collection(tableName).doc(id.toString()).delete();
@@ -319,13 +283,6 @@ class CloudSync extends SupabaseImpl implements SyncInterface {
             return deletedObject;
           }
         });
-    // re-start pull change
-    // PullChange().start(
-    //     firestore: _firestore!,
-    //     localRealm: _realm.realm!,
-    //     tableName: tableName);
-
-    /// delete record in firestore
   }
 
   @override
@@ -335,17 +292,6 @@ class CloudSync extends SupabaseImpl implements SyncInterface {
       required Map<String, dynamic> map,
       required int id,
       required SyncProvider syncProvider}) async {
-    final keysToUpdate =
-        map.keys.map((key) => '${camelToSnakeCase(key)} = ?').join(', ');
-    final valuesToUpdate = map.values.toList();
-
-    if (syncProvider == "POWERSYNC") {
-      // await db.execute(
-      //   'UPDATE $tableName SET $keysToUpdate WHERE $idField = ?',
-      //   [...valuesToUpdate, id],
-      // );
-      return;
-    }
     // get a modified map
     final modifiedMap =
         map.map((key, value) => MapEntry(camelToSnakeCase(key), value));
@@ -368,11 +314,40 @@ class CloudSync extends SupabaseImpl implements SyncInterface {
           // Create new document
           await docRef.set(modifiedMap);
         }
-        // re-start pull change
-        // PullChange().start(
-        //     firestore: _firestore!,
-        //     localRealm: _realm.realm!,
-        //     tableName: tableName);
+
+        /// update table on supabse to know changes that need to be synced e.g on windows data might go slow since
+        /// windows firestore is not stable yet, this will fail when there is no network connection
+        /// so we have a separate isolate that will keep trying syncing data
+
+        await ProxyService.supa.init();
+        try {
+          // Attempt to call the RPC function
+          final rpcResult =
+              await ProxyService.supa.client?.rpc('insert_key', params: {
+            'current_secret_key': AppSecrets.insertKey,
+          });
+
+          // If RPC call is successful, proceed with the insert operation
+          if (rpcResult != null) {
+            final response =
+                await ProxyService.supa.client?.from(dataMappers).upsert({
+              'table_name': tableName,
+              'object_id': id,
+              'device_identifier':
+                  await ProxyService.local.getPlatformDeviceId(),
+
+              /// Tobe done incorporate it into payment wall the device expected to download the object.
+              'sync_devices': 0,
+
+              /// this exclude the device that is writing the object setting it to 1
+              'device_downloaded_object': 1
+            }).select();
+            talker.warning(response);
+          }
+        } catch (e) {
+          talker.error('Error occurred: $e');
+          // Handle the error appropriately (e.g., show an error message to the user)
+        }
       } catch (e, s) {
         talker.warning(e);
         talker.error(s);
@@ -478,63 +453,6 @@ class CloudSync extends SupabaseImpl implements SyncInterface {
       } catch (e) {
         talker.error("Error setting up Firestore listener: $e");
         throw Exception("Error syncing: $e");
-      }
-    }
-    if (syncProvider == "POWERSYNC") {
-      try {
-        if (useWatch) {
-          // final changes =
-          //     await db.watch('SELECT * FROM $tableName ORDER BY created_at DESC');
-          // changes.listen((data) {
-          //   for (var item in data) {
-          //     final id = item[idField];
-
-          //     // Add this ID to the processing set
-          //     _processingIds.add(id);
-
-          //     // Find existing object or create a new one
-          //     var realmObject =
-          //         _realm.realm!.query<T>('id == $id').firstOrNull;
-          //     if (realmObject == null) {
-          //       realmObject = createRealmObject(item);
-          //       _realm.realm!.add<T>(realmObject);
-          //     } else {
-          //       updateRealmObject(realmObject, item);
-          //     }
-
-          //     // Remove this ID from the processing set after a short delay
-          // Future.delayed(Duration(seconds: 2), () {
-          //   _processingIds.remove(id);
-          // });
-          //   }
-          // });
-        } else {
-          // final results = await db
-          //     .execute('SELECT * FROM $tableName ORDER BY created_at DESC');
-          // for (var data in results) {
-          //   final id = data[idField];
-
-          //   // Add this ID to the processing set
-          //   _processingIds.add(id);
-
-          //   // Find existing object or create a new one
-          //   var realmObject =
-          //       _realm.realm!.query<T>('id == $id').firstOrNull;
-          //   if (realmObject == null) {
-          //     realmObject = createRealmObject(data);
-          //     _realm.realm!.add<T>(realmObject);
-          //   } else {
-          //     updateRealmObject(realmObject, data);
-          //   }
-
-          //   // Remove this ID from the processing set after a short delay
-          //   Future.delayed(Duration(seconds: 2), () {
-          //     _processingIds.remove(id);
-          //   });
-          // }
-        }
-      } catch (e, s) {
-        talker.error(s);
       }
     }
   }

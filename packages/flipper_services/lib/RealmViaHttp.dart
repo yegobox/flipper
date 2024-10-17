@@ -742,6 +742,11 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   }
 
   @override
+  Future<String?> getPlatformDeviceId() async {
+    return "web";
+  }
+
+  @override
   Stock? getStockById({required int id}) {
     // TODO: implement getStockById
     throw UnimplementedError();

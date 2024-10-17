@@ -1128,3 +1128,17 @@ class _DeletedObject {
   /// expected devices to delete this object
   int? expectedDeviceCount;
 }
+
+@RealmModel()
+class _DataMapper {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  String? tableName;
+  String? objectId;
+  String? deviceIdentifier;
+  int? syncDevices;
+  int? deviceDownloadedObject;
+}

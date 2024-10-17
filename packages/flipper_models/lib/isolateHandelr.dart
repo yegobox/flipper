@@ -18,7 +18,6 @@ import 'dart:collection';
 import 'package:flutter/services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 class IsolateHandler {
@@ -49,7 +48,7 @@ class IsolateHandler {
       completer.complete();
 
       /// re-init firestore
-      final firestore = FirebaseFirestore.instance;
+      // final firestore = FirebaseFirestore.instance;
       localRealm?.close();
       localRealm = Realm(configLocal);
 

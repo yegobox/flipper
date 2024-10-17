@@ -6,12 +6,12 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:flipper_models/CloudSync.dart';
 
 extension RealmExtension on Realm {
+  
   T writeN<T>(
       {required String tableName, required T Function() writeCallback}) {
     assert(!_isFuture<T>(), 'writeCallback must be synchronous');
@@ -99,6 +99,7 @@ extension RealmExtension on Realm {
         id: id,
         syncProvider: SyncProvider.FIRESTORE,
       );
+      ///
     } catch (e) {
       print(e);
       rethrow;

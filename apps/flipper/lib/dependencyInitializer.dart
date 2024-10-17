@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -153,7 +154,7 @@ Future<void> initializeDependencies() async {
   }
 
   //FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-
+  loadSupabase();
   await initDependencies();
   loc.setupLocator(
     stackedRouter: stackedRouter,
@@ -162,7 +163,6 @@ Future<void> initializeDependencies() async {
   setupBottomSheetUi();
   // await openDatabase();
   // TODO: re-work on supabase initi when working with powersync
-  loadSupabase();
 
   ///Will switch to localNotification when it support windows
   if (!isWeb && !isWindows) {

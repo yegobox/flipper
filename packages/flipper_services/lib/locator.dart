@@ -31,3 +31,13 @@ Future<void> resetDependencies({bool dispose = true}) async {
 
 // Getter to access _dependenciesInitialized
 bool get areDependenciesInitialized => _dependenciesInitialized;
+
+// New method to push a new scope
+void pushNewScope() {
+  getIt.pushNewScope();
+}
+
+// New method to pop the current scope
+void popScope() {
+  getIt.popScope();
+}

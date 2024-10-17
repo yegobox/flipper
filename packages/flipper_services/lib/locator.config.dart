@@ -66,7 +66,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i290.SettingsService>(() => servicesModule.settingsService);
     gh.singleton<_i141.FirebaseCrashlytics>(() => servicesModule.crashlytics);
     gh.singleton<_i974.FirebaseFirestore>(() => servicesModule.firestore);
-    gh.lazySingleton<_i163.SupabaseInterface>(() => servicesModule.supaBase);
+    gh.lazySingleton<_i163.SupabaseInterface>(() => servicesModule.supa);
     gh.lazySingleton<_i628.Crash>(() => servicesModule.crash);
     gh.lazySingleton<_i844.Device>(() => servicesModule.device);
     gh.lazySingleton<_i457.NotificationStream>(() => servicesModule.notie);

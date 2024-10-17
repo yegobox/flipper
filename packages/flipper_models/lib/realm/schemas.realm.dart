@@ -4521,7 +4521,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       'ebmSynced': ebmSynced.toEJson(),
       'taxType': taxType.toEJson(),
       'branchIds': branchIds.toEJson(),
-      'stock': stock.toEJson(),
+      'stock': includeStock ? stock.toEJson() : null,
     };
   }
 
@@ -8661,6 +8661,136 @@ class DeletedObject extends _DeletedObject
       SchemaProperty('objectId', RealmPropertyType.string, optional: true),
       SchemaProperty('deviceCount', RealmPropertyType.int, optional: true),
       SchemaProperty('expectedDeviceCount', RealmPropertyType.int,
+          optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
+class DataMapper extends _DataMapper
+    with RealmEntity, RealmObjectBase, RealmObject {
+  DataMapper(
+    ObjectId realmId, {
+    int? id,
+    String? tableName,
+    String? objectId,
+    String? deviceIdentifier,
+    int? syncDevices,
+    int? deviceDownloadedObject,
+  }) {
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'tableName', tableName);
+    RealmObjectBase.set(this, 'objectId', objectId);
+    RealmObjectBase.set(this, 'deviceIdentifier', deviceIdentifier);
+    RealmObjectBase.set(this, 'syncDevices', syncDevices);
+    RealmObjectBase.set(this, 'deviceDownloadedObject', deviceDownloadedObject);
+  }
+
+  DataMapper._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  String? get tableName =>
+      RealmObjectBase.get<String>(this, 'tableName') as String?;
+  @override
+  set tableName(String? value) => RealmObjectBase.set(this, 'tableName', value);
+
+  @override
+  String? get objectId =>
+      RealmObjectBase.get<String>(this, 'objectId') as String?;
+  @override
+  set objectId(String? value) => RealmObjectBase.set(this, 'objectId', value);
+
+  @override
+  String? get deviceIdentifier =>
+      RealmObjectBase.get<String>(this, 'deviceIdentifier') as String?;
+  @override
+  set deviceIdentifier(String? value) =>
+      RealmObjectBase.set(this, 'deviceIdentifier', value);
+
+  @override
+  int? get syncDevices => RealmObjectBase.get<int>(this, 'syncDevices') as int?;
+  @override
+  set syncDevices(int? value) =>
+      RealmObjectBase.set(this, 'syncDevices', value);
+
+  @override
+  int? get deviceDownloadedObject =>
+      RealmObjectBase.get<int>(this, 'deviceDownloadedObject') as int?;
+  @override
+  set deviceDownloadedObject(int? value) =>
+      RealmObjectBase.set(this, 'deviceDownloadedObject', value);
+
+  @override
+  Stream<RealmObjectChanges<DataMapper>> get changes =>
+      RealmObjectBase.getChanges<DataMapper>(this);
+
+  @override
+  Stream<RealmObjectChanges<DataMapper>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<DataMapper>(this, keyPaths);
+
+  @override
+  DataMapper freeze() => RealmObjectBase.freezeObject<DataMapper>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'tableName': tableName.toEJson(),
+      'objectId': objectId.toEJson(),
+      'deviceIdentifier': deviceIdentifier.toEJson(),
+      'syncDevices': syncDevices.toEJson(),
+      'deviceDownloadedObject': deviceDownloadedObject.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(DataMapper value) => value.toEJson();
+  static DataMapper _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
+    return switch (ejson) {
+      {
+        '_id': EJsonValue realmId,
+      } =>
+        DataMapper(
+          fromEJson(realmId),
+          id: fromEJson(ejson['id']),
+          tableName: fromEJson(ejson['tableName']),
+          objectId: fromEJson(ejson['objectId']),
+          deviceIdentifier: fromEJson(ejson['deviceIdentifier']),
+          syncDevices: fromEJson(ejson['syncDevices']),
+          deviceDownloadedObject: fromEJson(ejson['deviceDownloadedObject']),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(DataMapper._);
+    register(_toEJson, _fromEJson);
+    return const SchemaObject(
+        ObjectType.realmObject, DataMapper, 'DataMapper', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('tableName', RealmPropertyType.string, optional: true),
+      SchemaProperty('objectId', RealmPropertyType.string, optional: true),
+      SchemaProperty('deviceIdentifier', RealmPropertyType.string,
+          optional: true),
+      SchemaProperty('syncDevices', RealmPropertyType.int, optional: true),
+      SchemaProperty('deviceDownloadedObject', RealmPropertyType.int,
           optional: true),
     ]);
   }();
