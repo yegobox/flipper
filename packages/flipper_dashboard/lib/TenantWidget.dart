@@ -73,15 +73,23 @@ class TenantWidget extends ConsumerWidget {
               height: 40,
               width: 40,
               child: IconButton(
-                icon: const Icon(Icons.settings),
+                icon: const Icon(
+                  Icons.settings,
+                  color: Colors.black,
+                ),
                 onPressed: () {
                   locator<RouterService>().navigateTo(AdminControlRoute());
                 },
                 style: IconButton.styleFrom(
-                  shape: const CircleBorder(),
-                  backgroundColor: FirebaseAuth.instance.currentUser == null
-                      ? Colors.red
-                      : Colors.green,
+                  shape: CircleBorder(
+                    side: BorderSide(
+                      color: FirebaseAuth.instance.currentUser != null
+                          ? Colors.green
+                          : Colors.red,
+                      width: 3,
+                    ),
+                  ),
+                  backgroundColor: Colors.white,
                   foregroundColor: Colors.white,
                 ),
               ),

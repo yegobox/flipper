@@ -1,9 +1,6 @@
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
-// import 'package:flipper_models/CloudSync.dart';
-
-// import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
 import 'package:flipper_models/helperModels/IVariant.dart';
@@ -89,10 +86,8 @@ class IsolateHandler {
     /// handle missing value, part of self healing
     _selfHeal(localRealm: localRealm);
 
-    // _backUp(branchId: branchId);
-    List<Variant> variants = localRealm!.query<Variant>(
-        r'ebmSynced == $0 && branchId == $1 LIMIT(1000)',
-        [false, branchId]).toList();
+    List<Variant> variants =
+        localRealm!.query<Variant>(r'ebmSynced == $0', [false]).toList();
     for (Variant variant in variants) {
       try {
         IVariant iVariant =
@@ -116,8 +111,8 @@ class IsolateHandler {
         talker.error(s);
       }
     }
-    List<Stock> stocks = localRealm!
-        .query<Stock>(r'branchId ==$0 LIMIT(1000)', [branchId]).toList();
+    List<Stock> stocks =
+        localRealm!.query<Stock>(r'ebmSynced ==$0', [false]).toList();
 
     // // Fetching all variant ids from stocks
     List<int?> variantIds = stocks.map((stock) => stock.variantId).toList();

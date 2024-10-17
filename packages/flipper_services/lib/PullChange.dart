@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/firestore/all.dart';
@@ -9,7 +8,6 @@ import 'package:flipper_models/power_sync/schema.dart';
 
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realm_model_export.dart' as mod;
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/power_sync/schema.dart';
+import 'package:flipper_models/realmExtension.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/drive_service.dart';
@@ -94,7 +95,9 @@ class CronService {
                 Variant? variant =
                     ProxyService.local.variant(variantId: variantId);
                 if (variant != null) {
-                  variant.ebmSynced = true;
+                  ProxyService.local.realm!.writeN(
+                      tableName: variantTable,
+                      writeCallback: () => variant.ebmSynced = true);
                 }
               }
 
