@@ -5,6 +5,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
@@ -17,6 +18,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'firebase_options.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
@@ -149,6 +151,10 @@ Future<void> initializeDependencies() async {
       badge: true,
     );
   }
+  await Supabase.initialize(
+    url: AppSecrets.superbaseurl,
+    anonKey: AppSecrets.supabaseAnonKey,
+  );
 
   //FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
@@ -168,7 +174,6 @@ Future<void> initializeDependencies() async {
       flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
     );
   }
-  
 
   if (!kIsWeb) {
     HttpOverrides.global = MyHttpOverrides();

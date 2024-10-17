@@ -1,3 +1,4 @@
+import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/CloudSync.dart';
@@ -76,9 +77,12 @@ final RealmViaHttp _realmHttp = getIt<RealmViaHttp>();
 final RealmApiInterface _localRealm = getIt<RealmApiInterface>();
 final SyncInterface _synchronize = getIt<SyncInterface>();
 final SyncInterface _syncFirestore = getIt<SyncInterface>();
+final SupabaseInterface _supa = getIt<SupabaseInterface>();
 final Crash _crash = getIt<Crash>();
+
 abstract class ProxyService {
-   static Crash get crash => _crash;
+  static Crash get crash => _crash;
+  static SupabaseInterface get supa => _supa;
   static SyncInterface get syncFirestore => _syncFirestore;
   static RealmApiInterface get local => _localRealm;
   static SyncInterface get synchronize => _synchronize;
@@ -89,7 +93,7 @@ abstract class ProxyService {
   static TaxApi get tax => _tax;
 
   static EventInterface get event => _event;
- 
+
   static Shareable get share => _share;
   static DynamicLink get dynamicLink => _dynamicLink;
   static FlipperLocation get location => _location;

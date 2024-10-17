@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/secrets.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'dart:async';
@@ -17,6 +17,7 @@ import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 enum SyncProvider { FIRESTORE, POWERSYNC }
 
@@ -81,15 +82,14 @@ abstract class SyncInterface {
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
 
-class CloudSync implements SyncInterface {
+class CloudSync extends SupabaseImpl implements SyncInterface {
   final Map<String, StreamSubscription<QuerySnapshot>> _subscriptions = {};
-
+ 
   final FirebaseFirestore? _firestore;
   final RealmApiInterface _realm;
   final Set<int> _processingIds = {};
 
-  CloudSync(this._firestore, this._realm);
-
+  CloudSync(this._firestore, this._realm, SupabaseClient client) : super(client: client);
   @override
   Future<void> deleteDuplicate({required String tableName}) async {
     try {

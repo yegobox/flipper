@@ -108,7 +108,6 @@ class TaxController<OBJ> {
     if (!skiGenerateRRAReceiptSignature) {
       try {
         await generateRRAReceiptSignature(
-          // business: business,
           transaction: transaction,
           receiptType: transaction.receiptType!,
           purchaseCode: purchaseCode,
@@ -125,95 +124,64 @@ class TaxController<OBJ> {
     Receipt? receipt =
         await ProxyService.local.getReceipt(transactionId: transaction.id!);
 
-    Map<String, double> taxTotals = {
-      'A': 0.0,
-      'B': 0.0,
-      'C': 0.0,
-      'D': 0.0,
-    };
-    double? taxB = 0;
-    double? taxC = 0;
-    double? taxA = 0;
-    double? taxD = 0;
+    double taxB = 0;
+    double taxC = 0;
+    double taxA = 0;
+    double taxD = 0;
 
     try {
       for (var item in items) {
-        // Log the item details
-
-        Configurations taxConfig =
-            ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
-
         if (item.taxTyCd == "B") {
-          taxB = taxB! + (item.price * item.qty);
+          taxB += (item.price * item.qty);
         }
         if (item.taxTyCd == "C") {
-          taxC = taxC! + (item.price * item.qty);
+          taxC += (item.price * item.qty);
         }
         if (item.taxTyCd == "A") {
-          taxA = taxA! + (item.price * item.qty);
+          taxA += (item.price * item.qty);
         }
         if (item.taxTyCd == "D") {
-          taxD = taxD! + (item.price * item.qty);
+          taxD += (item.price * item.qty);
         }
-        if (item.taxTyCd == "B") {
-          taxB = item.price * item.qty;
-        }
-        if (item.taxTyCd == "C") {
-          taxC = item.price * item.qty;
-        }
-        if (item.taxTyCd == "A") {
-          taxA = item.price * item.qty;
-        }
-        if (item.taxTyCd == "D") {
-          taxD = item.price * item.qty;
-        }
-
-        // Calculate the tax amount
-        double taxAmount = (((item.price == 0.0 ? 1 : item.price) * item.qty) *
-                (taxConfig.taxPercentage!)) /
-            118;
-
-        // Accumulate tax amount instead of overwriting
-        String taxType = item.taxTyCd ?? "B";
-        taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
-
-        // Log the accumulated tax amount
-        talker.warning(
-            "Accumulated tax amount for ${taxType}: ${taxTotals[taxType]}");
       }
     } catch (s) {
       rethrow;
     }
 
-    double totalTaxA = taxTotals['A'] ?? 0.0;
-    double totalTaxB = taxTotals['B'] ?? 0.0;
-    double totalTaxC = taxTotals['C'] ?? 0.0;
-    double totalTaxD = taxTotals['D'] ?? 0.0;
-
-    talker.warning("Final computed Tax for A: $totalTaxA");
-    talker.warning("Final computed Tax for B: $totalTaxB");
-    talker.warning("Final computed Tax for C: $totalTaxC");
-    talker.warning("Final computed Tax for D: $totalTaxD");
+    Configurations taxConfigTaxB =
+        ProxyService.local.getByTaxType(taxtype: "B");
+    Configurations taxConfigTaxA =
+        ProxyService.local.getByTaxType(taxtype: "A");
+    Configurations taxConfigTaxC =
+        ProxyService.local.getByTaxType(taxtype: "C");
+    Configurations taxConfigTaxD =
+        ProxyService.local.getByTaxType(taxtype: "D");
 
     Customer? customer =
         ProxyService.local.getCustomer(id: transaction.customerId ?? 0);
 
     Print print = Print();
+    double calculateTotalTax(double tax, Configurations config) {
+      final percentage = config.taxPercentage ?? 0;
+      return (tax * percentage) / 100 + percentage;
+    }
 
     await print.print(
-      taxB: taxB!,
-      taxC: taxC!,
-      taxA: taxA!,
-      taxD: taxD!,
+      taxB: taxB,
+      taxC: taxC,
+      taxA: taxA,
+      taxD: taxD,
       grandTotal: transaction.subTotal,
-      totalTaxA: totalTaxA,
-      totalTaxB: totalTaxB,
-      totalTaxC: totalTaxC,
-      totalTaxD: totalTaxD,
+      totalTaxA: calculateTotalTax(taxA, taxConfigTaxA),
+      totalTaxB: calculateTotalTax(taxB, taxConfigTaxB),
+      totalTaxC: calculateTotalTax(taxC, taxConfigTaxC),
+      totalTaxD: calculateTotalTax(taxD, taxConfigTaxD),
       currencySymbol: "RW",
       transaction: transaction,
-      totalTax:
-          (totalTaxA + totalTaxB + totalTaxC + totalTaxD).toStringAsFixed(2),
+
+      /// TODO: for totalTax we are not accounting other taxes only B
+      /// so need to account them in future
+      totalTax: (taxB * 18 / 118).toStringAsFixed(2),
       items: items,
       cash: transaction.subTotal,
       received: transaction.cashReceived,

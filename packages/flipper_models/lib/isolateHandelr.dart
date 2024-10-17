@@ -93,34 +93,30 @@ class IsolateHandler {
     List<Variant> variants = localRealm!.query<Variant>(
         r'ebmSynced == $0 && branchId == $1 LIMIT(1000)',
         [false, branchId]).toList();
-    final talker = TalkerFlutter.init();
-    List<Variant> gvariantIds = <Variant>[];
     for (Variant variant in variants) {
-      if (variant.isValid && !variant.ebmSynced) {
-        try {
-          IVariant iVariant =
-              IVariant.fromJson(variant.toEJson().toFlipperJson());
+      try {
+        IVariant iVariant =
+            IVariant.fromJson(variant.toEJson().toFlipperJson());
 
-          iVariant.isrcAplcbYn =
-              variant.isrcAplcbYn?.isEmpty ?? true ? "N" : variant.isrcAplcbYn;
+        iVariant.isrcAplcbYn =
+            variant.isrcAplcbYn?.isEmpty ?? true ? "N" : variant.isrcAplcbYn;
 
-          /// do not attempt saving a variant with missing fields
-          if (variant.qtyUnitCd == null ||
-              variant.taxTyCd == null ||
-              variant.bhfId == null ||
-              variant.bhfId!.isEmpty) return;
-          final response =
-              await RWTax().saveItem(variation: iVariant, URI: URI);
-          gvariantIds.add(variant);
-          if (response.resultCd == "000") {
-            localRealm!.write(() {
-              variant.ebmSynced = true;
-            });
-            sendPort.send('notification:${response.resultMsg}');
-          }
-        } catch (e, s) {
-          talker.error(s);
+        /// do not attempt saving a variant with missing fields
+        if (variant.qtyUnitCd == null ||
+            variant.taxTyCd == null ||
+            variant.bhfId == null ||
+            variant.bhfId!.isEmpty) return;
+        final response = await RWTax().saveItem(variation: iVariant, URI: URI);
+
+        if (response.resultCd == "000") {
+          localRealm!.write(() {
+            // talker.warning("in write here");
+            variant.ebmSynced = true;
+          });
+          sendPort.send('notification:${response.resultMsg}');
         }
+      } catch (e, s) {
+        talker.error(s);
       }
     }
     List<Stock> stocks = localRealm!

@@ -1,6 +1,7 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
+import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/marketing.dart';
@@ -9,7 +10,6 @@ import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/PayStackService.dart';
 import 'package:flipper_services/RealmViaHttp.dart';
@@ -58,13 +58,22 @@ import 'local_notification_service.dart';
 import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:flipper_services/DeviceIdService.dart' as dev;
 
 @module
 abstract class ServicesModule {
   @singleton
   FirebaseCrashlytics get crashlytics => FirebaseCrashlytics.instance;
+
+  @singleton
+  supabase.SupabaseClient get supaBaseClient =>
+      supabase.Supabase.instance.client;
+
+  @lazySingleton
+  SupabaseInterface get supaBase {
+    return SupabaseImpl(client: supaBaseClient);
+  }
 
   @lazySingleton
   Crash get crash {
@@ -87,7 +96,7 @@ abstract class ServicesModule {
     FirebaseFirestore firestore,
     RealmApiInterface realm,
   ) {
-    return CloudSync(firestore, realm);
+    return CloudSync(firestore, realm, supaBaseClient);
   }
 
   @preResolve

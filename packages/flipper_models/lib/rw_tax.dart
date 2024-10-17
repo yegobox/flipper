@@ -433,7 +433,10 @@ class RWTax implements TaxApi {
     Configurations taxConfigTaxD =
         ProxyService.local.getByTaxType(taxtype: "D");
 
+    /// TODO: for totalTax we are not accounting other taxes only B
+    /// so need to account them in future
     final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118);
+    talker.warning("HARD COPY TOTALTAX: ${totalTax.toStringAsFixed(2)}");
 
     final topMessage =
         "${business?.name}\n${ProxyService.box.getUserPhone()!.replaceAll("+", "")}\n${business?.adrs?.isNotEmpty == true ? business?.adrs : 'Kigali, Rwanda'}\n${business?.tinNumber ?? '999909695'}";

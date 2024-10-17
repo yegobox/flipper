@@ -57,9 +57,9 @@ dependencies:
   firebase_core: ^3.6.0
   # powersync: ^1.8.2 
   permission_handler: ^11.3.1
-  supabase_flutter: ^2.6.0
   cloud_firestore_odm: ^1.0.0-dev.88
   json_annotation: ^4.9.0
+  supabase_flutter: ^2.8.0
   
 
 dependency_overrides:
