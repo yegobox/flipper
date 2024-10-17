@@ -167,22 +167,19 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
-    Timer.periodic(Duration(seconds: 10), (Timer t) async {
-      List<ConnectivityResult> results =
-          await Connectivity().checkConnectivity();
+    List<ConnectivityResult> results = await Connectivity().checkConnectivity();
 
-      if (results.any((result) => result != ConnectivityResult.none)) {
-        if (FirebaseAuth.instance.currentUser == null) {
-          await ProxyService.syncFirestore.firebaseLogin();
-        }
-        if (!doneInitializingDataPull) {
-          PullChange().start(
-              firestore: FirebaseFirestore.instance,
-              localRealm: ProxyService.local.realm!);
-          doneInitializingDataPull = true;
-        }
+    if (results.any((result) => result != ConnectivityResult.none)) {
+      if (FirebaseAuth.instance.currentUser == null) {
+        await ProxyService.syncFirestore.firebaseLogin();
       }
-    });
+      if (!doneInitializingDataPull) {
+        PullChange().start(
+            firestore: FirebaseFirestore.instance,
+            localRealm: ProxyService.local.realm!);
+        doneInitializingDataPull = true;
+      }
+    }
 
     ProxyService.box.writeBool(key: 'isOrdering', value: false);
 

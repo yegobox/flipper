@@ -330,7 +330,7 @@ class CloudSync implements SyncInterface {
           // If RPC call is successful, proceed with the insert operation
           if (rpcResult != null) {
             final response =
-                await ProxyService.supa.client?.from(dataMappers).upsert({
+                await ProxyService.supa.client?.from(dataMapperTable).upsert({
               'table_name': tableName,
               'object_id': id,
               'device_identifier':
