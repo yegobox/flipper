@@ -742,7 +742,7 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   }
 
   @override
-  Future<Stock?> getStockById({required int id}) {
+  Stock? getStockById({required int id}) {
     // TODO: implement getStockById
     throw UnimplementedError();
   }
@@ -1487,8 +1487,9 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   }
 
   @override
-  Future<Response> sendLoginRequest(String phoneNumber,
-      HttpClientInterface flipperHttpClient, String apihub,{String? uid}) {
+  Future<Response> sendLoginRequest(
+      String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
+      {String? uid}) {
     // TODO: implement sendLoginRequest
     throw UnimplementedError();
   }

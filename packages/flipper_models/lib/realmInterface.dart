@@ -310,7 +310,7 @@ abstract class RealmApiInterface {
   Future<Product?> findProductByTenantId({required int tenantId});
 
   Future<void> deleteAllProducts();
-  Future<Stock?> getStockById({required int id});
+  Stock? getStockById({required int id});
 
   /// socials methods
   // Stream<Social> socialsStream({required int branchId});

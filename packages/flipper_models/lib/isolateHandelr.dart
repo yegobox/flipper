@@ -88,6 +88,7 @@ class IsolateHandler {
 
     List<Variant> variants =
         localRealm!.query<Variant>(r'ebmSynced == $0', [false]).toList();
+
     for (Variant variant in variants) {
       try {
         IVariant iVariant =
@@ -104,8 +105,8 @@ class IsolateHandler {
         final response = await RWTax().saveItem(variation: iVariant, URI: URI);
 
         if (response.resultCd == "000") {
-          sendPort
-              .send('notification:${response.resultMsg}:variant:${variant.id}');
+          sendPort.send(
+              'notification:${response.resultMsg}:variant:${variant.id.toString()}');
         }
       } catch (e, s) {
         talker.error(s);
@@ -139,10 +140,8 @@ class IsolateHandler {
           final response = await RWTax()
               .saveStock(stock: iStock, variant: iVariant, URI: URI);
           if (response.resultCd == "000") {
-            localRealm!.write(() {
-              stock.ebmSynced = true;
-            });
-            sendPort.send('notification:${response.resultMsg}');
+            sendPort.send(
+                'notification:${response.resultMsg}:stock:${stock.id.toString()}');
           }
         } catch (e, s) {
           talker.error(s);
@@ -170,11 +169,8 @@ class IsolateHandler {
           final response =
               await RWTax().saveCustomer(customer: iCustomer, URI: URI);
           if (response.resultCd == "000") {
-            localRealm!.write(() {
-              customer.ebmSynced = true;
-            });
-            sendPort
-                .send('notification:${response.resultMsg.substring(0, 10)}');
+            sendPort.send(
+                'notification:${response.resultMsg.substring(0, 10)}:customer:${customer.id.toString()}');
           }
         } catch (e) {}
       }

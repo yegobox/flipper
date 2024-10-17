@@ -90,15 +90,49 @@ class CronService {
 
             if (separator.first == "notification") {
               if (separator.length < 3) return;
-              if (separator[1] != "variant") {
-                final variantId = int.tryParse(separator[2]);
+              if (separator[2] == "variant") {
+                final variantId = int.tryParse(separator[3]);
                 Variant? variant =
                     ProxyService.local.variant(variantId: variantId);
                 if (variant != null) {
                   ProxyService.local.realm!.writeN(
                       tableName: variantTable,
-                      writeCallback: () => variant.ebmSynced = true);
+                      writeCallback: () {
+                        variant.ebmSynced = true;
+                        return variant;
+                      });
                 }
+                ProxyService.notification
+                    .sendLocalNotification(body: "Item Saving " + separator[1]);
+              }
+              if (separator[2] == "stock") {
+                final stockId = int.tryParse(separator[3]);
+                Stock? stock = ProxyService.local.getStockById(id: stockId!);
+                if (stock != null) {
+                  ProxyService.local.realm!.writeN(
+                      tableName: stocksTable,
+                      writeCallback: () {
+                        stock.ebmSynced = true;
+                        return stock;
+                      });
+                }
+                ProxyService.notification.sendLocalNotification(
+                    body: "Stock Saving " + separator[1]);
+              }
+              if (separator[2] == "customer") {
+                final customerId = int.tryParse(separator[3]);
+                Customer? customer =
+                    ProxyService.local.getCustomer(id: customerId);
+                if (customer != null) {
+                  ProxyService.local.realm!.writeN(
+                      tableName: customersTable,
+                      writeCallback: () {
+                        customer.ebmSynced = true;
+                        return customer;
+                      });
+                }
+                ProxyService.notification.sendLocalNotification(
+                    body: "Customer Saving " + separator[1]);
               }
 
               /// in event when we are done with work in isolate
@@ -108,8 +142,6 @@ class CronService {
               /// to kill the current isolate, this is why we have at the bottom of the code to forcefully kill whatever isolate
               /// that is hanging somewhere around
               isolate?.kill();
-              ProxyService.notification
-                  .sendLocalNotification(body: separator[1]);
             }
           },
         );

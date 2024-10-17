@@ -23,6 +23,7 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:rxdart/rxdart.dart';
+// ignore: unused_import
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
@@ -3821,7 +3822,7 @@ class LocalRealmApi
   }
 
   @override
-  Future<Stock?> getStockById({required int id}) async {
+  Stock? getStockById({required int id}) {
     return realm!.query<Stock>(r'id == $0', [id]).firstOrNull;
   }
 
