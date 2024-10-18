@@ -3355,7 +3355,36 @@ class LocalRealmApi
     try {
       realm!.writeN(
         tableName: receiptsTable,
-        writeCallback: () => realm!.add<Receipt>(receipt),
+        writeCallback: () {
+          // Check if a receipt with the same transaction.id exists
+          Receipt? existingReceipt = realm!.query<Receipt>(
+              r"transactionId == $0", [transaction.id]).firstOrNull;
+
+          if (existingReceipt != null) {
+            // Update existing receipt
+            existingReceipt
+              ..resultCd = receipt.resultCd
+              ..resultMsg = receipt.resultMsg
+              ..rcptNo = receipt.rcptNo
+              ..intrlData = receipt.intrlData
+              ..rcptSign = receipt.rcptSign
+              ..qrCode = receipt.qrCode
+              ..receiptType = receipt.receiptType
+              ..invoiceNumber = receipt.invoiceNumber
+              ..vsdcRcptPbctDate = receipt.vsdcRcptPbctDate
+              ..sdcId = receipt.sdcId
+              ..totRcptNo = receipt.totRcptNo
+              ..mrcNo = receipt.mrcNo
+              ..invcNo = receipt.invcNo
+              ..whenCreated = receipt.whenCreated
+              ..resultDt = receipt.resultDt;
+
+            return existingReceipt;
+          } else {
+            // Add new receipt
+            return realm!.add<Receipt>(receipt);
+          }
+        },
         onAdd: (data) {
           ProxyService.synchronize.syncToFirestore(receiptsTable, data);
         },

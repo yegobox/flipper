@@ -138,7 +138,6 @@ class IsolateHandler {
       if (transaction.customerName == null || transaction.customerTin == null) {
         continue;
       }
-      print("We are now here ${transaction.id}");
       try {
         final response = await RWTax().saveStockItems(
             transaction: transaction,
