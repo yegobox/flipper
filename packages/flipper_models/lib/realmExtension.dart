@@ -11,16 +11,16 @@ import 'package:realm/realm.dart';
 import 'package:flipper_models/CloudSync.dart';
 
 extension RealmExtension on Realm {
-  
   T writeN<T>(
       {required String tableName, required T Function() writeCallback}) {
     assert(!_isFuture<T>(), 'writeCallback must be synchronous');
     final transaction = beginWrite();
+    talker.warning("Transaction Started");
     try {
       T result = writeCallback();
 
       /// intentionally put  transaction.commit() at line 21 instead of line 29 because on windows peforming firestore write take forever.
-
+      transaction.commit();
       if (result is Iterable) {
         for (var item in result) {
           _syncToFirestore(tableName, item);
@@ -28,7 +28,7 @@ extension RealmExtension on Realm {
       } else if (result != null) {
         _syncToFirestore(tableName, result);
       }
-      transaction.commit();
+
       return result;
     } catch (e, s) {
       talker.error(s);
@@ -99,6 +99,7 @@ extension RealmExtension on Realm {
         id: id,
         syncProvider: SyncProvider.FIRESTORE,
       );
+
       ///
     } catch (e) {
       print(e);

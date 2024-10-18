@@ -105,14 +105,19 @@ class RWTax implements TaxApi {
       List<TransactionItem> items = realm.query<TransactionItem>(
           r'transactionId == $0', [transaction.id]).toList();
       List<Map<String, dynamic>> itemsList =
-          items.map((item) => mapItemToJson(item)).toList();
+          items.map((item) => mapItemToJson(item, realm)).toList();
 
+      /// add totDcAmt: "0"
+      /// TODO: handle discount later.
+      itemsList.forEach((item) {
+        item['totDcAmt'] = "0";
+      });
       final json = {
-        "totItemCnt": "1",
+        "totItemCnt": items.length,
         "tin": tinNumber,
         "bhfId": bhFId,
         "regTyCd": regTyCd,
-        "custTin": custTin,
+        "custTin": custTin.isValidTin() ? custTin : "",
         "custNm": customerName,
         "custBhfId": custBhfId,
         "sarTyCd": sarTyCd,
@@ -123,12 +128,16 @@ class RWTax implements TaxApi {
         "remark": remark,
         "regrId": mod,
         "regrNm": mod,
-        "modrId": mod,
+        "modrId": sar,
         "modrNm": mod,
-        "sarNo": sar,
-        "orgSarNo": sar,
+        "sarNo": "1",
+        "orgSarNo": "1",
         "itemList": itemsList
       };
+      // if custTin is invalid remove it from the json
+      if (!custTin.isValidTin()) {
+        json.remove('custTin');
+      }
       Response response = await sendPostRequest(url, json);
 
       final data = RwApiResponse.fromJson(
@@ -335,8 +344,9 @@ class RWTax implements TaxApi {
         .substring(0, 14);
 
     // Build item list
-    List<Map<String, dynamic>> itemsList =
-        items.map((item) => mapItemToJson(item)).toList();
+    List<Map<String, dynamic>> itemsList = items
+        .map((item) => mapItemToJson(item, ProxyService.local.realm!))
+        .toList();
 
     // Calculate total for non-tax-exempt items
     double totalTaxable = items
@@ -394,9 +404,10 @@ class RWTax implements TaxApi {
   }
 
 // Helper function to map TransactionItem to JSON
-  Map<String, dynamic> mapItemToJson(TransactionItem item) {
+  Map<String, dynamic> mapItemToJson(TransactionItem item, Realm realm) {
     Configurations taxConfig =
-        ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
+        // ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
+        realm.query<Configurations>(r'taxType == $0', [item.taxTyCd!]).first;
     double taxAmount = (((item.price * item.qty) * taxConfig.taxPercentage!) /
         (100 + taxConfig.taxPercentage!));
     final itemJson = ITransactionItem(
@@ -440,7 +451,7 @@ class RWTax implements TaxApi {
       modrNm: item.modrNm ?? "Modifier", // Ensure modrNm is not null
       name: item.name,
     ).toJson();
-    talker.warning("ItemOnReceipt ${itemJson}");
+
     return itemJson;
   }
 

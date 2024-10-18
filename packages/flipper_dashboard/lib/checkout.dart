@@ -292,30 +292,30 @@ class CheckOutState extends ConsumerState<CheckOut>
           child: PayableView(
             mode: SellingMode.forSelling,
             completeTransaction: () {
+              /// update a transaction with customer name and tin
+              Customer? customer =
+                  ProxyService.local.getCustomer(id: transaction.customerId);
+              ProxyService.local.realm!.write(
+                  // tableName: transactionTable,
+                  // writeCallback:
+                  () {
+                /// when we are at checkout we are doing sale so it is 11
+                transaction.sarTyCd = "11";
+                transaction.customerName = customer == null
+                    ? ProxyService.box.customerName() ?? "N/A"
+                    : customerNameController.text;
+                transaction.customerTin = customer == null
+                    ? ProxyService.box.currentSaleCustomerPhoneNumber()
+                    : customer.custTin;
+
+                /// TODO: have a nice way to ge the bhf id for a customer
+                transaction.customerBhfId = "";
+                return transaction;
+              });
               if (customerNameController.text.isEmpty) {
                 /// remove old customer added maybe from previous sale
                 ProxyService.box.remove(key: 'customerName');
                 ProxyService.box.remove(key: 'getRefundReason');
-
-                /// update a transaction with customer name and tin
-                Customer? customer =
-                    ProxyService.local.getCustomer(id: transaction.customerId);
-                ProxyService.local.realm!.writeN(
-                    tableName: transactionTable,
-                    writeCallback: () {
-                      /// when we are at checkout we are doing sale so it is 11
-                      transaction.sarTyCd = "11";
-                      transaction.customerName = customer == null
-                          ? ProxyService.box.customerName() ?? "N/A"
-                          : customerNameController.text;
-                      transaction.customerTin = customer == null
-                          ? ProxyService.box.currentSaleCustomerPhoneNumber()
-                          : customer.custTin;
-
-                      /// TODO: have a nice way to ge the bhf id for a customer
-                      transaction.customerBhfId = "";
-                      return transaction;
-                    });
               }
               handleCompleteTransaction(
                   transaction: transaction,

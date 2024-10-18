@@ -308,3 +308,12 @@ extension DateTimeToYYYMMdd on DateTime {
     return dateFormat.format(localDateTime);
   }
 }
+
+/// validate a string tin is valid tin
+/// valid tin 999909695 invalid tin: 783054874
+extension StringToTin on String {
+  bool isValidTin() {
+    if (this.length != 10) return false;
+    return RegExp(r'^\d{9}$').hasMatch(this);
+  }
+}

@@ -319,35 +319,35 @@ class CloudSync implements SyncInterface {
         /// windows firestore is not stable yet, this will fail when there is no network connection
         /// so we have a separate isolate that will keep trying syncing data
 
-        await ProxyService.supa.init();
-        try {
-          // Attempt to call the RPC function
-          final rpcResult =
-              await ProxyService.supa.client?.rpc('insert_key', params: {
-            'current_secret_key': AppSecrets.insertKey,
-          });
+        // await ProxyService.supa.init();
+        // try {
+        //   // Attempt to call the RPC function
+        //   final rpcResult =
+        //       await ProxyService.supa.client?.rpc('insert_key', params: {
+        //     'current_secret_key': AppSecrets.insertKey,
+        //   });
 
-          // If RPC call is successful, proceed with the insert operation
-          if (rpcResult != null) {
-            final response =
-                await ProxyService.supa.client?.from(dataMapperTable).upsert({
-              'table_name': tableName,
-              'object_id': id,
-              'device_identifier':
-                  await ProxyService.local.getPlatformDeviceId(),
+        //   // If RPC call is successful, proceed with the insert operation
+        //   if (rpcResult != null) {
+        //     final response =
+        //         await ProxyService.supa.client?.from(dataMapperTable).upsert({
+        //       'table_name': tableName,
+        //       'object_id': id,
+        //       'device_identifier':
+        //           await ProxyService.local.getPlatformDeviceId(),
 
-              /// Tobe done incorporate it into payment wall the device expected to download the object.
-              'sync_devices': 0,
+        //       /// Tobe done incorporate it into payment wall the device expected to download the object.
+        //       'sync_devices': 0,
 
-              /// this exclude the device that is writing the object setting it to 1
-              'device_downloaded_object': 1
-            }).select();
-            talker.warning(response);
-          }
-        } catch (e) {
-          talker.error('Error occurred: $e');
-          // Handle the error appropriately (e.g., show an error message to the user)
-        }
+        //       /// this exclude the device that is writing the object setting it to 1
+        //       'device_downloaded_object': 1
+        //     }).select();
+        //     talker.warning(response);
+        //   }
+        // } catch (e) {
+        //   talker.error('Error occurred: $e');
+        //   // Handle the error appropriately (e.g., show an error message to the user)
+        // }
       } catch (e, s) {
         talker.warning(e);
         talker.error(s);

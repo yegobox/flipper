@@ -91,7 +91,7 @@ class IsolateHandler {
     _selfHeal(localRealm: localRealm);
 
     List<ITransaction> transactions = localRealm!.query<ITransaction>(
-        r'ebmSynced == $0 && status == $1 && customerName !=NULL && customerTin !=NULL',
+        r'ebmSynced == $0 && status == $1 && customerName != null && customerTin != null',
         [false, COMPLETE]).toList();
 
     print("transactions count ${transactions.length}");
@@ -138,6 +138,7 @@ class IsolateHandler {
       if (transaction.customerName == null || transaction.customerTin == null) {
         continue;
       }
+      print("We are now here ${transaction.id}");
       final response = await RWTax().saveStockItems(
           transaction: transaction,
           tinNumber: tinNumber.toString(),
@@ -164,32 +165,6 @@ class IsolateHandler {
       print(response);
     }
 
-    List<Variant> variants =
-        localRealm!.query<Variant>(r'ebmSynced == $0', [false]).toList();
-
-    for (Variant variant in variants) {
-      try {
-        IVariant iVariant =
-            IVariant.fromJson(variant.toEJson().toFlipperJson());
-
-        iVariant.isrcAplcbYn =
-            variant.isrcAplcbYn?.isEmpty ?? true ? "N" : variant.isrcAplcbYn;
-
-        /// do not attempt saving a variant with missing fields
-        if (variant.qtyUnitCd == null ||
-            variant.taxTyCd == null ||
-            variant.bhfId == null ||
-            variant.bhfId!.isEmpty) return;
-        final response = await RWTax().saveItem(variation: iVariant, URI: URI);
-
-        if (response.resultCd == "000") {
-          sendPort.send(
-              'notification:${response.resultMsg}:variant:${variant.id.toString()}');
-        }
-      } catch (e, s) {
-        talker.error(s);
-      }
-    }
     List<Stock> stocks =
         localRealm!.query<Stock>(r'ebmSynced ==$0', [false]).toList();
 
@@ -224,6 +199,33 @@ class IsolateHandler {
         } catch (e, s) {
           talker.error(s);
         }
+      }
+    }
+
+    List<Variant> variants =
+        localRealm!.query<Variant>(r'ebmSynced == $0', [false]).toList();
+
+    for (Variant variant in variants) {
+      try {
+        IVariant iVariant =
+            IVariant.fromJson(variant.toEJson().toFlipperJson());
+
+        iVariant.isrcAplcbYn =
+            variant.isrcAplcbYn?.isEmpty ?? true ? "N" : variant.isrcAplcbYn;
+
+        /// do not attempt saving a variant with missing fields
+        if (variant.qtyUnitCd == null ||
+            variant.taxTyCd == null ||
+            variant.bhfId == null ||
+            variant.bhfId!.isEmpty) return;
+        final response = await RWTax().saveItem(variation: iVariant, URI: URI);
+
+        if (response.resultCd == "000") {
+          sendPort.send(
+              'notification:${response.resultMsg}:variant:${variant.id.toString()}');
+        }
+      } catch (e, s) {
+        talker.error(s);
       }
     }
 
