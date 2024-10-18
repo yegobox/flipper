@@ -247,6 +247,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           ProxyService.tax.savePurchases(
               item: supplier,
               realm: ProxyService.local.realm!,
+              // P is Purchase, it has sort order of 1
+              rcptTyCd: "P",
               URI: ProxyService.box.getServerUrl()!);
         }
 
@@ -264,6 +266,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
 
       /// Pop the screen
     } catch (e, s) {
+      talker.error(e);
       talker.error(s);
       toast("Internal error, could not save purchases");
       setState(() {

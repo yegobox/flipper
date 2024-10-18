@@ -106,6 +106,7 @@ class RWTax implements TaxApi {
           r'transactionId == $0', [transaction.id]).toList();
       List<Map<String, dynamic>> itemsList =
           items.map((item) => mapItemToJson(item, realm)).toList();
+      if (itemsList.isEmpty) throw Exception("No items to save");
 
       /// add totDcAmt: "0"
       /// TODO: handle discount later.
@@ -676,6 +677,7 @@ class RWTax implements TaxApi {
   Future<RwApiResponse> savePurchases(
       {required SaleList item,
       required String URI,
+      String rcptTyCd = "S",
       required Realm realm}) async {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'trnsPurchase/savePurchases')
@@ -697,7 +699,7 @@ class RWTax implements TaxApi {
     data['regTyCd'] = 'A';
     data['modrId'] = randomNumber();
     // P is refund after sale
-    data['rcptTyCd'] = "S";
+    data['rcptTyCd'] = rcptTyCd;
     final talker = Talker();
     try {
       final response = await sendPostRequest(url, data);

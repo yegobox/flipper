@@ -1985,6 +1985,8 @@ class LocalRealmApi
     }
   }
 
+  // TODO: micreate product to realm.writeN
+
   @override
   Future<Product?> createProduct(
       {required Product product,
@@ -2043,7 +2045,15 @@ class LocalRealmApi
           variantId: newVariant.id!,
           currentStock: qty,
           productId: kProduct.id!);
-      realm!.put<Stock>(stock, tableName: 'stocks');
+
+      realm!.write(() {
+        realm!.add<Stock>(stock);
+      });
+
+      /// add stock back to variant
+      realm!.write(() {
+        newVariant.stock = stock;
+      });
     }
 
     return realm!.query<Product>(r'id == $0 ', [product.id]).firstOrNull;

@@ -139,30 +139,32 @@ class IsolateHandler {
         continue;
       }
       print("We are now here ${transaction.id}");
-      final response = await RWTax().saveStockItems(
-          transaction: transaction,
-          tinNumber: tinNumber.toString(),
-          bhFId: bhfId,
-          customerName: transaction.customerName ?? "N/A",
-          custTin: transaction.customerTin ?? "999909695",
-          regTyCd: "A",
-          //sarTyCd 11 is for sale
-          sarTyCd: transaction.sarTyCd ?? "11",
-          realm: localRealm!,
-          custBhfId: transaction.customerBhfId ?? "",
-          totalSupplyPrice: transaction.subTotal,
-          totalvat: totalvat,
-          totalAmount: transaction.subTotal,
-          remark: transaction.remark ?? "",
-          ocrnDt: DateTime.parse(
-              transaction.updatedAt ?? DateTime.now().toString()),
-          URI: URI);
+      try {
+        final response = await RWTax().saveStockItems(
+            transaction: transaction,
+            tinNumber: tinNumber.toString(),
+            bhFId: bhfId,
+            customerName: transaction.customerName ?? "N/A",
+            custTin: transaction.customerTin ?? "999909695",
+            regTyCd: "A",
+            //sarTyCd 11 is for sale
+            sarTyCd: transaction.sarTyCd ?? "11",
+            realm: localRealm!,
+            custBhfId: transaction.customerBhfId ?? "",
+            totalSupplyPrice: transaction.subTotal,
+            totalvat: totalvat,
+            totalAmount: transaction.subTotal,
+            remark: transaction.remark ?? "",
+            ocrnDt: DateTime.parse(
+                transaction.updatedAt ?? DateTime.now().toString()),
+            URI: URI);
 
-      if (response.resultCd == "000") {
-        sendPort.send(
-            'notification:${response.resultMsg}:transaction:${transaction.id.toString()}');
-      }
-      print(response);
+        if (response.resultCd == "000") {
+          sendPort.send(
+              'notification:${response.resultMsg}:transaction:${transaction.id.toString()}');
+        }
+        print(response);
+      } catch (e) {}
     }
 
     List<Stock> stocks =
