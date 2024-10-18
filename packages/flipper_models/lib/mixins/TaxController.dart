@@ -170,10 +170,10 @@ class TaxController<OBJ> {
     talker.error("taxB: ${calculateTotalTax(totalB, taxConfigTaxB)}");
 
     await print.print(
-      taxB: calculateTotalTax(totalB, taxConfigTaxB),
-      taxC: calculateTotalTax(totalC, taxConfigTaxC),
-      taxA: calculateTotalTax(totalA, taxConfigTaxA),
-      taxD: calculateTotalTax(totalD, taxConfigTaxD),
+      taxB: totalB,
+      taxC: totalC,
+      taxA: totalA,
+      taxD: totalD,
       grandTotal: transaction.subTotal,
       totalTaxA: calculateTotalTax(totalA, taxConfigTaxA),
       totalTaxB: calculateTotalTax(totalB, taxConfigTaxB),
