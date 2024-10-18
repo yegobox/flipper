@@ -29,7 +29,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   final TextEditingController _supplyPriceController = TextEditingController();
   final TextEditingController _retailPriceController = TextEditingController();
   List<Item> finalItemList = [];
-  late RwApiResponse rwResponse;
+  RwApiResponse? rwResponse;
   List<SaleList> salesList = []; // New list to store all sales
 
   GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
@@ -56,7 +56,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       setState(() {
         isLoading = false;
         this.rwResponse = rwResponse;
-        salesList = rwResponse.data?.saleList ?? [];
+        salesList = rwResponse?.data?.saleList ?? [];
       });
       return data;
     } else {
@@ -356,7 +356,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                     saleList: saleList);
                               },
                               finalSalesList:
-                                  rwResponse.data!.saleList!.first.itemList ??
+                                  rwResponse?.data!.saleList!.first.itemList ??
                                       [],
                             )
                     ],
