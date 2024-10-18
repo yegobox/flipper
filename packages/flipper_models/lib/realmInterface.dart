@@ -299,6 +299,7 @@ abstract class RealmApiInterface {
   Future<Receipt?> getReceipt({required int transactionId});
 
   Future<void> refund({required int itemId});
+  Variant? getVariantByProductId({required int productId});
 
   Future<int> size<T>({required T object});
   Future<Counter?> getCounter(

@@ -38,9 +38,7 @@ class _ImportSalesWidgetState extends State<ImportSalesWidget> {
       child: FutureBuilder<RwApiResponse>(
         future: widget.futureResponse,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
+          if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.data == null) {
             return const Center(child: Text('No Data Found'));
@@ -225,22 +223,19 @@ class _ImportSalesWidgetState extends State<ImportSalesWidget> {
                                     DataCell(
                                       Text(
                                         item.itemNm,
-                                        style:
-                                            const TextStyle(fontSize: 14.0),
+                                        style: const TextStyle(fontSize: 14.0),
                                       ),
                                     ),
                                     DataCell(
                                       Text(
                                         item.hsCd,
-                                        style:
-                                            const TextStyle(fontSize: 14.0),
+                                        style: const TextStyle(fontSize: 14.0),
                                       ),
                                     ),
                                     DataCell(
                                       Text(
                                         '${item.qty} ${item.qtyUnitCd}',
-                                        style:
-                                            const TextStyle(fontSize: 14.0),
+                                        style: const TextStyle(fontSize: 14.0),
                                       ),
                                     ),
                                   ],
@@ -260,4 +255,3 @@ class _ImportSalesWidgetState extends State<ImportSalesWidget> {
     );
   }
 }
-

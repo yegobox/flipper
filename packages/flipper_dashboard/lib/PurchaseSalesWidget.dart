@@ -12,20 +12,17 @@ class PurchaseSaleWidget extends StatefulWidget {
   final void Function() acceptPurchases;
   final void Function(ItemList? selectedItem, SaleList saleList) selectSale;
   final List<ItemList> finalSalesList;
-  final List<SaleList> finalSaleList;
 
-  PurchaseSaleWidget({
-    required this.futureResponse,
-    required this.formKey,
-    required this.nameController,
-    required this.supplyPriceController,
-    required this.retailPriceController,
-    required this.saveItemName,
-    required this.acceptPurchases,
-    required this.selectSale,
-    required this.finalSalesList,
-    required this.finalSaleList,
-  });
+  PurchaseSaleWidget(
+      {required this.futureResponse,
+      required this.formKey,
+      required this.nameController,
+      required this.supplyPriceController,
+      required this.retailPriceController,
+      required this.saveItemName,
+      required this.acceptPurchases,
+      required this.selectSale,
+      required this.finalSalesList});
 
   @override
   _PurchaseSaleWidgetState createState() => _PurchaseSaleWidgetState();
@@ -47,9 +44,7 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
       child: FutureBuilder<RwApiResponse>(
         future: widget.futureResponse,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
+          if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.data == null) {
             return const Center(child: Text('No Data Found'));

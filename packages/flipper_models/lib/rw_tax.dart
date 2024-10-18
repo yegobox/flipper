@@ -674,14 +674,16 @@ class RWTax implements TaxApi {
 
   @override
   Future<RwApiResponse> savePurchases(
-      {required SaleList item, required String URI}) async {
+      {required SaleList item,
+      required String URI,
+      required Realm realm}) async {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'trnsPurchase/savePurchases')
         .toString();
-
-    //TODO: finalize the remove the hardcoded value such as 999909695 and "00"
+    Business? business =
+        realm.query<Business>(r'isDefault == $0', [true]).firstOrNull;
     Map<String, dynamic> data = item.toJson();
-    data['tin'] = 999909695;
+    data['tin'] = business?.tinNumber ?? 999909695;
     data['bhfId'] = ProxyService.box.bhfId() ?? "00";
     data['pchsDt'] = convertDateToString(DateTime.now()).substring(0, 8);
     data['invcNo'] = item.spplrInvcNo;
@@ -694,7 +696,8 @@ class RWTax implements TaxApi {
     data['cfmDt'] = convertDateToString(DateTime.now());
     data['regTyCd'] = 'A';
     data['modrId'] = randomNumber();
-    data['rcptTyCd'] = "P";
+    // P is refund after sale
+    data['rcptTyCd'] = "S";
     final talker = Talker();
     try {
       final response = await sendPostRequest(url, data);
@@ -704,31 +707,6 @@ class RWTax implements TaxApi {
         if (respond.resultCd == "894" || respond.resultCd != "000") {
           throw Exception(respond.resultMsg);
         }
-
-        /// save the item in our system, rely on the name as when user
-        /// typed to edit a name we helped a user to search through
-        /// existing product and use the name that exist,
-        /// that way we will be updating the product's variant with no question
-        /// otherwise then create a complete new product.
-        /// TODO: uncomment the bellow to save product tuvuye kurangura or update them!
-        // ProxyService.local.createProduct(
-        //   product: Product(
-        //     ObjectId(),
-        //     name: item.itemNm,
-        //     lastTouched: DateTime.now(),
-        //     branchId: ProxyService.box.getBranchId(),
-        //     businessId: ProxyService.box.getBusinessId(),
-        //     createdAt: DateTime.now().toIso8601String(),
-        //     spplrNm: item.spplrNm,
-        //   ),
-        //   supplyPrice: item.supplyPrice!,
-        //   retailPrice: item.retailPrice!,
-        //   itemSeq: item.itemSeq,
-        //   // since this is import we do not need to sync back the same item back to RRA
-        //   ebmSynced: true,
-        // );
-
-        /// I need to also receive both retail and supply price from user
         return respond;
       } else {
         throw Exception(

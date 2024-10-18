@@ -8,7 +8,8 @@ import 'package:realm/realm.dart';
 abstract class TaxApi {
   Future<RwApiResponse> saveStockMaster(
       {required IStock stock, required IVariant variant, required String URI});
-
+  Future<RwApiResponse> savePurchases(
+      {required SaleList item, required String URI,required Realm realm});
   Future<RwApiResponse> saveStockItems(
       {required ITransaction transaction,
       required String tinNumber,
@@ -47,8 +48,8 @@ abstract class TaxApi {
   Future<RwApiResponse> saveItem(
       {required IVariant variation, required String URI});
 
-  Future<RwApiResponse> savePurchases(
-      {required SaleList item, required String URI});
+  // Future<RwApiResponse> savePurchases(
+  //     {required SaleList item, required String URI});
   Future<RwApiResponse> selectTrnsPurchaseSales(
       {required int tin,
       required String bhfId,

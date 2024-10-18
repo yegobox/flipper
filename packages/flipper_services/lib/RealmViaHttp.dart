@@ -742,6 +742,11 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   }
 
   @override
+  Variant? getVariantByProductId({required int productId}) {
+    return null;
+  }
+
+  @override
   Future<String?> getPlatformDeviceId() async {
     return "web";
   }

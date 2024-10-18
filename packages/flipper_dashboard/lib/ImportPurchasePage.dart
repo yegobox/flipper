@@ -1,17 +1,25 @@
 import 'package:flipper_dashboard/ImportWidget.dart';
 import 'package:flipper_dashboard/PurchaseSalesWidget.dart';
+import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:realm/realm.dart';
+import 'package:stacked/stacked.dart';
 
-class ImportPurchasePage extends StatefulWidget {
+class ImportPurchasePage extends StatefulHookConsumerWidget {
   @override
   _ImportPurchasePageState createState() => _ImportPurchasePageState();
 }
 
-class _ImportPurchasePageState extends State<ImportPurchasePage> {
+class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
+    with Refresh {
   DateTime _selectedDate = DateTime.now();
   Future<RwApiResponse>? _futureImportResponse;
   Future<RwApiResponse>? _futurePurchaseResponse;
@@ -21,8 +29,9 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
   final TextEditingController _supplyPriceController = TextEditingController();
   final TextEditingController _retailPriceController = TextEditingController();
   List<Item> finalItemList = [];
-  List<ItemList> finalItemListPurchase = [];
-  List<SaleList>? finalSaleList = [];
+  late RwApiResponse rwResponse;
+  List<SaleList> salesList = []; // New list to store all sales
+
   GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
   bool isLoading = false;
   bool isImport = true;
@@ -46,13 +55,15 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
       );
       setState(() {
         isLoading = false;
+        this.rwResponse = rwResponse;
+        salesList = rwResponse.data?.saleList ?? [];
       });
       return data;
     } else {
       setState(() {
         isLoading = true;
       });
-      final data = await ProxyService.tax.selectTrnsPurchaseSales(
+      final rwResponse = await ProxyService.tax.selectTrnsPurchaseSales(
         URI: ProxyService.box.getServerUrl()!,
         tin: ProxyService.box.tin(),
         bhfId: ProxyService.box.bhfId() ?? "00",
@@ -61,7 +72,7 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
       setState(() {
         isLoading = false;
       });
-      return data;
+      return rwResponse;
     }
   }
 
@@ -140,28 +151,15 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
           finalItemList[index] = _selectedItem!; // Update the item in the list
         }
       } else if (!isImport && _selectedPurchaseItem != null) {
-        setState(() {
-          _selectedPurchaseItem!.itemNm = _nameController.text;
-
-          // Find the SaleList containing the selected ItemList
-          int saleListIndex = finalSaleList!.indexWhere((saleList) =>
-              saleList.itemList!.any((itemList) =>
-                  itemList.itemCd == _selectedPurchaseItem!.itemCd));
-
-          if (saleListIndex != -1) {
-            // Find the ItemList within the SaleList
-            int itemListIndex = finalSaleList![saleListIndex]
-                .itemList!
-                .indexWhere((itemList) =>
-                    itemList.itemCd == _selectedPurchaseItem!.itemCd);
-
-            if (itemListIndex != -1) {
-              // Update the ItemList within the SaleList
-              finalSaleList![saleListIndex].itemList![itemListIndex] =
-                  _selectedPurchaseItem!;
-            }
+        for (var saleList in salesList) {
+          int itemIndex = saleList.itemList?.indexWhere(
+                  (item) => item.itemCd == _selectedPurchaseItem!.itemCd) ??
+              -1;
+          if (itemIndex != -1) {
+            saleList.itemList![itemIndex] = _selectedPurchaseItem!;
+            break;
           }
-        });
+        }
       }
       _nameController.clear();
       _supplyPriceController.clear();
@@ -169,14 +167,73 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
     }
   }
 
-  Future<void> _acceptPurchase() async {
+  Future<void> _acceptPurchase({required CoreViewModel model}) async {
+    ITransaction? pendingTransaction = null;
     try {
       setState(() {
         isLoading = true;
       });
-      for (SaleList item in finalSaleList ?? []) {
-        await ProxyService.tax
-            .savePurchases(item: item, URI: ProxyService.box.getServerUrl()!);
+      for (SaleList supplier in salesList) {
+        for (ItemList item in supplier.itemList!) {
+          Product? product = await ProxyService.local.createProduct(
+            businessId: ProxyService.box.getBusinessId()!,
+            branchId: ProxyService.box.getBranchId()!,
+            tinNumber: ProxyService.box.tin(),
+            bhFId: ProxyService.box.bhfId() ?? "00",
+            product: Product(
+              ObjectId(),
+              name: item.itemNm,
+              lastTouched: DateTime.now(),
+              branchId: ProxyService.box.getBranchId(),
+              businessId: ProxyService.box.getBusinessId(),
+              createdAt: DateTime.now().toIso8601String(),
+              spplrNm: supplier.spplrNm,
+            ),
+            supplyPrice: item.prc,
+            retailPrice: item.prc,
+            itemSeq: item.itemSeq,
+            ebmSynced: false,
+          );
+
+          /// add the variant to the current transaction, this transaction will imediately be completed
+          /// for the API to call the saveItem endpoint
+          /// find variant
+          Variant? variant = await ProxyService.local
+              .getVariantByProductId(productId: product!.id!);
+          pendingTransaction = ProxyService.local.manageTransaction(
+            transactionType: TransactionType.sale,
+            isExpense: false,
+            branchId: ProxyService.box.getBranchId()!,
+          );
+          if (variant != null) {
+            talker.warning(variant.toEJson().toFlipperJson());
+            // model.saveTransaction(
+            //   variation: variant,
+            //   amountTotal: variant.retailPrice,
+            //   customItem: false,
+            //   currentStock: variant.stock!.currentStock,
+            //   pendingTransaction: pendingTransaction,
+            //   partOfComposite: true,
+            //   compositePrice: 0,
+            // );
+            // mark the transaction as parked until completed
+            ProxyService.local.realm!.write(() {
+              pendingTransaction!.status = PARKED;
+            });
+          }
+
+          /// save purchased item
+          // ProxyService.tax.savePurchases(
+          //     item: supplier,
+          //     realm: ProxyService.local.realm!,
+          //     URI: ProxyService.box.getServerUrl()!);
+        }
+
+        /// mark transaction as completed from parked
+        ProxyService.local.realm!.write(() {
+          pendingTransaction!.status = COMPLETE;
+        });
+        refreshTransactionItems(transactionId: pendingTransaction!.id!);
       }
       setState(() {
         isLoading = false;
@@ -213,99 +270,107 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 18, right: 18),
-          child: SizedBox(
-            width: double.infinity,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return ViewModelBuilder.nonReactive(
+        viewModelBuilder: () => CoreViewModel(),
+        builder: (context, model, child) {
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 18, right: 18),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: Text(
-                          'Import From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
-                          style: TextStyle(fontSize: 16),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Import From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            Switch(
+                              value: isImport,
+                              onChanged: (value) {
+                                setState(() {
+                                  isImport = value;
+                                  // Fetch data for the selected mode
+                                  if (isImport) {
+                                    _futureImportResponse =
+                                        _fetchData(selectedDate: _selectedDate);
+                                  } else {
+                                    _futurePurchaseResponse =
+                                        _fetchData(selectedDate: _selectedDate);
+                                  }
+                                });
+                              },
+                            ),
+                            Text(isImport ? "Import" : "Purchase"),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            ElevatedButton(
+                              onPressed: _pickDate,
+                              child: Text('Pick Date'),
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4.0),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Switch(
-                        value: isImport,
-                        onChanged: (value) {
-                          setState(() {
-                            isImport = value;
-                            // Fetch data for the selected mode
-                            if (isImport) {
-                              _futureImportResponse =
-                                  _fetchData(selectedDate: _selectedDate);
-                            } else {
-                              _futurePurchaseResponse =
-                                  _fetchData(selectedDate: _selectedDate);
-                            }
-                          });
-                        },
-                      ),
-                      Text(isImport ? "Import" : "Purchase"),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      ElevatedButton(
-                        onPressed: _pickDate,
-                        child: Text('Pick Date'),
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4.0),
-                          ),
-                        ),
-                      ),
+                      isImport
+                          ? ImportSalesWidget(
+                              futureResponse: _futureImportResponse,
+                              formKey: _importFormKey,
+                              nameController: _nameController,
+                              supplyPriceController: _supplyPriceController,
+                              retailPriceController: _retailPriceController,
+                              saveItemName: _saveItemName,
+                              acceptAllImport: _acceptAllImport,
+                              selectItem: (Item? selectedItem) {
+                                _selectItem(selectedItem);
+                              },
+                              selectedItem: _selectedItem,
+                              finalItemList: finalItemList,
+                            )
+                          : PurchaseSaleWidget(
+                              futureResponse: _futurePurchaseResponse,
+                              formKey: _importFormKey,
+                              nameController: _nameController,
+                              supplyPriceController: _supplyPriceController,
+                              retailPriceController: _retailPriceController,
+                              saveItemName: _saveItemName,
+                              acceptPurchases: () {
+                                _acceptPurchase(model: model);
+                              },
+                              selectSale:
+                                  (ItemList? selectedItem, SaleList saleList) {
+                                _selectItemPurchase(selectedItem,
+                                    saleList: saleList);
+                              },
+                              finalSalesList:
+                                  rwResponse.data!.saleList!.first.itemList ??
+                                      [],
+                            )
                     ],
                   ),
                 ),
-                isImport
-                    ? ImportSalesWidget(
-                        futureResponse: _futureImportResponse,
-                        formKey: _importFormKey,
-                        nameController: _nameController,
-                        supplyPriceController: _supplyPriceController,
-                        retailPriceController: _retailPriceController,
-                        saveItemName: _saveItemName,
-                        acceptAllImport: _acceptAllImport,
-                        selectItem: (Item? selectedItem) {
-                          _selectItem(selectedItem);
-                        },
-                        selectedItem: _selectedItem,
-                        finalItemList: finalItemList,
-                      )
-                    : PurchaseSaleWidget(
-                        futureResponse: _futurePurchaseResponse,
-                        formKey: _importFormKey,
-                        nameController: _nameController,
-                        supplyPriceController: _supplyPriceController,
-                        retailPriceController: _retailPriceController,
-                        saveItemName: _saveItemName,
-                        acceptPurchases: _acceptPurchase,
-                        selectSale:
-                            (ItemList? selectedItem, SaleList saleList) {
-                          _selectItemPurchase(selectedItem, saleList: saleList);
-                        },
-                        finalSalesList: finalItemListPurchase,
-                        finalSaleList: finalSaleList ?? [],
-                      )
-              ],
-            ),
-          ),
-        ),
-        isLoading
-            ? Center(
-                child: CircularProgressIndicator(),
-              )
-            : Container(),
-      ],
-    );
+              ),
+              isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : Container(),
+            ],
+          );
+        });
   }
 
   @override

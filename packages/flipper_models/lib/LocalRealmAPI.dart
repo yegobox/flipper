@@ -2449,6 +2449,11 @@ class LocalRealmApi
   }
 
   @override
+  Variant? getVariantByProductId({required int productId}) {
+    return realm!.query<Variant>(r'productId == $0', [productId]).firstOrNull;
+  }
+
+  @override
   Stream<List<Variant>> geVariantStreamByProductId({required int productId}) {
     final variants = realm!.query<Variant>(r'productId == $0', [productId]);
     return variants.changes
