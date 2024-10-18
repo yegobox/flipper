@@ -1,8 +1,9 @@
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class DataRowWidget extends StatefulWidget {
+class DataRowWidget extends StatefulHookConsumerWidget {
   const DataRowWidget({
     Key? key,
     required this.nameController,
@@ -25,10 +26,10 @@ class DataRowWidget extends StatefulWidget {
   final VoidCallback acceptPurchases;
 
   @override
-  State<DataRowWidget> createState() => _DataRowWidgetState();
+  _DataRowWidgetState createState() => _DataRowWidgetState();
 }
 
-class _DataRowWidgetState extends State<DataRowWidget> {
+class _DataRowWidgetState extends ConsumerState<DataRowWidget> {
   ItemList? selectedItemList;
 
   @override

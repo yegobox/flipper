@@ -541,7 +541,7 @@ class IsolateHandler {
         if (stock != null) {
           localRealm.write(() {
             variant.stock = stock;
-            talker.warning("Updated stock");
+            print("Updated stock");
           });
         } else {
           localRealm.write(() {

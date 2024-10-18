@@ -296,6 +296,7 @@ class CheckOutState extends ConsumerState<CheckOut>
               Customer? customer =
                   ProxyService.local.getCustomer(id: transaction.customerId);
               ProxyService.local.realm!.write(
+                  // TODO: use our write function once the fix is in place
                   // tableName: transactionTable,
                   // writeCallback:
                   () {

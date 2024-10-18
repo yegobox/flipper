@@ -1,5 +1,4 @@
 import 'package:flipper_dashboard/DataRow.dart';
-import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flutter/material.dart';
 
@@ -13,17 +12,17 @@ class PurchaseSaleWidget extends StatefulWidget {
   final void Function() acceptPurchases;
   final void Function(ItemList? selectedItem, SaleList saleList) selectSale;
   final List<ItemList> finalSalesList;
-
-  PurchaseSaleWidget(
-      {required this.futureResponse,
-      required this.formKey,
-      required this.nameController,
-      required this.supplyPriceController,
-      required this.retailPriceController,
-      required this.saveItemName,
-      required this.acceptPurchases,
-      required this.selectSale,
-      required this.finalSalesList});
+  PurchaseSaleWidget({
+    required this.futureResponse,
+    required this.formKey,
+    required this.nameController,
+    required this.supplyPriceController,
+    required this.retailPriceController,
+    required this.saveItemName,
+    required this.acceptPurchases,
+    required this.selectSale,
+    required this.finalSalesList,
+  });
 
   @override
   _PurchaseSaleWidgetState createState() => _PurchaseSaleWidgetState();

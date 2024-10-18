@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/ImportWidget.dart';
 import 'package:flipper_dashboard/PurchaseSalesWidget.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -71,6 +72,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       );
       setState(() {
         isLoading = false;
+        salesList = rwResponse.data?.saleList ?? [];
       });
       return rwResponse;
     }
@@ -127,6 +129,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       _selectedPurchaseItem = item;
       if (item != null) {
         _nameController.text = item.itemNm;
+        _supplyPriceController.text = item.prc.toString();
       } else {
         _nameController.clear();
         _supplyPriceController.clear();
@@ -152,10 +155,13 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
         }
       } else if (!isImport && _selectedPurchaseItem != null) {
         for (var saleList in salesList) {
-          int itemIndex = saleList.itemList?.indexWhere(
-                  (item) => item.itemCd == _selectedPurchaseItem!.itemCd) ??
+          int itemIndex = saleList.itemList
+                  ?.indexWhere((item) => item == _selectedPurchaseItem) ??
               -1;
           if (itemIndex != -1) {
+            /// update retailPrice of the item
+            _selectedPurchaseItem?.retailPrice =
+                double.tryParse(_retailPriceController.text) ?? 0;
             saleList.itemList![itemIndex] = _selectedPurchaseItem!;
             break;
           }
@@ -173,14 +179,19 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       setState(() {
         isLoading = true;
       });
+      talker.warning("salesListLrnghts" + salesList.length.toString());
       for (SaleList supplier in salesList) {
         for (ItemList item in supplier.itemList!) {
+          item.retailPrice ??= item.prc;
+          talker.warning(
+              "Retail Prices while saving item in our DB:: ${item.retailPrice}");
           Product? product = await ProxyService.local.createProduct(
             businessId: ProxyService.box.getBusinessId()!,
             branchId: ProxyService.box.getBranchId()!,
             tinNumber: ProxyService.box.tin(),
             bhFId: ProxyService.box.bhfId() ?? "00",
             product: Product(
+              id: randomNumber(),
               ObjectId(),
               name: item.itemNm,
               lastTouched: DateTime.now(),
@@ -198,8 +209,10 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           /// add the variant to the current transaction, this transaction will imediately be completed
           /// for the API to call the saveItem endpoint
           /// find variant
+          talker.warning("Created Product ${product!.id}");
           Variant? variant = await ProxyService.local
-              .getVariantByProductId(productId: product!.id!);
+              .getVariantByProductId(productId: product.id!);
+          talker.warning("Variant ${variant?.id}");
           pendingTransaction = ProxyService.local.manageTransaction(
             transactionType: TransactionType.sale,
             isExpense: false,
@@ -207,26 +220,34 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           );
           if (variant != null) {
             talker.warning(variant.toEJson().toFlipperJson());
-            // model.saveTransaction(
-            //   variation: variant,
-            //   amountTotal: variant.retailPrice,
-            //   customItem: false,
-            //   currentStock: variant.stock!.currentStock,
-            //   pendingTransaction: pendingTransaction,
-            //   partOfComposite: true,
-            //   compositePrice: 0,
-            // );
+            model.saveTransaction(
+              variation: variant,
+              amountTotal: variant.retailPrice,
+              customItem: false,
+              currentStock: variant.stock!.currentStock,
+              pendingTransaction: pendingTransaction,
+              partOfComposite: true,
+              compositePrice: 0,
+            );
             // mark the transaction as parked until completed
             ProxyService.local.realm!.write(() {
-              pendingTransaction!.status = PARKED;
+              /// when sarTyCd == 6 it is incoming adjustment
+              pendingTransaction!.sarTyCd = "6";
+              pendingTransaction.customerName =
+                  ProxyService.local.getBusiness().name;
+              pendingTransaction.customerTin =
+                  ProxyService.box.tin().toString();
+              pendingTransaction.customerBhfId =
+                  ProxyService.box.bhfId() ?? "00";
+              pendingTransaction.status = PARKED;
             });
           }
 
           /// save purchased item
-          // ProxyService.tax.savePurchases(
-          //     item: supplier,
-          //     realm: ProxyService.local.realm!,
-          //     URI: ProxyService.box.getServerUrl()!);
+          ProxyService.tax.savePurchases(
+              item: supplier,
+              realm: ProxyService.local.realm!,
+              URI: ProxyService.box.getServerUrl()!);
         }
 
         /// mark transaction as completed from parked
@@ -239,7 +260,11 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
         isLoading = false;
       });
       toast("Purchases saved successfully!");
-    } catch (e) {
+      Navigator.maybePop(context);
+
+      /// Pop the screen
+    } catch (e, s) {
+      talker.error(s);
       toast("Internal error, could not save purchases");
       setState(() {
         isLoading = false;

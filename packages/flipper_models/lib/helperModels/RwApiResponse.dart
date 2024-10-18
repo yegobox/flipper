@@ -191,6 +191,7 @@ class ItemList {
   final double taxblAmt;
   final double taxAmt;
   final double totAmt;
+  double? retailPrice;
 
   ItemList({
     required this.itemSeq,
@@ -210,6 +211,7 @@ class ItemList {
     required this.taxblAmt,
     required this.taxAmt,
     required this.totAmt,
+    this.retailPrice,
   });
 
   factory ItemList.fromJson(Map<String, dynamic> json) =>
