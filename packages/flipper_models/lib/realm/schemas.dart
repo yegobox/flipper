@@ -764,6 +764,11 @@ class _ITransaction {
 
   bool isExpense = false;
   bool isRefunded = false;
+  String? customerName;
+  String? customerTin;
+  String? remark;
+  String? customerBhfId;
+  String? sarTyCd;
 }
 
 @RealmModel()

@@ -3,10 +3,29 @@ import 'package:flipper_models/helperModels/IStock.dart';
 import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
+import 'package:realm/realm.dart';
 
 abstract class TaxApi {
-  Future<RwApiResponse> saveStock(
+  Future<RwApiResponse> saveStockMaster(
       {required IStock stock, required IVariant variant, required String URI});
+
+  Future<RwApiResponse> saveStockItems(
+      {required ITransaction transaction,
+      required String tinNumber,
+      required String bhFId,
+      required String customerName,
+      required String custTin,
+      String? regTyCd = "A",
+      //sarTyCd 11 is for sale
+      String sarTyCd = "11",
+      String custBhfId = "00",
+      required double totalSupplyPrice,
+      required double totalvat,
+      required double totalAmount,
+      required String remark,
+      required Realm realm,
+      required DateTime ocrnDt,
+      required String URI});
   Future saveCustomer({required ICustomer customer, required String URI});
   Future<bool> initApi(
       {required String tinNumber,

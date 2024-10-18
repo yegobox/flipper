@@ -77,6 +77,69 @@ class RWTax implements TaxApi {
     }
   }
 
+  @override
+  Future<RwApiResponse> saveStockItems(
+      {required ITransaction transaction,
+      required String tinNumber,
+      required String bhFId,
+      required String customerName,
+      required String custTin,
+      String? regTyCd = "A",
+      //sarTyCd 11 is for sale
+      String sarTyCd = "11",
+      String custBhfId = "",
+      required double totalSupplyPrice,
+      required double totalvat,
+      required double totalAmount,
+      required String remark,
+      required DateTime ocrnDt,
+      required Realm realm,
+      required String URI}) async {
+    try {
+      final url = Uri.parse(URI)
+          .replace(path: Uri.parse(URI).path + 'stock/saveStockItems')
+          .toString();
+      final mod = randomNumber().toString();
+      final sar = randomNumber();
+
+      List<TransactionItem> items = realm.query<TransactionItem>(
+          r'transactionId == $0', [transaction.id]).toList();
+      List<Map<String, dynamic>> itemsList =
+          items.map((item) => mapItemToJson(item)).toList();
+
+      final json = {
+        "totItemCnt": "1",
+        "tin": tinNumber,
+        "bhfId": bhFId,
+        "regTyCd": regTyCd,
+        "custTin": custTin,
+        "custNm": customerName,
+        "custBhfId": custBhfId,
+        "sarTyCd": sarTyCd,
+        "ocrnDt": ocrnDt.toYYYMMdd(),
+        "totTaxblAmt": totalSupplyPrice,
+        "totTaxAmt": totalvat,
+        "totAmt": totalAmount,
+        "remark": remark,
+        "regrId": mod,
+        "regrNm": mod,
+        "modrId": mod,
+        "modrNm": mod,
+        "sarNo": sar,
+        "orgSarNo": sar,
+        "itemList": itemsList
+      };
+      Response response = await sendPostRequest(url, json);
+
+      final data = RwApiResponse.fromJson(
+        response.data,
+      );
+      return data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   /// save or update stock of item saved before.
   /// so it is an item i.e variant we pass back
   /// The API will not fail even if the item Code @[itemCd] is not found
@@ -86,7 +149,7 @@ class RWTax implements TaxApi {
   /// we ended up mixing data for stock and variant but data stay in related model
   /// we just borrow properties to simplify the accesibility
   @override
-  Future<RwApiResponse> saveStock(
+  Future<RwApiResponse> saveStockMaster(
       {required IStock stock,
       required IVariant variant,
       required String URI}) async {
@@ -273,7 +336,7 @@ class RWTax implements TaxApi {
 
     // Build item list
     List<Map<String, dynamic>> itemsList =
-        items.map((item) => mapItemToJson(item, business)).toList();
+        items.map((item) => mapItemToJson(item)).toList();
 
     // Calculate total for non-tax-exempt items
     double totalTaxable = items
@@ -331,7 +394,7 @@ class RWTax implements TaxApi {
   }
 
 // Helper function to map TransactionItem to JSON
-  Map<String, dynamic> mapItemToJson(TransactionItem item, Business? business) {
+  Map<String, dynamic> mapItemToJson(TransactionItem item) {
     Configurations taxConfig =
         ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
     double taxAmount = (((item.price * item.qty) * taxConfig.taxPercentage!) /
@@ -366,7 +429,6 @@ class RWTax implements TaxApi {
       orgnNatCd: "RW",
       pkgUnitCd: "NT",
       splyAmt: item.price * item.qty,
-      tin: item.tin ?? business?.tinNumber,
       bhfId: item.bhfId ?? ProxyService.box.bhfId(),
       dftPrc: item.price,
       addInfo: "",

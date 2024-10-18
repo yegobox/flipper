@@ -5,7 +5,6 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:intl/intl.dart';
 
@@ -90,6 +89,11 @@ class TaxController<OBJ> {
     );
   }
 
+  double calculateTotalTax(double tax, Configurations config) {
+    final percentage = config.taxPercentage ?? 0;
+    return (tax * percentage) / 118;
+  }
+
   /**
    * Prints a receipt for the given transaction.
    * 
@@ -124,24 +128,24 @@ class TaxController<OBJ> {
     Receipt? receipt =
         await ProxyService.local.getReceipt(transactionId: transaction.id!);
 
-    double taxB = 0;
-    double taxC = 0;
-    double taxA = 0;
-    double taxD = 0;
+    double totalB = 0;
+    double totalC = 0;
+    double totalA = 0;
+    double totalD = 0;
 
     try {
       for (var item in items) {
         if (item.taxTyCd == "B") {
-          taxB += (item.price * item.qty);
+          totalB = totalB + (item.price * item.qty);
         }
         if (item.taxTyCd == "C") {
-          taxC += (item.price * item.qty);
+          totalC = totalC + (item.price * item.qty);
         }
         if (item.taxTyCd == "A") {
-          taxA += (item.price * item.qty);
+          totalA = totalA + (item.price * item.qty);
         }
         if (item.taxTyCd == "D") {
-          taxD += (item.price * item.qty);
+          totalD = totalD + (item.price * item.qty);
         }
       }
     } catch (s) {
@@ -161,27 +165,26 @@ class TaxController<OBJ> {
         ProxyService.local.getCustomer(id: transaction.customerId ?? 0);
 
     Print print = Print();
-    double calculateTotalTax(double tax, Configurations config) {
-      final percentage = config.taxPercentage ?? 0;
-      return (tax * percentage) / 100 + percentage;
-    }
+
+    talker.error("totalB: ${totalB}");
+    talker.error("taxB: ${calculateTotalTax(totalB, taxConfigTaxB)}");
 
     await print.print(
-      taxB: taxB,
-      taxC: taxC,
-      taxA: taxA,
-      taxD: taxD,
+      taxB: calculateTotalTax(totalB, taxConfigTaxB),
+      taxC: calculateTotalTax(totalC, taxConfigTaxC),
+      taxA: calculateTotalTax(totalA, taxConfigTaxA),
+      taxD: calculateTotalTax(totalD, taxConfigTaxD),
       grandTotal: transaction.subTotal,
-      totalTaxA: calculateTotalTax(taxA, taxConfigTaxA),
-      totalTaxB: calculateTotalTax(taxB, taxConfigTaxB),
-      totalTaxC: calculateTotalTax(taxC, taxConfigTaxC),
-      totalTaxD: calculateTotalTax(taxD, taxConfigTaxD),
+      totalTaxA: calculateTotalTax(totalA, taxConfigTaxA),
+      totalTaxB: calculateTotalTax(totalB, taxConfigTaxB),
+      totalTaxC: calculateTotalTax(totalC, taxConfigTaxC),
+      totalTaxD: calculateTotalTax(totalD, taxConfigTaxD),
       currencySymbol: "RW",
       transaction: transaction,
 
       /// TODO: for totalTax we are not accounting other taxes only B
       /// so need to account them in future
-      totalTax: (taxB * 18 / 118).toStringAsFixed(2),
+      totalTax: (totalB * 18 / 118).toStringAsFixed(2),
       items: items,
       cash: transaction.subTotal,
       received: transaction.cashReceived,

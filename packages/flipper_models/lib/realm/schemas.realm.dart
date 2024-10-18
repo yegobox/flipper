@@ -5625,6 +5625,11 @@ class ITransaction extends _ITransaction
     bool isIncome = false,
     bool isExpense = false,
     bool isRefunded = false,
+    String? customerName,
+    String? customerTin,
+    String? remark,
+    String? customerBhfId,
+    String? sarTyCd,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<ITransaction>({
@@ -5663,6 +5668,11 @@ class ITransaction extends _ITransaction
     RealmObjectBase.set(this, 'isIncome', isIncome);
     RealmObjectBase.set(this, 'isExpense', isExpense);
     RealmObjectBase.set(this, 'isRefunded', isRefunded);
+    RealmObjectBase.set(this, 'customerName', customerName);
+    RealmObjectBase.set(this, 'customerTin', customerTin);
+    RealmObjectBase.set(this, 'remark', remark);
+    RealmObjectBase.set(this, 'customerBhfId', customerBhfId);
+    RealmObjectBase.set(this, 'sarTyCd', sarTyCd);
   }
 
   ITransaction._();
@@ -5825,6 +5835,38 @@ class ITransaction extends _ITransaction
   set isRefunded(bool value) => RealmObjectBase.set(this, 'isRefunded', value);
 
   @override
+  String? get customerName =>
+      RealmObjectBase.get<String>(this, 'customerName') as String?;
+  @override
+  set customerName(String? value) =>
+      RealmObjectBase.set(this, 'customerName', value);
+
+  @override
+  String? get customerTin =>
+      RealmObjectBase.get<String>(this, 'customerTin') as String?;
+  @override
+  set customerTin(String? value) =>
+      RealmObjectBase.set(this, 'customerTin', value);
+
+  @override
+  String? get remark => RealmObjectBase.get<String>(this, 'remark') as String?;
+  @override
+  set remark(String? value) => RealmObjectBase.set(this, 'remark', value);
+
+  @override
+  String? get customerBhfId =>
+      RealmObjectBase.get<String>(this, 'customerBhfId') as String?;
+  @override
+  set customerBhfId(String? value) =>
+      RealmObjectBase.set(this, 'customerBhfId', value);
+
+  @override
+  String? get sarTyCd =>
+      RealmObjectBase.get<String>(this, 'sarTyCd') as String?;
+  @override
+  set sarTyCd(String? value) => RealmObjectBase.set(this, 'sarTyCd', value);
+
+  @override
   Stream<RealmObjectChanges<ITransaction>> get changes =>
       RealmObjectBase.getChanges<ITransaction>(this);
 
@@ -5864,6 +5906,11 @@ class ITransaction extends _ITransaction
       'isIncome': isIncome.toEJson(),
       'isExpense': isExpense.toEJson(),
       'isRefunded': isRefunded.toEJson(),
+      'customerName': customerName.toEJson(),
+      'customerTin': customerTin.toEJson(),
+      'remark': remark.toEJson(),
+      'customerBhfId': customerBhfId.toEJson(),
+      'sarTyCd': sarTyCd.toEJson(),
     };
   }
 
@@ -5902,6 +5949,11 @@ class ITransaction extends _ITransaction
           isIncome: fromEJson(ejson['isIncome'], defaultValue: false),
           isExpense: fromEJson(ejson['isExpense'], defaultValue: false),
           isRefunded: fromEJson(ejson['isRefunded'], defaultValue: false),
+          customerName: fromEJson(ejson['customerName']),
+          customerTin: fromEJson(ejson['customerTin']),
+          remark: fromEJson(ejson['remark']),
+          customerBhfId: fromEJson(ejson['customerBhfId']),
+          sarTyCd: fromEJson(ejson['sarTyCd']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -5946,6 +5998,11 @@ class ITransaction extends _ITransaction
       SchemaProperty('isIncome', RealmPropertyType.bool),
       SchemaProperty('isExpense', RealmPropertyType.bool),
       SchemaProperty('isRefunded', RealmPropertyType.bool),
+      SchemaProperty('customerName', RealmPropertyType.string, optional: true),
+      SchemaProperty('customerTin', RealmPropertyType.string, optional: true),
+      SchemaProperty('remark', RealmPropertyType.string, optional: true),
+      SchemaProperty('customerBhfId', RealmPropertyType.string, optional: true),
+      SchemaProperty('sarTyCd', RealmPropertyType.string, optional: true),
     ]);
   }();
 

@@ -10,6 +10,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
+import 'package:flipper_services/constants.dart';
 
 import 'firebase_options.dart';
 import 'package:http/http.dart' as http;
@@ -81,9 +82,87 @@ class IsolateHandler {
 
     localRealm?.close();
     localRealm = Realm(configLocal);
+    double calculateTotalTax(double tax, Configurations config) {
+      final percentage = config.taxPercentage ?? 0;
+      return (tax * percentage) / 100 + percentage;
+    }
 
     /// handle missing value, part of self healing
     _selfHeal(localRealm: localRealm);
+
+    List<ITransaction> transactions = localRealm!.query<ITransaction>(
+        r'ebmSynced == $0 && status == $1 && customerName !=NULL && customerTin !=NULL',
+        [false, COMPLETE]).toList();
+
+    print("transactions count ${transactions.length}");
+    for (ITransaction transaction in transactions) {
+      double taxB = 0;
+      // double taxC = 0;
+      // double taxA = 0;
+      // double taxD = 0;
+      double totalvat = 0;
+
+      Configurations taxConfigTaxB =
+          localRealm!.query<Configurations>(r'taxType == $0', ["B"]).first;
+      // Configurations taxConfigTaxA =
+      //     localRealm!.query<Configurations>(r'taxType == $0', ["A"]).first;
+      // Configurations taxConfigTaxC =
+      //     localRealm!.query<Configurations>(r'taxType == $0', ["C"]).first;
+      // Configurations taxConfigTaxD =
+      //     localRealm!.query<Configurations>(r'taxType == $0', ["D"]).first;
+
+      List<TransactionItem> items = localRealm!.query<TransactionItem>(
+          r'transactionId == $0', [transaction.id]).toList();
+
+      for (var item in items) {
+        if (item.taxTyCd == "B") {
+          taxB += (item.price * item.qty);
+        }
+        // if (item.taxTyCd == "C") {
+        //   taxC += (item.price * item.qty);
+        // }
+        // if (item.taxTyCd == "A") {
+        //   taxA += (item.price * item.qty);
+        // }
+        // if (item.taxTyCd == "D") {
+        //   taxD += (item.price * item.qty);
+        // }
+      }
+      // final totalTaxA = calculateTotalTax(taxA, taxConfigTaxA);
+      final totalTaxB = calculateTotalTax(taxB, taxConfigTaxB);
+      // final totalTaxC = calculateTotalTax(taxC, taxConfigTaxC);
+      // final totalTaxD = calculateTotalTax(taxD, taxConfigTaxD);
+      totalvat = totalTaxB;
+
+      /// stop if transaction does not have customerName or customerTin
+      if (transaction.customerName == null || transaction.customerTin == null) {
+        continue;
+      }
+      final response = await RWTax().saveStockItems(
+          transaction: transaction,
+          tinNumber: tinNumber.toString(),
+          bhFId: bhfId,
+          customerName: transaction.customerName ?? "N/A",
+          custTin: transaction.customerTin ?? "999909695",
+          regTyCd: "A",
+          //sarTyCd 11 is for sale
+          sarTyCd: transaction.sarTyCd ?? "11",
+          realm: localRealm!,
+          custBhfId: transaction.customerBhfId ?? "",
+          totalSupplyPrice: transaction.subTotal,
+          totalvat: totalvat,
+          totalAmount: transaction.subTotal,
+          remark: transaction.remark ?? "",
+          ocrnDt: DateTime.parse(
+              transaction.updatedAt ?? DateTime.now().toString()),
+          URI: URI);
+
+      if (response.resultCd == "000") {
+        sendPort.send(
+            'notification:${response.resultMsg}:transaction:${transaction.id.toString()}');
+      }
+      print(response);
+    }
 
     List<Variant> variants =
         localRealm!.query<Variant>(r'ebmSynced == $0', [false]).toList();
@@ -137,7 +216,7 @@ class IsolateHandler {
               IVariant.fromJson(variant.toEJson().toFlipperJson());
 
           final response = await RWTax()
-              .saveStock(stock: iStock, variant: iVariant, URI: URI);
+              .saveStockMaster(stock: iStock, variant: iVariant, URI: URI);
           if (response.resultCd == "000") {
             sendPort.send(
                 'notification:${response.resultMsg}:stock:${stock.id.toString()}');

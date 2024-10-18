@@ -134,6 +134,21 @@ class CronService {
                 ProxyService.notification.sendLocalNotification(
                     body: "Customer Saving " + separator[1]);
               }
+              if (separator[2] == "transaction") {
+                final transactionId = int.tryParse(separator[3]);
+                ITransaction? transaction =
+                    ProxyService.local.getTransactionById(id: transactionId!);
+                if (transaction != null) {
+                  ProxyService.local.realm!.writeN(
+                      tableName: transactionTable,
+                      writeCallback: () {
+                        transaction.ebmSynced = true;
+                        return transaction;
+                      });
+                }
+                ProxyService.notification.sendLocalNotification(
+                    body: "Transaction Saving " + separator[1]);
+              }
 
               /// in event when we are done with work in isolate
               /// then we kill current isolate, but it is very important to know
