@@ -292,10 +292,12 @@ abstract class RealmApiInterface {
   bool isTaxEnabled({required Business business});
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
+      required DateTime whenCreated,
       required ITransaction transaction,
       required String qrCode,
       required String receiptType,
-      required Counter counter});
+      required Counter counter,
+      required int invoiceNumber});
   Future<Receipt?> getReceipt({required int transactionId});
 
   Future<void> refund({required int itemId});

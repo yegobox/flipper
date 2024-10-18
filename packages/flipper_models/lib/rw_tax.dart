@@ -329,6 +329,7 @@ class RWTax implements TaxApi {
     required String receiptType,
     required Counter counter,
     String? purchaseCode,
+    required DateTime timeToUser,
     required String URI,
   }) async {
     // Get business details
@@ -339,7 +340,7 @@ class RWTax implements TaxApi {
     );
 
     // Get the current date and time in the required format yyyyMMddHHmmss
-    String date = DateTime.now()
+    String date = timeToUser
         .toIso8601String()
         .replaceAll(RegExp(r'[:-\sT]'), '')
         .substring(0, 14);
@@ -580,7 +581,7 @@ class RWTax implements TaxApi {
         "btmMsg": "THANK YOU COME BACK AGAIN",
         "custMblNo": customer == null
             ? "0" + ProxyService.box.currentSaleCustomerPhoneNumber()!
-            : customer.telNo,
+            : customer.custTin,
       },
       "itemList": itemsList,
     };

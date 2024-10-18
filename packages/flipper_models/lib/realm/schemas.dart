@@ -407,6 +407,8 @@ class _Receipt {
   DateTime? lastTouched;
 
   int? invcNo;
+  DateTime? whenCreated;
+  int? invoiceNumber;
 }
 
 @RealmModel()
@@ -769,6 +771,9 @@ class _ITransaction {
   String? remark;
   String? customerBhfId;
   String? sarTyCd;
+  int? receiptNumber;
+  int? totalReceiptNumber;
+  int? invoiceNumber;
 }
 
 @RealmModel()

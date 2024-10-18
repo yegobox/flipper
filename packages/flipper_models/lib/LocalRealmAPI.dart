@@ -321,7 +321,7 @@ class LocalRealmApi
       await _patchPin(user.id!, flipperHttpClient, apihub,
           ownerName: user.tenants.first.name);
       ProxyService.box.writeInt(key: 'userId', value: user.id!);
-      await ProxyService.syncFirestore.firebaseLogin(token: user.uid);
+      await ProxyService.synchronize.firebaseLogin(token: user.uid);
       return user;
     } else {
       await _handleLoginError(response);
@@ -2670,29 +2670,37 @@ class LocalRealmApi
     int orderId = randomNumber();
     for (TransactionItem item in items) {
       realm!.writeN(
-          tableName: transactionItemsTable,
-          writeCallback: () {
-            return item;
-          });
+        tableName: transactionItemsTable,
+        writeCallback: () {
+          return item;
+        },
+        onAdd: (data) {
+          ProxyService.synchronize.syncToFirestore(transactionItemsTable, data);
+        },
+      );
     }
 
     realm!.writeN(
-        tableName: stockRequestsTable,
-        writeCallback: () {
-          final stockRequest = StockRequest(
-            ObjectId(),
-            id: orderId,
-            deliveryDate: deliveryDate,
-            deliveryNote: deliveryNote,
-            mainBranchId: mainBranchId,
-            subBranchId: ProxyService.box.getBranchId(),
-            status: RequestStatus.pending,
-            items: items,
-            updatedAt: DateTime.now().toUtc().toLocal(),
-            createdAt: DateTime.now().toUtc().toLocal(),
-          );
-          return stockRequest;
-        });
+      tableName: stockRequestsTable,
+      writeCallback: () {
+        final stockRequest = StockRequest(
+          ObjectId(),
+          id: orderId,
+          deliveryDate: deliveryDate,
+          deliveryNote: deliveryNote,
+          mainBranchId: mainBranchId,
+          subBranchId: ProxyService.box.getBranchId(),
+          status: RequestStatus.pending,
+          items: items,
+          updatedAt: DateTime.now().toUtc().toLocal(),
+          createdAt: DateTime.now().toUtc().toLocal(),
+        );
+        return stockRequest;
+      },
+      onAdd: (data) {
+        ProxyService.synchronize.syncToFirestore(stockRequestsTable, data);
+      },
+    );
     return orderId;
   }
 
@@ -2708,12 +2716,16 @@ class LocalRealmApi
     Stock? stock = realm!.query<Stock>(r'id == $0', [stockId]).firstOrNull;
     if (stock != null) {
       realm!.writeN(
-          tableName: 'stocks',
-          writeCallback: () {
-            stock.currentStock = qty;
-            stock.initialStock = qty;
-            return stock;
-          });
+        tableName: stocksTable,
+        writeCallback: () {
+          stock.currentStock = qty;
+          stock.initialStock = qty;
+          return stock;
+        },
+        onAdd: (data) {
+          ProxyService.synchronize.syncToFirestore(stocksTable, data);
+        },
+      );
     }
   }
 
@@ -3066,45 +3078,48 @@ class LocalRealmApi
           active: true);
 
       realm!.writeN(
-          tableName: transactionTable,
-          writeCallback: () {
-            transaction.lastTouched = DateTime.now().toUtc().toLocal();
-            transaction.status = COMPLETE;
-            transaction.isIncome = isIncome;
-            transaction.isExpense = !isIncome;
-            double subTotal =
-                items.fold(0, (num a, b) => a + (b.price * b.qty));
+        tableName: transactionTable,
+        writeCallback: () {
+          transaction.lastTouched = DateTime.now().toUtc().toLocal();
+          transaction.status = COMPLETE;
+          transaction.isIncome = isIncome;
+          transaction.isExpense = !isIncome;
+          double subTotal = items.fold(0, (num a, b) => a + (b.price * b.qty));
 
-            /// if we are dealing with expenses then subTotal equal to the amount received
-            final subTotalFinalied = !isIncome ? cashReceived : subTotal;
-            transaction.customerChangeDue = (cashReceived - subTotalFinalied);
-            transaction.paymentType = paymentType;
-            transaction.cashReceived = cashReceived;
+          /// if we are dealing with expenses then subTotal equal to the amount received
+          final subTotalFinalied = !isIncome ? cashReceived : subTotal;
+          transaction.customerChangeDue = (cashReceived - subTotalFinalied);
+          transaction.paymentType = paymentType;
+          transaction.cashReceived = cashReceived;
 
-            transaction.subTotal = subTotalFinalied;
+          transaction.subTotal = subTotalFinalied;
 
-            /// for now receipt type to be printed is in box shared preference
-            /// this ofcause has limitation that if more than two users are using device
-            /// one user will use configuration set by probably a different user, this need to change soon.
-            String receiptType = TransactionReceptType.NS;
-            if (isProformaMode) {
-              receiptType = TransactionReceptType.PS;
-            }
-            if (isTrainingMode) {
-              receiptType = TransactionReceptType.TS;
-            }
-            transaction.receiptType = receiptType;
+          /// for now receipt type to be printed is in box shared preference
+          /// this ofcause has limitation that if more than two users are using device
+          /// one user will use configuration set by probably a different user, this need to change soon.
+          String receiptType = TransactionReceptType.NS;
+          if (isProformaMode) {
+            receiptType = TransactionReceptType.PS;
+          }
+          if (isTrainingMode) {
+            receiptType = TransactionReceptType.TS;
+          }
+          transaction.receiptType = receiptType;
 
-            /// refresh created as well to reflect when this transaction was created and completed
+          /// refresh created as well to reflect when this transaction was created and completed
 
-            transaction.updatedAt =
-                DateTime.now().toUtc().toLocal().toIso8601String();
-            transaction.createdAt =
-                DateTime.now().toUtc().toLocal().toIso8601String();
-            transaction.transactionType = transactionType;
-            transaction.categoryId = categoryId ?? "0";
-            return transaction;
-          });
+          transaction.updatedAt =
+              DateTime.now().toUtc().toLocal().toIso8601String();
+          transaction.createdAt =
+              DateTime.now().toUtc().toLocal().toIso8601String();
+          transaction.transactionType = transactionType;
+          transaction.categoryId = categoryId ?? "0";
+          return transaction;
+        },
+        onAdd: (data) {
+          ProxyService.synchronize.syncToFirestore(transactionTable, data);
+        },
+      );
 
       try {
         for (TransactionItem item in items) {
@@ -3118,47 +3133,36 @@ class LocalRealmApi
           Stock? stock =
               stockByVariantId(variantId: item.variantId!, branchId: branchId);
           final finalStock = (stock!.currentStock - item.qty);
-          // realm!.writeN(
-          //     tableName: transactionItemsTable,
-          //     writeCallback: () {
-          // Configurations taxConfig =
-          //     ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
 
-          // double taxAmount =
-          //     (((item.price * item.qty) * taxConfig.taxPercentage!) /
-          //         (100 + taxConfig.taxPercentage!));
-
-          //       item.taxAmt =
-          //           (double.parse(taxAmount.round().toStringAsFixed(2)) * 100)
-          //                   .round() /
-          //               100;
-          //       item.totAmt = item.price * item.qty;
-          //       item.dcAmt = discount;
-          //       item.discount = discount;
-          //       item.taxblAmt = item.price * item.qty;
-          //       item.lastTouched = DateTime.now().toUtc().toLocal();
-          //       return item;
-          //     });
           realm!.writeN(
-              tableName: stocksTable,
-              writeCallback: () {
-                stock.rsdQty = finalStock;
-                stock.currentStock = finalStock;
-                // stock value after item deduct
-                stock.value = finalStock * (stock.retailPrice);
-                stock.ebmSynced = false;
-                stock.bhfId = stock.bhfId ?? ProxyService.box.bhfId();
-                stock.tin = stock.tin ?? ProxyService.box.tin();
-                return stock;
-              });
+            tableName: stocksTable,
+            writeCallback: () {
+              stock.rsdQty = finalStock;
+              stock.currentStock = finalStock;
+              // stock value after item deduct
+              stock.value = finalStock * (stock.retailPrice);
+              stock.ebmSynced = false;
+              stock.bhfId = stock.bhfId ?? ProxyService.box.bhfId();
+              stock.tin = stock.tin ?? ProxyService.box.tin();
+              return stock;
+            },
+            onAdd: (data) {
+              ProxyService.synchronize.syncToFirestore(stocksTable, data);
+            },
+          );
           realm!.writeN(
-              tableName: transactionItemsTable,
-              writeCallback: () {
-                item.doneWithTransaction = true;
-                item.updatedAt =
-                    DateTime.now().toUtc().toLocal().toIso8601String();
-                return item;
-              });
+            tableName: transactionItemsTable,
+            writeCallback: () {
+              item.doneWithTransaction = true;
+              item.updatedAt =
+                  DateTime.now().toUtc().toLocal().toIso8601String();
+              return item;
+            },
+            onAdd: (data) {
+              ProxyService.synchronize
+                  .syncToFirestore(transactionItemsTable, data);
+            },
+          );
 
           /// search the related product and touch them to make them as most used
           /// hence why we are adding time to it
@@ -3166,11 +3170,15 @@ class LocalRealmApi
           Product? product = getProduct(id: variant!.productId!);
           if (product != null) {
             realm!.writeN(
-                tableName: variantTable,
-                writeCallback: () {
-                  variant.qty = finalStock;
-                  return variant;
-                });
+              tableName: variantTable,
+              writeCallback: () {
+                variant.qty = finalStock;
+                return variant;
+              },
+              onAdd: (data) {
+                ProxyService.synchronize.syncToFirestore(variantTable, data);
+              },
+            );
           }
         }
       } catch (e, s) {
@@ -3318,6 +3326,8 @@ class LocalRealmApi
       {required RwApiResponse signature,
       required ITransaction transaction,
       required String qrCode,
+      required int invoiceNumber,
+      required DateTime whenCreated,
       required String receiptType,
       required Counter counter}) async {
     int branchId = ProxyService.box.getBranchId()!;
@@ -3332,18 +3342,24 @@ class LocalRealmApi
         rcptSign: signature.data?.rcptSign ?? "",
         qrCode: qrCode,
         receiptType: receiptType,
+        invoiceNumber: invoiceNumber,
         vsdcRcptPbctDate: signature.data?.vsdcRcptPbctDate ?? "",
         sdcId: signature.data?.sdcId ?? "",
         totRcptNo: signature.data?.totRcptNo ?? 0,
         mrcNo: signature.data?.mrcNo ?? "",
         transactionId: transaction.id!,
         invcNo: counter.invcNo,
+        whenCreated: whenCreated,
         resultDt: signature.resultDt ?? "");
 
     try {
       realm!.writeN(
-          tableName: receiptsTable,
-          writeCallback: () => realm!.add<Receipt>(receipt));
+        tableName: receiptsTable,
+        writeCallback: () => realm!.add<Receipt>(receipt),
+        onAdd: (data) {
+          ProxyService.synchronize.syncToFirestore(receiptsTable, data);
+        },
+      );
 
       return receipt;
     } catch (error) {
@@ -4819,16 +4835,22 @@ class LocalRealmApi
     required RwApiResponse receiptSignature,
   }) {
     ProxyService.local.realm!.writeN(
-        tableName: countersTable,
-        writeCallback: () {
-          for (Counter counter in counters) {
-            talker.warning("Touched Counter ${counter.id}");
-            counter.totRcptNo = receiptSignature.data?.totRcptNo;
-            counter.curRcptNo = receiptSignature.data?.rcptNo;
-            counter.invcNo = (counter.invcNo != null) ? counter.invcNo! + 1 : 1;
-          }
-          return counters;
-        });
+      tableName: countersTable,
+      writeCallback: () {
+        for (Counter counter in counters) {
+          talker.warning("Touched Counter ${counter.id}");
+          counter.totRcptNo = receiptSignature.data?.totRcptNo;
+          counter.curRcptNo = receiptSignature.data?.rcptNo;
+          counter.invcNo = (counter.invcNo != null) ? counter.invcNo! + 1 : 1;
+        }
+        return counters;
+      },
+      onAdd: (data) {
+        for (Counter counter in data) {
+          ProxyService.synchronize.syncToFirestore(countersTable, counter);
+        }
+      },
+    );
   }
 
   @override
@@ -4838,26 +4860,30 @@ class LocalRealmApi
       await Future.delayed(Duration(seconds: 4));
       Pin? savedPin;
       ProxyService.local.realm!.writeN(
-          tableName: pinsTable,
-          writeCallback: () {
-            savedPin =
-                realm!.query<Pin>(r'userId == $0', [pin.userId]).firstOrNull;
-            if (savedPin == null) {
-              pin.uid = FirebaseAuth.instance.currentUser!.uid;
-              savedPin = realm!.add<Pin>(pin);
-            } else {
-              savedPin!.userId = pin.userId;
-              if (FirebaseAuth.instance.currentUser != null) {
-                savedPin!.uid = FirebaseAuth.instance.currentUser?.uid;
-              }
-
-              savedPin!.ownerName = pin.ownerName;
-              savedPin!.tokenUid = pin.tokenUid;
-              savedPin!.phoneNumber = pin.phoneNumber;
-              savedPin!.tokenUid = pin.tokenUid;
+        tableName: pinsTable,
+        writeCallback: () {
+          savedPin =
+              realm!.query<Pin>(r'userId == $0', [pin.userId]).firstOrNull;
+          if (savedPin == null) {
+            pin.uid = FirebaseAuth.instance.currentUser!.uid;
+            savedPin = realm!.add<Pin>(pin);
+          } else {
+            savedPin!.userId = pin.userId;
+            if (FirebaseAuth.instance.currentUser != null) {
+              savedPin!.uid = FirebaseAuth.instance.currentUser?.uid;
             }
-            return savedPin!;
-          });
+
+            savedPin!.ownerName = pin.ownerName;
+            savedPin!.tokenUid = pin.tokenUid;
+            savedPin!.phoneNumber = pin.phoneNumber;
+            savedPin!.tokenUid = pin.tokenUid;
+          }
+          return savedPin!;
+        },
+        onAdd: (data) {
+          ProxyService.synchronize.syncToFirestore(pinsTable, data);
+        },
+      );
       return savedPin!;
     } catch (e) {
       rethrow;

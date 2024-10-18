@@ -14,7 +14,7 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Transaction ID', overflow: TextOverflow.ellipsis),
+          child: const Text('Receipt Number', overflow: TextOverflow.ellipsis),
         ),
       ),
       GridColumn(

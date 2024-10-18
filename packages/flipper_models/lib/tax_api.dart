@@ -48,7 +48,8 @@ abstract class TaxApi {
       required String receiptType,
       required Counter counter,
       String? purchaseCode,
-      required String URI});
+      required String URI,
+      required DateTime timeToUser});
   Future<RwApiResponse> saveItem(
       {required IVariant variation, required String URI});
 

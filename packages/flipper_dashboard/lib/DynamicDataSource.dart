@@ -75,7 +75,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
 
   DataGridRow _buildITransactionRow(ITransaction item) {
     return DataGridRow(cells: [
-      DataGridCell<String>(columnName: 'Name', value: item.id.toString()),
+      DataGridCell<String>(
+          columnName: 'Name', value: item.invoiceNumber?.toString() ?? "-"),
       DataGridCell<String>(columnName: 'Type', value: item.receiptType ?? "-"),
       DataGridCell<double>(columnName: 'Amount', value: item.subTotal),
       DataGridCell<double>(

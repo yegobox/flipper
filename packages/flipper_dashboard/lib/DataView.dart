@@ -283,7 +283,8 @@ class DataViewState extends ConsumerState<DataView>
       return zReportTableHeader(headerPadding);
     }
   }
-
+  /// build an adapter of different view of the data, e.g transactions vs transactionItems and more to be
+  /// supported
   DataGridSource _buildDataGridSource({
     required bool showDetailed,
     List<TransactionItem>? transactionItems,

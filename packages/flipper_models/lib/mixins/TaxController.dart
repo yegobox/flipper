@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
@@ -9,7 +10,6 @@ import 'package:flipper_services/constants.dart';
 import 'package:intl/intl.dart';
 
 import 'package:flipper_services/proxy.dart';
-// import 'package:intl/intl.dart';
 import 'package:realm/realm.dart';
 import 'package:receipt/print.dart';
 
@@ -19,60 +19,83 @@ class TaxController<OBJ> {
   OBJ? object;
 
   Future<void> handleReceipt(
-      {
-      /// This paramter is needed when we are printing a copy of the receipt without necessary telling
-      /// RRA that this is a copy, this might be needed when completed transaction
-      /// and for some reason you missed the print but the customer still stands while waiting for receipt
-      required Function(Uint8List bytes) printCallback,
+      {required Function(Uint8List bytes) printCallback,
       bool skiGenerateRRAReceiptSignature = false,
       String? purchaseCode}) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
 
-      /// when the customer is not added to the sale then we shall print the rra receipt
-      /// automatically if the customer is added though we shall wait for the purchase code from
-      /// user for us to proceed
-      /// for NS or normal sale we ask for purchase code! therefore the first condition should check if it is  NS
-      /// as it require the purchase code and
-
-      if (transaction.status == COMPLETE &&
-          transaction.receiptType == TransactionReceptType.NS) {
-        //// generate a receipt for this completed transaction
-        /// if a customer is attached and the customer is of type business
-        /// we stop and wait for a business to give us purchase code!
-        /// so when a customerI is not empty we will wait for the purchase code from the user
-        /// and if the cashier does not provide it then we will go ahead and finish a transaction
-        /// without the purchase code and the user detail added to the transaction
-        try {
-          await _printReceipt(
-            receiptType: transaction.receiptType!,
-            transaction: transaction,
-            purchaseCode: purchaseCode,
-            skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
-            printCallback: (bytes) {
-              printCallback(bytes);
-            },
-          );
-        } catch (e) {
-          rethrow;
-        }
-      } else if ((transaction.receiptType == TransactionReceptType.NR ||
-              transaction.receiptType == TransactionReceptType.TS ||
-              transaction.receiptType == TransactionReceptType.PS ||
-              transaction.receiptType == TransactionReceptType.CS) &&
-          transaction.status == COMPLETE) {
-        try {
-          await _printReceipt(
-            purchaseCode: purchaseCode,
-            receiptType: transaction.receiptType!,
-            transaction: transaction,
-            skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
-            printCallback: (bytes) {
-              printCallback(bytes);
-            },
-          );
-        } catch (e) {
-          rethrow;
+      if (transaction.status == COMPLETE) {
+        if (transaction.receiptType == TransactionReceptType.NS) {
+          try {
+            await printReceipt(
+              receiptType: transaction.receiptType!,
+              transaction: transaction,
+              purchaseCode: purchaseCode,
+              skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+              printCallback: (bytes) {
+                printCallback(bytes);
+              },
+            );
+          } catch (e) {
+            rethrow;
+          }
+        } else if (transaction.receiptType == TransactionReceptType.NR) {
+          try {
+            await printReceipt(
+              purchaseCode: purchaseCode,
+              receiptType: transaction.receiptType!,
+              transaction: transaction,
+              skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+              printCallback: (bytes) {
+                printCallback(bytes);
+              },
+            );
+          } catch (e) {
+            rethrow;
+          }
+        } else if (transaction.receiptType == TransactionReceptType.TS) {
+          try {
+            await printReceipt(
+              purchaseCode: purchaseCode,
+              receiptType: transaction.receiptType!,
+              transaction: transaction,
+              skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+              printCallback: (bytes) {
+                printCallback(bytes);
+              },
+            );
+          } catch (e) {
+            rethrow;
+          }
+        } else if (transaction.receiptType == TransactionReceptType.PS) {
+          try {
+            await printReceipt(
+              purchaseCode: purchaseCode,
+              receiptType: transaction.receiptType!,
+              transaction: transaction,
+              skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+              printCallback: (bytes) {
+                printCallback(bytes);
+              },
+            );
+          } catch (e) {
+            rethrow;
+          }
+        } else if (transaction.receiptType == TransactionReceptType.CS) {
+          try {
+            await printReceipt(
+              purchaseCode: purchaseCode,
+              receiptType: transaction.receiptType!,
+              transaction: transaction,
+              skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+              printCallback: (bytes) {
+                printCallback(bytes);
+              },
+            );
+          } catch (e) {
+            rethrow;
+          }
         }
       }
     }
@@ -102,7 +125,7 @@ class TaxController<OBJ> {
    * @params receiptType - The type of receipt to print.
    * @params transaction - The transaction to print a receipt for.
    */
-  Future<void> _printReceipt({
+  Future<void> printReceipt({
     required String receiptType,
     required ITransaction transaction,
     String? purchaseCode,
@@ -170,6 +193,7 @@ class TaxController<OBJ> {
     talker.error("taxB: ${calculateTotalTax(totalB, taxConfigTaxB)}");
 
     await print.print(
+      whenCreated: receipt!.whenCreated!,
       taxB: totalB,
       taxC: totalC,
       taxA: totalA,
@@ -189,7 +213,7 @@ class TaxController<OBJ> {
       cash: transaction.subTotal,
       received: transaction.cashReceived,
       payMode: "Cash",
-      mrc: receipt!.mrcNo ?? "",
+      mrc: receipt.mrcNo ?? "",
       internalData: receipt.intrlData ?? "",
       receiptQrCode: receipt.qrCode ?? "",
       receiptSignature: receipt.rcptSign ?? "",
@@ -257,6 +281,9 @@ class TaxController<OBJ> {
       // this is because if we don't then the EBM counter will give us the
       if (transaction.isExpense) return;
       if (ProxyService.box.getServerUrl() == null) return;
+
+      DateTime now = DateTime.now();
+
       RwApiResponse? receiptSignature =
           await ProxyService.tax.generateReceiptSignature(
         transaction: transaction,
@@ -264,27 +291,37 @@ class TaxController<OBJ> {
         counter: counter,
         URI: ProxyService.box.getServerUrl()!,
         purchaseCode: purchaseCode,
+        timeToUser: now,
       );
-      //updateTransactionAndDrawer(receiptType, transaction);
-
-      DateTime now = DateTime.now();
-      String formattedDate = DateFormat('dd-MM-yyyy').format(now);
 
       String receiptNumber =
           "${receiptSignature!.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
-      String qrCode = generateQRCode(formattedDate, receiptSignature);
+      String qrCode = generateQRCode(now.toYYYMMdd(), receiptSignature);
+      List<Counter> counters = ProxyService.local.realm!
+          .query<Counter>(r'branchId == $0', [branchId]).toList();
 
-      log("afterGenerating Qr", name: "generateQRCode");
+      /// update transaction with receipt number and total receipt number
+      ProxyService.local.realm!.writeN(
+        tableName: transactionTable,
+        writeCallback: () {
+          transaction.receiptNumber = receiptSignature.data?.rcptNo;
+          transaction.totalReceiptNumber = receiptSignature.data?.totRcptNo;
+          transaction.invoiceNumber = counter!.invcNo;
+          return transaction;
+        },
+        onAdd: (data) {
+          ProxyService.synchronize.syncToFirestore(transactionTable, data);
+        },
+      );
 
       await saveReceipt(
-          receiptSignature, transaction, qrCode, counter, receiptNumber);
+          receiptSignature, transaction, qrCode, counter, receiptNumber,
+          whenCreated: now, invoiceNumber: counter.invcNo!);
 
       /// by incrementing this by 1 we get ready for next value to use so there will be no need to increment it
       /// at the time of passing in data, I have to remember to clean it in rw_tax.dart
       /// since curRcptNo need to be update when one change to keep track on current then we find all
       // Fetch the counters from the database
-      List<Counter> counters = ProxyService.local.realm!
-          .query<Counter>(r'branchId == $0', [branchId]).toList();
 
       ProxyService.local.updateCounters(
         counters: counters,
@@ -333,12 +370,13 @@ class TaxController<OBJ> {
   }
 
   Future<void> saveReceipt(
-    RwApiResponse receiptSignature,
-    ITransaction transaction,
-    String qrCode,
-    Counter counter,
-    String receiptType,
-  ) async {
+      RwApiResponse receiptSignature,
+      ITransaction transaction,
+      String qrCode,
+      Counter counter,
+      String receiptType,
+      {required DateTime whenCreated,
+      required int invoiceNumber}) async {
     try {
       await ProxyService.local.createReceipt(
         signature: receiptSignature,
@@ -346,6 +384,8 @@ class TaxController<OBJ> {
         qrCode: qrCode,
         counter: counter,
         receiptType: receiptType,
+        whenCreated: whenCreated,
+        invoiceNumber: invoiceNumber,
       );
     } catch (e) {
       rethrow;

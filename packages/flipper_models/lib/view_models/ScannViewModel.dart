@@ -149,24 +149,32 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
 
       // If the variant is found, update its quantity
       ProxyService.local.realm!.writeN(
-          tableName: variantTable,
-          writeCallback: () {
-            variant.qty = newQuantity;
-            variant.ebmSynced = false;
-            return variant;
-          });
+        tableName: variantTable,
+        writeCallback: () {
+          variant.qty = newQuantity;
+          variant.ebmSynced = false;
+          return variant;
+        },
+        onAdd: (data) {
+          ProxyService.synchronize.syncToFirestore(variantTable, data);
+        },
+      );
 
       Stock? stock = ProxyService.local.stockByVariantId(
           variantId: variant.id!, branchId: ProxyService.box.getBranchId()!);
       ProxyService.local.realm!.writeN(
-          tableName: stocksTable,
-          writeCallback: () {
-            stock!.rsdQty = newQuantity;
-            stock.initialStock = newQuantity;
-            stock.ebmSynced = false;
-            stock.currentStock = newQuantity;
-            return stock;
-          });
+        tableName: stocksTable,
+        writeCallback: () {
+          stock!.rsdQty = newQuantity;
+          stock.initialStock = newQuantity;
+          stock.ebmSynced = false;
+          stock.currentStock = newQuantity;
+          return stock;
+        },
+        onAdd: (data) {
+          ProxyService.synchronize.syncToFirestore(stocksTable, data);
+        },
+      );
       notifyListeners();
     } catch (e) {
       // Handle the exception if the variant is not found

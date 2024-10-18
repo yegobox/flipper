@@ -106,27 +106,42 @@ class _RefundState extends State<Refund> {
                             talker.info(
                                 "Refund Stock to refund ${stock.toEJson()}");
                             ProxyService.local.realm!.writeN(
-                                tableName: stocksTable,
-                                writeCallback: () {
-                                  stock.ebmSynced = false;
-                                  stock.currentStock =
-                                      stock.currentStock + item.qty;
-                                  return stock;
-                                });
+                              tableName: stocksTable,
+                              writeCallback: () {
+                                stock.ebmSynced = false;
+                                stock.currentStock =
+                                    stock.currentStock + item.qty;
+                                return stock;
+                              },
+                              onAdd: (data) {
+                                ProxyService.synchronize
+                                    .syncToFirestore(stocksTable, data);
+                              },
+                            );
 
                             ProxyService.local.realm!.writeN(
-                                tableName: variantTable,
-                                writeCallback: () {
-                                  variant.ebmSynced = false;
-                                  return variant;
-                                });
+                              tableName: variantTable,
+                              writeCallback: () {
+                                variant.ebmSynced = false;
+                                return variant;
+                              },
+                              onAdd: (data) {
+                                ProxyService.synchronize
+                                    .syncToFirestore(variantTable, data);
+                              },
+                            );
 
                             ProxyService.local.realm!.writeN(
-                                tableName: transactionTable,
-                                writeCallback: () {
-                                  widget.transaction!.isRefunded = true;
-                                  return widget.transaction;
-                                });
+                              tableName: transactionTable,
+                              writeCallback: () {
+                                widget.transaction!.isRefunded = true;
+                                return widget.transaction;
+                              },
+                              onAdd: (data) {
+                                ProxyService.synchronize
+                                    .syncToFirestore(transactionTable, data);
+                              },
+                            );
                           }
                         }
                       }

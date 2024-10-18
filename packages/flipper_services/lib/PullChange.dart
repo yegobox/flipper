@@ -112,7 +112,7 @@ class PullChange {
   }
 
   void watchStocks(Realm localRealm) {
-    ProxyService.syncFirestore.watchTable<Stock>(
+    ProxyService.synchronize.watchTable<Stock>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'stocks',
       idField: 'stock_id',
@@ -181,7 +181,7 @@ class PullChange {
   }
 
   Future<void> watchCounters(Realm localRealm) {
-    return ProxyService.syncFirestore.watchTable<Counter>(
+    return ProxyService.synchronize.watchTable<Counter>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'counters',
       idField: 'counter_id',
@@ -245,7 +245,7 @@ class PullChange {
   }
 
   Future<void> watchComposites(Realm localRealm) {
-    return ProxyService.syncFirestore.watchTable<Composite>(
+    return ProxyService.synchronize.watchTable<Composite>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'composites',
       idField: 'composite_id',
@@ -308,7 +308,7 @@ class PullChange {
   }
 
   Future<void> watchSkus(Realm localRealm) {
-    return ProxyService.syncFirestore.watchTable<SKU>(
+    return ProxyService.synchronize.watchTable<SKU>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'skus',
       idField: 'sku_id',
@@ -351,7 +351,7 @@ class PullChange {
   }
 
   Future<void> watchAccesses(Realm localRealm) {
-    return ProxyService.syncFirestore.watchTable<Access>(
+    return ProxyService.synchronize.watchTable<Access>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'accesses',
       idField: 'access_id',
@@ -411,7 +411,7 @@ class PullChange {
   }
 
   Future<void> watchPlans(Realm localRealm) {
-    return ProxyService.syncFirestore.watchTable<PaymentPlan>(
+    return ProxyService.synchronize.watchTable<PaymentPlan>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'payment_plans',
       idField: 'payment_plan_id',
@@ -491,7 +491,7 @@ class PullChange {
   }
 
   Future<void> watchCompaigns(Realm localRealm) {
-    return ProxyService.syncFirestore.watchTable<FlipperSaleCompaign>(
+    return ProxyService.synchronize.watchTable<FlipperSaleCompaign>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'flipper_sale_compaigns',
       idField: 'flipper_sale_compaign_id',
@@ -536,7 +536,7 @@ class PullChange {
   }
 
   Future<void> watchPaymentRecords(Realm localRealm) {
-    return ProxyService.syncFirestore.watchTable<TransactionPaymentRecord>(
+    return ProxyService.synchronize.watchTable<TransactionPaymentRecord>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'transaction_payment_records',
       idField: 'transaction_payment_record_id',
@@ -583,7 +583,7 @@ class PullChange {
   }
 
   Future<void> watchAssets(Realm localRealm) {
-    return ProxyService.syncFirestore.watchTable<Assets>(
+    return ProxyService.synchronize.watchTable<Assets>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'assets',
       idField: 'asset_id',
@@ -615,7 +615,7 @@ class PullChange {
   }
 
   Future<void> watchSettings(Realm localRealm) {
-    return ProxyService.syncFirestore.watchTable<Setting>(
+    return ProxyService.synchronize.watchTable<Setting>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'settings',
       idField: 'setting_id',
@@ -703,7 +703,7 @@ class PullChange {
   }
 
   Future<void> watchTransactions(Realm localRealm) {
-    return ProxyService.syncFirestore.watchTable<ITransaction>(
+    return ProxyService.synchronize.watchTable<ITransaction>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: transactionTable,
       idField: "transaction_id",
@@ -808,7 +808,7 @@ class PullChange {
   }
 
   Future<void> watchVariants(Realm localRealm) {
-    return ProxyService.syncFirestore.watchTable<Variant>(
+    return ProxyService.synchronize.watchTable<Variant>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'variants',
       idField: 'variant_id',
@@ -971,7 +971,7 @@ class PullChange {
   }
 
   void watchProducts(Realm localRealm) {
-    ProxyService.syncFirestore.watchTable<Product>(
+    ProxyService.synchronize.watchTable<Product>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: productsTable,
       idField: 'product_id',
@@ -1182,7 +1182,7 @@ class PullChange {
   }
 
   void watchPin(Realm localRealm) {
-    ProxyService.syncFirestore.watchTable<Pin>(
+    ProxyService.synchronize.watchTable<Pin>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: pinsTable,
       idField: pinsTable.singularize() + "_id",
@@ -1212,7 +1212,7 @@ class PullChange {
   }
 
   void watchConfiguration(Realm localRealm) {
-    ProxyService.syncFirestore.watchTable<Configurations>(
+    ProxyService.synchronize.watchTable<Configurations>(
       syncProvider: SyncProvider.FIRESTORE,
       tableName: configurationsTable,
       idField: "configuration_id",

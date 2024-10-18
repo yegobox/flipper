@@ -76,14 +76,12 @@ final RealmViaHttp _realmHttp = getIt<RealmViaHttp>();
 
 final RealmApiInterface _localRealm = getIt<RealmApiInterface>();
 final SyncInterface _synchronize = getIt<SyncInterface>();
-final SyncInterface _syncFirestore = getIt<SyncInterface>();
 final SupabaseInterface _supa = getIt<SupabaseInterface>();
 final Crash _crash = getIt<Crash>();
 
 abstract class ProxyService {
   static Crash get crash => _crash;
   static SupabaseInterface get supa => _supa;
-  static SyncInterface get syncFirestore => _syncFirestore;
   static RealmApiInterface get local => _localRealm;
   static SyncInterface get synchronize => _synchronize;
 

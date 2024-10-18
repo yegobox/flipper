@@ -396,6 +396,7 @@ ItemList _$ItemListFromJson(Map<String, dynamic> json) => ItemList(
       taxblAmt: (json['taxblAmt'] as num).toDouble(),
       taxAmt: (json['taxAmt'] as num).toDouble(),
       totAmt: (json['totAmt'] as num).toDouble(),
+      retailPrice: (json['retailPrice'] as num?)?.toDouble(),
     );
 
 const _$ItemListFieldMap = <String, String>{
@@ -416,6 +417,7 @@ const _$ItemListFieldMap = <String, String>{
   'taxblAmt': 'taxblAmt',
   'taxAmt': 'taxAmt',
   'totAmt': 'totAmt',
+  'retailPrice': 'retailPrice',
 };
 
 // ignore: unused_element
@@ -454,6 +456,8 @@ abstract class _$ItemListPerFieldToJson {
   static Object? taxAmt(double instance) => instance;
   // ignore: unused_element
   static Object? totAmt(double instance) => instance;
+  // ignore: unused_element
+  static Object? retailPrice(double? instance) => instance;
 }
 
 Map<String, dynamic> _$ItemListToJson(ItemList instance) => <String, dynamic>{
@@ -474,4 +478,5 @@ Map<String, dynamic> _$ItemListToJson(ItemList instance) => <String, dynamic>{
       'taxblAmt': instance.taxblAmt,
       'taxAmt': instance.taxAmt,
       'totAmt': instance.totAmt,
+      'retailPrice': instance.retailPrice,
     };

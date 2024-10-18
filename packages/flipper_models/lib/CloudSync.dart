@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/realmInterface.dart';
@@ -21,6 +22,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 enum SyncProvider { FIRESTORE, POWERSYNC }
 
 abstract class SyncInterface {
+  void syncToFirestore<T>(String tableName, T data);
   Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch);
   Future<bool> firebaseLogin({String? token});
   void cancelWatch({required String tableName});
@@ -86,6 +88,40 @@ class CloudSync implements SyncInterface {
   final FirebaseFirestore? _firestore;
   final RealmApiInterface _realm;
   final Set<int> _processingIds = {};
+
+  @override
+  void syncToFirestore<T>(String tableName, T data) {
+    try {
+      final map = data is Stock
+          ? data.toEJson(includeVariant: false)!.toFlipperJson()
+          : data.toEJson().toFlipperJson();
+
+      final id = map['id'] == null ? map['id'] = randomNumber() : map['id'];
+
+      /// if the following fields variant,stock,branch_ids exist in the map remove them
+      if (map.containsKey('variant')) {
+        map.remove('variant');
+      }
+      if (map.containsKey('stock')) {
+        map.remove('stock');
+      }
+      if (map.containsKey('branch_ids')) {
+        map.remove('branch_ids');
+      }
+      ProxyService.synchronize.updateRecord(
+        tableName: tableName,
+        idField: tableName.singularize() + "_id",
+        map: map,
+        id: id,
+        syncProvider: SyncProvider.FIRESTORE,
+      );
+
+      ///
+    } catch (e) {
+      print(e);
+      rethrow;
+    }
+  }
 
   CloudSync(this._firestore, this._realm, {SupabaseClient? client});
   @override
@@ -268,21 +304,25 @@ class CloudSync implements SyncInterface {
     await _firestore!.collection(tableName).doc(id.toString()).delete();
 
     _realm.realm!.writeN(
-        tableName: deletedObjectTable,
-        writeCallback: () {
-          DeletedObject? obj =
-              _realm.realm!.query<DeletedObject>(r'id == $0', [id]).firstOrNull;
-          if (obj != null) {
-            final deletedObject = DeletedObject(
-              ObjectId(),
-              objectName: tableName,
-              id: id,
-              deviceCount: 1,
-              expectedDeviceCount: 1,
-            );
-            return deletedObject;
-          }
-        });
+      tableName: deletedObjectTable,
+      writeCallback: () {
+        DeletedObject? obj =
+            _realm.realm!.query<DeletedObject>(r'id == $0', [id]).firstOrNull;
+        if (obj != null) {
+          final deletedObject = DeletedObject(
+            ObjectId(),
+            objectName: tableName,
+            id: id,
+            deviceCount: 1,
+            expectedDeviceCount: 1,
+          );
+          return deletedObject;
+        }
+      },
+      onAdd: (data) {
+        ProxyService.synchronize.syncToFirestore(deletedObjectTable, data);
+      },
+    );
   }
 
   @override
@@ -319,35 +359,35 @@ class CloudSync implements SyncInterface {
         /// windows firestore is not stable yet, this will fail when there is no network connection
         /// so we have a separate isolate that will keep trying syncing data
 
-        // await ProxyService.supa.init();
-        // try {
-        //   // Attempt to call the RPC function
-        //   final rpcResult =
-        //       await ProxyService.supa.client?.rpc('insert_key', params: {
-        //     'current_secret_key': AppSecrets.insertKey,
-        //   });
+        await ProxyService.supa.init();
+        try {
+          // Attempt to call the RPC function
+          final rpcResult =
+              await ProxyService.supa.client?.rpc('insert_key', params: {
+            'current_secret_key': AppSecrets.insertKey,
+          });
 
-        //   // If RPC call is successful, proceed with the insert operation
-        //   if (rpcResult != null) {
-        //     final response =
-        //         await ProxyService.supa.client?.from(dataMapperTable).upsert({
-        //       'table_name': tableName,
-        //       'object_id': id,
-        //       'device_identifier':
-        //           await ProxyService.local.getPlatformDeviceId(),
+          // If RPC call is successful, proceed with the insert operation
+          if (rpcResult != null) {
+            final response =
+                await ProxyService.supa.client?.from(dataMapperTable).upsert({
+              'table_name': tableName,
+              'object_id': id,
+              'device_identifier':
+                  await ProxyService.local.getPlatformDeviceId(),
 
-        //       /// Tobe done incorporate it into payment wall the device expected to download the object.
-        //       'sync_devices': 0,
+              /// Tobe done incorporate it into payment wall the device expected to download the object.
+              'sync_devices': 0,
 
-        //       /// this exclude the device that is writing the object setting it to 1
-        //       'device_downloaded_object': 1
-        //     }).select();
-        //     talker.warning(response);
-        //   }
-        // } catch (e) {
-        //   talker.error('Error occurred: $e');
-        //   // Handle the error appropriately (e.g., show an error message to the user)
-        // }
+              /// this exclude the device that is writing the object setting it to 1
+              'device_downloaded_object': 1
+            }).select();
+            talker.warning(response);
+          }
+        } catch (e) {
+          talker.error('Error occurred: $e');
+          // Handle the error appropriately (e.g., show an error message to the user)
+        }
       } catch (e, s) {
         talker.warning(e);
         talker.error(s);

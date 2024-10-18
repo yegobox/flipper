@@ -189,9 +189,12 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
 
         /// add the product to the Realm
         ProxyService.local.realm!.writeN(
-            tableName: productsTable,
-            writeCallback: () =>
-                ProxyService.local.realm!.add<Product>(product));
+          tableName: productsTable,
+          writeCallback: () => ProxyService.local.realm!.add<Product>(product),
+          onAdd: (data) {
+            ProxyService.synchronize.syncToFirestore(productsTable, data);
+          },
+        );
 
         /// create variant for the product
         Variant variant = Variant(
@@ -242,9 +245,12 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
 
         /// add the variant to the Realm
         ProxyService.local.realm!.writeN(
-            tableName: variantTable,
-            writeCallback: () =>
-                ProxyService.local.realm!.add<Variant>(variant));
+          tableName: variantTable,
+          writeCallback: () => ProxyService.local.realm!.add<Variant>(variant),
+          onAdd: (data) {
+            ProxyService.synchronize.syncToFirestore(variantTable, data);
+          },
+        );
 
         /// create stock for the variant
         Stock stock = Stock(
@@ -268,16 +274,24 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
         );
         // update variant with stock
         ProxyService.local.realm!.writeN(
-            tableName: variantTable,
-            writeCallback: () {
-              variant.stock = stock;
-              return variant;
-            });
+          tableName: variantTable,
+          writeCallback: () {
+            variant.stock = stock;
+            return variant;
+          },
+          onAdd: (data) {
+            ProxyService.synchronize.syncToFirestore(variantTable, data);
+          },
+        );
 
         /// add the stock to the Realm
         ProxyService.local.realm!.writeN(
-            tableName: stocksTable,
-            writeCallback: () => ProxyService.local.realm!.add<Stock>(stock));
+          tableName: stocksTable,
+          writeCallback: () => ProxyService.local.realm!.add<Stock>(stock),
+          onAdd: (data) {
+            ProxyService.synchronize.syncToFirestore(stocksTable, data);
+          },
+        );
       } catch (e) {
         talker.error(e);
       }

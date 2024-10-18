@@ -1,33 +1,27 @@
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
-import 'package:flipper_models/CloudSync.dart';
 
 extension RealmExtension on Realm {
-  T writeN<T>(
-      {required String tableName, required T Function() writeCallback}) {
+  T writeN<T>({
+    required String tableName,
+    required T Function() writeCallback,
+    required Function(T) onAdd,
+  }) {
     assert(!_isFuture<T>(), 'writeCallback must be synchronous');
     final transaction = beginWrite();
     talker.warning("Transaction Started");
     try {
       T result = writeCallback();
 
-      /// intentionally put  transaction.commit() at line 21 instead of line 29 because on windows peforming firestore write take forever.
       transaction.commit();
-      if (result is Iterable) {
-        for (var item in result) {
-          _syncToFirestore(tableName, item);
-        }
-      } else if (result != null) {
-        _syncToFirestore(tableName, result);
-      }
+      onAdd(result);
 
       return result;
     } catch (e, s) {
@@ -53,7 +47,7 @@ extension RealmExtension on Realm {
   }) {
     write(() {
       add<T>(object, update: true);
-      _syncToFirestore(tableName, object);
+      // _syncToFirestore(tableName, object);
       _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
       if (onAdd != null) {
         onAdd(object);
@@ -67,44 +61,11 @@ extension RealmExtension on Realm {
         : data.toEJson().toFlipperJson();
     final id = map['id'];
     map['deleted_at'] = DateTime.now().toIso8601String();
-    ProxyService.syncFirestore.deleteRecord(
+    ProxyService.synchronize.deleteRecord(
       tableName: tableName,
       idField: tableName.singularize() + "_id",
       id: id,
     );
-  }
-
-  void _syncToFirestore<T>(String tableName, T data) {
-    try {
-      final map = data is Stock
-          ? data.toEJson(includeVariant: false)!.toFlipperJson()
-          : data.toEJson().toFlipperJson();
-
-      final id = map['id'] == null ? map['id'] = randomNumber() : map['id'];
-
-      /// if the following fields variant,stock,branch_ids exist in the map remove them
-      if (map.containsKey('variant')) {
-        map.remove('variant');
-      }
-      if (map.containsKey('stock')) {
-        map.remove('stock');
-      }
-      if (map.containsKey('branch_ids')) {
-        map.remove('branch_ids');
-      }
-      ProxyService.syncFirestore.updateRecord(
-        tableName: tableName,
-        idField: tableName.singularize() + "_id",
-        map: map,
-        id: id,
-        syncProvider: SyncProvider.FIRESTORE,
-      );
-
-      ///
-    } catch (e) {
-      print(e);
-      rethrow;
-    }
   }
 
   bool _isSubtype<S, T>() => <S>[] is List<T>;

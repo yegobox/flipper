@@ -413,6 +413,8 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
       {required RwApiResponse signature,
       required ITransaction transaction,
       required String qrCode,
+      required int invoiceNumber,
+      required DateTime whenCreated,
       required String receiptType,
       required Counter counter}) {
     // TODO: implement createReceipt

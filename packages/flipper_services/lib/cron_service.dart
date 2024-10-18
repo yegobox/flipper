@@ -96,11 +96,16 @@ class CronService {
                     ProxyService.local.variant(variantId: variantId);
                 if (variant != null) {
                   ProxyService.local.realm!.writeN(
-                      tableName: variantTable,
-                      writeCallback: () {
-                        variant.ebmSynced = true;
-                        return variant;
-                      });
+                    tableName: variantTable,
+                    writeCallback: () {
+                      variant.ebmSynced = true;
+                      return variant;
+                    },
+                    onAdd: (data) {
+                      ProxyService.synchronize
+                          .syncToFirestore(variantTable, data);
+                    },
+                  );
                 }
                 ProxyService.notification
                     .sendLocalNotification(body: "Item Saving " + separator[1]);
@@ -110,11 +115,16 @@ class CronService {
                 Stock? stock = ProxyService.local.getStockById(id: stockId!);
                 if (stock != null) {
                   ProxyService.local.realm!.writeN(
-                      tableName: stocksTable,
-                      writeCallback: () {
-                        stock.ebmSynced = true;
-                        return stock;
-                      });
+                    tableName: stocksTable,
+                    writeCallback: () {
+                      stock.ebmSynced = true;
+                      return stock;
+                    },
+                    onAdd: (data) {
+                      ProxyService.synchronize
+                          .syncToFirestore(stocksTable, data);
+                    },
+                  );
                 }
                 ProxyService.notification.sendLocalNotification(
                     body: "Stock Saving " + separator[1]);
@@ -125,11 +135,16 @@ class CronService {
                     ProxyService.local.getCustomer(id: customerId);
                 if (customer != null) {
                   ProxyService.local.realm!.writeN(
-                      tableName: customersTable,
-                      writeCallback: () {
-                        customer.ebmSynced = true;
-                        return customer;
-                      });
+                    tableName: customersTable,
+                    writeCallback: () {
+                      customer.ebmSynced = true;
+                      return customer;
+                    },
+                    onAdd: (data) {
+                      ProxyService.synchronize
+                          .syncToFirestore(customersTable, data);
+                    },
+                  );
                 }
                 ProxyService.notification.sendLocalNotification(
                     body: "Customer Saving " + separator[1]);
@@ -140,11 +155,16 @@ class CronService {
                     ProxyService.local.getTransactionById(id: transactionId!);
                 if (transaction != null) {
                   ProxyService.local.realm!.writeN(
-                      tableName: transactionTable,
-                      writeCallback: () {
-                        transaction.ebmSynced = true;
-                        return transaction;
-                      });
+                    tableName: transactionTable,
+                    writeCallback: () {
+                      transaction.ebmSynced = true;
+                      return transaction;
+                    },
+                    onAdd: (data) {
+                      ProxyService.synchronize
+                          .syncToFirestore(transactionTable, data);
+                    },
+                  );
                 }
                 ProxyService.notification.sendLocalNotification(
                     body: "Transaction Saving " + separator[1]);
@@ -186,7 +206,7 @@ class CronService {
 
     if (results.any((result) => result != ConnectivityResult.none)) {
       if (FirebaseAuth.instance.currentUser == null) {
-        await ProxyService.syncFirestore.firebaseLogin();
+        await ProxyService.synchronize.firebaseLogin();
       }
       if (!doneInitializingDataPull) {
         PullChange().start(
@@ -204,7 +224,7 @@ class CronService {
         List<Product> products =
             ProxyService.local.realm!.all<Product>().toList();
         for (Product product in products) {
-          ProxyService.syncFirestore.updateRecord(
+          ProxyService.synchronize.updateRecord(
               tableName: productsTable,
               idField: "${productsTable.singularize()}_id",
               map: product.toEJson().toFlipperJson(),
@@ -213,7 +233,7 @@ class CronService {
         }
         List<Assets> assets = ProxyService.local.realm!.all<Assets>().toList();
         for (Assets asset in assets) {
-          ProxyService.syncFirestore.updateRecord(
+          ProxyService.synchronize.updateRecord(
               tableName: assetsTable,
               idField: "${assetsTable.singularize()}_id",
               map: asset.toEJson().toFlipperJson(),
@@ -224,7 +244,7 @@ class CronService {
         List<Variant> variants =
             ProxyService.local.realm!.all<Variant>().toList();
         for (Variant variant in variants) {
-          ProxyService.syncFirestore.updateRecord(
+          ProxyService.synchronize.updateRecord(
               tableName: variantTable,
               idField: "${variantTable.singularize()}_id",
               map: variant.toEJson().toFlipperJson(),
@@ -234,7 +254,7 @@ class CronService {
 
         List<Stock> stocks = ProxyService.local.realm!.all<Stock>().toList();
         for (Stock stock in stocks) {
-          ProxyService.syncFirestore.updateRecord(
+          ProxyService.synchronize.updateRecord(
               tableName: stocksTable,
               idField: "${stocksTable.singularize()}_id",
               map: stock.toEJson(includeVariant: true).toFlipperJson(),
@@ -245,7 +265,7 @@ class CronService {
         List<TransactionItem> items =
             ProxyService.local.realm!.all<TransactionItem>().toList();
         for (TransactionItem item in items) {
-          ProxyService.syncFirestore.updateRecord(
+          ProxyService.synchronize.updateRecord(
               tableName: transactionItemsTable,
               idField: "${transactionItemsTable.singularize()}_id",
               map: item.toEJson().toFlipperJson(),
@@ -256,7 +276,7 @@ class CronService {
         List<Access> accesses =
             ProxyService.local.realm!.all<Access>().toList();
         for (Access access in accesses) {
-          ProxyService.syncFirestore.updateRecord(
+          ProxyService.synchronize.updateRecord(
               tableName: accessesTable,
               idField: "${accessesTable.singularize()}_id",
               map: access.toEJson().toFlipperJson(),
@@ -266,7 +286,7 @@ class CronService {
         List<StockRequest> requests =
             ProxyService.local.realm!.all<StockRequest>().toList();
         for (StockRequest request in requests) {
-          ProxyService.syncFirestore.updateRecord(
+          ProxyService.synchronize.updateRecord(
               tableName: stockRequestsTable,
               idField: "${stockRequestsTable.singularize()}_id",
               map: request.toEJson().toFlipperJson(),

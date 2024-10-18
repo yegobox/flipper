@@ -3172,6 +3172,8 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
     int? transactionId,
     DateTime? lastTouched,
     int? invcNo,
+    DateTime? whenCreated,
+    int? invoiceNumber,
   }) {
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
@@ -3191,6 +3193,8 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'transactionId', transactionId);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'invcNo', invcNo);
+    RealmObjectBase.set(this, 'whenCreated', whenCreated);
+    RealmObjectBase.set(this, 'invoiceNumber', invoiceNumber);
   }
 
   Receipt._();
@@ -3300,6 +3304,20 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
   set invcNo(int? value) => RealmObjectBase.set(this, 'invcNo', value);
 
   @override
+  DateTime? get whenCreated =>
+      RealmObjectBase.get<DateTime>(this, 'whenCreated') as DateTime?;
+  @override
+  set whenCreated(DateTime? value) =>
+      RealmObjectBase.set(this, 'whenCreated', value);
+
+  @override
+  int? get invoiceNumber =>
+      RealmObjectBase.get<int>(this, 'invoiceNumber') as int?;
+  @override
+  set invoiceNumber(int? value) =>
+      RealmObjectBase.set(this, 'invoiceNumber', value);
+
+  @override
   Stream<RealmObjectChanges<Receipt>> get changes =>
       RealmObjectBase.getChanges<Receipt>(this);
 
@@ -3330,6 +3348,8 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
       'transactionId': transactionId.toEJson(),
       'lastTouched': lastTouched.toEJson(),
       'invcNo': invcNo.toEJson(),
+      'whenCreated': whenCreated.toEJson(),
+      'invoiceNumber': invoiceNumber.toEJson(),
     };
   }
 
@@ -3359,6 +3379,8 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
           transactionId: fromEJson(ejson['transactionId']),
           lastTouched: fromEJson(ejson['lastTouched']),
           invcNo: fromEJson(ejson['invcNo']),
+          whenCreated: fromEJson(ejson['whenCreated']),
+          invoiceNumber: fromEJson(ejson['invoiceNumber']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -3389,6 +3411,9 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
       SchemaProperty('invcNo', RealmPropertyType.int, optional: true),
+      SchemaProperty('whenCreated', RealmPropertyType.timestamp,
+          optional: true),
+      SchemaProperty('invoiceNumber', RealmPropertyType.int, optional: true),
     ]);
   }();
 
@@ -5630,6 +5655,9 @@ class ITransaction extends _ITransaction
     String? remark,
     String? customerBhfId,
     String? sarTyCd,
+    int? receiptNumber,
+    int? totalReceiptNumber,
+    int? invoiceNumber,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<ITransaction>({
@@ -5673,6 +5701,9 @@ class ITransaction extends _ITransaction
     RealmObjectBase.set(this, 'remark', remark);
     RealmObjectBase.set(this, 'customerBhfId', customerBhfId);
     RealmObjectBase.set(this, 'sarTyCd', sarTyCd);
+    RealmObjectBase.set(this, 'receiptNumber', receiptNumber);
+    RealmObjectBase.set(this, 'totalReceiptNumber', totalReceiptNumber);
+    RealmObjectBase.set(this, 'invoiceNumber', invoiceNumber);
   }
 
   ITransaction._();
@@ -5867,6 +5898,27 @@ class ITransaction extends _ITransaction
   set sarTyCd(String? value) => RealmObjectBase.set(this, 'sarTyCd', value);
 
   @override
+  int? get receiptNumber =>
+      RealmObjectBase.get<int>(this, 'receiptNumber') as int?;
+  @override
+  set receiptNumber(int? value) =>
+      RealmObjectBase.set(this, 'receiptNumber', value);
+
+  @override
+  int? get totalReceiptNumber =>
+      RealmObjectBase.get<int>(this, 'totalReceiptNumber') as int?;
+  @override
+  set totalReceiptNumber(int? value) =>
+      RealmObjectBase.set(this, 'totalReceiptNumber', value);
+
+  @override
+  int? get invoiceNumber =>
+      RealmObjectBase.get<int>(this, 'invoiceNumber') as int?;
+  @override
+  set invoiceNumber(int? value) =>
+      RealmObjectBase.set(this, 'invoiceNumber', value);
+
+  @override
   Stream<RealmObjectChanges<ITransaction>> get changes =>
       RealmObjectBase.getChanges<ITransaction>(this);
 
@@ -5911,6 +5963,9 @@ class ITransaction extends _ITransaction
       'remark': remark.toEJson(),
       'customerBhfId': customerBhfId.toEJson(),
       'sarTyCd': sarTyCd.toEJson(),
+      'receiptNumber': receiptNumber.toEJson(),
+      'totalReceiptNumber': totalReceiptNumber.toEJson(),
+      'invoiceNumber': invoiceNumber.toEJson(),
     };
   }
 
@@ -5954,6 +6009,9 @@ class ITransaction extends _ITransaction
           remark: fromEJson(ejson['remark']),
           customerBhfId: fromEJson(ejson['customerBhfId']),
           sarTyCd: fromEJson(ejson['sarTyCd']),
+          receiptNumber: fromEJson(ejson['receiptNumber']),
+          totalReceiptNumber: fromEJson(ejson['totalReceiptNumber']),
+          invoiceNumber: fromEJson(ejson['invoiceNumber']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -6003,6 +6061,10 @@ class ITransaction extends _ITransaction
       SchemaProperty('remark', RealmPropertyType.string, optional: true),
       SchemaProperty('customerBhfId', RealmPropertyType.string, optional: true),
       SchemaProperty('sarTyCd', RealmPropertyType.string, optional: true),
+      SchemaProperty('receiptNumber', RealmPropertyType.int, optional: true),
+      SchemaProperty('totalReceiptNumber', RealmPropertyType.int,
+          optional: true),
+      SchemaProperty('invoiceNumber', RealmPropertyType.int, optional: true),
     ]);
   }();
 
