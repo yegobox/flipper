@@ -25,6 +25,11 @@ import 'dart:async';
 
 class IsolateHandler {
   static Realm? localRealm;
+  static Future<void> clearFirestoreCache() async {
+    try {
+      await FirebaseFirestore.instance.clearPersistence();
+    } catch (e) {}
+  }
 
   static Future<void> handler(List<dynamic> args) async {
     final SendPort sendPort = args[0];
@@ -65,13 +70,14 @@ class IsolateHandler {
           // });
 
           /// un comment this when https://github.com/flutter/flutter/issues/119207
-          // await PullChange().startAsync(
-          //   mbusinessId: businessId,
-          //   firestore: firestore,
-          //   localRealm: localRealm!,
-          //   mbranchId: branchId,
-          //   muserId: userId,
-          // );
+          await clearFirestoreCache();
+          await PullChange().startAsync(
+            mbusinessId: businessId,
+            firestore: firestore,
+            localRealm: localRealm!,
+            mbranchId: branchId,
+            muserId: userId,
+          );
         }
         if (message['task'] == 'taxService') {
           int branchId = message['branchId'];
