@@ -72,7 +72,6 @@ class PullChange {
           watchRequests(localRealm, firestore, branchIds: branchIds);
           watchCounters(localRealm, firestore, branchIds: branchIds);
         } else {
-          print("We are in pullChange");
           // Start all tables
           watchStocks(localRealm, firestore, branchIds: branchIds);
           watchRequests(localRealm, firestore, branchIds: branchIds);
@@ -287,9 +286,9 @@ class PullChange {
             .sendLocalNotification(body: "Received stock ${stock?.id}");
         if (stock != null) {
           localRealm.write(() {
-            stock.currentStock = data['initial_stock'].toDouble();
+            stock.currentStock = data['current_stock'].toDouble();
             stock.initialStock = data['initial_stock'].toDouble();
-            stock.rsdQty = data['initial_stock'].toDouble();
+            stock.rsdQty = data['current_stock'].toDouble();
             stock.lastTouched = data['last_touched'] == null
                 ? DateTime.now()
                 : DateTime.tryParse(data['last_touched']);
