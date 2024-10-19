@@ -65,14 +65,14 @@ class PullChange {
       if (tableName == null) {
         if (Platform.isWindows) {
           //   /// on windows registering many listener might be causing the issues.
-          // watchStocks(localRealm, firestore, branchIds: branchIds);
+          watchStocks(localRealm, firestore, branchIds: branchIds);
           watchProducts(localRealm, firestore, branchIds: branchIds);
           watchVariants(localRealm, firestore, branchIds: branchIds);
           watchRequests(localRealm, firestore, branchIds: branchIds);
           watchCounters(localRealm, firestore, branchIds: branchIds);
         } else {
           // Start all tables
-          // watchStocks(localRealm, firestore, branchIds: branchIds);
+          watchStocks(localRealm, firestore, branchIds: branchIds);
           watchRequests(localRealm, firestore, branchIds: branchIds);
 
           watchProducts(localRealm, firestore, branchIds: branchIds);
