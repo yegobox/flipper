@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:ui';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/isolateHandelr.dart';
@@ -13,8 +14,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/DownloadQueue.dart';
-import 'PullChange.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/CloudSync.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -44,10 +43,10 @@ class CronService {
         await ProxyService.synchronize.firebaseLogin();
       }
       if (!doneInitializingDataPull) {
-        PullChange().start(
-            firestore: FirebaseFirestore.instance,
-            localRealm: ProxyService.local.realm!);
-        doneInitializingDataPull = true;
+        // PullChange.start(
+        //     firestore: FirebaseFirestore.instance,
+        //     localRealm: ProxyService.local.realm!);
+        // doneInitializingDataPull = true;
       }
     }
 
@@ -164,6 +163,17 @@ class CronService {
           'task': 'sync',
           'branchId': ProxyService.box.getBranchId()!,
           "URI": ProxyService.box.getServerUrl(),
+          "businessId": ProxyService.box.getBusinessId()!,
+          'encryptionKey': ProxyService.box.encryptionKey(),
+          'dbPath': await ProxyService.local.dbPath(
+            path: 'local',
+            folder: ProxyService.box.getBusinessId(),
+          ),
+        });
+        sendPort!.send({
+          'task': 'taxService',
+          'branchId': ProxyService.box.getBranchId()!,
+          "URI": ProxyService.box.getServerUrl(),
           "bhfId": ProxyService.box.bhfId(),
           'tinNumber': business.tinNumber,
           'encryptionKey': ProxyService.box.encryptionKey(),
@@ -224,7 +234,14 @@ class CronService {
         receivePort = ReceivePort();
 
         // 2. Spawn the isolate and pass the receivePort.sendPort to it
-        await Isolate.spawn(isolateHandler, receivePort!.sendPort);
+        // await Isolate.spawn(isolateHandler, receivePort!.sendPort);
+        final rootIsolateToken = RootIsolateToken.instance!;
+
+        await Isolate.spawn(
+          isolateHandler,
+          [receivePort!.sendPort, rootIsolateToken],
+          debugName: 'backgroundIsolate',
+        );
 
         // 3. Retrieve the SendPort sent back by the isolate (used to send messages to the isolate)
         // sendPort = await receivePort!.first;

@@ -57,6 +57,7 @@ abstract class SyncInterface {
 
   Future<void> watchTable<T extends RealmObject>({
     required String tableName,
+    required List<int> branchIds,
     required String idField,
     bool useWatch = false,
     required T Function(Map<String, dynamic>) createRealmObject,
@@ -403,18 +404,14 @@ class CloudSync implements SyncInterface {
     required T Function(Map<String, dynamic>) createRealmObject,
     required void Function(T, Map<String, dynamic>) updateRealmObject,
     bool useWatch = false,
+    required List<int> branchIds,
     required SyncProvider syncProvider,
   }) async {
     if (syncProvider == SyncProvider.FIRESTORE) {
       try {
         if (_firestore == null) return;
-        List<int> branchIds = ProxyService.local
-            .branches(
-                businessId: ProxyService.box.getBusinessId()!,
-                includeSelf: true)
-            .map((branch) => branch.serverId!)
-            .toList();
-        talker.warning("QueryingOn: ${branchIds}");
+
+        print("QueryingOn: ${branchIds}");
         // Listen for Firestore collection changes
         final subscription = _firestore!
             .collection(tableName)
@@ -446,13 +443,13 @@ class CloudSync implements SyncInterface {
                       });
                     }
                   } else {
-                    talker.warning(
+                    print(
                         "Firestore changes updateRealmObject $tableName: ${id}");
                     updateRealmObject(realmObject, data);
                   }
                 } catch (e, s) {
-                  talker.warning("E: ${e}");
-                  talker.warning("S: ${s}");
+                  print("E: ${e}");
+                  print("S: ${s}");
                 }
 
                 break;
@@ -487,11 +484,11 @@ class CloudSync implements SyncInterface {
             }
           }
         }, onError: (error) {
-          talker.error("Error listening to Firestore changes: $error");
+          print("Error listening to Firestore changes: $error");
         });
         _subscriptions[tableName] = subscription;
       } catch (e) {
-        talker.error("Error setting up Firestore listener: $e");
+        print("Error setting up Firestore listener: $e");
         throw Exception("Error syncing: $e");
       }
     }

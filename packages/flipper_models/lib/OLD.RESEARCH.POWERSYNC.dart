@@ -18,9 +18,9 @@
   //         sendPort.send(1);
   //       }
   //     });
-  //     await Firebase.initializeApp(
-  //       options: DefaultFirebaseOptions.currentPlatform,
-  //     );
+      // await Firebase.initializeApp(
+      //   options: DefaultFirebaseOptions.currentPlatform,
+      // );
   //     completer.complete();
 
   //     /// re-init firestore
