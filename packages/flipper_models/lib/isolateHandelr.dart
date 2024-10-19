@@ -65,13 +65,13 @@ class IsolateHandler {
           // });
 
           /// un comment this when https://github.com/flutter/flutter/issues/119207
-          // PullChange().startAsync(
-          //   mbusinessId: businessId,
-          //   firestore: firestore,
-          //   localRealm: localRealm!,
-          //   mbranchId: branchId,
-          //   muserId: userId,
-          // );
+          await PullChange().startAsync(
+            mbusinessId: businessId,
+            firestore: firestore,
+            localRealm: localRealm!,
+            mbranchId: branchId,
+            muserId: userId,
+          );
         }
         if (message['task'] == 'taxService') {
           int branchId = message['branchId'];

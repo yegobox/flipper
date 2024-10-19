@@ -186,6 +186,7 @@ class CloudSync implements SyncInterface {
         final querySnapshot = await _firestore!
             .collection(tableName)
             .where('branch_id', whereIn: branchIds)
+            .limit(10)
             .get();
 
         for (var docChange in querySnapshot.docs) {

@@ -18,14 +18,14 @@ class PullChange {
   int? businessId;
   int? userId;
 
-  void startAsync({
+  Future<void> startAsync({
     required FirebaseFirestore firestore,
     required Realm localRealm,
     required int mbusinessId,
     required int mbranchId,
     required int muserId,
     String? tableName,
-  }) {
+  })async {
     cloudSync = CloudSync(firestore, realm: localRealm);
     branchId = mbranchId;
     businessId = mbusinessId;
@@ -38,7 +38,7 @@ class PullChange {
         .toList()
         .map((branch) => branch.serverId!)
         .toList();
-    watchStocksAsync(localRealm, firestore, branchIds: branchIds);
+   await  watchStocksAsync(localRealm, firestore, branchIds: branchIds);
   }
 
   void start({
@@ -153,9 +153,9 @@ class PullChange {
     }
   }
 
-  void watchStocksAsync(Realm localRealm, FirebaseFirestore firestore,
-      {required List<int> branchIds}) {
-    cloudSync!.watchTableAsync<Stock>(
+  Future<void> watchStocksAsync(Realm localRealm, FirebaseFirestore firestore,
+      {required List<int> branchIds})async {
+    await cloudSync!.watchTableAsync<Stock>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'stocks',
