@@ -10,6 +10,7 @@ import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/helperModels/UniversalProduct.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
@@ -61,23 +62,23 @@ class IsolateHandler {
           }
 
           /// query products from firestore
-          // firestore.collection(stocksTable).get().then((value) {
-          //   for (var doc in value.docs) {
-          //     // final stock = doc.data();
-          //     // print(stock);
-          //     // final stock = Stock.fromJson(stock);
-          //   }
-          // });
+          firestore.collection(stocksTable).limit(1).get().then((value) {
+            for (var doc in value.docs) {
+              // final stock = doc.data();
+              sendPort.send("notification:${doc.data()['stock_id']}");
+              // final stock = Stock.fromJson(stock);
+            }
+          });
 
           /// un comment this when https://github.com/flutter/flutter/issues/119207
-          await clearFirestoreCache();
-          await PullChange().startAsync(
-            mbusinessId: businessId,
-            firestore: firestore,
-            localRealm: localRealm!,
-            mbranchId: branchId,
-            muserId: userId,
-          );
+          // await clearFirestoreCache();
+          // await PullChange().startAsync(
+          //   mbusinessId: businessId,
+          //   firestore: firestore,
+          //   localRealm: localRealm!,
+          //   mbranchId: branchId,
+          //   muserId: userId,
+          // );
         }
         if (message['task'] == 'taxService') {
           int branchId = message['branchId'];
