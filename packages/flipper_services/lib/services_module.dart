@@ -41,7 +41,6 @@ import 'package:flipper_services/sharing_service.dart';
 import 'package:flipper_services/status.dart';
 import 'package:flipper_services/system_time_service.dart';
 import 'package:injectable/injectable.dart';
-import 'package:realm/realm.dart';
 import 'WindowLocationService.dart';
 import 'WindowsBlueToothPrinterService.dart';
 import 'abstractions/dynamic_link.dart';
@@ -88,11 +87,8 @@ abstract class ServicesModule {
   FirebaseFirestore get firestore => FirebaseFirestore.instance;
 
   @LazySingleton()
-  SyncInterface provideSyncInterface(
-    FirebaseFirestore firestore,
-    Realm realm,
-  ) {
-    return CloudSync(firestore, realm);
+  SyncInterface provideSyncInterface(FirebaseFirestore firestore) {
+    return CloudSync(firestore);
   }
 
   @preResolve

@@ -26,7 +26,7 @@ class PullChange {
     required int muserId,
     String? tableName,
   }) {
-    cloudSync = CloudSync(firestore, localRealm);
+    cloudSync = CloudSync(firestore, realm: localRealm);
     branchId = mbranchId;
     businessId = mbusinessId;
     userId = muserId;
@@ -49,7 +49,7 @@ class PullChange {
     required int muserId,
     String? tableName,
   }) async {
-    cloudSync = CloudSync(firestore, localRealm);
+    cloudSync = CloudSync(firestore, realm: localRealm);
     branchId = mbranchId;
     businessId = mbusinessId;
     userId = muserId;

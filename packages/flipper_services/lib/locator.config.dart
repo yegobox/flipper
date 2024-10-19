@@ -20,7 +20,6 @@ import 'package:flipper_models/view_models/NotificationStream.dart' as _i457;
 import 'package:flipper_models/whatsapp.dart' as _i632;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
-import 'package:realm/realm.dart' as _i966;
 
 import 'abstractions/analytic.dart' as _i271;
 import 'abstractions/dynamic_link.dart' as _i0;
@@ -108,11 +107,8 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i798.ForceDataEntryService>(
         () => servicesModule.forcedataEntry());
     gh.lazySingleton<_i36.BillingService>(() => servicesModule.billing());
-    gh.lazySingleton<_i562.SyncInterface>(
-        () => servicesModule.provideSyncInterface(
-              gh<_i974.FirebaseFirestore>(),
-              gh<_i966.Realm>(),
-            ));
+    gh.lazySingleton<_i562.SyncInterface>(() =>
+        servicesModule.provideSyncInterface(gh<_i974.FirebaseFirestore>()));
     await gh.lazySingletonAsync<_i756.RealmApiInterface>(
       () => servicesModule.localRealm(gh<_i740.LocalStorage>()),
       preResolve: true,

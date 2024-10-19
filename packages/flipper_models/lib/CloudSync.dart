@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'dart:isolate';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/random.dart';
@@ -87,8 +87,12 @@ abstract class SyncInterface {
 class CloudSync implements SyncInterface {
   final Map<String, StreamSubscription<QuerySnapshot>> _subscriptions = {};
   final FirebaseFirestore? _firestore;
-  final Realm _realm;
+  Realm? realm;
   final Set<int> _processingIds = {};
+
+  bool isInIsolate() {
+    return Isolate.current.debugName != null;
+  }
 
   @override
   void syncToFirestore<T>(String tableName, T data) {
@@ -124,7 +128,7 @@ class CloudSync implements SyncInterface {
     }
   }
 
-  CloudSync(this._firestore, this._realm, {SupabaseClient? client});
+  CloudSync(this._firestore, {this.realm, SupabaseClient? client});
   @override
   Future<void> deleteDuplicate({required String tableName}) async {
     try {
@@ -172,6 +176,10 @@ class CloudSync implements SyncInterface {
     required SyncProvider syncProvider,
     required List<int> branchIds,
   }) async {
+    /// if it is not isolate re-init the Realm
+    if (!isInIsolate()) {
+      realm = ProxyService.local.realm!;
+    }
     if (syncProvider == SyncProvider.FIRESTORE) {
       try {
         // Get Firestore collection changes without listening
@@ -186,12 +194,12 @@ class CloudSync implements SyncInterface {
 
           // Process the document based on the change type
           // Assuming all changes are either added or modified for this example
-          _realm.refresh();
-          var realmObject = _realm.query<T>(r'id == $0', [id]).firstOrNull;
+          realm!.refresh();
+          var realmObject = realm!.query<T>(r'id == $0', [id]).firstOrNull;
           if (realmObject == null) {
             realmObject = createRealmObject(data);
-            _realm.write(() {
-              _realm.add<T>(realmObject!);
+            realm!.write(() {
+              realm!.add<T>(realmObject!);
             });
             print("Added new object to Realm with ID: $id");
           } else {
@@ -302,14 +310,18 @@ class CloudSync implements SyncInterface {
       required String idField,
       required int id}) async {
     talker.warning("Firestore deleting $tableName with id $id");
+    if (!isInIsolate()) {
+      realm = ProxyService.local.realm!;
+    }
+
     cancelWatch(tableName: tableName);
     await _firestore!.collection(tableName).doc(id.toString()).delete();
 
-    _realm.writeN(
+    realm!.writeN(
       tableName: deletedObjectTable,
       writeCallback: () {
         DeletedObject? obj =
-            _realm.query<DeletedObject>(r'id == $0', [id]).firstOrNull;
+            realm!.query<DeletedObject>(r'id == $0', [id]).firstOrNull;
         if (obj != null) {
           final deletedObject = DeletedObject(
             ObjectId(),
@@ -334,6 +346,9 @@ class CloudSync implements SyncInterface {
       required Map<String, dynamic> map,
       required int id,
       required SyncProvider syncProvider}) async {
+    if (!isInIsolate()) {
+      realm = ProxyService.local.realm!;
+    }
     // get a modified map
     final modifiedMap =
         map.map((key, value) => MapEntry(camelToSnakeCase(key), value));
@@ -410,6 +425,9 @@ class CloudSync implements SyncInterface {
   }) async {
     if (syncProvider == SyncProvider.FIRESTORE) {
       try {
+        if (!isInIsolate()) {
+          realm = ProxyService.local.realm!;
+        }
         if (_firestore == null) return;
 
         print("QueryingOn: ${branchIds}");
@@ -430,17 +448,17 @@ class CloudSync implements SyncInterface {
               case DocumentChangeType.added:
               case DocumentChangeType.modified:
                 try {
-                  if (_realm.isClosed) return;
+                  if (realm!.isClosed) return;
                   T? realmObject =
-                      _realm.query<T>(r'id == $0', [id]).firstOrNull;
+                      realm!.query<T>(r'id == $0', [id]).firstOrNull;
                   if (realmObject == null) {
                     /// check if this object was deleted and is found in deletedObjects
-                    DeletedObject? deletedObject = _realm
+                    DeletedObject? deletedObject = realm!
                         .query<DeletedObject>(r'id == $0', [id]).firstOrNull;
                     if (deletedObject == null) {
                       realmObject = createRealmObject(data);
-                      _realm.write(() {
-                        _realm.add<T>(realmObject!);
+                      realm!.write(() {
+                        realm!.add<T>(realmObject!);
                       });
                     }
                   } else {
@@ -455,9 +473,9 @@ class CloudSync implements SyncInterface {
 
                 break;
               case DocumentChangeType.removed:
-                _realm.write(() {
+                realm!.write(() {
                   T? realmObject =
-                      _realm.query<T>(r'id == $0', [id]).firstOrNull;
+                      realm!.query<T>(r'id == $0', [id]).firstOrNull;
 
                   if (realmObject != null) {
                     var eJson = (realmObject is Stock)
@@ -466,7 +484,7 @@ class CloudSync implements SyncInterface {
                             .toFlipperJson()
                         : realmObject.toEJson().toFlipperJson();
 
-                    _realm.add<DeletedObject>(
+                    realm!.add<DeletedObject>(
                       DeletedObject(
                         ObjectId(),
                         id: (realmObject is Stock)
@@ -478,7 +496,7 @@ class CloudSync implements SyncInterface {
                       ),
                     );
 
-                    _realm.delete(realmObject);
+                    realm!.delete(realmObject);
                   }
                 });
                 break;
@@ -512,7 +530,7 @@ class CloudSync implements SyncInterface {
       required String dbPath}) async {
     try {
       List<TransactionItem> items =
-          _realm.query<TransactionItem>(r'branchId == $0', [branchId]).toList();
+          realm!.query<TransactionItem>(r'branchId == $0', [branchId]).toList();
       List<List<TransactionItem>> batches =
           _splitIntoBatches(items, BATCH_SIZE);
 
