@@ -48,7 +48,7 @@ extension RealmExtension on Realm {
     write(() {
       add<T>(object, update: true);
       // _syncToFirestore(tableName, object);
-      _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
+      _spawnIsolate("transactions", IsolateHandler.handler);
       if (onAdd != null) {
         onAdd(object);
       }

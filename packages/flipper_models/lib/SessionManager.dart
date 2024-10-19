@@ -1,6 +1,4 @@
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-
 import 'dart:async';
 
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;

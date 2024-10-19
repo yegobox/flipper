@@ -14,7 +14,7 @@ import 'package:realm/realm.dart';
 import 'package:receipt/print.dart';
 
 class TaxController<OBJ> {
-  TaxController({this.object}); // Use a constructor for clarity
+  TaxController({this.object});
 
   OBJ? object;
 

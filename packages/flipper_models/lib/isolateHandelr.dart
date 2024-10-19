@@ -12,252 +12,229 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_services/constants.dart';
 
-import 'firebase_options.dart';
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';
 import 'dart:collection';
 import 'package:flutter/services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'dart:async';
-import 'package:firebase_core/firebase_core.dart';
 
 class IsolateHandler {
   static Realm? localRealm;
 
-  static Future<void> cloudDownload(List<dynamic> args) async {
-    final rootIsolateToken = args[0] as RootIsolateToken;
-    final sendPort = args[1] as SendPort;
-    String? dbPatch = args[3] as String?;
-    String? key = args[4] as String?;
-    String? local = args[9] as String?;
+  static Future<void> handler(SendPort sendPort) async {
+    // Create a new ReceivePort for the isolate to receive messages
+    ReceivePort port = ReceivePort();
+    // Send this ReceivePort's SendPort back to the main isolate for communication
+    sendPort.send(port.sendPort);
 
-    if (dbPatch == null || key == null) return;
-    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
-    DartPluginRegistrant.ensureInitialized();
+    port.listen((message) async {
+      if (message is Map<String, dynamic>) {
+        int branchId = message['branchId'];
+        int tinNumber = message['tinNumber'];
+        String encryptionKey = message['encryptionKey'];
+        String URI = message['URI'];
+        String bhfId = message['bhfId'];
+        String local = message['dbPath'];
+        //  sendPort.send('notification:hello');
+        // BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+        DartPluginRegistrant.ensureInitialized();
 
-    try {
-      LocalConfiguration configLocal = localConfig(key.toIntList(), local!);
-      final Completer<void> completer = Completer<void>();
-      Timer(Duration(seconds: 5), () {
-        if (!completer.isCompleted) {
-          sendPort.send(1);
+        LocalConfiguration configLocal =
+            localConfig(encryptionKey.toIntList(), local);
+
+        localRealm?.close();
+        localRealm = Realm(configLocal);
+        double calculateTotalTax(double tax, Configurations config) {
+          final percentage = config.taxPercentage ?? 0;
+          return (tax * percentage) / 100 + percentage;
         }
-      });
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      completer.complete();
 
-      /// re-init firestore
-      // final firestore = FirebaseFirestore.instance;
-      localRealm?.close();
-      localRealm = Realm(configLocal);
+        /// handle missing value, part of self healing
+        _selfHeal(localRealm: localRealm);
 
-      sendPort.send(1);
-    } catch (e) {
-      talker.error(e);
-    }
-  }
+        List<ITransaction> transactions = localRealm!.query<ITransaction>(
+            r'ebmSynced == $0 && status == $1 && customerName != null && customerTin != null',
+            [false, COMPLETE]).toList();
 
-  static Future<void> handleEBMTrigger(List<dynamic> args) async {
-    // final rootIsolateToken = args[0] as RootIsolateToken;
-    final sendPort = args[1] as SendPort;
-    // final dbPatch = args[3] as String;
-    final branchId = args[2] as int;
-    String? encryptionKey = args[4] as String?;
-    int? tinNumber = args[5] as int?;
-    String? bhfId = args[6] as String?;
-    String? URI = args[8] as String?;
-    String? local = args[9] as String?;
+        print("transactions count ${transactions.length}");
+        for (ITransaction transaction in transactions) {
+          double taxB = 0;
+          // double taxC = 0;
+          // double taxA = 0;
+          // double taxD = 0;
+          double totalvat = 0;
 
-    // BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
-    DartPluginRegistrant.ensureInitialized();
-    if (encryptionKey == null ||
-        tinNumber == null ||
-        bhfId == null ||
-        URI == null) return;
+          Configurations taxConfigTaxB =
+              localRealm!.query<Configurations>(r'taxType == $0', ["B"]).first;
+          // Configurations taxConfigTaxA =
+          //     localRealm!.query<Configurations>(r'taxType == $0', ["A"]).first;
+          // Configurations taxConfigTaxC =
+          //     localRealm!.query<Configurations>(r'taxType == $0', ["C"]).first;
+          // Configurations taxConfigTaxD =
+          //     localRealm!.query<Configurations>(r'taxType == $0', ["D"]).first;
 
-    LocalConfiguration configLocal =
-        localConfig(encryptionKey.toIntList(), local!);
+          List<TransactionItem> items = localRealm!.query<TransactionItem>(
+              r'transactionId == $0', [transaction.id]).toList();
 
-    localRealm?.close();
-    localRealm = Realm(configLocal);
-    double calculateTotalTax(double tax, Configurations config) {
-      final percentage = config.taxPercentage ?? 0;
-      return (tax * percentage) / 100 + percentage;
-    }
+          for (var item in items) {
+            if (item.taxTyCd == "B") {
+              taxB += (item.price * item.qty);
+            }
+            // if (item.taxTyCd == "C") {
+            //   taxC += (item.price * item.qty);
+            // }
+            // if (item.taxTyCd == "A") {
+            //   taxA += (item.price * item.qty);
+            // }
+            // if (item.taxTyCd == "D") {
+            //   taxD += (item.price * item.qty);
+            // }
+          }
+          // final totalTaxA = calculateTotalTax(taxA, taxConfigTaxA);
+          final totalTaxB = calculateTotalTax(taxB, taxConfigTaxB);
+          // final totalTaxC = calculateTotalTax(taxC, taxConfigTaxC);
+          // final totalTaxD = calculateTotalTax(taxD, taxConfigTaxD);
+          totalvat = totalTaxB;
 
-    /// handle missing value, part of self healing
-    _selfHeal(localRealm: localRealm);
+          /// stop if transaction does not have customerName or customerTin
+          if (transaction.customerName == null ||
+              transaction.customerTin == null) {
+            continue;
+          }
+          try {
+            final response = await RWTax().saveStockItems(
+                transaction: transaction,
+                tinNumber: tinNumber.toString(),
+                bhFId: bhfId,
+                customerName: transaction.customerName ?? "N/A",
+                custTin: transaction.customerTin ?? "999909695",
+                regTyCd: "A",
+                //sarTyCd 11 is for sale
+                sarTyCd: transaction.sarTyCd ?? "11",
+                realm: localRealm!,
+                custBhfId: transaction.customerBhfId ?? "",
+                totalSupplyPrice: transaction.subTotal,
+                totalvat: totalvat,
+                totalAmount: transaction.subTotal,
+                remark: transaction.remark ?? "",
+                ocrnDt: DateTime.parse(
+                    transaction.updatedAt ?? DateTime.now().toString()),
+                URI: URI);
 
-    List<ITransaction> transactions = localRealm!.query<ITransaction>(
-        r'ebmSynced == $0 && status == $1 && customerName != null && customerTin != null',
-        [false, COMPLETE]).toList();
-
-    print("transactions count ${transactions.length}");
-    for (ITransaction transaction in transactions) {
-      double taxB = 0;
-      // double taxC = 0;
-      // double taxA = 0;
-      // double taxD = 0;
-      double totalvat = 0;
-
-      Configurations taxConfigTaxB =
-          localRealm!.query<Configurations>(r'taxType == $0', ["B"]).first;
-      // Configurations taxConfigTaxA =
-      //     localRealm!.query<Configurations>(r'taxType == $0', ["A"]).first;
-      // Configurations taxConfigTaxC =
-      //     localRealm!.query<Configurations>(r'taxType == $0', ["C"]).first;
-      // Configurations taxConfigTaxD =
-      //     localRealm!.query<Configurations>(r'taxType == $0', ["D"]).first;
-
-      List<TransactionItem> items = localRealm!.query<TransactionItem>(
-          r'transactionId == $0', [transaction.id]).toList();
-
-      for (var item in items) {
-        if (item.taxTyCd == "B") {
-          taxB += (item.price * item.qty);
+            if (response.resultCd == "000") {
+              sendPort.send(
+                  'notification:${response.resultMsg}:transaction:${transaction.id.toString()}');
+            } else {
+              sendPort.send('notification:${response.resultMsg}}');
+            }
+            print(response);
+          } catch (e) {}
         }
-        // if (item.taxTyCd == "C") {
-        //   taxC += (item.price * item.qty);
-        // }
-        // if (item.taxTyCd == "A") {
-        //   taxA += (item.price * item.qty);
-        // }
-        // if (item.taxTyCd == "D") {
-        //   taxD += (item.price * item.qty);
-        // }
+
+        List<Stock> stocks =
+            localRealm!.query<Stock>(r'ebmSynced ==$0', [false]).toList();
+
+        // // Fetching all variant ids from stocks
+        List<int?> variantIds = stocks.map((stock) => stock.variantId).toList();
+        Map<int, Variant?> variantMap = {};
+        localRealm!
+            .query<Variant>(r'id IN $0', [variantIds]).forEach((variant) {
+          variantMap[variant.id!] = variant;
+        });
+        for (Stock stock in stocks) {
+          if (!stock.ebmSynced) {
+            //     // Accessing variant from the pre-fetched map
+            Variant? variant = variantMap[stock.variantId];
+            if (variant == null) {
+              continue;
+            }
+
+            try {
+              IStock iStock = IStock(
+                id: stock.id,
+                currentStock: stock.currentStock,
+              );
+              IVariant iVariant =
+                  IVariant.fromJson(variant.toEJson().toFlipperJson());
+
+              final response = await RWTax()
+                  .saveStockMaster(stock: iStock, variant: iVariant, URI: URI);
+              if (response.resultCd == "000") {
+                sendPort.send(
+                    'notification:${response.resultMsg}:stock:${stock.id.toString()}');
+              } else {
+                sendPort.send('notification:${response.resultMsg}}');
+              }
+            } catch (e, s) {
+              talker.error(s);
+            }
+          }
+        }
+
+        List<Variant> variants =
+            localRealm!.query<Variant>(r'ebmSynced == $0', [false]).toList();
+
+        for (Variant variant in variants) {
+          try {
+            IVariant iVariant =
+                IVariant.fromJson(variant.toEJson().toFlipperJson());
+
+            iVariant.isrcAplcbYn = variant.isrcAplcbYn?.isEmpty ?? true
+                ? "N"
+                : variant.isrcAplcbYn;
+
+            /// do not attempt saving a variant with missing fields
+            if (variant.qtyUnitCd == null ||
+                variant.taxTyCd == null ||
+                variant.bhfId == null ||
+                variant.bhfId!.isEmpty) return;
+            final response =
+                await RWTax().saveItem(variation: iVariant, URI: URI);
+
+            if (response.resultCd == "000") {
+              sendPort.send(
+                  'notification:${response.resultMsg}:variant:${variant.id.toString()}');
+            } else {
+              sendPort.send('notification:${response.resultMsg}}');
+            }
+          } catch (e, s) {
+            talker.error(s);
+          }
+        }
+
+        // load all customer
+        List<Customer> customers =
+            localRealm!.query<Customer>(r'branchId ==$0', [branchId]).toList();
+
+        for (Customer customer in customers) {
+          if (!customer.ebmSynced) {
+            try {
+              localRealm!.write(() {
+                // Update customer properties within the write transaction
+                customer.tin = tinNumber;
+                customer.bhfId = bhfId;
+              });
+
+              if ((customer.custTin?.length ?? 0) < 9) return;
+              ICustomer iCustomer =
+                  ICustomer.fromJson(customer.toEJson().toFlipperJson());
+
+              final response =
+                  await RWTax().saveCustomer(customer: iCustomer, URI: URI);
+              if (response.resultCd == "000") {
+                sendPort.send(
+                    'notification:${response.resultMsg.substring(0, 10)}:customer:${customer.id.toString()}');
+              } else {
+                sendPort.send('notification:${response.resultMsg}}');
+              }
+            } catch (e) {}
+          }
+        }
+
+        localRealm?.close();
       }
-      // final totalTaxA = calculateTotalTax(taxA, taxConfigTaxA);
-      final totalTaxB = calculateTotalTax(taxB, taxConfigTaxB);
-      // final totalTaxC = calculateTotalTax(taxC, taxConfigTaxC);
-      // final totalTaxD = calculateTotalTax(taxD, taxConfigTaxD);
-      totalvat = totalTaxB;
-
-      /// stop if transaction does not have customerName or customerTin
-      if (transaction.customerName == null || transaction.customerTin == null) {
-        continue;
-      }
-      try {
-        final response = await RWTax().saveStockItems(
-            transaction: transaction,
-            tinNumber: tinNumber.toString(),
-            bhFId: bhfId,
-            customerName: transaction.customerName ?? "N/A",
-            custTin: transaction.customerTin ?? "999909695",
-            regTyCd: "A",
-            //sarTyCd 11 is for sale
-            sarTyCd: transaction.sarTyCd ?? "11",
-            realm: localRealm!,
-            custBhfId: transaction.customerBhfId ?? "",
-            totalSupplyPrice: transaction.subTotal,
-            totalvat: totalvat,
-            totalAmount: transaction.subTotal,
-            remark: transaction.remark ?? "",
-            ocrnDt: DateTime.parse(
-                transaction.updatedAt ?? DateTime.now().toString()),
-            URI: URI);
-
-        if (response.resultCd == "000") {
-          sendPort.send(
-              'notification:${response.resultMsg}:transaction:${transaction.id.toString()}');
-        }
-        print(response);
-      } catch (e) {}
-    }
-
-    List<Stock> stocks =
-        localRealm!.query<Stock>(r'ebmSynced ==$0', [false]).toList();
-
-    // // Fetching all variant ids from stocks
-    List<int?> variantIds = stocks.map((stock) => stock.variantId).toList();
-    Map<int, Variant?> variantMap = {};
-    localRealm!.query<Variant>(r'id IN $0', [variantIds]).forEach((variant) {
-      variantMap[variant.id!] = variant;
     });
-    for (Stock stock in stocks) {
-      if (!stock.ebmSynced) {
-        //     // Accessing variant from the pre-fetched map
-        Variant? variant = variantMap[stock.variantId];
-        if (variant == null) {
-          continue;
-        }
-
-        try {
-          IStock iStock = IStock(
-            id: stock.id,
-            currentStock: stock.currentStock,
-          );
-          IVariant iVariant =
-              IVariant.fromJson(variant.toEJson().toFlipperJson());
-
-          final response = await RWTax()
-              .saveStockMaster(stock: iStock, variant: iVariant, URI: URI);
-          if (response.resultCd == "000") {
-            sendPort.send(
-                'notification:${response.resultMsg}:stock:${stock.id.toString()}');
-          }
-        } catch (e, s) {
-          talker.error(s);
-        }
-      }
-    }
-
-    List<Variant> variants =
-        localRealm!.query<Variant>(r'ebmSynced == $0', [false]).toList();
-
-    for (Variant variant in variants) {
-      try {
-        IVariant iVariant =
-            IVariant.fromJson(variant.toEJson().toFlipperJson());
-
-        iVariant.isrcAplcbYn =
-            variant.isrcAplcbYn?.isEmpty ?? true ? "N" : variant.isrcAplcbYn;
-
-        /// do not attempt saving a variant with missing fields
-        if (variant.qtyUnitCd == null ||
-            variant.taxTyCd == null ||
-            variant.bhfId == null ||
-            variant.bhfId!.isEmpty) return;
-        final response = await RWTax().saveItem(variation: iVariant, URI: URI);
-
-        if (response.resultCd == "000") {
-          sendPort.send(
-              'notification:${response.resultMsg}:variant:${variant.id.toString()}');
-        }
-      } catch (e, s) {
-        talker.error(s);
-      }
-    }
-
-    // load all customer
-    List<Customer> customers =
-        localRealm!.query<Customer>(r'branchId ==$0', [branchId]).toList();
-
-    for (Customer customer in customers) {
-      if (!customer.ebmSynced) {
-        try {
-          localRealm!.write(() {
-            // Update customer properties within the write transaction
-            customer.tin = tinNumber;
-            customer.bhfId = bhfId;
-          });
-
-          if ((customer.custTin?.length ?? 0) < 9) return;
-          ICustomer iCustomer =
-              ICustomer.fromJson(customer.toEJson().toFlipperJson());
-
-          final response =
-              await RWTax().saveCustomer(customer: iCustomer, URI: URI);
-          if (response.resultCd == "000") {
-            sendPort.send(
-                'notification:${response.resultMsg.substring(0, 10)}:customer:${customer.id.toString()}');
-          }
-        } catch (e) {}
-      }
-    }
-
-    localRealm?.close();
   }
 
   static LocalConfiguration localConfig(

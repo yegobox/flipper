@@ -52,16 +52,10 @@ class AppInitializer {
 
   static void _initializeReviewSystem() {
     // Implement review system
-    ProxyService.review.review(); 
+    ProxyService.review.review();
   }
 
   static void _scheduleCronJobs() {
-    // Connect to available printer
-    ProxyService.cron.connectBlueToothPrinter();
-
-    // Delete received messages from server
-    ProxyService.cron.deleteReceivedMessageFromServer();
-
     // Schedule cron tasks
     ProxyService.cron.schedule();
   }
