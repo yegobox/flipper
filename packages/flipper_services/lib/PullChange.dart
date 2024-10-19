@@ -8,6 +8,7 @@ import 'package:flipper_models/power_sync/schema.dart';
 
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realm_model_export.dart' as mod;
+import 'package:flipper_services/proxy.dart';
 // import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -25,7 +26,7 @@ class PullChange {
     required int mbranchId,
     required int muserId,
     String? tableName,
-  })async {
+  }) async {
     cloudSync = CloudSync(firestore, realm: localRealm);
     branchId = mbranchId;
     businessId = mbusinessId;
@@ -38,7 +39,7 @@ class PullChange {
         .toList()
         .map((branch) => branch.serverId!)
         .toList();
-   await  watchStocksAsync(localRealm, firestore, branchIds: branchIds);
+    await watchStocksAsync(localRealm, firestore, branchIds: branchIds);
   }
 
   void start({
@@ -154,7 +155,7 @@ class PullChange {
   }
 
   Future<void> watchStocksAsync(Realm localRealm, FirebaseFirestore firestore,
-      {required List<int> branchIds})async {
+      {required List<int> branchIds}) async {
     await cloudSync!.watchTableAsync<Stock>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
@@ -279,6 +280,8 @@ class PullChange {
         final Stock? stock =
             localRealm.query<Stock>(r'id ==$0', [data['stock_id']]).firstOrNull;
 
+        ProxyService.notification
+            .sendLocalNotification(body: "Received stock ${stock?.id}");
         if (stock != null) {
           localRealm.write(() {
             final finalStock =

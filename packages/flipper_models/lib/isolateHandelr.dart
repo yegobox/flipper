@@ -62,13 +62,13 @@ class IsolateHandler {
           }
 
           /// query products from firestore
-          firestore.collection(stocksTable).limit(1).get().then((value) {
-            for (var doc in value.docs) {
-              // final stock = doc.data();
-              sendPort.send("notification:${doc.data()['stock_id']}");
-              // final stock = Stock.fromJson(stock);
-            }
-          });
+          // firestore.collection(stocksTable).limit(1).get().then((value) {
+          //   for (var doc in value.docs) {
+          //     // final stock = doc.data();
+          //     sendPort.send("notification:${doc.data()['stock_id']}");
+          //     // final stock = Stock.fromJson(stock);
+          //   }
+          // });
 
           /// un comment this when https://github.com/flutter/flutter/issues/119207
           // await clearFirestoreCache();
