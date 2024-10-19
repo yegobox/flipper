@@ -8,17 +8,51 @@ import 'package:flipper_models/power_sync/schema.dart';
 
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realm_model_export.dart' as mod;
-import 'package:flipper_services/proxy.dart';
+// import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PullChange {
-  static void start({
+  CloudSync? cloudSync;
+  int? branchId;
+  int? businessId;
+  int? userId;
+
+  void startAsync({
     required FirebaseFirestore firestore,
     required Realm localRealm,
-    required int businessId,
+    required int mbusinessId,
+    required int mbranchId,
+    required int muserId,
+    String? tableName,
+  }) {
+    cloudSync = CloudSync(firestore, localRealm);
+    branchId = mbranchId;
+    businessId = mbusinessId;
+    userId = muserId;
+    // if (FirebaseAuth.instance.currentUser == null) return;
+    /// for this query see @LocalRealmApi@branches
+    List<int> branchIds = localRealm
+        .query<Branch>(r'businessId == $0 && active == $1 || active == $2',
+            [businessId, true, false])
+        .toList()
+        .map((branch) => branch.serverId!)
+        .toList();
+    watchStocksAsync(localRealm, firestore, branchIds: branchIds);
+  }
+
+  void start({
+    required FirebaseFirestore firestore,
+    required Realm localRealm,
+    required int mbusinessId,
+    required int mbranchId,
+    required int muserId,
     String? tableName,
   }) async {
+    cloudSync = CloudSync(firestore, localRealm);
+    branchId = mbranchId;
+    businessId = mbusinessId;
+    userId = muserId;
     // if (FirebaseAuth.instance.currentUser == null) return;
     /// for this query see @LocalRealmApi@branches
     List<int> branchIds = localRealm
@@ -31,82 +65,82 @@ class PullChange {
       if (tableName == null) {
         if (Platform.isWindows) {
           //   /// on windows registering many listener might be causing the issues.
-          watchStocks(localRealm, branchIds: branchIds);
-          watchProducts(localRealm, branchIds: branchIds);
-          watchVariants(localRealm, branchIds: branchIds);
-          watchRequests(localRealm, branchIds: branchIds);
-          watchCounters(localRealm, branchIds: branchIds);
+          // watchStocks(localRealm, firestore, branchIds: branchIds);
+          watchProducts(localRealm, firestore, branchIds: branchIds);
+          watchVariants(localRealm, firestore, branchIds: branchIds);
+          watchRequests(localRealm, firestore, branchIds: branchIds);
+          watchCounters(localRealm, firestore, branchIds: branchIds);
         } else {
           // Start all tables
-          watchStocks(localRealm, branchIds: branchIds);
-          watchRequests(localRealm, branchIds: branchIds);
+          // watchStocks(localRealm, firestore, branchIds: branchIds);
+          watchRequests(localRealm, firestore, branchIds: branchIds);
 
-          watchProducts(localRealm, branchIds: branchIds);
-          watchVariants(localRealm, branchIds: branchIds);
-          watchPin(localRealm, branchIds: branchIds);
-          watchTransactions(localRealm, branchIds: branchIds);
-          watchAssets(localRealm, branchIds: branchIds);
-          watchSettings(localRealm, branchIds: branchIds);
-          watchPaymentRecords(localRealm, branchIds: branchIds);
-          watchCompaigns(localRealm, branchIds: branchIds);
-          watchPlans(localRealm, branchIds: branchIds);
-          watchAccesses(localRealm, branchIds: branchIds);
-          watchSkus(localRealm, branchIds: branchIds);
-          watchComposites(localRealm, branchIds: branchIds);
-          watchCounters(localRealm, branchIds: branchIds);
+          watchProducts(localRealm, firestore, branchIds: branchIds);
+          watchVariants(localRealm, firestore, branchIds: branchIds);
+          watchPin(localRealm, firestore, branchIds: branchIds);
+          watchTransactions(localRealm, firestore, branchIds: branchIds);
+          watchAssets(localRealm, firestore, branchIds: branchIds);
+          watchSettings(localRealm, firestore, branchIds: branchIds);
+          watchPaymentRecords(localRealm, firestore, branchIds: branchIds);
+          watchCompaigns(localRealm, firestore, branchIds: branchIds);
+          watchPlans(localRealm, firestore, branchIds: branchIds);
+          watchAccesses(localRealm, firestore, branchIds: branchIds);
+          watchSkus(localRealm, firestore, branchIds: branchIds);
+          watchComposites(localRealm, firestore, branchIds: branchIds);
+          watchCounters(localRealm, firestore, branchIds: branchIds);
 
-          watchConfiguration(localRealm, branchIds: branchIds);
+          watchConfiguration(localRealm, firestore, branchIds: branchIds);
         }
       } else {
         // Start only the specified table
         switch (tableName.toLowerCase()) {
           case pinsTable:
-            watchPin(localRealm, branchIds: branchIds);
+            watchPin(localRealm, firestore, branchIds: branchIds);
             break;
           case stockRequestsTable:
-            watchRequests(localRealm, branchIds: branchIds);
+            watchRequests(localRealm, firestore, branchIds: branchIds);
             break;
           case productsTable:
-            watchProducts(localRealm, branchIds: branchIds);
+            watchProducts(localRealm, firestore, branchIds: branchIds);
             break;
           case variantTable:
-            watchVariants(localRealm, branchIds: branchIds);
+            watchVariants(localRealm, firestore, branchIds: branchIds);
             break;
           case transactionTable:
-            watchTransactions(localRealm, branchIds: branchIds);
+            watchTransactions(localRealm, firestore, branchIds: branchIds);
             break;
           case assetsTable:
-            watchAssets(localRealm, branchIds: branchIds);
+            watchAssets(localRealm, firestore, branchIds: branchIds);
             break;
           case settingsTable:
-            watchSettings(localRealm, branchIds: branchIds);
+            watchSettings(localRealm, firestore, branchIds: branchIds);
             break;
           case 'transaction_payment_records':
-            watchPaymentRecords(localRealm, branchIds: branchIds);
+            watchPaymentRecords(localRealm, firestore, branchIds: branchIds);
             break;
           case 'flipper_sale_compaigns':
-            watchCompaigns(localRealm, branchIds: branchIds);
+            watchCompaigns(localRealm, firestore, branchIds: branchIds);
             break;
           case 'payment_plans':
-            watchPlans(localRealm, branchIds: branchIds);
+            watchPlans(localRealm, firestore, branchIds: branchIds);
             break;
           case 'accesses':
-            watchAccesses(localRealm, branchIds: branchIds);
+            watchAccesses(localRealm, firestore, branchIds: branchIds);
             break;
           case 'skus':
-            watchSkus(localRealm, branchIds: branchIds);
+            watchSkus(localRealm, firestore, branchIds: branchIds);
             break;
           case 'composites':
-            watchComposites(localRealm, branchIds: branchIds);
+            watchComposites(localRealm, firestore, branchIds: branchIds);
             break;
           case 'counters':
-            watchCounters(localRealm, branchIds: branchIds);
+            watchCounters(localRealm, firestore, branchIds: branchIds);
             break;
           case 'stocks':
-            watchStocks(localRealm, branchIds: branchIds);
+            watchStocks(localRealm, firestore, branchIds: branchIds);
             break;
           case 'configurations':
-            watchConfiguration(localRealm, branchIds: branchIds);
+            watchConfiguration(localRealm, firestore, branchIds: branchIds);
             break;
           default:
             print('Unknown table name: $tableName');
@@ -119,8 +153,9 @@ class PullChange {
     }
   }
 
-  static void watchStocks(Realm localRealm, {required List<int> branchIds}) {
-    ProxyService.synchronize.watchTable<Stock>(
+  void watchStocksAsync(Realm localRealm, FirebaseFirestore firestore,
+      {required List<int> branchIds}) {
+    cloudSync!.watchTableAsync<Stock>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'stocks',
@@ -189,9 +224,80 @@ class PullChange {
     );
   }
 
-  static Future<void> watchCounters(Realm localRealm,
+  void watchStocks(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    return ProxyService.synchronize.watchTable<Counter>(
+    cloudSync!.watchTable<Stock>(
+      branchIds: branchIds,
+      syncProvider: SyncProvider.FIRESTORE,
+      tableName: 'stocks',
+      idField: 'stock_id',
+      createRealmObject: (data) {
+        return Stock(
+          ObjectId(),
+          id: data['stock_id'] == null ? randomNumber() : data['stock_id'],
+          currentStock:
+              data['current_stock'] is int || data['current_stock'] is double
+                  ? data['current_stock'].toDouble()
+                  : double.tryParse(data['current_stock']) ?? 0.0,
+          initialStock:
+              data['initial_stock'] == null ? 0.0 : data['initial_stock'],
+          lowStock: data['low_stock'] is int || data['low_stock'] is double
+              ? data['low_stock'].toDouble()
+              : double.tryParse(data['low_stock']) ?? 0.0,
+          canTrackingStock: data['can_tracking_stock'] ?? false,
+          showLowStockAlert: data['show_low_stock_alert'] ?? false,
+          productId: data['product_id'] is int
+              ? data['product_id']
+              : int.tryParse(data['product_id']) ?? 0,
+          active: data['active'] ?? false,
+          value: data['value'] == null ? 0 : data['value'],
+          rsdQty: data['rsd_qty'] is int || data['rsd_qty'] is double
+              ? data['rsd_qty'].toDouble()
+              : double.tryParse(data['rsd_qty']) ?? 0.0,
+          supplyPrice:
+              data['supply_price'] is int || data['supply_price'] is double
+                  ? data['supply_price'].toDouble()
+                  : double.tryParse(data['supplyPrice']) ?? 0.0,
+          retailPrice: data['retail_price'] is int ||
+                  data['retail_price'] is double && data['retail_price'] != null
+              ? data['retail_price'].toDouble()
+              : double.tryParse(data['retail_price']) ?? 0.0,
+          lastTouched: data['last_touched'] is DateTime
+              ? data['last_touched']
+              : DateTime.tryParse(data['last_touched']) ?? DateTime.now(),
+          branchId: data['branch_id'] is int
+              ? data['branch_id']
+              : int.tryParse(data['branch_id']) ?? 0,
+          variantId: data['variant_id'] is int
+              ? data['variant_id']
+              : int.tryParse(data['variant_id']) ?? 0,
+          deletedAt: data['deleted_at'] is DateTime ? data['deleted_at'] : null,
+          ebmSynced: data['ebm_synced'] ?? false,
+        );
+      },
+      updateRealmObject: (_stock, data) {
+        final Stock? stock =
+            localRealm.query<Stock>(r'id ==$0', [data['stock_id']]).firstOrNull;
+
+        if (stock != null) {
+          localRealm.write(() {
+            final finalStock =
+                data['current_stock'] == null ? 0 : data['current_stock'];
+            stock.currentStock = finalStock;
+            stock.initialStock = data['initial_stock'];
+            stock.rsdQty = finalStock;
+            stock.lastTouched = data['last_touched'] == null
+                ? DateTime.now()
+                : DateTime.tryParse(data['last_touched']);
+          });
+        }
+      },
+    );
+  }
+
+  Future<void> watchCounters(Realm localRealm, FirebaseFirestore firestore,
+      {required List<int> branchIds}) {
+    return cloudSync!.watchTable<Counter>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'counters',
@@ -224,7 +330,7 @@ class PullChange {
       updateRealmObject: (_stock, data) {
         Counter? counter = localRealm.query<Counter>(
             r'id == $0 && branchId == $1',
-            [data['counter_id'], ProxyService.box.getBranchId()]).firstOrNull;
+            [data['counter_id'], branchId]).firstOrNull;
 
         if (counter != null) {
           localRealm.write(() {
@@ -255,9 +361,9 @@ class PullChange {
     );
   }
 
-  static Future<void> watchComposites(Realm localRealm,
+  Future<void> watchComposites(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    return ProxyService.synchronize.watchTable<Composite>(
+    return cloudSync!.watchTable<Composite>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'composites',
@@ -320,9 +426,9 @@ class PullChange {
     );
   }
 
-  static Future<void> watchSkus(Realm localRealm,
+  Future<void> watchSkus(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    return ProxyService.synchronize.watchTable<SKU>(
+    return cloudSync!.watchTable<SKU>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'skus',
@@ -365,9 +471,9 @@ class PullChange {
     );
   }
 
-  static Future<void> watchAccesses(Realm localRealm,
+  Future<void> watchAccesses(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    return ProxyService.synchronize.watchTable<Access>(
+    return cloudSync!.watchTable<Access>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'accesses',
@@ -408,9 +514,7 @@ class PullChange {
             access.businessId = data['business_id'] is int
                 ? data['business_id']
                 : int.tryParse(data['business_id']) ?? access.businessId;
-            access.userId = data['user_id'] == null
-                ? ProxyService.box.getUserId()
-                : data['user_id'];
+            access.userId = data['user_id'] == null ? userId : data['user_id'];
             access.featureName = data['feature_name'] ?? access.featureName;
             access.userType = data['user_type'] ?? access.userType;
             access.accessLevel = data['access_level'] ?? access.accessLevel;
@@ -427,9 +531,9 @@ class PullChange {
     );
   }
 
-  static Future<void> watchPlans(Realm localRealm,
+  Future<void> watchPlans(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    return ProxyService.synchronize.watchTable<PaymentPlan>(
+    return cloudSync!.watchTable<PaymentPlan>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'payment_plans',
@@ -509,9 +613,9 @@ class PullChange {
     );
   }
 
-  static Future<void> watchCompaigns(Realm localRealm,
+  Future<void> watchCompaigns(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    return ProxyService.synchronize.watchTable<FlipperSaleCompaign>(
+    return cloudSync!.watchTable<FlipperSaleCompaign>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'flipper_sale_compaigns',
@@ -556,9 +660,10 @@ class PullChange {
     );
   }
 
-  static Future<void> watchPaymentRecords(Realm localRealm,
+  Future<void> watchPaymentRecords(
+      Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    return ProxyService.synchronize.watchTable<TransactionPaymentRecord>(
+    return cloudSync!.watchTable<TransactionPaymentRecord>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'transaction_payment_records',
@@ -605,9 +710,9 @@ class PullChange {
     );
   }
 
-  static Future<void> watchAssets(Realm localRealm,
+  Future<void> watchAssets(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    return ProxyService.synchronize.watchTable<Assets>(
+    return cloudSync!.watchTable<Assets>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'assets',
@@ -639,9 +744,9 @@ class PullChange {
     );
   }
 
-  static Future<void> watchSettings(Realm localRealm,
+  Future<void> watchSettings(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    return ProxyService.synchronize.watchTable<Setting>(
+    return cloudSync!.watchTable<Setting>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'settings',
@@ -729,9 +834,9 @@ class PullChange {
     );
   }
 
-  static Future<void> watchTransactions(Realm localRealm,
+  Future<void> watchTransactions(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    return ProxyService.synchronize.watchTable<ITransaction>(
+    return cloudSync!.watchTable<ITransaction>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: transactionTable,
@@ -743,9 +848,7 @@ class PullChange {
           id: data['transaction_id'] == null
               ? randomNumber()
               : data['transaction_id'],
-          branchId: data['branch_id'] == null
-              ? ProxyService.box.getBranchId()
-              : data['branch_id'],
+          branchId: data['branch_id'] == null ? branchId : data['branch_id'],
           receiptType: data['receipt_type'] == null ? "" : data['receipt_type'],
           status: data['status'] == null ? "" : data['status'],
           transactionType:
@@ -781,10 +884,8 @@ class PullChange {
       },
       updateRealmObject: (_transaction, data) {
         ITransaction? transaction = localRealm.query<ITransaction>(
-            r'id == $0 && branchId == $1', [
-          data['transaction_id'],
-          ProxyService.box.getBranchId()
-        ]).firstOrNull;
+            r'id == $0 && branchId == $1',
+            [data['transaction_id'], branchId]).firstOrNull;
 
         if (transaction != null) {
           localRealm.write(() {
@@ -836,9 +937,9 @@ class PullChange {
     );
   }
 
-  static Future<void> watchVariants(Realm localRealm,
+  Future<void> watchVariants(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    return ProxyService.synchronize.watchTable<Variant>(
+    return cloudSync!.watchTable<Variant>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: 'variants',
@@ -847,9 +948,7 @@ class PullChange {
         return Variant(
           ObjectId(),
           id: data['variant_id'] == null ? 0 : data['variant_id'],
-          branchId: data['branch_id'] == null
-              ? ProxyService.box.getBranchId()
-              : data['branch_id'],
+          branchId: data['branch_id'] == null ? branchId : data['branch_id'],
           lastTouched: data['last_touched'] == null
               ? DateTime.now()
               : DateTime.parse(data['last_touched']),
@@ -913,7 +1012,7 @@ class PullChange {
         // Find related variant
         Variant? variant = localRealm.query<Variant>(
             r'id == $0 && branchId == $1',
-            [data['variant_id'], ProxyService.box.getBranchId()]).firstOrNull;
+            [data['variant_id'], branchId]).firstOrNull;
 
         if (variant != null) {
           localRealm.write(() {
@@ -1001,8 +1100,9 @@ class PullChange {
     );
   }
 
-  static void watchProducts(Realm localRealm, {required List<int> branchIds}) {
-    ProxyService.synchronize.watchTable<Product>(
+  void watchProducts(Realm localRealm, FirebaseFirestore firestore,
+      {required List<int> branchIds}) {
+    cloudSync!.watchTable<Product>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: productsTable,
@@ -1015,12 +1115,9 @@ class PullChange {
           description: data['description'],
           taxId: data['tax_id'],
           color: data['color'] ?? "#e74c3c",
-          businessId: data['business_id'] == null
-              ? ProxyService.box.getBusinessId()
-              : data['business_id'],
-          branchId: data['branch_id'] == null
-              ? ProxyService.box.getBranchId()
-              : data['branch_id'],
+          businessId:
+              data['business_id'] == null ? businessId : data['business_id'],
+          branchId: data['branch_id'] == null ? branchId : data['branch_id'],
           supplierId: data['supplier_id'] == null ? "" : data['supplier_id'],
           categoryId: data['category_id'] == null ? 0 : data['category_id'],
           createdAt: data['created_at'] == null
@@ -1046,7 +1143,7 @@ class PullChange {
       updateRealmObject: (_product, data) {
         Product? product = localRealm.query<Product>(
             r'id == $0 && branchId == $1',
-            [data['product_id'], ProxyService.box.getBranchId()]).firstOrNull;
+            [data['product_id'], branchId]).firstOrNull;
 
         if (product != null) {
           localRealm.write(() {
@@ -1054,12 +1151,10 @@ class PullChange {
             product.description = data['description'] ?? product.description;
             product.taxId = data['tax_id'] ?? product.taxId;
             product.color = data['color'] ?? product.color;
-            product.businessId = data['business_id'] == null
-                ? ProxyService.box.getBusinessId()
-                : data['business_id'];
-            product.branchId = data['branch_id'] == null
-                ? ProxyService.box.getBranchId()
-                : data['branch_id'];
+            product.businessId =
+                data['business_id'] == null ? businessId : data['business_id'];
+            product.branchId =
+                data['branch_id'] == null ? branchId : data['branch_id'];
 
             product.supplierId = data['supplier_id'] ?? product.supplierId;
             product.categoryId =
@@ -1093,9 +1188,10 @@ class PullChange {
     );
   }
 
-  static void watchRequests(Realm localRealm, {required List<int> branchIds}) {
+  void watchRequests(Realm localRealm, FirebaseFirestore firestore,
+      {required List<int> branchIds}) {
     stockRequestsRef
-        .whereMain_branch_id(isEqualTo: ProxyService.box.getBranchId())
+        .whereMain_branch_id(isEqualTo: branchId)
         .snapshots()
         .listen((querySnapshot) {
       List<mod.TransactionItem> items = [];
@@ -1109,7 +1205,7 @@ class PullChange {
               mod.TransactionItem? transactionItem =
                   localRealm.query<mod.TransactionItem>(
                 r'id == $0 && branchId == $1',
-                [item.id, ProxyService.box.getBranchId()],
+                [item.id, branchId],
               ).firstOrNull;
               if (transactionItem == null) {
                 mod.TransactionItem? transactionItem = mod.TransactionItem(
@@ -1213,8 +1309,9 @@ class PullChange {
     });
   }
 
-  static void watchPin(Realm localRealm, {required List<int> branchIds}) {
-    ProxyService.synchronize.watchTable<Pin>(
+  void watchPin(Realm localRealm, FirebaseFirestore firestore,
+      {required List<int> branchIds}) {
+    cloudSync!.watchTable<Pin>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: pinsTable,
@@ -1244,9 +1341,9 @@ class PullChange {
     );
   }
 
-  static void watchConfiguration(Realm localRealm,
+  void watchConfiguration(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    ProxyService.synchronize.watchTable<Configurations>(
+    cloudSync!.watchTable<Configurations>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: configurationsTable,

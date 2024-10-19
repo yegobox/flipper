@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/isolateHandelr.dart';
+import 'package:flipper_services/PullChange.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/realmExtension.dart';
@@ -43,9 +45,13 @@ class CronService {
         await ProxyService.synchronize.firebaseLogin();
       }
       if (!doneInitializingDataPull) {
-        // PullChange.start(
-        //     firestore: FirebaseFirestore.instance,
-        //     localRealm: ProxyService.local.realm!);
+        PullChange().start(
+          mbranchId: ProxyService.box.getBranchId()!,
+          mbusinessId: ProxyService.box.getBusinessId()!,
+          muserId: ProxyService.box.getUserId()!,
+          firestore: FirebaseFirestore.instance,
+          localRealm: ProxyService.local.realm!,
+        );
         // doneInitializingDataPull = true;
       }
     }
@@ -163,6 +169,7 @@ class CronService {
           'task': 'sync',
           'branchId': ProxyService.box.getBranchId()!,
           "URI": ProxyService.box.getServerUrl(),
+          "userId": ProxyService.box.getUserId()!,
           "businessId": ProxyService.box.getBusinessId()!,
           'encryptionKey': ProxyService.box.encryptionKey(),
           'dbPath': await ProxyService.local.dbPath(

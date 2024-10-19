@@ -22,10 +22,9 @@ class UnSupportedLocalNotification implements LNotification {
   }
 }
 
-
 class LocalNotificationService implements LNotification {
   // Initialize the NotificationsCubit instance
-  static late NotificationsCubit _notificationsCubit;
+  static NotificationsCubit? _notificationsCubit;
 
   LocalNotificationService() {
     // Initialize the NotificationsCubit in the constructor
@@ -55,7 +54,7 @@ class LocalNotificationService implements LNotification {
       );
 
       // Now you can use _notificationsCubit safely
-      await _notificationsCubit.scheduleNotification(conversation);
+      await _notificationsCubit?.scheduleNotification(conversation);
     } catch (e) {
       rethrow;
     }

@@ -47,15 +47,30 @@ class IsolateHandler {
           String encryptionKey = message['encryptionKey'];
           String local = message['dbPath'];
           int businessId = message['businessId'];
+          int branchId = message['branchId'];
+          int userId = message['userId'];
           LocalConfiguration configLocal =
               localConfig(encryptionKey.toIntList(), local);
-          localRealm?.close();
-          localRealm = Realm(configLocal);
+          if (localRealm == null) {
+            localRealm = Realm(configLocal);
+          }
 
-          PullChange.start(
-            businessId: businessId,
+          /// query products from firestore
+          // firestore.collection(stocksTable).get().then((value) {
+          //   for (var doc in value.docs) {
+          //     // final stock = doc.data();
+          //     // print(stock);
+          //     // final stock = Stock.fromJson(stock);
+          //   }
+          // });
+
+          /// un comment this when https://github.com/flutter/flutter/issues/119207
+          PullChange().startAsync(
+            mbusinessId: businessId,
             firestore: firestore,
             localRealm: localRealm!,
+            mbranchId: branchId,
+            muserId: userId,
           );
         }
         if (message['task'] == 'taxService') {
@@ -72,8 +87,9 @@ class IsolateHandler {
           LocalConfiguration configLocal =
               localConfig(encryptionKey.toIntList(), local);
 
-          localRealm?.close();
-          localRealm = Realm(configLocal);
+          if (localRealm == null) {
+            localRealm = Realm(configLocal);
+          }
           double calculateTotalTax(double tax, Configurations config) {
             final percentage = config.taxPercentage ?? 0;
             return (tax * percentage) / 100 + percentage;
@@ -261,8 +277,6 @@ class IsolateHandler {
               } catch (e) {}
             }
           }
-
-          localRealm?.close();
         }
       }
     });
@@ -311,7 +325,7 @@ class IsolateHandler {
     LocalConfiguration config = localConfig(encryptionKey, dbPatch);
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     DartPluginRegistrant.ensureInitialized();
-    localRealm?.close();
+
     localRealm = Realm(config);
     // List<UnversalProduct> codes = localRealm!
     //     .query<UnversalProduct>(r'branchId==$0', [branchId]).toList();
@@ -322,7 +336,7 @@ class IsolateHandler {
     //       sendPort.send(1);
     //     }
     //   });
-    //   talker.warning("Empty code fetching now");
+    //   print("Empty code fetching now");
     //   // fetchDataAndSaveUniversalProducts(businessId, branchId, URI, bhfid);
     //   sendPort.send(1);
     //   completer.complete();
@@ -346,7 +360,7 @@ class IsolateHandler {
         ///TODO: change this date to a working date in production
         "lastReqDt": "20190523000000",
       });
-      talker.warning("Loading item codes");
+      print("Loading item codes");
       final response =
           await http.post(Uri.parse(url), headers: headers, body: body);
       if (response.statusCode == 200) {
@@ -384,14 +398,13 @@ class IsolateHandler {
             }
           }
         } else {
-          talker.warning('No data found in the response.');
+          print('No data found in the response.');
         }
       } else {
-        talker.warning(
-            'Failed to load data. Status code: ${response.statusCode}');
+        print('Failed to load data. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      // talker.warning('Error fetching data: $e');
+      // print('Error fetching data: $e');
     }
   }
 
@@ -410,7 +423,7 @@ class IsolateHandler {
       localRealm.write(() {
         if (variant != null) {
           stock.variant = variant;
-          talker.warning("Healed Stock: ${stock.id}");
+          print("Healed Stock: ${stock.id}");
         }
       });
     }
@@ -424,7 +437,7 @@ class IsolateHandler {
           .query<Product>(r'id == $0', [variant.productId]).firstOrNull;
       if (product != null) {
         localRealm.write(() {
-          talker.warning("healedProductName: ${variant.id}");
+          print("healedProductName: ${variant.id}");
           variant.productName = product.name;
         });
       }
@@ -458,7 +471,7 @@ class IsolateHandler {
       final stock =
           localRealm.query<Stock>(r'variantId == $0', [variant.id]).firstOrNull;
       if (stock == null) {
-        talker.warning("healed Stock: ${variant.id}");
+        print("healed Stock: ${variant.id}");
         localRealm.write(() {
           final newStock = Stock(
             ObjectId(),
@@ -491,7 +504,7 @@ class IsolateHandler {
       } else {
         localRealm.write(() {
           localRealm.delete(config);
-          talker.warning("Deleted unnessary taxes");
+          print("Deleted unnessary taxes");
         });
       }
     }
@@ -505,7 +518,7 @@ class IsolateHandler {
       } else {
         localRealm.write(() {
           localRealm.delete(config);
-          talker.warning("Deleted ebm config");
+          print("Deleted ebm config");
         });
       }
     }
