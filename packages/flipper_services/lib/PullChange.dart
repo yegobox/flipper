@@ -237,44 +237,23 @@ class PullChange {
         talker.warning("Incoming stock ${data['stock_id']}");
         return Stock(
           ObjectId(),
-          id: data['stock_id'] == null ? randomNumber() : data['stock_id'],
-          currentStock:
-              data['current_stock'] is int || data['current_stock'] is double
-                  ? data['current_stock'].toDouble()
-                  : double.tryParse(data['current_stock']) ?? 0.0,
-          initialStock:
-              data['initial_stock'] == null ? 0.0 : data['initial_stock'],
-          lowStock: data['low_stock'] is int || data['low_stock'] is double
-              ? data['low_stock'].toDouble()
-              : double.tryParse(data['low_stock']) ?? 0.0,
-          canTrackingStock: data['can_tracking_stock'] ?? false,
-          showLowStockAlert: data['show_low_stock_alert'] ?? false,
-          productId: data['product_id'] is int
-              ? data['product_id']
-              : int.tryParse(data['product_id']) ?? 0,
+          id: data['stock_id'],
+          currentStock: data['current_stock'].toDouble(),
+          initialStock: data['initial_stock'].toDouble(),
+          lowStock: data['low_stock'].toDouble(),
+          canTrackingStock: data['can_tracking_stock'],
+          showLowStockAlert: data['show_low_stock_alert'],
+          productId: data['product_id'],
           active: data['active'] ?? false,
-          value: data['value'] == null ? 0 : data['value'],
-          rsdQty: data['rsd_qty'] is int || data['rsd_qty'] is double
-              ? data['rsd_qty'].toDouble()
-              : double.tryParse(data['rsd_qty']) ?? 0.0,
-          supplyPrice:
-              data['supply_price'] is int || data['supply_price'] is double
-                  ? data['supply_price'].toDouble()
-                  : double.tryParse(data['supplyPrice']) ?? 0.0,
-          retailPrice: data['retail_price'] is int ||
-                  data['retail_price'] is double && data['retail_price'] != null
-              ? data['retail_price'].toDouble()
-              : double.tryParse(data['retail_price']) ?? 0.0,
-          lastTouched: data['last_touched'] is DateTime
-              ? data['last_touched']
-              : DateTime.tryParse(data['last_touched']) ?? DateTime.now(),
-          branchId: data['branch_id'] is int
-              ? data['branch_id']
-              : int.tryParse(data['branch_id']) ?? 0,
-          variantId: data['variant_id'] is int
-              ? data['variant_id']
-              : int.tryParse(data['variant_id']) ?? 0,
-          deletedAt: data['deleted_at'] is DateTime ? data['deleted_at'] : null,
+          value: data['value'].toDouble(),
+          rsdQty: data['rsd_qty'].toDouble(),
+          supplyPrice: data['supply_price'].toDouble(),
+          retailPrice: data['retail_price'].toDouble(),
+          lastTouched: data['last_touched'] == null
+              ? DateTime.now()
+              : DateTime.tryParse(data['last_touched']),
+          branchId: data['branch_id'],
+          variantId: data['variant_id'],
           ebmSynced: data['ebm_synced'] ?? false,
         );
       },
