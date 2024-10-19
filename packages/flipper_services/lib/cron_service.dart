@@ -165,30 +165,30 @@ class CronService {
       if (sendPort != null) {
         Business business = ProxyService.local.realm!.query<Business>(
             r'serverId == $0', [ProxyService.box.getBusinessId()!]).first;
-        sendPort!.send({
-          'task': 'sync',
-          'branchId': ProxyService.box.getBranchId()!,
-          "URI": ProxyService.box.getServerUrl(),
-          "userId": ProxyService.box.getUserId()!,
-          "businessId": ProxyService.box.getBusinessId()!,
-          'encryptionKey': ProxyService.box.encryptionKey(),
-          'dbPath': await ProxyService.local.dbPath(
-            path: 'local',
-            folder: ProxyService.box.getBusinessId(),
-          ),
-        });
-        sendPort!.send({
-          'task': 'taxService',
-          'branchId': ProxyService.box.getBranchId()!,
-          "URI": ProxyService.box.getServerUrl(),
-          "bhfId": ProxyService.box.bhfId(),
-          'tinNumber': business.tinNumber,
-          'encryptionKey': ProxyService.box.encryptionKey(),
-          'dbPath': await ProxyService.local.dbPath(
-            path: 'local',
-            folder: ProxyService.box.getBusinessId(),
-          ),
-        });
+        // sendPort!.send({
+        //   'task': 'sync',
+        //   'branchId': ProxyService.box.getBranchId()!,
+        //   "URI": ProxyService.box.getServerUrl(),
+        //   "userId": ProxyService.box.getUserId()!,
+        //   "businessId": ProxyService.box.getBusinessId()!,
+        //   'encryptionKey': ProxyService.box.encryptionKey(),
+        //   'dbPath': await ProxyService.local.dbPath(
+        //     path: 'local',
+        //     folder: ProxyService.box.getBusinessId(),
+        //   ),
+        // });
+        // sendPort!.send({
+        //   'task': 'taxService',
+        //   'branchId': ProxyService.box.getBranchId()!,
+        //   "URI": ProxyService.box.getServerUrl(),
+        //   "bhfId": ProxyService.box.bhfId(),
+        //   'tinNumber': business.tinNumber,
+        //   'encryptionKey': ProxyService.box.encryptionKey(),
+        //   'dbPath': await ProxyService.local.dbPath(
+        //     path: 'local',
+        //     folder: ProxyService.box.getBusinessId(),
+        //   ),
+        // });
       }
     });
 

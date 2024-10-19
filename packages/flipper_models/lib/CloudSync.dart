@@ -354,6 +354,8 @@ class CloudSync implements SyncInterface {
     final modifiedMap =
         map.map((key, value) => MapEntry(camelToSnakeCase(key), value));
     modifiedMap[idField] = map['id'];
+    // add updated_at to any change made
+    modifiedMap['updated_at'] = DateTime.now().toIso8601String();
     if (syncProvider == SyncProvider.FIRESTORE) {
       try {
         // Check if the document already exists
@@ -436,7 +438,7 @@ class CloudSync implements SyncInterface {
         final subscription = _firestore!
             .collection(tableName)
             .where('branch_id', whereIn: branchIds)
-            // .orderBy('created_at', descending: true)
+            .orderBy('updated_at', descending: true)
             .limit(100)
             .snapshots()
             .listen((querySnapshot) {

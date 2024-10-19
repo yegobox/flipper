@@ -34,12 +34,12 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
 // Generated in previous step
 import 'amplifyconfiguration.dart';
 
-Future clearFirestoreCache() async {
-  try {
-    await FirebaseFirestore.instance.clearPersistence();
-  } catch (e) {
-  }
-}
+// Future clearFirestoreCache() async {
+//   try {
+//     await FirebaseFirestore.instance.clearPersistence();
+//   } catch (e) {
+//   }
+// }
 
 Future<void> _configureAmplify() async {
   // Add any Amplify plugins you want to use

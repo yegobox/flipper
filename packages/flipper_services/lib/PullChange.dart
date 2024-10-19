@@ -72,6 +72,7 @@ class PullChange {
           watchRequests(localRealm, firestore, branchIds: branchIds);
           watchCounters(localRealm, firestore, branchIds: branchIds);
         } else {
+          print("We are in pullChange");
           // Start all tables
           watchStocks(localRealm, firestore, branchIds: branchIds);
           watchRequests(localRealm, firestore, branchIds: branchIds);
@@ -227,12 +228,14 @@ class PullChange {
 
   void watchStocks(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
+    talker.warning("registering ${"${stocksTable.singularize()}_id"}");
     cloudSync!.watchTable<Stock>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
-      tableName: 'stocks',
-      idField: 'stock_id',
+      tableName: stocksTable,
+      idField: "${stocksTable.singularize()}_id",
       createRealmObject: (data) {
+        talker.warning("Incoming stock ${data['stock_id']}");
         return Stock(
           ObjectId(),
           id: data['stock_id'] == null ? randomNumber() : data['stock_id'],
@@ -284,11 +287,9 @@ class PullChange {
             .sendLocalNotification(body: "Received stock ${stock?.id}");
         if (stock != null) {
           localRealm.write(() {
-            final finalStock =
-                data['current_stock'] == null ? 0 : data['current_stock'];
-            stock.currentStock = finalStock;
-            stock.initialStock = data['initial_stock'];
-            stock.rsdQty = finalStock;
+            stock.currentStock = data['initial_stock'].toDouble();
+            stock.initialStock = data['initial_stock'].toDouble();
+            stock.rsdQty = data['initial_stock'].toDouble();
             stock.lastTouched = data['last_touched'] == null
                 ? DateTime.now()
                 : DateTime.tryParse(data['last_touched']);
