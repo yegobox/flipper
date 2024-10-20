@@ -9,7 +9,6 @@ import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realm_model_export.dart' as mod;
 import 'package:flipper_services/proxy.dart';
-// import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -227,14 +226,12 @@ class PullChange {
 
   void watchStocks(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    talker.warning("registering ${"${stocksTable.singularize()}_id"}");
     cloudSync!.watchTable<Stock>(
       branchIds: branchIds,
       syncProvider: SyncProvider.FIRESTORE,
       tableName: stocksTable,
       idField: "${stocksTable.singularize()}_id",
       createRealmObject: (data) {
-        talker.warning("Incoming stock ${data['stock_id']}");
         return Stock(
           ObjectId(),
           id: data['stock_id'],
@@ -287,7 +284,7 @@ class PullChange {
       createRealmObject: (data) {
         return Counter(
           ObjectId(),
-          id: data['counter_id'] == null ? randomNumber() : data['counter_id'],
+          id:  data['counter_id'],
           businessId: data['business_id'] is int
               ? data['business_id']
               : int.tryParse(data['business_id']) ?? 0,
@@ -353,9 +350,7 @@ class PullChange {
       createRealmObject: (data) {
         return Composite(
           ObjectId(),
-          id: data['composite_id'] == null
-              ? randomNumber()
-              : data['composite_id'],
+          id: data['composite_id'],
           productId: data['product_id'] is int
               ? data['product_id']
               : int.tryParse(data['product_id']) ?? 0,
@@ -418,7 +413,7 @@ class PullChange {
       createRealmObject: (data) {
         return SKU(
           ObjectId(),
-          id: data['sku_id'] == null ? randomNumber() : data['sku_id'],
+          id:data['sku_id'],
           sku: data['sku'] is int
               ? data['sku']
               : int.tryParse(data['sku']) ?? 100,
@@ -463,7 +458,7 @@ class PullChange {
       createRealmObject: (data) {
         return Access(
           ObjectId(),
-          id: data['access_id'] == null ? randomNumber() : data['access_id'],
+          id: data['access_id'],
           branchId: data['branch_id'] is int
               ? data['branch_id']
               : int.tryParse(data['branch_id']) ?? 0,
@@ -523,9 +518,7 @@ class PullChange {
       createRealmObject: (data) {
         return PaymentPlan(
           ObjectId(),
-          id: data['payment_plan_id'] == null
-              ? randomNumber()
-              : data['payment_plan_id'],
+          id:  data['payment_plan_id'],
           businessId: data['business_id'] is int
               ? data['business_id']
               : int.tryParse(data['business_id']) ?? 0,
@@ -605,9 +598,7 @@ class PullChange {
       createRealmObject: (data) {
         return FlipperSaleCompaign(
           ObjectId(),
-          id: data['flipper_sale_compaign_id'] == null
-              ? randomNumber()
-              : data['flipper_sale_compaign_id'],
+          id:  data['flipper_sale_compaign_id'],
           compaignId: data['compaign_id'] is int
               ? data['compaign_id']
               : int.tryParse(data['compaign_id']) ?? 0,
@@ -653,9 +644,7 @@ class PullChange {
       createRealmObject: (data) {
         return TransactionPaymentRecord(
           ObjectId(),
-          id: data['transaction_payment_record_id'] == null
-              ? randomNumber()
-              : data['transaction_payment_record_id'],
+          id: data['transaction_payment_record_id'] ,
           transactionId: data['transaction_id'] is int
               ? data['transaction_id']
               : int.tryParse(data['transaction_id']) ?? 0,
@@ -702,7 +691,7 @@ class PullChange {
       createRealmObject: (data) {
         return Assets(
           ObjectId(),
-          id: data['asset_id'] == null ? 0 : data['asset_id'],
+          id: data['asset_id'],
           branchId: data['branch_id'] == null ? 0 : data['branch_id'],
           businessId: data['business_id'] == null ? 0 : data['business_id'],
           assetName: data['asset_name'] == null ? "" : data['asset_name'],
@@ -736,7 +725,7 @@ class PullChange {
       createRealmObject: (data) {
         return Setting(
           ObjectId(),
-          id: data['setting_id'] == null ? randomNumber() : data['setting_id'],
+          id: data['setting_id'],
           email: data['email'],
           userId: data['user_id'] is int
               ? data['user_id']
@@ -827,9 +816,7 @@ class PullChange {
         // check if there
         return ITransaction(
           ObjectId(),
-          id: data['transaction_id'] == null
-              ? randomNumber()
-              : data['transaction_id'],
+          id: data['transaction_id'],
           branchId: data['branch_id'] == null ? branchId : data['branch_id'],
           receiptType: data['receipt_type'] == null ? "" : data['receipt_type'],
           status: data['status'] == null ? "" : data['status'],
@@ -929,7 +916,7 @@ class PullChange {
       createRealmObject: (data) {
         return Variant(
           ObjectId(),
-          id: data['variant_id'] == null ? 0 : data['variant_id'],
+          id: data['variant_id'] ,
           branchId: data['branch_id'] == null ? branchId : data['branch_id'],
           lastTouched: data['last_touched'] == null
               ? DateTime.now()
@@ -1092,7 +1079,7 @@ class PullChange {
       createRealmObject: (data) {
         return Product(
           ObjectId(),
-          id: data['product_id'] == null ? randomNumber() : data['product_id'],
+          id: data['product_id'],
           name: data['name'] == null ? "" : data['name'],
           description: data['description'],
           taxId: data['tax_id'],
@@ -1258,7 +1245,6 @@ class PullChange {
               }
             }
             localRealm.write(() {
-              talker.warning("Incoming stock Requests: Saved");
               // check if this stock request already exist
               final stockRequestExist = localRealm.query<mod.StockRequest>(
                   r'id == $0', [stockRequest.id]).firstOrNull;

@@ -42,10 +42,10 @@ class IsolateHandler {
     // Send this ReceivePort's SendPort back to the main isolate for communication
     /// for firestore it require to be re-initialized within isolate
     sendPort.send(port.sendPort);
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    final firestore = FirebaseFirestore.instance;
+    // await Firebase.initializeApp(
+    //   options: DefaultFirebaseOptions.currentPlatform,
+    // );
+    // final firestore = FirebaseFirestore.instance;
 
     port.listen((message) async {
       if (message is Map<String, dynamic>) {

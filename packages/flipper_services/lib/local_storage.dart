@@ -23,6 +23,7 @@ class SharedPreferenceStorage implements LocalStorage {
         'isTrainingMode',
         'isAutoPrintEnabled',
         'isAutoBackupEnabled',
+        'transactionId',
         'hasSignedInForAutoBackup',
         'gdID',
         'isAnonymous',

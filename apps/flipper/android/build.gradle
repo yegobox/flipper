@@ -17,3 +17,5 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+// could not run the app in profile mode because of realm https://github.com/realm/realm-dart/issues/1789
