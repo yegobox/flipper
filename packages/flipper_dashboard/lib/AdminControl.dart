@@ -31,7 +31,9 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   Future<void> toggleDownload(bool value) async {
-    await ProxyService.box.writeBool(key: 'doneDownloadingAsset', value: false);
+    await ProxyService.box.writeBool(
+        key: 'doneDownloadingAsset',
+        value: !ProxyService.box.doneDownloadingAsset());
     ProxyService.local.reDownloadAsset();
     setState(() {
       filesDownloaded = ProxyService.box.doneDownloadingAsset();
@@ -39,7 +41,8 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   Future<void> toggleForceUPSERT(bool value) async {
-    await ProxyService.box.writeBool(key: 'forceUPSERT', value: true);
+    await ProxyService.box
+        .writeBool(key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
     ProxyService.local.upSert();
 
     setState(() {

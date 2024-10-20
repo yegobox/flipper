@@ -4959,7 +4959,13 @@ class LocalRealmApi
       /// get all Products
       List<Product> products = realm!.all<Product>().toList();
       for (Product product in products) {
-        if (product.id == null) continue;
+        if (product.id == null) {
+          realm!.write(() {
+            realm!.delete(product);
+          });
+          continue;
+        }
+        ;
         ProxyService.synchronize.updateRecord(
             tableName: productsTable,
             idField: "${productsTable.singularize()}_id",
@@ -4969,7 +4975,12 @@ class LocalRealmApi
       }
       List<Assets> assets = realm!.all<Assets>().toList();
       for (Assets asset in assets) {
-        if (asset.id == null) continue;
+        if (asset.id == null) {
+          realm!.write(() {
+            realm!.delete(asset);
+          });
+          continue;
+        }
         ProxyService.synchronize.updateRecord(
             tableName: assetsTable,
             idField: "${assetsTable.singularize()}_id",
@@ -4980,7 +4991,13 @@ class LocalRealmApi
 
       List<Variant> variants = realm!.all<Variant>().toList();
       for (Variant variant in variants) {
-        if (variant.id == null) continue;
+        if (variant.id == null) {
+          realm!.write(() {
+            realm!.delete(variant);
+          });
+          continue;
+        }
+        ;
         ProxyService.synchronize.updateRecord(
             tableName: variantTable,
             idField: "${variantTable.singularize()}_id",
@@ -4991,7 +5008,13 @@ class LocalRealmApi
 
       List<Stock> stocks = realm!.all<Stock>().toList();
       for (Stock stock in stocks) {
-        if (stock.id == null) continue;
+        if (stock.id == null) {
+          realm!.write(() {
+            realm!.delete(stock);
+          });
+          continue;
+        }
+        ;
         ProxyService.synchronize.updateRecord(
             tableName: stocksTable,
             idField: "${stocksTable.singularize()}_id",
@@ -5002,7 +5025,13 @@ class LocalRealmApi
 
       List<TransactionItem> items = realm!.all<TransactionItem>().toList();
       for (TransactionItem item in items) {
-        if (item.id == null) continue;
+        if (item.id == null) {
+          realm!.write(() {
+            realm!.delete(item);
+          });
+          continue;
+        }
+        ;
         ProxyService.synchronize.updateRecord(
             tableName: transactionItemsTable,
             idField: "${transactionItemsTable.singularize()}_id",
@@ -5013,7 +5042,12 @@ class LocalRealmApi
 
       List<Access> accesses = realm!.all<Access>().toList();
       for (Access access in accesses) {
-        if (access.id == null) continue;
+        if (access.id == null) {
+          realm!.write(() {
+            realm!.delete(access);
+          });
+          continue;
+        }
         ProxyService.synchronize.updateRecord(
             tableName: accessesTable,
             idField: "${accessesTable.singularize()}_id",
@@ -5023,7 +5057,12 @@ class LocalRealmApi
       }
       List<StockRequest> requests = realm!.all<StockRequest>().toList();
       for (StockRequest request in requests) {
-        if (request.id == null) continue;
+        if (request.id == null) {
+          realm!.write(() {
+            realm!.delete(request);
+          });
+          continue;
+        }
         ProxyService.synchronize.updateRecord(
             tableName: stockRequestsTable,
             idField: "${stockRequestsTable.singularize()}_id",
