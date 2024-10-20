@@ -4955,7 +4955,29 @@ class LocalRealmApi
   @override
   void upSert() {
     talker.warning("Force UPSERT");
+
     try {
+      clearVariants();
+      final firestore = FirebaseFirestore.instance;
+      CloudSync(firestore, realm: realm!)
+          .deleteDuplicate(tableName: productsTable);
+      CloudSync(firestore, realm: realm!)
+          .deleteDuplicate(tableName: variantTable);
+      CloudSync(firestore, realm: realm!)
+          .deleteDuplicate(tableName: stocksTable);
+      CloudSync(firestore, realm: realm!)
+          .deleteDuplicate(tableName: transactionItemsTable);
+      CloudSync(firestore, realm: realm!)
+          .deleteDuplicate(tableName: stockRequestsTable);
+      CloudSync(firestore, realm: realm!)
+          .deleteDuplicate(tableName: accessesTable);
+      CloudSync(firestore, realm: realm!)
+          .deleteDuplicate(tableName: transactionItemsTable);
+      CloudSync(firestore, realm: realm!)
+          .deleteDuplicate(tableName: assetsTable);
+      CloudSync(firestore, realm: realm!)
+          .deleteDuplicate(tableName: categoriesTable);
+
       /// get all Products
       List<Product> products = realm!.all<Product>().toList();
       for (Product product in products) {
@@ -4965,7 +4987,7 @@ class LocalRealmApi
           });
           continue;
         }
-        ;
+
         ProxyService.synchronize.updateRecord(
             tableName: productsTable,
             idField: "${productsTable.singularize()}_id",
@@ -5031,7 +5053,7 @@ class LocalRealmApi
           });
           continue;
         }
-        ;
+
         ProxyService.synchronize.updateRecord(
             tableName: transactionItemsTable,
             idField: "${transactionItemsTable.singularize()}_id",
@@ -5280,28 +5302,6 @@ class LocalRealmApi
 
   @override
   void clearVariants() {
-    final firestore = FirebaseFirestore.instance;
-    CloudSync(firestore, realm: realm!)
-        .deleteDuplicate(tableName: productsTable);
-    CloudSync(firestore, realm: realm!)
-        .deleteDuplicate(tableName: variantTable);
-    CloudSync(firestore, realm: realm!).deleteDuplicate(tableName: stocksTable);
-    CloudSync(firestore, realm: realm!)
-        .deleteDuplicate(tableName: transactionItemsTable);
-    CloudSync(firestore, realm: realm!)
-        .deleteDuplicate(tableName: stockRequestsTable);
-    CloudSync(firestore, realm: realm!)
-        .deleteDuplicate(tableName: accessesTable);
-    CloudSync(firestore, realm: realm!)
-        .deleteDuplicate(tableName: transactionItemsTable);
-    CloudSync(firestore, realm: realm!).deleteDuplicate(tableName: assetsTable);
-    CloudSync(firestore, realm: realm!)
-        .deleteDuplicate(tableName: categoriesTable);
-
-    CloudSync(firestore, realm: realm!)
-        .deleteDuplicate(tableName: customersTable);
-    CloudSync(firestore, realm: realm!)
-        .deleteDuplicate(tableName: devicesTable);
     List<Variant> variants = realm!.all<Variant>().toList();
     for (Variant variant in variants) {
       // finc stocks for the variant
@@ -5312,8 +5312,10 @@ class LocalRealmApi
       /// If a variant has more than one stock, it keeps the first stock and deletes all others
       if (stocks.length > 1) {
         for (int i = 1; i < stocks.length; i++) {
-          realm!
-              .deleteN(tableName: stocksTable, deleteCallback: () => stocks[i]);
+          realm!.write(() {
+            realm!.deleteN(
+                tableName: stocksTable, deleteCallback: () => stocks[i]);
+          });
         }
       }
     }

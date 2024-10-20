@@ -310,39 +310,35 @@ class CloudSync implements SyncInterface {
       {required String tableName,
       required String idField,
       required int id}) async {
-    try {
-      if (!isInIsolate()) {
-        realm = ProxyService.local.realm!;
-      }
-
-      cancelWatch(tableName: tableName);
-      await _firestore!.collection(tableName).doc(id.toString()).delete();
-
-      talker.warning("Firestore deleted $tableName with id $id");
-
-      realm!.writeN(
-        tableName: deletedObjectTable,
-        writeCallback: () {
-          DeletedObject? obj =
-              realm!.query<DeletedObject>(r'id == $0', [id]).firstOrNull;
-          if (obj != null) {
-            final deletedObject = DeletedObject(
-              ObjectId(),
-              objectName: tableName,
-              id: id,
-              deviceCount: 1,
-              expectedDeviceCount: 1,
-            );
-            return deletedObject;
-          }
-        },
-        onAdd: (data) {
-          ProxyService.synchronize.syncToFirestore(deletedObjectTable, data);
-        },
-      );
-    } catch (e) {
-      talker.error(e);
+    if (!isInIsolate()) {
+      realm = ProxyService.local.realm!;
     }
+
+    cancelWatch(tableName: tableName);
+    await _firestore!.collection(tableName).doc(id.toString()).delete();
+
+    talker.warning("Firestore deleted $tableName with id $id");
+
+    // realm!.writeN(
+    //   tableName: deletedObjectTable,
+    //   writeCallback: () {
+    //     DeletedObject? obj =
+    //         realm!.query<DeletedObject>(r'id == $0', [id]).firstOrNull;
+    //     if (obj != null) {
+    //       final deletedObject = DeletedObject(
+    //         ObjectId(),
+    //         objectName: tableName,
+    //         id: id,
+    //         deviceCount: 1,
+    //         expectedDeviceCount: 1,
+    //       );
+    //       return deletedObject;
+    //     }
+    //   },
+    //   onAdd: (data) {
+    //     ProxyService.synchronize.syncToFirestore(deletedObjectTable, data);
+    //   },
+    // );
   }
 
   @override
@@ -361,6 +357,8 @@ class CloudSync implements SyncInterface {
     modifiedMap[idField] = map['id'];
     // add updated_at to any change made
     modifiedMap['updated_at'] = DateTime.now().toIso8601String();
+    modifiedMap['local_update'] = true;
+
     if (syncProvider == SyncProvider.FIRESTORE) {
       try {
         // Check if the document already exists
@@ -379,45 +377,43 @@ class CloudSync implements SyncInterface {
           // Create new document
           await docRef.set(modifiedMap);
         }
-
-        /// update table on supabse to know changes that need to be synced e.g on windows data might go slow since
-        /// windows firestore is not stable yet, this will fail when there is no network connection
-        /// so we have a separate isolate that will keep trying syncing data
-
-        await ProxyService.supa.init();
-        try {
-          // Attempt to call the RPC function
-          final rpcResult =
-              await ProxyService.supa.client?.rpc('insert_key', params: {
-            'current_secret_key': AppSecrets.insertKey,
-          });
-
-          // If RPC call is successful, proceed with the insert operation
-          if (rpcResult != null) {
-            final response =
-                await ProxyService.supa.client?.from(dataMapperTable).upsert({
-              'table_name': tableName,
-              'object_id': id,
-              'device_identifier':
-                  await ProxyService.local.getPlatformDeviceId(),
-
-              /// Tobe done incorporate it into payment wall the device expected to download the object.
-              'sync_devices': 0,
-
-              /// this exclude the device that is writing the object setting it to 1
-              'device_downloaded_object': 1
-            }).select();
-            talker.warning(response);
-          }
-        } catch (e) {
-          talker.error('Error occurred: $e');
-          // Handle the error appropriately (e.g., show an error message to the user)
-        }
+        await docRef.update({'local_update': FieldValue.delete()});
       } catch (e, s) {
         talker.warning(e);
         talker.error(s);
         rethrow;
       }
+    }
+  }
+
+  Future<void> _supa({required String tableName, required int id}) async {
+    await ProxyService.supa.init();
+    try {
+      // Attempt to call the RPC function
+      final rpcResult =
+          await ProxyService.supa.client?.rpc('insert_key', params: {
+        'current_secret_key': AppSecrets.insertKey,
+      });
+
+      // If RPC call is successful, proceed with the insert operation
+      if (rpcResult != null) {
+        final response =
+            await ProxyService.supa.client?.from(dataMapperTable).upsert({
+          'table_name': tableName,
+          'object_id': id,
+          'device_identifier': await ProxyService.local.getPlatformDeviceId(),
+
+          /// Tobe done incorporate it into payment wall the device expected to download the object.
+          'sync_devices': 0,
+
+          /// this exclude the device that is writing the object setting it to 1
+          'device_downloaded_object': 1
+        }).select();
+        talker.warning(response);
+      }
+    } catch (e) {
+      talker.error('Error occurred: $e');
+      // Handle the error appropriately (e.g., show an error message to the user)
     }
   }
 
@@ -457,6 +453,10 @@ class CloudSync implements SyncInterface {
               case DocumentChangeType.modified:
                 try {
                   if (realm!.isClosed) return;
+                  if (data['local_update'] == true) {
+                    // Ignore this update as it was triggered by our local write
+                    continue;
+                  }
                   T? realmObject =
                       realm!.query<T>(r'id == $0', [id]).firstOrNull;
                   if (realmObject == null) {
@@ -486,6 +486,24 @@ class CloudSync implements SyncInterface {
                       realm!.query<T>(r'id == $0', [id]).firstOrNull;
 
                   if (realmObject != null) {
+                    var eJson = (realmObject is Stock)
+                        ? realmObject
+                            .toEJson(includeVariant: false)
+                            .toFlipperJson()
+                        : realmObject.toEJson().toFlipperJson();
+
+                    realm!.add<DeletedObject>(
+                      DeletedObject(
+                        ObjectId(),
+                        id: (realmObject is Stock)
+                            ? realmObject.id!
+                            : eJson['id'],
+                        branchId: eJson['branch_id'],
+                        businessId: eJson['business_id'],
+                        deviceCount: 1,
+                      ),
+                    );
+
                     realm!.delete(realmObject);
                   }
                 });

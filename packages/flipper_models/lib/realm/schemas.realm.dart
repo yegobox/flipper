@@ -3951,7 +3951,9 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       'ebmSynced': ebmSynced.toEJson(),
       'cloudSynced': cloudSynced.toEJson(),
       'variant': includeVariant
-          ? (variant as Variant).toEJson(includeStock: false)
+          ? variant == null
+              ? null
+              : (variant as Variant).toEJson(includeStock: false)
           : null,
       'initialStock': initialStock.toEJson(),
     };
