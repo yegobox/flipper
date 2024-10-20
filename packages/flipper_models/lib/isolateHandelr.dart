@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/firebase_options.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
@@ -42,10 +43,10 @@ class IsolateHandler {
     // Send this ReceivePort's SendPort back to the main isolate for communication
     /// for firestore it require to be re-initialized within isolate
     sendPort.send(port.sendPort);
-    // await Firebase.initializeApp(
-    //   options: DefaultFirebaseOptions.currentPlatform,
-    // );
-    // final firestore = FirebaseFirestore.instance;
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    final firestore = FirebaseFirestore.instance;
 
     port.listen((message) async {
       if (message is Map<String, dynamic>) {
@@ -417,6 +418,8 @@ class IsolateHandler {
 
   /// handle properties added later as the app grow but needed to support old clients
   static void _selfHeal({Realm? localRealm}) {
+    /// query all variants
+
     // Query stocks where sold == 0.0
     List<Stock> stocks = localRealm!.query<Stock>(r'variant == NULL').toList();
 

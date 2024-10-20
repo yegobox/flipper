@@ -38,6 +38,22 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
+    List<Variant> variants = ProxyService.local.realm!.all<Variant>().toList();
+    for (Variant variant in variants) {
+      // finc stocks for the variant
+      List<Stock> stocks = ProxyService.local.realm!
+          .query<Stock>(r'variantId == $0', [variant.id]).toList();
+
+      /// if variant have more than one stock delete them remain with the first one
+      /// If a variant has more than one stock, it keeps the first stock and deletes all others
+      if (stocks.length > 1) {
+        for (int i = 1; i < stocks.length; i++) {
+          ProxyService.local.realm!
+              .deleteN(tableName: stocksTable, deleteCallback: () => stocks[i]);
+        }
+      }
+    }
+
     List<ConnectivityResult> results = await Connectivity().checkConnectivity();
 
     if (results.any((result) => result != ConnectivityResult.none)) {
@@ -165,30 +181,30 @@ class CronService {
       if (sendPort != null) {
         Business business = ProxyService.local.realm!.query<Business>(
             r'serverId == $0', [ProxyService.box.getBusinessId()!]).first;
-        // sendPort!.send({
-        //   'task': 'sync',
-        //   'branchId': ProxyService.box.getBranchId()!,
-        //   "URI": ProxyService.box.getServerUrl(),
-        //   "userId": ProxyService.box.getUserId()!,
-        //   "businessId": ProxyService.box.getBusinessId()!,
-        //   'encryptionKey': ProxyService.box.encryptionKey(),
-        //   'dbPath': await ProxyService.local.dbPath(
-        //     path: 'local',
-        //     folder: ProxyService.box.getBusinessId(),
-        //   ),
-        // });
-        // sendPort!.send({
-        //   'task': 'taxService',
-        //   'branchId': ProxyService.box.getBranchId()!,
-        //   "URI": ProxyService.box.getServerUrl(),
-        //   "bhfId": ProxyService.box.bhfId(),
-        //   'tinNumber': business.tinNumber,
-        //   'encryptionKey': ProxyService.box.encryptionKey(),
-        //   'dbPath': await ProxyService.local.dbPath(
-        //     path: 'local',
-        //     folder: ProxyService.box.getBusinessId(),
-        //   ),
-        // });
+        sendPort!.send({
+          'task': 'sync',
+          'branchId': ProxyService.box.getBranchId()!,
+          "URI": ProxyService.box.getServerUrl(),
+          "userId": ProxyService.box.getUserId()!,
+          "businessId": ProxyService.box.getBusinessId()!,
+          'encryptionKey': ProxyService.box.encryptionKey(),
+          'dbPath': await ProxyService.local.dbPath(
+            path: 'local',
+            folder: ProxyService.box.getBusinessId(),
+          ),
+        });
+        sendPort!.send({
+          'task': 'taxService',
+          'branchId': ProxyService.box.getBranchId()!,
+          "URI": ProxyService.box.getServerUrl(),
+          "bhfId": ProxyService.box.bhfId(),
+          'tinNumber': business.tinNumber,
+          'encryptionKey': ProxyService.box.encryptionKey(),
+          'dbPath': await ProxyService.local.dbPath(
+            path: 'local',
+            folder: ProxyService.box.getBusinessId(),
+          ),
+        });
       }
     });
 
