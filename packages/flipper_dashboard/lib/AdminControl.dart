@@ -17,6 +17,7 @@ class _AdminControlState extends State<AdminControl> {
   bool isPosDefault = false;
   bool isOrdersDefault = true;
   bool filesDownloaded = false;
+  bool forceUPSERT = false;
   @override
   void initState() {
     super.initState();
@@ -24,12 +25,20 @@ class _AdminControlState extends State<AdminControl> {
     isOrdersDefault = ProxyService.box.readBool(key: 'isOrdersDefault') ?? true;
     filesDownloaded =
         ProxyService.box.readBool(key: 'doneDownloadingAsset') ?? true;
+    forceUPSERT = ProxyService.box.forceUPSERT();
   }
 
-  void toggleDownload(bool value) {
-    ProxyService.box.writeBool(key: 'doneDownloadingAsset', value: false);
+  Future<void> toggleDownload(bool value) async {
+    await ProxyService.box.writeBool(key: 'doneDownloadingAsset', value: false);
     setState(() {
       filesDownloaded = ProxyService.box.doneDownloadingAsset();
+    });
+  }
+
+  Future<void> toggleForceUPSERT(bool value) async {
+    await ProxyService.box.writeBool(key: 'forceUPSERT', value: true);
+    setState(() {
+      forceUPSERT = ProxyService.box.forceUPSERT();
     });
   }
 
@@ -175,6 +184,24 @@ class _AdminControlState extends State<AdminControl> {
                           onChanged: toggleOrders,
                         ),
                       ),
+                    ],
+                  ),
+                ],
+              ),
+              SettingsSection(
+                title: 'Sync',
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SwitchSettingsCard(
+                          title: 'Synchronize',
+                          subtitle: 'Force upsert',
+                          icon: Icons.sync,
+                          value: forceUPSERT,
+                          onChanged: toggleForceUPSERT,
+                        ),
+                      )
                     ],
                   ),
                 ],

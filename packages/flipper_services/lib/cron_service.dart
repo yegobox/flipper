@@ -38,29 +38,15 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
-    List<Variant> variants = ProxyService.local.realm!.all<Variant>().toList();
-    for (Variant variant in variants) {
-      // finc stocks for the variant
-      List<Stock> stocks = ProxyService.local.realm!
-          .query<Stock>(r'variantId == $0', [variant.id]).toList();
-
-      /// if variant have more than one stock delete them remain with the first one
-      /// If a variant has more than one stock, it keeps the first stock and deletes all others
-      if (stocks.length > 1) {
-        for (int i = 1; i < stocks.length; i++) {
-          ProxyService.local.realm!
-              .deleteN(tableName: stocksTable, deleteCallback: () => stocks[i]);
-        }
-      }
-    }
-
     List<ConnectivityResult> results = await Connectivity().checkConnectivity();
 
     if (results.any((result) => result != ConnectivityResult.none)) {
       if (FirebaseAuth.instance.currentUser == null) {
         await ProxyService.synchronize.firebaseLogin();
       }
+      talker.warning("Done checking connectivity: $doneInitializingDataPull");
       if (!doneInitializingDataPull) {
+        talker.warning("Starting pull change");
         PullChange().start(
           mbranchId: ProxyService.box.getBranchId()!,
           mbusinessId: ProxyService.box.getBusinessId()!,
@@ -68,13 +54,14 @@ class CronService {
           firestore: FirebaseFirestore.instance,
           localRealm: ProxyService.local.realm!,
         );
-        // doneInitializingDataPull = true;
+        doneInitializingDataPull = true;
       }
     }
 
     ProxyService.box.writeBool(key: 'isOrdering', value: false);
 
     if (ProxyService.box.forceUPSERT()) {
+      talker.warning("Force UPSERT");
       try {
         /// get all Products
         List<Product> products =
@@ -149,6 +136,9 @@ class CronService {
               id: request.id!,
               syncProvider: SyncProvider.FIRESTORE);
         }
+
+        /// done upserting
+        ProxyService.box.writeBool(key: 'forceUPSERT', value: false);
       } catch (e, s) {
         talker.warning(e);
         talker.error(s);
@@ -244,6 +234,25 @@ class CronService {
       }
     });
     await _setupFirebaseMessaging();
+
+    talker.warning("Starting cleaning up variants");
+    List<Variant> variants = ProxyService.local.realm!.all<Variant>().toList();
+    for (Variant variant in variants) {
+      // finc stocks for the variant
+      List<Stock> stocks = ProxyService.local.realm!
+          .query<Stock>(r'variantId == $0', [variant.id]).toList();
+
+      /// if variant have more than one stock delete them remain with the first one
+      /// If a variant has more than one stock, it keeps the first stock and deletes all others
+      if (stocks.length > 1) {
+        for (int i = 1; i < stocks.length; i++) {
+          ProxyService.local.realm!
+              .deleteN(tableName: stocksTable, deleteCallback: () => stocks[i]);
+        }
+      }
+    }
+
+    talker.warning("Done cleaning up variants");
   }
 
   Future<void> _spawnIsolate(dynamic isolateHandler) async {

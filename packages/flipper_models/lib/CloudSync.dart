@@ -310,34 +310,39 @@ class CloudSync implements SyncInterface {
       {required String tableName,
       required String idField,
       required int id}) async {
-    talker.warning("Firestore deleting $tableName with id $id");
-    if (!isInIsolate()) {
-      realm = ProxyService.local.realm!;
+    try {
+      if (!isInIsolate()) {
+        realm = ProxyService.local.realm!;
+      }
+
+      cancelWatch(tableName: tableName);
+      await _firestore!.collection(tableName).doc(id.toString()).delete();
+
+      talker.warning("Firestore deleted $tableName with id $id");
+
+      realm!.writeN(
+        tableName: deletedObjectTable,
+        writeCallback: () {
+          DeletedObject? obj =
+              realm!.query<DeletedObject>(r'id == $0', [id]).firstOrNull;
+          if (obj != null) {
+            final deletedObject = DeletedObject(
+              ObjectId(),
+              objectName: tableName,
+              id: id,
+              deviceCount: 1,
+              expectedDeviceCount: 1,
+            );
+            return deletedObject;
+          }
+        },
+        onAdd: (data) {
+          ProxyService.synchronize.syncToFirestore(deletedObjectTable, data);
+        },
+      );
+    } catch (e) {
+      talker.error(e);
     }
-
-    cancelWatch(tableName: tableName);
-    await _firestore!.collection(tableName).doc(id.toString()).delete();
-
-    realm!.writeN(
-      tableName: deletedObjectTable,
-      writeCallback: () {
-        DeletedObject? obj =
-            realm!.query<DeletedObject>(r'id == $0', [id]).firstOrNull;
-        if (obj != null) {
-          final deletedObject = DeletedObject(
-            ObjectId(),
-            objectName: tableName,
-            id: id,
-            deviceCount: 1,
-            expectedDeviceCount: 1,
-          );
-          return deletedObject;
-        }
-      },
-      onAdd: (data) {
-        ProxyService.synchronize.syncToFirestore(deletedObjectTable, data);
-      },
-    );
   }
 
   @override
@@ -481,24 +486,6 @@ class CloudSync implements SyncInterface {
                       realm!.query<T>(r'id == $0', [id]).firstOrNull;
 
                   if (realmObject != null) {
-                    var eJson = (realmObject is Stock)
-                        ? realmObject
-                            .toEJson(includeVariant: false)
-                            .toFlipperJson()
-                        : realmObject.toEJson().toFlipperJson();
-
-                    realm!.add<DeletedObject>(
-                      DeletedObject(
-                        ObjectId(),
-                        id: (realmObject is Stock)
-                            ? realmObject.id!
-                            : eJson['id'],
-                        branchId: eJson['branch_id'],
-                        businessId: eJson['business_id'],
-                        deviceCount: 1,
-                      ),
-                    );
-
                     realm!.delete(realmObject);
                   }
                 });
