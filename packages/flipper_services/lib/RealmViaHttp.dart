@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -1590,6 +1591,39 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   @override
   void updateStock({required int stockId, required double qty}) {
     // TODO: implement updateStock
+  }
+
+  @override
+  ReceivePort? receivePort;
+
+  @override
+  SendPort? sendPort;
+
+  @override
+  void clearVariants() {
+    // TODO: implement clearVariants
+  }
+
+  @override
+  Future<void> sendMessageToIsolate() {
+    // TODO: implement isolate
+    throw UnimplementedError();
+  }
+
+  @override
+  void reDownloadAsset() {
+    // TODO: implement reDownloadAsset
+  }
+
+  @override
+  Future<void> spawnIsolate(isolateHandler) {
+    // TODO: implement spawnIsolate
+    throw UnimplementedError();
+  }
+
+  @override
+  void upSert() {
+    // TODO: implement upSert
   }
 }
 

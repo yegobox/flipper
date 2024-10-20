@@ -57,7 +57,8 @@ class SharedPreferenceStorage implements LocalStorage {
         'dbVersion',
         'performBackup',
         'pinLogin',
-        'customerName'
+        'customerName',
+        'stopTaxService'
       },
     ));
     return this;
@@ -334,5 +335,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String? customerName() {
     return prefs.getString('customerName') ?? "N/A";
+  }
+
+  @override
+  bool? stopTaxService() {
+    return prefs.getBool('stopTaxService') ?? false;
   }
 }

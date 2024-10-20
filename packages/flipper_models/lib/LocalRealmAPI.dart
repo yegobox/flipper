@@ -1,6 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/DownloadQueue.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
@@ -488,7 +493,7 @@ class LocalRealmApi
       }
 
       ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
-      Pin? savedPin = await ProxyService.local.savePin(
+      Pin? savedPin = await savePin(
           pin: Pin(ObjectId(),
               userId: int.parse(pin.userId),
               id: int.parse(pin.userId),
@@ -4863,7 +4868,7 @@ class LocalRealmApi
     required List<Counter> counters,
     required RwApiResponse receiptSignature,
   }) {
-    ProxyService.local.realm!.writeN(
+    realm!.writeN(
       tableName: countersTable,
       writeCallback: () {
         for (Counter counter in counters) {
@@ -4888,7 +4893,7 @@ class LocalRealmApi
     try {
       await Future.delayed(Duration(seconds: 4));
       Pin? savedPin;
-      ProxyService.local.realm!.writeN(
+      realm!.writeN(
         tableName: pinsTable,
         writeCallback: () {
           savedPin =
@@ -4945,5 +4950,333 @@ class LocalRealmApi
       return windowsInfo.deviceId;
     }
     return null;
+  }
+
+  @override
+  void upSert() {
+    talker.warning("Force UPSERT");
+    try {
+      /// get all Products
+      List<Product> products = realm!.all<Product>().toList();
+      for (Product product in products) {
+        if (product.id == null) continue;
+        ProxyService.synchronize.updateRecord(
+            tableName: productsTable,
+            idField: "${productsTable.singularize()}_id",
+            map: product.toEJson().toFlipperJson(),
+            id: product.id!,
+            syncProvider: SyncProvider.FIRESTORE);
+      }
+      List<Assets> assets = realm!.all<Assets>().toList();
+      for (Assets asset in assets) {
+        if (asset.id == null) continue;
+        ProxyService.synchronize.updateRecord(
+            tableName: assetsTable,
+            idField: "${assetsTable.singularize()}_id",
+            map: asset.toEJson().toFlipperJson(),
+            id: asset.id!,
+            syncProvider: SyncProvider.FIRESTORE);
+      }
+
+      List<Variant> variants = realm!.all<Variant>().toList();
+      for (Variant variant in variants) {
+        if (variant.id == null) continue;
+        ProxyService.synchronize.updateRecord(
+            tableName: variantTable,
+            idField: "${variantTable.singularize()}_id",
+            map: variant.toEJson().toFlipperJson(),
+            id: variant.id!,
+            syncProvider: SyncProvider.FIRESTORE);
+      }
+
+      List<Stock> stocks = realm!.all<Stock>().toList();
+      for (Stock stock in stocks) {
+        if (stock.id == null) continue;
+        ProxyService.synchronize.updateRecord(
+            tableName: stocksTable,
+            idField: "${stocksTable.singularize()}_id",
+            map: stock.toEJson(includeVariant: true).toFlipperJson(),
+            id: stock.id!,
+            syncProvider: SyncProvider.FIRESTORE);
+      }
+
+      List<TransactionItem> items = realm!.all<TransactionItem>().toList();
+      for (TransactionItem item in items) {
+        if (item.id == null) continue;
+        ProxyService.synchronize.updateRecord(
+            tableName: transactionItemsTable,
+            idField: "${transactionItemsTable.singularize()}_id",
+            map: item.toEJson().toFlipperJson(),
+            id: item.id!,
+            syncProvider: SyncProvider.FIRESTORE);
+      }
+
+      List<Access> accesses = realm!.all<Access>().toList();
+      for (Access access in accesses) {
+        if (access.id == null) continue;
+        ProxyService.synchronize.updateRecord(
+            tableName: accessesTable,
+            idField: "${accessesTable.singularize()}_id",
+            map: access.toEJson().toFlipperJson(),
+            id: access.id!,
+            syncProvider: SyncProvider.FIRESTORE);
+      }
+      List<StockRequest> requests = realm!.all<StockRequest>().toList();
+      for (StockRequest request in requests) {
+        if (request.id == null) continue;
+        ProxyService.synchronize.updateRecord(
+            tableName: stockRequestsTable,
+            idField: "${stockRequestsTable.singularize()}_id",
+            map: request.toEJson().toFlipperJson(),
+            id: request.id!,
+            syncProvider: SyncProvider.FIRESTORE);
+      }
+
+      /// done upserting
+      ProxyService.box.writeBool(key: 'forceUPSERT', value: false);
+    } catch (e, s) {
+      talker.warning(e);
+      talker.error(s);
+    }
+  }
+
+  @override
+  ReceivePort? receivePort;
+
+  @override
+  SendPort? sendPort;
+
+  @override
+  Future<void> sendMessageToIsolate() async {
+    if (ProxyService.box.stopTaxService()!) return;
+    Business business = realm!.query<Business>(
+        r'serverId == $0', [ProxyService.box.getBusinessId()!]).first;
+    sendPort!.send({
+      'task': 'sync',
+      'branchId': ProxyService.box.getBranchId()!,
+      "URI": ProxyService.box.getServerUrl(),
+      "userId": ProxyService.box.getUserId()!,
+      "businessId": ProxyService.box.getBusinessId()!,
+      'encryptionKey': ProxyService.box.encryptionKey(),
+      'dbPath': await ProxyService.local.dbPath(
+        path: 'local',
+        folder: ProxyService.box.getBusinessId(),
+      ),
+    });
+    sendPort!.send({
+      'task': 'taxService',
+      'branchId': ProxyService.box.getBranchId()!,
+      "URI": ProxyService.box.getServerUrl(),
+      "bhfId": ProxyService.box.bhfId(),
+      'tinNumber': business.tinNumber,
+      'encryptionKey': ProxyService.box.encryptionKey(),
+      'dbPath': await ProxyService.local.dbPath(
+        path: 'local',
+        folder: ProxyService.box.getBusinessId(),
+      ),
+    });
+  }
+
+  @override
+  Future<void> spawnIsolate(dynamic isolateHandler) async {
+    try {
+      if (realm == null) return;
+
+      if (isTaxEnabled(business: ProxyService.local.getBusiness())) {
+        // 1. Create the ReceivePort to receive messages from the isolate
+        receivePort = ReceivePort();
+
+        // 2. Spawn the isolate and pass the receivePort.sendPort to it
+        // await Isolate.spawn(isolateHandler, receivePort!.sendPort);
+        final rootIsolateToken = RootIsolateToken.instance!;
+
+        await Isolate.spawn(
+          isolateHandler,
+          [receivePort!.sendPort, rootIsolateToken],
+          debugName: 'backgroundIsolate',
+        );
+
+        // 3. Retrieve the SendPort sent back by the isolate (used to send messages to the isolate)
+        // sendPort = await receivePort!.first;
+
+        receivePort!.listen(
+          (message) async {
+            if (message is SendPort) {
+              // Store the sendPort for communication with isolate
+              sendPort = message;
+              print('SendPort received');
+            }
+            String identifier = message as String;
+            List<String> separator = identifier.split(":");
+
+            if (separator.first == "notification") {
+              if (separator.length == 2) {
+                /// this is error message
+                ProxyService.notification
+                    .sendLocalNotification(body: separator[1]);
+              }
+              if (separator.length < 3) return;
+              if (separator[2] == "variant") {
+                final variantId = int.tryParse(separator[3]);
+                Variant? variant =
+                    ProxyService.local.variant(variantId: variantId);
+                if (variant != null) {
+                  ProxyService.local.realm!.writeN(
+                    tableName: variantTable,
+                    writeCallback: () {
+                      variant.ebmSynced = true;
+                      return variant;
+                    },
+                    onAdd: (data) {
+                      ProxyService.synchronize
+                          .syncToFirestore(variantTable, data);
+                    },
+                  );
+                }
+                ProxyService.notification
+                    .sendLocalNotification(body: "Item Saving " + separator[1]);
+              }
+              if (separator[2] == "stock") {
+                final stockId = int.tryParse(separator[3]);
+                Stock? stock = getStockById(id: stockId!);
+                if (stock != null) {
+                  ProxyService.local.realm!.writeN(
+                    tableName: stocksTable,
+                    writeCallback: () {
+                      stock.ebmSynced = true;
+                      return stock;
+                    },
+                    onAdd: (data) {
+                      ProxyService.synchronize
+                          .syncToFirestore(stocksTable, data);
+                    },
+                  );
+                }
+                ProxyService.notification.sendLocalNotification(
+                    body: "Stock Saving " + separator[1]);
+              }
+              if (separator[2] == "customer") {
+                final customerId = int.tryParse(separator[3]);
+                Customer? customer = getCustomer(id: customerId);
+                if (customer != null) {
+                  ProxyService.local.realm!.writeN(
+                    tableName: customersTable,
+                    writeCallback: () {
+                      customer.ebmSynced = true;
+                      return customer;
+                    },
+                    onAdd: (data) {
+                      ProxyService.synchronize
+                          .syncToFirestore(customersTable, data);
+                    },
+                  );
+                }
+                ProxyService.notification.sendLocalNotification(
+                    body: "Customer Saving " + separator[1]);
+              }
+              if (separator[2] == "transaction") {
+                final transactionId = int.tryParse(separator[3]);
+                ITransaction? transaction =
+                    getTransactionById(id: transactionId!);
+                if (transaction != null) {
+                  ProxyService.local.realm!.writeN(
+                    tableName: transactionTable,
+                    writeCallback: () {
+                      transaction.ebmSynced = true;
+                      return transaction;
+                    },
+                    onAdd: (data) {
+                      ProxyService.synchronize
+                          .syncToFirestore(transactionTable, data);
+                    },
+                  );
+                }
+                ProxyService.notification.sendLocalNotification(
+                    body: "Transaction Saving " + separator[1]);
+              }
+            }
+          },
+        );
+      }
+    } catch (error, s) {
+      talker.warning('Error managing isolates: $error');
+      talker.warning('Error managing isolates: $s');
+    }
+  }
+
+  @override
+  void reDownloadAsset() {
+    try {
+      final downloadQueue = DownloadQueue(3);
+
+      int? branchId = ProxyService.box.getBranchId();
+      if (ProxyService.local.realm == null || branchId == null) {
+        talker.warning("realm is null");
+        return;
+      }
+
+      List<Assets> assets = ProxyService.local.realm!
+          .query<Assets>(r'branchId == $0', [branchId]).toList();
+
+      for (Assets asset in assets) {
+        if (asset.assetName != null) {
+          downloadQueue.addToQueue(
+            DownloadParams(
+              branchId: branchId,
+              assetName: asset.assetName!,
+              subPath: "branch",
+            ),
+          );
+        }
+      }
+    } catch (e, s) {
+      talker.warning(e);
+      talker.error(s);
+    } finally {
+      ProxyService.box.writeBool(key: 'doneDownloadingAsset', value: true);
+    }
+  }
+
+  /// this is expensive operation call it only when we are sure that we need to do it
+
+  @override
+  void clearVariants() {
+    final firestore = FirebaseFirestore.instance;
+    CloudSync(firestore, realm: realm!)
+        .deleteDuplicate(tableName: productsTable);
+    CloudSync(firestore, realm: realm!)
+        .deleteDuplicate(tableName: variantTable);
+    CloudSync(firestore, realm: realm!).deleteDuplicate(tableName: stocksTable);
+    CloudSync(firestore, realm: realm!)
+        .deleteDuplicate(tableName: transactionItemsTable);
+    CloudSync(firestore, realm: realm!)
+        .deleteDuplicate(tableName: stockRequestsTable);
+    CloudSync(firestore, realm: realm!)
+        .deleteDuplicate(tableName: accessesTable);
+    CloudSync(firestore, realm: realm!)
+        .deleteDuplicate(tableName: transactionItemsTable);
+    CloudSync(firestore, realm: realm!).deleteDuplicate(tableName: assetsTable);
+    CloudSync(firestore, realm: realm!)
+        .deleteDuplicate(tableName: categoriesTable);
+
+    CloudSync(firestore, realm: realm!)
+        .deleteDuplicate(tableName: customersTable);
+    CloudSync(firestore, realm: realm!)
+        .deleteDuplicate(tableName: devicesTable);
+    List<Variant> variants = realm!.all<Variant>().toList();
+    for (Variant variant in variants) {
+      // finc stocks for the variant
+      List<Stock> stocks = ProxyService.local.realm!
+          .query<Stock>(r'variantId == $0', [variant.id]).toList();
+
+      /// if variant have more than one stock delete them remain with the first one
+      /// If a variant has more than one stock, it keeps the first stock and deletes all others
+      if (stocks.length > 1) {
+        for (int i = 1; i < stocks.length; i++) {
+          realm!
+              .deleteN(tableName: stocksTable, deleteCallback: () => stocks[i]);
+        }
+      }
+    }
   }
 }

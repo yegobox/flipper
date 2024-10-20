@@ -18,6 +18,7 @@ class _AdminControlState extends State<AdminControl> {
   bool isOrdersDefault = true;
   bool filesDownloaded = false;
   bool forceUPSERT = false;
+  bool stopTaxService = false;
   @override
   void initState() {
     super.initState();
@@ -26,10 +27,12 @@ class _AdminControlState extends State<AdminControl> {
     filesDownloaded =
         ProxyService.box.readBool(key: 'doneDownloadingAsset') ?? true;
     forceUPSERT = ProxyService.box.forceUPSERT();
+    stopTaxService = ProxyService.box.stopTaxService() ?? false;
   }
 
   Future<void> toggleDownload(bool value) async {
     await ProxyService.box.writeBool(key: 'doneDownloadingAsset', value: false);
+    ProxyService.local.reDownloadAsset();
     setState(() {
       filesDownloaded = ProxyService.box.doneDownloadingAsset();
     });
@@ -37,8 +40,19 @@ class _AdminControlState extends State<AdminControl> {
 
   Future<void> toggleForceUPSERT(bool value) async {
     await ProxyService.box.writeBool(key: 'forceUPSERT', value: true);
+    ProxyService.local.upSert();
+
     setState(() {
       forceUPSERT = ProxyService.box.forceUPSERT();
+    });
+  }
+
+  Future<void> toggleTaxService(bool value) async {
+    await ProxyService.box.writeBool(
+        key: 'stopTaxService', value: !ProxyService.box.stopTaxService()!);
+
+    setState(() {
+      stopTaxService = ProxyService.box.stopTaxService()!;
     });
   }
 
@@ -184,6 +198,24 @@ class _AdminControlState extends State<AdminControl> {
                           onChanged: toggleOrders,
                         ),
                       ),
+                    ],
+                  ),
+                ],
+              ),
+              SettingsSection(
+                title: 'Tax Service',
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SwitchSettingsCard(
+                          title: 'Tax Service',
+                          subtitle: 'Stop Tax Service',
+                          icon: Icons.sync,
+                          value: stopTaxService,
+                          onChanged: toggleTaxService,
+                        ),
+                      )
                     ],
                   ),
                 ],

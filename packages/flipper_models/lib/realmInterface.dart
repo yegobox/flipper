@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flipper_models/RealmApi.dart';
@@ -591,6 +592,12 @@ abstract class RealmApiInterface {
     required List<Counter> counters,
     required RwApiResponse receiptSignature,
   });
-  // get idToken
+  SendPort? sendPort;
+  ReceivePort? receivePort;
   Future<String> getIdToken();
+  void upSert();
+  Future<void> sendMessageToIsolate();
+  Future<void> spawnIsolate(dynamic isolateHandler);
+  void reDownloadAsset();
+  void clearVariants();
 }

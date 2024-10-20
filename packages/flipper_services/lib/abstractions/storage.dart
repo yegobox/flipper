@@ -58,4 +58,5 @@ abstract class LocalStorage {
   int? dbVersion();
   bool? pinLogin();
   String? customerName();
+  bool? stopTaxService();
 }
