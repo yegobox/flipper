@@ -60,6 +60,7 @@ dependencies:
   cloud_firestore_odm: ^1.0.0-dev.88
   json_annotation: ^4.9.0
   supabase_flutter: ^2.8.0
+  firestore_models: any
   
 
 dependency_overrides:

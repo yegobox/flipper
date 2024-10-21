@@ -1,8 +1,7 @@
 import 'dart:io';
 import 'package:flipper_models/CloudSync.dart';
-import 'package:flipper_models/firestore/all.dart';
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/firestore/all.dart' as odm;
+import 'package:firestore_models/firestore/all.dart' as odm;
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 
@@ -263,8 +262,12 @@ class PullChange {
         if (stock != null) {
           localRealm.write(() {
             stock.currentStock = data['current_stock'].toDouble();
-            stock.initialStock = data['initial_stock'].toDouble();
-            stock.rsdQty = data['current_stock'].toDouble();
+            stock.initialStock = data['initial_stock'] == null
+                ? 0
+                : data['initial_stock'].toDouble();
+            stock.rsdQty = data['current_stock'] == null
+                ? 0
+                : data['current_stock'].toDouble();
             stock.lastTouched = data['last_touched'] == null
                 ? DateTime.now()
                 : DateTime.tryParse(data['last_touched']);
@@ -284,7 +287,7 @@ class PullChange {
       createRealmObject: (data) {
         return Counter(
           ObjectId(),
-          id:  data['counter_id'],
+          id: data['counter_id'],
           businessId: data['business_id'] is int
               ? data['business_id']
               : int.tryParse(data['business_id']) ?? 0,
@@ -413,7 +416,7 @@ class PullChange {
       createRealmObject: (data) {
         return SKU(
           ObjectId(),
-          id:data['sku_id'],
+          id: data['sku_id'],
           sku: data['sku'] is int
               ? data['sku']
               : int.tryParse(data['sku']) ?? 100,
@@ -518,7 +521,7 @@ class PullChange {
       createRealmObject: (data) {
         return PaymentPlan(
           ObjectId(),
-          id:  data['payment_plan_id'],
+          id: data['payment_plan_id'],
           businessId: data['business_id'] is int
               ? data['business_id']
               : int.tryParse(data['business_id']) ?? 0,
@@ -598,7 +601,7 @@ class PullChange {
       createRealmObject: (data) {
         return FlipperSaleCompaign(
           ObjectId(),
-          id:  data['flipper_sale_compaign_id'],
+          id: data['flipper_sale_compaign_id'],
           compaignId: data['compaign_id'] is int
               ? data['compaign_id']
               : int.tryParse(data['compaign_id']) ?? 0,
@@ -644,7 +647,7 @@ class PullChange {
       createRealmObject: (data) {
         return TransactionPaymentRecord(
           ObjectId(),
-          id: data['transaction_payment_record_id'] ,
+          id: data['transaction_payment_record_id'],
           transactionId: data['transaction_id'] is int
               ? data['transaction_id']
               : int.tryParse(data['transaction_id']) ?? 0,
@@ -916,7 +919,7 @@ class PullChange {
       createRealmObject: (data) {
         return Variant(
           ObjectId(),
-          id: data['variant_id'] ,
+          id: data['variant_id'],
           branchId: data['branch_id'] == null ? branchId : data['branch_id'],
           lastTouched: data['last_touched'] == null
               ? DateTime.now()
@@ -1159,7 +1162,7 @@ class PullChange {
 
   void watchRequests(Realm localRealm, FirebaseFirestore firestore,
       {required List<int> branchIds}) {
-    stockRequestsRef
+    odm.stockRequestsRef
         .whereMain_branch_id(isEqualTo: branchId)
         .snapshots()
         .listen((querySnapshot) {
