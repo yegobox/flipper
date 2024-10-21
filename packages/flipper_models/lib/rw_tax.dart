@@ -519,8 +519,9 @@ class RWTax implements TaxApi {
     talker.error("TopMessage: $topMessage");
     talker.error("TINN: ${business?.tinNumber}");
 
-    final json = {
+    Map<String, dynamic> json = {
       "tin": business?.tinNumber.toString() ?? "999909695",
+      // "custTin": customer?.custTin ?? "",
       "bhfId": ProxyService.box.bhfId() ?? "00",
       "invcNo": counter.invcNo,
       "orgInvcNo": 0,
@@ -581,10 +582,17 @@ class RWTax implements TaxApi {
         "btmMsg": "THANK YOU COME BACK AGAIN",
         "custMblNo": customer == null
             ? "0" + ProxyService.box.currentSaleCustomerPhoneNumber()!
-            : customer.custTin,
+            : customer.telNo,
       },
       "itemList": itemsList,
     };
+    if (customer != null) {
+      json = addFieldIfCondition(
+          customer: customer,
+          json: json,
+          transaction: transaction,
+          purchaseCode: purchaseCode);
+    }
     // print(json);
     return json;
   }
@@ -629,6 +637,7 @@ class RWTax implements TaxApi {
       json[custTinKey] = customer.custTin;
       json[custNmKey] = customer.custNm;
       json[prcOrdCd] = purchaseCode;
+      json['receipt'][custTinKey] = customer.custTin;
     }
 
     return json;
