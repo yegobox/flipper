@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -23,23 +22,11 @@ import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:firebase_app_check/firebase_app_check.dart';
-// TODO: configure https://docs.amplify.aws/gen1/flutter/start/project-setup/platform-setup/ for ios,macos
-// import 'package:firebase_app_check/firebase_app_check.dart';
-// import 'package:google_mobile_ads/google_mobile_ads.dart';
-// Amplify Flutter Packages
 import 'package:amplify_flutter/amplify_flutter.dart' as apmplify;
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
 
 // Generated in previous step
 import 'amplifyconfiguration.dart';
-
-// Future clearFirestoreCache() async {
-//   try {
-//     await FirebaseFirestore.instance.clearPersistence();
-//   } catch (e) {
-//   }
-// }
 
 Future<void> _configureAmplify() async {
   // Add any Amplify plugins you want to use
@@ -90,9 +77,7 @@ Future<void> initializeDependencies() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  if (Platform.isWindows) {
-    // await clearFirestoreCache();
-  }
+
   const isTest = bool.fromEnvironment('EMULATOR_ENABLED', defaultValue: false);
   // FirebaseFirestore.instance.settings =
   //     const Settings(persistenceEnabled: false);
@@ -114,7 +99,7 @@ Future<void> initializeDependencies() async {
     //   webProvider: ReCaptchaV3Provider(kWebRecaptchaSiteKey),
     // );
   }
-  final comparable = !Platform.isWindows && !isWeb;
+  final comparable = !isWindows && !isWeb;
   // TODO: to support Ios following these instruction https://developers.google.com/admob/flutter/quick-start#ios
   if (comparable) {
     // MapboxOptions.setAccessToken(AppSecrets.MAPBOX_TOKEN);
@@ -185,8 +170,4 @@ Future<void> initializeDependenciesForTest() async {
   loc.setupLocator(stackedRouter: stackedRouter);
   setupDialogUi();
   setupBottomSheetUi();
-
-  // Mock or stub any services that are required for your tests
-  // For example:
-  // locator.registerSingleton<ProxyService>(MockProxyService());
 }

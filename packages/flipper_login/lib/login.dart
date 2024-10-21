@@ -3,13 +3,15 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
+import 'package:firebase_ui_oauth_apple/firebase_ui_oauth_apple.dart';
+import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'dart:ui' as ui;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/secrets.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/all_routes.dart';
 import 'package:realm/realm.dart';
 import 'package:flipper_services/locator.dart';
@@ -156,30 +158,38 @@ class _LoginState extends State<Login> {
                 backgroundColor: Colors.white,
               )
             : kIsWeb
-                ? DesktopLoginView()
-                // ? SignInScreen(
-                //     showAuthActionSwitch: false,
-                //     sideBuilder: (context, constraints) {
-                //       return Padding(
-                //         padding: const EdgeInsets.all(20),
-                //         child: AspectRatio(
-                //           aspectRatio: 1,
-                //           child: Image.asset(
-                //               package: 'flipper_login', 'assets/logo.png'),
-                //         ),
-                //       );
-                //     },
-                //     providers: [EmailAuthProvider(), PhoneAuthProvider()],
-                //     actions: [
-                //       AuthStateChangeAction<SignedIn>((context, state) {
-                //         if (!state.user!.emailVerified) {
-                //           // Navigator.pushNamed(context, '/verify-email');
-                //         } else {
-                //           // Navigator.pushReplacementNamed(context, '/profile');
-                //         }
-                //       }),
-                //     ],
-                //   )
+                ? SignInScreen(
+                    showAuthActionSwitch: true,
+                    sideBuilder: (context, constraints) {
+                      return Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: AspectRatio(
+                          aspectRatio: 1,
+                          child: Image.asset(
+                            'assets/logo.png',
+                            package: 'flipper_login',
+                          ),
+                        ),
+                      );
+                    },
+                    providers: [
+                      EmailAuthProvider(),
+                      PhoneAuthProvider(),
+                      GoogleProvider(
+                        clientId: 'YOUR_GOOGLE_CLIENT_ID',
+                      ),
+                      AppleProvider()
+                    ],
+                    actions: [
+                      AuthStateChangeAction<SignedIn>((context, state) {
+                        if (!state.user!.emailVerified) {
+                          // Handle email verification if needed
+                        } else {
+                          // Handle post-sign-in actions
+                        }
+                      }),
+                    ],
+                  )
                 : Scaffold(body: Landing());
       },
     );
