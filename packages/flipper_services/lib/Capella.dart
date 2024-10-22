@@ -10,14 +10,18 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/realm/schemas.dart';
-import 'package:flipper_models/realmInterface.dart';
+import 'package:flipper_models/FlipperInterface.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
+
 import 'package:http/src/response.dart';
 import 'package:realm_dart/src/realm_class.dart';
 
-class Capella implements RealmApiInterface {
-  Capella();
+import 'package:flipper_services/database_provider.dart'
+    if (dart.library.html) 'DatabaseProvider.dart';
+
+class Capella implements FlipperInterface {
+  DatabaseProvider? _databaseProvider;
 
   @override
   Realm? realm;
@@ -251,10 +255,12 @@ class Capella implements RealmApiInterface {
   }
 
   @override
-  Future<RealmApiInterface> configureLocal(
-      {required bool useInMemory, required LocalStorage box}) {
-    // TODO: implement configureLocal
-    throw UnimplementedError();
+  Future<FlipperInterface> configureLocal(
+      {required bool useInMemory, required LocalStorage box}) async {
+    _databaseProvider = DatabaseProvider();
+    await _databaseProvider!.initialize();
+    await _databaseProvider!.initDatabases();
+    return this;
   }
 
   @override
@@ -860,7 +866,7 @@ class Capella implements RealmApiInterface {
   }
 
   @override
-  RealmApiInterface instance() {
+  FlipperInterface instance() {
     // TODO: implement instance
     throw UnimplementedError();
   }

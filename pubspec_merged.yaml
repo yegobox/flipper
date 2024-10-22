@@ -214,7 +214,7 @@ dependencies:
   # final pb = PocketBase('http://example.com', authStore: store);
   
   # TODO: take advantage of pb.backups.upload(file) for backup of database
-  pocketbase: ^0.17.0
+  
   shared_preferences: ^2.3.2
   newrelic_mobile: ^1.0.5
   flutter_local_notifications: ^17.2.2

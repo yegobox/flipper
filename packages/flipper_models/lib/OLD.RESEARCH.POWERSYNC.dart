@@ -43,7 +43,7 @@
 // import 'package:flipper_models/helperModels/iuser.dart';
 // import 'package:flipper_models/helperModels/talker.dart';
 // import 'package:flipper_models/helper_models.dart' as ext;
-// import 'package:flipper_models/realmInterface.dart';
+// import 'package:flipper_models/FlipperInterface.dart';
 // import 'package:flipper_models/secrets.dart';
 // import 'package:flipper_services/proxy.dart';
 // import 'package:realm/realm.dart';

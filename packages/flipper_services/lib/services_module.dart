@@ -6,11 +6,12 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/MockHttpClient.dart';
-import 'package:flipper_models/realmInterface.dart';
+import 'package:flipper_models/FlipperInterface.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
+import 'package:flipper_services/Capella.dart';
 import 'package:flipper_services/PayStackService.dart';
 import 'package:flipper_services/RealmViaHttp.dart';
 import 'package:flutter/foundation.dart';
@@ -106,8 +107,24 @@ abstract class ServicesModule {
   }
 
   @preResolve
+  @Named('capella')
   @LazySingleton()
-  Future<RealmApiInterface> localRealm(
+  Future<FlipperInterface> capella(
+    LocalStorage box,
+  ) async {
+    if (!kIsWeb) {
+      return await Capella().configureLocal(
+        box: box,
+        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
+      );
+    } else {
+      return HttpApi();
+    }
+  }
+
+  @preResolve
+  @LazySingleton()
+  Future<FlipperInterface> localRealm(
     LocalStorage box,
   ) async {
     if (!kIsWeb) {
@@ -116,7 +133,7 @@ abstract class ServicesModule {
         useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
       );
     } else {
-      return RealmViaHttpService();
+      return HttpApi();
     }
   }
 
@@ -215,7 +232,7 @@ abstract class ServicesModule {
     if ((const bool.fromEnvironment('FLUTTER_TEST_ENV') == true)) {
       realmHttp = RealmViaHttpServiceMock();
     } else {
-      realmHttp = RealmViaHttpService();
+      realmHttp = HttpApi();
     }
     return realmHttp;
   }

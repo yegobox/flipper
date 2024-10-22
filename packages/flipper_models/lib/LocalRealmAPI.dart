@@ -35,7 +35,7 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 
-import 'package:flipper_models/realmInterface.dart';
+import 'package:flipper_models/FlipperInterface.dart';
 // ignore: unused_import
 import 'dart:async';
 import 'dart:typed_data';
@@ -58,9 +58,7 @@ import 'SessionManager.dart';
 import 'package:path/path.dart' as path;
 
 //
-class LocalRealmApi
-    with Booting, defaultData.Data
-    implements RealmApiInterface {
+class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   bool offlineLogin = false;
   @override
   Realm? realm;
@@ -173,7 +171,7 @@ class LocalRealmApi
   }
 
   @override
-  Future<RealmApiInterface> configureLocal(
+  Future<FlipperInterface> configureLocal(
       {required bool useInMemory, required LocalStorage box}) async {
     _setApiEndpoints();
 
@@ -4818,7 +4816,7 @@ class LocalRealmApi
   }
 
   @override
-  RealmApiInterface instance() {
+  FlipperInterface instance() {
     // TODO: implement instance
     throw UnimplementedError();
   }

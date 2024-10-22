@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:path/path.dart' as p;
-import 'package:flipper_models/realmInterface.dart';
+import 'package:flipper_models/FlipperInterface.dart';
 import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/proxy.dart';

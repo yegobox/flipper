@@ -47,10 +47,10 @@ abstract class DataMigratorToLocal {
       {int? businessId, Realm? localRealm, int? branchId, int? userId});
 }
 
-abstract class RealmApiInterface {
+abstract class FlipperInterface {
   Future<List<Product>> products({required int branchId});
 
-  Future<RealmApiInterface> configureLocal(
+  Future<FlipperInterface> configureLocal(
       {required bool useInMemory, required LocalStorage box});
 
   Future<SocialToken?> loginOnSocial(
@@ -447,7 +447,7 @@ abstract class RealmApiInterface {
       required String name});
 
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName);
-  RealmApiInterface instance();
+  FlipperInterface instance();
   Tenant? tenant({int? businessId, int? userId});
   Stream<List<Report>> reports({required int branchId});
   Report report({required int id});

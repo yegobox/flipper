@@ -11,7 +11,7 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/realm/schemas.dart';
-import 'package:flipper_models/realmInterface.dart';
+import 'package:flipper_models/FlipperInterface.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
@@ -33,7 +33,7 @@ abstract class RealmViaHttp {
       required int businessId});
 }
 
-class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
+class HttpApi implements RealmViaHttp, FlipperInterface {
   @override
   Business? getBusinessById({required int businessId}) {
     return null;
@@ -351,7 +351,7 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   }
 
   @override
-  Future<RealmApiInterface> configure(
+  Future<FlipperInterface> configure(
       {required bool useInMemoryDb,
       bool useFallBack = false,
       Realm? localRealm,
@@ -872,7 +872,7 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   }
 
   @override
-  RealmApiInterface instance() {
+  FlipperInterface instance() {
     // TODO: implement instance
     throw UnimplementedError();
   }
@@ -1380,7 +1380,7 @@ class RealmViaHttpService implements RealmViaHttp, RealmApiInterface {
   }
 
   @override
-  Future<RealmApiInterface> configureLocal(
+  Future<FlipperInterface> configureLocal(
       {required bool useInMemory, required LocalStorage box}) {
     // TODO: implement configureLocal
     throw UnimplementedError();
