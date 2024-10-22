@@ -12,7 +12,6 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -89,6 +88,7 @@ class CloudSync implements SyncInterface {
   final FirebaseFirestore? _firestore;
   Realm? realm;
   final Set<int> _processingIds = {};
+
 
   bool isInIsolate() {
     return Isolate.current.debugName != null;
@@ -318,27 +318,6 @@ class CloudSync implements SyncInterface {
     await _firestore!.collection(tableName).doc(id.toString()).delete();
 
     talker.warning("Firestore deleted $tableName with id $id");
-
-    // realm!.writeN(
-    //   tableName: deletedObjectTable,
-    //   writeCallback: () {
-    //     DeletedObject? obj =
-    //         realm!.query<DeletedObject>(r'id == $0', [id]).firstOrNull;
-    //     if (obj != null) {
-    //       final deletedObject = DeletedObject(
-    //         ObjectId(),
-    //         objectName: tableName,
-    //         id: id,
-    //         deviceCount: 1,
-    //         expectedDeviceCount: 1,
-    //       );
-    //       return deletedObject;
-    //     }
-    //   },
-    //   onAdd: (data) {
-    //     ProxyService.synchronize.syncToFirestore(deletedObjectTable, data);
-    //   },
-    // );
   }
 
   @override
