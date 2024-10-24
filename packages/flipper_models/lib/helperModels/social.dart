@@ -2,7 +2,6 @@ import 'package:flipper_models/sync_service.dart';
 
 import 'package:flipper_services/constants.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 part 'social.g.dart';
 
 @JsonSerializable()
@@ -33,8 +32,6 @@ class Social extends IJsonSerializable {
     required this.lastTouched,
     this.deletedAt,
   });
-  factory Social.fromRecord(RecordModel record) =>
-      Social.fromJson(record.toJson());
 
   factory Social.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode

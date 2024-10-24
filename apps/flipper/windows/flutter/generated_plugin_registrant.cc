@@ -8,6 +8,7 @@
 
 #include <amplify_db_common/amplify_db_common_plugin.h>
 #include <app_links/app_links_plugin_c_api.h>
+#include <cbl_flutter_ce/cbl_flutter_ce.h>
 #include <cloud_firestore/cloud_firestore_plugin_c_api.h>
 #include <connectivity_plus/connectivity_plus_windows_plugin.h>
 #include <desktop_webview_auth/desktop_webview_auth_plugin.h>
@@ -33,6 +34,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("AmplifyDbCommonPlugin"));
   AppLinksPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("AppLinksPluginCApi"));
+  CblFlutterCeRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("CblFlutterCe"));
   CloudFirestorePluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("CloudFirestorePluginCApi"));
   ConnectivityPlusWindowsPluginRegisterWithRegistrar(

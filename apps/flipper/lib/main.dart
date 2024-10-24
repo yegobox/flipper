@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_rw/StateObserver.dart';
-  
+
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';

@@ -1,6 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
-import 'package:pocketbase/pocketbase.dart';
 import 'DateTimeConverter.dart';
 part 'transaction_item.g.dart';
 
@@ -162,9 +161,6 @@ class TransactionItem extends IJsonSerializable {
     this.lastTouched,
     this.deletedAt,
   });
-
-  factory TransactionItem.fromRecord(RecordModel record) =>
-      TransactionItem.fromJson(record.toJson());
 
   factory TransactionItem.fromJson(Map<String, dynamic> json) {
     json['deletedAt'] = json['deletedAt'] == null ||

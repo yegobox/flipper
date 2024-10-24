@@ -4,7 +4,6 @@ import 'package:flipper_services/constants.dart';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
-import 'package:pocketbase/pocketbase.dart';
 part 'branch.g.dart';
 
 @JsonSerializable()
@@ -43,8 +42,6 @@ class IBranch extends IJsonSerializable {
   DateTime? lastTouched;
 
   DateTime? deletedAt;
-  factory IBranch.fromRecord(RecordModel record) =>
-      IBranch.fromJson(record.toJson());
 
   factory IBranch.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode

@@ -12,35 +12,43 @@ class BranchDropdown extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final branches = ref.watch(branchesProvider((includeSelf: true)));
+    final asyncBranches = ref.watch(branchesProvider((includeSelf: true)));
 
     return DropdownButtonHideUnderline(
-      child: DropdownButton<Branch>(
-        value: ref.watch(selectedBranchProvider),
-        hint: const Flippertext(
-          'Select Branch',
-          color: Colors.black,
-        ),
-        onChanged: (Branch? newBranch) {
-          if (newBranch != null) {
-            ref.read(selectedBranchProvider.notifier).state = newBranch;
-            ref.refresh(stocksProvider((
-              branchId: newBranch.serverId ?? ProxyService.box.getBranchId()!
-            )));
-          }
-        },
-        items: branches.map<DropdownMenuItem<Branch>>((Branch branch) {
-          return DropdownMenuItem<Branch>(
-            value: branch,
-            child: Text(
-              branch.name ?? 'Unknown',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black, // Text color to match the AppBar theme
-              ),
+      child: asyncBranches.when(
+        data: (branches) {
+          return DropdownButton<Branch>(
+            value: ref.watch(selectedBranchProvider),
+            hint: const Flippertext(
+              'Select Branch',
+              color: Colors.black,
             ),
+            onChanged: (Branch? newBranch) {
+              if (newBranch != null) {
+                ref.read(selectedBranchProvider.notifier).state = newBranch;
+                ref.refresh(stocksProvider((
+                  branchId:
+                      newBranch.serverId ?? ProxyService.box.getBranchId()!
+                )));
+              }
+            },
+            items: branches.map<DropdownMenuItem<Branch>>((Branch branch) {
+              return DropdownMenuItem<Branch>(
+                value: branch,
+                child: Text(
+                  branch.name ?? 'Unknown',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black, // Text color to match the AppBar theme
+                  ),
+                ),
+              );
+            }).toList(),
           );
-        }).toList(),
+        },
+        loading: () => CircularProgressIndicator(), // Show loading indicator
+        error: (error, stackTrace) =>
+            Text('Error: $error'), // Show error message
       ),
     );
   }

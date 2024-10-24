@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/CloudSync.dart';
@@ -56,6 +57,11 @@ import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
 import 'SessionManager.dart';
 import 'package:path/path.dart' as path;
+
+import 'package:flipper_services/database_provider.dart'
+    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+import 'package:cbl/src/database/collection.dart'
+    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 //
 class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
@@ -307,7 +313,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   Future<IUser> _authenticateUser(String phoneNumber, Pin pin,
       HttpClientInterface flipperHttpClient) async {
     List<Business> businessesE = businesses();
-    List<Branch> branchesE = branches(businessId: pin.businessId!);
+    List<Branch> branchesE = await branches(businessId: pin.businessId!);
 
     if (businessesE.isNotEmpty && branchesE.isNotEmpty) {
       offlineLogin = true;
@@ -469,7 +475,8 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  List<Branch> branches({required int businessId, bool? includeSelf = false}) {
+  Future<List<Branch>> branches(
+      {required int businessId, bool? includeSelf = false}) async {
     return _getBranches(businessId, includeSelf!);
   }
 
@@ -3060,6 +3067,30 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
+  Stream<List<ITransaction>> transactionList({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    if (startDate == null || endDate == null) return Stream.value([]);
+
+    final query = realm!.query<ITransaction>(
+      isSameDay(startDate, endDate)
+          ? r'lastTouched >= $0  && status == $1 && subTotal > 0'
+          : r'lastTouched >= $0 && lastTouched <= $1 && status == $2 && subTotal > 0',
+      isSameDay(startDate, endDate)
+          ? [startDate.toUtc(), COMPLETE]
+          : [startDate.toUtc(), endDate.toUtc(), COMPLETE],
+    );
+
+    // Directly return the stream
+    return query.changes.map((event) {
+      final changedTransactions =
+          event.results.whereType<ITransaction>().toList();
+      return changedTransactions.isNotEmpty ? changedTransactions : [];
+    });
+  }
+
+  @override
   ITransaction collectPayment(
       {required double cashReceived,
       required ITransaction transaction,
@@ -3083,7 +3114,6 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       realm!.writeN(
         tableName: transactionTable,
         writeCallback: () {
-          transaction.lastTouched = DateTime.now().toUtc().toLocal();
           transaction.status = COMPLETE;
           transaction.isIncome = isIncome;
           transaction.isExpense = !isIncome;
@@ -3117,10 +3147,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
               DateTime.now().toUtc().toLocal().toIso8601String();
           transaction.transactionType = transactionType;
           transaction.categoryId = categoryId ?? "0";
+          transaction.lastTouched = DateTime.now().toUtc().toLocal();
           return transaction;
         },
         onAdd: (data) {
-          ProxyService.synchronize.syncToFirestore(transactionTable, data);
+          talker.warning(data.toEJson().toFlipperJson());
+          // ProxyService.synchronize.syncToFirestore(transactionTable, data);
         },
       );
 
@@ -3190,8 +3222,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
 
       //NOTE: trigger EBM, now
       if (directlyHandleReceipt) {
-        TaxController(object: transaction)
-            .handleReceipt(printCallback: (Uint8List bytes) {});
+        TaxController(object: transaction).handleReceipt();
       }
       return transaction;
     } catch (e, s) {
@@ -4547,40 +4578,10 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
     return results;
   }
 
-  @override
-  Stream<List<ITransaction>> transactionList(
-      {DateTime? startDate, DateTime? endDate}) {
-    if (startDate == null || endDate == null) return Stream.value([]);
-
-    final controller = StreamController<List<ITransaction>>.broadcast();
-
-    final query = realm!.query<ITransaction>(
-      startDate == endDate
-          ? r'lastTouched >= $0  && status == $1 && subTotal > 0'
-          : r'lastTouched >= $0 && lastTouched <= $1 && status == $2 && subTotal > 0',
-      startDate == endDate
-          ? [startDate.toUtc(), COMPLETE]
-          : [startDate.toUtc(), endDate.toUtc(), COMPLETE],
-    );
-
-    StreamSubscription<RealmResultsChanges<ITransaction>>? subscription;
-
-    controller.onListen = () {
-      subscription = query.changes.listen((event) {
-        final changedTransactions =
-            event.results.whereType<ITransaction>().toList();
-        // Emit the results or an empty list if no transactions found
-        controller
-            .add(changedTransactions.isNotEmpty ? changedTransactions : []);
-      });
-    };
-
-    controller.onCancel = () {
-      subscription?.cancel();
-      controller.close();
-    };
-
-    return controller.stream;
+  bool isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 
   @override
@@ -5317,5 +5318,40 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         }
       }
     }
+  }
+
+  @override
+  Future<FlipperInterface> configureCapella(
+      {required bool useInMemory, required LocalStorage box}) {
+    // TODO: implement configureCapella
+    talker.warning("This should not be called");
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> initCollections() {
+    // TODO: implement initCollections
+    throw UnimplementedError();
+  }
+
+  @override
+  AsyncCollection? accessCollection;
+
+  @override
+  AsyncCollection? branchCollection;
+
+  @override
+  AsyncCollection? businessCollection;
+
+  @override
+  DatabaseProvider? capella;
+
+  @override
+  AsyncCollection? permissionCollection;
+
+  @override
+  Future<void> startReplicator() {
+    // TODO: implement startReplicator
+    throw UnimplementedError();
   }
 }

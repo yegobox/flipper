@@ -1164,6 +1164,8 @@ PODS:
   - BoringSSL-GRPC/Implementation (0.0.36):
     - BoringSSL-GRPC/Interface (= 0.0.36)
   - BoringSSL-GRPC/Interface (0.0.36)
+  - cbl_flutter_ce (0.0.1):
+    - FlutterMacOS
   - cloud_firestore (5.4.4):
     - Firebase/CoreOnly (~> 11.2.0)
     - Firebase/Firestore (~> 11.2.0)
@@ -1553,6 +1555,7 @@ DEPENDENCIES:
   - amplify_auth_cognito (from `Flutter/ephemeral/.symlinks/plugins/amplify_auth_cognito/darwin`)
   - amplify_secure_storage (from `Flutter/ephemeral/.symlinks/plugins/amplify_secure_storage/macos`)
   - app_links (from `Flutter/ephemeral/.symlinks/plugins/app_links/macos`)
+  - cbl_flutter_ce (from `Flutter/ephemeral/.symlinks/plugins/cbl_flutter_ce/macos`)
   - cloud_firestore (from `Flutter/ephemeral/.symlinks/plugins/cloud_firestore/macos`)
   - connectivity_plus (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus/darwin`)
   - desktop_webview_auth (from `Flutter/ephemeral/.symlinks/plugins/desktop_webview_auth/macos`)
@@ -1633,6 +1636,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/amplify_secure_storage/macos
   app_links:
     :path: Flutter/ephemeral/.symlinks/plugins/app_links/macos
+  cbl_flutter_ce:
+    :path: Flutter/ephemeral/.symlinks/plugins/cbl_flutter_ce/macos
   cloud_firestore:
     :path: Flutter/ephemeral/.symlinks/plugins/cloud_firestore/macos
   connectivity_plus:
@@ -1709,6 +1714,7 @@ SPEC CHECKSUMS:
   app_links: 10e0a0ab602ffaf34d142cd4862f29d34b303b2a
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   BoringSSL-GRPC: ca6a8e5d04812fce8ffd6437810c2d46f925eaeb
+  cbl_flutter_ce: 39d702a754b2dd00d42418106a56c1fab9a23f32
   cloud_firestore: 93bfa173db17eeb954a3c9865c70174331d42d76
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   connectivity_plus: ddd7f30999e1faaef5967c23d5b6d503d10434db

@@ -3,7 +3,6 @@ library flipper_models;
 import 'package:flipper_models/sync_service.dart';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 part 'history.g.dart';
 
 /// this model serves to track changes that is happening inside
@@ -30,8 +29,6 @@ class History extends IJsonSerializable {
       required this.createdAt,
       required this.action});
 
-  factory History.fromRecord(RecordModel record) =>
-      History.fromJson(record.toJson());
   factory History.fromJson(Map<String, dynamic> json) {
     return _$HistoryFromJson(json);
   }

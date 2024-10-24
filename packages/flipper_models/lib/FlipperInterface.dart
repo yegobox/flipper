@@ -13,10 +13,16 @@ import 'package:flipper_models/sync.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
+
 import 'package:realm/realm.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:http/http.dart' as http;
+
+import 'package:flipper_services/database_provider.dart'
+    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+import 'package:cbl/src/database/collection.dart'
+    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 enum ClearData { Business, Branch }
 
@@ -30,6 +36,7 @@ abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
 
 abstract class DataMigratorToLocal {
   Realm? oldRealm;
+
   Future<DataMigratorToLocal> configure(
       {required bool useInMemoryDb,
       bool useFallBack = false,
@@ -48,10 +55,21 @@ abstract class DataMigratorToLocal {
 }
 
 abstract class FlipperInterface {
+  DatabaseProvider? capella;
+  AsyncCollection? branchCollection;
+  AsyncCollection? businessCollection;
+  AsyncCollection? accessCollection;
+  AsyncCollection? permissionCollection;
   Future<List<Product>> products({required int branchId});
+  Future<void> startReplicator();
 
   Future<FlipperInterface> configureLocal(
       {required bool useInMemory, required LocalStorage box});
+
+  Future<FlipperInterface> configureCapella(
+      {required bool useInMemory, required LocalStorage box});
+
+  Future<void> initCollections();
 
   Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password});
@@ -535,7 +553,8 @@ abstract class FlipperInterface {
   List<Business> businesses();
   Future<Business?> activeBusinesses({required int userId});
   // Future<Business> getOnlineBusiness({required int userId});
-  List<Branch> branches({required int businessId, bool? includeSelf = false});
+  Future<List<Branch>> branches(
+      {required int businessId, bool? includeSelf = false});
   Future<List<ITenant>> signup(
       {required Map business, required HttpClientInterface flipperHttpClient});
   Business getBusiness({int? businessId});

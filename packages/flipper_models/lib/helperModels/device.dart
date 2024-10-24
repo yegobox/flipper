@@ -3,7 +3,6 @@ library flipper_models;
 import 'package:flipper_models/sync_service.dart';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 import 'DateTimeConverter.dart';
 part 'device.g.dart';
 
@@ -58,8 +57,6 @@ class Device extends IJsonSerializable {
     required this.defaultApp,
     this.deletedAt,
   });
-  factory Device.fromRecord(RecordModel record) =>
-      Device.fromJson(record.toJson());
 
   factory Device.fromJson(Map<String, dynamic> json) => _$DeviceFromJson(json);
   @override

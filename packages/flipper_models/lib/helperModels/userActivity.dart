@@ -4,7 +4,6 @@ import 'package:flipper_services/constants.dart';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
-import 'package:pocketbase/pocketbase.dart';
 
 part 'userActivity.g.dart';
 
@@ -25,8 +24,6 @@ class Activity extends IJsonSerializable {
       required this.action,
       this.lastTouched});
 
-  factory Activity.fromRecord(RecordModel record) =>
-      Activity.fromJson(record.toJson());
 
   factory Activity.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode

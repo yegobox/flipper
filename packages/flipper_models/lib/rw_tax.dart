@@ -324,7 +324,7 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse?> generateReceiptSignature({
+  Future<RwApiResponse> generateReceiptSignature({
     required ITransaction transaction,
     required String receiptType,
     required Counter counter,
@@ -365,17 +365,17 @@ class RWTax implements TaxApi {
 
     // Build request data
     Map<String, dynamic> requestData = buildRequestData(
-      business: business,
-      counter: counter,
-      transaction: transaction,
-      date: date,
-      totalTaxable: totalTaxable,
-      taxTotals: taxTotals,
-      receiptCodes: receiptCodes,
-      customer: customer,
-      itemsList: itemsList,
-      purchaseCode: purchaseCode,
-    );
+        business: business,
+        counter: counter,
+        transaction: transaction,
+        date: date,
+        totalTaxable: totalTaxable,
+        taxTotals: taxTotals,
+        receiptCodes: receiptCodes,
+        customer: customer,
+        itemsList: itemsList,
+        purchaseCode: purchaseCode,
+        receiptType: receiptType);
 
     try {
       // Send request
@@ -498,6 +498,7 @@ class RWTax implements TaxApi {
     Customer? customer,
     required List<Map<String, dynamic>> itemsList,
     String? purchaseCode,
+    required String receiptType,
   }) {
     Configurations taxConfigTaxB =
         ProxyService.local.getByTaxType(taxtype: "B");
@@ -586,6 +587,9 @@ class RWTax implements TaxApi {
       },
       "itemList": itemsList,
     };
+    if (receiptType == "NR") {
+      json['orgInvcNo'] = counter.invcNo! - 1;
+    }
     if (customer != null) {
       json = addFieldIfCondition(
           customer: customer,

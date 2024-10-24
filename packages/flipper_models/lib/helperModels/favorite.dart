@@ -1,7 +1,6 @@
 library flipper_models;
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 import 'package:flipper_models/sync_service.dart';
 part 'favorite.g.dart';
 
@@ -27,9 +26,6 @@ class Favorite extends IJsonSerializable {
     this.branchId,
     required this.action,
   });
-
-  factory Favorite.fromRecord(RecordModel record) =>
-      Favorite.fromJson(record.toJson());
 
   factory Favorite.fromJson(Map<String, dynamic> json) {
     return _$FavoriteFromJson(json);

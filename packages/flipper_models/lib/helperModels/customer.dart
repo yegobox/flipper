@@ -1,5 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 import 'package:flipper_models/sync_service.dart';
 part 'customer.g.dart';
 
@@ -73,8 +72,6 @@ class Customer extends IJsonSerializable {
     required this.customerType,
   });
 
-  factory Customer.fromRecord(RecordModel record) =>
-      Customer.fromJson(record.toJson());
   factory Customer.fromJson(Map<String, dynamic> json) {
     return _$CustomerFromJson(json);
   }

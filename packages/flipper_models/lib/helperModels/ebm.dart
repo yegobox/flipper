@@ -1,7 +1,6 @@
 import 'package:flipper_models/sync_service.dart';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 part 'ebm.g.dart';
 
 @JsonSerializable()
@@ -29,9 +28,6 @@ class EBM extends IJsonSerializable {
   DateTime? lastTouched;
 
   String action;
-
-  DateTime? deletedAt;
-  factory EBM.fromRecord(RecordModel record) => EBM.fromJson(record.toJson());
 
   factory EBM.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode

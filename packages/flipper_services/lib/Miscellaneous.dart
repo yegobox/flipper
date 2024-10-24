@@ -58,7 +58,7 @@ mixin CoreMiscellaneous {
             business.active = false;
           });
         }
-        List<Branch> branches = ProxyService.local
+        List<Branch> branches = await ProxyService.local
             .branches(businessId: ProxyService.box.getBusinessId()!);
         for (Branch branch in branches) {
           ProxyService.local.realm!.write(() {

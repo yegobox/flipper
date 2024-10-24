@@ -2,6 +2,10 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:cbl/src/database/collection.dart'
+    if (dart.library.html) 'DatabaseProvider.dart';
+import 'package:flipper_services/database_provider.dart'
+    if (dart.library.html) 'DatabaseProvider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
@@ -1363,7 +1367,8 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
   }
 
   @override
-  List<Branch> branches({required int businessId, bool? includeSelf = false}) {
+  Future<List<Branch>> branches(
+      {required int businessId, bool? includeSelf = false}) {
     // TODO: implement branches
     throw UnimplementedError();
   }
@@ -1624,6 +1629,40 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
   @override
   void upSert() {
     // TODO: implement upSert
+  }
+
+  @override
+  Future<FlipperInterface> configureCapella(
+      {required bool useInMemory, required LocalStorage box}) {
+    // TODO: implement configureCapella
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> initCollections() {
+    // TODO: implement initCollections
+    throw UnimplementedError();
+  }
+
+  @override
+  AsyncCollection? accessCollection;
+
+  @override
+  AsyncCollection? branchCollection;
+
+  @override
+  AsyncCollection? businessCollection;
+
+  @override
+  DatabaseProvider? capella;
+
+  @override
+  AsyncCollection? permissionCollection;
+
+  @override
+  Future<void> startReplicator() {
+    // TODO: implement startReplicator
+    throw UnimplementedError();
   }
 }
 

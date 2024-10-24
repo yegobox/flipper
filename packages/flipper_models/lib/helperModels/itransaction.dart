@@ -1,7 +1,6 @@
 import 'package:flipper_models/helper_models.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
-import 'package:pocketbase/pocketbase.dart';
 part 'itransaction.g.dart';
 
 @JsonSerializable()
@@ -84,9 +83,6 @@ class ITransaction extends IJsonSerializable {
     this.ticketName,
     this.deletedAt,
   });
-
-  factory ITransaction.fromRecord(RecordModel record) =>
-      ITransaction.fromJson(record.toJson());
 
   factory ITransaction.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode

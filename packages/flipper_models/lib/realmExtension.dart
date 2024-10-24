@@ -8,6 +8,38 @@ import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 
+import 'package:cbl/cbl.dart'
+    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+
+extension CblExtension on Database {
+  Future<T> writeN<T>({
+    required String tableName,
+    required T Function() writeCallback,
+    required Future<void> Function(T) onAdd,
+  }) async {
+    // Declare the result outside the inBatch scope so it can be returned
+    late T result;
+
+    // Start the transaction
+    await inBatch(() async {
+      try {
+        // Execute the write operation and assign to result
+        result = writeCallback();
+
+        // Call the callback and await its completion
+        await onAdd(result);
+
+        print("Transaction Committed");
+      } catch (e) {
+        print("Transaction Rolled Back");
+        rethrow;
+      }
+    });
+
+    return result; // Return the result after the transaction is done
+  }
+}
+
 extension RealmExtension on Realm {
   T writeN<T>({
     required String tableName,

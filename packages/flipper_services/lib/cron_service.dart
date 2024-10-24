@@ -30,6 +30,10 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
+    await ProxyService.capela.configureCapella(
+      useInMemory: false,
+      box: ProxyService.box,
+    );
     List<ConnectivityResult> results = await Connectivity().checkConnectivity();
 
     if (results.any((result) => result != ConnectivityResult.none)) {
@@ -39,13 +43,7 @@ class CronService {
       talker.warning("Done checking connectivity: $doneInitializingDataPull");
       if (!doneInitializingDataPull) {
         talker.warning("Starting pull change");
-        PullChange().start(
-          mbranchId: ProxyService.box.getBranchId()!,
-          mbusinessId: ProxyService.box.getBusinessId()!,
-          muserId: ProxyService.box.getUserId()!,
-          firestore: FirebaseFirestore.instance,
-          localRealm: ProxyService.local.realm!,
-        );
+
         doneInitializingDataPull = true;
       }
     }
@@ -53,7 +51,8 @@ class CronService {
     ProxyService.box.writeBool(key: 'isOrdering', value: false);
 
     if (ProxyService.box.forceUPSERT()) {
-      ProxyService.local.upSert();
+      // ProxyService.local.upSert();
+      ProxyService.capela.startReplicator();
     }
 
     await ProxyService.local.spawnIsolate(IsolateHandler.handler);

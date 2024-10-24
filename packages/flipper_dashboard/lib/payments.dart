@@ -1,7 +1,6 @@
 // ignore_for_file: unused_result
 
 import 'dart:developer';
-import 'dart:typed_data';
 
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -508,9 +507,7 @@ class PaymentsState extends ConsumerState<Payments> {
 
   Future<void> handleReceiptGeneration([String? purchaseCode]) async {
     try {
-      await TaxController(object: widget.transaction).handleReceipt(
-        printCallback: (Uint8List bytes) {},
-      );
+      await TaxController(object: widget.transaction).handleReceipt();
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _busy = false);
@@ -627,9 +624,8 @@ class PaymentsState extends ConsumerState<Payments> {
                 onPressed: () async {
                   /// still print the purchase code without the customer information!
                   /// this is standard for non customer attached receipt
-                  await TaxController(object: widget.transaction).handleReceipt(
-                    printCallback: (Uint8List bytes) {},
-                  );
+                  await TaxController(object: widget.transaction)
+                      .handleReceipt();
                   // Handle when the user doesn't need a digital receipt
                   Navigator.of(context).pop();
                 },

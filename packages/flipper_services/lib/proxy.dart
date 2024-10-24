@@ -6,7 +6,7 @@ import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/PayStackService.dart';
-import 'package:flipper_services/RealmViaHttp.dart';
+import 'package:flipper_services/HttpApi.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/abstractions/remote.dart';
@@ -74,18 +74,21 @@ final PayStackServiceInterface _payStack = getIt<PayStackServiceInterface>();
 final HttpClientInterface _http = getIt<HttpClientInterface>();
 final RealmViaHttp _realmHttp = getIt<RealmViaHttp>();
 
-final FlipperInterface _localRealm = getIt<FlipperInterface>();
 final SyncInterface _synchronize = getIt<SyncInterface>();
 final SupabaseInterface _supa = getIt<SupabaseInterface>();
 final Crash _crash = getIt<Crash>();
-final FlipperInterface _capela = getIt<FlipperInterface>();
+final FlipperInterface _capela =
+    getIt<FlipperInterface>(instanceName: 'capella');
+final FlipperInterface _localRealm = getIt<FlipperInterface>();
 
 abstract class ProxyService {
+  static FlipperInterface get local => _localRealm;
+  static FlipperInterface get capela => _capela;
+
   static Crash get crash => _crash;
   static SupabaseInterface get supa => _supa;
-  static FlipperInterface get local => _localRealm;
+
   static SyncInterface get synchronize => _synchronize;
-  static FlipperInterface get capela => _capela;
 
   static LocalStorage get box => _box;
   static HttpClientInterface get http => _http;

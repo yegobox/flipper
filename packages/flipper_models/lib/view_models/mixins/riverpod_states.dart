@@ -7,7 +7,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flutter/material.dart';
 import '_transaction.dart';
 
@@ -1065,13 +1064,18 @@ final stocksProvider =
   return ProxyService.local.stocks(branchId: branchId);
 });
 
-final branchesProvider = Provider.autoDispose
-    .family<List<Branch>, ({bool? includeSelf})>((ref, params) {
+final branchesProvider = FutureProvider.autoDispose
+    .family<List<Branch>, ({bool? includeSelf})>((ref, params) async {
   final (:includeSelf) = params;
   final businessId = ProxyService.box.getBusinessId();
-  return ProxyService.local
+
+  // Awaiting the asynchronous call
+  final branches = await ProxyService.local
       .branches(businessId: businessId!, includeSelf: includeSelf);
+
+  return branches;
 });
+
 
 class StringState extends StateNotifier<String> {
   StringState(String initialValue) : super(initialValue);

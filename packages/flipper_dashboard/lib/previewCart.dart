@@ -3,7 +3,10 @@
 import 'dart:typed_data';
 
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
+import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_models/power_sync/schema.dart';
+import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -113,7 +116,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     ref.read(loadingProvider.notifier).state = false;
   }
 
-  void handleCompleteTransaction(
+  void startCompleteTransactionFlow(
       {required ITransaction transaction,
       required List<Payment> paymentMethods}) {
     final transactionId = transaction.id!;
@@ -137,7 +140,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
 
       /// on mobile we are not validating state hence it is always true && customer ==null
       if (state && customer == null) {
-        handlePayment(
+        finalizePayment(
           paymentType: ProxyService.box.paymentType() ?? "Cash",
           transactionType: TransactionType.sale,
           transaction: transaction,
@@ -146,8 +149,9 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
         );
         ref.read(loadingProvider.notifier).state = false;
         _refreshTransactionItems(transactionId: transaction.id!);
-      } else {
-        confirmPayment(
+      }
+      if (customer != null) {
+        additionalInformationIsRequiredToCompleteTransaction(
           amount: amount,
           discount: discount,
           paymentType: paymentTypeController.text,
@@ -166,7 +170,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  Future<void> handlePayment(
+  Future<RwApiResponse> finalizePayment(
       {String? purchaseCode,
       required String paymentType,
       required ITransaction transaction,
@@ -190,57 +194,92 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     );
     final taxExanbled = ProxyService.local
         .isTaxEnabled(business: ProxyService.local.getBusiness());
-
+    RwApiResponse? response;
     final hasServerUrl = ProxyService.box.getServerUrl() != null;
     final hasUser = ProxyService.box.bhfId() != null;
     if (taxExanbled && hasServerUrl && hasUser) {
-      await handleReceiptGeneration(
+      response = await handleReceiptGeneration(
           transaction: trans, purchaseCode: purchaseCode);
+
+      updateCustomerTransaction(transaction, customerNameController.text);
     } else {
-      talker.warning("No EBM receipt generated");
+      updateCustomerTransaction(transaction, customerNameController.text);
     }
+    if (response == null) {
+      return RwApiResponse(resultCd: "001", resultMsg: "Sale completed");
+    }
+    return response;
   }
 
-  Future<void> handleReceiptGeneration(
+  void updateCustomerTransaction(
+      ITransaction transaction, String customerName) {
+    Customer? customer =
+        ProxyService.local.getCustomer(id: transaction.customerId);
+
+    ProxyService.local.realm!.writeN(
+      tableName: transactionTable,
+      writeCallback: () {
+        /// when we are at checkout we are doing sale so it is 11
+        transaction.sarTyCd = "11";
+        transaction.customerName = customer == null
+            ? ProxyService.box.customerName() ?? "N/A"
+            : customerNameController.text;
+        transaction.customerTin = customer == null
+            ? ProxyService.box.currentSaleCustomerPhoneNumber()
+            : customer.custTin;
+        return transaction;
+      },
+      onAdd: (data) {},
+    );
+  }
+
+  Future<RwApiResponse> handleReceiptGeneration(
       {String? purchaseCode, ITransaction? transaction}) async {
     try {
       ITransaction? trans =
           await ProxyService.local.getTransactionById(id: transaction!.id!);
 
-      TaxController(object: trans).handleReceipt(
+      final responseFrom = await TaxController(object: trans).handleReceipt(
         purchaseCode: purchaseCode,
-        printCallback: (Uint8List bytes) async {
-          formKey.currentState?.reset();
-          ref.refresh(loadingProvider.notifier);
-
-          // receivedAmountController.clear();
-          ref.read(loadingProvider.notifier).state = false;
-          ref.refresh(loadingProvider.notifier);
-          ref.read(isProcessingProvider.notifier).stopProcessing();
-          ref.refresh(pendingTransactionProvider(
-              (mode: TransactionType.sale, isExpense: false)));
-
-          await printing(bytes);
-        },
       );
+      final (:response, :bytes) = responseFrom;
+
+      formKey.currentState?.reset();
+      ref.refresh(loadingProvider.notifier);
+
+      // receivedAmountController.clear();
+      ref.read(loadingProvider.notifier).state = false;
+      ref.refresh(loadingProvider.notifier);
+      ref.read(isProcessingProvider.notifier).stopProcessing();
+      ref.refresh(pendingTransactionProvider(
+          (mode: TransactionType.sale, isExpense: false)));
+      if (bytes != null) {
+        await printing(bytes);
+      }
+
+      return response;
     } catch (e) {
       talker.error(e);
+      throw Exception("Invalid routes.");
     }
   }
 
-  Future<void> printing(Uint8List bytes) async {
+  Future<void> printing(Uint8List? bytes) async {
     final printers = await Printing.listPrinters();
 
     if (printers.isNotEmpty) {
       Printer? pri = await Printing.pickPrinter(
           context: context, title: "List of printers");
+      if (bytes == null) {
+        return;
+      }
 
       await Printing.directPrintPdf(
           printer: pri!, onLayout: (PdfPageFormat format) async => bytes);
     }
   }
 
-  Future<void> confirmPayment(
+  Future<void> additionalInformationIsRequiredToCompleteTransaction(
       {required String paymentType,
       required double amount,
       required ITransaction transaction,
@@ -285,7 +324,6 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText: 'Purchase Code',
-                            // filled: true,
                             fillColor: Colors.white,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -302,6 +340,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                           },
                           onFieldSubmitted: (value) {
                             talker.warning("purchase code submitted[1]");
+                            //
                             _refreshTransactionItems(
                                 transactionId: transaction.id!);
                           },
@@ -332,7 +371,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                     // _purchaseCodeFormkey.currentState?.save();
                     String purchaseCode = purchasecodecontroller.text;
                     talker.warning("received purchase code: $purchaseCode");
-                    await handlePayment(
+                    RwApiResponse response = await finalizePayment(
                         transactionType: TransactionType.sale,
                         categoryId: "0",
                         paymentType: paymentType,
@@ -341,7 +380,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                         discount: discount,
                         purchaseCode: purchaseCode);
                     ref.read(loadingProvider.notifier).state = false;
-                    talker.warning("purchase code submitted[2]");
+                    talker.warning("response : ${response.toEJson()}");
 
                     _refreshTransactionItems(transactionId: transaction.id!);
                     Navigator.of(context).pop();

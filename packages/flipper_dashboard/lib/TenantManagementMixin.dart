@@ -543,34 +543,42 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   }
 
   Widget _buildBranchDropdown() {
-    final branches = ref
-        .watch(branchesProvider((includeSelf: false))); // No more 'when' needed
+    final asyncBranches = ref
+        .watch(branchesProvider((includeSelf: false))); // Handle FutureProvider
     final selectedBranch = ref.watch(selectedBranchProvider);
 
-    if (branches.isEmpty) {
-      return Text("No branches available");
-    }
+    return asyncBranches.when(
+      data: (branches) {
+        if (branches.isEmpty) {
+          return Text("No branches available");
+        }
 
-    return DropdownButtonFormField<Branch>(
-      value: selectedBranch ?? branches.first,
-      onChanged: (Branch? newValue) {
-        ref.read(selectedBranchProvider.notifier).state = newValue;
-      },
-      items: branches.map<DropdownMenuItem<Branch>>((Branch branch) {
-        return DropdownMenuItem<Branch>(
-          value: branch,
-          child: Text(branch.name ?? 'Unnamed Branch'),
+        return DropdownButtonFormField<Branch>(
+          value: selectedBranch ?? branches.first,
+          onChanged: (Branch? newValue) {
+            ref.read(selectedBranchProvider.notifier).state = newValue;
+          },
+          items: branches.map<DropdownMenuItem<Branch>>((Branch branch) {
+            return DropdownMenuItem<Branch>(
+              value: branch,
+              child: Text(branch.name ?? 'Unnamed Branch'),
+            );
+          }).toList(),
+          decoration: InputDecoration(
+            labelText: "Select Branch",
+            prefixIcon:
+                Icon(Icons.business, color: Theme.of(context).primaryColor),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            filled: true,
+            fillColor: Colors.grey[100],
+          ),
         );
-      }).toList(),
-      decoration: InputDecoration(
-        labelText: "Select Branch",
-        prefixIcon: Icon(Icons.business, color: Theme.of(context).primaryColor),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        filled: true,
-        fillColor: Colors.grey[100],
-      ),
+      },
+      loading: () =>
+          Center(child: CircularProgressIndicator()), // Show loading indicator
+      error: (error, stackTrace) => Text('Error: $error'), // Show error message
     );
   }
 

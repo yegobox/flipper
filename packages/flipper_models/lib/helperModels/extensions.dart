@@ -26,6 +26,10 @@ extension StringToIntList on String {
   List<int> toIntList() {
     return this.split(',').map((e) => int.parse(e.trim())).toList();
   }
+
+  List<String> toStringList() {
+    return this.split(',').map((e) => e.trim()).toList();
+  }
 }
 
 extension StringExtensions on String {

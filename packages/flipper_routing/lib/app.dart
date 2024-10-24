@@ -632,6 +632,29 @@ class App {}
 // https://www.youtube.com/watch?v=CagpigPskeM
 // https://github.com/firebase/flutterfire/issues/12987
 
-
+// https://developer.couchbase.com/dart-flutter-replication-app-services
 // https://www.hungrimind.com/articles/flutter-apple-pay
 // https://medium.com/blocship/integrate-apple-sign-in-on-android-using-flutter-bf5d61c85332
+
+//  Map<String, dynamic> map = {"id": 15};
+//       final db = ProxyService.capela.capella!.flipperDatabase!;
+
+// // Use the writeN method to write the document
+// await db.writeN(
+// tableName:
+//     "your_table_name", // Table name (although Couchbase Lite uses collections)
+// writeCallback: () {
+//   // Create a document with the given ID and map data
+//   final document = MutableDocument.withId("15", map);
+
+//   // Return the created document (of type T, in this case a MutableDocument)
+//   return document;
+// },
+// onAdd: (doc) async {
+//   // After the write operation, save the document to the collection
+//   final collection = await db.defaultCollection;
+//   await collection.saveDocument(doc);
+
+//   // Optionally, you can log or perform further operations here
+//   print("Document saved: ${doc.id}");
+// });

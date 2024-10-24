@@ -38,12 +38,12 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
         final businesses = ref.watch(businessesProvider);
         final branches = ref.watch(branchesProvider((includeSelf: true)));
 
-        if (!businesses.first.isValid || !branches.first.isValid) {
-          SchedulerBinding.instance.addPostFrameCallback((_) {
-            ref.refresh(businessesProvider);
-            ref.refresh(branchesProvider((includeSelf: true)));
-          });
-        }
+        // if (!businesses.first.isValid || !branches.first.isValid) {
+        //   SchedulerBinding.instance.addPostFrameCallback((_) {
+        //     ref.refresh(businessesProvider);
+        //     ref.refresh(branchesProvider((includeSelf: true)));
+        //   });
+        // }
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -78,7 +78,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
                         const SizedBox(height: 32.0),
                         Expanded(
                           child: _isSelectingBranch
-                              ? _buildBranchList(branches: branches)
+                              ? _buildBranchList(branches: branches.value!)
                               : _buildBusinessList(businesses: businesses),
                         ),
                       ],
@@ -289,7 +289,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   }
 
   Future<void> _updateAllBranchesInactive() async {
-    final branches = ProxyService.local.branches(
+    final branches = await ProxyService.local.branches(
         businessId: ProxyService.box.getBusinessId()!, includeSelf: true);
     for (final branch in branches) {
       ProxyService.local.realm!.write(() {

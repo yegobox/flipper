@@ -10,8 +10,8 @@ import 'package:flipper_dashboard/previewCart.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_models/power_sync/schema.dart';
-import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/realmExtension.dart';
+import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/functions.dart';
@@ -293,32 +293,12 @@ class CheckOutState extends ConsumerState<CheckOut>
             mode: SellingMode.forSelling,
             completeTransaction: () {
               /// update a transaction with customer name and tin
-              Customer? customer =
-                  ProxyService.local.getCustomer(id: transaction.customerId);
-              ProxyService.local.realm!.write(
-                  // TODO: use our write function once the fix is in place
-                  // tableName: transactionTable,
-                  // writeCallback:
-                  () {
-                /// when we are at checkout we are doing sale so it is 11
-                transaction.sarTyCd = "11";
-                transaction.customerName = customer == null
-                    ? ProxyService.box.customerName() ?? "N/A"
-                    : customerNameController.text;
-                transaction.customerTin = customer == null
-                    ? ProxyService.box.currentSaleCustomerPhoneNumber()
-                    : customer.custTin;
-
-                /// TODO: have a nice way to ge the bhf id for a customer
-                transaction.customerBhfId = "";
-                return transaction;
-              });
               if (customerNameController.text.isEmpty) {
                 /// remove old customer added maybe from previous sale
                 ProxyService.box.remove(key: 'customerName');
                 ProxyService.box.remove(key: 'getRefundReason');
               }
-              handleCompleteTransaction(
+              startCompleteTransactionFlow(
                   transaction: transaction,
                   paymentMethods: ref.watch(paymentMethodsProvider));
             },
@@ -395,7 +375,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                                   transactionId: transaction.id,
                                   onCharge: (transactionId, total) {
                                     try {
-                                      handleCompleteTransaction(
+                                      startCompleteTransactionFlow(
                                           transaction: transaction,
                                           paymentMethods: ref
                                               .watch(paymentMethodsProvider));

@@ -13,7 +13,7 @@ import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/Capella.dart';
 import 'package:flipper_services/PayStackService.dart';
-import 'package:flipper_services/RealmViaHttp.dart';
+import 'package:flipper_services/HttpApi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as httP;
@@ -63,6 +63,37 @@ import 'package:flipper_services/DeviceIdService.dart' as dev;
 
 @module
 abstract class ServicesModule {
+  @preResolve
+  @Named('capella')
+  @LazySingleton()
+  Future<FlipperInterface> capella(
+    LocalStorage box,
+  ) async {
+    if (!kIsWeb) {
+      return await Capella().configureCapella(
+        box: box,
+        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
+      );
+    } else {
+      return HttpApi();
+    }
+  }
+
+  @preResolve
+  @LazySingleton()
+  Future<FlipperInterface> localRealm(
+    LocalStorage box,
+  ) async {
+    if (!kIsWeb) {
+      return await LocalRealmApi().configureLocal(
+        box: box,
+        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
+      );
+    } else {
+      return HttpApi();
+    }
+  }
+
   @singleton
   FirebaseCrashlytics get crashlytics => FirebaseCrashlytics.instance;
 
@@ -103,37 +134,6 @@ abstract class ServicesModule {
       return await SharedPreferenceStorageMock().initializePreferences();
     } else {
       return await SharedPreferenceStorage().initializePreferences();
-    }
-  }
-
-  @preResolve
-  @Named('capella')
-  @LazySingleton()
-  Future<FlipperInterface> capella(
-    LocalStorage box,
-  ) async {
-    if (!kIsWeb) {
-      return await Capella().configureLocal(
-        box: box,
-        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
-      );
-    } else {
-      return HttpApi();
-    }
-  }
-
-  @preResolve
-  @LazySingleton()
-  Future<FlipperInterface> localRealm(
-    LocalStorage box,
-  ) async {
-    if (!kIsWeb) {
-      return await LocalRealmApi().configureLocal(
-        box: box,
-        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
-      );
-    } else {
-      return HttpApi();
     }
   }
 

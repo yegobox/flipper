@@ -58,10 +58,10 @@ class Orders extends HookConsumerWidget {
           builder: (context, constraints) {
             if (constraints.maxWidth > 600) {
               return _buildDesktopLayout(
-                  context, ref, suppliers, selectedSupplier);
+                  context, ref, suppliers.value!, selectedSupplier);
             } else {
               return _buildMobileLayout(
-                  context, ref, suppliers, selectedSupplier);
+                  context, ref, suppliers.value!, selectedSupplier);
             }
           },
         ),

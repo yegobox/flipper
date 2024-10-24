@@ -4,7 +4,6 @@ import 'package:flipper_services/constants.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
 
-import 'package:pocketbase/pocketbase.dart';
 part 'business.g.dart';
 
 /// A business object. which in some case act as contact
@@ -120,8 +119,7 @@ class IBusiness extends IJsonSerializable {
 
   String encryptionKey;
 
-  factory IBusiness.fromRecord(RecordModel record) =>
-      IBusiness.fromJson(record.toJson());
+
 
   factory IBusiness.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode

@@ -3,7 +3,6 @@ library flipper_models;
 import 'package:flipper_models/sync_service.dart';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 part 'itenant.g.dart';
 
 @JsonSerializable()
@@ -48,8 +47,6 @@ class IITenant extends IJsonSerializable {
       this.sessionActive,
       this.isLongPressed = false,
       this.pin});
-  factory IITenant.fromRecord(RecordModel record) =>
-      IITenant.fromJson(record.toJson());
 
   factory IITenant.fromJson(Map<String, dynamic> json) =>
       _$IITenantFromJson(json);

@@ -144,101 +144,108 @@ class _AddBranchState extends ConsumerState<AddBranch> {
             ),
             SizedBox(width: 16),
             Expanded(
-              child: ListView.builder(
-                itemCount: branches.length,
-                itemBuilder: (context, index) {
-                  final branch = branches[index];
-                  return Card(
-                    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    elevation: 3,
-                    child: ListTile(
-                      contentPadding: EdgeInsets.all(16),
-                      leading: Icon(Icons.location_pin, color: Colors.blue),
-                      title: Text(
-                        branch.name ?? "-",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('${branch.location ?? ""}'),
-                          SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(Icons.star,
-                                  color: branch.isDefault
-                                      ? Colors.yellow
-                                      : Colors.grey),
-                              SizedBox(width: 4),
-                              Text(
-                                  'Default: ${branch.isDefault ? 'Yes' : 'No'}'),
-                            ],
+              child: ref.watch(branchesProvider((includeSelf: false))).when(
+                    data: (branches) => ListView.builder(
+                      itemCount: branches.length,
+                      itemBuilder: (context, index) {
+                        final branch = branches[index];
+                        return Card(
+                          margin:
+                              EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
                           ),
-                          SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(Icons.check_circle,
-                                  color: branch.active!
-                                      ? Colors.green
-                                      : Colors.grey),
-                              SizedBox(width: 4),
-                              Text('Active: ${branch.active! ? 'Yes' : 'No'}'),
-                            ],
-                          ),
-                        ],
-                      ),
-                      trailing: // Add trailing icon for delete action
-                          IconButton(
-                        onPressed: branch.isDefault
-                            ? null // Disable delete for default branch
-                            : () async {
-                                if (await showDialog<bool>(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: Text('Delete Branch'),
-                                          content: Text(
-                                              'Are you sure you want to delete ${branch.name}?'),
-                                          actions: <Widget>[
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.of(context)
-                                                      .pop(false),
-                                              child: Text('Cancel'),
-                                            ),
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.of(context)
-                                                      .pop(true),
-                                              child: Text('Delete'),
-                                            ),
-                                          ],
+                          elevation: 3,
+                          child: ListTile(
+                            contentPadding: EdgeInsets.all(16),
+                            leading:
+                                Icon(Icons.location_pin, color: Colors.blue),
+                            title: Text(
+                              branch.name ?? "-",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('${branch.location ?? ""}'),
+                                SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(Icons.star,
+                                        color: branch.isDefault
+                                            ? Colors.yellow
+                                            : Colors.grey),
+                                    SizedBox(width: 4),
+                                    Text(
+                                        'Default: ${branch.isDefault ? 'Yes' : 'No'}'),
+                                  ],
+                                ),
+                                SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(Icons.check_circle,
+                                        color: branch.active!
+                                            ? Colors.green
+                                            : Colors.grey),
+                                    SizedBox(width: 4),
+                                    Text(
+                                        'Active: ${branch.active! ? 'Yes' : 'No'}'),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            trailing: IconButton(
+                              onPressed: branch.isDefault
+                                  ? null // Disable delete for default branch
+                                  : () async {
+                                      if (await showDialog<bool>(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                title: Text('Delete Branch'),
+                                                content: Text(
+                                                    'Are you sure you want to delete ${branch.name}?'),
+                                                actions: <Widget>[
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.of(context)
+                                                            .pop(false),
+                                                    child: Text('Cancel'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.of(context)
+                                                            .pop(true),
+                                                    child: Text('Delete'),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          ) ??
+                                          false) {
+                                        // If confirmed
+                                        await ProxyService.local.deleteBranch(
+                                          branchId: branch.serverId!,
+                                          flipperHttpClient: ProxyService.http,
                                         );
-                                      },
-                                    ) ??
-                                    false) {
-                                  // If confirmed
-                                  // Delete the branch
-                                  await ProxyService.local.deleteBranch(
-                                      branchId: branch.serverId!,
-                                      flipperHttpClient: ProxyService.http);
-                                  ref.refresh(branchesProvider((
-                                    includeSelf: false
-                                  ))); // Refresh the provider
-                                }
-                              },
-                        icon: Icon(Icons.delete,
-                            color: branch.isDefault
-                                ? Colors.grey
-                                : Colors.red), // Grey if default
-                      ),
+                                        ref.refresh(branchesProvider(
+                                            (includeSelf: false)));
+                                      }
+                                    },
+                              icon: Icon(
+                                Icons.delete,
+                                color:
+                                    branch.isDefault ? Colors.grey : Colors.red,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
+                    loading: () => Center(child: CircularProgressIndicator()),
+                    error: (error, stackTrace) =>
+                        Center(child: Text('Error: $error')),
+                  ),
             ),
           ],
         ),

@@ -1,5 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 
 part 'pin.g.dart';
 
@@ -26,7 +25,6 @@ class IPin {
   late String ownerName;
   late String tokenUid;
 
-  factory IPin.fromRecord(RecordModel record) => IPin.fromJson(record.toJson());
   factory IPin.fromJson(Map<String, dynamic> json) {
     return _$IPinFromJson(json);
   }

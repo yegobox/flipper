@@ -45,7 +45,7 @@ import 'language_service.dart' as _i313;
 import 'local_notification_service.dart' as _i445;
 import 'PayStackService.dart' as _i918;
 import 'product_service.dart' as _i777;
-import 'RealmViaHttp.dart' as _i1019;
+import 'HttpApi.dart' as _i1019;
 import 'sentry_service.dart' as _i107;
 import 'services_module.dart' as _i205;
 import 'setting_service.dart' as _i290;

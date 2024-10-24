@@ -8,7 +8,6 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/cupertino.dart';
@@ -183,7 +182,7 @@ class SignupViewModel extends ReactiveViewModel {
         .getBusinessFuture(businessId: tenants.first.businesses.first.id);
   }
 
-  List<Branch> getBranches(Business business) {
+  Future<List<Branch>> getBranches(Business business) async {
     return ProxyService.local.branches(businessId: business.serverId!);
   }
 

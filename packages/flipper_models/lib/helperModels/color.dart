@@ -3,7 +3,6 @@ library flipper_models;
 import 'package:flipper_models/sync_service.dart';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 part 'color.g.dart';
 
 @JsonSerializable()
@@ -30,8 +29,7 @@ class PColor extends IJsonSerializable {
     required this.action,
     this.deletedAt,
   });
-  factory PColor.fromRecord(RecordModel record) =>
-      PColor.fromJson(record.toJson());
+
   factory PColor.fromJson(Map<String, dynamic> json) {
     return _$PColorFromJson(json);
   }

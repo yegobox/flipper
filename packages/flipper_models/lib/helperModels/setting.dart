@@ -1,7 +1,6 @@
 import 'package:flipper_models/sync_service.dart';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 part 'setting.g.dart';
 
 @JsonSerializable()
@@ -54,8 +53,6 @@ class Setting extends IJsonSerializable {
   DateTime? lastTouched;
 
   DateTime? deletedAt;
-  factory Setting.fromRecord(RecordModel record) =>
-      Setting.fromJson(record.toJson());
 
   factory Setting.fromJson(Map<String, dynamic> json) =>
       _$SettingFromJson(json);

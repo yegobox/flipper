@@ -1,7 +1,6 @@
 library flipper_models;
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 part 'permission.g.dart';
 
 @JsonSerializable()
@@ -14,9 +13,6 @@ class IPermission {
   int? id;
   late String name;
   late int userId;
-
-  factory IPermission.fromRecord(RecordModel record) =>
-      IPermission.fromJson(record.toJson());
 
   factory IPermission.fromJson(Map<String, dynamic> json) =>
       _$IPermissionFromJson(json);

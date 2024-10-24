@@ -3,7 +3,6 @@ library flipper_models;
 import 'package:flipper_models/sync_service.dart';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 
 part 'token.g.dart';
 
@@ -30,8 +29,6 @@ class Token extends IJsonSerializable {
   DateTime? lastTouched;
 
   DateTime? deletedAt;
-  factory Token.fromRecord(RecordModel record) =>
-      Token.fromJson(record.toJson());
 
   factory Token.fromJson(Map<String, dynamic> json) => _$TokenFromJson(json);
   @override

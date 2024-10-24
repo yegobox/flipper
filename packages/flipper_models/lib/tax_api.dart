@@ -43,7 +43,7 @@ abstract class TaxApi {
       String lastReqDt,
       required String URI});
 
-  Future<RwApiResponse?> generateReceiptSignature(
+  Future<RwApiResponse> generateReceiptSignature(
       {required ITransaction transaction,
       required String receiptType,
       required Counter counter,

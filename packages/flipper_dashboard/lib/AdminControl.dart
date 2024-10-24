@@ -1,6 +1,8 @@
 import 'package:flipper_dashboard/TenantManagement.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+// import 'package:flipper_services/DatabaseProvider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -41,18 +43,23 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   Future<void> toggleForceUPSERT(bool value) async {
-    await ProxyService.box
-        .writeBool(key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
-    ProxyService.local.upSert();
+    try {
+      await ProxyService.box.writeBool(
+          key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
 
-    setState(() {
-      forceUPSERT = ProxyService.box.forceUPSERT();
-    });
+      ProxyService.capela.startReplicator();
+      setState(() {
+        forceUPSERT = ProxyService.box.forceUPSERT();
+      });
+    } catch (e, s) {
+      talker.error(e, s);
+    }
   }
 
   Future<void> toggleTaxService(bool value) async {
     await ProxyService.box.writeBool(
         key: 'stopTaxService', value: !ProxyService.box.stopTaxService()!);
+    //TODO: put this behind payment plan
 
     setState(() {
       stopTaxService = ProxyService.box.stopTaxService()!;

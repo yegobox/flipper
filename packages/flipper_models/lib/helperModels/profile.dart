@@ -2,7 +2,6 @@ library flipper_models;
 
 import 'package:flipper_models/sync_service.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 
 part 'profile.g.dart';
 
@@ -54,8 +53,6 @@ class Profile extends IJsonSerializable {
   DateTime? lastTouched;
 
   DateTime? deletedAt;
-  factory Profile.fromRecord(RecordModel record) =>
-      Profile.fromJson(record.toJson());
 
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);

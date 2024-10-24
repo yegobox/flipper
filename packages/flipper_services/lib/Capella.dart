@@ -1,27 +1,48 @@
+import 'dart:convert';
 import 'dart:isolate';
 
 import 'dart:typed_data';
-
+import 'package:realm/realm.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
+// import 'package:firestore_models/firestore_models.dart' as odm;
+import 'package:flipper_models/helper_models.dart' as extensions;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_models/AppInitializer.dart';
+import 'package:flipper_models/Booting.dart';
+import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
+import 'package:flipper_models/helperModels/branch.dart';
+import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/pin.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/FlipperInterface.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
-
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart' as foundation;
+import 'package:http/http.dart' as http;
 import 'package:http/src/response.dart';
-import 'package:realm_dart/src/realm_class.dart';
+import 'package:cbl/cbl.dart'
+    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'DatabaseProvider.dart';
 
-class Capella implements FlipperInterface {
-  DatabaseProvider? _databaseProvider;
+import 'package:flipper_services/replicator_provider.dart'
+    if (dart.library.html) 'DatabaseProvider.dart';
+
+class Capella with Booting implements FlipperInterface {
+  @override
+  DatabaseProvider? capella;
+  bool offlineLogin = false;
 
   @override
   Realm? realm;
@@ -31,6 +52,70 @@ class Capella implements FlipperInterface {
 
   @override
   SendPort? sendPort;
+
+  /// define models
+  @override
+  AsyncCollection? branchCollection;
+  @override
+  AsyncCollection? businessCollection;
+  @override
+  AsyncCollection? accessCollection;
+  @override
+  AsyncCollection? permissionCollection;
+  late String apihub;
+  late String commApi;
+  void _setApiEndpoints() {
+    if (foundation.kDebugMode) {
+      apihub = AppSecrets.apihubUat;
+      commApi = AppSecrets.commApi;
+    } else {
+      apihub = AppSecrets.apihubProd;
+      commApi = AppSecrets.commApi;
+    }
+  }
+
+  @override
+  Future<void> initCollections() async {
+    _setApiEndpoints();
+    branchCollection =
+        await capella?.flipperDatabase?.createCollection('branches');
+
+    businessCollection =
+        await capella?.flipperDatabase?.createCollection('businesses');
+
+    accessCollection =
+        await capella?.flipperDatabase?.createCollection('accesses');
+
+    // init replicator
+  }
+
+  @override
+  Future<FlipperInterface> configureCapella(
+      {required bool useInMemory, required LocalStorage box}) async {
+    talker.warning("The real implementation of capella called");
+
+    capella = await (await DatabaseProvider(
+                ProxyService.box.encryptionKey().toStringList())
+            .initialize())
+        .initDatabases();
+    talker.warning("CapelaDB ${capella?.flipperDatabase}");
+    await initCollections();
+    // init replicator for now here, it will be moved into settings later
+    // await startReplicator();
+    return this;
+  }
+
+  @override
+  Future<void> startReplicator() async {
+    final replicatorProvider = ReplicatorProvider(databaseProvider: capella!);
+    await replicatorProvider.init();
+    await replicatorProvider.startReplicator();
+  }
+
+  @override
+  Branch? branch({required int serverId}) {
+    throw UnimplementedError();
+  }
 
   @override
   List<Access> access({required int userId}) {
@@ -138,15 +223,23 @@ class Capella implements FlipperInterface {
   }
 
   @override
-  Branch? branch({required int serverId}) {
-    // TODO: implement branch
+  Future<List<Branch>> branches(
+      {required int businessId, bool? includeSelf = false}) async {
     throw UnimplementedError();
-  }
+    // var db = capella?.flipperDatabase;
+    // if (db != null) {
+    //   // query should be like "SELECT * FROM _ AS item WHERE documentType=\"audit\" AND projectId=\$projectId AND team=\$team")
+    // var query = await  db.createQuery(
+    //       "SELECT * FROM Branch AS item WHERE documentType=\"branch\" AND businessId=\$businessId");
+    //     var parameters = Parameters();
+    //       parameters.setValue(projectId, name: "projectId");
+    //       parameters.setValue(team, name: "team");
 
-  @override
-  List<Branch> branches({required int businessId, bool? includeSelf = false}) {
-    // TODO: implement branches
-    throw UnimplementedError();
+    //       //<3>
+    //       await query.setParameters(parameters);
+    //        query.execute();
+
+    // }
   }
 
   @override
@@ -256,18 +349,44 @@ class Capella implements FlipperInterface {
 
   @override
   Future<FlipperInterface> configureLocal(
-      {required bool useInMemory, required LocalStorage box}) async {
-    _databaseProvider = DatabaseProvider();
-    await _databaseProvider!.initialize();
-    await _databaseProvider!.initDatabases();
-    return this;
+      {required bool useInMemory, required LocalStorage box}) {
+    throw UnimplementedError();
+  }
+
+  Future<void> _suserbaseAuth() async {
+    try {
+      // Check if the user already exists
+      final email = '${ProxyService.box.getBranchId()}@flipper.rw';
+      final superUser.User? existingUser =
+          superUser.Supabase.instance.client.auth.currentUser;
+
+      if (existingUser == null) {
+        // User does not exist, proceed to sign up
+        await superUser.Supabase.instance.client.auth.signUp(
+          email: email,
+          password: email,
+        );
+        // Handle sign-up response if needed
+      } else {
+        // User exists, log them in
+        await superUser.Supabase.instance.client.auth.signInWithPassword(
+          email: email,
+          password: email,
+        );
+      }
+    } catch (e) {}
   }
 
   @override
   Future<void> configureSystem(String userPhone, IUser user,
-      {required bool offlineLogin}) {
-    // TODO: implement configureSystem
-    throw UnimplementedError();
+      {required bool offlineLogin}) async {
+    await configureTheBox(userPhone, user);
+    await updateLocalRealm(user, localRealm: realm);
+
+    AppInitializer.initialize();
+    if (!offlineLogin) {
+      await _suserbaseAuth();
+    }
   }
 
   @override
@@ -921,15 +1040,176 @@ class Capella implements FlipperInterface {
     throw UnimplementedError();
   }
 
+  String _formatPhoneNumber(String userPhone) {
+    if (!isEmail(userPhone) && !userPhone.startsWith('+')) {
+      return '+$userPhone';
+    }
+    return userPhone;
+  }
+
+  bool isEmail(String input) {
+    // Implement your logic to check if input is an email
+    // You can use regular expressions or any other email validation mechanism
+    // For simplicity, this example checks if the input contains '@'
+    return input.contains('@');
+  }
+
   @override
   Future<IUser> login(
       {required String userPhone,
       required bool skipDefaultAppSetup,
       bool stopAfterConfigure = false,
       required Pin pin,
-      required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement login
-    throw UnimplementedError();
+      required HttpClientInterface flipperHttpClient}) async {
+    final String phoneNumber = _formatPhoneNumber(userPhone);
+    final IUser user =
+        await _authenticateUser(phoneNumber, pin, flipperHttpClient);
+    await configureSystem(userPhone, user, offlineLogin: offlineLogin);
+    await ProxyService.box.writeBool(key: 'authComplete', value: true);
+
+    if (stopAfterConfigure) return user;
+
+    if (!skipDefaultAppSetup) {
+      await setDefaultApp(user);
+    }
+    ProxyService.box.writeBool(key: 'pinLogin', value: false);
+    return user;
+  }
+
+  List<IBranch> _convertBranches(List<Branch> branches) {
+    return branches
+        .map((e) => IBranch(
+            id: e.id,
+            name: e.name,
+            businessId: e.businessId,
+            longitude: e.longitude,
+            latitude: e.latitude,
+            location: e.location,
+            active: e.active,
+            isDefault: e.isDefault))
+        .toList();
+  }
+
+  IUser _createOfflineUser(String phoneNumber, Pin pin,
+      List<Business> businesses, List<Branch> branches) {
+    return IUser(
+      token: pin.tokenUid!,
+      uid: pin.tokenUid,
+      channels: [],
+      phoneNumber: pin.phoneNumber!,
+      id: pin.userId!,
+      tenants: [
+        ITenant(
+            id: randomNumber(),
+            name: pin.ownerName == null ? "DEFAULT" : pin.ownerName!,
+            phoneNumber: phoneNumber,
+            permissions: [],
+            branches: _convertBranches(branches),
+            businesses: _convertBusinesses(businesses),
+            businessId: 0,
+            nfcEnabled: false,
+            userId: pin.userId!,
+            isDefault: false)
+      ],
+    );
+  }
+
+  List<IBusiness> _convertBusinesses(List<Business> businesses) {
+    return businesses
+        .map((e) => IBusiness(
+              id: e.serverId,
+              encryptionKey: e.encryptionKey!,
+              name: e.name,
+              currency: e.currency,
+              categoryId: e.categoryId,
+              latitude: e.latitude,
+              longitude: e.longitude,
+              userId: e.userId,
+              timeZone: e.timeZone,
+              country: e.country,
+              businessUrl: e.businessUrl,
+              hexColor: e.hexColor,
+              imageUrl: e.imageUrl,
+              type: e.type,
+              active: e.active,
+              metadata: e.metadata,
+              lastSeen: e.lastSeen,
+              firstName: e.firstName,
+              lastName: e.lastName,
+              deviceToken: e.deviceToken,
+              chatUid: e.chatUid,
+              backUpEnabled: e.backUpEnabled,
+              subscriptionPlan: e.subscriptionPlan,
+              nextBillingDate: e.nextBillingDate,
+              previousBillingDate: e.previousBillingDate,
+              isLastSubscriptionPaymentSucceeded:
+                  e.isLastSubscriptionPaymentSucceeded,
+              backupFileId: e.backupFileId,
+              email: e.email,
+              lastDbBackup: e.lastDbBackup,
+              fullName: e.fullName,
+              role: e.role,
+              tinNumber: e.tinNumber,
+              bhfId: e.bhfId,
+              dvcSrlNo: e.dvcSrlNo,
+              adrs: e.adrs,
+              taxEnabled: e.taxEnabled,
+              taxServerUrl: e.taxServerUrl,
+              isDefault: e.isDefault,
+              businessTypeId: e.businessTypeId,
+              deletedAt: e.deletedAt,
+            ))
+        .toList();
+  }
+
+  Future<IUser> _authenticateUser(String phoneNumber, Pin pin,
+      HttpClientInterface flipperHttpClient) async {
+    List<Business> businessesE = businesses();
+    List<Branch> branchesE = await branches(businessId: pin.businessId!);
+
+    if (businessesE.isNotEmpty && branchesE.isNotEmpty) {
+      offlineLogin = true;
+
+      return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
+    }
+
+    final http.Response response =
+        await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
+
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      /// path the user pin, with
+      final IUser user = IUser.fromJson(json.decode(response.body));
+      await _patchPin(user.id!, flipperHttpClient, apihub,
+          ownerName: user.tenants.first.name);
+      ProxyService.box.writeInt(key: 'userId', value: user.id!);
+      await ProxyService.synchronize.firebaseLogin(token: user.uid);
+      return user;
+    } else {
+      await _handleLoginError(response);
+      throw Exception("Error during login");
+    }
+  }
+
+  Future<http.Response> _patchPin(
+      int pin, HttpClientInterface flipperHttpClient, String apihub,
+      {required String ownerName}) async {
+    return await flipperHttpClient.patch(
+      Uri.parse(apihub + '/v2/api/pin/${pin}'),
+      body: jsonEncode(<String, String?>{
+        'ownerName': ownerName,
+        'tokenUid': FirebaseAuth.instance.currentUser?.uid
+      }),
+    );
+  }
+
+  Future<void> _handleLoginError(http.Response response) async {
+    if (response.statusCode == 401) {
+      throw SessionException(term: "session expired");
+    } else if (response.statusCode == 500) {
+      throw PinError(term: "Not found");
+    } else {
+      throw UnknownError(term: response.statusCode.toString());
+    }
   }
 
   @override

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flipper_models/sync_service.dart';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 
 part 'conversation.g.dart';
 
@@ -60,9 +59,6 @@ class IConversation extends IJsonSerializable {
 
   IConversation.notificaton(
       {required this.userName, required this.body, required this.id});
-
-  factory IConversation.fromRecord(RecordModel record) =>
-      IConversation.fromJson(record.toJson());
 
   factory IConversation.fromJson(Map<String, dynamic> json) =>
       _$IConversationFromJson(json);

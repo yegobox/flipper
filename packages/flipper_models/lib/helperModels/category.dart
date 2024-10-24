@@ -1,7 +1,6 @@
 import 'package:flipper_models/sync_service.dart';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
 part 'category.g.dart';
 
 @JsonSerializable()
@@ -28,8 +27,6 @@ class Category extends IJsonSerializable {
     required this.branchId,
   });
 
-  factory Category.fromRecord(RecordModel record) =>
-      Category.fromJson(record.toJson());
   factory Category.fromJson(Map<String, dynamic> json) {
     return _$CategoryFromJson(json);
   }
