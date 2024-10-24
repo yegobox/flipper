@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -225,14 +223,14 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
         child: OutlinedButton(
           onPressed: onPressed,
           style: ButtonStyle(
-            side: MaterialStateProperty.all<BorderSide>(
+            side: WidgetStateProperty.all<BorderSide>(
                 BorderSide(color: sideColor)),
-            shape: MaterialStateProperty.resolveWith<OutlinedBorder>((states) =>
+            shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) =>
                 RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0))),
-            backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-            overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                (Set<MaterialState> states) => sideColor),
+            backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
+            overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states) => sideColor),
           ),
           child: Text(label,
               style: GoogleFonts.poppins(

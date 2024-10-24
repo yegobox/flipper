@@ -15,7 +15,7 @@ on:
           - production
   
   push:
-    branches: [main, dev, firestore]
+    branches: [main, dev, firestore,capella]
 
 env:
   URL: ${{ secrets.DB_URL }}
