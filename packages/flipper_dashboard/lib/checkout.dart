@@ -301,6 +301,15 @@ class CheckOutState extends ConsumerState<CheckOut>
               startCompleteTransactionFlow(
                   transaction: transaction,
                   paymentMethods: ref.watch(paymentMethodsProvider));
+                    ref.refresh(loadingProvider.notifier);
+
+      // receivedAmountController.clear();
+      ref.read(loadingProvider.notifier).state = false;
+      ref.refresh(loadingProvider.notifier);
+      ref.read(isProcessingProvider.notifier).stopProcessing();
+      ref.refresh(pendingTransactionProvider(
+          (mode: TransactionType.sale, isExpense: false)));
+     
             },
             ref: ref,
             model: model,

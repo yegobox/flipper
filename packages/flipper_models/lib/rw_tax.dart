@@ -182,7 +182,6 @@ class RWTax implements TaxApi {
   }
 
   // Create the Dio instance and add the TalkerDioLogger interceptor
-
   Future<Response> sendPostRequest(
     String baseUrl,
     Map<String, dynamic>? data,
@@ -190,19 +189,36 @@ class RWTax implements TaxApi {
     final headers = {'Content-Type': 'application/json'};
 
     try {
+      // Set timeout configurations
       final response = await _dio!.post(
         baseUrl,
         data: json.encode(data),
-        options: Options(headers: headers),
+        options: Options(
+          headers: headers,
+          // Set timeouts (example: 5 seconds for connection and response timeout)
+          sendTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 5),
+        ),
       );
       print('Response received: ${response.statusCode}');
       return response;
     } on DioException catch (e) {
       print('DioException caught: ${e.message}');
-      final errorMessage = e.response?.data;
-      // talker.error(s);
-      throw Exception(
-          'Error sending POST request: ${errorMessage ?? 'Bad Request'}');
+
+      if (e.type == DioExceptionType.connectionTimeout) {
+        throw Exception('Connection timeout occurred.');
+      } else if (e.type == DioExceptionType.sendTimeout) {
+        throw Exception('Send timeout occurred.');
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        throw Exception('Receive timeout occurred.');
+      } else if (e.type == DioExceptionType.badResponse) {
+        // This handles server response errors
+        final errorMessage = e.response?.data;
+        throw Exception(
+            'Error sending POST request: ${errorMessage ?? 'Bad Request'}');
+      } else {
+        throw Exception('Unexpected error occurred: ${e.message}');
+      }
     } catch (e, s) {
       print('General exception caught: $e');
       _talker!.info(e);

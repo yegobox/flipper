@@ -1,12 +1,8 @@
 // ignore_for_file: unused_result
 
-import 'dart:typed_data';
-
+import 'package:flipper_dashboard/PurchaseCodeForm.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/mixins/TaxController.dart';
-import 'package:flipper_models/power_sync/schema.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -16,15 +12,14 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/flipper_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
+
+import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:realm/realm.dart';
-import 'package:printing/printing.dart';
-import 'package:pdf/pdf.dart';
 
 mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixin, TextEditingControllersMixin {
@@ -141,6 +136,9 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       /// on mobile we are not validating state hence it is always true && customer ==null
       if (state && customer == null) {
         finalizePayment(
+          formKey: formKey,
+          customerNameController: customerNameController,
+          context: context,
           paymentType: ProxyService.box.paymentType() ?? "Cash",
           transactionType: TransactionType.sale,
           transaction: transaction,
@@ -156,6 +154,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
           discount: discount,
           paymentType: paymentTypeController.text,
           transaction: transaction,
+          context: context,
         );
         _refreshTransactionItems(transactionId: transaction.id!);
         ref.read(loadingProvider.notifier).state = false;
@@ -170,234 +169,146 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  Future<RwApiResponse> finalizePayment(
-      {String? purchaseCode,
-      required String paymentType,
-      required ITransaction transaction,
-      String? categoryId,
-      required String transactionType,
-      required double amount,
-      required double discount}) async {
-    ITransaction trans = ProxyService.local.collectPayment(
-      branchId: ProxyService.box.getBranchId()!,
-      isProformaMode: ProxyService.box.isProformaMode(),
-      isTrainingMode: ProxyService.box.isTrainingMode(),
-      bhfId: ProxyService.box.bhfId() ?? "00",
-      cashReceived: amount,
-      transaction: transaction,
-      categoryId: categoryId,
-      transactionType: transactionType,
-      isIncome: true,
-      paymentType: paymentType,
-      discount: discount,
-      directlyHandleReceipt: false,
-    );
-    final taxExanbled = ProxyService.local
-        .isTaxEnabled(business: ProxyService.local.getBusiness());
-    RwApiResponse? response;
-    final hasServerUrl = ProxyService.box.getServerUrl() != null;
-    final hasUser = ProxyService.box.bhfId() != null;
-    if (taxExanbled && hasServerUrl && hasUser) {
-      response = await handleReceiptGeneration(
-          transaction: trans, purchaseCode: purchaseCode);
-
-      updateCustomerTransaction(transaction, customerNameController.text);
-    } else {
-      updateCustomerTransaction(transaction, customerNameController.text);
-    }
-    if (response == null) {
-      return RwApiResponse(resultCd: "001", resultMsg: "Sale completed");
-    }
-    return response;
-  }
-
-  void updateCustomerTransaction(
-      ITransaction transaction, String customerName) {
-    Customer? customer =
-        ProxyService.local.getCustomer(id: transaction.customerId);
-
-    ProxyService.local.realm!.writeN(
-      tableName: transactionTable,
-      writeCallback: () {
-        /// when we are at checkout we are doing sale so it is 11
-        transaction.sarTyCd = "11";
-        transaction.customerName = customer == null
-            ? ProxyService.box.customerName() ?? "N/A"
-            : customerNameController.text;
-        transaction.customerTin = customer == null
-            ? ProxyService.box.currentSaleCustomerPhoneNumber()
-            : customer.custTin;
-        return transaction;
-      },
-      onAdd: (data) {},
-    );
-  }
-
-  Future<RwApiResponse> handleReceiptGeneration(
-      {String? purchaseCode, ITransaction? transaction}) async {
-    try {
-      ITransaction? trans =
-          await ProxyService.local.getTransactionById(id: transaction!.id!);
-
-      final responseFrom = await TaxController(object: trans).handleReceipt(
-        purchaseCode: purchaseCode,
-      );
-      final (:response, :bytes) = responseFrom;
-
-      formKey.currentState?.reset();
-      ref.refresh(loadingProvider.notifier);
-
-      // receivedAmountController.clear();
-      ref.read(loadingProvider.notifier).state = false;
-      ref.refresh(loadingProvider.notifier);
-      ref.read(isProcessingProvider.notifier).stopProcessing();
-      ref.refresh(pendingTransactionProvider(
-          (mode: TransactionType.sale, isExpense: false)));
-      if (bytes != null) {
-        await printing(bytes);
-      }
-
-      return response;
-    } catch (e) {
-      talker.error(e);
-      throw Exception("Invalid routes.");
-    }
-  }
-
-  Future<void> printing(Uint8List? bytes) async {
-    final printers = await Printing.listPrinters();
-
-    if (printers.isNotEmpty) {
-      Printer? pri = await Printing.pickPrinter(
-          context: context, title: "List of printers");
-      if (bytes == null) {
-        return;
-      }
-
-      await Printing.directPrintPdf(
-          printer: pri!, onLayout: (PdfPageFormat format) async => bytes);
-    }
-  }
-
-  Future<void> additionalInformationIsRequiredToCompleteTransaction(
-      {required String paymentType,
-      required double amount,
-      required ITransaction transaction,
-      required double discount}) async {
+  Future<void> additionalInformationIsRequiredToCompleteTransaction({
+    required String paymentType,
+    required double amount,
+    required ITransaction transaction,
+    required double discount,
+    required BuildContext context,
+  }) async {
     if (transaction.customerId != null) {
-      showDialog(
+      await showDialog(
         context: context,
-        builder: (BuildContext context) {
-          final double height = MediaQuery.of(context).size.height;
+        builder: (BuildContext dialogContext) {
+          final double height = MediaQuery.of(dialogContext).size.height;
           final double adjustedHeight = height * 0.8;
 
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            backgroundColor: Colors.grey[100],
-            title: Text(
-              'Digital Receipt',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, color: Colors.blue[800]),
-              textAlign: TextAlign.center,
+          return BlocProvider(
+            create: (context) => PurchaseCodeFormBloc(
+              formKey: formKey,
+              customerNameController: customerNameController,
+              amount: amount,
+              discount: discount,
+              paymentType: paymentType,
+              transaction: transaction,
+              context: dialogContext,
             ),
-            content: SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: adjustedHeight),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Form(
-                    key: purchaseCodeFormkey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        Text(
-                          'Do you need a digital receipt?',
-                          style:
-                              TextStyle(fontSize: 18, color: Colors.grey[800]),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 24),
-                        TextFormField(
-                          controller: purchasecodecontroller,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: 'Purchase Code',
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            prefixIcon:
-                                Icon(Icons.receipt, color: Colors.blue[800]),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a purchase code';
-                            }
-                            return null;
+            child: Builder(
+              builder: (context) {
+                final formBloc = context.read<PurchaseCodeFormBloc>();
+
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  backgroundColor: Colors.grey[100],
+                  title: Text(
+                    'Digital Receipt',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[800],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  content: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxHeight: adjustedHeight),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: FormBlocListener<PurchaseCodeFormBloc, String,
+                            String>(
+                          onSubmitting: (context, state) {
+                            ref
+                                .read(isProcessingProvider.notifier)
+                                .toggleProcessing();
                           },
-                          onFieldSubmitted: (value) {
-                            talker.warning("purchase code submitted[1]");
-                            //
+                          onSuccess: (context, state) {
+                            ref
+                                .read(isProcessingProvider.notifier)
+                                .stopProcessing();
                             _refreshTransactionItems(
                                 transactionId: transaction.id!);
+                            Navigator.of(context).pop();
+
+                            ref.refresh(pendingTransactionProvider(
+                              (mode: TransactionType.sale, isExpense: false),
+                            ));
                           },
-                          onSaved: (value) {},
+                          onFailure: (context, state) {
+                            ref
+                                .read(isProcessingProvider.notifier)
+                                .stopProcessing();
+                          },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: <Widget>[
+                              Text(
+                                'Do you need a digital receipt?',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey[800],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(height: 24),
+                              TextFieldBlocBuilder(
+                                textFieldBloc: formBloc.purchaseCode,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: 'Purchase Code',
+                                  fillColor: Colors.white,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.receipt,
+                                    color: Colors.blue[800],
+                                  ),
+                                ),
+                                onSubmitted: (value) {
+                                  talker.warning("purchase code submitted[1]");
+                                  formBloc.submit();
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                      onPressed: () {
+                        ref
+                            .read(isProcessingProvider.notifier)
+                            .stopProcessing();
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    BlocBuilder<PurchaseCodeFormBloc, FormBlocState>(
+                      builder: (context, state) {
+                        return FlipperButton(
+                          busy: state is FormBlocSubmitting,
+                          text: 'Submit',
+                          textColor: Colors.black,
+                          onPressed: () => formBloc.submit(),
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
             ),
-            actions: <Widget>[
-              TextButton(
-                child:
-                    Text('Cancel', style: TextStyle(color: Colors.grey[600])),
-                onPressed: () {
-                  ref.read(isProcessingProvider.notifier).stopProcessing();
-                  Navigator.of(context).pop();
-                },
-              ),
-              FlipperButton(
-                busy: ref.watch(isProcessingProvider),
-                text: 'Submit',
-                textColor: Colors.black,
-                onPressed: () async {
-                  if (purchaseCodeFormkey.currentState?.validate() ?? false) {
-                    ref.read(isProcessingProvider.notifier).toggleProcessing();
-                    // _purchaseCodeFormkey.currentState?.save();
-                    String purchaseCode = purchasecodecontroller.text;
-                    talker.warning("received purchase code: $purchaseCode");
-                    RwApiResponse response = await finalizePayment(
-                        transactionType: TransactionType.sale,
-                        categoryId: "0",
-                        paymentType: paymentType,
-                        transaction: transaction,
-                        amount: amount,
-                        discount: discount,
-                        purchaseCode: purchaseCode);
-                    ref.read(loadingProvider.notifier).state = false;
-                    talker.warning("response : ${response.toEJson()}");
-
-                    _refreshTransactionItems(transactionId: transaction.id!);
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-            ],
           );
         },
       );
     }
-
-    /// refresh and go home
-    ref.refresh(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false)));
-
-    // model.handlingConfirm = false;
   }
 
   void handleTicketNavigation(ITransaction transaction) {

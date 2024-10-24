@@ -1,16 +1,137 @@
+import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_models/power_sync/schema.dart';
+import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flutter/material.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:printing/printing.dart';
+import 'package:flutter/foundation.dart';
+import 'package:pdf/pdf.dart';
+import 'dart:typed_data';
 
 mixin TransactionMixin {
   final KeyPadService keypad = getIt<KeyPadService>();
 
   get quantity => keypad.quantity;
   final talker = Talker();
+
+  Future<RwApiResponse> finalizePayment(
+      {String? purchaseCode,
+      required String paymentType,
+      required ITransaction transaction,
+      String? categoryId,
+      required String transactionType,
+      required double amount,
+      required BuildContext context,
+      required GlobalKey<FormState> formKey,
+      required TextEditingController customerNameController,
+      required double discount}) async {
+    ITransaction trans = ProxyService.local.collectPayment(
+      branchId: ProxyService.box.getBranchId()!,
+      isProformaMode: ProxyService.box.isProformaMode(),
+      isTrainingMode: ProxyService.box.isTrainingMode(),
+      bhfId: ProxyService.box.bhfId() ?? "00",
+      cashReceived: amount,
+      transaction: transaction,
+      categoryId: categoryId,
+      transactionType: transactionType,
+      isIncome: true,
+      paymentType: paymentType,
+      discount: discount,
+      directlyHandleReceipt: false,
+    );
+    final taxExanbled = ProxyService.local
+        .isTaxEnabled(business: ProxyService.local.getBusiness());
+    RwApiResponse? response;
+    final hasServerUrl = ProxyService.box.getServerUrl() != null;
+    final hasUser = ProxyService.box.bhfId() != null;
+    if (taxExanbled && hasServerUrl && hasUser) {
+      response = await handleReceiptGeneration(
+          formKey: formKey,
+          context: context,
+          transaction: trans,
+          purchaseCode: purchaseCode);
+
+      updateCustomerTransaction(
+          transaction, customerNameController.text, customerNameController);
+    } else {
+      updateCustomerTransaction(
+          transaction, customerNameController.text, customerNameController);
+    }
+    if (response == null) {
+      return RwApiResponse(resultCd: "001", resultMsg: "Sale completed");
+    }
+    return response;
+  }
+
+  void updateCustomerTransaction(ITransaction transaction, String customerName,
+      TextEditingController customerNameController) {
+    Customer? customer =
+        ProxyService.local.getCustomer(id: transaction.customerId);
+
+    ProxyService.local.realm!.writeN(
+      tableName: transactionTable,
+      writeCallback: () {
+        /// when we are at checkout we are doing sale so it is 11
+        transaction.sarTyCd = "11";
+        transaction.customerName = customer == null
+            ? ProxyService.box.customerName() ?? "N/A"
+            : customerNameController.text;
+        transaction.customerTin = customer == null
+            ? ProxyService.box.currentSaleCustomerPhoneNumber()
+            : customer.custTin;
+        return transaction;
+      },
+      onAdd: (data) {},
+    );
+  }
+
+  Future<void> printing(Uint8List? bytes, BuildContext context) async {
+    final printers = await Printing.listPrinters();
+
+    if (printers.isNotEmpty) {
+      Printer? pri = await Printing.pickPrinter(
+          context: context, title: "List of printers");
+      if (bytes == null) {
+        return;
+      }
+
+      await Printing.directPrintPdf(
+          printer: pri!, onLayout: (PdfPageFormat format) async => bytes);
+    }
+  }
+
+  Future<RwApiResponse> handleReceiptGeneration(
+      {String? purchaseCode,
+      ITransaction? transaction,
+      required GlobalKey<FormState> formKey,
+      required BuildContext context}) async {
+    try {
+      ITransaction? trans =
+          await ProxyService.local.getTransactionById(id: transaction!.id!);
+
+      final responseFrom = await TaxController(object: trans).handleReceipt(
+        purchaseCode: purchaseCode,
+      );
+      final (:response, :bytes) = responseFrom;
+
+      formKey.currentState?.reset();
+
+      if (bytes != null) {
+        await printing(bytes, context);
+      }
+      return response;
+    } catch (e) {
+      talker.error(e);
+      throw Exception("Invalid routes.");
+    }
+  }
 
   Future<bool> saveTransaction(
       {double? compositePrice,
