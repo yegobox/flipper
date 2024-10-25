@@ -12,22 +12,6 @@ IPermission _$IPermissionFromJson(Map<String, dynamic> json) => IPermission(
       userId: (json['userId'] as num).toInt(),
     );
 
-const _$IPermissionFieldMap = <String, String>{
-  'id': 'id',
-  'name': 'name',
-  'userId': 'userId',
-};
-
-// ignore: unused_element
-abstract class _$IPermissionPerFieldToJson {
-  // ignore: unused_element
-  static Object? id(int? instance) => instance;
-  // ignore: unused_element
-  static Object? name(String instance) => instance;
-  // ignore: unused_element
-  static Object? userId(int instance) => instance;
-}
-
 Map<String, dynamic> _$IPermissionToJson(IPermission instance) =>
     <String, dynamic>{
       'id': instance.id,

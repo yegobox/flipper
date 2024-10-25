@@ -1,5 +1,6 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/flipper_http_client.dart';
@@ -12,6 +13,7 @@ import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/Capella.dart';
+import 'package:flipper_services/HttpApiCapella.dart';
 import 'package:flipper_services/PayStackService.dart';
 import 'package:flipper_services/HttpApi.dart';
 import 'package:flutter/foundation.dart';
@@ -66,7 +68,7 @@ abstract class ServicesModule {
   @preResolve
   @Named('capella')
   @LazySingleton()
-  Future<FlipperInterface> capella(
+  Future<FlipperInterfaceCapella> capella(
     LocalStorage box,
   ) async {
     if (!kIsWeb) {
@@ -75,7 +77,7 @@ abstract class ServicesModule {
         useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
       );
     } else {
-      return HttpApi();
+      return HttpApiCapella();
     }
   }
 

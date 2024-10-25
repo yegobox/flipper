@@ -18,38 +18,6 @@ IUnit _$IUnitFromJson(Map<String, dynamic> json) => IUnit(
         ? null
         : DateTime.parse(json['deletedAt'] as String);
 
-const _$IUnitFieldMap = <String, String>{
-  'deletedAt': 'deletedAt',
-  'id': 'id',
-  'branchId': 'branchId',
-  'name': 'name',
-  'value': 'value',
-  'active': 'active',
-  'lastTouched': 'lastTouched',
-  'action': 'action',
-};
-
-// ignore: unused_element
-abstract class _$IUnitPerFieldToJson {
-  // ignore: unused_element
-  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
-  // ignore: unused_element
-  static Object? id(int? instance) => instance;
-  // ignore: unused_element
-  static Object? branchId(int instance) => instance;
-  // ignore: unused_element
-  static Object? name(String instance) => instance;
-  // ignore: unused_element
-  static Object? value(String instance) => instance;
-  // ignore: unused_element
-  static Object? active(bool instance) => instance;
-  // ignore: unused_element
-  static Object? lastTouched(DateTime? instance) =>
-      IUnit._dateTimeToJson(instance);
-  // ignore: unused_element
-  static Object? action(String instance) => instance;
-}
-
 Map<String, dynamic> _$IUnitToJson(IUnit instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'id': instance.id,

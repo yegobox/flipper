@@ -123,6 +123,8 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
         paymentMethod: payment.method,
       ));
     }
+    //
+
     if (transaction.subTotal != 0) {
       ref.read(loadingProvider.notifier).state = true;
       Customer? customer =

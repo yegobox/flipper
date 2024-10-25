@@ -12,22 +12,6 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       pin: json['pin'] as String?,
     );
 
-const _$UserFieldMap = <String, String>{
-  'id': 'id',
-  'phoneNumber': 'phoneNumber',
-  'pin': 'pin',
-};
-
-// ignore: unused_element
-abstract class _$UserPerFieldToJson {
-  // ignore: unused_element
-  static Object? id(int instance) => instance;
-  // ignore: unused_element
-  static Object? phoneNumber(String instance) => instance;
-  // ignore: unused_element
-  static Object? pin(String? instance) => instance;
-}
-
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'id': instance.id,
       'phoneNumber': instance.phoneNumber,

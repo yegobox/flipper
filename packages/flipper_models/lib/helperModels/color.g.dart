@@ -22,37 +22,6 @@ PColor _$PColorFromJson(Map<String, dynamic> json) => PColor(
           : DateTime.parse(json['deletedAt'] as String),
     );
 
-const _$PColorFieldMap = <String, String>{
-  'id': 'id',
-  'name': 'name',
-  'colors': 'colors',
-  'branchId': 'branchId',
-  'active': 'active',
-  'lastTouched': 'lastTouched',
-  'action': 'action',
-  'deletedAt': 'deletedAt',
-};
-
-// ignore: unused_element
-abstract class _$PColorPerFieldToJson {
-  // ignore: unused_element
-  static Object? id(int? instance) => instance;
-  // ignore: unused_element
-  static Object? name(String? instance) => instance;
-  // ignore: unused_element
-  static Object? colors(List<String>? instance) => instance;
-  // ignore: unused_element
-  static Object? branchId(int? instance) => instance;
-  // ignore: unused_element
-  static Object? active(bool instance) => instance;
-  // ignore: unused_element
-  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
-  // ignore: unused_element
-  static Object? action(String instance) => instance;
-  // ignore: unused_element
-  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
-}
-
 Map<String, dynamic> _$PColorToJson(PColor instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,

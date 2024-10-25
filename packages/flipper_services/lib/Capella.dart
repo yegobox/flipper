@@ -1,35 +1,23 @@
-import 'dart:convert';
 import 'dart:isolate';
 
 import 'dart:typed_data';
-import 'package:realm/realm.dart';
+import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
-// import 'package:firestore_models/firestore_models.dart' as odm;
+import 'package:firestore_models/firestore_models.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/Booting.dart';
-import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/helperModels/branch.dart';
-import 'package:flipper_models/helperModels/business.dart';
-import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
-import 'package:flipper_models/helperModels/pin.dart';
-import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
-import 'package:flipper_models/realm/schemas.dart';
-import 'package:flipper_models/FlipperInterface.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:http/http.dart' as http;
-import 'package:http/src/response.dart';
 import 'package:cbl/cbl.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
@@ -39,13 +27,10 @@ import 'package:flipper_services/database_provider.dart'
 import 'package:flipper_services/replicator_provider.dart'
     if (dart.library.html) 'DatabaseProvider.dart';
 
-class Capella with Booting implements FlipperInterface {
+class Capella with Booting implements FlipperInterfaceCapella {
   @override
   DatabaseProvider? capella;
   bool offlineLogin = false;
-
-  @override
-  Realm? realm;
 
   @override
   ReceivePort? receivePort;
@@ -77,6 +62,13 @@ class Capella with Booting implements FlipperInterface {
   @override
   Future<void> initCollections() async {
     _setApiEndpoints();
+
+    /// create databse indexes
+    final collection = await capella?.flipperDatabase?.defaultCollection;
+
+    /// end of creation of indexes
+    final config = ValueIndexConfiguration(['branchId', 'receiptType']);
+    await collection!.createIndex('branchIdReceiptType', config);
     branchCollection =
         await capella?.flipperDatabase?.createCollection('branches');
 
@@ -90,7 +82,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Future<FlipperInterface> configureCapella(
+  Future<FlipperInterfaceCapella> configureCapella(
       {required bool useInMemory, required LocalStorage box}) async {
     talker.warning("The real implementation of capella called");
 
@@ -118,7 +110,158 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  List<Access> access({required int userId}) {
+  Future<FlipperInterfaceCapella> configureLocal(
+      {required bool useInMemory, required LocalStorage box}) {
+    throw UnimplementedError();
+  }
+
+  Future<void> _suserbaseAuth() async {
+    try {
+      // Check if the user already exists
+      final email = '${ProxyService.box.getBranchId()}@flipper.rw';
+      final superUser.User? existingUser =
+          superUser.Supabase.instance.client.auth.currentUser;
+
+      if (existingUser == null) {
+        // User does not exist, proceed to sign up
+        await superUser.Supabase.instance.client.auth.signUp(
+          email: email,
+          password: email,
+        );
+        // Handle sign-up response if needed
+      } else {
+        // User exists, log them in
+        await superUser.Supabase.instance.client.auth.signInWithPassword(
+          email: email,
+          password: email,
+        );
+      }
+    } catch (e) {}
+  }
+
+  @override
+  Future<void> configureSystem(String userPhone, IUser user,
+      {required bool offlineLogin}) async {
+    await configureTheBox(userPhone, user);
+    await updateLocalRealm(user, localRealm: ProxyService.local.realm);
+
+    AppInitializer.initialize();
+    if (!offlineLogin) {
+      await _suserbaseAuth();
+    }
+  }
+
+  @override
+  void consumePoints({required int userId, required int points}) {
+    // TODO: implement consumePoints
+  }
+
+  @override
+  Future<Voucher?> consumeVoucher({required int voucherCode}) {
+    // TODO: implement consumeVoucher
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Counter?> getCounter(
+      {required int branchId, required String receiptType}) async {
+    // throw UnimplementedError();
+    try {
+      final collection = await capella?.flipperDatabase?.defaultCollection;
+
+      final query = const QueryBuilder()
+          .select(SelectResult.all())
+          .from(DataSource.collection(collection!))
+          .where(Expression.property('branchId')
+              .equalTo(Expression.integer(branchId))
+              .add(Expression.property('receiptType')
+                  .equalTo(Expression.string(receiptType))))
+          .limit(Expression.integer(1));
+
+      var parameters = Parameters();
+      parameters.setValue(branchId, name: "branchId");
+      parameters.setValue(receiptType, name: "receiptType");
+
+      await query.setParameters(parameters);
+      final result = await query.execute();
+      final results = await result.allResults();
+
+      if (results.isEmpty) {
+        return null;
+      }
+      // Convert the first result to Counter
+      final Map<String, dynamic> json = results.first.toPlainMap();
+      return Counter.fromJson(json);
+    } catch (e) {
+      print('Error getting counter: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<List<ITenant>> signup(
+      {required Map business, required HttpClientInterface flipperHttpClient}) {
+    // TODO: implement signup
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> size<T>({required T object}) {
+    // TODO: implement size
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<double> soldStockValue({required branchId}) {
+    // TODO: implement soldStockValue
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> spawnIsolate(isolateHandler) {
+    // TODO: implement spawnIsolate
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<double> stockValue({required branchId}) {
+    // TODO: implement stockValue
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> updateNonRealm<T>(
+      {required T data, required HttpClientInterface flipperHttpClient}) {
+    // TODO: implement updateNonRealm
+    throw UnimplementedError();
+  }
+
+  @override
+  void updateStock({required int stockId, required double qty}) {
+    // TODO: implement updateStock
+  }
+
+  @override
+  void updateTransactionItemQty(
+      {required qty, required int transactionItemId}) {
+    // TODO: implement updateTransactionItemQty
+  }
+
+  @override
+  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) {
+    // TODO: implement uploadPdfToS3
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> userNameAvailable(
+      {required String name, required HttpClientInterface flipperHttpClient}) {
+    // TODO: implement userNameAvailable
+    throw UnimplementedError();
+  }
+
+  @override
+  List<Accesses> access({required int userId}) {
     // TODO: implement access
     throw UnimplementedError();
   }
@@ -179,7 +322,7 @@ class Capella with Booting implements FlipperInterface {
 
   @override
   void addTransactionItem(
-      {required ITransaction transaction,
+      {required Transaction transaction,
       required TransactionItem item,
       required bool partOfComposite}) {
     // TODO: implement addTransactionItem
@@ -224,26 +367,13 @@ class Capella with Booting implements FlipperInterface {
 
   @override
   Future<List<Branch>> branches(
-      {required int businessId, bool? includeSelf = false}) async {
+      {required int businessId, bool? includeSelf = false}) {
+    // TODO: implement branches
     throw UnimplementedError();
-    // var db = capella?.flipperDatabase;
-    // if (db != null) {
-    //   // query should be like "SELECT * FROM _ AS item WHERE documentType=\"audit\" AND projectId=\$projectId AND team=\$team")
-    // var query = await  db.createQuery(
-    //       "SELECT * FROM Branch AS item WHERE documentType=\"branch\" AND businessId=\$businessId");
-    //     var parameters = Parameters();
-    //       parameters.setValue(projectId, name: "projectId");
-    //       parameters.setValue(team, name: "team");
-
-    //       //<3>
-    //       await query.setParameters(parameters);
-    //        query.execute();
-
-    // }
   }
 
   @override
-  Future<List<BusinessType>> businessTypes() {
+  Future<List<extensions.BusinessType>> businessTypes() {
     // TODO: implement businessTypes
     throw UnimplementedError();
   }
@@ -299,9 +429,9 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  ITransaction collectPayment(
+  Future<Transaction> collectPayment(
       {required double cashReceived,
-      required ITransaction transaction,
+      required Transaction transaction,
       required String paymentType,
       required double discount,
       required int branchId,
@@ -323,7 +453,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Future<List<ITransaction>> completedTransactions(
+  Future<List<Transaction>> completedTransactions(
       {required int branchId, String? status = COMPLETE}) {
     // TODO: implement completedTransactions
     throw UnimplementedError();
@@ -348,66 +478,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Future<FlipperInterface> configureLocal(
-      {required bool useInMemory, required LocalStorage box}) {
-    throw UnimplementedError();
-  }
-
-  Future<void> _suserbaseAuth() async {
-    try {
-      // Check if the user already exists
-      final email = '${ProxyService.box.getBranchId()}@flipper.rw';
-      final superUser.User? existingUser =
-          superUser.Supabase.instance.client.auth.currentUser;
-
-      if (existingUser == null) {
-        // User does not exist, proceed to sign up
-        await superUser.Supabase.instance.client.auth.signUp(
-          email: email,
-          password: email,
-        );
-        // Handle sign-up response if needed
-      } else {
-        // User exists, log them in
-        await superUser.Supabase.instance.client.auth.signInWithPassword(
-          email: email,
-          password: email,
-        );
-      }
-    } catch (e) {}
-  }
-
-  @override
-  Future<void> configureSystem(String userPhone, IUser user,
-      {required bool offlineLogin}) async {
-    await configureTheBox(userPhone, user);
-    await updateLocalRealm(user, localRealm: realm);
-
-    AppInitializer.initialize();
-    if (!offlineLogin) {
-      await _suserbaseAuth();
-    }
-  }
-
-  @override
-  void consumePoints({required int userId, required int points}) {
-    // TODO: implement consumePoints
-  }
-
-  @override
-  Future<Voucher?> consumeVoucher({required int voucherCode}) {
-    // TODO: implement consumeVoucher
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Conversation>> conversations({String? conversationId}) {
-    // TODO: implement conversations
-    throw UnimplementedError();
-  }
-
-  @override
-  T? create<T>({required T data}) {
+  Future<T?> create<T>({required T data}) {
     // TODO: implement create
     throw UnimplementedError();
   }
@@ -447,7 +518,7 @@ class Capella with Booting implements FlipperInterface {
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
       required DateTime whenCreated,
-      required ITransaction transaction,
+      required Transaction transaction,
       required String qrCode,
       required String receiptType,
       required Counter counter,
@@ -641,19 +712,6 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Future<Conversation?> getConversation({required String messageId}) {
-    // TODO: implement getConversation
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Counter?> getCounter(
-      {required int branchId, required String receiptType}) {
-    // TODO: implement getCounter
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Variant?> getCustomVariant(
       {required int businessId,
       required int branchId,
@@ -664,7 +722,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Customer? getCustomer({String? key, int? id}) {
+  Future<Customer?> getCustomer({String? key, int? id}) {
     // TODO: implement getCustomer
     throw UnimplementedError();
   }
@@ -703,12 +761,6 @@ class Capella with Booting implements FlipperInterface {
   @override
   Future<List<Device>> getDevices({required int businessId}) {
     // TODO: implement getDevices
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Discount>> getDiscounts({required int branchId}) {
-    // TODO: implement getDiscounts
     throw UnimplementedError();
   }
 
@@ -773,7 +825,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Future<IPin?> getPin(
+  Future<extensions.IPin?> getPin(
       {required String pinString,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement getPin
@@ -793,7 +845,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Product? getProduct({required int id}) {
+  Future<Product?> getProduct({required int id}) {
     // TODO: implement getProduct
     throw UnimplementedError();
   }
@@ -834,12 +886,6 @@ class Capella with Booting implements FlipperInterface {
   @override
   Future<({double grossProfit, double netProfit})> getReportData() {
     // TODO: implement getReportData
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Conversation>> getScheduleMessages() {
-    // TODO: implement getScheduleMessages
     throw UnimplementedError();
   }
 
@@ -899,13 +945,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Stream<List<Conversation>> getTop5RecentConversations() {
-    // TODO: implement getTop5RecentConversations
-    throw UnimplementedError();
-  }
-
-  @override
-  ITransaction? getTransactionById({required int id}) {
+  Future<Transaction?> getTransactionById({required int id}) {
     // TODO: implement getTransactionById
     throw UnimplementedError();
   }
@@ -917,7 +957,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  TransactionItem? getTransactionItemByVariantId(
+  Future<TransactionItem?> getTransactionItemByVariantId(
       {required int variantId, int? transactionId}) {
     // TODO: implement getTransactionItemByVariantId
     throw UnimplementedError();
@@ -945,7 +985,7 @@ class Capella with Booting implements FlipperInterface {
         List<Product> products,
         List<Stock> stocks,
         List<TransactionItem> transactionItems,
-        List<ITransaction> transactions,
+        List<Transaction> transactions,
         List<Variant> variants
       })> getUnSyncedData() {
     // TODO: implement getUnSyncedData
@@ -985,7 +1025,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  FlipperInterface instance() {
+  FlipperInterfaceCapella instance() {
     // TODO: implement instance
     throw UnimplementedError();
   }
@@ -1009,7 +1049,8 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  bool isSubscribed({required String feature, required int businessId}) {
+  Future<bool> isSubscribed(
+      {required String feature, required int businessId}) {
     // TODO: implement isSubscribed
     throw UnimplementedError();
   }
@@ -1040,187 +1081,26 @@ class Capella with Booting implements FlipperInterface {
     throw UnimplementedError();
   }
 
-  String _formatPhoneNumber(String userPhone) {
-    if (!isEmail(userPhone) && !userPhone.startsWith('+')) {
-      return '+$userPhone';
-    }
-    return userPhone;
-  }
-
-  bool isEmail(String input) {
-    // Implement your logic to check if input is an email
-    // You can use regular expressions or any other email validation mechanism
-    // For simplicity, this example checks if the input contains '@'
-    return input.contains('@');
-  }
-
   @override
-  Future<IUser> login(
+  Future<extensions.IUser> login(
       {required String userPhone,
       required bool skipDefaultAppSetup,
       bool stopAfterConfigure = false,
       required Pin pin,
-      required HttpClientInterface flipperHttpClient}) async {
-    final String phoneNumber = _formatPhoneNumber(userPhone);
-    final IUser user =
-        await _authenticateUser(phoneNumber, pin, flipperHttpClient);
-    await configureSystem(userPhone, user, offlineLogin: offlineLogin);
-    await ProxyService.box.writeBool(key: 'authComplete', value: true);
-
-    if (stopAfterConfigure) return user;
-
-    if (!skipDefaultAppSetup) {
-      await setDefaultApp(user);
-    }
-    ProxyService.box.writeBool(key: 'pinLogin', value: false);
-    return user;
-  }
-
-  List<IBranch> _convertBranches(List<Branch> branches) {
-    return branches
-        .map((e) => IBranch(
-            id: e.id,
-            name: e.name,
-            businessId: e.businessId,
-            longitude: e.longitude,
-            latitude: e.latitude,
-            location: e.location,
-            active: e.active,
-            isDefault: e.isDefault))
-        .toList();
-  }
-
-  IUser _createOfflineUser(String phoneNumber, Pin pin,
-      List<Business> businesses, List<Branch> branches) {
-    return IUser(
-      token: pin.tokenUid!,
-      uid: pin.tokenUid,
-      channels: [],
-      phoneNumber: pin.phoneNumber!,
-      id: pin.userId!,
-      tenants: [
-        ITenant(
-            id: randomNumber(),
-            name: pin.ownerName == null ? "DEFAULT" : pin.ownerName!,
-            phoneNumber: phoneNumber,
-            permissions: [],
-            branches: _convertBranches(branches),
-            businesses: _convertBusinesses(businesses),
-            businessId: 0,
-            nfcEnabled: false,
-            userId: pin.userId!,
-            isDefault: false)
-      ],
-    );
-  }
-
-  List<IBusiness> _convertBusinesses(List<Business> businesses) {
-    return businesses
-        .map((e) => IBusiness(
-              id: e.serverId,
-              encryptionKey: e.encryptionKey!,
-              name: e.name,
-              currency: e.currency,
-              categoryId: e.categoryId,
-              latitude: e.latitude,
-              longitude: e.longitude,
-              userId: e.userId,
-              timeZone: e.timeZone,
-              country: e.country,
-              businessUrl: e.businessUrl,
-              hexColor: e.hexColor,
-              imageUrl: e.imageUrl,
-              type: e.type,
-              active: e.active,
-              metadata: e.metadata,
-              lastSeen: e.lastSeen,
-              firstName: e.firstName,
-              lastName: e.lastName,
-              deviceToken: e.deviceToken,
-              chatUid: e.chatUid,
-              backUpEnabled: e.backUpEnabled,
-              subscriptionPlan: e.subscriptionPlan,
-              nextBillingDate: e.nextBillingDate,
-              previousBillingDate: e.previousBillingDate,
-              isLastSubscriptionPaymentSucceeded:
-                  e.isLastSubscriptionPaymentSucceeded,
-              backupFileId: e.backupFileId,
-              email: e.email,
-              lastDbBackup: e.lastDbBackup,
-              fullName: e.fullName,
-              role: e.role,
-              tinNumber: e.tinNumber,
-              bhfId: e.bhfId,
-              dvcSrlNo: e.dvcSrlNo,
-              adrs: e.adrs,
-              taxEnabled: e.taxEnabled,
-              taxServerUrl: e.taxServerUrl,
-              isDefault: e.isDefault,
-              businessTypeId: e.businessTypeId,
-              deletedAt: e.deletedAt,
-            ))
-        .toList();
-  }
-
-  Future<IUser> _authenticateUser(String phoneNumber, Pin pin,
-      HttpClientInterface flipperHttpClient) async {
-    List<Business> businessesE = businesses();
-    List<Branch> branchesE = await branches(businessId: pin.businessId!);
-
-    if (businessesE.isNotEmpty && branchesE.isNotEmpty) {
-      offlineLogin = true;
-
-      return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
-    }
-
-    final http.Response response =
-        await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
-
-    if (response.statusCode == 200 && response.body.isNotEmpty) {
-      /// path the user pin, with
-      final IUser user = IUser.fromJson(json.decode(response.body));
-      await _patchPin(user.id!, flipperHttpClient, apihub,
-          ownerName: user.tenants.first.name);
-      ProxyService.box.writeInt(key: 'userId', value: user.id!);
-      await ProxyService.synchronize.firebaseLogin(token: user.uid);
-      return user;
-    } else {
-      await _handleLoginError(response);
-      throw Exception("Error during login");
-    }
-  }
-
-  Future<http.Response> _patchPin(
-      int pin, HttpClientInterface flipperHttpClient, String apihub,
-      {required String ownerName}) async {
-    return await flipperHttpClient.patch(
-      Uri.parse(apihub + '/v2/api/pin/${pin}'),
-      body: jsonEncode(<String, String?>{
-        'ownerName': ownerName,
-        'tokenUid': FirebaseAuth.instance.currentUser?.uid
-      }),
-    );
-  }
-
-  Future<void> _handleLoginError(http.Response response) async {
-    if (response.statusCode == 401) {
-      throw SessionException(term: "session expired");
-    } else if (response.statusCode == 500) {
-      throw PinError(term: "Not found");
-    } else {
-      throw UnknownError(term: response.statusCode.toString());
-    }
+      required HttpClientInterface flipperHttpClient}) {
+    // TODO: implement login
+    throw UnimplementedError();
   }
 
   @override
-  Future<SocialToken?> loginOnSocial(
+  Future<extensions.SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password}) {
     // TODO: implement loginOnSocial
     throw UnimplementedError();
   }
 
   @override
-  Future<ITransaction> manageCashInOutTransaction(
+  Future<Transaction> manageCashInOutTransaction(
       {required String transactionType,
       required bool isExpense,
       required int branchId}) {
@@ -1229,7 +1109,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  ITransaction manageTransaction(
+  Transaction manageTransaction(
       {required String transactionType,
       required bool isExpense,
       required int branchId,
@@ -1239,7 +1119,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Stream<ITransaction> manageTransactionStream(
+  Stream<Transaction> manageTransactionStream(
       {required String transactionType,
       required bool isExpense,
       required int branchId,
@@ -1279,7 +1159,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Stream<List<ITransaction>> orders({required int branchId}) {
+  Stream<List<Transaction>> orders({required int branchId}) {
     // TODO: implement orders
     throw UnimplementedError();
   }
@@ -1357,7 +1237,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  void removeCustomerFromTransaction({required ITransaction transaction}) {
+  void removeCustomerFromTransaction({required Transaction transaction}) {
     // TODO: implement removeCustomerFromTransaction
   }
 
@@ -1461,17 +1341,10 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Future<Response> sendLoginRequest(
+  Future<http.Response> sendLoginRequest(
       String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
       {String? uid}) {
     // TODO: implement sendLoginRequest
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Conversation> sendMessage(
-      {required String message, required Conversation latestConversation}) {
-    // TODO: implement sendMessage
     throw UnimplementedError();
   }
 
@@ -1488,44 +1361,13 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Future<void> sendScheduleMessages() {
-    // TODO: implement sendScheduleMessages
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<ITenant>> signup(
-      {required Map business, required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement signup
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<int> size<T>({required T object}) {
-    // TODO: implement size
-    throw UnimplementedError();
-  }
-
-  @override
   Stream<SKU?> sku({required int branchId, required int businessId}) {
     // TODO: implement sku
     throw UnimplementedError();
   }
 
   @override
-  Stream<double> soldStockValue({required branchId}) {
-    // TODO: implement soldStockValue
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> spawnIsolate(isolateHandler) {
-    // TODO: implement spawnIsolate
-    throw UnimplementedError();
-  }
-
-  @override
-  Stock? stockByVariantId(
+  Future<Stock?> stockByVariantId(
       {required int variantId,
       required int branchId,
       bool nonZeroValue = false}) {
@@ -1537,12 +1379,6 @@ class Capella with Booting implements FlipperInterface {
   Future<Stock?> stockByVariantIdFuture(
       {required int variantId, bool nonZeroValue = false}) {
     // TODO: implement stockByVariantIdFuture
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<double> stockValue({required branchId}) {
-    // TODO: implement stockValue
     throw UnimplementedError();
   }
 
@@ -1582,7 +1418,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Future<List<ITenant>> tenantsFromOnline(
+  Future<List<extensions.ITenant>> tenantsFromOnline(
       {required int businessId,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement tenantsFromOnline
@@ -1590,13 +1426,13 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Future<List<ITransaction>> tickets() {
+  Future<List<Transaction>> tickets() {
     // TODO: implement tickets
     throw UnimplementedError();
   }
 
   @override
-  Stream<List<ITransaction>> ticketsStreams() {
+  Stream<List<Transaction>> ticketsStreams() {
     // TODO: implement ticketsStreams
     throw UnimplementedError();
   }
@@ -1644,21 +1480,21 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Stream<List<ITransaction>> transactionList(
+  Stream<List<Transaction>> transactionList(
       {DateTime? startDate, DateTime? endDate}) {
     // TODO: implement transactionList
     throw UnimplementedError();
   }
 
   @override
-  Stream<List<ITransaction>> transactionStreamById(
+  Stream<List<Transaction>> transactionStreamById(
       {required int id, required FilterType filterType}) {
     // TODO: implement transactionStreamById
     throw UnimplementedError();
   }
 
   @override
-  List<ITransaction> transactions(
+  List<Transaction> transactions(
       {DateTime? startDate,
       DateTime? endDate,
       String? status,
@@ -1671,7 +1507,7 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Stream<List<ITransaction>> transactionsStream(
+  Stream<List<Transaction>> transactionsStream(
       {String? status,
       String? transactionType,
       int? branchId,
@@ -1688,7 +1524,8 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Future<List<UnversalProduct>> universalProductNames({required int branchId}) {
+  Future<List<UniversalProduct>> universalProductNames(
+      {required int branchId}) {
     // TODO: implement universalProductNames
     throw UnimplementedError();
   }
@@ -1719,49 +1556,18 @@ class Capella with Booting implements FlipperInterface {
   }
 
   @override
-  Future<int> updateNonRealm<T>(
-      {required T data, required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement updateNonRealm
-    throw UnimplementedError();
-  }
-
-  @override
-  void updateStock({required int stockId, required double qty}) {
-    // TODO: implement updateStock
-  }
-
-  @override
-  void updateTransactionItemQty(
-      {required qty, required int transactionItemId}) {
-    // TODO: implement updateTransactionItemQty
-  }
-
-  @override
-  void updateTransactionStatus(ITransaction transaction, String receiptType) {
+  void updateTransactionStatus(Transaction transaction, String receiptType) {
     // TODO: implement updateTransactionStatus
   }
 
   @override
-  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) {
-    // TODO: implement uploadPdfToS3
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<int> userNameAvailable(
-      {required String name, required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement userNameAvailable
-    throw UnimplementedError();
-  }
-
-  @override
-  Variant? variant({int? variantId, String? name}) {
+  Future<Variant?> variant({int? variantId, String? name}) {
     // TODO: implement variant
     throw UnimplementedError();
   }
 
   @override
-  List<Variant> variants(
+  Future<List<Variant>> variants(
       {required int branchId, int? productId, int? page, int? itemsPerPage}) {
     // TODO: implement variants
     throw UnimplementedError();

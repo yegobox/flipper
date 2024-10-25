@@ -28,52 +28,6 @@ ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
       pin: (json['pin'] as num?)?.toInt(),
     );
 
-const _$ITenantFieldMap = <String, String>{
-  'id': 'id',
-  'name': 'name',
-  'phoneNumber': 'phoneNumber',
-  'email': 'email',
-  'permissions': 'permissions',
-  'branches': 'branches',
-  'businesses': 'businesses',
-  'businessId': 'businessId',
-  'nfcEnabled': 'nfcEnabled',
-  'userId': 'userId',
-  'pin': 'pin',
-  'isDefault': 'isDefault',
-  'isLongPressed': 'isLongPressed',
-};
-
-// ignore: unused_element
-abstract class _$ITenantPerFieldToJson {
-  // ignore: unused_element
-  static Object? id(int instance) => instance;
-  // ignore: unused_element
-  static Object? name(String instance) => instance;
-  // ignore: unused_element
-  static Object? phoneNumber(String instance) => instance;
-  // ignore: unused_element
-  static Object? email(String? instance) => instance;
-  // ignore: unused_element
-  static Object? permissions(List<IPermission> instance) => instance;
-  // ignore: unused_element
-  static Object? branches(List<IBranch> instance) => instance;
-  // ignore: unused_element
-  static Object? businesses(List<IBusiness> instance) => instance;
-  // ignore: unused_element
-  static Object? businessId(int instance) => instance;
-  // ignore: unused_element
-  static Object? nfcEnabled(bool instance) => instance;
-  // ignore: unused_element
-  static Object? userId(int instance) => instance;
-  // ignore: unused_element
-  static Object? pin(int? instance) => instance;
-  // ignore: unused_element
-  static Object? isDefault(bool instance) => instance;
-  // ignore: unused_element
-  static Object? isLongPressed(bool instance) => instance;
-}
-
 Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,

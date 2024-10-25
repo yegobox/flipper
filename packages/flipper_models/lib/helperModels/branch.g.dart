@@ -25,49 +25,6 @@ IBranch _$IBranchFromJson(Map<String, dynamic> json) => IBranch(
           ? null
           : DateTime.parse(json['lastTouched'] as String);
 
-const _$IBranchFieldMap = <String, String>{
-  'action': 'action',
-  'id': 'id',
-  'active': 'active',
-  'description': 'description',
-  'name': 'name',
-  'businessId': 'businessId',
-  'longitude': 'longitude',
-  'latitude': 'latitude',
-  'location': 'location',
-  'isDefault': 'isDefault',
-  'lastTouched': 'lastTouched',
-  'deletedAt': 'deletedAt',
-};
-
-// ignore: unused_element
-abstract class _$IBranchPerFieldToJson {
-  // ignore: unused_element
-  static Object? action(String instance) => instance;
-  // ignore: unused_element
-  static Object? id(int? instance) => instance;
-  // ignore: unused_element
-  static Object? active(bool? instance) => instance;
-  // ignore: unused_element
-  static Object? description(String? instance) => instance;
-  // ignore: unused_element
-  static Object? name(String? instance) => instance;
-  // ignore: unused_element
-  static Object? businessId(int? instance) => instance;
-  // ignore: unused_element
-  static Object? longitude(String? instance) => instance;
-  // ignore: unused_element
-  static Object? latitude(String? instance) => instance;
-  // ignore: unused_element
-  static Object? location(String? instance) => instance;
-  // ignore: unused_element
-  static Object? isDefault(bool instance) => instance;
-  // ignore: unused_element
-  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
-  // ignore: unused_element
-  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
-}
-
 Map<String, dynamic> _$IBranchToJson(IBranch instance) => <String, dynamic>{
       'action': instance.action,
       'id': instance.id,

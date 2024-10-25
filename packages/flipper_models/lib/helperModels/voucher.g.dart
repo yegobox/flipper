@@ -16,34 +16,6 @@ Voucher _$VoucherFromJson(Map<String, dynamic> json) => Voucher(
       descriptor: json['descriptor'] as String?,
     );
 
-const _$VoucherFieldMap = <String, String>{
-  'id': 'id',
-  'value': 'value',
-  'interval': 'interval',
-  'used': 'used',
-  'createdAt': 'createdAt',
-  'usedAt': 'usedAt',
-  'descriptor': 'descriptor',
-};
-
-// ignore: unused_element
-abstract class _$VoucherPerFieldToJson {
-  // ignore: unused_element
-  static Object? id(int? instance) => instance;
-  // ignore: unused_element
-  static Object? value(int? instance) => instance;
-  // ignore: unused_element
-  static Object? interval(int? instance) => instance;
-  // ignore: unused_element
-  static Object? used(bool? instance) => instance;
-  // ignore: unused_element
-  static Object? createdAt(int? instance) => instance;
-  // ignore: unused_element
-  static Object? usedAt(int? instance) => instance;
-  // ignore: unused_element
-  static Object? descriptor(String? instance) => instance;
-}
-
 Map<String, dynamic> _$VoucherToJson(Voucher instance) => <String, dynamic>{
       'id': instance.id,
       'value': instance.value,

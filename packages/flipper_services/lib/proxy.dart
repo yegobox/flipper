@@ -1,3 +1,4 @@
+import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/FlipperInterface.dart';
@@ -77,13 +78,13 @@ final RealmViaHttp _realmHttp = getIt<RealmViaHttp>();
 final SyncInterface _synchronize = getIt<SyncInterface>();
 final SupabaseInterface _supa = getIt<SupabaseInterface>();
 final Crash _crash = getIt<Crash>();
-final FlipperInterface _capela =
-    getIt<FlipperInterface>(instanceName: 'capella');
+final FlipperInterfaceCapella _capela =
+    getIt<FlipperInterfaceCapella>(instanceName: 'capella');
 final FlipperInterface _localRealm = getIt<FlipperInterface>();
 
 abstract class ProxyService {
   static FlipperInterface get local => _localRealm;
-  static FlipperInterface get capela => _capela;
+  static FlipperInterfaceCapella get capela => _capela;
 
   static Crash get crash => _crash;
   static SupabaseInterface get supa => _supa;

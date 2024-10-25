@@ -1,20 +1,7 @@
 import 'dart:async';
-import 'package:meta/meta.dart';
-import 'package:flutter/foundation.dart';
 
 class Database {
   inBatch(Function() fn) {}
-}
-
-class ReplicatorProvider {
-  final DatabaseProvider databaseProvider;
-
-  ReplicatorProvider({required this.databaseProvider});
-
-  Future<void> init() async {}
-  Future<void> startReplicator() async {}
-
-  // Future<AsyncCollection> get defaultCollection;
 }
 
 class DatabaseProvider {
@@ -45,198 +32,580 @@ class DatabaseProvider {
   AsyncDatabase? flipperDatabase;
 }
 
-class AsyncDatabase {
-  Future createCollection(String name) async {}
-  Future document(String id) async {}
+class ReplicatorProvider {
+  final DatabaseProvider databaseProvider;
+
+  ReplicatorProvider({required this.databaseProvider});
+
+  Future<void> init() async {}
+  Future<void> startReplicator() async {}
+
+  // Future<AsyncCollection> get defaultCollection;
 }
 
-class AsyncCollection {
-  Future document(String id) async {}
-  Future<bool> saveDocument(MutableDocument document) async {
-    throw UnimplementedError();
+// Core Interfaces
+abstract class Collection {
+  String get name;
+  Future<int> get count;
+  Future<Document?> document(String id);
+}
+
+// Index Configuration
+class ValueIndexConfiguration {
+  final List<String> _expressions;
+
+  ValueIndexConfiguration(this._expressions);
+
+  List<String> get expressions => List.unmodifiable(_expressions);
+}
+
+// Query Change Class
+class QueryChange<R extends ResultSet> {
+  final Query query;
+  final R results;
+  final List<dynamic> changes;
+
+  const QueryChange({
+    required this.query,
+    required this.results,
+    this.changes = const [],
+  });
+
+  @override
+  String toString() =>
+      'QueryChange(query: $query, changesCount: ${changes.length})';
+}
+
+// Parameters Class
+class Parameters {
+  final Map<String, dynamic> _values = {};
+
+  void setValue(Object? value, {required String name}) {
+    _values[name] = value;
   }
+
+  void setString(String? value, {required String name}) {
+    _values[name] = value;
+  }
+
+  void setNumber(num? value, {required String name}) {
+    _values[name] = value;
+  }
+
+  void setInteger(int? value, {required String name}) {
+    _values[name] = value;
+  }
+
+  void setLong(int? value, {required String name}) {
+    _values[name] = value;
+  }
+
+  void setFloat(double? value, {required String name}) {
+    _values[name] = value;
+  }
+
+  void setDouble(double? value, {required String name}) {
+    _values[name] = value;
+  }
+
+  void setBoolean(bool? value, {required String name}) {
+    _values[name] = value;
+  }
+
+  void setDate(DateTime? value, {required String name}) {
+    _values[name] = value;
+  }
+
+  void setArray(List<Object?>? value, {required String name}) {
+    _values[name] = value;
+  }
+
+  void setDictionary(Map<String, Object?>? value, {required String name}) {
+    _values[name] = value;
+  }
+
+  Object? value(String name) => _values[name];
+  String? getString(String name) => _values[name] as String?;
+  num? getNumber(String name) => _values[name] as num?;
+  int? getInteger(String name) => _values[name] as int?;
+  double? getFloat(String name) => _values[name] as double?;
+  bool? getBoolean(String name) => _values[name] as bool?;
+  DateTime? getDate(String name) => _values[name] as DateTime?;
+  List<T>? getArray<T>(String name) => _values[name] as List<T>?;
+  Map<String, Object?>? getDictionary(String name) =>
+      _values[name] as Map<String, Object?>?;
+
+  void clear() => _values.clear();
+
+  Parameters clone() {
+    final params = Parameters();
+    params._values.addAll(Map.from(_values));
+    return params;
+  }
+
+  @override
+  String toString() => 'Parameters(values: $_values)';
 }
 
-abstract interface class Query {
-  /// The values with which to substitute the parameters defined in the query.
-  ///
-  /// All parameters defined in the query must be given values before running
-  /// the query, or the query will fail.
-  ///
-  /// The returned [Parameters] will be readonly.
-  Parameters? get parameters;
-
-  /// Sets the [parameters] of this query.
-  FutureOr<void> setParameters(Parameters? value);
-
-  /// Executes this query.
-  ///
-  /// Returns a [ResultSet] that iterates over [Result] rows one at a time. You
-  /// can run the query any number of times, and you can have multiple
-  /// [ResultSet]s active at once.
-  ///
-  /// The results come from a snapshot of the database taken at the moment
-  /// [execute] is called, so they will not reflect any changes made to the
-  /// database afterwards.
-  // FutureOr<ResultSet> execute();
-
-  /// Returns a string describing the implementation of the compiled query.
-  ///
-  /// This is intended to be read by a developer for purposes of optimizing the
-  /// query, especially to add database indexes. It's not machine-readable and
-  /// its format may change.
-  ///
-  /// As currently implemented, the result has three sections, separated by two
-  /// newlines:
-  ///
-  /// - The first section is this query compiled into an SQLite query.
-  /// - The second section is the output of SQLite's "EXPLAIN QUERY PLAN"
-  ///   command applied to that query; for help interpreting this, see
-  ///   https://www.sqlite.org/eqp.html . The most important thing to know is
-  ///   that if you see "SCAN TABLE", it means that SQLite is doing a slow
-  ///   linear scan of the documents instead of using an index.
-  /// - The third sections is this queries JSON representation. This is the data
-  ///   structure that is built to describe this query, either by the the query
-  ///   builder or when an SQL++ query is compiled.
-  FutureOr<String> explain();
-
-  /// Adds a [listener] to be notified of changes to the results of this query.
-  ///
-  /// A new listener will be called with the current results, after being added.
-  /// Subsequently it will only be called when the results change, either
-  /// because the contents of the database have changed or this query's
-  /// [parameters] have been changed through [setParameters].
-  ///
-  /// {@macro cbl.Collection.addChangeListener}
-  ///
-  /// See also:
-  ///
-  /// - [QueryChange] for the change event given to [listener].
-  /// - [removeChangeListener] for removing a previously added listener.
-  // FutureOr<ListenerToken> addChangeListener(QueryChangeListener listener);
-
-  /// {@macro cbl.Collection.removeChangeListener}
-  ///
-  /// See also:
-  ///
-  /// - [addChangeListener] for listening to changes in the results of this
-  ///   query.
-  // FutureOr<void> removeChangeListener(ListenerToken token);
-
-  /// Returns a [Stream] to be notified of changes to the results of this query.
-  ///
-  /// This is an alternative stream based API for the [addChangeListener] API.
-  ///
-  /// {@macro cbl.Collection.AsyncListenStream}
-  Stream<QueryChange> changes();
-
-  /// The JSON representation of this query.
-  ///
-  /// This value can be used to recreate this query with [Database.createQuery]
-  /// and the parameter `json` set to `true`.
-  ///
-  /// Is `null`, if this query was created from an SQL++ query.
+abstract class Query {
+  Stream<QueryChange<ResultSet>> changes();
+  Future<String> explain();
+  Future<ResultSet> execute();
   String? get jsonRepresentation;
-
-  /// The SQL++ representation of this query.
-  ///
-  /// This value can be used to recreate this query with [Database.createQuery].
-  ///
-  /// Is `null`, if this query was created through the builder API or from the
-  /// JSON representation.
+  Parameters? get parameters;
+  Future<void> setParameters(Parameters? value);
   String? get sqlRepresentation;
 }
 
-class MutableDocument {
-  /// Creates a new [MutableDocument] with a given [id], optionally initialized
-  /// with [data].
-  ///
-  /// {@macro cbl.MutableArray.allowedValueTypes}
-  MutableDocument.withId(String id, [Map<String, Object?>? data]) {}
+abstract class ExpressionInterface {
+  // Base interface for all expressions
+  ExpressionInterface add(ExpressionInterface other);
 }
 
-abstract interface class ResultSet {
-  /// Returns a stream which consumes this result set and emits its results.
-  ///
-  /// A result set can only be consumed once and listening to the returned
-  /// stream counts as consuming it. Other methods for consuming this result set
-  /// must not be used when using a stream.
-  Stream<dynamic> asStream();
-
-  /// Returns a stream which consumes this result set and emits its results as
-  /// typed dictionaries of type [D].
-  ///
-  /// A result set can only be consumed once and listening to the returned
-  /// stream counts as consuming it. Other methods for consuming this result set
-  /// must not be used when using a stream.
-  // @experimental
-  // Stream<D> asTypedStream<D extends TypedDictionaryObject>();
-
-  /// Consumes this result set and returns a list of all its [Result]s.
-  // FutureOr<List<Result>> allResults();
-
-  /// Consumes this result set and returns a list of all its results as typed
-  /// dictionaries of type [D].
-  // @experimental
-  // FutureOr<List<D>> allTypedResults<D extends TypedDictionaryObject>();
+abstract class PropertyExpressionInterface implements ExpressionInterface {
+  ExpressionInterface equalTo(ExpressionInterface value);
+  ExpressionInterface add(ExpressionInterface other);
 }
 
-class Parameters {
-  Object? value(String name) {}
-
-  void setValue(Object? value, {required String name}) {}
+abstract class SelectResultInterface {
+  // Base interface for select results
 }
 
-@immutable
-final class QueryChange<R extends ResultSet> {
-  /// Creates a [Query] change event.
-  const QueryChange(this.query, this.results);
-
-  /// The query that changed.
-  final Query query;
-
-  /// The new query results.
-  final R results;
-
-  @override
-  String toString() => 'QueryChange(query: $query)';
+abstract class SelectResultFrom implements SelectResultInterface {
+  // Implementation details for SelectResult.all()
 }
 
-class AsyncQuery implements Query {
-  @override
-  Future<void> setParameters(Parameters? value) {
-    throw UnimplementedError();
+abstract class DataSourceInterface {
+  // Base interface for data sources
+}
+
+abstract class DataSourceAs implements DataSourceInterface {
+  // Interface for collection().as() functionality
+}
+
+// Core Database Classes
+class AsyncDatabase {
+  final Map<String, AsyncCollection> _collections = {};
+
+  Future<AsyncCollection> createCollection(String name) async {
+    _collections[name] = AsyncCollection(name);
+    return _collections[name]!;
   }
 
-  // @override
-  // Future<ResultSet> execute();
-
-  @override
-  Future<String> explain() {
-    throw UnimplementedError();
+  Future<AsyncCollection?> collection(String name) async {
+    return _collections[name];
   }
 
-  @override
-  // TODO: implement jsonRepresentation
-  String? get jsonRepresentation => throw UnimplementedError();
+  FutureOr<AsyncCollection> get defaultCollection async {
+    if (!_collections.containsKey('default')) {
+      await createCollection('default');
+    }
+    return _collections['default']!;
+  }
+}
+
+class AsyncCollection implements Collection {
+  final String _name;
+  final Map<String, Document> _documents = {};
+
+  AsyncCollection(this._name);
 
   @override
-  // TODO: implement parameters
-  Parameters? get parameters => throw UnimplementedError();
+  String get name => _name;
 
   @override
-  // TODO: implement sqlRepresentation
-  String? get sqlRepresentation => throw UnimplementedError();
+  Future<int> get count async => _documents.length;
 
   @override
-  Stream<QueryChange<ResultSet>> changes() {
-    // TODO: implement changes
-    throw UnimplementedError();
+  Future<Document?> document(String id) async => _documents[id];
+
+  Future<bool> saveDocument(MutableDocument document) async {
+    _documents[document.id] = document;
+    return true;
   }
 
-  // @override
-  // Future<ListenerToken> addChangeListener(QueryChangeListener listener){}
+  Future<void> createIndex(String name, ValueIndexConfiguration index) async {}
+}
 
-  // @override
-  // Future<void> removeChangeListener(ListenerToken token){}
+// Document Classes
+class Document {
+  final String id;
+  final Map<String, dynamic> _data;
+
+  Document(this.id, this._data);
+
+  dynamic getValue(String key) => _data[key];
+  Map<String, dynamic> toMap() => Map.from(_data);
+}
+
+class MutableDocument extends Document {
+  MutableDocument.withId(String id, [Map<String, Object?>? data])
+      : super(id, Map<String, dynamic>.from(data ?? {}));
+
+  void setValue(String key, dynamic value) {
+    _data[key] = value;
+  }
+
+  void setDictionary(String key, Map<String, dynamic> dict) {
+    _data[key] = dict;
+  }
+}
+
+// Query Builder Classes
+class QueryBuilder {
+  const QueryBuilder();
+
+  Select select(SelectResultInterface result0,
+      [SelectResultInterface? result1,
+      SelectResultInterface? result2,
+      SelectResultInterface? result3,
+      SelectResultInterface? result4,
+      SelectResultInterface? result5,
+      SelectResultInterface? result6,
+      SelectResultInterface? result7,
+      SelectResultInterface? result8,
+      SelectResultInterface? result9]) {
+    return Select();
+  }
+
+  Select selectFrom(DataSourceInterface dataSource) {
+    return Select();
+  }
+}
+
+class Select implements Query {
+  From from(DataSourceInterface dataSource) => From();
+
+  @override
+  Stream<QueryChange<ResultSet>> changes() => Stream.empty();
+
+  @override
+  Future<String> explain() async => '';
+
+  @override
+  Future<ResultSet> execute() async => ResultSet();
+
+  @override
+  String? get jsonRepresentation => null;
+
+  @override
+  Parameters? get parameters => null;
+
+  @override
+  Future<void> setParameters(Parameters? value) async {}
+
+  @override
+  String? get sqlRepresentation => null;
+}
+
+class From implements Query {
+  Where where(ExpressionInterface expression) => Where();
+  OrderBy orderBy([List<OrderingInterface>? orderings]) => OrderBy();
+  Group groupBy(List<ExpressionInterface> expressions) => Group();
+
+  @override
+  Stream<QueryChange<ResultSet>> changes() => Stream.empty();
+
+  @override
+  Future<String> explain() async => '';
+
+  @override
+  Future<ResultSet> execute() async => ResultSet();
+
+  @override
+  String? get jsonRepresentation => null;
+
+  @override
+  Parameters? get parameters => null;
+
+  @override
+  Future<void> setParameters(Parameters? value) async {}
+
+  @override
+  String? get sqlRepresentation => null;
+}
+
+class Where implements Query {
+  OrderBy orderBy([List<OrderingInterface>? orderings]) => OrderBy();
+  Limit limit(ExpressionInterface count) => Limit();
+  Group groupBy(List<ExpressionInterface> expressions) => Group();
+
+  @override
+  Stream<QueryChange<ResultSet>> changes() => Stream.empty();
+
+  @override
+  Future<String> explain() async => '';
+
+  @override
+  Future<ResultSet> execute() async => ResultSet();
+
+  @override
+  String? get jsonRepresentation => null;
+
+  @override
+  Parameters? get parameters => null;
+
+  @override
+  Future<void> setParameters(Parameters? value) async {}
+
+  @override
+  String? get sqlRepresentation => null;
+}
+
+// New Query Classes
+class OrderBy implements Query {
+  Limit limit(ExpressionInterface count) => Limit();
+
+  @override
+  Stream<QueryChange<ResultSet>> changes() => Stream.empty();
+  @override
+  Future<String> explain() async => '';
+  @override
+  Future<ResultSet> execute() async => ResultSet();
+  @override
+  String? get jsonRepresentation => null;
+  @override
+  Parameters? get parameters => null;
+  @override
+  Future<void> setParameters(Parameters? value) async {}
+  @override
+  String? get sqlRepresentation => null;
+}
+
+class Limit implements Query {
+  Offset offset(ExpressionInterface count) => Offset();
+
+  @override
+  Stream<QueryChange<ResultSet>> changes() => Stream.empty();
+  @override
+  Future<String> explain() async => '';
+  @override
+  Future<ResultSet> execute() async => ResultSet();
+  @override
+  String? get jsonRepresentation => null;
+  @override
+  Parameters? get parameters => null;
+  @override
+  Future<void> setParameters(Parameters? value) async {}
+  @override
+  String? get sqlRepresentation => null;
+}
+
+class Offset implements Query {
+  @override
+  Stream<QueryChange<ResultSet>> changes() => Stream.empty();
+  @override
+  Future<String> explain() async => '';
+  @override
+  Future<ResultSet> execute() async => ResultSet();
+  @override
+  String? get jsonRepresentation => null;
+  @override
+  Parameters? get parameters => null;
+  @override
+  Future<void> setParameters(Parameters? value) async {}
+  @override
+  String? get sqlRepresentation => null;
+}
+
+class Group implements Query {
+  Having having(ExpressionInterface expression) => Having();
+  OrderBy orderBy([List<OrderingInterface>? orderings]) => OrderBy();
+
+  @override
+  Stream<QueryChange<ResultSet>> changes() => Stream.empty();
+  @override
+  Future<String> explain() async => '';
+  @override
+  Future<ResultSet> execute() async => ResultSet();
+  @override
+  String? get jsonRepresentation => null;
+  @override
+  Parameters? get parameters => null;
+  @override
+  Future<void> setParameters(Parameters? value) async {}
+  @override
+  String? get sqlRepresentation => null;
+}
+
+class Having implements Query {
+  OrderBy orderBy([List<OrderingInterface>? orderings]) => OrderBy();
+
+  @override
+  Stream<QueryChange<ResultSet>> changes() => Stream.empty();
+  @override
+  Future<String> explain() async => '';
+  @override
+  Future<ResultSet> execute() async => ResultSet();
+  @override
+  String? get jsonRepresentation => null;
+  @override
+  Parameters? get parameters => null;
+  @override
+  Future<void> setParameters(Parameters? value) async {}
+  @override
+  String? get sqlRepresentation => null;
+}
+
+// Ordering Interface and Implementation
+abstract class OrderingInterface {
+  ExpressionInterface get expression;
+  bool get isAscending;
+}
+
+class Ordering implements OrderingInterface {
+  @override
+  final ExpressionInterface expression;
+  @override
+  final bool isAscending;
+
+  Ordering(this.expression, this.isAscending);
+}
+
+// Result Classes
+class ResultSet {
+  final List<Result> _results = [];
+
+  Future<List<Result>> allResults() async => _results;
+  Stream<Result> asStream() => Stream.fromIterable(_results);
+  Future<int> get count async => _results.length;
+}
+
+class Result {
+  final Map<String, dynamic> _data;
+
+  Result([this._data = const {}]);
+
+  Dictionary? dictionary(String key) =>
+      Dictionary(_data[key] as Map<String, dynamic>? ?? {});
+  List<T>? array<T>(String key) => _data[key] as List<T>?;
+  bool? boolean(String key) => _data[key] as bool?;
+  int? integer(String key) => _data[key] as int?;
+  double? number(String key) => _data[key] as double?;
+  String? string(String key) => _data[key] as String?;
+  DateTime? date(String key) => _data[key] as DateTime?;
+
+  // Add the toPlainMap method
+  Map<String, dynamic> toPlainMap() {
+    return Map<String, dynamic>.from(_data);
+  }
+}
+
+class Dictionary {
+  final Map<String, dynamic> _data;
+
+  Dictionary(this._data);
+
+  Dictionary? dictionary(String key) => _data[key] != null
+      ? Dictionary(_data[key] as Map<String, dynamic>)
+      : null;
+  List<T>? array<T>(String key) => _data[key] as List<T>?;
+  bool? boolean(String key) => _data[key] as bool?;
+  int? integer(String key) => _data[key] as int?;
+  double? number(String key) => _data[key] as double?;
+  String? string(String key) => _data[key] as String?;
+  DateTime? date(String key) => _data[key] as DateTime?;
+}
+
+// Expression Classes with Enhanced Implementation
+class PropertyExpression implements PropertyExpressionInterface {
+  final String _propertyPath;
+
+  PropertyExpression(this._propertyPath);
+
+  @override
+  ExpressionInterface equalTo(ExpressionInterface value) => Expression();
+  @override
+  ExpressionInterface add(ExpressionInterface other) => Expression();
+  ExpressionInterface subtract(ExpressionInterface other) => Expression();
+  ExpressionInterface multiply(ExpressionInterface other) => Expression();
+  ExpressionInterface divide(ExpressionInterface other) => Expression();
+  ExpressionInterface modulo(ExpressionInterface other) => Expression();
+  ExpressionInterface lessThan(ExpressionInterface value) => Expression();
+  ExpressionInterface lessThanOrEqualTo(ExpressionInterface value) =>
+      Expression();
+  ExpressionInterface greaterThan(ExpressionInterface value) => Expression();
+  ExpressionInterface greaterThanOrEqualTo(ExpressionInterface value) =>
+      Expression();
+  ExpressionInterface between(
+          ExpressionInterface value1, ExpressionInterface value2) =>
+      Expression();
+  ExpressionInterface like(ExpressionInterface value) => Expression();
+  ExpressionInterface regex(ExpressionInterface value) => Expression();
+  ExpressionInterface in_(List<ExpressionInterface> values) => Expression();
+}
+
+class Expression implements ExpressionInterface {
+  @override
+  ExpressionInterface add(ExpressionInterface other) => Expression();
+
+  // Rest of the Expression class implementation remains the same
+
+  static PropertyExpression property(String propertyPath) =>
+      PropertyExpression(propertyPath);
+  static ExpressionInterface value(dynamic value) => Expression();
+  static ExpressionInterface integer(int value) => Expression();
+  static ExpressionInterface string(String? value) => Expression();
+  static ExpressionInterface date(DateTime? value) => Expression();
+  static ExpressionInterface float(double value) => Expression();
+  static ExpressionInterface number(num? value) => Expression();
+  static ExpressionInterface boolean(bool value) => Expression();
+  static ExpressionInterface dictionary(Map<String, Object?>? value) =>
+      Expression();
+  static ExpressionInterface array(Iterable<Object?>? value) => Expression();
+  static ExpressionInterface parameter(String name) => Expression();
+  static ExpressionInterface all() => Expression();
+  static ExpressionInterface any() => Expression();
+  static ExpressionInterface and(List<ExpressionInterface> expressions) =>
+      Expression();
+  static ExpressionInterface or(List<ExpressionInterface> expressions) =>
+      Expression();
+  static ExpressionInterface not(ExpressionInterface expression) =>
+      Expression();
+  static ExpressionInterface negated(ExpressionInterface expression) =>
+      Expression();
+  static ExpressionInterface isNullOrMissing(ExpressionInterface expression) =>
+      Expression();
+  static ExpressionInterface isNotNullOrMissing(
+          ExpressionInterface expression) =>
+      Expression();
+}
+
+// Data Source Classes
+class DataSource {
+  static DataSourceAs collection(Collection collection) =>
+      DataSourceAsImpl(collection);
+  static DataSourceAs database(AsyncDatabase database) =>
+      DataSourceAsImpl(database);
+}
+
+class DataSourceAsImpl implements DataSourceAs {
+  final dynamic _source;
+
+  DataSourceAsImpl(this._source);
+
+  DataSourceAs as(String alias) => this;
+}
+
+// SelectResult Classes
+class SelectResult {
+  static SelectResultFrom all() => SelectResultFromImpl();
+  static SelectResultExpression expression(ExpressionInterface expression) =>
+      SelectResultExpressionImpl(expression);
+  static SelectResultExpression property(String property) =>
+      SelectResultExpressionImpl(Expression.property(property));
+}
+
+class SelectResultFromImpl implements SelectResultFrom {}
+
+class SelectResultExpressionImpl implements SelectResultExpression {
+  final ExpressionInterface _expression;
+
+  SelectResultExpressionImpl(this._expression);
+
+  SelectResultExpression as(String alias) => this;
+}
+
+abstract class SelectResultExpression implements SelectResultInterface {
+  SelectResultExpression as(String alias);
 }

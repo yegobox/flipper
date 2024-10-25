@@ -18,31 +18,6 @@ Activity _$ActivityFromJson(Map<String, dynamic> json) => Activity(
         ? null
         : DateTime.parse(json['deletedAt'] as String);
 
-const _$ActivityFieldMap = <String, String>{
-  'deletedAt': 'deletedAt',
-  'timestamp': 'timestamp',
-  'id': 'id',
-  'lastTouched': 'lastTouched',
-  'userId': 'userId',
-  'action': 'action',
-};
-
-// ignore: unused_element
-abstract class _$ActivityPerFieldToJson {
-  // ignore: unused_element
-  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
-  // ignore: unused_element
-  static Object? timestamp(DateTime instance) => instance.toIso8601String();
-  // ignore: unused_element
-  static Object? id(int? instance) => instance;
-  // ignore: unused_element
-  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
-  // ignore: unused_element
-  static Object? userId(int instance) => instance;
-  // ignore: unused_element
-  static Object? action(String instance) => instance;
-}
-
 Map<String, dynamic> _$ActivityToJson(Activity instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'timestamp': instance.timestamp.toIso8601String(),

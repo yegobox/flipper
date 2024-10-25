@@ -13,6 +13,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart' as _i141;
 import 'package:flipper_models/CloudSync.dart' as _i562;
 import 'package:flipper_models/flipper_http_client.dart' as _i843;
 import 'package:flipper_models/FlipperInterface.dart' as _i445;
+import 'package:flipper_models/FlipperInterfaceCapella.dart' as _i489;
 import 'package:flipper_models/Supabase.dart' as _i163;
 import 'package:flipper_models/sync_service.dart' as _i211;
 import 'package:flipper_models/tax_api.dart' as _i97;
@@ -39,13 +40,13 @@ import 'event_interface.dart' as _i229;
 import 'firebase_messaging.dart' as _i251;
 import 'FirebaseCrashlyticService.dart' as _i628;
 import 'force_data_service.dart' as _i798;
+import 'HttpApi.dart' as _i32;
 import 'in_app_review.dart' as _i118;
 import 'keypad_service.dart' as _i150;
 import 'language_service.dart' as _i313;
 import 'local_notification_service.dart' as _i445;
 import 'PayStackService.dart' as _i918;
 import 'product_service.dart' as _i777;
-import 'HttpApi.dart' as _i1019;
 import 'sentry_service.dart' as _i107;
 import 'services_module.dart' as _i205;
 import 'setting_service.dart' as _i290;
@@ -94,7 +95,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i843.HttpClientInterface>(() => servicesModule.http());
     gh.lazySingleton<_i918.PayStackServiceInterface>(
         () => servicesModule.payStack());
-    gh.lazySingleton<_i1019.RealmViaHttp>(() => servicesModule.realmHttp());
+    gh.lazySingleton<_i32.RealmViaHttp>(() => servicesModule.realmHttp());
     gh.lazySingleton<_i172.Remote>(() => servicesModule.remote());
     gh.lazySingleton<_i107.SentryServiceInterface>(
         () => servicesModule.sentry());
@@ -113,7 +114,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => servicesModule.localRealm(gh<_i740.LocalStorage>()),
       preResolve: true,
     );
-    await gh.lazySingletonAsync<_i445.FlipperInterface>(
+    await gh.lazySingletonAsync<_i489.FlipperInterfaceCapella>(
       () => servicesModule.capella(gh<_i740.LocalStorage>()),
       instanceName: 'capella',
       preResolve: true,
