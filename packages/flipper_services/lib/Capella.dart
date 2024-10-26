@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:isolate';
 
 import 'dart:typed_data';
 import 'package:flipper_models/FlipperInterfaceCapella.dart';
+import 'package:flipper_models/power_sync/schema.dart';
+import 'package:flipper_models/realmExtension.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:firestore_models/firestore_models.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
@@ -163,37 +166,88 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
+  Future<List<Counter>> getCounters({required int branchId}) async {
+    try {
+      AsyncCollection? collection =
+          await capella!.flipperDatabase!.collection(countersTable, scope);
+      if (collection == null) {
+        collection = await capella!.flipperDatabase!
+            .createCollection(countersTable, scope);
+      }
+
+      final query = QueryBuilder()
+          .select(SelectResult.all())
+          .from(DataSource.collection(collection))
+          .where(Expression.property('branchId')
+              .equalTo(Expression.integer(branchId)));
+
+      final result = await query.execute();
+      final results = await result.allResults();
+
+      List<Counter> counters = [];
+
+      for (var item in results) {
+        final Map<String, dynamic> json = item.toPlainMap();
+        talker.warning("Query result: $json");
+
+        // Handle both nested and flat JSON structures
+        final Map<String, dynamic> counterData =
+            json.containsKey(countersTable) ? json[countersTable] : json;
+
+        try {
+          final counter = Counter.fromJson(counterData);
+          counters.add(counter);
+        } catch (e) {
+          talker.error('Error parsing counter: $e');
+          // Continue processing other items even if one fails
+          continue;
+        }
+      }
+
+      return counters;
+    } catch (e) {
+      talker.error('Error getting counters: $e');
+      return [];
+    }
+  }
+
+  String get scope => "user_data";
+  @override
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {
-    // throw UnimplementedError();
     try {
-      final collection = await capella?.flipperDatabase?.defaultCollection;
+      AsyncCollection? collection =
+          await capella!.flipperDatabase!.collection(countersTable, scope);
+      if (collection == null) {
+        collection = await capella!.flipperDatabase!
+            .createCollection(countersTable, scope);
+      }
 
-      final query = const QueryBuilder()
+      final query = QueryBuilder()
           .select(SelectResult.all())
-          .from(DataSource.collection(collection!))
-          .where(Expression.property('branchId')
-              .equalTo(Expression.integer(branchId))
-              .add(Expression.property('receiptType')
-                  .equalTo(Expression.string(receiptType))))
+          .from(DataSource.collection(collection))
+          .where(Expression.property('receiptType')
+              .equalTo(Expression.string(receiptType))
+              .and(Expression.property('branchId')
+                  .equalTo(Expression.integer(branchId))))
           .limit(Expression.integer(1));
 
-      var parameters = Parameters();
-      parameters.setValue(branchId, name: "branchId");
-      parameters.setValue(receiptType, name: "receiptType");
-
-      await query.setParameters(parameters);
       final result = await query.execute();
       final results = await result.allResults();
 
       if (results.isEmpty) {
         return null;
       }
-      // Convert the first result to Counter
+
       final Map<String, dynamic> json = results.first.toPlainMap();
-      return Counter.fromJson(json);
+      talker.warning("Query result: $json");
+
+      final Map<String, dynamic> counterData =
+          json.containsKey(countersTable) ? json[countersTable] : json;
+
+      return Counter.fromJson(counterData);
     } catch (e) {
-      print('Error getting counter: $e');
+      talker.error('Error getting counter: $e');
       return null;
     }
   }
@@ -1549,10 +1603,44 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  void updateCounters(
-      {required List<Counter> counters,
-      required RwApiResponse receiptSignature}) {
-    // TODO: implement updateCounters
+  void updateCounters({
+    required List<Counter> counters,
+    required RwApiResponse receiptSignature,
+  }) async {
+    await capella!.flipperDatabase!.writeN(
+      tableName: countersTable,
+      writeCallback: () {
+        List<MutableDocument> documents = [];
+
+        for (Counter counter in counters) {
+          talker.warning("Touched Counter ${counter.id}");
+          // Create updated counter using copyWith
+          Counter updatedCounter = counter.copyWith(
+            totRcptNo: receiptSignature.data?.totRcptNo,
+            curRcptNo: receiptSignature.data?.rcptNo,
+            invcNo: (counter.invcNo != null) ? counter.invcNo! + 1 : 1,
+          );
+
+          // Create MutableDocument from updated counter
+          documents.add(
+            MutableDocument.withId(
+              updatedCounter.id.toString(),
+              updatedCounter.toJson(),
+            ),
+          );
+        }
+
+        return documents;
+      },
+      onAdd: (counters) async {
+        final collection = await ProxyService.capela.getCountersCollection();
+        for (var doc in counters) {
+          await collection.saveDocument(doc);
+          talker.warning("Document saved: ${doc.id}");
+          ProxyService.synchronize.syncToFirestore(countersTable, doc);
+        }
+      },
+    );
   }
 
   @override
@@ -1571,5 +1659,15 @@ class Capella with Booting implements FlipperInterfaceCapella {
       {required int branchId, int? productId, int? page, int? itemsPerPage}) {
     // TODO: implement variants
     throw UnimplementedError();
+  }
+
+  @override
+  // TODO: implement countersCollection
+  Future<AsyncCollection> getCountersCollection() async {
+    final database = capella!.flipperDatabase!;
+    final collection = await database.collection(countersTable, 'user_data');
+
+    return collection ??
+        await database.createCollection(countersTable, 'user_data');
   }
 }

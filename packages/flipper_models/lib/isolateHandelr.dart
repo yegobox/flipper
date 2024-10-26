@@ -10,16 +10,24 @@ import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/helperModels/UniversalProduct.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/power_sync/schema.dart';
+import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:cbl/cbl.dart'
+    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+
+import 'package:flipper_services/database_provider.dart'
+    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+
+import 'package:firestore_models/firestore_models.dart' as odm;
 
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';
 import 'dart:collection';
 import 'package:flutter/services.dart';
-import 'package:talker_flutter/talker_flutter.dart';
 import 'dart:async';
 
 class IsolateHandler {
@@ -43,21 +51,23 @@ class IsolateHandler {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    final firestore = FirebaseFirestore.instance;
+    // final firestore = FirebaseFirestore.instance;
 
     port.listen((message) async {
       if (message is Map<String, dynamic>) {
+        print("Message received");
+        String local = message['dbPath'];
+        String encryptionKey = message['encryptionKey'];
+        LocalConfiguration configLocal =
+            localConfig(encryptionKey.toIntList(), local);
+        if (localRealm == null) {
+          localRealm = Realm(configLocal);
+        }
+
         if (message['task'] == 'sync') {
-          String encryptionKey = message['encryptionKey'];
-          String local = message['dbPath'];
-          int businessId = message['businessId'];
-          int branchId = message['branchId'];
-          int userId = message['userId'];
-          LocalConfiguration configLocal =
-              localConfig(encryptionKey.toIntList(), local);
-          if (localRealm == null) {
-            localRealm = Realm(configLocal);
-          }
+          // int businessId = message['businessId'];
+          // int branchId = message['branchId'];
+          // int userId = message['userId'];
 
           /// query products from firestore
           // firestore.collection(stocksTable).limit(1).get().then((value) {
@@ -351,7 +361,7 @@ class IsolateHandler {
   // Function to fetch data from the URL endpoint
   static Future<void> fetchDataAndSaveUniversalProducts(
       int businessId, int branchId, String URI, String bhfid) async {
-    final talker = TalkerFlutter.init();
+    // final talker = TalkerFlutter.init();
     try {
       Business business =
           localRealm!.query<Business>(r'serverId == $0', [businessId]).first;

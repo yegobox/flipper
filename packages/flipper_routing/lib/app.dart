@@ -658,3 +658,16 @@ class App {}
 //   // Optionally, you can log or perform further operations here
 //   print("Document saved: ${doc.id}");
 // });
+//  await capella!.flipperDatabase!.writeN(
+//           tableName: countersTable,
+//           writeCallback: () {
+//             Counter counter = Counter(id: randomNumber(), curRcptNo: 1111);
+//             return MutableDocument.withId(
+//                 counter.id.toString(), counter.toJson());
+//           },
+//           onAdd: (doc) async {
+//             await collection!.saveDocument(doc);
+//             talker.warning("Document saved: ${doc.id}");
+//           });
+
+// https://cbl-dart.dev/queries/query-builder/

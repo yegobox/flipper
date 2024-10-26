@@ -4,6 +4,7 @@ import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:realm/realm.dart';
+import 'package:firestore_models/firestore_models.dart' as odm;
 
 abstract class TaxApi {
   Future<RwApiResponse> saveStockMaster(
@@ -46,7 +47,7 @@ abstract class TaxApi {
   Future<RwApiResponse> generateReceiptSignature(
       {required ITransaction transaction,
       required String receiptType,
-      required Counter counter,
+      required odm.Counter counter,
       String? purchaseCode,
       required String URI,
       required DateTime timeToUser});

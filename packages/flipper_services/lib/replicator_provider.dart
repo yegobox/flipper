@@ -1,6 +1,8 @@
 import 'package:cbl/cbl.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/database_provider.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -17,6 +19,7 @@ class ReplicatorProvider {
   // Add replicator status for state management
   ReplicatorStatus? _replicatorStatus;
   ReplicatorStatus? get replicatorStatus => _replicatorStatus;
+  String get scope => "user_data";
 
   Future<void> init() async {
     if (isInitialized) {
@@ -40,8 +43,16 @@ class ReplicatorProvider {
         scheme: 'wss',
         host: AppSecrets.capelaHost,
         port: 4984,
-        path: 'flipper',
+        path: 'admin',
       );
+      //       final collectionConfig = CollectionConfiguration(
+      //   channels: [], // Add your channels if needed
+
+      //   pushFilter: null, // Add push filter if needed
+      //   pullFilter: null, // Add pull filter if needed
+      // );
+      final counterCollection = await db.createCollection(countersTable, scope);
+      // final defauts = await db.defaultCollection;
 
       var basicAuthenticator = BasicAuthenticator(
         username: AppSecrets.capelaUsername,
@@ -51,14 +62,14 @@ class ReplicatorProvider {
       var endPoint = UrlEndpoint(url);
 
       _replicatorConfiguration = ReplicatorConfiguration(
-        database: db,
+        // database: db,
         target: endPoint,
         authenticator: basicAuthenticator,
         continuous: true,
         replicatorType: ReplicatorType.pushAndPull,
         heartbeat: const Duration(seconds: 60),
         pinnedServerCertificate: pem.buffer.asUint8List(),
-      );
+      )..addCollections([counterCollection]);
 
       if (_replicatorConfiguration != null) {
         _replicator = await Replicator.createAsync(_replicatorConfiguration!);

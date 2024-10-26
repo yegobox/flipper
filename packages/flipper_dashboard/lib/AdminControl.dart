@@ -47,7 +47,8 @@ class _AdminControlState extends State<AdminControl> {
       await ProxyService.box.writeBool(
           key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
 
-      ProxyService.capela.startReplicator();
+      await ProxyService.capela.startReplicator();
+
       setState(() {
         forceUPSERT = ProxyService.box.forceUPSERT();
       });

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -42,6 +43,8 @@ abstract class FlipperInterfaceCapella {
   AsyncCollection? businessCollection;
   AsyncCollection? accessCollection;
   AsyncCollection? permissionCollection;
+  Future<AsyncCollection> getCountersCollection();
+  Future<List<Counter>> getCounters({required int branchId});
   Future<List<Product>> products({required int branchId});
   Future<void> startReplicator();
 

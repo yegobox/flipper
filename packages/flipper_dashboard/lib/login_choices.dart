@@ -3,7 +3,6 @@
 import 'dart:developer';
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -38,12 +37,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
         final businesses = ref.watch(businessesProvider);
         final branches = ref.watch(branchesProvider((includeSelf: true)));
 
-        // if (!businesses.first.isValid || !branches.first.isValid) {
-        //   SchedulerBinding.instance.addPostFrameCallback((_) {
-        //     ref.refresh(businessesProvider);
-        //     ref.refresh(branchesProvider((includeSelf: true)));
-        //   });
-        // }
 
         return Scaffold(
           backgroundColor: Colors.white,

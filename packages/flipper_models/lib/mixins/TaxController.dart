@@ -8,9 +8,10 @@ import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:intl/intl.dart';
-
+import 'package:firestore_models/firestore_models.dart' as odm;
 import 'package:flipper_services/proxy.dart';
-import 'package:realm/realm.dart';
+import 'package:cbl/cbl.dart'
+    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 import 'package:receipt/print.dart';
 
 class TaxController<OBJ> {
@@ -252,12 +253,11 @@ class TaxController<OBJ> {
     try {
       log(receiptType, name: "onBefore: current Counter");
       int branchId = ProxyService.box.getBranchId()!;
-      Counter? counter = await ProxyService.local
+      odm.Counter? counter = await ProxyService.capela
           .getCounter(branchId: branchId, receiptType: receiptType);
 
       if (counter == null) {
-        counter = Counter(
-          ObjectId(),
+        counter = odm.Counter(
           id: randomNumber(),
           branchId: ProxyService.box.getBranchId()!,
           businessId: ProxyService.box.getBusinessId()!,
@@ -265,7 +265,19 @@ class TaxController<OBJ> {
           lastTouched: DateTime.now(),
           receiptType: receiptType,
         );
-        ProxyService.local.realm!.put(counter, tableName: 'counters');
+        ProxyService.local.capella!.flipperDatabase?.writeN(
+            writeCallback: () {
+              final doc = MutableDocument.withId(
+                  counter!.id.toString(), counter.toJson());
+              return doc;
+            },
+            tableName: countersTable,
+            onAdd: (counter) async {
+              AsyncCollection countersCollection =
+                  await ProxyService.capela.getCountersCollection();
+
+              countersCollection.saveDocument(counter);
+            });
       }
 
       /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
@@ -289,8 +301,7 @@ class TaxController<OBJ> {
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
         String qrCode = generateQRCode(now.toYYYMMdd(), receiptSignature);
-        List<Counter> counters = ProxyService.local.realm!
-            .query<Counter>(r'branchId == $0', [branchId]).toList();
+        List<odm.Counter> counters = await ProxyService.capela.getCounters(branchId: ProxyService.box.getBranchId()!);
 
         /// update transaction with receipt number and total receipt number
         ProxyService.local.realm!.writeN(
@@ -315,7 +326,7 @@ class TaxController<OBJ> {
         /// since curRcptNo need to be update when one change to keep track on current then we find all
         // Fetch the counters from the database
 
-        ProxyService.local.updateCounters(
+        ProxyService.capela.updateCounters(
           counters: counters,
           receiptSignature: receiptSignature,
         );
@@ -367,7 +378,7 @@ class TaxController<OBJ> {
       RwApiResponse receiptSignature,
       ITransaction transaction,
       String qrCode,
-      Counter counter,
+      odm.Counter counter,
       String receiptType,
       {required DateTime whenCreated,
       required int invoiceNumber}) async {

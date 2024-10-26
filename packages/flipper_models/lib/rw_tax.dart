@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
-
+import 'package:firestore_models/firestore_models.dart' as odm;
 import 'package:dio/dio.dart';
+import 'package:flipper_models/NetworkHelper.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
 import 'package:flipper_models/helperModels/ITransactionItem.dart';
@@ -22,13 +23,19 @@ import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 
-class RWTax implements TaxApi {
+class RWTax with NetworkHelper implements TaxApi {
   String itemPrefix = "flip-";
   // String eBMURL = "https://turbo.yegobox.com";
   // String eBMURL = "http://10.0.2.2:8080/rra";
 
   Dio? _dio;
   Talker? _talker;
+
+  @override
+  Dio? get dioInstance => _dio;
+
+  @override
+  get talkerInstance => _talker;
   RWTax() {
     _talker = Talker();
     _dio = Dio(BaseOptions(
@@ -182,50 +189,6 @@ class RWTax implements TaxApi {
   }
 
   // Create the Dio instance and add the TalkerDioLogger interceptor
-  Future<Response> sendPostRequest(
-    String baseUrl,
-    Map<String, dynamic>? data,
-  ) async {
-    final headers = {'Content-Type': 'application/json'};
-
-    try {
-      // Set timeout configurations
-      final response = await _dio!.post(
-        baseUrl,
-        data: json.encode(data),
-        options: Options(
-          headers: headers,
-          // Set timeouts (example: 5 seconds for connection and response timeout)
-          sendTimeout: const Duration(seconds: 5),
-          receiveTimeout: const Duration(seconds: 5),
-        ),
-      );
-      print('Response received: ${response.statusCode}');
-      return response;
-    } on DioException catch (e) {
-      print('DioException caught: ${e.message}');
-
-      if (e.type == DioExceptionType.connectionTimeout) {
-        throw Exception('Connection timeout occurred.');
-      } else if (e.type == DioExceptionType.sendTimeout) {
-        throw Exception('Send timeout occurred.');
-      } else if (e.type == DioExceptionType.receiveTimeout) {
-        throw Exception('Receive timeout occurred.');
-      } else if (e.type == DioExceptionType.badResponse) {
-        // This handles server response errors
-        final errorMessage = e.response?.data;
-        throw Exception(
-            'Error sending POST request: ${errorMessage ?? 'Bad Request'}');
-      } else {
-        throw Exception('Unexpected error occurred: ${e.message}');
-      }
-    } catch (e, s) {
-      print('General exception caught: $e');
-      _talker!.info(e);
-      _talker!.error(s);
-      throw Exception(e);
-    }
-  }
 
   Future<Response> sendGetRequest(
     String baseUrl,
@@ -343,7 +306,7 @@ class RWTax implements TaxApi {
   Future<RwApiResponse> generateReceiptSignature({
     required ITransaction transaction,
     required String receiptType,
-    required Counter counter,
+    required odm.Counter counter,
     String? purchaseCode,
     required DateTime timeToUser,
     required String URI,
@@ -505,7 +468,7 @@ class RWTax implements TaxApi {
 // Helper function to build request data
   Map<String, dynamic> buildRequestData({
     required Business? business,
-    required Counter counter,
+    required odm.Counter counter,
     required ITransaction transaction,
     required String date,
     required double totalTaxable,

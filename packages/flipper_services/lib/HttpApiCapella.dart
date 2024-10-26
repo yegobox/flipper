@@ -1505,4 +1505,16 @@ class HttpApiCapella implements FlipperInterfaceCapella {
     // TODO: implement variants
     throw UnimplementedError();
   }
+
+  @override
+  Future<AsyncCollection> getCountersCollection() {
+    // TODO: implement getCountersCollection
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<List<Counter>> getCounters({required int branchId}) {
+    // TODO: implement getCounters
+    throw UnimplementedError();
+  }
 }

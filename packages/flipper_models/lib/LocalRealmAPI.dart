@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
+import 'package:cbl/cbl.dart'
+    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,7 +12,7 @@ import 'package:flipper_models/DownloadQueue.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
-
+import 'package:firestore_models/firestore_models.dart' as odm;
 import 'package:flipper_models/Booting.dart';
 import 'package:flipper_models/DATA.dart' as defaultData;
 import 'package:flipper_models/flipper_http_client.dart';
@@ -3363,7 +3365,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       required int invoiceNumber,
       required DateTime whenCreated,
       required String receiptType,
-      required Counter counter}) async {
+      required odm.Counter counter}) async {
     int branchId = ProxyService.box.getBranchId()!;
 
     Receipt receipt = Receipt(ObjectId(),
@@ -5035,7 +5037,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           });
           continue;
         }
-        ;
+
         ProxyService.synchronize.updateRecord(
             tableName: stocksTable,
             idField: "${stocksTable.singularize()}_id",
@@ -5111,6 +5113,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
     if (ProxyService.box.stopTaxService()!) return;
     Business business = realm!.query<Business>(
         r'serverId == $0', [ProxyService.box.getBusinessId()!]).first;
+    
     sendPort!.send({
       'task': 'sync',
       'branchId': ProxyService.box.getBranchId()!,
@@ -5152,7 +5155,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
 
         await Isolate.spawn(
           isolateHandler,
-          [receivePort!.sendPort, rootIsolateToken],
+          [receivePort!.sendPort, rootIsolateToken, CouchbaseLite.context],
           debugName: 'backgroundIsolate',
         );
 

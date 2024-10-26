@@ -4,6 +4,38 @@ class Database {
   inBatch(Function() fn) {}
 }
 
+class CouchbaseLite {
+  static DatabaseContext? context;
+  static initSecondary(Object context) {}
+}
+
+extension AsyncDatabaseExtension on AsyncDatabase {
+  Future<T> writeN<T>({
+    required String tableName,
+    required T Function() writeCallback,
+    required Future<void> Function(T) onAdd,
+  }) async {
+    late T result;
+
+    try {
+      // Execute the write operation
+      result = writeCallback();
+
+      // Call the onAdd callback
+      await onAdd(result);
+
+      print("Transaction Committed");
+    } catch (e) {
+      print("Transaction Rolled Back");
+      rethrow;
+    }
+
+    return result;
+  }
+}
+
+class DatabaseContext {}
+
 class DatabaseProvider {
   bool isInitialized = false;
   bool isReplicatorStarted = false;
@@ -158,11 +190,17 @@ abstract class Query {
 }
 
 abstract class ExpressionInterface {
-  // Base interface for all expressions
-  ExpressionInterface add(ExpressionInterface other);
+  // Change to return an ExpressionInterface for chaining
+  ExpressionInterface and(ExpressionInterface expression);
+
+  // Optional: Keep the list version as a separate method if needed
+  ExpressionInterface andAll(List<ExpressionInterface> expressions);
 }
 
 abstract class PropertyExpressionInterface implements ExpressionInterface {
+  @override
+  ExpressionInterface and(ExpressionInterface expression);
+
   ExpressionInterface equalTo(ExpressionInterface value);
   ExpressionInterface add(ExpressionInterface other);
 }
@@ -187,12 +225,12 @@ abstract class DataSourceAs implements DataSourceInterface {
 class AsyncDatabase {
   final Map<String, AsyncCollection> _collections = {};
 
-  Future<AsyncCollection> createCollection(String name) async {
+  Future<AsyncCollection> createCollection(String name, [String? scope]) async {
     _collections[name] = AsyncCollection(name);
     return _collections[name]!;
   }
 
-  Future<AsyncCollection?> collection(String name) async {
+  Future<AsyncCollection?> collection(String name, [String? scope]) async {
     return _collections[name];
   }
 
@@ -515,8 +553,17 @@ class PropertyExpression implements PropertyExpressionInterface {
 
   @override
   ExpressionInterface equalTo(ExpressionInterface value) => Expression();
+
+  @override
+  ExpressionInterface and(ExpressionInterface expression) => Expression();
+
   @override
   ExpressionInterface add(ExpressionInterface other) => Expression();
+
+  // Optional: Keep the list version as a separate method if needed
+  ExpressionInterface andAll(List<ExpressionInterface> expressions) =>
+      Expression();
+
   ExpressionInterface subtract(ExpressionInterface other) => Expression();
   ExpressionInterface multiply(ExpressionInterface other) => Expression();
   ExpressionInterface divide(ExpressionInterface other) => Expression();
@@ -537,15 +584,18 @@ class PropertyExpression implements PropertyExpressionInterface {
 
 class Expression implements ExpressionInterface {
   @override
-  ExpressionInterface add(ExpressionInterface other) => Expression();
+  ExpressionInterface and(ExpressionInterface expression) => Expression();
 
-  // Rest of the Expression class implementation remains the same
+  @override
+  ExpressionInterface andAll(List<ExpressionInterface> expressions) =>
+      Expression();
 
   static PropertyExpression property(String propertyPath) =>
       PropertyExpression(propertyPath);
   static ExpressionInterface value(dynamic value) => Expression();
   static ExpressionInterface integer(int value) => Expression();
   static ExpressionInterface string(String? value) => Expression();
+
   static ExpressionInterface date(DateTime? value) => Expression();
   static ExpressionInterface float(double value) => Expression();
   static ExpressionInterface number(num? value) => Expression();
@@ -556,8 +606,7 @@ class Expression implements ExpressionInterface {
   static ExpressionInterface parameter(String name) => Expression();
   static ExpressionInterface all() => Expression();
   static ExpressionInterface any() => Expression();
-  static ExpressionInterface and(List<ExpressionInterface> expressions) =>
-      Expression();
+
   static ExpressionInterface or(List<ExpressionInterface> expressions) =>
       Expression();
   static ExpressionInterface not(ExpressionInterface expression) =>
@@ -569,6 +618,12 @@ class Expression implements ExpressionInterface {
   static ExpressionInterface isNotNullOrMissing(
           ExpressionInterface expression) =>
       Expression();
+
+  @override
+  ExpressionInterface andExpression(ExpressionInterface expression) {
+    // TODO: implement andExpression
+    throw UnimplementedError();
+  }
 }
 
 // Data Source Classes

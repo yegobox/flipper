@@ -6,6 +6,7 @@ import 'package:cbl/src/database/collection.dart'
     if (dart.library.html) 'DatabaseProvider.dart';
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'DatabaseProvider.dart';
+import 'package:firestore_models/firestore_models.dart' as odm;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
@@ -421,7 +422,7 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
       required int invoiceNumber,
       required DateTime whenCreated,
       required String receiptType,
-      required Counter counter}) {
+      required odm.Counter counter}) {
     // TODO: implement createReceipt
     throw UnimplementedError();
   }
