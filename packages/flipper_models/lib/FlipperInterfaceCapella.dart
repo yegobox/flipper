@@ -593,7 +593,7 @@ abstract class FlipperInterfaceCapella {
 
   void updateCounters({
     required List<Counter> counters,
-    required RwApiResponse receiptSignature,
+    RwApiResponse? receiptSignature,
   });
   SendPort? sendPort;
   ReceivePort? receivePort;

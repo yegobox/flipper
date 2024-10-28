@@ -1,11 +1,15 @@
 import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 // import 'package:flipper_services/DatabaseProvider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:cbl/cbl.dart'
+    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+import 'package:receipt/print.dart';
 
 class AdminControl extends StatefulWidget {
   const AdminControl({super.key});
@@ -43,20 +47,44 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   Future<void> toggleForceUPSERT(bool value) async {
-    ProxyService.capela.startReplicator();
+    // ProxyService.capela.startReplicator();
 
-    // try {
-    //   await ProxyService.box.writeBool(
-    //       key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
+    try {
+      Map<String, dynamic> map = {"id": 1521};
+      final db = ProxyService.capela.capella!.flipperDatabase!;
+      // Use the writeN method to write the document
+      await db.writeN(
+          tableName: "your_table_name",
+          writeCallback: () {
+            // Create a document with the given ID and map data
+            final document = MutableDocument.withId("1521", map);
+  
+            // Return the created document (of type T, in this case a MutableDocument)
+            return document;
+          },
+          onAdd: (doc) async {
+            // After the write operation, save the document to the collection
+            final collection =
+                await ProxyService.capela.getCountersCollection();
 
-    //   await ProxyService.capela.startReplicator();
+            // add name to doc
+            doc.setString("Richardss", key: "name");
+            await collection.saveDocument(doc);
 
-    //   setState(() {
-    //     forceUPSERT = ProxyService.box.forceUPSERT();
-    //   });
-    // } catch (e, s) {
-    //   talker.error(e, s);
-    // }
+            // Optionally, you can log or perform further operations here
+            print("Document saved: ${doc.id}");
+          });
+      await ProxyService.box.writeBool(
+          key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
+
+      await ProxyService.capela.startReplicator();
+
+      setState(() {
+        forceUPSERT = ProxyService.box.forceUPSERT();
+      });
+    } catch (e, s) {
+      talker.error(e, s);
+    }
   }
 
   Future<void> toggleTaxService(bool value) async {

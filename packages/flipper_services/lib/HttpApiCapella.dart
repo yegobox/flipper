@@ -1452,8 +1452,7 @@ class HttpApiCapella implements FlipperInterfaceCapella {
 
   @override
   void updateCounters(
-      {required List<Counter> counters,
-      required RwApiResponse receiptSignature}) {
+      {required List<Counter> counters, RwApiResponse? receiptSignature}) {
     // TODO: implement updateCounters
   }
 
@@ -1511,7 +1510,7 @@ class HttpApiCapella implements FlipperInterfaceCapella {
     // TODO: implement getCountersCollection
     throw UnimplementedError();
   }
-  
+
   @override
   Future<List<Counter>> getCounters({required int branchId}) {
     // TODO: implement getCounters

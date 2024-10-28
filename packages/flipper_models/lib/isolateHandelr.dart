@@ -10,19 +10,10 @@ import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/helperModels/UniversalProduct.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/power_sync/schema.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:cbl/cbl.dart'
-    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-
-import 'package:flipper_services/database_provider.dart'
-    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-
-import 'package:firestore_models/firestore_models.dart' as odm;
 
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';

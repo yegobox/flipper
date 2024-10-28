@@ -1605,7 +1605,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   @override
   Future<void> updateCounters({
     required List<Counter> counters,
-    required RwApiResponse receiptSignature,
+    RwApiResponse? receiptSignature,
   }) async {
     await capella!.flipperDatabase!.writeN(
       tableName: countersTable,
@@ -1613,21 +1613,13 @@ class Capella with Booting implements FlipperInterfaceCapella {
         List<MutableDocument> documents = [];
 
         for (Counter counter in counters) {
+          counter.totRcptNo;
           // Create updated counter using copyWith
           Counter updatedCounter = counter.copyWith(
-            totRcptNo: receiptSignature.data?.totRcptNo,
-            // Increment curRcptNo based on its current value
+            totRcptNo: receiptSignature?.data?.totRcptNo ?? counter.totRcptNo,
             curRcptNo: (counter.curRcptNo != null) ? counter.curRcptNo! + 1 : 1,
-            // Increment invcNo based on its current value
             invcNo: (counter.invcNo != null) ? counter.invcNo! + 1 : 1,
           );
-
-          talker.warning("Updating counter ${counter.id}");
-          talker.warning(
-              "Previous values - curRcptNo: ${counter.curRcptNo}, invcNo: ${counter.invcNo}");
-          talker.warning(
-              "Updated values - curRcptNo: ${updatedCounter.curRcptNo}, invcNo: ${updatedCounter.invcNo}");
-          talker.warning(updatedCounter.toJson().toString());
 
           // Ensure the document ID is always a string
           String documentId;
@@ -1636,34 +1628,42 @@ class Capella with Booting implements FlipperInterfaceCapella {
           } else if (updatedCounter.id is String) {
             documentId = updatedCounter.id as String;
           } else {
-            // Handle null or other unexpected types
             throw ArgumentError(
                 'Invalid counter ID type: ${updatedCounter.id.runtimeType}');
           }
 
-          // Create MutableDocument with string ID
-          documents.add(
-            MutableDocument.withId(
-              documentId,
-              updatedCounter.toJson(),
-            ),
-          );
+          // Add MutableDocument to the list with string ID
+          final doc =
+              MutableDocument.withId(documentId, updatedCounter.toJson());
+          documents.add(doc);
         }
 
         return documents;
       },
-      onAdd: (counters) async {
+      onAdd: (docs) async {
         try {
-          final collection = await ProxyService.capela.getCountersCollection();
-          talker.warning("Received ${counters.length} documents to save");
+          final collection = await getCountersCollection();
+          talker.warning("Received ${docs.length} documents to save");
 
-          for (var doc in counters) {
+          for (var doc in docs) {
+            // Check if document exists, if so, convert it to mutable for update
+            final existingDoc = await collection.document(doc.id);
+            if (existingDoc != null) {
+              // Access the nested 'counters' data and set it properly
+              final existingData = existingDoc.toPlainMap();
+              if (existingData.containsKey('counters')) {
+                // Unwrap the counters data and set it directly
+                final countersData =
+                    existingData['counters'] as Map<String, Object?>;
+                doc.setData(countersData);
+              }
+            }
+
+            // Set or update fields as needed
+            //doc.setString("Richardss", key: "name");
             await collection.saveDocument(doc);
-            // Safely access the curRcptNo value
-            final curRcptNo =
-                doc.toPlainMap()['curRcptNo']?.toString() ?? 'null';
-            talker.warning("Document saved: ${doc.id} with $curRcptNo");
-            // ProxyService.synchronize.syncToFirestore(countersTable, doc);
+
+            talker.warning("Document saved: ${doc.id}");
           }
         } catch (e, s) {
           talker.error(e.toString());

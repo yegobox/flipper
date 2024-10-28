@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 
+import 'package:firestore_models/firestore_models.dart' as odm;
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:realm/realm.dart';
 
@@ -182,6 +183,21 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     } catch (e, s) {
       talker.error(e, s);
       ref.read(loadingProvider.notifier).stopLoading();
+      String v = e
+          .toString()
+          .split('Caught Exception: ')
+          .last
+          .replaceAll("Exception: ", "");
+
+      ///TODO: this is not nice rmeove it ASAP.
+      if (v == "Invoice number already exists.") {
+        // talker.error("IIIII");
+        // A Quick fix increment counter for now.
+        List<odm.Counter> counters = await ProxyService.capela
+            .getCounters(branchId: ProxyService.box.getBranchId()!);
+
+        ProxyService.capela.updateCounters(counters: counters);
+      }
       // Handle general errors
       _handlePaymentError(e, context);
       rethrow; // Rethrow the error if needed for upper level handling

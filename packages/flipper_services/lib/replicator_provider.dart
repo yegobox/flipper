@@ -2,7 +2,6 @@ import 'package:cbl/cbl.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/database_provider.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -45,14 +44,16 @@ class ReplicatorProvider {
         port: 4984,
         path: 'admin',
       );
-      //       final collectionConfig = CollectionConfiguration(
-      //   channels: [], // Add your channels if needed
 
-      //   pushFilter: null, // Add push filter if needed
-      //   pullFilter: null, // Add pull filter if needed
-      // );
       final counterCollection = await db.createCollection(countersTable, scope);
+
       // final defauts = await db.defaultCollection;
+      final collectionConfig = CollectionConfiguration(
+        conflictResolver: ConflictResolver.from((Conflict conflict) {
+          // Ensure to return a non-null Document
+          return conflict.localDocument;
+        }),
+      );
 
       var basicAuthenticator = BasicAuthenticator(
         username: AppSecrets.capelaUsername,
@@ -69,7 +70,9 @@ class ReplicatorProvider {
         replicatorType: ReplicatorType.pushAndPull,
         heartbeat: const Duration(seconds: 60),
         pinnedServerCertificate: pem.buffer.asUint8List(),
-      )..addCollections([counterCollection]);
+      )
+        ..addCollections([counterCollection], collectionConfig)
+        ..maxAttempts = 10;
 
       if (_replicatorConfiguration != null) {
         _replicator = await Replicator.createAsync(_replicatorConfiguration!);
