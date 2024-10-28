@@ -136,13 +136,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
 
       // Check subtotal
       if (transaction.subTotal == 0) {
-        showSimpleNotification(
-          Text(FLocalization.of(context).noPayable),
-          background: Colors.red,
-          contentPadding: EdgeInsets.only(left: 120, right: 120),
-          position: NotificationPosition.bottom,
-        );
-        return;
+        throw Exception("No Payable");
       }
 
       // Parse amounts

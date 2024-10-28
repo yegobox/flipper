@@ -21,21 +21,21 @@ extension CblExtension on Database {
     late T result;
 
     // Start the transaction
-    await inBatch(() async {
-      try {
-        // Execute the write operation and assign to result
-        result = writeCallback();
+    // await inBatch(() async {
 
-        // Call the callback and await its completion
-        await onAdd(result);
+    // });
+    try {
+      // Execute the write operation and assign to result
+      result = writeCallback();
 
-        print("Transaction Committed");
-      } catch (e) {
-        print("Transaction Rolled Back");
-        rethrow;
-      }
-    });
+      // Call the callback and await its completion
+      await onAdd(result);
 
+      print("Transaction Committed");
+    } catch (e) {
+      print("Transaction Rolled Back $e");
+      rethrow;
+    }
     return result; // Return the result after the transaction is done
   }
 }

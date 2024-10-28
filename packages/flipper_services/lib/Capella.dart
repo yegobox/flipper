@@ -1607,34 +1607,27 @@ class Capella with Booting implements FlipperInterfaceCapella {
     required List<Counter> counters,
     RwApiResponse? receiptSignature,
   }) async {
+    final collection = await getCountersCollection();
+
     await capella!.flipperDatabase!.writeN(
       tableName: countersTable,
       writeCallback: () {
         List<MutableDocument> documents = [];
 
         for (Counter counter in counters) {
-          counter.totRcptNo;
-          // Create updated counter using copyWith
+          // Ensure document ID is string
+          String documentId = counter.id.toString();
+
+          // Create updated counter
           Counter updatedCounter = counter.copyWith(
             totRcptNo: receiptSignature?.data?.totRcptNo ?? counter.totRcptNo,
             curRcptNo: (counter.curRcptNo != null) ? counter.curRcptNo! + 1 : 1,
             invcNo: (counter.invcNo != null) ? counter.invcNo! + 1 : 1,
           );
 
-          // Ensure the document ID is always a string
-          String documentId;
-          if (updatedCounter.id is int) {
-            documentId = updatedCounter.id.toString();
-          } else if (updatedCounter.id is String) {
-            documentId = updatedCounter.id as String;
-          } else {
-            throw ArgumentError(
-                'Invalid counter ID type: ${updatedCounter.id.runtimeType}');
-          }
-
-          // Add MutableDocument to the list with string ID
-          final doc =
-              MutableDocument.withId(documentId, updatedCounter.toJson());
+          // Create document and set data
+          final doc = MutableDocument.withId(documentId);
+          doc.setData(updatedCounter.toJson());
           documents.add(doc);
         }
 
@@ -1642,31 +1635,24 @@ class Capella with Booting implements FlipperInterfaceCapella {
       },
       onAdd: (docs) async {
         try {
-          final collection = await getCountersCollection();
-          talker.warning("Received ${docs.length} documents to save");
-
           for (var doc in docs) {
-            // Check if document exists, if so, convert it to mutable for update
+            // Get existing document if it exists
             final existingDoc = await collection.document(doc.id);
+
+            // If document exists, update it with new data
             if (existingDoc != null) {
-              // Access the nested 'counters' data and set it properly
-              final existingData = existingDoc.toPlainMap();
-              if (existingData.containsKey('counters')) {
-                // Unwrap the counters data and set it directly
-                final countersData =
-                    existingData['counters'] as Map<String, Object?>;
-                doc.setData(countersData);
-              }
+              final mutableExisting = existingDoc.toMutable();
+              mutableExisting.setData(doc.toPlainMap());
+              await collection.saveDocument(mutableExisting);
+            } else {
+              // Save new document
+              await collection.saveDocument(doc);
             }
 
-            // Set or update fields as needed
-            //doc.setString("Richardss", key: "name");
-            await collection.saveDocument(doc);
-
-            talker.warning("Document saved: ${doc.id}");
+            talker.warning("Document saved successfully: ${doc.id}");
           }
         } catch (e, s) {
-          talker.error(e.toString());
+          talker.error("Error saving document: $e");
           talker.error(s.toString());
           rethrow;
         }

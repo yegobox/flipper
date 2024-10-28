@@ -58,7 +58,7 @@ class _AdminControlState extends State<AdminControl> {
           writeCallback: () {
             // Create a document with the given ID and map data
             final document = MutableDocument.withId("1521", map);
-  
+
             // Return the created document (of type T, in this case a MutableDocument)
             return document;
           },
@@ -68,7 +68,7 @@ class _AdminControlState extends State<AdminControl> {
                 await ProxyService.capela.getCountersCollection();
 
             // add name to doc
-            doc.setString("Richardss", key: "name");
+            doc.setString("Murag Richard", key: "name");
             await collection.saveDocument(doc);
 
             // Optionally, you can log or perform further operations here
