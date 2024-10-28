@@ -22,7 +22,7 @@ mixin Refresh<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           (mode: TransactionType.sale, isExpense: isOrdering)));
 
       ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
-      ref.read(loadingProvider.notifier).state = false;
+      ref.read(loadingProvider.notifier).stopLoading();
     } catch (e) {}
   }
 

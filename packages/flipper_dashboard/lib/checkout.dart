@@ -3,14 +3,13 @@
 import 'dart:io';
 
 import 'package:flipper_dashboard/IncomingOrders.dart';
+import 'package:flipper_dashboard/PreviewSaleButton.dart' as state;
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/bottomSheet.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/previewCart.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/search_field.dart';
-import 'package:flipper_models/power_sync/schema.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
@@ -301,19 +300,16 @@ class CheckOutState extends ConsumerState<CheckOut>
               try {
                 startCompleteTransactionFlow(
                     completeTransaction: () {
-                      ref.read(loadingProvider.notifier).state = false;
+                      ref.read(loadingProvider.notifier).stopLoading();
                     },
                     transaction: transaction,
                     paymentMethods: ref.watch(paymentMethodsProvider));
-                ref.refresh(loadingProvider.notifier);
 
-                // receivedAmountController.clear();
-                ref.read(loadingProvider.notifier).state = false;
-                ref.refresh(loadingProvider.notifier);
                 ref.read(isProcessingProvider.notifier).stopProcessing();
                 ref.refresh(pendingTransactionProvider(
                     (mode: TransactionType.sale, isExpense: false)));
               } catch (e) {
+                ref.read(loadingProvider.notifier).stopLoading();
                 rethrow;
               }
             },
@@ -394,15 +390,17 @@ class CheckOutState extends ConsumerState<CheckOut>
                                           completeTransaction: () {
                                             ref
                                                 .read(loadingProvider.notifier)
-                                                .state = false;
+                                                .stopLoading();
                                           },
                                           transaction: transaction,
                                           paymentMethods: ref
                                               .watch(paymentMethodsProvider));
-                                      ref.read(loadingProvider.notifier).state =
-                                          false;
+
                                       Navigator.of(context).pop();
                                     } catch (e, s) {
+                                      ref
+                                          .read(loadingProvider.notifier)
+                                          .stopLoading();
                                       talker.warning(e);
                                       talker.error(s);
                                     }

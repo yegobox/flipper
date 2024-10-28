@@ -245,8 +245,6 @@ class TaxController<OBJ> {
     required ITransaction transaction,
     String? purchaseCode,
   }) async {
-    // Use local counter as long as it is marked as synced.
-
     try {
       log(receiptType, name: "onBefore: current Counter");
       int branchId = ProxyService.box.getBranchId()!;

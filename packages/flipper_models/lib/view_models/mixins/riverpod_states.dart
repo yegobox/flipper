@@ -840,7 +840,49 @@ class KeypadNotifier extends StateNotifier<String> {
 
 // State provider for managing loading state
 
-final loadingProvider = StateProvider<bool>((ref) => false);
+class LoadingState {
+  final bool isLoading;
+  final String? error;
+
+  const LoadingState({
+    this.isLoading = false,
+    this.error,
+  });
+
+  LoadingState copyWith({
+    bool? isLoading,
+    String? error,
+  }) {
+    return LoadingState(
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+    );
+  }
+}
+
+// Create a notifier to handle loading state changes
+class LoadingNotifier extends StateNotifier<LoadingState> {
+  LoadingNotifier() : super(const LoadingState());
+
+  void startLoading() {
+    state = state.copyWith(isLoading: true, error: null);
+  }
+
+  void stopLoading() {
+    state = state.copyWith(isLoading: false);
+  }
+
+  void setError(String error) {
+    state = state.copyWith(isLoading: false, error: error);
+  }
+}
+
+// Define the provider
+final loadingProvider =
+    StateNotifierProvider<LoadingNotifier, LoadingState>((ref) {
+  return LoadingNotifier();
+});
+
 final toggleProvider = StateProvider<bool>((ref) => false);
 final previewingCart = StateProvider<bool>((ref) => false);
 

@@ -150,7 +150,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 transactionAsyncValue.whenData((ITransaction transaction) {
                   startCompleteTransactionFlow(
                       completeTransaction: () {
-                        ref.read(loadingProvider.notifier).state = false;
+                        ref.read(loadingProvider.notifier).stopLoading();
                       },
                       transaction: transaction,
                       paymentMethods: ref.watch(paymentMethodsProvider));
@@ -323,11 +323,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
         final number = double.tryParse(value);
         if (number == null) {
-          ref.read(loadingProvider.notifier).state = false;
+          ref.read(loadingProvider.notifier).stopLoading();
           return 'Please enter a valid number';
         }
         if (number < 0 || number > 100) {
-          ref.read(loadingProvider.notifier).state = false;
+          ref.read(loadingProvider.notifier).stopLoading();
           return 'Discount must be between 0 and 100';
         }
         return null;
@@ -377,16 +377,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       }),
       validator: (String? value) {
         if (value == null || value.isEmpty) {
-          ref.read(loadingProvider.notifier).state = false;
+          ref.read(loadingProvider.notifier).stopLoading();
           return 'Please enter received amount';
         }
         final number = double.tryParse(value);
         if (number == null) {
-          ref.read(loadingProvider.notifier).state = false;
+          ref.read(loadingProvider.notifier).stopLoading();
           return 'Please enter a valid number';
         }
         if (number < totalAfterDiscountAndShipping) {
-          ref.read(loadingProvider.notifier).state = false;
+          ref.read(loadingProvider.notifier).stopLoading();
           return 'You are receiving less than the total due';
         }
         return null;
@@ -439,12 +439,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           .writeString(key: 'currentSaleCustomerPhoneNumber', value: value),
       validator: (String? value) {
         if (value == null || value.isEmpty) {
-          ref.read(loadingProvider.notifier).state = false;
+          ref.read(loadingProvider.notifier).stopLoading();
           return 'Please enter a phone number';
         }
         final phoneExp = RegExp(r'^[1-9]\d{8}$');
         if (!phoneExp.hasMatch(value)) {
-          ref.read(loadingProvider.notifier).state = false;
+          ref.read(loadingProvider.notifier).stopLoading();
           return 'Please enter a valid 9-digit phone number without a leading zero';
         }
         return null;

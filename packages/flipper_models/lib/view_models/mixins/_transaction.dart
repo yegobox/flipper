@@ -31,7 +31,7 @@ mixin TransactionMixin {
       required BuildContext context,
       required GlobalKey<FormState> formKey,
       required TextEditingController customerNameController,
-      required Function? onComplete,
+      required Function onComplete,
       required double discount}) async {
     try {
       final taxExanbled = ProxyService.local
@@ -59,7 +59,8 @@ mixin TransactionMixin {
               customerNameController.text,
               customerNameController,
               amount,
-              categoryId!,
+              onComplete: onComplete,
+              categoryId ?? "",
               transactionType,
               paymentType,
               discount);
@@ -81,18 +82,6 @@ mixin TransactionMixin {
       }
       return response;
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        duration: Duration(seconds: 10),
-        backgroundColor: Colors.red,
-        content: Text(e.toString().split('Caught Exception: ').last),
-        action: SnackBarAction(
-          label: 'Close',
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
-        closeIconColor: Colors.red,
-      ));
       rethrow;
     }
   }
@@ -106,7 +95,7 @@ mixin TransactionMixin {
       String transactionType,
       String paymentType,
       double discount,
-      {Function? onComplete}) {
+      {required Function onComplete}) {
     ProxyService.local.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isProformaMode(),
@@ -138,7 +127,7 @@ mixin TransactionMixin {
         return transaction;
       },
       onAdd: (data) {
-        return onComplete != null ? onComplete() : null;
+        onComplete.call();
       },
     );
   }

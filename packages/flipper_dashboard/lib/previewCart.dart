@@ -107,73 +107,106 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
         (mode: TransactionType.sale, isExpense: false)));
 
     ref.refresh(transactionItemsProvider((isExpense: false)));
-    ref.read(loadingProvider.notifier).state = false;
   }
 
-  void startCompleteTransactionFlow(
-      {required ITransaction transaction,
-      required Function completeTransaction,
-      required List<Payment> paymentMethods}) {
+  void startCompleteTransactionFlow({
+    required ITransaction transaction,
+    required Function completeTransaction,
+    required List<Payment> paymentMethods,
+  }) async {
     try {
-      final transactionId = transaction.id!;
-      for (var payment in paymentMethods) {
-        ProxyService.local.savePaymentType(
-            paymentRecord: TransactionPaymentRecord(
-          ObjectId(),
-          amount: payment.amount,
-          transactionId: transactionId,
-          paymentMethod: payment.method,
-        ));
+      // Validate transaction ID
+      final transactionId = transaction.id;
+      if (transactionId == null) {
+        throw Exception('Transaction ID is required');
       }
 
-      if (transaction.subTotal != 0) {
-        ref.read(loadingProvider.notifier).state = true;
-        Customer? customer =
-            ProxyService.local.getCustomer(id: transaction.customerId);
+      // Save payment methods
+      for (var payment in paymentMethods) {
+        ProxyService.local.savePaymentType(
+          paymentRecord: TransactionPaymentRecord(
+            ObjectId(),
+            amount: payment.amount,
+            transactionId: transactionId,
+            paymentMethod: payment.method,
+          ),
+        );
+      }
 
-        final amount = double.tryParse(receivedAmountController.text) ?? 0;
-        final discount = double.tryParse(discountController.text) ?? 0;
-        final state = (formKey.currentState?.validate() ?? true);
-
-        /// on mobile we are not validating state hence it is always true && customer ==null
-        if (state && customer == null) {
-          finalizePayment(
-            formKey: formKey,
-            customerNameController: customerNameController,
-            context: context,
-            paymentType: ProxyService.box.paymentType() ?? "Cash",
-            transactionType: TransactionType.sale,
-            transaction: transaction,
-            amount: amount,
-            onComplete: completeTransaction,
-            discount: discount,
-          );
-          ref.read(loadingProvider.notifier).state = false;
-          _refreshTransactionItems(transactionId: transaction.id!);
-        }
-        if (customer != null) {
-          additionalInformationIsRequiredToCompleteTransaction(
-            amount: amount,
-            onComplete: completeTransaction,
-            discount: discount,
-            paymentType: paymentTypeController.text,
-            transaction: transaction,
-            context: context,
-          );
-          _refreshTransactionItems(transactionId: transaction.id!);
-          ref.read(loadingProvider.notifier).state = false;
-        }
-      } else {
+      // Check subtotal
+      if (transaction.subTotal == 0) {
         showSimpleNotification(
           Text(FLocalization.of(context).noPayable),
           background: Colors.red,
           contentPadding: EdgeInsets.only(left: 120, right: 120),
           position: NotificationPosition.bottom,
         );
+        return;
       }
-    } catch (e) {
-      rethrow;
+
+      // Parse amounts
+      final amount = double.tryParse(receivedAmountController.text) ?? 0;
+      final discount = double.tryParse(discountController.text) ?? 0;
+      final state = (formKey.currentState?.validate() ?? true);
+
+      // Get customer
+      Customer? customer =
+          await ProxyService.local.getCustomer(id: transaction.customerId);
+
+      // Handle payment based on customer presence
+      if (state && customer == null) {
+        await finalizePayment(
+          formKey: formKey,
+          customerNameController: customerNameController,
+          context: context,
+          paymentType: ProxyService.box.paymentType() ?? "Cash",
+          transactionType: TransactionType.sale,
+          transaction: transaction,
+          amount: amount,
+          onComplete: completeTransaction,
+          discount: discount,
+        );
+      } else if (customer != null) {
+        await additionalInformationIsRequiredToCompleteTransaction(
+          amount: amount,
+          onComplete: completeTransaction,
+          discount: discount,
+          paymentType: paymentTypeController.text,
+          transaction: transaction,
+          context: context,
+        );
+      }
+
+      // Refresh transaction items only if payment was successful
+      await _refreshTransactionItems(transactionId: transactionId);
+    } catch (e, s) {
+      talker.error(e, s);
+      ref.read(loadingProvider.notifier).stopLoading();
+      // Handle general errors
+      _handlePaymentError(e, context);
+      rethrow; // Rethrow the error if needed for upper level handling
     }
+  }
+
+// Helper method to handle payment errors
+  void _handlePaymentError(dynamic error, BuildContext context) {
+    String errorMessage = error.toString();
+    if (error is Exception) {
+      errorMessage = error.toString().split('Exception: ').last;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: Duration(seconds: 10),
+      backgroundColor: Colors.red,
+      content: Text(errorMessage.toString().split('Caught Exception: ').last),
+      action: SnackBarAction(
+        label: 'Close',
+        onPressed: () {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        },
+      ),
+      closeIconColor: Colors.red,
+    ));
   }
 
   Future<void> additionalInformationIsRequiredToCompleteTransaction({

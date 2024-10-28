@@ -43,18 +43,20 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   Future<void> toggleForceUPSERT(bool value) async {
-    try {
-      await ProxyService.box.writeBool(
-          key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
+    ProxyService.capela.startReplicator();
 
-      await ProxyService.capela.startReplicator();
+    // try {
+    //   await ProxyService.box.writeBool(
+    //       key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
 
-      setState(() {
-        forceUPSERT = ProxyService.box.forceUPSERT();
-      });
-    } catch (e, s) {
-      talker.error(e, s);
-    }
+    //   await ProxyService.capela.startReplicator();
+
+    //   setState(() {
+    //     forceUPSERT = ProxyService.box.forceUPSERT();
+    //   });
+    // } catch (e, s) {
+    //   talker.error(e, s);
+    // }
   }
 
   Future<void> toggleTaxService(bool value) async {

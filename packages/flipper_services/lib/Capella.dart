@@ -1603,7 +1603,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  void updateCounters({
+  Future<void> updateCounters({
     required List<Counter> counters,
     required RwApiResponse receiptSignature,
   }) async {
@@ -1613,18 +1613,38 @@ class Capella with Booting implements FlipperInterfaceCapella {
         List<MutableDocument> documents = [];
 
         for (Counter counter in counters) {
-          talker.warning("Touched Counter ${counter.id}");
           // Create updated counter using copyWith
           Counter updatedCounter = counter.copyWith(
             totRcptNo: receiptSignature.data?.totRcptNo,
-            curRcptNo: receiptSignature.data?.rcptNo,
+            // Increment curRcptNo based on its current value
+            curRcptNo: (counter.curRcptNo != null) ? counter.curRcptNo! + 1 : 1,
+            // Increment invcNo based on its current value
             invcNo: (counter.invcNo != null) ? counter.invcNo! + 1 : 1,
           );
 
-          // Create MutableDocument from updated counter
+          talker.warning("Updating counter ${counter.id}");
+          talker.warning(
+              "Previous values - curRcptNo: ${counter.curRcptNo}, invcNo: ${counter.invcNo}");
+          talker.warning(
+              "Updated values - curRcptNo: ${updatedCounter.curRcptNo}, invcNo: ${updatedCounter.invcNo}");
+          talker.warning(updatedCounter.toJson().toString());
+
+          // Ensure the document ID is always a string
+          String documentId;
+          if (updatedCounter.id is int) {
+            documentId = updatedCounter.id.toString();
+          } else if (updatedCounter.id is String) {
+            documentId = updatedCounter.id as String;
+          } else {
+            // Handle null or other unexpected types
+            throw ArgumentError(
+                'Invalid counter ID type: ${updatedCounter.id.runtimeType}');
+          }
+
+          // Create MutableDocument with string ID
           documents.add(
             MutableDocument.withId(
-              updatedCounter.id.toString(),
+              documentId,
               updatedCounter.toJson(),
             ),
           );
@@ -1633,11 +1653,22 @@ class Capella with Booting implements FlipperInterfaceCapella {
         return documents;
       },
       onAdd: (counters) async {
-        final collection = await ProxyService.capela.getCountersCollection();
-        for (var doc in counters) {
-          await collection.saveDocument(doc);
-          talker.warning("Document saved: ${doc.id}");
-          ProxyService.synchronize.syncToFirestore(countersTable, doc);
+        try {
+          final collection = await ProxyService.capela.getCountersCollection();
+          talker.warning("Received ${counters.length} documents to save");
+
+          for (var doc in counters) {
+            await collection.saveDocument(doc);
+            // Safely access the curRcptNo value
+            final curRcptNo =
+                doc.toPlainMap()['curRcptNo']?.toString() ?? 'null';
+            talker.warning("Document saved: ${doc.id} with $curRcptNo");
+            // ProxyService.synchronize.syncToFirestore(countersTable, doc);
+          }
+        } catch (e, s) {
+          talker.error(e.toString());
+          talker.error(s.toString());
+          rethrow;
         }
       },
     );
