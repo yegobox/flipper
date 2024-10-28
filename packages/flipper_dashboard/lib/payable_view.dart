@@ -66,7 +66,7 @@ class _PayableViewState extends ConsumerState<PayableView> {
           ),
           PreviewSaleButton(
             mode: widget.mode,
-            wording: widget.wording,
+            wording: widget.wording ?? "Pay",
             completeTransaction: widget.completeTransaction ?? null,
             previewCart: widget.previewCart ?? null,
           )

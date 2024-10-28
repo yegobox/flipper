@@ -31,8 +31,83 @@ mixin TransactionMixin {
       required BuildContext context,
       required GlobalKey<FormState> formKey,
       required TextEditingController customerNameController,
+      required Function? onComplete,
       required double discount}) async {
-    ITransaction trans = ProxyService.local.collectPayment(
+    try {
+      final taxExanbled = ProxyService.local
+          .isTaxEnabled(business: ProxyService.local.getBusiness());
+      RwApiResponse? response;
+      final hasServerUrl = ProxyService.box.getServerUrl() != null;
+      final hasUser = ProxyService.box.bhfId() != null;
+
+      /// update transaction type
+      ProxyService.local.updateTransactionType(
+          transaction: transaction,
+          isProformaMode: ProxyService.box.isProformaMode(),
+          isTrainingMode: ProxyService.box.isTrainingMode());
+      if (taxExanbled && hasServerUrl && hasUser) {
+        response = await handleReceiptGeneration(
+            formKey: formKey,
+            context: context,
+            transaction: transaction,
+            purchaseCode: purchaseCode);
+        if (response.resultCd != "000") {
+          throw Exception("Invalid response from server");
+        } else {
+          updateCustomerTransaction(
+              transaction,
+              customerNameController.text,
+              customerNameController,
+              amount,
+              categoryId!,
+              transactionType,
+              paymentType,
+              discount);
+        }
+      } else {
+        updateCustomerTransaction(
+            transaction,
+            customerNameController.text,
+            customerNameController,
+            amount,
+            categoryId!,
+            transactionType,
+            paymentType,
+            onComplete: onComplete,
+            discount);
+      }
+      if (response == null) {
+        return RwApiResponse(resultCd: "001", resultMsg: "Sale completed");
+      }
+      return response;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        duration: Duration(seconds: 10),
+        backgroundColor: Colors.red,
+        content: Text(e.toString().split('Caught Exception: ').last),
+        action: SnackBarAction(
+          label: 'Close',
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+        closeIconColor: Colors.red,
+      ));
+      rethrow;
+    }
+  }
+
+  void updateCustomerTransaction(
+      ITransaction transaction,
+      String customerName,
+      TextEditingController customerNameController,
+      double amount,
+      String categoryId,
+      String transactionType,
+      String paymentType,
+      double discount,
+      {Function? onComplete}) {
+    ProxyService.local.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
@@ -46,32 +121,6 @@ mixin TransactionMixin {
       discount: discount,
       directlyHandleReceipt: false,
     );
-    final taxExanbled = ProxyService.local
-        .isTaxEnabled(business: ProxyService.local.getBusiness());
-    RwApiResponse? response;
-    final hasServerUrl = ProxyService.box.getServerUrl() != null;
-    final hasUser = ProxyService.box.bhfId() != null;
-    if (taxExanbled && hasServerUrl && hasUser) {
-      response = await handleReceiptGeneration(
-          formKey: formKey,
-          context: context,
-          transaction: trans,
-          purchaseCode: purchaseCode);
-
-      updateCustomerTransaction(
-          transaction, customerNameController.text, customerNameController);
-    } else {
-      updateCustomerTransaction(
-          transaction, customerNameController.text, customerNameController);
-    }
-    if (response == null) {
-      return RwApiResponse(resultCd: "001", resultMsg: "Sale completed");
-    }
-    return response;
-  }
-
-  void updateCustomerTransaction(ITransaction transaction, String customerName,
-      TextEditingController customerNameController) {
     Customer? customer =
         ProxyService.local.getCustomer(id: transaction.customerId);
 
@@ -88,7 +137,9 @@ mixin TransactionMixin {
             : customer.custTin;
         return transaction;
       },
-      onAdd: (data) {},
+      onAdd: (data) {
+        return onComplete != null ? onComplete() : null;
+      },
     );
   }
 
@@ -128,8 +179,7 @@ mixin TransactionMixin {
       }
       return response;
     } catch (e) {
-      talker.error(e);
-      throw Exception("Invalid routes.");
+      rethrow;
     }
   }
 

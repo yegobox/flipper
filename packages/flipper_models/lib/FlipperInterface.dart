@@ -619,4 +619,8 @@ abstract class FlipperInterface {
   Future<void> spawnIsolate(dynamic isolateHandler);
   void reDownloadAsset();
   void clearVariants();
+  void updateTransactionType(
+      {required ITransaction transaction,
+      required bool isProformaMode,
+      required bool isTrainingMode});
 }

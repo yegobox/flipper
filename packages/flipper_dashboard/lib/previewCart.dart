@@ -112,61 +112,67 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
 
   void startCompleteTransactionFlow(
       {required ITransaction transaction,
+      required Function completeTransaction,
       required List<Payment> paymentMethods}) {
-    final transactionId = transaction.id!;
-    for (var payment in paymentMethods) {
-      ProxyService.local.savePaymentType(
-          paymentRecord: TransactionPaymentRecord(
-        ObjectId(),
-        amount: payment.amount,
-        transactionId: transactionId,
-        paymentMethod: payment.method,
-      ));
-    }
-    //
-
-    if (transaction.subTotal != 0) {
-      ref.read(loadingProvider.notifier).state = true;
-      Customer? customer =
-          ProxyService.local.getCustomer(id: transaction.customerId);
-
-      final amount = double.tryParse(receivedAmountController.text) ?? 0;
-      final discount = double.tryParse(discountController.text) ?? 0;
-      final state = (formKey.currentState?.validate() ?? true);
-
-      /// on mobile we are not validating state hence it is always true && customer ==null
-      if (state && customer == null) {
-        finalizePayment(
-          formKey: formKey,
-          customerNameController: customerNameController,
-          context: context,
-          paymentType: ProxyService.box.paymentType() ?? "Cash",
-          transactionType: TransactionType.sale,
-          transaction: transaction,
-          amount: amount,
-          discount: discount,
-        );
-        ref.read(loadingProvider.notifier).state = false;
-        _refreshTransactionItems(transactionId: transaction.id!);
+    try {
+      final transactionId = transaction.id!;
+      for (var payment in paymentMethods) {
+        ProxyService.local.savePaymentType(
+            paymentRecord: TransactionPaymentRecord(
+          ObjectId(),
+          amount: payment.amount,
+          transactionId: transactionId,
+          paymentMethod: payment.method,
+        ));
       }
-      if (customer != null) {
-        additionalInformationIsRequiredToCompleteTransaction(
-          amount: amount,
-          discount: discount,
-          paymentType: paymentTypeController.text,
-          transaction: transaction,
-          context: context,
+
+      if (transaction.subTotal != 0) {
+        ref.read(loadingProvider.notifier).state = true;
+        Customer? customer =
+            ProxyService.local.getCustomer(id: transaction.customerId);
+
+        final amount = double.tryParse(receivedAmountController.text) ?? 0;
+        final discount = double.tryParse(discountController.text) ?? 0;
+        final state = (formKey.currentState?.validate() ?? true);
+
+        /// on mobile we are not validating state hence it is always true && customer ==null
+        if (state && customer == null) {
+          finalizePayment(
+            formKey: formKey,
+            customerNameController: customerNameController,
+            context: context,
+            paymentType: ProxyService.box.paymentType() ?? "Cash",
+            transactionType: TransactionType.sale,
+            transaction: transaction,
+            amount: amount,
+            onComplete: completeTransaction,
+            discount: discount,
+          );
+          ref.read(loadingProvider.notifier).state = false;
+          _refreshTransactionItems(transactionId: transaction.id!);
+        }
+        if (customer != null) {
+          additionalInformationIsRequiredToCompleteTransaction(
+            amount: amount,
+            onComplete: completeTransaction,
+            discount: discount,
+            paymentType: paymentTypeController.text,
+            transaction: transaction,
+            context: context,
+          );
+          _refreshTransactionItems(transactionId: transaction.id!);
+          ref.read(loadingProvider.notifier).state = false;
+        }
+      } else {
+        showSimpleNotification(
+          Text(FLocalization.of(context).noPayable),
+          background: Colors.red,
+          contentPadding: EdgeInsets.only(left: 120, right: 120),
+          position: NotificationPosition.bottom,
         );
-        _refreshTransactionItems(transactionId: transaction.id!);
-        ref.read(loadingProvider.notifier).state = false;
       }
-    } else {
-      showSimpleNotification(
-        Text(FLocalization.of(context).noPayable),
-        background: Colors.red,
-        contentPadding: EdgeInsets.only(left: 120, right: 120),
-        position: NotificationPosition.bottom,
-      );
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -175,6 +181,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     required double amount,
     required ITransaction transaction,
     required double discount,
+    required Function onComplete,
     required BuildContext context,
   }) async {
     if (transaction.customerId != null) {
@@ -187,6 +194,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
           return BlocProvider(
             create: (context) => PurchaseCodeFormBloc(
               formKey: formKey,
+              onComplete: onComplete,
               customerNameController: customerNameController,
               amount: amount,
               discount: discount,

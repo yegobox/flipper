@@ -20,6 +20,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
   final BuildContext context;
   final TextEditingController customerNameController;
   final GlobalKey<FormState> formKey;
+  Function onComplete;
 
   PurchaseCodeFormBloc({
     required this.customerNameController,
@@ -29,6 +30,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
     required this.paymentType,
     required this.transaction,
     required this.context,
+    required this.onComplete,
   }) {
     addFieldBlocs(fieldBlocs: [purchaseCode]);
   }
@@ -37,6 +39,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
   void onSubmitting() async {
     try {
       final response = await finalizePayment(
+        onComplete: onComplete,
         formKey: formKey,
         customerNameController: customerNameController,
         transactionType: TransactionType.sale,

@@ -32,7 +32,7 @@ mixin NetworkHelper {
       } else if (e.type == DioExceptionType.sendTimeout) {
         throw Exception('Send timeout occurred.');
       } else if (e.type == DioExceptionType.receiveTimeout) {
-        throw Exception('Receive timeout occurred.');
+        throw Exception('Received timeout occurred.From the server');
       } else if (e.type == DioExceptionType.badResponse) {
         // This handles server response errors
         final errorMessage = e.response?.data;
@@ -45,7 +45,7 @@ mixin NetworkHelper {
       print('General exception caught: $e');
       talkerInstance?.info(e);
       talkerInstance?.error(s);
-      throw Exception(e);
+      rethrow;
     }
   }
 }

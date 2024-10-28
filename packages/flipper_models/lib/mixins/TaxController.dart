@@ -25,65 +25,62 @@ class TaxController<OBJ> {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
 
-      if (transaction.status == COMPLETE) {
-        if (transaction.receiptType == TransactionReceptType.NS) {
-          try {
-            return await printReceipt(
-              receiptType: transaction.receiptType!,
-              transaction: transaction,
-              purchaseCode: purchaseCode,
-              skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
-            );
-          } catch (e) {
-            rethrow;
-          }
-        } else if (transaction.receiptType == TransactionReceptType.NR) {
-          try {
-            return await printReceipt(
-              purchaseCode: purchaseCode,
-              receiptType: transaction.receiptType!,
-              transaction: transaction,
-              skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
-            );
-          } catch (e) {
-            rethrow;
-          }
-        } else if (transaction.receiptType == TransactionReceptType.TS) {
-          try {
-            return await printReceipt(
-              purchaseCode: purchaseCode,
-              receiptType: transaction.receiptType!,
-              transaction: transaction,
-              skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
-            );
-          } catch (e) {
-            rethrow;
-          }
-        } else if (transaction.receiptType == TransactionReceptType.PS) {
-          try {
-            return await printReceipt(
-              purchaseCode: purchaseCode,
-              receiptType: transaction.receiptType!,
-              transaction: transaction,
-              skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
-            );
-          } catch (e) {
-            rethrow;
-          }
-        } else if (transaction.receiptType == TransactionReceptType.CS) {
-          try {
-            return await printReceipt(
-              purchaseCode: purchaseCode,
-              receiptType: transaction.receiptType!,
-              transaction: transaction,
-              skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
-            );
-          } catch (e) {
-            rethrow;
-          }
+      if (transaction.receiptType == TransactionReceptType.NS) {
+        try {
+          return await printReceipt(
+            receiptType: transaction.receiptType!,
+            transaction: transaction,
+            purchaseCode: purchaseCode,
+            skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+          );
+        } catch (e) {
+          rethrow;
+        }
+      } else if (transaction.receiptType == TransactionReceptType.NR) {
+        try {
+          return await printReceipt(
+            purchaseCode: purchaseCode,
+            receiptType: transaction.receiptType!,
+            transaction: transaction,
+            skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+          );
+        } catch (e) {
+          rethrow;
+        }
+      } else if (transaction.receiptType == TransactionReceptType.TS) {
+        try {
+          return await printReceipt(
+            purchaseCode: purchaseCode,
+            receiptType: transaction.receiptType!,
+            transaction: transaction,
+            skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+          );
+        } catch (e) {
+          rethrow;
+        }
+      } else if (transaction.receiptType == TransactionReceptType.PS) {
+        try {
+          return await printReceipt(
+            purchaseCode: purchaseCode,
+            receiptType: transaction.receiptType!,
+            transaction: transaction,
+            skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+          );
+        } catch (e) {
+          rethrow;
+        }
+      } else if (transaction.receiptType == TransactionReceptType.CS) {
+        try {
+          return await printReceipt(
+            purchaseCode: purchaseCode,
+            receiptType: transaction.receiptType!,
+            transaction: transaction,
+            skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+          );
+        } catch (e) {
+          rethrow;
         }
       }
-      throw Exception("Invalid action");
     }
     throw Exception("Invalid action");
   }
@@ -301,7 +298,8 @@ class TaxController<OBJ> {
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
         String qrCode = generateQRCode(now.toYYYMMdd(), receiptSignature);
-        List<odm.Counter> counters = await ProxyService.capela.getCounters(branchId: ProxyService.box.getBranchId()!);
+        List<odm.Counter> counters = await ProxyService.capela
+            .getCounters(branchId: ProxyService.box.getBranchId()!);
 
         /// update transaction with receipt number and total receipt number
         ProxyService.local.realm!.writeN(

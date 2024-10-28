@@ -1,77 +1,110 @@
 import 'package:flipper_dashboard/typeDef.dart';
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:flipper_loading/indicator/ball_pulse_indicator.dart';
-import 'package:flipper_loading/loading.dart';
-
-class PreviewSaleButton extends StatefulHookConsumerWidget {
-  const PreviewSaleButton(
-      {super.key,
-      this.completeTransaction,
-      this.previewCart,
-      this.wording,
-      required this.mode});
+class PreviewSaleButton extends ConsumerWidget {
+  const PreviewSaleButton({
+    super.key,
+    this.completeTransaction,
+    this.previewCart,
+    this.wording = 'Pay',
+    required this.mode,
+  });
 
   final CompleteTransaction? completeTransaction;
   final PreviewCart? previewCart;
-  final String? wording;
+  final String wording;
   final SellingMode mode;
-  @override
-  _PreviewsalebuttonState createState() => _PreviewsalebuttonState();
-}
 
-class _PreviewsalebuttonState extends ConsumerState<PreviewSaleButton> {
+  void _handleButtonPress(WidgetRef ref) {
+    switch (mode) {
+      case SellingMode.forSelling:
+        if (completeTransaction != null) {
+          ref.read(loadingProvider.notifier).state = true;
+          completeTransaction?.call();
+        }
+        break;
+      case SellingMode.forOrdering:
+        if (previewCart != null) {
+          ref.read(loadingProvider.notifier).state = true;
+          previewCart?.call();
+        }
+        break;
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
-    final isLoading = ref.watch(loadingProvider);
-    final finalWording = widget.wording ?? "Pay";
+  Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
       height: 64,
+      width: 64,
       child: TextButton(
-        key: Key("PaymentButton"),
-        style: primaryButtonStyle.copyWith(
-          backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-            (Set<WidgetState> states) {
-              if (states.contains(WidgetState.pressed)) {
-                // return _buttonColorTween.value;
-              }
-              return primaryButtonStyle.backgroundColor!.resolve(states);
-            },
-          ),
+        key: const Key("PaymentButton"),
+        style: _getButtonStyle(),
+        onPressed:
+            ref.watch(loadingProvider) ? null : () => _handleButtonPress(ref),
+        child: _ButtonContent(
+          isLoading: ref.watch(loadingProvider),
+          wording: wording,
         ),
-        onPressed: isLoading
-            ? null
-            : () async {
-                if (widget.previewCart != null) {
-                  talker.warning("Previewing Cart");
-                  return widget.previewCart?.call();
-                }
-                if (widget.mode == SellingMode.forSelling) {
-                  talker.info("While selling");
-                  widget.completeTransaction!();
-                  return;
-                }
-                if (widget.mode == SellingMode.forOrdering) {
-                  talker.info("While ordering");
-                  widget.previewCart!();
-                  return;
-                }
-              },
-        child: isLoading
-            ? Loading(
-                indicator: BallPulseIndicator(),
-                size: 50.0,
-                color: Colors.white,
-              )
-            : Text(
-                finalWording,
-                style: TextStyle(color: Colors.white),
-              ),
       ),
     );
+  }
+
+  ButtonStyle _getButtonStyle() {
+    return ButtonStyle(
+      backgroundColor: WidgetStateProperty.resolveWith<Color>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.pressed)) {
+            return Colors.blue.shade700;
+          }
+          if (states.contains(WidgetState.disabled)) {
+            return Colors.grey;
+          }
+          return Colors.blue;
+        },
+      ),
+      foregroundColor: WidgetStateProperty.all(Colors.white),
+      padding: WidgetStateProperty.all(
+        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+      shape: WidgetStateProperty.all(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+        ),
+      ),
+    );
+  }
+}
+
+class _ButtonContent extends StatelessWidget {
+  const _ButtonContent({
+    required this.isLoading,
+    required this.wording,
+  });
+
+  final bool isLoading;
+  final String wording;
+
+  @override
+  Widget build(BuildContext context) {
+    return isLoading
+        ? const SizedBox(
+            height: 24,
+            width: 24,
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              strokeWidth: 2,
+            ),
+          )
+        : Text(
+            wording,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          );
   }
 }

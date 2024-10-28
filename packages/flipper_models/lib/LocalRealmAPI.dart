@@ -62,8 +62,6 @@ import 'package:path/path.dart' as path;
 
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-import 'package:cbl/src/database/collection.dart'
-    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 //
 class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
@@ -5113,7 +5111,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
     if (ProxyService.box.stopTaxService()!) return;
     Business business = realm!.query<Business>(
         r'serverId == $0', [ProxyService.box.getBusinessId()!]).first;
-    
+
     sendPort!.send({
       'task': 'sync',
       'branchId': ProxyService.box.getBranchId()!,
@@ -5356,5 +5354,28 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   Future<void> startReplicator() {
     // TODO: implement startReplicator
     throw UnimplementedError();
+  }
+
+  @override
+  void updateTransactionType(
+      {required ITransaction transaction,
+      required bool isProformaMode,
+      required bool isTrainingMode}) {
+    realm!.writeN(
+        tableName: transactionTable,
+        writeCallback: () {
+          String receiptType = TransactionReceptType.NS;
+          if (isProformaMode) {
+            receiptType = TransactionReceptType.PS;
+          }
+          if (isTrainingMode) {
+            receiptType = TransactionReceptType.TS;
+          }
+          transaction.receiptType = receiptType;
+          return transaction;
+        },
+        onAdd: (data) {
+          ProxyService.synchronize.syncToFirestore(transactionTable, data);
+        });
   }
 }

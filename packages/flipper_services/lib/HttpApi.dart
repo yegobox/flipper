@@ -1665,6 +1665,14 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
     // TODO: implement startReplicator
     throw UnimplementedError();
   }
+
+  @override
+  void updateTransactionType(
+      {required ITransaction transaction,
+      required bool isProformaMode,
+      required bool isTrainingMode}) {
+    // TODO: implement updateTransactionType
+  }
 }
 
 class RealmViaHttpServiceMock implements RealmViaHttp {

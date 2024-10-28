@@ -298,18 +298,24 @@ class CheckOutState extends ConsumerState<CheckOut>
                 ProxyService.box.remove(key: 'customerName');
                 ProxyService.box.remove(key: 'getRefundReason');
               }
-              startCompleteTransactionFlow(
-                  transaction: transaction,
-                  paymentMethods: ref.watch(paymentMethodsProvider));
-                    ref.refresh(loadingProvider.notifier);
+              try {
+                startCompleteTransactionFlow(
+                    completeTransaction: () {
+                      ref.read(loadingProvider.notifier).state = false;
+                    },
+                    transaction: transaction,
+                    paymentMethods: ref.watch(paymentMethodsProvider));
+                ref.refresh(loadingProvider.notifier);
 
-      // receivedAmountController.clear();
-      ref.read(loadingProvider.notifier).state = false;
-      ref.refresh(loadingProvider.notifier);
-      ref.read(isProcessingProvider.notifier).stopProcessing();
-      ref.refresh(pendingTransactionProvider(
-          (mode: TransactionType.sale, isExpense: false)));
-     
+                // receivedAmountController.clear();
+                ref.read(loadingProvider.notifier).state = false;
+                ref.refresh(loadingProvider.notifier);
+                ref.read(isProcessingProvider.notifier).stopProcessing();
+                ref.refresh(pendingTransactionProvider(
+                    (mode: TransactionType.sale, isExpense: false)));
+              } catch (e) {
+                rethrow;
+              }
             },
             ref: ref,
             model: model,
@@ -385,6 +391,11 @@ class CheckOutState extends ConsumerState<CheckOut>
                                   onCharge: (transactionId, total) {
                                     try {
                                       startCompleteTransactionFlow(
+                                          completeTransaction: () {
+                                            ref
+                                                .read(loadingProvider.notifier)
+                                                .state = false;
+                                          },
                                           transaction: transaction,
                                           paymentMethods: ref
                                               .watch(paymentMethodsProvider));

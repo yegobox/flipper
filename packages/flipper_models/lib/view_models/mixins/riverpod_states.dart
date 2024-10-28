@@ -52,7 +52,7 @@ class SearchStringNotifier extends StateNotifier<String> {
 
 enum SellingMode {
   forOrdering,
-  forHere,
+  // forHere,
   forSelling,
   // Add other modes as needed
 }
@@ -1075,7 +1075,6 @@ final branchesProvider = FutureProvider.autoDispose
 
   return branches;
 });
-
 
 class StringState extends StateNotifier<String> {
   StringState(String initialValue) : super(initialValue);
