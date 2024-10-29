@@ -59,4 +59,5 @@ abstract class LocalStorage {
   bool? pinLogin();
   String? customerName();
   bool? stopTaxService();
+  bool? enableDebug();
 }

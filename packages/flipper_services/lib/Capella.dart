@@ -1620,8 +1620,8 @@ class Capella with Booting implements FlipperInterfaceCapella {
 
           // Create updated counter
           Counter updatedCounter = counter.copyWith(
-            totRcptNo: receiptSignature?.data?.totRcptNo ?? counter.totRcptNo,
-            curRcptNo: (counter.curRcptNo != null) ? counter.curRcptNo! + 1 : 1,
+            totRcptNo: receiptSignature?.data?.totRcptNo,
+            curRcptNo: receiptSignature?.data?.rcptNo,
             invcNo: (counter.invcNo != null) ? counter.invcNo! + 1 : 1,
           );
 
@@ -1635,6 +1635,8 @@ class Capella with Booting implements FlipperInterfaceCapella {
       },
       onAdd: (docs) async {
         try {
+          talker.warning("LENGHT:${docs.length}");
+
           for (var doc in docs) {
             // Get existing document if it exists
             final existingDoc = await collection.document(doc.id);
@@ -1642,6 +1644,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
             // If document exists, update it with new data
             if (existingDoc != null) {
               final mutableExisting = existingDoc.toMutable();
+              talker.warning(doc.toPlainMap());
               mutableExisting.setData(doc.toPlainMap());
               await collection.saveDocument(mutableExisting);
             } else {

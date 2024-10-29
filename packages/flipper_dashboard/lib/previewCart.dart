@@ -9,13 +9,11 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
 
 import 'package:firestore_models/firestore_models.dart' as odm;
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
@@ -193,30 +191,47 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
         ProxyService.capela.updateCounters(counters: counters);
       }
       // Handle general errors
-      _handlePaymentError(e, context);
+      _handlePaymentError(e, s, context);
       rethrow; // Rethrow the error if needed for upper level handling
     }
   }
 
 // Helper method to handle payment errors
-  void _handlePaymentError(dynamic error, BuildContext context) {
-    String errorMessage = error.toString();
-    if (error is Exception) {
-      errorMessage = error.toString().split('Exception: ').last;
-    }
+  void _handlePaymentError(
+      dynamic error, StackTrace stackTracke, BuildContext context) {
+    if (ProxyService.box.enableDebug()!) {
+      // show stackTracke instead
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        duration: Duration(seconds: 10),
+        backgroundColor: Colors.red,
+        content: Text(stackTracke.toString()),
+        action: SnackBarAction(
+          label: 'Close',
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+        closeIconColor: Colors.red,
+      ));
+    } else {
+      String errorMessage = error.toString();
+      if (error is Exception) {
+        errorMessage = error.toString().split('Exception: ').last;
+      }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      duration: Duration(seconds: 10),
-      backgroundColor: Colors.red,
-      content: Text(errorMessage.toString().split('Caught Exception: ').last),
-      action: SnackBarAction(
-        label: 'Close',
-        onPressed: () {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        },
-      ),
-      closeIconColor: Colors.red,
-    ));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        duration: Duration(seconds: 10),
+        backgroundColor: Colors.red,
+        content: Text(errorMessage.toString().split('Caught Exception: ').last),
+        action: SnackBarAction(
+          label: 'Close',
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+        closeIconColor: Colors.red,
+      ));
+    }
   }
 
   Future<void> additionalInformationIsRequiredToCompleteTransaction({

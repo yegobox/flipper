@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:cbl/cbl.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-import 'package:receipt/print.dart';
 
 class AdminControl extends StatefulWidget {
   const AdminControl({super.key});
@@ -22,6 +21,7 @@ class _AdminControlState extends State<AdminControl> {
   final navigator = locator<RouterService>();
   bool isPosDefault = false;
   bool isOrdersDefault = true;
+  bool enableDebug = false;
   bool filesDownloaded = false;
   bool forceUPSERT = false;
   bool stopTaxService = false;
@@ -29,6 +29,7 @@ class _AdminControlState extends State<AdminControl> {
   void initState() {
     super.initState();
     isPosDefault = ProxyService.box.readBool(key: 'isPosDefault') ?? false;
+    enableDebug = ProxyService.box.readBool(key: 'enableDebug') ?? false;
     isOrdersDefault = ProxyService.box.readBool(key: 'isOrdersDefault') ?? true;
     filesDownloaded =
         ProxyService.box.readBool(key: 'doneDownloadingAsset') ?? true;
@@ -116,6 +117,17 @@ class _AdminControlState extends State<AdminControl> {
         ProxyService.box.writeBool(key: 'isPosDefault', value: false);
       }
       ProxyService.box.writeBool(key: 'isOrdersDefault', value: value);
+    });
+  }
+
+  void enableDebugFunc(bool value) {
+    setState(() {
+      isOrdersDefault = value;
+      if (value) {
+        enableDebug = false;
+        ProxyService.box.writeBool(key: 'enableDebug', value: false);
+      }
+      ProxyService.box.writeBool(key: 'enableDebug', value: value);
     });
   }
 
@@ -239,6 +251,24 @@ class _AdminControlState extends State<AdminControl> {
                           onChanged: toggleOrders,
                         ),
                       ),
+                    ],
+                  ),
+                ],
+              ),
+              SettingsSection(
+                title: 'Tax Service',
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SwitchSettingsCard(
+                          title: 'Enable Debug',
+                          subtitle: 'Enable Debug mode',
+                          icon: Icons.sync,
+                          value: stopTaxService,
+                          onChanged: enableDebugFunc,
+                        ),
+                      )
                     ],
                   ),
                 ],

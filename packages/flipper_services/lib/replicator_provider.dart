@@ -1,4 +1,5 @@
 import 'package:cbl/cbl.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/database_provider.dart';
@@ -19,6 +20,11 @@ class ReplicatorProvider {
   ReplicatorStatus? _replicatorStatus;
   ReplicatorStatus? get replicatorStatus => _replicatorStatus;
   String get scope => "user_data";
+  Future<Document> conflictResolver(
+      String documentId, Document local, Document remote) async {
+    print('Resolve conflict for asset $documentId');
+    return remote;
+  }
 
   Future<void> init() async {
     if (isInitialized) {
@@ -51,6 +57,7 @@ class ReplicatorProvider {
       final collectionConfig = CollectionConfiguration(
         conflictResolver: ConflictResolver.from((Conflict conflict) {
           // Ensure to return a non-null Document
+          talker.warning("ConflictResorver");
           return conflict.localDocument;
         }),
       );
@@ -67,6 +74,11 @@ class ReplicatorProvider {
         target: endPoint,
         authenticator: basicAuthenticator,
         continuous: true,
+        // conflictResolver: ConflictResolver.from((Conflict conflict) {
+        //   // Ensure to return a non-null Document
+        //   talker.warning("ConflictResorver[1]");
+        //   return conflict.localDocument;
+        // }),
         replicatorType: ReplicatorType.pushAndPull,
         heartbeat: const Duration(seconds: 60),
         pinnedServerCertificate: pem.buffer.asUint8List(),

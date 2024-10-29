@@ -58,7 +58,8 @@ class SharedPreferenceStorage implements LocalStorage {
         'performBackup',
         'pinLogin',
         'customerName',
-        'stopTaxService'
+        'stopTaxService',
+        'enableDebug'
       },
     ));
     return this;
@@ -340,5 +341,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   bool? stopTaxService() {
     return prefs.getBool('stopTaxService') ?? false;
+  }
+
+  @override
+  bool? enableDebug() {
+    return prefs.getBool('enableDebug') ?? false;
   }
 }
