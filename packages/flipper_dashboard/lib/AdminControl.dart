@@ -120,14 +120,12 @@ class _AdminControlState extends State<AdminControl> {
     });
   }
 
-  void enableDebugFunc(bool value) {
+  void enableDebugFunc(bool value) async {
+    await ProxyService.box
+        .writeBool(key: 'enableDebug', value: !ProxyService.box.enableDebug()!);
+
     setState(() {
-      isOrdersDefault = value;
-      if (value) {
-        enableDebug = false;
-        ProxyService.box.writeBool(key: 'enableDebug', value: false);
-      }
-      ProxyService.box.writeBool(key: 'enableDebug', value: value);
+      enableDebug = ProxyService.box.enableDebug()!;
     });
   }
 
