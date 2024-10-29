@@ -264,8 +264,8 @@ class _AdminControlState extends State<AdminControl> {
                         child: SwitchSettingsCard(
                           title: 'Enable Debug',
                           subtitle: 'Enable Debug mode',
-                          icon: Icons.sync,
-                          value: stopTaxService,
+                          icon: Icons.bug_report,
+                          value: enableDebug,
                           onChanged: enableDebugFunc,
                         ),
                       )

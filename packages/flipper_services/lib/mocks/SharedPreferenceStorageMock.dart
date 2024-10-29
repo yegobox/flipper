@@ -8,6 +8,11 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
+  bool? enableDebug() {
+    return false;
+  }
+
+  @override
   bool pinLogin() {
     return false;
   }
@@ -258,7 +263,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement customerName
     return "N/A";
   }
-  
+
   @override
   bool? stopTaxService() {
     // TODO: implement stopTaxService
