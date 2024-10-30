@@ -7,6 +7,7 @@ import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:firestore_models/firestore_models.dart';
+import 'package:firestore_models/transaction.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/Booting.dart';
@@ -1651,7 +1652,11 @@ class Capella with Booting implements FlipperInterfaceCapella {
               // Save new document
               await collection.saveDocument(doc);
             }
-
+            // update firestore
+            ProxyService.backUp.now(
+              productsTable,
+              doc.toPlainMap(),
+            );
             talker.warning("Document saved successfully: ${doc.id}");
           }
         } catch (e, s) {

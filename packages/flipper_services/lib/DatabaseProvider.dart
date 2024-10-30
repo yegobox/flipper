@@ -274,6 +274,10 @@ class Document {
 
   dynamic getValue(String key) => _data[key];
   Map<String, dynamic> toMap() => Map.from(_data);
+  // Add method to convert Document to MutableDocument
+  MutableDocument toMutable() {
+    return MutableDocument.withId(id, Map<String, Object?>.from(_data));
+  }
 }
 
 class MutableDocument extends Document {
@@ -286,6 +290,21 @@ class MutableDocument extends Document {
 
   void setDictionary(String key, Map<String, dynamic> dict) {
     _data[key] = dict;
+  }
+
+  // add toPlainMap method
+  Map<String, dynamic> toPlainMap() {
+    return Map<String, dynamic>.from(_data);
+  }
+
+  // add setData
+  void setData(Map<String, dynamic> data) {
+    _data.addAll(data);
+  }
+
+  // add setString
+  void setString(String value, {required String key}) {
+    _data[key] = value;
   }
 }
 

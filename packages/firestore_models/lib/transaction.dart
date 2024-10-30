@@ -41,6 +41,7 @@ class Transaction with _$Transaction {
     int? invoiceNumber,
   }) = _Transaction;
 
+
   factory Transaction.fromJson(Map<String, dynamic> json) => 
       _$TransactionFromJson(json);
 }
