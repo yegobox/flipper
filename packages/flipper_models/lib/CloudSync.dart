@@ -46,7 +46,6 @@ class CloudSync implements FlipperInterfaceCapella {
   }
 
   @override
-  @override
   void now<T>(String tableName, T data, {bool? useNewImplementation = false}) {
     try {
       final map = useNewImplementation!
