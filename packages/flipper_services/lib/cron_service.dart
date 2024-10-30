@@ -38,9 +38,13 @@ class CronService {
       box: ProxyService.box,
     );
     ProxyService.capela.startReplicator();
-
-    ProxyService.setStrategy(Strategy.capella);
-    ProxyService.strategy.whoAmI();
+    if (Platform.isWindows) {
+      ProxyService.setStrategy(Strategy.cloudSync);
+      ProxyService.strategy.whoAmI();
+    } else {
+      ProxyService.setStrategy(Strategy.capella);
+      ProxyService.strategy.whoAmI();
+    }
 
     // AsyncCollection? collection = await ProxyService
     //     .capela.capella?.flipperDatabase!
