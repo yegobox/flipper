@@ -156,7 +156,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
           return variant;
         },
         onAdd: (data) {
-          ProxyService.synchronize.syncToFirestore(variantTable, data);
+          ProxyService.backUp.now(variantTable, data);
         },
       );
 
@@ -172,7 +172,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
           return stock;
         },
         onAdd: (data) {
-          ProxyService.synchronize.syncToFirestore(stocksTable, data);
+          ProxyService.backUp.now(stocksTable, data);
         },
       );
       notifyListeners();

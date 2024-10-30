@@ -297,7 +297,11 @@ class CheckOutState extends ConsumerState<CheckOut>
                 ProxyService.box.remove(key: 'customerName');
                 ProxyService.box.remove(key: 'getRefundReason');
               }
+              if (discountController.text.isEmpty) {
+                ProxyService.box.remove(key: 'discountRate');
+              }
               try {
+                applyDiscount(transaction);
                 startCompleteTransactionFlow(
                     completeTransaction: () {
                       ref.read(loadingProvider.notifier).stopLoading();

@@ -309,7 +309,7 @@ class TaxController<OBJ> {
             return transaction;
           },
           onAdd: (data) {
-            ProxyService.synchronize.syncToFirestore(transactionTable, data);
+            ProxyService.backUp.now(transactionTable, data);
           },
         );
 

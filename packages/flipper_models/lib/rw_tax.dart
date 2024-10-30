@@ -15,6 +15,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/tax_api.dart';
 // ignore: unused_import
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -174,6 +175,9 @@ class RWTax with NetworkHelper implements TaxApi {
       final url = Uri.parse(URI)
           .replace(path: Uri.parse(URI).path + 'stockMaster/saveStockMaster')
           .toString();
+      if (variant.productName == TEMP_PRODUCT) {
+        throw Exception("Invalid product");
+      }
 
       /// update the remaining stock of this item in rra
       variant.rsdQty = stock.currentStock;
@@ -354,6 +358,7 @@ class RWTax with NetworkHelper implements TaxApi {
         customer: customer,
         itemsList: itemsList,
         purchaseCode: purchaseCode,
+        timeToUse: timeToUser,
         receiptType: receiptType);
 
     try {
@@ -401,9 +406,10 @@ class RWTax with NetworkHelper implements TaxApi {
       qtyUnitCd: "U",
       prc: item.price,
       regrNm: item.regrNm ?? "Registrar",
-      dcRt: 0,
+      dcRt: item.dcRt,
+      dcAmt: item.dcAmt,
       pkg: item.qty.toInt(),
-      dcAmt: 0,
+
       taxblAmt: (item.price * item.qty),
       taxAmt: ((taxAmount) * 100).round() / 100,
       itemClsCd: item.itemClsCd,
@@ -478,6 +484,7 @@ class RWTax with NetworkHelper implements TaxApi {
     required List<Map<String, dynamic>> itemsList,
     String? purchaseCode,
     required String receiptType,
+    required DateTime timeToUse,
   }) {
     Configurations taxConfigTaxB =
         ProxyService.local.getByTaxType(taxtype: "B");
@@ -567,6 +574,9 @@ class RWTax with NetworkHelper implements TaxApi {
       "itemList": itemsList,
     };
     if (receiptType == "NR") {
+      /// this is normal refund add rfdDt refunded date
+      /// ATTENTION: rfdDt was added later and it might cause trouble we need to watch out.
+      json['rfdDt'] = timeToUse.toYYYMMdd();
       json['orgInvcNo'] = counter.invcNo! - 1;
     }
     if (customer != null) {

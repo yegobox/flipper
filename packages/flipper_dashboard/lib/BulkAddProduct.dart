@@ -192,7 +192,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           tableName: productsTable,
           writeCallback: () => ProxyService.local.realm!.add<Product>(product),
           onAdd: (data) {
-            ProxyService.synchronize.syncToFirestore(productsTable, data);
+            ProxyService.backUp.now(productsTable, data);
           },
         );
 
@@ -248,7 +248,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           tableName: variantTable,
           writeCallback: () => ProxyService.local.realm!.add<Variant>(variant),
           onAdd: (data) {
-            ProxyService.synchronize.syncToFirestore(variantTable, data);
+            ProxyService.backUp.now(variantTable, data);
           },
         );
 
@@ -280,7 +280,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
             return variant;
           },
           onAdd: (data) {
-            ProxyService.synchronize.syncToFirestore(variantTable, data);
+            ProxyService.backUp.now(variantTable, data);
           },
         );
 
@@ -289,7 +289,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           tableName: stocksTable,
           writeCallback: () => ProxyService.local.realm!.add<Stock>(stock),
           onAdd: (data) {
-            ProxyService.synchronize.syncToFirestore(stocksTable, data);
+            ProxyService.backUp.now(stocksTable, data);
           },
         );
       } catch (e) {

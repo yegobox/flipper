@@ -140,7 +140,7 @@ mixin ProductMixin {
         return mproduct;
       },
       onAdd: (data) {
-        ProxyService.synchronize.syncToFirestore(productsTable, data);
+        ProxyService.backUp.now(productsTable, data);
       },
     );
 

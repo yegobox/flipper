@@ -20,7 +20,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 enum SyncProvider { FIRESTORE, POWERSYNC }
 
 abstract class SyncInterface {
-  void syncToFirestore<T>(String tableName, T data);
+  void now<T>(String tableName, T data);
   Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch);
   Future<bool> firebaseLogin({String? token});
   void cancelWatch({required String tableName});
@@ -89,13 +89,12 @@ class CloudSync implements SyncInterface {
   Realm? realm;
   final Set<int> _processingIds = {};
 
-
   bool isInIsolate() {
     return Isolate.current.debugName != null;
   }
 
   @override
-  void syncToFirestore<T>(String tableName, T data) {
+  void now<T>(String tableName, T data) {
     try {
       final map = data is Stock
           ? data.toEJson(includeVariant: false)!.toFlipperJson()
@@ -113,7 +112,7 @@ class CloudSync implements SyncInterface {
       if (map.containsKey('branch_ids')) {
         map.remove('branch_ids');
       }
-      ProxyService.synchronize.updateRecord(
+      ProxyService.backUp.updateRecord(
         tableName: tableName,
         idField: tableName.singularize() + "_id",
         map: map,

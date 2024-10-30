@@ -73,7 +73,7 @@ class CronService {
 
     if (results.any((result) => result != ConnectivityResult.none)) {
       if (FirebaseAuth.instance.currentUser == null) {
-        await ProxyService.synchronize.firebaseLogin();
+        await ProxyService.backUp.firebaseLogin();
       }
       talker.warning("Done checking connectivity: $doneInitializingDataPull");
       if (!doneInitializingDataPull) {

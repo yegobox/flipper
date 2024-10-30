@@ -330,7 +330,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       await _patchPin(user.id!, flipperHttpClient, apihub,
           ownerName: user.tenants.first.name);
       ProxyService.box.writeInt(key: 'userId', value: user.id!);
-      await ProxyService.synchronize.firebaseLogin(token: user.uid);
+      await ProxyService.backUp.firebaseLogin(token: user.uid);
       return user;
     } else {
       await _handleLoginError(response);
@@ -2685,7 +2685,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           return item;
         },
         onAdd: (data) {
-          ProxyService.synchronize.syncToFirestore(transactionItemsTable, data);
+          ProxyService.backUp.now(transactionItemsTable, data);
         },
       );
     }
@@ -2708,7 +2708,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         return stockRequest;
       },
       onAdd: (data) {
-        ProxyService.synchronize.syncToFirestore(stockRequestsTable, data);
+        ProxyService.backUp.now(stockRequestsTable, data);
       },
     );
     return orderId;
@@ -2733,7 +2733,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           return stock;
         },
         onAdd: (data) {
-          ProxyService.synchronize.syncToFirestore(stocksTable, data);
+          ProxyService.backUp.now(stocksTable, data);
         },
       );
     }
@@ -3152,7 +3152,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         },
         onAdd: (data) {
           talker.warning(data.toEJson().toFlipperJson());
-          // ProxyService.synchronize.syncToFirestore(transactionTable, data);
+          // ProxyService.backUp.now(transactionTable, data);
         },
       );
 
@@ -3182,7 +3182,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
               return stock;
             },
             onAdd: (data) {
-              ProxyService.synchronize.syncToFirestore(stocksTable, data);
+              ProxyService.backUp.now(stocksTable, data);
             },
           );
           realm!.writeN(
@@ -3194,8 +3194,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
               return item;
             },
             onAdd: (data) {
-              ProxyService.synchronize
-                  .syncToFirestore(transactionItemsTable, data);
+              ProxyService.backUp.now(transactionItemsTable, data);
             },
           );
 
@@ -3211,7 +3210,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                 return variant;
               },
               onAdd: (data) {
-                ProxyService.synchronize.syncToFirestore(variantTable, data);
+                ProxyService.backUp.now(variantTable, data);
               },
             );
           }
@@ -3420,7 +3419,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           }
         },
         onAdd: (data) {
-          ProxyService.synchronize.syncToFirestore(receiptsTable, data);
+          ProxyService.backUp.now(receiptsTable, data);
         },
       );
 
@@ -4880,7 +4879,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       },
       onAdd: (data) {
         for (Counter counter in data) {
-          ProxyService.synchronize.syncToFirestore(countersTable, counter);
+          ProxyService.backUp.now(countersTable, counter);
         }
       },
     );
@@ -4914,7 +4913,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           return savedPin!;
         },
         onAdd: (data) {
-          ProxyService.synchronize.syncToFirestore(pinsTable, data);
+          ProxyService.backUp.now(pinsTable, data);
         },
       );
       return savedPin!;
@@ -4987,7 +4986,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           continue;
         }
 
-        ProxyService.synchronize.updateRecord(
+        ProxyService.backUp.updateRecord(
             tableName: productsTable,
             idField: "${productsTable.singularize()}_id",
             map: product.toEJson().toFlipperJson(),
@@ -5002,7 +5001,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           });
           continue;
         }
-        ProxyService.synchronize.updateRecord(
+        ProxyService.backUp.updateRecord(
             tableName: assetsTable,
             idField: "${assetsTable.singularize()}_id",
             map: asset.toEJson().toFlipperJson(),
@@ -5019,7 +5018,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           continue;
         }
         ;
-        ProxyService.synchronize.updateRecord(
+        ProxyService.backUp.updateRecord(
             tableName: variantTable,
             idField: "${variantTable.singularize()}_id",
             map: variant.toEJson().toFlipperJson(),
@@ -5036,7 +5035,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           continue;
         }
 
-        ProxyService.synchronize.updateRecord(
+        ProxyService.backUp.updateRecord(
             tableName: stocksTable,
             idField: "${stocksTable.singularize()}_id",
             map: stock.toEJson(includeVariant: true).toFlipperJson(),
@@ -5053,7 +5052,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           continue;
         }
 
-        ProxyService.synchronize.updateRecord(
+        ProxyService.backUp.updateRecord(
             tableName: transactionItemsTable,
             idField: "${transactionItemsTable.singularize()}_id",
             map: item.toEJson().toFlipperJson(),
@@ -5069,7 +5068,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           });
           continue;
         }
-        ProxyService.synchronize.updateRecord(
+        ProxyService.backUp.updateRecord(
             tableName: accessesTable,
             idField: "${accessesTable.singularize()}_id",
             map: access.toEJson().toFlipperJson(),
@@ -5084,7 +5083,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           });
           continue;
         }
-        ProxyService.synchronize.updateRecord(
+        ProxyService.backUp.updateRecord(
             tableName: stockRequestsTable,
             idField: "${stockRequestsTable.singularize()}_id",
             map: request.toEJson().toFlipperJson(),
@@ -5189,8 +5188,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                       return variant;
                     },
                     onAdd: (data) {
-                      ProxyService.synchronize
-                          .syncToFirestore(variantTable, data);
+                      ProxyService.backUp.now(variantTable, data);
                     },
                   );
                 }
@@ -5208,8 +5206,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                       return stock;
                     },
                     onAdd: (data) {
-                      ProxyService.synchronize
-                          .syncToFirestore(stocksTable, data);
+                      ProxyService.backUp.now(stocksTable, data);
                     },
                   );
                 }
@@ -5227,8 +5224,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                       return customer;
                     },
                     onAdd: (data) {
-                      ProxyService.synchronize
-                          .syncToFirestore(customersTable, data);
+                      ProxyService.backUp.now(customersTable, data);
                     },
                   );
                 }
@@ -5247,8 +5243,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                       return transaction;
                     },
                     onAdd: (data) {
-                      ProxyService.synchronize
-                          .syncToFirestore(transactionTable, data);
+                      ProxyService.backUp.now(transactionTable, data);
                     },
                   );
                 }
@@ -5375,7 +5370,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           return transaction;
         },
         onAdd: (data) {
-          ProxyService.synchronize.syncToFirestore(transactionTable, data);
+          ProxyService.backUp.now(transactionTable, data);
         });
   }
 }

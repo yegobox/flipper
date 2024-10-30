@@ -89,7 +89,7 @@ abstract class ProxyService {
   static Crash get crash => _crash;
   static SupabaseInterface get supa => _supa;
 
-  static SyncInterface get synchronize => _synchronize;
+  static SyncInterface get backUp => _synchronize;
 
   static LocalStorage get box => _box;
   static HttpClientInterface get http => _http;

@@ -52,8 +52,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         TransactionItemTable,
         DateCoreWidget {
   double get totalAfterDiscountAndShipping {
-    final discount = double.tryParse(widget.discountController.text) ?? 0.0;
-    return grandTotal - discount;
+    final discountPercent =
+        double.tryParse(widget.discountController.text) ?? 0.0;
+    final discountAmount = (grandTotal * discountPercent) / 100;
+    return grandTotal - discountAmount;
   }
 
   @override
@@ -316,7 +318,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
         ),
       ),
-      onChanged: (value) => setState(() {}),
+      onChanged: (value) async =>
+          await ProxyService.box.writeString(key: 'discountRate', value: value),
       validator: (String? value) {
         if (value == null || value.isEmpty) {
           return null;
@@ -326,6 +329,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ref.read(loadingProvider.notifier).stopLoading();
           return 'Please enter a valid number';
         }
+
+        /// this is a percentage not amount as this percenage will be applicable
+        /// to the whole item on cart, currently we only support discount on whole total
         if (number < 0 || number > 100) {
           ref.read(loadingProvider.notifier).stopLoading();
           return 'Discount must be between 0 and 100';

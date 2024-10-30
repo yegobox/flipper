@@ -2,6 +2,8 @@
 
 import 'package:flipper_dashboard/PurchaseCodeForm.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
+import 'package:flipper_models/power_sync/schema.dart';
+import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -106,6 +108,68 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
         (mode: TransactionType.sale, isExpense: false)));
 
     ref.refresh(transactionItemsProvider((isExpense: false)));
+  }
+
+  Future<void> applyDiscount(ITransaction transaction) async {
+    if (transaction.id == null) return;
+
+    // get items on cart
+    final items = await ProxyService.local.transactionItems(
+      branchId: ProxyService.box.getBranchId()!,
+      transactionId: transaction.id!,
+      doneWithTransaction: false,
+      active: true,
+    );
+
+    double discountRate = double.tryParse(discountController.text) ?? 0;
+    if (discountRate <= 0) return;
+
+    double itemsTotal = 0;
+
+    // Calculate total amount before discount
+    for (var item in items) {
+      itemsTotal += (item.price * item.qty);
+    }
+
+    if (itemsTotal <= 0) return;
+
+    // Calculate discount amount based on rate
+    final discountAmount = (discountRate * itemsTotal) / 100;
+    double remainingDiscount = discountAmount;
+
+    try {
+      await ProxyService.local.realm!.writeN(
+        tableName: transactionTable,
+        writeCallback: () {
+          // Update items
+          for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            double itemTotal = item.price * item.qty;
+            double itemDiscountAmount;
+
+            if (i == items.length - 1) {
+              // Last item gets remaining discount to avoid rounding issues
+              itemDiscountAmount = remainingDiscount;
+            } else {
+              itemDiscountAmount = (itemTotal / itemsTotal) * discountAmount;
+              remainingDiscount -= itemDiscountAmount;
+            }
+
+            item.dcRt = discountRate;
+            item.dcAmt = itemDiscountAmount;
+          }
+
+          // Update transaction
+          transaction.subTotal = itemsTotal - discountAmount;
+          return transaction;
+        },
+        onAdd: (data) {
+          ProxyService.backUp.now(transactionTable, data);
+        },
+      );
+    } catch (e) {
+      rethrow;
+    }
   }
 
   void startCompleteTransactionFlow({

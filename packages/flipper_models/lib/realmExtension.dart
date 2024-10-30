@@ -93,7 +93,7 @@ extension RealmExtension on Realm {
         : data.toEJson().toFlipperJson();
     final id = map['id'];
     map['deleted_at'] = DateTime.now().toIso8601String();
-    ProxyService.synchronize.deleteRecord(
+    ProxyService.backUp.deleteRecord(
       tableName: tableName,
       idField: tableName.singularize() + "_id",
       id: id,

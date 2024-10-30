@@ -218,8 +218,8 @@ class IsolateHandler {
                 } else {
                   sendPort.send('notification:${response.resultMsg}}');
                 }
-              } catch (e, s) {
-                talker.error(s);
+              } catch (e) {
+                rethrow;
               }
             }
           }
