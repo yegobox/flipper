@@ -246,34 +246,28 @@ class TaxController<OBJ> {
     String? purchaseCode,
   }) async {
     try {
-      log(receiptType, name: "onBefore: current Counter");
       int branchId = ProxyService.box.getBranchId()!;
       odm.Counter? counter = await ProxyService.strategy
           .getCounter(branchId: branchId, receiptType: receiptType);
-
       if (counter == null) {
-        counter = odm.Counter(
-          id: randomNumber(),
-          branchId: ProxyService.box.getBranchId()!,
-          businessId: ProxyService.box.getBusinessId()!,
-          invcNo: 1,
-          lastTouched: DateTime.now(),
-          receiptType: receiptType,
-        );
-        ProxyService.local.capella!.flipperDatabase?.writeN(
-            writeCallback: () {
-              final doc = MutableDocument.withId(
-                  counter!.id.toString(), counter.toJson());
-              return doc;
-            },
-            tableName: countersTable,
-            onAdd: (counter) async {
-              AsyncCollection countersCollection =
-                  await ProxyService.capela.getCountersCollection();
-
-              countersCollection.saveDocument(counter);
-            });
+        throw Exception(
+            "Counter have not been initialized, call +250783054874");
       }
+
+      ProxyService.capela.capella!.flipperDatabase?.writeN(
+          writeCallback: () {
+            final doc =
+                MutableDocument.withId(counter.id.toString(), counter.toJson());
+            return doc;
+          },
+          tableName: countersTable,
+          onAdd: (counter) async {
+            AsyncCollection countersCollection =
+                await ProxyService.capela.getCountersCollection();
+
+            countersCollection.saveDocument(counter);
+            ProxyService.backUp.now(countersTable, counter);
+          });
 
       /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
 

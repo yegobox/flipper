@@ -51,7 +51,7 @@ abstract class FlipperInterfaceCapella {
   Future<List<Product>> products({required int branchId});
   Future<void> startReplicator();
 
-  void now<T>(String tableName, T data);
+  void now<T>(String tableName, T data, {bool? useNewImplementation = false});
   Future<void> processbatchBackUp<T extends realmO.RealmObject>(List<T> batch);
   Future<bool> firebaseLogin({String? token});
   void cancelWatch({required String tableName});
@@ -118,11 +118,11 @@ abstract class FlipperInterfaceCapella {
   void whoAmI();
   Future<void> initCollections();
 
-  Future<T> writeN<T>({
-    required String tableName,
-    required T Function() writeCallback,
-    required Future<void> Function(T) onAdd,
-  });
+  // Future<T> writeN<T>({
+  //   required String tableName,
+  //   required T Function() writeCallback,
+  //   required Future<void> Function(T) onAdd,
+  // });
 
   Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password});

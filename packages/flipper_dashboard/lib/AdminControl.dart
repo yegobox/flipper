@@ -134,10 +134,10 @@ class _AdminControlState extends State<AdminControl> {
       switchToCloudSync = ProxyService.box.switchToCloudSync()!;
     });
     if (switchToCloudSync) {
-      ProxyService.setStrategy(Strategy.cloudSync);
+      // ProxyService.setStrategy(Strategy.cloudSync);
       ProxyService.strategy.whoAmI();
     } else {
-      ProxyService.setStrategy(Strategy.capella);
+      // ProxyService.setStrategy(Strategy.capella);
       ProxyService.strategy.whoAmI();
     }
   }

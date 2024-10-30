@@ -46,38 +46,47 @@ class CloudSync implements FlipperInterfaceCapella {
   }
 
   @override
-  void now<T>(String tableName, T data) {
+  @override
+  void now<T>(String tableName, T data, {bool? useNewImplementation = false}) {
     try {
-      final map = data is old.Stock
-          ? data.toEJson(includeVariant: false)!.toFlipperJson()
-          : data.toEJson().toFlipperJson();
+      final map = useNewImplementation!
+          ? (data is Counter
+              ? data.toJson()
+              : (data != null ? (data as dynamic).toJson() : {}))
+          : (data is old.Stock
+              ? data.toEJson(includeVariant: false)?.toFlipperJson() ?? {}
+              : data.toEJson()?.toFlipperJson() ?? {});
 
-      final id = map['id'] is String
-          ? int.parse(map['id'])
-          : (map['id'] == null ? map['id'] = randomNumber() : map['id']);
+      final id = _getId(map);
 
-      /// if the following fields variant,stock,branch_ids exist in the map remove them
-      if (map.containsKey('variant')) {
-        map.remove('variant');
+      if (!useNewImplementation) {
+        _removeFields(map, ['variant', 'stock', 'branch_ids']);
       }
-      if (map.containsKey('stock')) {
-        map.remove('stock');
-      }
-      if (map.containsKey('branch_ids')) {
-        map.remove('branch_ids');
-      }
-      ProxyService.backUp.updateRecord(
+
+      updateRecord(
         tableName: tableName,
-        idField: tableName.singularize() + "_id",
+        idField: "${tableName.singularize()}_id",
         map: map,
         id: id,
         syncProvider: SyncProvider.FIRESTORE,
       );
-
-      ///
     } catch (e) {
       print(e);
       rethrow;
+    }
+  }
+
+// Helper to extract and parse `id`
+  dynamic _getId(Map<String, dynamic> map) {
+    return map['id'] is String
+        ? int.parse(map['id'])
+        : map['id'] ??= randomNumber();
+  }
+
+// Helper to remove unwanted fields from the map
+  void _removeFields(Map<String, dynamic> map, List<String> fields) {
+    for (var field in fields) {
+      map.remove(field);
     }
   }
 
@@ -1079,6 +1088,7 @@ class CloudSync implements FlipperInterfaceCapella {
   @override
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {
+    talker.warning("Using CloudSync");
     final result = await counterRef
         .whereBranchId(isEqualTo: branchId)
         .whereReceiptType(isEqualTo: receiptType)

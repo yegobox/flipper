@@ -32,14 +32,14 @@ abstract class CounterCollectionReference
     DocumentSnapshot<Map<String, Object?>> snapshot,
     SnapshotOptions? options,
   ) {
-    return Counter.fromJson({'id': snapshot.id, ...?snapshot.data()});
+    return Counter.fromJson(snapshot.data()!);
   }
 
   static Map<String, Object?> toFirestore(
     Counter value,
     SetOptions? options,
   ) {
-    return {...value.toJson()}..remove('id');
+    return value.toJson();
   }
 
   @override
@@ -135,6 +135,7 @@ abstract class CounterDocumentReference
   Future<void> set(
     Counter model, {
     SetOptions? options,
+    FieldValue idFieldValue,
     FieldValue businessIdFieldValue,
     FieldValue branchIdFieldValue,
     FieldValue receiptTypeFieldValue,
@@ -155,6 +156,7 @@ abstract class CounterDocumentReference
     Transaction transaction,
     Counter model, {
     SetOptions? options,
+    FieldValue idFieldValue,
     FieldValue businessIdFieldValue,
     FieldValue branchIdFieldValue,
     FieldValue receiptTypeFieldValue,
@@ -175,6 +177,7 @@ abstract class CounterDocumentReference
     WriteBatch batch,
     Counter model, {
     SetOptions? options,
+    FieldValue idFieldValue,
     FieldValue businessIdFieldValue,
     FieldValue branchIdFieldValue,
     FieldValue receiptTypeFieldValue,
@@ -189,6 +192,8 @@ abstract class CounterDocumentReference
   ///
   /// If no document exists yet, the update will fail.
   Future<void> update({
+    int? id,
+    FieldValue idFieldValue,
     int? businessId,
     FieldValue businessIdFieldValue,
     int? branchId,
@@ -210,6 +215,8 @@ abstract class CounterDocumentReference
   /// The update will fail if applied to a document that does not exist.
   void transactionUpdate(
     Transaction transaction, {
+    int? id,
+    FieldValue idFieldValue,
     int? businessId,
     FieldValue businessIdFieldValue,
     int? branchId,
@@ -231,6 +238,8 @@ abstract class CounterDocumentReference
   /// The update will fail if applied to a document that does not exist.
   void batchUpdate(
     WriteBatch batch, {
+    int? id,
+    FieldValue idFieldValue,
     int? businessId,
     FieldValue businessIdFieldValue,
     int? branchId,
@@ -279,6 +288,7 @@ class _$CounterDocumentReference
   Future<void> set(
     Counter model, {
     SetOptions? options,
+    FieldValue? idFieldValue,
     FieldValue? businessIdFieldValue,
     FieldValue? branchIdFieldValue,
     FieldValue? receiptTypeFieldValue,
@@ -289,6 +299,7 @@ class _$CounterDocumentReference
   }) async {
     final json = {
       ...model.toJson(),
+      if (idFieldValue != null) _$CounterFieldMap['id']!: idFieldValue,
       if (businessIdFieldValue != null)
         _$CounterFieldMap['businessId']!: businessIdFieldValue,
       if (branchIdFieldValue != null)
@@ -316,6 +327,7 @@ class _$CounterDocumentReference
     Transaction transaction,
     Counter model, {
     SetOptions? options,
+    FieldValue? idFieldValue,
     FieldValue? businessIdFieldValue,
     FieldValue? branchIdFieldValue,
     FieldValue? receiptTypeFieldValue,
@@ -326,6 +338,7 @@ class _$CounterDocumentReference
   }) {
     final json = {
       ...model.toJson(),
+      if (idFieldValue != null) _$CounterFieldMap['id']!: idFieldValue,
       if (businessIdFieldValue != null)
         _$CounterFieldMap['businessId']!: businessIdFieldValue,
       if (branchIdFieldValue != null)
@@ -349,6 +362,7 @@ class _$CounterDocumentReference
     WriteBatch batch,
     Counter model, {
     SetOptions? options,
+    FieldValue? idFieldValue,
     FieldValue? businessIdFieldValue,
     FieldValue? branchIdFieldValue,
     FieldValue? receiptTypeFieldValue,
@@ -359,6 +373,7 @@ class _$CounterDocumentReference
   }) {
     final json = {
       ...model.toJson(),
+      if (idFieldValue != null) _$CounterFieldMap['id']!: idFieldValue,
       if (businessIdFieldValue != null)
         _$CounterFieldMap['businessId']!: businessIdFieldValue,
       if (branchIdFieldValue != null)
@@ -379,6 +394,8 @@ class _$CounterDocumentReference
   }
 
   Future<void> update({
+    Object? id = _sentinel,
+    FieldValue? idFieldValue,
     Object? businessId = _sentinel,
     FieldValue? businessIdFieldValue,
     Object? branchId = _sentinel,
@@ -394,6 +411,10 @@ class _$CounterDocumentReference
     Object? lastTouched = _sentinel,
     FieldValue? lastTouchedFieldValue,
   }) async {
+    assert(
+      id == _sentinel || idFieldValue == null,
+      "Cannot specify both id and idFieldValue",
+    );
     assert(
       businessId == _sentinel || businessIdFieldValue == null,
       "Cannot specify both businessId and businessIdFieldValue",
@@ -423,6 +444,9 @@ class _$CounterDocumentReference
       "Cannot specify both lastTouched and lastTouchedFieldValue",
     );
     final json = {
+      if (id != _sentinel)
+        _$CounterFieldMap['id']!: _$CounterPerFieldToJson.id(id as int?),
+      if (idFieldValue != null) _$CounterFieldMap['id']!: idFieldValue,
       if (businessId != _sentinel)
         _$CounterFieldMap['businessId']!:
             _$CounterPerFieldToJson.businessId(businessId as int?),
@@ -465,6 +489,8 @@ class _$CounterDocumentReference
 
   void transactionUpdate(
     Transaction transaction, {
+    Object? id = _sentinel,
+    FieldValue? idFieldValue,
     Object? businessId = _sentinel,
     FieldValue? businessIdFieldValue,
     Object? branchId = _sentinel,
@@ -480,6 +506,10 @@ class _$CounterDocumentReference
     Object? lastTouched = _sentinel,
     FieldValue? lastTouchedFieldValue,
   }) {
+    assert(
+      id == _sentinel || idFieldValue == null,
+      "Cannot specify both id and idFieldValue",
+    );
     assert(
       businessId == _sentinel || businessIdFieldValue == null,
       "Cannot specify both businessId and businessIdFieldValue",
@@ -509,6 +539,9 @@ class _$CounterDocumentReference
       "Cannot specify both lastTouched and lastTouchedFieldValue",
     );
     final json = {
+      if (id != _sentinel)
+        _$CounterFieldMap['id']!: _$CounterPerFieldToJson.id(id as int?),
+      if (idFieldValue != null) _$CounterFieldMap['id']!: idFieldValue,
       if (businessId != _sentinel)
         _$CounterFieldMap['businessId']!:
             _$CounterPerFieldToJson.businessId(businessId as int?),
@@ -551,6 +584,8 @@ class _$CounterDocumentReference
 
   void batchUpdate(
     WriteBatch batch, {
+    Object? id = _sentinel,
+    FieldValue? idFieldValue,
     Object? businessId = _sentinel,
     FieldValue? businessIdFieldValue,
     Object? branchId = _sentinel,
@@ -566,6 +601,10 @@ class _$CounterDocumentReference
     Object? lastTouched = _sentinel,
     FieldValue? lastTouchedFieldValue,
   }) {
+    assert(
+      id == _sentinel || idFieldValue == null,
+      "Cannot specify both id and idFieldValue",
+    );
     assert(
       businessId == _sentinel || businessIdFieldValue == null,
       "Cannot specify both businessId and businessIdFieldValue",
@@ -595,6 +634,9 @@ class _$CounterDocumentReference
       "Cannot specify both lastTouched and lastTouchedFieldValue",
     );
     final json = {
+      if (id != _sentinel)
+        _$CounterFieldMap['id']!: _$CounterPerFieldToJson.id(id as int?),
+      if (idFieldValue != null) _$CounterFieldMap['id']!: idFieldValue,
       if (businessId != _sentinel)
         _$CounterFieldMap['businessId']!:
             _$CounterPerFieldToJson.businessId(businessId as int?),
@@ -696,6 +738,18 @@ abstract class CounterQuery
     String? isGreaterThanOrEqualTo,
     List<String>? whereIn,
     List<String>? whereNotIn,
+    bool? isNull,
+  });
+
+  CounterQuery whereId({
+    int? isEqualTo,
+    int? isNotEqualTo,
+    int? isLessThan,
+    int? isLessThanOrEqualTo,
+    int? isGreaterThan,
+    int? isGreaterThanOrEqualTo,
+    List<int?>? whereIn,
+    List<int?>? whereNotIn,
     bool? isNull,
   });
 
@@ -822,6 +876,18 @@ abstract class CounterQuery
     String startAfter,
     String endAt,
     String endBefore,
+    CounterDocumentSnapshot? startAtDocument,
+    CounterDocumentSnapshot? endAtDocument,
+    CounterDocumentSnapshot? endBeforeDocument,
+    CounterDocumentSnapshot? startAfterDocument,
+  });
+
+  CounterQuery orderById({
+    bool descending = false,
+    int? startAt,
+    int? startAfter,
+    int? endAt,
+    int? endBefore,
     CounterDocumentSnapshot? startAtDocument,
     CounterDocumentSnapshot? endAtDocument,
     CounterDocumentSnapshot? endBeforeDocument,
@@ -1015,6 +1081,50 @@ class _$CounterQuery extends QueryReference<Counter, CounterQuerySnapshot>
         isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
         whereIn: whereIn,
         whereNotIn: whereNotIn,
+        isNull: isNull ??
+            (isEqualTo == null ? false : null) ??
+            (isNotEqualTo == null ? true : null),
+      ),
+      $queryCursor: $queryCursor,
+    );
+  }
+
+  @override
+  CounterQuery whereId({
+    Object? isEqualTo = _sentinel,
+    Object? isNotEqualTo = _sentinel,
+    Object? isLessThan,
+    Object? isLessThanOrEqualTo,
+    Object? isGreaterThan,
+    Object? isGreaterThanOrEqualTo,
+    List<int?>? whereIn,
+    List<int?>? whereNotIn,
+    bool? isNull,
+  }) {
+    return _$CounterQuery(
+      _collection,
+      $referenceWithoutCursor: $referenceWithoutCursor.where(
+        _$CounterFieldMap['id']!,
+        isEqualTo: isEqualTo != _sentinel
+            ? _$CounterPerFieldToJson.id(isEqualTo as int?)
+            : null,
+        isNotEqualTo: isNotEqualTo != _sentinel
+            ? _$CounterPerFieldToJson.id(isNotEqualTo as int?)
+            : null,
+        isLessThan: isLessThan != null
+            ? _$CounterPerFieldToJson.id(isLessThan as int?)
+            : null,
+        isLessThanOrEqualTo: isLessThanOrEqualTo != null
+            ? _$CounterPerFieldToJson.id(isLessThanOrEqualTo as int?)
+            : null,
+        isGreaterThan: isGreaterThan != null
+            ? _$CounterPerFieldToJson.id(isGreaterThan as int?)
+            : null,
+        isGreaterThanOrEqualTo: isGreaterThanOrEqualTo != null
+            ? _$CounterPerFieldToJson.id(isGreaterThanOrEqualTo as int?)
+            : null,
+        whereIn: whereIn?.map((e) => _$CounterPerFieldToJson.id(e)),
+        whereNotIn: whereNotIn?.map((e) => _$CounterPerFieldToJson.id(e)),
         isNull: isNull ??
             (isEqualTo == null ? false : null) ??
             (isNotEqualTo == null ? true : null),
@@ -1427,6 +1537,79 @@ class _$CounterQuery extends QueryReference<Counter, CounterQuerySnapshot>
     CounterDocumentSnapshot? startAfterDocument,
   }) {
     final query = $referenceWithoutCursor.orderBy(FieldPath.documentId,
+        descending: descending);
+    var queryCursor = $queryCursor;
+
+    if (startAtDocument != null) {
+      queryCursor = queryCursor.copyWith(
+        startAt: const [],
+        startAtDocumentSnapshot: startAtDocument.snapshot,
+      );
+    }
+    if (startAfterDocument != null) {
+      queryCursor = queryCursor.copyWith(
+        startAfter: const [],
+        startAfterDocumentSnapshot: startAfterDocument.snapshot,
+      );
+    }
+    if (endAtDocument != null) {
+      queryCursor = queryCursor.copyWith(
+        endAt: const [],
+        endAtDocumentSnapshot: endAtDocument.snapshot,
+      );
+    }
+    if (endBeforeDocument != null) {
+      queryCursor = queryCursor.copyWith(
+        endBefore: const [],
+        endBeforeDocumentSnapshot: endBeforeDocument.snapshot,
+      );
+    }
+
+    if (startAt != _sentinel) {
+      queryCursor = queryCursor.copyWith(
+        startAt: [...queryCursor.startAt, startAt],
+        startAtDocumentSnapshot: null,
+      );
+    }
+    if (startAfter != _sentinel) {
+      queryCursor = queryCursor.copyWith(
+        startAfter: [...queryCursor.startAfter, startAfter],
+        startAfterDocumentSnapshot: null,
+      );
+    }
+    if (endAt != _sentinel) {
+      queryCursor = queryCursor.copyWith(
+        endAt: [...queryCursor.endAt, endAt],
+        endAtDocumentSnapshot: null,
+      );
+    }
+    if (endBefore != _sentinel) {
+      queryCursor = queryCursor.copyWith(
+        endBefore: [...queryCursor.endBefore, endBefore],
+        endBeforeDocumentSnapshot: null,
+      );
+    }
+
+    return _$CounterQuery(
+      _collection,
+      $referenceWithoutCursor: query,
+      $queryCursor: queryCursor,
+    );
+  }
+
+  @override
+  CounterQuery orderById({
+    bool descending = false,
+    Object? startAt = _sentinel,
+    Object? startAfter = _sentinel,
+    Object? endAt = _sentinel,
+    Object? endBefore = _sentinel,
+    CounterDocumentSnapshot? startAtDocument,
+    CounterDocumentSnapshot? endAtDocument,
+    CounterDocumentSnapshot? endBeforeDocument,
+    CounterDocumentSnapshot? startAfterDocument,
+  }) {
+    final query = $referenceWithoutCursor.orderBy(_$CounterFieldMap['id']!,
         descending: descending);
     var queryCursor = $queryCursor;
 
@@ -2104,8 +2287,7 @@ Counter _$CounterFromJson(Map<String, dynamic> json) => Counter(
       totRcptNo: (json['totRcptNo'] as num?)?.toInt(),
       curRcptNo: (json['curRcptNo'] as num?)?.toInt(),
       invcNo: (json['invcNo'] as num?)?.toInt(),
-      lastTouched:
-          Counter._dateTimeFromTimestamp(json['lastTouched'] as Timestamp?),
+      lastTouched: const TimestampConverter().fromJson(json['lastTouched']),
     );
 
 const _$CounterFieldMap = <String, String>{
@@ -2137,7 +2319,7 @@ abstract class _$CounterPerFieldToJson {
   static Object? invcNo(int? instance) => instance;
   // ignore: unused_element
   static Object? lastTouched(DateTime? instance) =>
-      Counter._dateTimeToTimestamp(instance);
+      const TimestampConverter().toJson(instance);
 }
 
 Map<String, dynamic> _$CounterToJson(Counter instance) => <String, dynamic>{
@@ -2148,5 +2330,5 @@ Map<String, dynamic> _$CounterToJson(Counter instance) => <String, dynamic>{
       'totRcptNo': instance.totRcptNo,
       'curRcptNo': instance.curRcptNo,
       'invcNo': instance.invcNo,
-      'lastTouched': Counter._dateTimeToTimestamp(instance.lastTouched),
+      'lastTouched': const TimestampConverter().toJson(instance.lastTouched),
     };

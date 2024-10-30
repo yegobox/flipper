@@ -220,6 +220,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   @override
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {
+    talker.warning("Using capella");
     try {
       AsyncCollection? collection =
           await capella!.flipperDatabase!.collection(countersTable, scope);
@@ -1612,7 +1613,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
     required List<Counter> counters,
     RwApiResponse? receiptSignature,
   }) async {
-    ProxyService.setStrategy(Strategy.cloudSync);
     final collection = await getCountersCollection();
 
     await capella!.flipperDatabase!.writeN(
@@ -1621,20 +1621,37 @@ class Capella with Booting implements FlipperInterfaceCapella {
         List<MutableDocument> documents = [];
 
         for (Counter counter in counters) {
-          // Ensure document ID is string
-          String documentId = counter.id.toString();
+          try {
+            talker.warning("JSONN${counter.toJson()}");
+            // Ensure document ID is string
+            String documentId = counter.id.toString();
 
-          // Create updated counter
-          Counter updatedCounter = counter.copyWith(
-            totRcptNo: receiptSignature?.data?.totRcptNo,
-            curRcptNo: receiptSignature?.data?.rcptNo,
-            invcNo: (counter.invcNo != null) ? counter.invcNo! + 1 : 1,
-          );
+            // Create updated counter
+            Counter updatedCounter = counter.copyWith(
+              totRcptNo: receiptSignature?.data?.totRcptNo,
+              curRcptNo: (receiptSignature?.data?.rcptNo)! + 1,
+              invcNo: (counter.invcNo != null) ? counter.invcNo! + 1 : 1,
+            );
 
-          // Create document and set data
-          final doc = MutableDocument.withId(documentId);
-          doc.setData(updatedCounter.toJson());
-          documents.add(doc);
+            // Create document and set data
+            final doc = MutableDocument.withId(documentId);
+
+            // Convert updatedCounter to a map once
+            var updatedCounterMap = updatedCounter.toJson();
+
+            // Remove the "lastTouched" key if it exists
+            updatedCounterMap.remove("lastTouched");
+
+            // Set "lastTouched" to the current time
+            updatedCounterMap["lastTouched"] = DateTime.now().toIso8601String();
+
+            // Write the modified map to the document
+            doc.setData(updatedCounterMap);
+
+            documents.add(doc);
+          } catch (e, s) {
+            talker.warning(s);
+          }
         }
 
         return documents;
@@ -1650,7 +1667,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
             // If document exists, update it with new data
             if (existingDoc != null) {
               final mutableExisting = existingDoc.toMutable();
-              talker.warning(doc.toPlainMap());
+              talker.warning("Data to save: ${doc.toPlainMap()}");
               mutableExisting.setData(doc.toPlainMap());
               await collection.saveDocument(mutableExisting);
             } else {
@@ -1659,14 +1676,15 @@ class Capella with Booting implements FlipperInterfaceCapella {
             }
             // update firestore
             ProxyService.backUp.now(
-              productsTable,
-              doc.toPlainMap(),
+              countersTable,
+              Counter.fromJson(doc.toPlainMap()),
+              useNewImplementation: true,
             );
             talker.warning("Document saved successfully: ${doc.id}");
           }
         } catch (e, s) {
-          talker.error("Error saving document: $e");
-          talker.error(s.toString());
+          talker.warning("Error saving document: $e");
+          talker.error("Error saving document: $s");
           rethrow;
         }
       },
@@ -1766,7 +1784,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  void now<T>(String tableName, T data) {
+  void now<T>(String tableName, T data, {bool? useNewImplementation = false}) {
     // TODO: implement now
   }
 

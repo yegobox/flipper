@@ -1,3 +1,4 @@
+import 'package:firestore_models/all.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:cloud_firestore_odm/cloud_firestore_odm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,7 +19,7 @@ class Counter {
     this.lastTouched,
   });
 
-  @Id()
+  // @Id()
   final int? id;
   final int? businessId;
   final int? branchId;
@@ -27,10 +28,7 @@ class Counter {
   final int? curRcptNo;
   final int? invcNo;
 
-  @JsonKey(
-    fromJson: _dateTimeFromTimestamp,
-    toJson: _dateTimeToTimestamp,
-  )
+  @TimestampConverter()
   final DateTime? lastTouched;
 
   // JsonSerializable factory
@@ -39,15 +37,6 @@ class Counter {
 
   // ToJson method
   Map<String, dynamic> toJson() => _$CounterToJson(this);
-
-  // Helper methods for Timestamp conversion
-  static DateTime? _dateTimeFromTimestamp(Timestamp? timestamp) {
-    return timestamp?.toDate();
-  }
-
-  static Timestamp? _dateTimeToTimestamp(DateTime? dateTime) {
-    return dateTime != null ? Timestamp.fromDate(dateTime) : null;
-  }
 
   // CopyWith method
   Counter copyWith({
