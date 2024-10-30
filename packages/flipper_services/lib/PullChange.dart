@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:firestore_models/all.dart' as odm;
 import 'package:flipper_models/helperModels/talker.dart';

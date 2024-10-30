@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
@@ -37,6 +38,9 @@ class CronService {
       box: ProxyService.box,
     );
     ProxyService.capela.startReplicator();
+
+    ProxyService.setStrategy(Strategy.capella);
+    ProxyService.strategy.whoAmI();
 
     // AsyncCollection? collection = await ProxyService
     //     .capela.capella?.flipperDatabase!

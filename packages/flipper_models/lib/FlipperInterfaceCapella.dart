@@ -11,7 +11,7 @@ import 'package:firestore_models/firestore_models.dart';
 import 'package:firestore_models/transaction.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
-
+import 'package:realm/realm.dart' as realmO;
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:http/http.dart' as http;
@@ -22,6 +22,8 @@ import 'package:cbl/src/database/collection.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 enum ClearData { Business, Branch }
+
+enum SyncProvider { FIRESTORE, POWERSYNC }
 
 abstract class DataMigratorToLocal {
   Future<DataMigratorToLocal> configure(
@@ -49,13 +51,78 @@ abstract class FlipperInterfaceCapella {
   Future<List<Product>> products({required int branchId});
   Future<void> startReplicator();
 
+  void now<T>(String tableName, T data);
+  Future<void> processbatchBackUp<T extends realmO.RealmObject>(List<T> batch);
+  Future<bool> firebaseLogin({String? token});
+  void cancelWatch({required String tableName});
+  void cancelAll();
+  Future<void> handleRealmChanges<T>({
+    required realmO.RealmResults<T> results,
+    required String tableName,
+    required String idField,
+    required int Function(T) getId,
+    required Map<String, dynamic> Function(T) convertToMap,
+    required Function(Map<String, dynamic>) preProcessMap,
+    required SyncProvider syncProvider,
+  });
+  Future<void> handleRealmChangesAsync<T>({
+    required realmO.RealmResults<T> results,
+    required String tableName,
+    required String idField,
+    required int Function(T) getId,
+    required Map<String, dynamic> Function(T) convertToMap,
+    required Function(Map<String, dynamic>) preProcessMap,
+    required SyncProvider syncProvider,
+  });
+  Future<void> deleteRecord(
+      {required String tableName, required String idField, required int id});
+  Future<void> updateRecord({
+    required String tableName,
+    required String idField,
+    required Map<String, dynamic> map,
+    required int id,
+    required SyncProvider syncProvider,
+  });
+
+  Future<void> watchTable<T extends realmO.RealmObject>({
+    required String tableName,
+    required List<int> branchIds,
+    required String idField,
+    bool useWatch = false,
+    required T Function(Map<String, dynamic>) createRealmObject,
+    required void Function(T, Map<String, dynamic>) updateRealmObject,
+    required SyncProvider syncProvider,
+  });
+
+  Future<void> watchTableAsync<T extends realmO.RealmObject>({
+    required String tableName,
+    required String idField,
+    required List<int> branchIds,
+    bool useWatch = false,
+    required T Function(Map<String, dynamic>) createRealmObject,
+    required void Function(T, Map<String, dynamic>) updateRealmObject,
+    required SyncProvider syncProvider,
+  });
+  Future<void> backUp({
+    required int branchId,
+    required String encryptionKey,
+    required String dbPath,
+  });
+  Future<void> deleteDuplicate({required String tableName});
+
   Future<FlipperInterfaceCapella> configureLocal(
       {required bool useInMemory, required LocalStorage box});
 
   Future<FlipperInterfaceCapella> configureCapella(
       {required bool useInMemory, required LocalStorage box});
-
+  void whoAmI();
   Future<void> initCollections();
+
+  Future<T> writeN<T>({
+    required String tableName,
+    required T Function() writeCallback,
+    required Future<void> Function(T) onAdd,
+  });
 
   Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password});

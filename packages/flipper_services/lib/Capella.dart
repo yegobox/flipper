@@ -2,9 +2,13 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'dart:typed_data';
+import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/FlipperInterfaceCapella.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/realmExtension.dart';
+import 'package:realm_dart/src/realm_object.dart';
+import 'package:realm_dart/src/results.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:firestore_models/firestore_models.dart';
 import 'package:firestore_models/transaction.dart';
@@ -1608,6 +1612,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
     required List<Counter> counters,
     RwApiResponse? receiptSignature,
   }) async {
+    ProxyService.setStrategy(Strategy.cloudSync);
     final collection = await getCountersCollection();
 
     await capella!.flipperDatabase!.writeN(
@@ -1694,5 +1699,123 @@ class Capella with Booting implements FlipperInterfaceCapella {
 
     return collection ??
         await database.createCollection(countersTable, 'user_data');
+  }
+
+  @override
+  Future<void> backUp(
+      {required int branchId,
+      required String encryptionKey,
+      required String dbPath}) {
+    // TODO: implement backUp
+    throw UnimplementedError();
+  }
+
+  @override
+  void cancelAll() {
+    // TODO: implement cancelAll
+  }
+
+  @override
+  void cancelWatch({required String tableName}) {
+    // TODO: implement cancelWatch
+  }
+
+  @override
+  Future<void> deleteDuplicate({required String tableName}) {
+    // TODO: implement deleteDuplicate
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteRecord(
+      {required String tableName, required String idField, required int id}) {
+    // TODO: implement deleteRecord
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> firebaseLogin({String? token}) {
+    // TODO: implement firebaseLogin
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> handleRealmChanges<T>(
+      {required RealmResults<T> results,
+      required String tableName,
+      required String idField,
+      required int Function(T p1) getId,
+      required Map<String, dynamic> Function(T p1) convertToMap,
+      required Function(Map<String, dynamic> p1) preProcessMap,
+      required SyncProvider syncProvider}) {
+    // TODO: implement handleRealmChanges
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> handleRealmChangesAsync<T>(
+      {required RealmResults<T> results,
+      required String tableName,
+      required String idField,
+      required int Function(T p1) getId,
+      required Map<String, dynamic> Function(T p1) convertToMap,
+      required Function(Map<String, dynamic> p1) preProcessMap,
+      required SyncProvider syncProvider}) {
+    // TODO: implement handleRealmChangesAsync
+    throw UnimplementedError();
+  }
+
+  @override
+  void now<T>(String tableName, T data) {
+    // TODO: implement now
+  }
+
+  @override
+  Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch) {
+    // TODO: implement processbatchBackUp
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateRecord(
+      {required String tableName,
+      required String idField,
+      required Map<String, dynamic> map,
+      required int id,
+      required SyncProvider syncProvider}) {
+    // TODO: implement updateRecord
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> watchTable<T extends RealmObject>(
+      {required String tableName,
+      required List<int> branchIds,
+      required String idField,
+      bool useWatch = false,
+      required T Function(Map<String, dynamic> p1) createRealmObject,
+      required void Function(T p1, Map<String, dynamic> p2) updateRealmObject,
+      required SyncProvider syncProvider}) {
+    // TODO: implement watchTable
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> watchTableAsync<T extends RealmObject>(
+      {required String tableName,
+      required String idField,
+      required List<int> branchIds,
+      bool useWatch = false,
+      required T Function(Map<String, dynamic> p1) createRealmObject,
+      required void Function(T p1, Map<String, dynamic> p2) updateRealmObject,
+      required SyncProvider syncProvider}) {
+    // TODO: implement watchTableAsync
+    throw UnimplementedError();
+  }
+
+  @override
+  void whoAmI() {
+    // TODO: implement whoAmI
+    talker.warning("I am capella");
   }
 }

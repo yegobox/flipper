@@ -9,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/DownloadQueue.dart';
+import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';

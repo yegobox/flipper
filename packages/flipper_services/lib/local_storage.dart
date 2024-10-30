@@ -59,7 +59,8 @@ class SharedPreferenceStorage implements LocalStorage {
         'pinLogin',
         'customerName',
         'stopTaxService',
-        'enableDebug'
+        'enableDebug',
+        'switchToCloudSync'
       },
     ));
     return this;
@@ -346,5 +347,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   bool? enableDebug() {
     return prefs.getBool('enableDebug') ?? false;
+  }
+  
+  @override
+  bool? switchToCloudSync() {
+    return prefs.getBool('switchToCloudSync') ?? false;
   }
 }

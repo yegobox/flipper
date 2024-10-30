@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/TenantManagement.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -25,6 +26,7 @@ class _AdminControlState extends State<AdminControl> {
   bool filesDownloaded = false;
   bool forceUPSERT = false;
   bool stopTaxService = false;
+  bool switchToCloudSync = false;
   @override
   void initState() {
     super.initState();
@@ -35,6 +37,7 @@ class _AdminControlState extends State<AdminControl> {
         ProxyService.box.readBool(key: 'doneDownloadingAsset') ?? true;
     forceUPSERT = ProxyService.box.forceUPSERT();
     stopTaxService = ProxyService.box.stopTaxService() ?? false;
+    switchToCloudSync = ProxyService.box.switchToCloudSync() ?? false;
   }
 
   Future<void> toggleDownload(bool value) async {
@@ -51,34 +54,36 @@ class _AdminControlState extends State<AdminControl> {
     // ProxyService.capela.startReplicator();
 
     try {
-      Map<String, dynamic> map = {"id": 1521};
-      final db = ProxyService.capela.capella!.flipperDatabase!;
+      // Switch implementation
+
+      // Map<String, dynamic> map = {"id": 1521};
+      // final db = ProxyService.capela.capella!.flipperDatabase!;
       // Use the writeN method to write the document
-      await db.writeN(
-          tableName: "your_table_name",
-          writeCallback: () {
-            // Create a document with the given ID and map data
-            final document = MutableDocument.withId("1521", map);
+      // await db.writeN(
+      //     tableName: "your_table_name",
+      //     writeCallback: () {
+      //       // Create a document with the given ID and map data
+      //       final document = MutableDocument.withId("1521", map);
 
-            // Return the created document (of type T, in this case a MutableDocument)
-            return document;
-          },
-          onAdd: (doc) async {
-            // After the write operation, save the document to the collection
-            final collection =
-                await ProxyService.capela.getCountersCollection();
+      //       // Return the created document (of type T, in this case a MutableDocument)
+      //       return document;
+      //     },
+      //     onAdd: (doc) async {
+      //       // After the write operation, save the document to the collection
+      //       final collection =
+      //           await ProxyService.capela.getCountersCollection();
 
-            // add name to doc
-            doc.setString("Murag Richard", key: "name");
-            await collection.saveDocument(doc);
+      //       // add name to doc
+      //       doc.setString("Murag Richard", key: "name");
+      //       await collection.saveDocument(doc);
 
-            // Optionally, you can log or perform further operations here
-            print("Document saved: ${doc.id}");
-          });
+      //       // Optionally, you can log or perform further operations here
+      //       print("Document saved: ${doc.id}");
+      //     });
       await ProxyService.box.writeBool(
           key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
 
-      await ProxyService.capela.startReplicator();
+      // await ProxyService.capela.startReplicator();
 
       setState(() {
         forceUPSERT = ProxyService.box.forceUPSERT();
@@ -118,6 +123,23 @@ class _AdminControlState extends State<AdminControl> {
       }
       ProxyService.box.writeBool(key: 'isOrdersDefault', value: value);
     });
+  }
+
+  void enableSyncStrategyFunc(bool value) async {
+    await ProxyService.box.writeBool(
+        key: 'switchToCloudSync',
+        value: !ProxyService.box.switchToCloudSync()!);
+
+    setState(() {
+      switchToCloudSync = ProxyService.box.switchToCloudSync()!;
+    });
+    if (switchToCloudSync) {
+      ProxyService.setStrategy(Strategy.cloudSync);
+      ProxyService.strategy.whoAmI();
+    } else {
+      ProxyService.setStrategy(Strategy.capella);
+      ProxyService.strategy.whoAmI();
+    }
   }
 
   void enableDebugFunc(bool value) async {
@@ -254,7 +276,7 @@ class _AdminControlState extends State<AdminControl> {
                 ],
               ),
               SettingsSection(
-                title: 'Tax Service',
+                title: 'Debugging',
                 children: [
                   Row(
                     children: [
@@ -265,6 +287,24 @@ class _AdminControlState extends State<AdminControl> {
                           icon: Icons.bug_report,
                           value: enableDebug,
                           onChanged: enableDebugFunc,
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              ),
+              SettingsSection(
+                title: 'Sync Strategy',
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SwitchSettingsCard(
+                          title: 'Switch to Cloud Sync',
+                          subtitle: 'Switch to Cloud Sync',
+                          icon: Icons.sync,
+                          value: switchToCloudSync,
+                          onChanged: enableSyncStrategyFunc,
                         ),
                       )
                     ],

@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:cbl/src/database/collection.dart'
     if (dart.library.html) 'DatabaseProvider.dart';
+import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'DatabaseProvider.dart';
 import 'package:firestore_models/firestore_models.dart' as odm;
@@ -356,19 +357,6 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
   }
 
   @override
-  Future<FlipperInterface> configure(
-      {required bool useInMemoryDb,
-      bool useFallBack = false,
-      Realm? localRealm,
-      String? encryptionKey,
-      int? businessId,
-      int? branchId,
-      int? userId}) {
-    // TODO: implement configure
-    throw UnimplementedError();
-  }
-
-  @override
   void consumePoints({required int userId, required int points}) {
     // TODO: implement consumePoints
   }
@@ -388,12 +376,6 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
   @override
   T? create<T>({required T data}) {
     // TODO: implement create
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> createGoogleSheetDoc({required String email}) {
-    // TODO: implement createGoogleSheetDoc
     throw UnimplementedError();
   }
 
@@ -424,12 +406,6 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
       required String receiptType,
       required odm.Counter counter}) {
     // TODO: implement createReceipt
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Setting?> createSetting({required Setting setting}) {
-    // TODO: implement createSetting
     throw UnimplementedError();
   }
 
@@ -1393,13 +1369,6 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
   }
 
   @override
-  Future<void> configureRemoteRealm(String userPhone, IUser user,
-      {Realm? realm}) {
-    // TODO: implement configureRemoteRealm
-    throw UnimplementedError();
-  }
-
-  @override
   Branch? defaultBranch() {
     // TODO: implement defaultBranch
     throw UnimplementedError();
@@ -1556,19 +1525,6 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
   @override
   Drawers? closeDrawer({required Drawers drawer, required double eod}) {
     // TODO: implement closeDrawer
-    throw UnimplementedError();
-  }
-
-  @override
-  List<String> activeRealmSubscriptions() {
-    // TODO: implement activeRealmSubscriptions
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> forceSubs(
-      {int? businessId, Realm? localRealm, int? branchId, int? userId}) {
-    // TODO: implement forceSubs
     throw UnimplementedError();
   }
 

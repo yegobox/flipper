@@ -248,7 +248,7 @@ class TaxController<OBJ> {
     try {
       log(receiptType, name: "onBefore: current Counter");
       int branchId = ProxyService.box.getBranchId()!;
-      odm.Counter? counter = await ProxyService.capela
+      odm.Counter? counter = await ProxyService.strategy
           .getCounter(branchId: branchId, receiptType: receiptType);
 
       if (counter == null) {
@@ -296,7 +296,7 @@ class TaxController<OBJ> {
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
         String qrCode = generateQRCode(now.toYYYMMdd(), receiptSignature);
-        List<odm.Counter> counters = await ProxyService.capela
+        List<odm.Counter> counters = await ProxyService.strategy
             .getCounters(branchId: ProxyService.box.getBranchId()!);
 
         /// update transaction with receipt number and total receipt number
@@ -322,7 +322,7 @@ class TaxController<OBJ> {
         /// since curRcptNo need to be update when one change to keep track on current then we find all
         // Fetch the counters from the database
 
-        ProxyService.capela.updateCounters(
+        ProxyService.strategy.updateCounters(
           counters: counters,
           receiptSignature: receiptSignature,
         );

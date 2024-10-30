@@ -249,10 +249,10 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       if (v == "Invoice number already exists.") {
         // talker.error("IIIII");
         // A Quick fix increment counter for now.
-        List<odm.Counter> counters = await ProxyService.capela
+        List<odm.Counter> counters = await ProxyService.strategy
             .getCounters(branchId: ProxyService.box.getBranchId()!);
 
-        ProxyService.capela.updateCounters(counters: counters);
+        ProxyService.strategy.updateCounters(counters: counters);
       }
       // Handle general errors
       _handlePaymentError(e, s, context);

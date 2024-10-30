@@ -1,6 +1,7 @@
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
@@ -24,7 +25,7 @@ import 'package:flipper_services/database_provider.dart'
 import 'package:cbl/src/database/collection.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
-enum ClearData { Business, Branch }
+// enum ClearData { Business, Branch }
 
 abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
   factory SyncReaml.create() => RealmAPI<M>();

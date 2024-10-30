@@ -3,6 +3,7 @@ import 'package:flipper_models/CloudSync.dart';
 import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/Supabase.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/marketing.dart';
@@ -13,7 +14,6 @@ import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/Capella.dart';
-import 'package:flipper_services/HttpApiCapella.dart';
 import 'package:flipper_services/PayStackService.dart';
 import 'package:flipper_services/HttpApi.dart';
 import 'package:flutter/foundation.dart';
@@ -65,6 +65,12 @@ import 'package:flipper_services/DeviceIdService.dart' as dev;
 
 @module
 abstract class ServicesModule {
+  @LazySingleton()
+  @Named('backup')
+  FlipperInterfaceCapella provideSyncInterface(FirebaseFirestore firestore) {
+    return CloudSync(firestore);
+  }
+
   @preResolve
   @Named('capella')
   @LazySingleton()
@@ -77,8 +83,21 @@ abstract class ServicesModule {
         useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
       );
     } else {
-      return HttpApiCapella();
+      return CloudSync(firestore);
     }
+  }
+
+  // Add strategy registration
+  @lazySingleton
+  @Named('strategy')
+  SyncStrategy provideStrategy(
+    @Named('capella') FlipperInterfaceCapella capella,
+    @Named('backup') FlipperInterfaceCapella backup,
+  ) {
+    return SyncStrategy(
+      capella: capella as Capella,
+      cloudSync: backup as CloudSync,
+    );
   }
 
   @preResolve
@@ -119,11 +138,6 @@ abstract class ServicesModule {
 
   @singleton
   FirebaseFirestore get firestore => FirebaseFirestore.instance;
-
-  @LazySingleton()
-  SyncInterface provideSyncInterface(FirebaseFirestore firestore) {
-    return CloudSync(firestore);
-  }
 
   @preResolve
   @LazySingleton()

@@ -269,4 +269,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement stopTaxService
     return false;
   }
+
+  @override
+  bool? switchToCloudSync() {
+    // TODO: implement switchToCloudSync
+    return true;
+  }
 }

@@ -60,4 +60,5 @@ abstract class LocalStorage {
   String? customerName();
   bool? stopTaxService();
   bool? enableDebug();
+  bool? switchToCloudSync();
 }
