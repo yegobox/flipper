@@ -171,7 +171,7 @@ abstract class FlipperInterfaceCapella {
     int? page,
     int? itemsPerPage,
   });
-  Configurations getByTaxType({required String taxtype});
+  Future<Configurations?> getByTaxType({required String taxtype});
   Future<Variant?> variant({int? variantId, String? name});
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 

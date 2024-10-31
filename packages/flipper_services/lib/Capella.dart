@@ -57,6 +57,27 @@ class Capella with Booting implements FlipperInterfaceCapella {
   AsyncCollection? permissionCollection;
   late String apihub;
   late String commApi;
+
+  @override
+  // TODO: implement countersCollection
+  Future<AsyncCollection> getCountersCollection() async {
+    final database = capella!.flipperDatabase!;
+    final collection = await database.collection(countersTable, 'user_data');
+
+    return collection ??
+        await database.createCollection(countersTable, 'user_data');
+  }
+
+  // get configurations collection
+  Future<AsyncCollection> getConfigurationsCollection() async {
+    final database = capella!.flipperDatabase!;
+    final collection =
+        await database.collection(configurationsTable, 'user_data');
+
+    return collection ??
+        await database.createCollection(configurationsTable, 'user_data');
+  }
+
   void _setApiEndpoints() {
     if (foundation.kDebugMode) {
       apihub = AppSecrets.apihubUat;
@@ -255,6 +276,33 @@ class Capella with Booting implements FlipperInterfaceCapella {
     } catch (e) {
       talker.error('Error getting counter: $e');
       return null;
+    }
+  }
+
+  @override
+  Future<Configurations?> getByTaxType({required String taxtype}) async {
+    try {
+      AsyncCollection? collection = await getConfigurationsCollection();
+      final query = QueryBuilder()
+          .select(SelectResult.all())
+          .from(DataSource.collection(collection))
+          .where(Expression.property('taxType')
+              .equalTo(Expression.string(taxtype))
+              .and(Expression.property('branchId').equalTo(
+                  Expression.integer(ProxyService.box.getBranchId()!))))
+          .limit(Expression.integer(1));
+
+      final result = await query.execute();
+      final results = await result.allResults();
+
+      if (results.isNotEmpty) {
+        final Map<String, dynamic> json = results.first.toPlainMap();
+        talker.warning("Query result: $json");
+        return Configurations.fromJson(json);
+      }
+      return null;
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -750,12 +798,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
   @override
   Future<Business> getBusinessFuture({int? businessId}) {
     // TODO: implement getBusinessFuture
-    throw UnimplementedError();
-  }
-
-  @override
-  Configurations getByTaxType({required String taxtype}) {
-    // TODO: implement getByTaxType
     throw UnimplementedError();
   }
 
@@ -1707,16 +1749,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
       {required int branchId, int? productId, int? page, int? itemsPerPage}) {
     // TODO: implement variants
     throw UnimplementedError();
-  }
-
-  @override
-  // TODO: implement countersCollection
-  Future<AsyncCollection> getCountersCollection() async {
-    final database = capella!.flipperDatabase!;
-    final collection = await database.collection(countersTable, 'user_data');
-
-    return collection ??
-        await database.createCollection(countersTable, 'user_data');
   }
 
   @override

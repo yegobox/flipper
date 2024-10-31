@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm/schemas.dart';
+import 'package:firestore_models/configurations.dart' as config;
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -14,6 +16,7 @@ import 'package:realm/realm.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:flutter/services.dart';
 
 class Item {
   final String barCode;
@@ -45,11 +48,20 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
   PlatformFile? _selectedFile;
   List<Map<String, dynamic>>? _excelData;
   Map<String, TextEditingController> _controllers = {};
+  final Map<String, String> _selectedItemClasses = {};
+  final Map<String, String> _selectedTaxTypes = {};
+  final Map<String, TextEditingController> _quantityControllers = {};
+  final Map<String, String> _selectedProductTypes = {};
 
   @override
   void initState() {
     super.initState();
     _initializeControllers();
+  }
+
+  void _updateQuantity(String barCode, String value) {
+    final product = _excelData!.firstWhere((p) => p['BarCode'] == barCode);
+    product['Quantity'] = value;
   }
 
   void _initializeControllers() {
@@ -64,6 +76,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
   @override
   void dispose() {
     _controllers.forEach((_, controller) => controller.dispose());
+    _quantityControllers.values.forEach((controller) => controller.dispose());
     super.dispose();
   }
 
@@ -165,7 +178,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
     return '#${(Random().nextInt(0x1000000) | 0x800000).toRadixString(16).padLeft(6, '0').toUpperCase()}';
   }
 
-  void _saveAll() {
+  Future<void> _saveAll() async {
     // Convert each row from the table to an Item model
     List<Item> items = _excelData!.map((product) {
       return Item(
@@ -186,6 +199,14 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           name: item.name,
           barCode: item.barCode,
         );
+        config.Configurations? taxType = await ProxyService.strategy
+            .getByTaxType(taxtype: _selectedTaxTypes[product.barCode] ?? "B");
+        talker.warning(
+            "ItemClass${_selectedItemClasses[product.barCode] ?? "5020230602"}");
+        talker.warning("TaxType${_selectedTaxTypes[product.barCode] ?? "B"}");
+
+        talker.warning(
+            "ProductType${_selectedProductTypes[product.barCode] ?? "1"}");
 
         /// add the product to the Realm
         ProxyService.local.realm!.writeN(
@@ -204,21 +225,21 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           sku: product.barCode,
           name: product.barCode,
           productName: product.name,
-          qty: 1,
+          qty: double.parse(_quantityControllers[product.barCode]?.text ?? "1"),
+          rsdQty:
+              double.parse(_quantityControllers[product.barCode]?.text ?? "1"),
           retailPrice: double.parse(item.price),
           supplyPrice: double.parse(item.price),
           color: randomizeColor(),
           itemSeq: 1,
           pkg: "1",
-
-          /// TODO allow user to specify tax type
-          taxTyCd: "B",
-
-          /// TODO: get itemClsCd from RRA
-          itemClsCd: "5020230602",
+          taxTyCd: _selectedTaxTypes[product.barCode] ?? "B",
+          itemClsCd: _selectedItemClasses[product.barCode] ?? "5020230602",
           spplrItemCd: "",
           spplrItemClsCd: "",
           bcd: randomNumber().toString(),
+
+          /// it is okay to make everything be pieces or item which is U stands for.
           qtyUnitCd: "U",
           regrNm: item.name,
           tin: ProxyService.box.tin(),
@@ -235,12 +256,11 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           modrId: product.barCode,
           pkgUnitCd: "BJ",
           regrId: product.barCode,
-          rsdQty: 1,
           useYn: "N",
-          itemTyCd: "2",
+          itemTyCd: _selectedProductTypes[product.barCode] ?? "1",
           lastTouched: DateTime.now(),
           branchId: ProxyService.box.getBranchId()!,
-          taxPercentage: 18,
+          taxPercentage: taxType?.taxPercentage ?? 18,
         );
 
         /// add the variant to the Realm
@@ -385,6 +405,22 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
                         label: Text('Price',
                             style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
+                      DataColumn(
+                        label: Text('Quantity',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      DataColumn(
+                        label: Text('Item Class',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      DataColumn(
+                        label: Text('Tax Type',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      DataColumn(
+                        label: Text('Product Type',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
                     ],
                     rows: _excelData!.map((product) {
                       String barCode = product['BarCode'] ?? '';
@@ -392,6 +428,11 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
                         _controllers[barCode] =
                             TextEditingController(text: product['Price']);
                       }
+                      if (!_quantityControllers.containsKey(barCode)) {
+                        _quantityControllers[barCode] = TextEditingController(
+                            text: product['Quantity'] ?? '0');
+                      }
+
                       return DataRow(
                         cells: [
                           DataCell(Text(product['BarCode'] ?? '')),
@@ -405,6 +446,48 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
                               },
                             ),
                           ),
+                          DataCell(
+                            TextField(
+                              controller: _quantityControllers[barCode],
+                              onChanged: (value) {
+                                _updateQuantity(product['BarCode'], value);
+                              },
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly
+                              ],
+                            ),
+                          ),
+                          DataCell(
+                            SizedBox(
+                              width: 200,
+                              child: _buildUniversalProductDropDown(
+                                context,
+                                barCode: barCode,
+                                selectedValue: _selectedItemClasses[barCode],
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            SizedBox(
+                              width: 100,
+                              child: _buildTaxDropdown(
+                                context,
+                                barCode: barCode,
+                                selectedValue: _selectedTaxTypes[barCode],
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            SizedBox(
+                              width: 100,
+                              child: _productTypeDropDown(
+                                context,
+                                barCode: barCode,
+                                selectedValue: _selectedProductTypes[barCode],
+                              ),
+                            ),
+                          ),
                         ],
                       );
                     }).toList(),
@@ -414,6 +497,203 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _productTypeDropDown(
+    BuildContext context, {
+    required String barCode,
+    String? selectedValue,
+  }) {
+    final List<Map<String, String>> options = [
+      {"name": "Raw Material", "value": "1"},
+      {"name": "Finished Product", "value": "2"},
+      {"name": "Service without stock", "value": "3"},
+    ];
+
+    // Use the first option's value as default if selectedValue is null
+    final effectiveValue = selectedValue ?? options.first['value'];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: DropdownButtonHideUnderline(
+        // Better way to hide underline
+        child: DropdownButton<String>(
+          value: effectiveValue,
+          items: options.map((option) {
+            return DropdownMenuItem<String>(
+              value: option['value'],
+              child: Text(
+                option['name']!,
+                style: const TextStyle(fontSize: 14),
+              ),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            _updateProductType(context, barCode, newValue);
+          },
+          isExpanded: true,
+        ),
+      ),
+    );
+  }
+
+// Separated the update logic for better readability and maintenance
+  void _updateProductType(
+      BuildContext context, String barCode, String? newValue) {
+    if (newValue == null) return;
+
+    try {
+      if (_excelData == null) {
+        throw Exception('Excel data is not loaded');
+      }
+
+      final rowIndex =
+          _excelData!.indexWhere((row) => row['BarCode'] == barCode);
+      if (rowIndex == -1) {
+        throw Exception('Row not found for barCode: $barCode');
+      }
+
+      setState(() {
+        _selectedProductTypes[barCode] = newValue;
+        _excelData![rowIndex]['ProductType'] = newValue;
+      });
+    } catch (e) {
+      talker.error('Error updating product type: $e');
+      _showErrorSnackBar(context, e.toString());
+    }
+  }
+
+// Separated snackbar logic for reusability
+  void _showErrorSnackBar(BuildContext context, String errorMessage) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to update product type: $errorMessage'),
+        backgroundColor: Colors.red, // Added for better error visibility
+        behavior:
+            SnackBarBehavior.floating, // Makes it float above bottom navigation
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  Widget _buildTaxDropdown(BuildContext context,
+      {required String barCode, String? selectedValue}) {
+    final List<String> options = ["A", "B", "C", "D"];
+
+    // Initialize the tax type if not already set
+    if (!_selectedTaxTypes.containsKey(barCode)) {
+      _selectedTaxTypes[barCode] = selectedValue ?? "B";
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: DropdownButton<String>(
+        value: _selectedTaxTypes[barCode],
+        items: options.map((String option) {
+          return DropdownMenuItem<String>(
+            value: option,
+            child: Text(option),
+          );
+        }).toList(),
+        onChanged: (String? newValue) {
+          if (newValue != null && newValue != _selectedTaxTypes[barCode]) {
+            try {
+              if (_excelData != null) {
+                final rowIndex =
+                    _excelData!.indexWhere((row) => row['BarCode'] == barCode);
+                if (rowIndex != -1) {
+                  setState(() {
+                    _selectedTaxTypes[barCode] = newValue;
+                    _excelData![rowIndex]['TaxType'] = newValue;
+                  });
+                } else {
+                  talker.error('Row not found for barCode: $barCode');
+                }
+              } else {
+                talker.error('Excel data is null');
+              }
+            } catch (e) {
+              talker.error('Error updating tax type: $e');
+              // Optionally show an error message to the user
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to update tax type: ${e.toString()}'),
+                ),
+              );
+            }
+          }
+        },
+        isExpanded: true,
+        underline: const SizedBox.shrink(),
+      ),
+    );
+  }
+
+  Widget _buildUniversalProductDropDown(
+    BuildContext context, {
+    required String barCode,
+    String? selectedValue,
+  }) {
+    final unitsAsyncValue = ref.watch(universalProductsNames);
+
+    return unitsAsyncValue.when(
+      data: (items) {
+        final List<String> itemClsCdList = items.asData?.value
+                .map((unit) => ((unit.itemClsNm ?? "") + " " + unit.itemClsCd!))
+                .toList() ??
+            [];
+
+        return Container(
+          width: double.infinity,
+          child: DropdownSearch<String>(
+            items: itemClsCdList,
+            selectedItem: selectedValue ??
+                (itemClsCdList.isNotEmpty ? itemClsCdList.first : null),
+            dropdownDecoratorProps: DropDownDecoratorProps(
+              dropdownSearchDecoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                disabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
+              ),
+            ),
+            onChanged: (String? newValue) {
+              if (newValue != null) {
+                setState(() {
+                  _selectedItemClasses[barCode] = newValue;
+
+                  // Update the Excel data
+                  final rowIndex = _excelData!
+                      .indexWhere((row) => row['BarCode'] == barCode);
+                  if (rowIndex != -1) {
+                    // Extract the item class code from the selected value
+                    final itemClassCode = newValue.split(' ').last;
+                    _excelData![rowIndex]['ItemClass'] = itemClassCode;
+                  }
+                });
+              }
+            },
+          ),
+        );
+      },
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stackTrace) => Text('Error: $error'),
     );
   }
 }

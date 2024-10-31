@@ -1067,9 +1067,15 @@ class CloudSync implements FlipperInterfaceCapella {
   }
 
   @override
-  Configurations getByTaxType({required String taxtype}) {
-    // TODO: implement getByTaxType
-    throw UnimplementedError();
+  Future<Configurations?> getByTaxType({required String taxtype}) async {
+    final response = await configurationsRef
+        .whereTaxType(isEqualTo: taxtype)
+        .whereBranchId(isEqualTo: ProxyService.box.getBranchId()!)
+        .get();
+    if (response.docs.isEmpty) {
+      return null;
+    }
+    return response.docs.first.data;
   }
 
   @override
@@ -1595,20 +1601,24 @@ class CloudSync implements FlipperInterfaceCapella {
 
   @override
   Stream<List<Product>> productStreams({int? prodIndex}) {
-    // TODO: implement productStreams
-    throw UnimplementedError();
+    final products = productsRef
+        .whereId(isEqualTo: prodIndex)
+        .whereBranchId(isEqualTo: ProxyService.box.getBranchId()!);
+    return products
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => doc.data).toList());
   }
 
   @override
-  Future<List<Product>> products({required int branchId}) {
-    // TODO: implement products
-    throw UnimplementedError();
+  Future<List<Product>> products({required int branchId}) async {
+    final products = await productsRef.whereBranchId(isEqualTo: branchId).get();
+    return products.docs.map((doc) => doc.data).toList();
   }
 
   @override
-  Future<List<Product>> productsFuture({required int branchId}) {
-    // TODO: implement productsFuture
-    throw UnimplementedError();
+  Future<List<Product>> productsFuture({required int branchId}) async {
+    final products = await productsRef.whereBranchId(isEqualTo: branchId).get();
+    return products.docs.map((doc) => doc.data).toList();
   }
 
   @override
@@ -1673,13 +1683,21 @@ class CloudSync implements FlipperInterfaceCapella {
   @override
   Stream<List<StockRequest>> requestsStream(
       {required int branchId, required String filter}) {
-    // TODO: implement requestsStream
-    throw UnimplementedError();
+    final response =
+        stockRequestsRef.whereMain_branch_id(isEqualTo: branchId).snapshots();
+    return response
+        .map((snapshot) => snapshot.docs.map((doc) => doc.data).toList());
   }
 
   @override
   void saveComposite({required Composite composite}) {
-    // TODO: implement saveComposite
+    updateRecord(
+      tableName: compositesTable,
+      idField: "${compositesTable.singularize()}_id",
+      map: composite.toJson(),
+      id: composite.id!,
+      syncProvider: SyncProvider.FIRESTORE,
+    );
   }
 
   @override
