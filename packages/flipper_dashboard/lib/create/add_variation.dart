@@ -48,7 +48,8 @@ class _AddVariationState extends State<AddVariation> {
                 ElevatedButton(
                   onPressed: () async {
                     if (AddVariation._formKey.currentState!.validate()) {
-                      await _saveVariation(model);
+                      /// TODO: change this hard coded on mobile later.
+                      await _saveVariation(model, selectedProductType: "1");
                       _routerService.pop();
                     }
                   },
@@ -160,7 +161,8 @@ class _AddVariationState extends State<AddVariation> {
         viewModelBuilder: () => ProductViewModel());
   }
 
-  Future<void> _saveVariation(ProductViewModel model) async {
+  Future<void> _saveVariation(ProductViewModel model,
+      {required String selectedProductType}) async {
     Business business = await ProxyService.local.getBusiness();
     String itemPrefix = "flip-";
     String clip = itemPrefix +
@@ -211,6 +213,7 @@ class _AddVariationState extends State<AddVariation> {
     variations.add(data);
 
     await model.addVariant(
+      selectedProductType: selectedProductType,
       packagingUnit: "BJ",
       variations: variations,
     );

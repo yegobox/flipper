@@ -106,8 +106,8 @@ dependencies:
   talker_flutter: ^4.1.5
   collection: ^1.18.0
   amplify_api: ^2.4.1
-  amplify_flutter: ^2.0.0
-  amplify_auth_cognito: ^2.4.1
+  amplify_flutter: ^2.5.0
+  amplify_auth_cognito: ^2.5.0
   flutter_side_menu: ^0.5.3
   
   phone_numbers_parser: ^8.3.0

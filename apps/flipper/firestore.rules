@@ -8,8 +8,9 @@ service cloud.firestore {
 
     // Allow read/write access on all other documents to any user signed in to the app
     match /{document=**} {
-      allow read, write: if request.auth != null;
-      allow read, write: if request.auth != null;
+     // allow read, write: if request.auth != null;
+     allow read, write: if true;
+    // allow read, write: if request.auth != null;
     }
   }
 }

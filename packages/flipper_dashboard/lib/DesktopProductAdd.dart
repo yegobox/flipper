@@ -346,17 +346,20 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   }
 
   Future<void> _saveProductAndVariants(
-      ScannViewModel model, BuildContext context, Product productRef) async {
+      ScannViewModel model, BuildContext context, Product productRef,
+      {required String selectedProductType}) async {
     if (model.kProductName == null) {
       _showNoProductNameToast();
       return;
     }
 
     if (widget.productId != null) {
-      await model.bulkUpdateVariants(true, color: model.currentColor);
+      await model.bulkUpdateVariants(true,
+          color: model.currentColor, selectedProductType: selectedProductType);
     } else {
       await model.addVariant(
           variations: model.scannedVariants,
+          selectedProductType: selectedProductType,
           packagingUnit: selectedPackageUnitValue.split(":")[0]);
     }
 
@@ -388,11 +391,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   }
 
   void _onSaveButtonPressed(
-      ScannViewModel model, BuildContext context, Product product) {
+      ScannViewModel model, BuildContext context, Product product,
+      {required String selectedProductType}) {
     if (model.scannedVariants.isEmpty && widget.productId == null) {
       _showNoProductSavedToast();
     } else {
-      _saveProductAndVariants(model, context, product);
+      _saveProductAndVariants(model, context, product,
+          selectedProductType: selectedProductType);
     }
   }
 
@@ -436,6 +441,46 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
 // Define your default color
   Color DEFAULT_COLOR = Colors.grey;
+
+  // Add this new method to create the product type dropdown
+  Widget _productTypeDropDown(BuildContext context) {
+    final List<Map<String, String>> options = [
+      {"name": "Raw Material", "value": "1"},
+      {"name": "Finished Product", "value": "2"},
+      {"name": "Service without stock", "value": "3"},
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey),
+        ),
+        child: DropdownButton<String>(
+          value: selectedProductType,
+          onChanged: (String? newValue) {
+            if (newValue == null) return;
+            setState(() {
+              selectedProductType = newValue; // Update the state variable
+            });
+          },
+          items: options.map((option) {
+            return DropdownMenuItem<String>(
+              value: option['value'],
+              child: Text(option['name']!),
+            );
+          }).toList(),
+          isExpanded: true,
+          underline: SizedBox(), // Remove the default underline
+        ),
+      ),
+    );
+  }
+
+  // Add a state variable to hold the selected product type
+  String selectedProductType = "2";
 
   @override
   Widget build(BuildContext context) {
@@ -500,10 +545,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   productNameField(model),
                   retailPrice(model),
                   supplyPrice(model),
+                  // Add the product type dropdown here
+
                   !ref.watch(isCompositeProvider)
                       ? scanField(model, productRef)
                       : SizedBox.shrink(),
                   packagingDropDown(model),
+
+                  _productTypeDropDown(context),
                   // previewName(model),
                   !ref.watch(isCompositeProvider)
                       ? TableVariants(model, context)
@@ -599,6 +648,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             return;
                           }
                           _onSaveButtonPressed(
+                            selectedProductType: selectedProductType,
                             productModel,
                             context,
                             productRef,

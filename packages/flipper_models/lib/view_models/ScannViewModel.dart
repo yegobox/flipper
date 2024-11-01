@@ -215,7 +215,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   }
 
   Future<void> bulkUpdateVariants(bool editmode,
-      {required String color}) async {
+      {required String color, required String selectedProductType}) async {
     if (editmode) {
       final variantsLength = scannedVariants.length;
 
@@ -225,6 +225,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
           scannedVariants[i].color = color;
           scannedVariants[i].itemNm = scannedVariants[i].name;
           scannedVariants[i].ebmSynced = false;
+          scannedVariants[i].itemTyCd = selectedProductType;
           // If found, update it
           if (retailPrice != 0) {
             scannedVariants[i].retailPrice = retailPrice;
