@@ -121,11 +121,9 @@ dependencies:
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.12.0
-  
-  
   web: ^1.0.0
-  
   json_annotation: ^4.9.0
+  sqlite3: ^2.4.7
 
 flutter:
   # The following line ensures that the Material Icons font is
