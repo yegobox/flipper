@@ -99,7 +99,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         // Construct the specific directory path
         /// the 1 appended is incremented everytime there is a breaking change on a client.
         final realmDirectory =
-            p.join(appSupportDirectory.path, '${folder ?? ""}5');
+            p.join(appSupportDirectory.path, '${folder ?? ""}4');
 
         // Create the directory if it doesn't exist
         final directory = Directory(realmDirectory);
