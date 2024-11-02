@@ -24,7 +24,7 @@ mixin ProductMixin {
     try {
       ProxyService.local.realm!.writeN(
           tableName: variantTable,
-          writeCallback: () async {
+          writeCallback: () {
             List<Variant> updatables = [];
             for (var i = 0; i < variations!.length; i++) {
               variations[i].pkgUnitCd = packagingUnit;
@@ -92,7 +92,9 @@ mixin ProductMixin {
             return updatables;
           },
           onAdd: (data) {
-            ProxyService.backUp.now(variantTable, data);
+            for (var item in data) {
+              ProxyService.backUp.now(variantTable, item);
+            }
           });
     } catch (e, s) {
       talker.error(e);
