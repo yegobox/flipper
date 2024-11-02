@@ -83,7 +83,10 @@ final soldStockValueProvider =
     StreamProvider.autoDispose.family<double, int>((ref, branchId) {
   return ProxyService.local.soldStockValue(branchId: branchId);
 });
-
+final initialStockProvider =
+    StreamProvider.autoDispose.family<double, int>((ref, branchId) {
+  return ProxyService.local.soldStockValue(branchId: branchId);
+});
 final transactionItemsStreamProvider = StreamProvider.autoDispose
     .family<List<TransactionItem>, int?>((ref, transactionId) {
   return ProxyService.local.transactionItemsStreams(

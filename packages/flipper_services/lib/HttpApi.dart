@@ -1629,6 +1629,12 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
       required bool isTrainingMode}) {
     // TODO: implement updateTransactionType
   }
+
+  @override
+  Stream<double> initialStock({required branchId}) {
+    // TODO: implement initialStock
+    throw UnimplementedError();
+  }
 }
 
 class RealmViaHttpServiceMock implements RealmViaHttp {

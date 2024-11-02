@@ -429,6 +429,7 @@ abstract class FlipperInterface {
   /// and non zero then what we get we query related sold item
 
   Stream<double> soldStockValue({required branchId});
+  Stream<double> initialStock({required branchId});
   Future<void> markModelForEbmUpdate<T>(
       {required T model, bool updated = true});
   Stream<List<Category>> categoryStream();

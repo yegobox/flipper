@@ -43,6 +43,9 @@ class ReportsState extends ConsumerState<Reports>
         ref.watch(stocValueProvider(ProxyService.box.getBranchId()!));
     final soldStock =
         ref.watch(soldStockValueProvider(ProxyService.box.getBranchId()!));
+
+    // final initialStock =
+    //     ref.watch(initialStockProvider(ProxyService.box.getBranchId()!));
     final reports = ref.watch(reportsProvider(ProxyService.box.getBranchId()!));
 
     return SafeArea(

@@ -1550,6 +1550,30 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
+  Stream<double> initialStock({required branchId}) async* {
+    // Get the list of Stock objects for the given branchId where there is available stock
+    final List<Stock> stocks = realm!.query<Stock>(
+        r'currentStock > $0 AND branchId == $1', [0, branchId]).toList();
+
+    // Get the list of TransactionItem objects for the given branchId
+
+    double totalSoldValue = 0;
+
+    for (var stock in stocks) {
+      // Find corresponding transactions for this stock
+
+      // Assuming retailPrice is the price for each unit sold, and sold stock is based on the difference
+      double stockSoldValue = (stock.initialStock!) * stock.retailPrice;
+
+      // Add to the total sold value
+      totalSoldValue += stockSoldValue;
+    }
+
+    // Yield the total sold stock value
+    yield totalSoldValue;
+  }
+
+  @override
   Stream<double> soldStockValue({required branchId}) async* {
     // Get the list of Stock objects for the given branchId where there is available stock
     final List<Stock> stocks = realm!.query<Stock>(
