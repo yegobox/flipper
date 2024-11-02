@@ -68,30 +68,40 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   void updatePaymentAmounts() {
+    if (ref.read(paymentMethodsProvider).isEmpty) return;
+
     double remainingAmount = totalAfterDiscountAndShipping;
-    for (int i = 0; i < ref.read(paymentMethodsProvider).length; i++) {
-      if (i == 0) {
-        double enteredAmount = double.tryParse(
-                ref.read(paymentMethodsProvider)[i].controller.text) ??
-            0.0;
-        remainingAmount -= enteredAmount;
-      } else {
-        if (i == ref.read(paymentMethodsProvider).length - 1) {
-          ref.read(paymentMethodsProvider)[i].amount = remainingAmount;
-          ref.read(paymentMethodsProvider)[i].controller.text =
-              remainingAmount.toStringAsFixed(2);
-        } else {
-          ref.read(paymentMethodsProvider)[i].amount = 0.0;
-          ref.read(paymentMethodsProvider)[i].controller.text = '0.00';
+    final payments = ref.read(paymentMethodsProvider);
+
+    // Handle the first payment method
+    if (payments.isNotEmpty) {
+      double firstAmount = double.tryParse(payments[0].controller.text) ?? 0.0;
+      remainingAmount -= firstAmount;
+      payments[0].amount = firstAmount;
+    }
+
+    // Distribute remaining amount among other payment methods
+    for (int i = 1; i < payments.length; i++) {
+      if (i == payments.length - 1) {
+        // Last payment method gets the remaining amount
+        payments[i].amount = remainingAmount;
+        if (remainingAmount > 0) {
+          payments[i].controller.text = remainingAmount.toStringAsFixed(2);
         }
+      } else {
+        // Keep the entered amount for middle payment methods
+        double enteredAmount =
+            double.tryParse(payments[i].controller.text) ?? 0.0;
+        payments[i].amount = enteredAmount;
+        remainingAmount -= enteredAmount;
       }
 
       // Update the payment method in the provider
       ref.read(paymentMethodsProvider.notifier).updatePaymentMethod(
             i,
             Payment(
-              amount: ref.read(paymentMethodsProvider)[i].amount,
-              method: ref.read(paymentMethodsProvider)[i].method,
+              amount: payments[i].amount,
+              method: payments[i].method,
             ),
           );
     }
@@ -496,23 +506,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                       );
                     }).toList(),
                     onChanged: (String? newValue) {
-                      setState(() {
-                        ref.read(paymentMethodsProvider)[index].method =
-                            newValue!;
-
-                        for (Payment payment
-                            in ref.read(paymentMethodsProvider)) {
+                      if (newValue != null) {
+                        setState(() {
+                          final payment =
+                              ref.read(paymentMethodsProvider)[index];
+                          payment.method = newValue;
                           ref
                               .read(paymentMethodsProvider.notifier)
-                              .addPaymentMethod(
+                              .updatePaymentMethod(
+                                index,
                                 Payment(
-                                    amount: payment.amount,
-                                    method: payment.method),
+                                  amount: payment.amount,
+                                  method: newValue,
+                                ),
                               );
-                        }
-
-                        updatePaymentAmounts();
-                      });
+                        });
+                      }
                     },
                   ),
                 ),
@@ -529,11 +538,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   border: OutlineInputBorder(),
                 ),
                 onChanged: (value) {
-                  setState(() {
-                    ref.read(paymentMethodsProvider)[index].amount =
-                        double.tryParse(value) ?? 0.0;
-                    updatePaymentAmounts(); // Update payment amounts after amount changes
-                  });
+                  final amount = double.tryParse(value) ?? 0.0;
+                  ref.read(paymentMethodsProvider)[index].amount = amount;
+
+                  // Only update other amounts if this isn't the last payment method
+                  if (index < ref.read(paymentMethodsProvider).length - 1) {
+                    updatePaymentAmounts();
+                  }
                 },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -579,15 +590,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   void _removePaymentMethod(int index) {
     setState(() {
-      ref
-          .read(paymentMethodsProvider)[index]
-          .controller
-          .removeListener(updatePaymentAmounts);
-      ref.read(paymentMethodsProvider).removeAt(index);
-
-      // Remove the payment method from the provider
+      ref.read(paymentMethodsProvider)[index];
       ref.read(paymentMethodsProvider.notifier).removePaymentMethod(index);
-
       updatePaymentAmounts();
     });
   }

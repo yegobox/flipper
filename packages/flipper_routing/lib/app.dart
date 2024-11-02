@@ -671,3 +671,12 @@ class App {}
 //           });
 
 // https://cbl-dart.dev/queries/query-builder/
+
+//  archive: ^3.3.5
+//   bloc: ^8.1.0
+//   cbl_flutter_ce: ^3.2.1
+//   cbl_flutter: ^3.1.3
+//   cbl: ^3.2.1
+//   collection: ^1.16.0
+//   cupertino_icons: ^1.0.5
+//   equatable: ^2.0.5

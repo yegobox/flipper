@@ -1,15 +1,11 @@
 import 'package:flipper_dashboard/TenantManagement.dart';
-import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 // import 'package:flipper_services/DatabaseProvider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:cbl/cbl.dart'
-    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 class AdminControl extends StatefulWidget {
   const AdminControl({super.key});

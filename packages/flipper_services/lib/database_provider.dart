@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert' show utf8;
 import 'package:crypto/crypto.dart' show sha256;
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/file_system.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:cbl_flutter/cbl_flutter.dart';
@@ -79,6 +80,8 @@ class DatabaseProvider {
           .create(recursive: true);
 
       cblPreBuiltDatabasePath = "${cblDatabaseDirectory.path}/$dbName.cblite2";
+
+      talker.warning('cblPreBuiltDatabasePath: $cblPreBuiltDatabasePath');
 
       // Verify directories are writable
       if (!await cblDatabaseDirectory.exists() ||
