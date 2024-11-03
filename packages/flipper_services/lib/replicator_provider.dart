@@ -1,9 +1,35 @@
 import 'package:cbl/cbl.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/database_provider.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+//         curl --location --request PUT 'localhost:4985/flipper/' \
+// --header 'Content-Type: application/json' \
+// --header 'Authorization: Basic YWRtaW46dW13YW5hNzg5' \
+// --data-raw '{
+//     "bucket": "flipper",
+//     "name": "flipper",
+//     "guest": {
+//         "disabled": true
+//     },
+//     "import_docs": true,
+//     "num_index_replicas": 0,
+//     "enable_shared_bucket_access": true
+// }'
+
+// curl \
+//   --location \
+//   --request PUT \
+//   'http://127.0.0.1:4985/flipper/_config/' \
+//   --header 'Authorization: Basic YWRtaW46dW13YW5hNzg5' \
+//   --header 'Content-Type: application/json' \
+//   --data-raw '{
+//     "enable_shared_bucket_access": true,
+//     "import_docs": true
+//   }'
 
 final class CustomConflictResolver extends ConflictResolver {
   @override
@@ -136,6 +162,7 @@ class ReplicatorProvider {
       final counterCollection = await db.createCollection(countersTable, scope);
 
       final collectionConfig = CollectionConfiguration(
+        channels: ['counters'],
         conflictResolver: CustomConflictResolver(),
       );
 
@@ -143,36 +170,75 @@ class ReplicatorProvider {
         username: AppSecrets.capelaUsername,
         password: AppSecrets.capelaPassword,
       );
+      if (!ProxyService.box.useInHouseSyncGateway()!) {
+        final endPoint = UrlEndpoint(url);
 
-      final endPoint = UrlEndpoint(url);
+        // Configure pull-only replicator for initial sync
+        _pullConfiguration = ReplicatorConfiguration(
+          // database: db,
+          target: endPoint,
+          authenticator: basicAuthenticator,
+          continuous: false,
+          replicatorType: ReplicatorType.pull,
+          heartbeat: const Duration(seconds: 30),
+          pinnedServerCertificate: pem.buffer.asUint8List(),
+        )
+          ..addCollections([counterCollection], collectionConfig)
+          ..maxAttempts = 5;
 
-      // Configure pull-only replicator for initial sync
-      _pullConfiguration = ReplicatorConfiguration(
-        target: endPoint,
-        authenticator: basicAuthenticator,
-        continuous: false,
-        replicatorType: ReplicatorType.pull,
-        heartbeat: const Duration(seconds: 30),
-        pinnedServerCertificate: pem.buffer.asUint8List(),
-      )
-        ..addCollections([counterCollection], collectionConfig)
-        ..maxAttempts = 5;
+        // Configure push-pull replicator for ongoing sync
+        _pushPullConfiguration = ReplicatorConfiguration(
+          // database: db,
+          target: endPoint,
+          authenticator: basicAuthenticator,
+          continuous: true,
+          replicatorType: ReplicatorType.pushAndPull,
+          heartbeat: const Duration(seconds: 60),
+          pinnedServerCertificate: pem.buffer.asUint8List(),
+        )
+          ..addCollections([counterCollection], collectionConfig)
+          ..maxAttempts = 10;
+      } else {
+        // https://www.couchbase.com/blog/configuration-and-secure-administration-of-couchbase-sync-gateway-3-0/
+        final basicAuthenticator = BasicAuthenticator(
+          username: "admin",
+          password: "umwana789",
+        );
 
-      // Configure push-pull replicator for ongoing sync
-      _pushPullConfiguration = ReplicatorConfiguration(
-        target: endPoint,
-        authenticator: basicAuthenticator,
-        continuous: true,
-        replicatorType: ReplicatorType.pushAndPull,
-        heartbeat: const Duration(seconds: 60),
-        pinnedServerCertificate: pem.buffer.asUint8List(),
-      )
-        ..addCollections([counterCollection], collectionConfig)
-        ..maxAttempts = 10;
+        final url = Uri(
+          scheme: 'ws',
+          host: "127.0.0.1",
+          port: 4984,
+          path: 'flipper/',
+        );
+
+        // Configure pull-only replicator for initial sync
+        _pullConfiguration = ReplicatorConfiguration(
+          target: UrlEndpoint(url),
+          authenticator: basicAuthenticator,
+          continuous: false,
+          replicatorType: ReplicatorType.pull,
+          heartbeat: const Duration(seconds: 30),
+        )
+          ..addCollections([counterCollection], collectionConfig)
+          ..maxAttempts = 5;
+
+        // Configure push-pull replicator for ongoing sync
+        _pushPullConfiguration = ReplicatorConfiguration(
+          target: UrlEndpoint(url),
+          authenticator: basicAuthenticator,
+          continuous: true,
+          replicatorType: ReplicatorType.pushAndPull,
+          heartbeat: const Duration(seconds: 60),
+        )
+          ..addCollections([counterCollection], collectionConfig)
+          ..maxAttempts = 10;
+      }
 
       if (_pullConfiguration != null) {
         _pullReplicator = await Replicator.createAsync(_pullConfiguration!);
         await _setupReplicatorListeners(_pullReplicator!, true);
+        talker.warning('pull replicator created');
       }
 
       isInitialized = true;

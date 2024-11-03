@@ -275,4 +275,9 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement switchToCloudSync
     return true;
   }
+
+  @override
+  bool? useInHouseSyncGateway() {
+    return true;
+  }
 }

@@ -60,7 +60,8 @@ class SharedPreferenceStorage implements LocalStorage {
         'customerName',
         'stopTaxService',
         'enableDebug',
-        'switchToCloudSync'
+        'switchToCloudSync',
+        'useInHouseSyncGateway',
       },
     ));
     return this;
@@ -348,9 +349,14 @@ class SharedPreferenceStorage implements LocalStorage {
   bool? enableDebug() {
     return prefs.getBool('enableDebug') ?? false;
   }
-  
+
   @override
   bool? switchToCloudSync() {
     return prefs.getBool('switchToCloudSync') ?? false;
+  }
+
+  @override
+  bool? useInHouseSyncGateway() {
+    return prefs.getBool('useInHouseSyncGateway') ?? false;
   }
 }

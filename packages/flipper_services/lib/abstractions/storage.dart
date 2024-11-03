@@ -61,4 +61,5 @@ abstract class LocalStorage {
   bool? stopTaxService();
   bool? enableDebug();
   bool? switchToCloudSync();
+  bool? useInHouseSyncGateway();
 }

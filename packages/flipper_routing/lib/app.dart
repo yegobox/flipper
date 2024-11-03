@@ -680,3 +680,14 @@ class App {}
 //   collection: ^1.16.0
 //   cupertino_icons: ^1.0.5
 //   equatable: ^2.0.5
+
+
+// curl -X PUT http://127.0.0.1:4985/flipper/ \
+//  -H "Content-Type: application/json" \
+//  -u admin:umwana789 \
+//  -d '{
+//    "bucket": "flipper",
+//    "enable_shared_bucket_access": true,
+//    "import_docs": true
+   
+//  }'
