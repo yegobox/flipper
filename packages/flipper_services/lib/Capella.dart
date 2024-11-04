@@ -116,7 +116,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
     capella = await (await DatabaseProvider(
                 ProxyService.box.encryptionKey().toStringList())
             .initialize())
-        .initDatabases();
+        .initDatabases(shouldPullData: true);
     talker.warning("CapelaDB ${capella?.flipperDatabase}");
     await initCollections();
     // init replicator for now here, it will be moved into settings later
@@ -1684,6 +1684,10 @@ class Capella with Booting implements FlipperInterfaceCapella {
 
             // Set "lastTouched" to the current time
             updatedCounterMap["lastTouched"] = DateTime.now().toIso8601String();
+
+            updatedCounterMap["channels"] = [
+              ProxyService.box.getBranchId()?.toString(),
+            ];
 
             // Write the modified map to the document
             doc.setData(updatedCounterMap);

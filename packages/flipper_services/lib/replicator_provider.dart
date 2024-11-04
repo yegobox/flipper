@@ -30,11 +30,12 @@ import 'package:flutter/services.dart';
 //     "enable_shared_bucket_access": true,
 //     "import_docs": true
 //   }'
-
+// https://docs.couchbase.com/cloud/app-services/channels/channels.html
 final class CustomConflictResolver extends ConflictResolver {
   @override
   Document resolve(Conflict conflict) {
     try {
+      talker.warning('Resolving conflict');
       // Always return remote document if local is null
       if (conflict.localDocument == null) {
         return conflict.remoteDocument!;
@@ -149,62 +150,60 @@ class ReplicatorProvider {
         throw Exception('Database is null');
       }
 
-      final pem =
-          await rootBundle.load('packages/flipper_services/assets/flipper.pem');
-
-      final url = Uri(
-        scheme: 'wss',
-        host: AppSecrets.capelaHost,
-        port: 4984,
-        path: 'admin',
-      );
-
+      // Create collection first
       final counterCollection = await db.createCollection(countersTable, scope);
 
       final collectionConfig = CollectionConfiguration(
-        channels: ['counters'],
+        channels: [ProxyService.box.getBranchId()!.toString()],
+        pullFilter: (document, flags) => true,
         conflictResolver: CustomConflictResolver(),
       );
 
-      final basicAuthenticator = BasicAuthenticator(
-        username: AppSecrets.capelaUsername,
-        password: AppSecrets.capelaPassword,
-      );
       if (!ProxyService.box.useInHouseSyncGateway()!) {
+        final pem = await rootBundle
+            .load('packages/flipper_services/assets/flipper.pem');
+
+        final url = Uri(
+          scheme: 'wss',
+          host: AppSecrets.capelaHost,
+          port: 4984,
+          path: 'admin/',
+        );
+
+        final basicAuthenticator = BasicAuthenticator(
+          username: AppSecrets.capelaUsername,
+          password: AppSecrets.capelaPassword,
+        );
+
         final endPoint = UrlEndpoint(url);
 
         // Configure pull-only replicator for initial sync
         _pullConfiguration = ReplicatorConfiguration(
-          // database: db,
           target: endPoint,
           authenticator: basicAuthenticator,
           continuous: false,
           replicatorType: ReplicatorType.pull,
           heartbeat: const Duration(seconds: 30),
           pinnedServerCertificate: pem.buffer.asUint8List(),
-        )
-          ..addCollections([counterCollection], collectionConfig)
-          ..maxAttempts = 5;
+        )..addCollections([counterCollection], collectionConfig);
+
+        // Create and start pull replicator immediately
+        _pullReplicator = await Replicator.create(_pullConfiguration!);
+        await _setupReplicatorListeners(_pullReplicator!, true);
+        await _pullReplicator!
+            .start(); // Start replicator immediately after setup
 
         // Configure push-pull replicator for ongoing sync
         _pushPullConfiguration = ReplicatorConfiguration(
-          // database: db,
           target: endPoint,
           authenticator: basicAuthenticator,
           continuous: true,
           replicatorType: ReplicatorType.pushAndPull,
           heartbeat: const Duration(seconds: 60),
           pinnedServerCertificate: pem.buffer.asUint8List(),
-        )
-          ..addCollections([counterCollection], collectionConfig)
-          ..maxAttempts = 10;
+        )..addCollections([counterCollection], collectionConfig);
       } else {
-        // https://www.couchbase.com/blog/configuration-and-secure-administration-of-couchbase-sync-gateway-3-0/
-        final basicAuthenticator = BasicAuthenticator(
-          username: "admin",
-          password: "umwana789",
-        );
-
+        // Local sync gateway configuration
         final url = Uri(
           scheme: 'ws',
           host: "127.0.0.1",
@@ -212,33 +211,32 @@ class ReplicatorProvider {
           path: 'flipper/',
         );
 
-        // Configure pull-only replicator for initial sync
+        final basicAuthenticator = BasicAuthenticator(
+          username: "admin",
+          password: "umwana789",
+        );
+
         _pullConfiguration = ReplicatorConfiguration(
           target: UrlEndpoint(url),
           authenticator: basicAuthenticator,
           continuous: false,
           replicatorType: ReplicatorType.pull,
           heartbeat: const Duration(seconds: 30),
-        )
-          ..addCollections([counterCollection], collectionConfig)
-          ..maxAttempts = 5;
+        )..addCollections([counterCollection], collectionConfig);
 
-        // Configure push-pull replicator for ongoing sync
+        // Create and start pull replicator immediately
+        _pullReplicator = await Replicator.create(_pullConfiguration!);
+        await _setupReplicatorListeners(_pullReplicator!, true);
+        await _pullReplicator!
+            .start(); // Start replicator immediately after setup
+
         _pushPullConfiguration = ReplicatorConfiguration(
           target: UrlEndpoint(url),
           authenticator: basicAuthenticator,
           continuous: true,
           replicatorType: ReplicatorType.pushAndPull,
           heartbeat: const Duration(seconds: 60),
-        )
-          ..addCollections([counterCollection], collectionConfig)
-          ..maxAttempts = 10;
-      }
-
-      if (_pullConfiguration != null) {
-        _pullReplicator = await Replicator.createAsync(_pullConfiguration!);
-        await _setupReplicatorListeners(_pullReplicator!, true);
-        talker.warning('pull replicator created');
+        )..addCollections([counterCollection], collectionConfig);
       }
 
       isInitialized = true;
@@ -255,30 +253,26 @@ class ReplicatorProvider {
 
   Future<void> _setupReplicatorListeners(
       Replicator replicator, bool isPullOnly) async {
-    statusChangedToken = await replicator.addChangeListener((change) {
-      _replicatorStatus = change.status;
-      debugPrint(
-          '${DateTime.now()} [ReplicatorProvider] status changed: ${change.status.activity}');
+    await replicator.addChangeListener((change) {
+      debugPrint('Replicator status changed: ${change.status.activity}');
 
-      if (isPullOnly &&
-          change.status.activity == ReplicatorActivityLevel.stopped) {
-        _handleInitialSyncComplete();
+      if (change.status.activity == ReplicatorActivityLevel.stopped) {
+        if (isPullOnly && !_initialSyncComplete) {
+          _handleInitialSyncComplete();
+        }
       }
 
       if (change.status.error != null) {
-        debugPrint(
-            '${DateTime.now()} [ReplicatorProvider] error: ${change.status.error}');
+        talker.error('Replication error: ${change.status.error}');
       }
     });
 
-    documentReplicationToken =
-        await replicator.addDocumentReplicationListener((replication) {
-      debugPrint(
-          '${DateTime.now()} [ReplicatorProvider] documents replicated: ${replication.documents.length}');
+    await replicator.addDocumentReplicationListener((replication) {
+      talker.warning('Documents replicated: ${replication.documents.length}');
       for (var doc in replication.documents) {
+        talker.info('Replicated document: ${doc.id}');
         if (doc.error != null) {
-          debugPrint(
-              '${DateTime.now()} [ReplicatorProvider] document error: ${doc.error}');
+          talker.error('Document replication error: ${doc.error}');
         }
       }
     });
@@ -295,8 +289,7 @@ class ReplicatorProvider {
 
       // Set up and start push-pull replicator
       if (_pushPullConfiguration != null) {
-        _pushPullReplicator =
-            await Replicator.createAsync(_pushPullConfiguration!);
+        _pushPullReplicator = await Replicator.create(_pushPullConfiguration!);
         await _setupReplicatorListeners(_pushPullReplicator!, false);
         await _pushPullReplicator!.start();
       }

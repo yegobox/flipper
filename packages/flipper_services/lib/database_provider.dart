@@ -43,22 +43,108 @@ class DatabaseProvider {
       if (!isInitialized) {
         isInitialized = true;
 
-        // Initialize in sequence to ensure proper setup
         await setupFileSystem();
         await CouchbaseLiteFlutter.init();
         await _setupCouchbaseLogging();
-        await initDatabases(); // Auto-initialize databases
+
+        // Check if database exists
+        bool databaseExists =
+            await File('${cblDatabaseDirectory.path}/$dbName.cblite2').exists();
+
+        if (!databaseExists) {
+          talker.warning('Database does not exist, creating new one');
+          // If database doesn't exist, we'll create it and then pull data
+          await initDatabases(shouldPullData: true);
+        } else {
+          talker.warning('Database exists, opening existing one');
+          await initDatabases(shouldPullData: false);
+        }
 
         debugPrint(
             '${DateTime.now()} [DatabaseProvider] info: Successfully initialized DatabaseProvider');
       }
       return this;
     } catch (e, stackTrace) {
-      isInitialized = false; // Reset flag on failure
+      isInitialized = false;
       debugPrint(
           '${DateTime.now()} [DatabaseProvider] error: Initialization failed: $e');
       debugPrint('Stack trace: $stackTrace');
       throw DatabaseException('Failed to initialize DatabaseProvider: $e');
+    }
+  }
+
+  Future<DatabaseProvider> initDatabases({required bool shouldPullData}) async {
+    if (flipperDatabase != null) {
+      debugPrint(
+          '${DateTime.now()} [DatabaseProvider] info: Database already initialized');
+      return this;
+    }
+
+    try {
+      debugPrint(
+          '${DateTime.now()} [DatabaseProvider] info: Initializing database');
+
+      final dbConfig = DatabaseConfiguration(
+        directory: cblDatabaseDirectory.path,
+      );
+
+      // Open or create the database
+      flipperDatabase = await Database.openAsync(dbName, dbConfig);
+
+      if (flipperDatabase == null) {
+        throw DatabaseException(
+            'Failed to open database: null database instance');
+      }
+
+      // Create collections after database is opened
+      await _createCollections();
+
+      if (shouldPullData) {
+        talker.warning('New database created, initiating pull from server');
+        // Notify that we need to pull data
+        // You'll need to implement this event bus or callback mechanism
+        // to trigger replication in your ReplicatorProvider
+        await _triggerInitialPull();
+      }
+
+      debugPrint(
+          '${DateTime.now()} [DatabaseProvider] info: Database initialized successfully');
+    } catch (e, stackTrace) {
+      debugPrint(
+          '${DateTime.now()} [DatabaseProvider] error: Failed to initialize database: $e');
+      debugPrint('Stack trace: $stackTrace');
+      await _handleDatabaseError(e);
+      throw DatabaseException('Failed to initialize database: $e');
+    }
+    return this;
+  }
+
+  Future<void> _createCollections() async {
+    try {
+      final db = flipperDatabase;
+      if (db != null) {
+        // Create your collections here
+        await db.createCollection('counters', 'user_data');
+        // Add other collections as needed
+      }
+    } catch (e) {
+      debugPrint('Error creating collections: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> _triggerInitialPull() async {
+    try {
+      // Implement your method to trigger initial pull
+      // This could be through an event bus, stream controller, or callback
+      // Example using a stream controller:
+      // pullDataStreamController.add(true);
+
+      // For now, we'll just log it
+      talker.warning('Triggered initial pull from server');
+    } catch (e) {
+      debugPrint('Error triggering initial pull: $e');
+      rethrow;
     }
   }
 
@@ -91,45 +177,6 @@ class DatabaseProvider {
     } catch (e) {
       throw DatabaseException('Failed to setup file system: $e');
     }
-  }
-
-  Future<DatabaseProvider> initDatabases() async {
-    if (flipperDatabase != null) {
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] info: Database already initialized');
-      return this;
-    }
-
-    try {
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] info: Initializing database');
-      // encryption is available for entreprise
-      // final encryptionKey = await _getEncryptionKey();
-      final dbConfig = DatabaseConfiguration(
-        directory: cblDatabaseDirectory.path,
-        // encryptionKey: encryptionKey, // Optional: Add encryption
-      );
-
-      flipperDatabase = await Database.openAsync(dbName, dbConfig);
-
-      // Verify database is operational
-      if (flipperDatabase == null) {
-        throw DatabaseException(
-            'Failed to open database: null database instance');
-      }
-
-      await _performDatabaseMigrationIfNeeded(); // Optional: Handle migrations
-
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] info: Database initialized successfully');
-    } catch (e, stackTrace) {
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] error: Failed to initialize database: $e');
-      debugPrint('Stack trace: $stackTrace');
-      await _handleDatabaseError(e);
-      throw DatabaseException('Failed to initialize database: $e');
-    }
-    return this;
   }
 
   Future<void> closeDatabases() async {
