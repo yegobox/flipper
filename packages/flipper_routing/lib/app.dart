@@ -691,3 +691,9 @@ class App {}
 //    "import_docs": true
    
 //  }'
+
+
+// 
+
+// https://cloudapi.cloud.couchbase.com/v4/organizations/{organizationId}/projects/{projectId}/clusters/{clusterId}/buckets/{bucketId}/scopes
+

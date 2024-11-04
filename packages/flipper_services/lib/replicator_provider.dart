@@ -149,6 +149,8 @@ class ReplicatorProvider {
       if (db == null) {
         throw Exception('Database is null');
       }
+      // Create the conflict resolver
+      final conflictResolver = CustomConflictResolver();
 
       // Create collection first
       final counterCollection = await db.createCollection(countersTable, scope);
@@ -156,7 +158,7 @@ class ReplicatorProvider {
       final collectionConfig = CollectionConfiguration(
         channels: [ProxyService.box.getBranchId()!.toString()],
         pullFilter: (document, flags) => true,
-        conflictResolver: CustomConflictResolver(),
+        conflictResolver: conflictResolver,
       );
 
       if (!ProxyService.box.useInHouseSyncGateway()!) {
@@ -167,7 +169,7 @@ class ReplicatorProvider {
           scheme: 'wss',
           host: AppSecrets.capelaHost,
           port: 4984,
-          path: 'admin/',
+          path: 'flipper/',
         );
 
         final basicAuthenticator = BasicAuthenticator(
@@ -254,7 +256,8 @@ class ReplicatorProvider {
   Future<void> _setupReplicatorListeners(
       Replicator replicator, bool isPullOnly) async {
     await replicator.addChangeListener((change) {
-      debugPrint('Replicator status changed: ${change.status.activity}');
+      talker.debug('Replicator status changed: ${change.status.activity}');
+      talker.debug('Replicator status details: ${change.status}');
 
       if (change.status.activity == ReplicatorActivityLevel.stopped) {
         if (isPullOnly && !_initialSyncComplete) {
@@ -263,19 +266,93 @@ class ReplicatorProvider {
       }
 
       if (change.status.error != null) {
-        talker.error('Replication error: ${change.status.error}');
+        talker.error('Replication error detected:');
+        talker.error('Error details: ${change.status.error}');
+        talker.error('Error domain: ${change.status.error}');
+        talker.error('Error code: ${change.status.error}');
       }
     });
 
     await replicator.addDocumentReplicationListener((replication) {
-      talker.warning('Documents replicated: ${replication.documents.length}');
+      talker.debug('Document replication event triggered');
+
       for (var doc in replication.documents) {
-        talker.info('Replicated document: ${doc.id}');
+        talker.debug('Replicating document: ${doc.id}');
+
+        // Check for conflict error code specifically
         if (doc.error != null) {
-          talker.error('Document replication error: ${doc.error}');
+          talker.error('Document error found:');
+          talker.error('Error code: ${doc.error}');
+          talker.error('Error domain: ${doc.error}');
+          talker.error('Error message: ${doc.error}');
+
+          // Add explicit conflict check
+          if (doc.error.toString().contains('conflict') ||
+              doc.error.toString().contains('409')) {
+            talker.warning('Potential conflict detected for doc: ${doc.id}');
+            _handlePotentialConflict(doc.id);
+          }
         }
       }
     });
+  }
+
+  Future<void> _handlePotentialConflict(String documentId) async {
+    try {
+      final db = databaseProvider.flipperDatabase;
+      if (db == null) return;
+
+      final collection = await db.collection(countersTable, scope);
+      if (collection == null) return;
+
+      final doc = await collection.document(documentId);
+      if (doc == null) return;
+
+      talker.warning('Checking document for conflicts: $documentId');
+
+      // Get current revision
+      // final currentRev = await doc.revisionID;
+      // talker.debug('Current revision: $currentRev');
+
+      // // Try to force conflict resolution
+      // final mutableDoc = doc.toMutable();
+      // final currentData = doc.toPlainMap();
+
+      // // Add a timestamp to force a change
+      // currentData['_conflictCheck'] = DateTime.now().millisecondsSinceEpoch;
+      // mutableDoc.setData(currentData);
+
+      // try {
+      //   await collection.save(mutableDoc);
+      //   talker.debug('Successfully saved document after conflict check');
+      // } catch (saveError) {
+      //   talker.error('Error saving document during conflict check: $saveError');
+
+      //   // If we get here, there might be a conflict that needs manual resolution
+      //   if (saveError.toString().contains('conflict')) {
+      //     talker.warning('Confirmed conflict during save, attempting manual resolution');
+
+      //     // Create a conflict object manually if needed
+      //     final remoteDoc = await collection.document(documentId);
+      //     if (remoteDoc != null) {
+      //       final conflict = Conflict(
+      //         documentID: documentId,
+      //         localDocument: doc,
+      //         remoteDocument: remoteDoc,
+      //       );
+
+      //       // Try resolving manually
+      //       final resolvedDoc = conflictResolver.resolve(conflict);
+      //       if (resolvedDoc != null) {
+      //         await collection.save(resolvedDoc.toMutable());
+      //         talker.debug('Manually resolved conflict for document: $documentId');
+      //       }
+      //     }
+      //   }
+      // }
+    } catch (e) {
+      talker.error('Error handling potential conflict: $e');
+    }
   }
 
   Future<void> _handleInitialSyncComplete() async {
