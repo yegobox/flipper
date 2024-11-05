@@ -99,14 +99,6 @@ class DatabaseProvider {
       // Create collections after database is opened
       await _createCollections();
 
-      if (shouldPullData) {
-        talker.warning('New database created, initiating pull from server');
-        // Notify that we need to pull data
-        // You'll need to implement this event bus or callback mechanism
-        // to trigger replication in your ReplicatorProvider
-        await _triggerInitialPull();
-      }
-
       debugPrint(
           '${DateTime.now()} [DatabaseProvider] info: Database initialized successfully');
     } catch (e, stackTrace) {
@@ -129,21 +121,6 @@ class DatabaseProvider {
       }
     } catch (e) {
       debugPrint('Error creating collections: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> _triggerInitialPull() async {
-    try {
-      // Implement your method to trigger initial pull
-      // This could be through an event bus, stream controller, or callback
-      // Example using a stream controller:
-      // pullDataStreamController.add(true);
-
-      // For now, we'll just log it
-      talker.warning('Triggered initial pull from server');
-    } catch (e) {
-      debugPrint('Error triggering initial pull: $e');
       rethrow;
     }
   }

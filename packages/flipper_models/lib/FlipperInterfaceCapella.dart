@@ -23,7 +23,7 @@ import 'package:cbl/src/database/collection.dart'
 
 enum ClearData { Business, Branch }
 
-enum SyncProvider { FIRESTORE, POWERSYNC }
+enum SyncProvider { FIRESTORE, POWERSYNC, SUPABASE }
 
 abstract class DataMigratorToLocal {
   Future<DataMigratorToLocal> configure(
@@ -51,7 +51,8 @@ abstract class FlipperInterfaceCapella {
   Future<List<Product>> products({required int branchId});
   Future<void> startReplicator();
 
-  void now<T>(String tableName, T data, {bool? useNewImplementation = false});
+  void replicateData<T>(String tableName, T data,
+      {bool? useNewImplementation = false});
   Future<void> processbatchBackUp<T extends realmO.RealmObject>(List<T> batch);
   Future<bool> firebaseLogin({String? token});
   void cancelWatch({required String tableName});
@@ -81,7 +82,7 @@ abstract class FlipperInterfaceCapella {
     required String idField,
     required Map<String, dynamic> map,
     required int id,
-    required SyncProvider syncProvider,
+    required List<SyncProvider> syncProviders,
   });
 
   Future<void> watchTable<T extends realmO.RealmObject>({

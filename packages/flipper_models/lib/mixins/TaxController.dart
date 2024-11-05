@@ -266,7 +266,7 @@ class TaxController<OBJ> {
                 await ProxyService.capela.getCountersCollection();
 
             countersCollection.saveDocument(counter);
-            ProxyService.backUp.now(countersTable, counter);
+            ProxyService.backUp.replicateData(countersTable, counter);
           });
 
       /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
@@ -303,7 +303,7 @@ class TaxController<OBJ> {
             return transaction;
           },
           onAdd: (data) {
-            ProxyService.backUp.now(transactionTable, data);
+            ProxyService.backUp.replicateData(transactionTable, data);
           },
         );
 

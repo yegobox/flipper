@@ -59,8 +59,21 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
         emitFailure();
       }
     } catch (e) {
-      purchaseCode
-          .addFieldError('Timeout or internal server error, try again!');
+      // Extract only the specific part of the error message
+      final errorMessage = e.toString();
+      final regex =
+          RegExp(r"size must be between 6 and 6\. rejected value: '(\d+)'");
+      final match = regex.firstMatch(errorMessage);
+
+      if (match != null) {
+        // Capture the exact part you want
+        final capturedMessage =
+            "size must be between 6 and 6. rejected value: '${match.group(1)}'";
+        purchaseCode.addFieldError(capturedMessage);
+      } else {
+        // If the message format doesn't match, you may still want to log the whole error
+        purchaseCode.addFieldError("Unexpected error: ${errorMessage}");
+      }
       emitFailure(failureResponse: 'An error occurred. Please try again.');
     }
   }

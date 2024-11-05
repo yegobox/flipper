@@ -156,7 +156,9 @@ class ReplicatorProvider {
       final counterCollection = await db.createCollection(countersTable, scope);
 
       final collectionConfig = CollectionConfiguration(
-        channels: [ProxyService.box.getBranchId()!.toString()],
+        channels: [
+          "default",
+          ProxyService.box.getBranchId()!.toString()],
         pullFilter: (document, flags) => true,
         conflictResolver: conflictResolver,
       );
@@ -185,7 +187,7 @@ class ReplicatorProvider {
           authenticator: basicAuthenticator,
           continuous: false,
           replicatorType: ReplicatorType.pull,
-          heartbeat: const Duration(seconds: 30),
+          heartbeat: const Duration(seconds: 1),
           pinnedServerCertificate: pem.buffer.asUint8List(),
         )..addCollections([counterCollection], collectionConfig);
 
@@ -201,7 +203,7 @@ class ReplicatorProvider {
           authenticator: basicAuthenticator,
           continuous: true,
           replicatorType: ReplicatorType.pushAndPull,
-          heartbeat: const Duration(seconds: 60),
+          heartbeat: const Duration(seconds: 10),
           pinnedServerCertificate: pem.buffer.asUint8List(),
         )..addCollections([counterCollection], collectionConfig);
       } else {
@@ -283,8 +285,6 @@ class ReplicatorProvider {
         if (doc.error != null) {
           talker.error('Document error found:');
           talker.error('Error code: ${doc.error}');
-          talker.error('Error domain: ${doc.error}');
-          talker.error('Error message: ${doc.error}');
 
           // Add explicit conflict check
           if (doc.error.toString().contains('conflict') ||

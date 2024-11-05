@@ -113,7 +113,8 @@ class _RefundState extends State<Refund> {
                                 return stock;
                               },
                               onAdd: (data) {
-                                ProxyService.backUp.now(stocksTable, data);
+                                ProxyService.backUp
+                                    .replicateData(stocksTable, data);
                               },
                             );
 
@@ -124,7 +125,8 @@ class _RefundState extends State<Refund> {
                                 return variant;
                               },
                               onAdd: (data) {
-                                ProxyService.backUp.now(variantTable, data);
+                                ProxyService.backUp
+                                    .replicateData(variantTable, data);
                               },
                             );
 
@@ -135,7 +137,8 @@ class _RefundState extends State<Refund> {
                                 return widget.transaction;
                               },
                               onAdd: (data) {
-                                ProxyService.backUp.now(transactionTable, data);
+                                ProxyService.backUp
+                                    .replicateData(transactionTable, data);
                               },
                             );
                           }

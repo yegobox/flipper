@@ -120,14 +120,14 @@
 // /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 // /// anotherone to acheive sync for flipper app
 
-// class CloudSync extends SupabaseImpl implements SyncInterface {
+// class FirestoreSync extends SupabaseImpl implements SyncInterface {
 //   final Map<String, StreamSubscription<QuerySnapshot>> _subscriptions = {};
 
 //   final FirebaseFirestore? _firestore;
 //   final RealmApiInterface _realm;
 //   final Set<int> _processingIds = {};
 
-//   CloudSync(this._firestore, this._realm, {SupabaseClient? client})
+//   FirestoreSync(this._firestore, this._realm, {SupabaseClient? client})
 //       : super(client: client);
 //   @override
 //   Future<void> deleteDuplicate({required String tableName}) async {

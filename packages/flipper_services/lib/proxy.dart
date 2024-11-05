@@ -1,9 +1,10 @@
+import 'package:flipper_models/BricksSync.dart';
 import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/FlipperInterface.dart';
-import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/Capella.dart';
@@ -85,14 +86,20 @@ final FlipperInterface _localRealm = getIt<FlipperInterface>();
 abstract class ProxyService {
   static final FlipperInterfaceCapella _capela =
       getIt<FlipperInterfaceCapella>(instanceName: 'capella');
+
+  static final FlipperInterfaceCapella _bricks = getIt<FlipperInterfaceCapella>(instanceName: 'bricks');
+
   static final FlipperInterfaceCapella _synchronize =
       getIt<FlipperInterfaceCapella>(instanceName: 'backup');
+
   static final SyncStrategy _strategy =
       getIt<SyncStrategy>(instanceName: 'strategy');
 
   static FlipperInterfaceCapella get backUp => _synchronize;
   static FlipperInterfaceCapella get capela => _capela;
   static FlipperInterface get local => _localRealm;
+  
+  static FlipperInterfaceCapella get bricks => _bricks;
 
   static FlipperInterfaceCapella get strategy => _strategy.current;
   static void setStrategy(Strategy strategy) => _strategy.setStrategy(strategy);

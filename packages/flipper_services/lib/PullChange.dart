@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:firestore_models/all.dart' as odm;
@@ -13,7 +13,7 @@ import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PullChange {
-  CloudSync? cloudSync;
+  FirestoreSync? cloudSync;
   int? branchId;
   int? businessId;
   int? userId;
@@ -26,7 +26,7 @@ class PullChange {
     required int muserId,
     String? tableName,
   }) async {
-    cloudSync = CloudSync(firestore, realm: localRealm);
+    cloudSync = FirestoreSync(firestore, realm: localRealm);
     branchId = mbranchId;
     businessId = mbusinessId;
     userId = muserId;
@@ -49,7 +49,7 @@ class PullChange {
     required int muserId,
     String? tableName,
   }) async {
-    cloudSync = CloudSync(firestore, realm: localRealm);
+    cloudSync = FirestoreSync(firestore, realm: localRealm);
     branchId = mbranchId;
     businessId = mbusinessId;
     userId = muserId;

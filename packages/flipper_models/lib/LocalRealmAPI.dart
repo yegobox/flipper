@@ -7,7 +7,7 @@ import 'package:cbl/cbl.dart'
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/DownloadQueue.dart';
 import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -2710,7 +2710,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           return item;
         },
         onAdd: (data) {
-          ProxyService.backUp.now(transactionItemsTable, data);
+          ProxyService.backUp.replicateData(transactionItemsTable, data);
         },
       );
     }
@@ -2733,7 +2733,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         return stockRequest;
       },
       onAdd: (data) {
-        ProxyService.backUp.now(stockRequestsTable, data);
+        ProxyService.backUp.replicateData(stockRequestsTable, data);
       },
     );
     return orderId;
@@ -2758,7 +2758,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           return stock;
         },
         onAdd: (data) {
-          ProxyService.backUp.now(stocksTable, data);
+          ProxyService.backUp.replicateData(stocksTable, data);
         },
       );
     }
@@ -3207,7 +3207,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
               return stock;
             },
             onAdd: (data) {
-              ProxyService.backUp.now(stocksTable, data);
+              ProxyService.backUp.replicateData(stocksTable, data);
             },
           );
           realm!.writeN(
@@ -3219,7 +3219,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
               return item;
             },
             onAdd: (data) {
-              ProxyService.backUp.now(transactionItemsTable, data);
+              ProxyService.backUp.replicateData(transactionItemsTable, data);
             },
           );
 
@@ -3235,7 +3235,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                 return variant;
               },
               onAdd: (data) {
-                ProxyService.backUp.now(variantTable, data);
+                ProxyService.backUp.replicateData(variantTable, data);
               },
             );
           }
@@ -3444,7 +3444,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           }
         },
         onAdd: (data) {
-          ProxyService.backUp.now(receiptsTable, data);
+          ProxyService.backUp.replicateData(receiptsTable, data);
         },
       );
 
@@ -4904,7 +4904,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       },
       onAdd: (data) {
         for (Counter counter in data) {
-          ProxyService.backUp.now(countersTable, counter);
+          ProxyService.backUp.replicateData(countersTable, counter);
         }
       },
     );
@@ -4938,7 +4938,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           return savedPin!;
         },
         onAdd: (data) {
-          ProxyService.backUp.now(pinsTable, data);
+          ProxyService.backUp.replicateData(pinsTable, data);
         },
       );
       return savedPin!;
@@ -4982,23 +4982,23 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
     try {
       clearVariants();
       final firestore = FirebaseFirestore.instance;
-      CloudSync(firestore, realm: realm!)
+      FirestoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: productsTable);
-      CloudSync(firestore, realm: realm!)
+      FirestoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: variantTable);
-      CloudSync(firestore, realm: realm!)
+      FirestoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: stocksTable);
-      CloudSync(firestore, realm: realm!)
+      FirestoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: transactionItemsTable);
-      CloudSync(firestore, realm: realm!)
+      FirestoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: stockRequestsTable);
-      CloudSync(firestore, realm: realm!)
+      FirestoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: accessesTable);
-      CloudSync(firestore, realm: realm!)
+      FirestoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: transactionItemsTable);
-      CloudSync(firestore, realm: realm!)
+      FirestoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: assetsTable);
-      CloudSync(firestore, realm: realm!)
+      FirestoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: categoriesTable);
 
       /// get all Products
@@ -5012,11 +5012,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         }
 
         ProxyService.backUp.updateRecord(
-            tableName: productsTable,
-            idField: "${productsTable.singularize()}_id",
-            map: product.toEJson().toFlipperJson(),
-            id: product.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: productsTable,
+          idField: "${productsTable.singularize()}_id",
+          map: product.toEJson().toFlipperJson(),
+          id: product.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
       List<Assets> assets = realm!.all<Assets>().toList();
       for (Assets asset in assets) {
@@ -5027,11 +5028,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           continue;
         }
         ProxyService.backUp.updateRecord(
-            tableName: assetsTable,
-            idField: "${assetsTable.singularize()}_id",
-            map: asset.toEJson().toFlipperJson(),
-            id: asset.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: assetsTable,
+          idField: "${assetsTable.singularize()}_id",
+          map: asset.toEJson().toFlipperJson(),
+          id: asset.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
 
       List<Variant> variants = realm!.all<Variant>().toList();
@@ -5044,11 +5046,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         }
         ;
         ProxyService.backUp.updateRecord(
-            tableName: variantTable,
-            idField: "${variantTable.singularize()}_id",
-            map: variant.toEJson().toFlipperJson(),
-            id: variant.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: variantTable,
+          idField: "${variantTable.singularize()}_id",
+          map: variant.toEJson().toFlipperJson(),
+          id: variant.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
 
       List<Stock> stocks = realm!.all<Stock>().toList();
@@ -5061,11 +5064,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         }
 
         ProxyService.backUp.updateRecord(
-            tableName: stocksTable,
-            idField: "${stocksTable.singularize()}_id",
-            map: stock.toEJson(includeVariant: true).toFlipperJson(),
-            id: stock.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: stocksTable,
+          idField: "${stocksTable.singularize()}_id",
+          map: stock.toEJson(includeVariant: true).toFlipperJson(),
+          id: stock.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
 
       List<TransactionItem> items = realm!.all<TransactionItem>().toList();
@@ -5078,11 +5082,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         }
 
         ProxyService.backUp.updateRecord(
-            tableName: transactionItemsTable,
-            idField: "${transactionItemsTable.singularize()}_id",
-            map: item.toEJson().toFlipperJson(),
-            id: item.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: transactionItemsTable,
+          idField: "${transactionItemsTable.singularize()}_id",
+          map: item.toEJson().toFlipperJson(),
+          id: item.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
 
       List<Access> accesses = realm!.all<Access>().toList();
@@ -5094,11 +5099,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           continue;
         }
         ProxyService.backUp.updateRecord(
-            tableName: accessesTable,
-            idField: "${accessesTable.singularize()}_id",
-            map: access.toEJson().toFlipperJson(),
-            id: access.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: accessesTable,
+          idField: "${accessesTable.singularize()}_id",
+          map: access.toEJson().toFlipperJson(),
+          id: access.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
       List<StockRequest> requests = realm!.all<StockRequest>().toList();
       for (StockRequest request in requests) {
@@ -5109,11 +5115,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           continue;
         }
         ProxyService.backUp.updateRecord(
-            tableName: stockRequestsTable,
-            idField: "${stockRequestsTable.singularize()}_id",
-            map: request.toEJson().toFlipperJson(),
-            id: request.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: stockRequestsTable,
+          idField: "${stockRequestsTable.singularize()}_id",
+          map: request.toEJson().toFlipperJson(),
+          id: request.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
 
       /// done upserting
@@ -5213,7 +5220,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                       return variant;
                     },
                     onAdd: (data) {
-                      ProxyService.backUp.now(variantTable, data);
+                      ProxyService.backUp.replicateData(variantTable, data);
                     },
                   );
                 }
@@ -5231,7 +5238,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                       return stock;
                     },
                     onAdd: (data) {
-                      ProxyService.backUp.now(stocksTable, data);
+                      ProxyService.backUp.replicateData(stocksTable, data);
                     },
                   );
                 }
@@ -5249,7 +5256,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                       return customer;
                     },
                     onAdd: (data) {
-                      ProxyService.backUp.now(customersTable, data);
+                      ProxyService.backUp.replicateData(customersTable, data);
                     },
                   );
                 }
@@ -5268,7 +5275,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                       return transaction;
                     },
                     onAdd: (data) {
-                      ProxyService.backUp.now(transactionTable, data);
+                      ProxyService.backUp.replicateData(transactionTable, data);
                     },
                   );
                 }
@@ -5395,7 +5402,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           return transaction;
         },
         onAdd: (data) {
-          ProxyService.backUp.now(transactionTable, data);
+          ProxyService.backUp.replicateData(transactionTable, data);
         });
   }
 }

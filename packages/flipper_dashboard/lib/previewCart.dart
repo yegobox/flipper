@@ -164,7 +164,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
           return transaction;
         },
         onAdd: (data) {
-          ProxyService.backUp.now(transactionTable, data);
+          ProxyService.backUp.replicateData(transactionTable, data);
         },
       );
     } catch (e) {
@@ -223,7 +223,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
           onComplete: completeTransaction,
           discount: discount,
         );
-      } else if (customer != null) {
+      } else if (state && customer != null) {
         await additionalInformationIsRequiredToCompleteTransaction(
           amount: amount,
           onComplete: completeTransaction,
@@ -416,6 +416,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                       onPressed: () {
+                        ref.read(loadingProvider.notifier).stopLoading();
                         ref
                             .read(isProcessingProvider.notifier)
                             .stopProcessing();

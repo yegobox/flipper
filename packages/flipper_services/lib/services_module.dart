@@ -1,5 +1,6 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/BricksSync.dart';
+import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/Supabase.dart';
@@ -68,7 +69,13 @@ abstract class ServicesModule {
   @LazySingleton()
   @Named('backup')
   FlipperInterfaceCapella provideSyncInterface(FirebaseFirestore firestore) {
-    return CloudSync(firestore);
+    return FirestoreSync(firestore);
+  }
+
+  @LazySingleton()
+  @Named('bricks')
+  FlipperInterfaceCapella provideBricksSync() {
+    return BricksSync();
   }
 
   @preResolve
@@ -83,7 +90,7 @@ abstract class ServicesModule {
         useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
       );
     } else {
-      return CloudSync(firestore);
+      return FirestoreSync(firestore);
     }
   }
 
@@ -96,7 +103,8 @@ abstract class ServicesModule {
   ) {
     return SyncStrategy(
       capella: capella as Capella,
-      cloudSync: backup as CloudSync,
+      cloudSync: backup as FirestoreSync,
+      bricksSync: backup as BricksSync,
     );
   }
 

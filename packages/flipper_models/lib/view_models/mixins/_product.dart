@@ -93,7 +93,7 @@ mixin ProductMixin {
           },
           onAdd: (data) {
             for (var item in data) {
-              ProxyService.backUp.now(variantTable, item);
+              ProxyService.backUp.replicateData(variantTable, item);
             }
           });
     } catch (e, s) {
@@ -162,7 +162,7 @@ mixin ProductMixin {
         return mproduct;
       },
       onAdd: (data) {
-        ProxyService.backUp.now(productsTable, data);
+        ProxyService.backUp.replicateData(productsTable, data);
       },
     );
 

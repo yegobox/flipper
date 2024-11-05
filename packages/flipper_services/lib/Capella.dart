@@ -91,19 +91,20 @@ class Capella with Booting implements FlipperInterfaceCapella {
     _setApiEndpoints();
 
     /// create databse indexes
-    final collection = await capella?.flipperDatabase?.defaultCollection;
-
+    // final collection = await capella?.flipperDatabase?.defaultCollection;
     /// end of creation of indexes
-    final config = ValueIndexConfiguration(['branchId', 'receiptType']);
-    await collection!.createIndex('branchIdReceiptType', config);
+    // final config = ValueIndexConfiguration(['branchId', 'receiptType']);
+    // await collection!.createIndex('branchIdReceiptType', config);
     branchCollection =
-        await capella?.flipperDatabase?.createCollection('branches');
+        await capella?.flipperDatabase?.createCollection(branchesTable, scope);
 
-    businessCollection =
-        await capella?.flipperDatabase?.createCollection('businesses');
+    businessCollection = await capella?.flipperDatabase
+        ?.createCollection(businessesTable, scope);
 
     accessCollection =
-        await capella?.flipperDatabase?.createCollection('accesses');
+        await capella?.flipperDatabase?.createCollection(accessesTable, scope);
+
+    await capella?.flipperDatabase?.createCollection(countersTable, scope);
 
     // init replicator
   }
@@ -1719,7 +1720,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
               await collection.saveDocument(doc);
             }
             // update firestore
-            ProxyService.backUp.now(
+            ProxyService.backUp.replicateData(
               countersTable,
               Counter.fromJson(doc.toPlainMap()),
               useNewImplementation: true,
@@ -1818,7 +1819,8 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  void now<T>(String tableName, T data, {bool? useNewImplementation = false}) {
+  void replicateData<T>(String tableName, T data,
+      {bool? useNewImplementation = false}) {
     // TODO: implement now
   }
 
@@ -1834,7 +1836,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
       required String idField,
       required Map<String, dynamic> map,
       required int id,
-      required SyncProvider syncProvider}) {
+      required List<SyncProvider> syncProviders}) {
     // TODO: implement updateRecord
     throw UnimplementedError();
   }
