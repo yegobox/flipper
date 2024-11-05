@@ -54,10 +54,10 @@ class DatabaseProvider {
         if (!databaseExists) {
           talker.warning('Database does not exist, creating new one');
           // If database doesn't exist, we'll create it and then pull data
-          await initDatabases(shouldPullData: true);
+          await initDatabases();
         } else {
           talker.warning('Database exists, opening existing one');
-          await initDatabases(shouldPullData: false);
+          await initDatabases();
         }
 
         debugPrint(
@@ -73,7 +73,7 @@ class DatabaseProvider {
     }
   }
 
-  Future<DatabaseProvider> initDatabases({required bool shouldPullData}) async {
+  Future<DatabaseProvider> initDatabases() async {
     if (flipperDatabase != null) {
       debugPrint(
           '${DateTime.now()} [DatabaseProvider] info: Database already initialized');

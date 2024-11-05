@@ -117,7 +117,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
     capella = await (await DatabaseProvider(
                 ProxyService.box.encryptionKey().toStringList())
             .initialize())
-        .initDatabases(shouldPullData: true);
+        .initDatabases();
     talker.warning("CapelaDB ${capella?.flipperDatabase}");
     await initCollections();
     // init replicator for now here, it will be moved into settings later

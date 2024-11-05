@@ -1,56 +1,27 @@
 import 'dart:isolate';
-
-import 'dart:typed_data';
-
-import 'package:cbl/src/database/collection.dart';
-import 'package:firestore_models/accesses.dart';
-import 'package:firestore_models/activity.dart';
-import 'package:firestore_models/all.dart';
-import 'package:firestore_models/app_notification.dart';
-import 'package:firestore_models/assets.dart';
-import 'package:firestore_models/branch.dart';
-import 'package:firestore_models/business.dart';
-import 'package:firestore_models/category.dart';
-import 'package:firestore_models/composite.dart';
-import 'package:firestore_models/configurations.dart';
-import 'package:firestore_models/counter.dart';
-import 'package:firestore_models/customer.dart';
-import 'package:firestore_models/device.dart';
-import 'package:firestore_models/drawers.dart';
-import 'package:firestore_models/ebm.dart';
-import 'package:firestore_models/favorite.dart';
-import 'package:firestore_models/flipper_sale_compaign.dart';
-import 'package:firestore_models/i_unit.dart';
-import 'package:firestore_models/l_permission.dart';
-import 'package:firestore_models/payment_plan.dart';
-import 'package:firestore_models/pcolor.dart';
-import 'package:firestore_models/pin.dart';
-import 'package:firestore_models/product.dart';
-import 'package:firestore_models/receipt.dart';
-import 'package:firestore_models/report.dart';
-import 'package:firestore_models/setting.dart';
-import 'package:firestore_models/sku.dart';
-import 'package:firestore_models/stock.dart';
-import 'package:firestore_models/tenant.dart';
 import 'package:firestore_models/transaction.dart';
-import 'package:firestore_models/transaction_payment_record.dart';
-import 'package:firestore_models/universal_product.dart';
-import 'package:firestore_models/variant.dart';
-import 'package:firestore_models/voucher.dart';
-import 'package:flipper_models/FlipperInterfaceCapella.dart';
-import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_services/abstractions/storage.dart';
-import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/database_provider.dart';
 import 'package:http/src/response.dart';
 import 'package:realm_dart/src/realm_object.dart';
 import 'package:realm_dart/src/results.dart';
+import 'dart:async';
+
+import 'dart:typed_data';
+import 'package:flipper_models/FlipperInterfaceCapella.dart';
+import 'package:firestore_models/firestore_models.dart';
+import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_models/helperModels/RwApiResponse.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:cbl/cbl.dart'
+    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+
+import 'package:flipper_services/database_provider.dart'
+    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 class BricksSync implements FlipperInterfaceCapella {
   @override
@@ -1094,12 +1065,6 @@ class BricksSync implements FlipperInterfaceCapella {
   }
 
   @override
-  void replicateData<T>(String tableName, T data,
-      {bool? useNewImplementation = false}) {
-    // TODO: implement now
-  }
-
-  @override
   Drawers? openDrawer({required Drawers drawer}) {
     // TODO: implement openDrawer
     throw UnimplementedError();
@@ -1198,6 +1163,12 @@ class BricksSync implements FlipperInterfaceCapella {
   Future<bool> removeS3File({required String fileName}) {
     // TODO: implement removeS3File
     throw UnimplementedError();
+  }
+
+  @override
+  void replicateData<T>(String tableName, T data,
+      {bool? useNewImplementation = false}) {
+    // TODO: implement replicateData
   }
 
   @override
