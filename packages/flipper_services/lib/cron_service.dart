@@ -42,7 +42,7 @@ class CronService {
       ProxyService.setStrategy(Strategy.bricks);
       ProxyService.strategy.whoAmI();
     } else {
-      ProxyService.setStrategy(Strategy.capella);
+      ProxyService.setStrategy(Strategy.bricks);
       ProxyService.strategy.whoAmI();
     }
 

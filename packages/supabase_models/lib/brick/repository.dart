@@ -7,7 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/brick.g.dart';
 
 import 'db/schema.g.dart';
-export 'package:brick_core/query.dart' show And, Or, Query, QueryAction, Where, WherePhrase;
+export 'package:brick_core/query.dart' show And, Or, Query, QueryAction, Where, WherePhrase,Compare;
 
 class Repository extends OfflineFirstWithSupabaseRepository {
   static late Repository? _singleton;

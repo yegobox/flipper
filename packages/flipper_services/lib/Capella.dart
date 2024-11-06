@@ -1670,7 +1670,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
             // Create updated counter
             Counter updatedCounter = counter.copyWith(
               totRcptNo: receiptSignature?.data?.totRcptNo,
-              curRcptNo: (receiptSignature?.data?.rcptNo)! + 1,
+              curRcptNo: receiptSignature?.data?.rcptNo,
               invcNo: (counter.invcNo != null) ? counter.invcNo! + 1 : 1,
             );
 

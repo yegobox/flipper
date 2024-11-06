@@ -17,6 +17,8 @@ part '20241106093753.migration.dart';
 part '20241106093755.migration.dart';
 part '20241106093758.migration.dart';
 part '20241106093825.migration.dart';
+part '20241106112436.migration.dart';
+part '20241106112448.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -35,12 +37,14 @@ final migrations = <Migration>{
   const Migration20241106093753(),
   const Migration20241106093755(),
   const Migration20241106093758(),
-  const Migration20241106093825()
+  const Migration20241106093825(),
+  const Migration20241106112436(),
+  const Migration20241106112448()
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema =
-    Schema(20241106093825, generatorVersion: 1, tables: <SchemaTable>{
+    Schema(20241106112448, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('Counter', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),

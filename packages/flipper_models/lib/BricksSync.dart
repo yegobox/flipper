@@ -577,13 +577,6 @@ class BricksSync implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<Counter?> getCounter(
-      {required int branchId, required String receiptType}) {
-    // TODO: implement getCounter
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> updateRecord(
       {required String tableName,
       required String idField,
@@ -613,6 +606,27 @@ class BricksSync implements FlipperInterfaceCapella {
   }
 
   @override
+  Future<Counter?> getCounter(
+      {required int branchId, required String receiptType}) async {
+    final repository = brick.Repository();
+    final query = brick.Query.where(
+        'branchId', brick.And('receiptType').isExactly(receiptType),
+        limit1: true);
+    final counter = await repository.get<models.Counter>(query: query);
+    return counter
+        .map((e) => Counter(
+            id: e.id,
+            branchId: e.branchId,
+            businessId: e.businessId,
+            receiptType: e.receiptType,
+            totRcptNo: e.totRcptNo,
+            curRcptNo: e.curRcptNo,
+            invcNo: e.invcNo,
+            lastTouched: e.lastTouched))
+        .firstOrNull;
+  }
+
+  @override
   void updateCounters(
       {required List<Counter> counters, RwApiResponse? receiptSignature}) {
     final repository = brick.Repository();
@@ -625,7 +639,7 @@ class BricksSync implements FlipperInterfaceCapella {
         branchId: counter.branchId,
         curRcptNo: counter.curRcptNo,
         totRcptNo: counter.totRcptNo,
-        invcNo: counter.invcNo,
+        invcNo: counter.invcNo! + 1,
         businessId: counter.businessId,
         receiptType: counter.receiptType,
       );
@@ -636,7 +650,7 @@ class BricksSync implements FlipperInterfaceCapella {
   @override
   Future<List<Counter>> getCounters({required int branchId}) async {
     final repository = brick.Repository();
-    final query = brick.Query.where('branch_id', branchId);
+    final query = brick.Query.where('branchId', branchId);
     final counters = await repository.get<models.Counter>(query: query);
 
     return counters
@@ -1654,7 +1668,7 @@ class BricksSync implements FlipperInterfaceCapella {
 
   @override
   void whoAmI() {
-    // TODO: implement whoAmI
+    talker.warning("I am Bricks");
   }
 
   @override
