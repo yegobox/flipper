@@ -38,7 +38,7 @@ import sentry_flutter
 import share_plus
 import shared_preferences_foundation
 import smart_auth
-import sqflite
+import sqflite_darwin
 import tray_manager
 import url_launcher_macos
 import window_manager

@@ -102,7 +102,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     } else if (e is SubscriptionError) {
       _routerService.navigateTo(PaymentPlanUIRoute());
     } else if (e is FailedPaymentException) {
-      _routerService.navigateTo(FailedPaymentRoute());
+      // TODO: improve this when a client is stuck on this page and call customer support to get help
+      // for now we are going to return  _routerService.navigateTo(FlipperAppRoute()); as usual waiting for a fix
+      _routerService.navigateTo(FlipperAppRoute());
+      // _routerService.navigateTo(FailedPaymentRoute());
     } else if (e is RealmException) {
       talker.warning("Realm Exception $e occurred");
     } else {

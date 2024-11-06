@@ -129,6 +129,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => servicesModule.provideStrategy(
         gh<_i489.FlipperInterfaceCapella>(instanceName: 'capella'),
         gh<_i489.FlipperInterfaceCapella>(instanceName: 'backup'),
+        gh<_i489.FlipperInterfaceCapella>(instanceName: 'bricks'),
       ),
       instanceName: 'strategy',
     );

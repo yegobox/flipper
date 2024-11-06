@@ -9,8 +9,9 @@ import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/Capella.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
-import 'package:flipper_services/PayStackService.dart';
 import 'package:flipper_services/HttpApi.dart';
+import 'package:flipper_services/PayStackService.dart';
+
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/abstractions/remote.dart';
@@ -87,7 +88,8 @@ abstract class ProxyService {
   static final FlipperInterfaceCapella _capela =
       getIt<FlipperInterfaceCapella>(instanceName: 'capella');
 
-  static final FlipperInterfaceCapella _bricks = getIt<FlipperInterfaceCapella>(instanceName: 'bricks');
+  static final FlipperInterfaceCapella _bricks =
+      getIt<FlipperInterfaceCapella>(instanceName: 'bricks');
 
   static final FlipperInterfaceCapella _synchronize =
       getIt<FlipperInterfaceCapella>(instanceName: 'backup');
@@ -98,7 +100,7 @@ abstract class ProxyService {
   static FlipperInterfaceCapella get backUp => _synchronize;
   static FlipperInterfaceCapella get capela => _capela;
   static FlipperInterface get local => _localRealm;
-  
+
   static FlipperInterfaceCapella get bricks => _bricks;
 
   static FlipperInterfaceCapella get strategy => _strategy.current;

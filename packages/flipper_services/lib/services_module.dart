@@ -15,8 +15,9 @@ import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/Capella.dart';
-import 'package:flipper_services/PayStackService.dart';
 import 'package:flipper_services/HttpApi.dart';
+import 'package:flipper_services/PayStackService.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as httP;
@@ -100,11 +101,12 @@ abstract class ServicesModule {
   SyncStrategy provideStrategy(
     @Named('capella') FlipperInterfaceCapella capella,
     @Named('backup') FlipperInterfaceCapella backup,
+    @Named('bricks') FlipperInterfaceCapella bricks,
   ) {
     return SyncStrategy(
       capella: capella as Capella,
       cloudSync: backup as FirestoreSync,
-      bricksSync: backup as BricksSync,
+      bricksSync: bricks as BricksSync,
     );
   }
 

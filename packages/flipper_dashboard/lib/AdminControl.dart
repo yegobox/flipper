@@ -224,7 +224,7 @@ class _AdminControlState extends State<AdminControl> {
                       children: [
                         SettingsCard(
                           title: 'Tax Control',
-                          subtitle: 'Manage tax settings and reports',
+                          subtitle: 'Manage tax settings',
                           icon: Icons.attach_money,
                           onTap: () {},
                         ),

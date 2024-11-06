@@ -5405,4 +5405,17 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           ProxyService.backUp.replicateData(transactionTable, data);
         });
   }
+
+  @override
+  Future<List<Configurations>> taxes({required int branchId}) async {
+    return realm!.query<Configurations>(r'branchId == $0', [branchId]).toList();
+  }
+
+  @override
+  Future<Configurations> saveTax({required Configurations tax}) async {
+    realm!.write(() {
+      realm!.add<Configurations>(tax);
+    });
+    return tax;
+  }
 }

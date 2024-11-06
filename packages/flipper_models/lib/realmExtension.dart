@@ -33,7 +33,7 @@ extension CblExtension on Database {
 
       print("Transaction Committed");
     } catch (e) {
-      print("Transaction Rolled Back $e");
+      print("Transaction Rolled Back:) $e");
       rethrow;
     }
     return result; // Return the result after the transaction is done

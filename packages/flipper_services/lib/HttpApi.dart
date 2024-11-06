@@ -1635,6 +1635,18 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
     // TODO: implement initialStock
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<Configurations>> taxes({required int branchId}) {
+    // TODO: implement taxes
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Configurations> saveTax({required Configurations tax}) {
+    // TODO: implement saveTax
+    throw UnimplementedError();
+  }
 }
 
 class RealmViaHttpServiceMock implements RealmViaHttp {
