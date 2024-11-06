@@ -1,8 +1,6 @@
-import 'dart:developer';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -247,6 +245,10 @@ class TaxController<OBJ> {
   }) async {
     try {
       int branchId = ProxyService.box.getBranchId()!;
+
+      /// this line if first to attempt getting all counters refreshed from remove
+      /// in nutshell this is only needed on brick db.
+      await ProxyService.strategy.getCounters(branchId: branchId);
       odm.Counter? counter = await ProxyService.strategy
           .getCounter(branchId: branchId, receiptType: receiptType);
       if (counter == null) {

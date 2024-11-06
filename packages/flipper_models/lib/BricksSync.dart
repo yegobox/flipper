@@ -606,6 +606,27 @@ class BricksSync implements FlipperInterfaceCapella {
   }
 
   @override
+  Future<List<Counter>> getCounters({required int branchId}) async {
+    final repository = brick.Repository();
+    final query =
+        brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
+    final counters = await repository.get<models.Counter>(query: query);
+
+    return counters
+        .map((e) => Counter(
+              id: e.id,
+              branchId: e.branchId,
+              businessId: e.businessId,
+              receiptType: e.receiptType,
+              totRcptNo: e.totRcptNo,
+              curRcptNo: e.curRcptNo,
+              invcNo: e.invcNo,
+              lastTouched: DateTime.now(),
+            ))
+        .toList();
+  }
+
+  @override
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {
     final repository = brick.Repository();
@@ -646,26 +667,6 @@ class BricksSync implements FlipperInterfaceCapella {
       );
       repository.upsert(upCounter);
     }
-  }
-
-  @override
-  Future<List<Counter>> getCounters({required int branchId}) async {
-    final repository = brick.Repository();
-    final query = brick.Query.where('branchId', branchId);
-    final counters = await repository.get<models.Counter>(query: query);
-
-    return counters
-        .map((e) => Counter(
-              id: e.id,
-              branchId: e.branchId,
-              businessId: e.businessId,
-              receiptType: e.receiptType,
-              totRcptNo: e.totRcptNo,
-              curRcptNo: e.curRcptNo,
-              invcNo: e.invcNo,
-              lastTouched: DateTime.now(),
-            ))
-        .toList();
   }
 
   @override
