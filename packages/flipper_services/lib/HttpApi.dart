@@ -1643,7 +1643,8 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
   }
 
   @override
-  Future<Configurations> saveTax({required Configurations tax}) {
+  Future<Configurations> saveTax(
+      {required int configId, required double taxPercentage}) {
     // TODO: implement saveTax
     throw UnimplementedError();
   }

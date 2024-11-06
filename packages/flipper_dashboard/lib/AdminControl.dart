@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -226,16 +227,20 @@ class _AdminControlState extends State<AdminControl> {
                           title: 'Tax Control',
                           subtitle: 'Manage tax settings',
                           icon: Icons.attach_money,
-                          onTap: () {},
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => TaxSettingsModal(
+                                  branchId: ProxyService.box.getBranchId()!),
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
                         SettingsCard(
                           title: 'Payment Methods',
                           subtitle: 'Manage your payment options',
                           icon: Icons.credit_card,
-                          onTap: () {
-                            // Navigate to Payment Methods page
-                          },
+                          onTap: () {},
                         ),
                       ],
                     ),

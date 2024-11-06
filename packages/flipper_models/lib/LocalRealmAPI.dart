@@ -5412,9 +5412,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  Future<Configurations> saveTax({required Configurations tax}) async {
+  Future<Configurations> saveTax(
+      {required int configId, required double taxPercentage}) async {
+    Configurations tax =
+        realm!.query<Configurations>(r'id == $0', [configId]).first;
     realm!.write(() {
-      realm!.add<Configurations>(tax);
+      tax.taxPercentage = taxPercentage;
     });
     return tax;
   }

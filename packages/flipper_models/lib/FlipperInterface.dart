@@ -76,7 +76,8 @@ abstract class FlipperInterface {
       {String? phoneNumberOrEmail, String? password});
 
   Future<List<Configurations>> taxes({required int branchId});
-  Future<Configurations> saveTax({required Configurations tax});
+  Future<Configurations> saveTax(
+      {required int configId, required double taxPercentage});
 
   Future<double> totalStock({int? productId, int? variantId});
   List<Stock> stocks({required int branchId});
