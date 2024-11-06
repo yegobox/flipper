@@ -1650,6 +1650,30 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
+  Future<void> updateRecord(
+      {required String tableName,
+      required String idField,
+      required Map<String, dynamic> map,
+      required int id,
+      required List<SyncProvider> syncProviders}) async {
+    final collection = await getCountersCollection();
+
+    try {
+      final doc = MutableDocument.withId(map['id'].toString());
+
+      /// remove illegal fields
+      map.remove("_id");
+      map["channels"] = [
+        ProxyService.box.getBranchId()?.toString(),
+      ];
+      doc.setData(map);
+      await collection.saveDocument(doc);
+    } catch (e) {
+      talker.warning('Error updating record: $e');
+    }
+  }
+
+  @override
   Future<void> updateCounters({
     required List<Counter> counters,
     RwApiResponse? receiptSignature,
@@ -1827,17 +1851,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
   @override
   Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch) {
     // TODO: implement processbatchBackUp
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> updateRecord(
-      {required String tableName,
-      required String idField,
-      required Map<String, dynamic> map,
-      required int id,
-      required List<SyncProvider> syncProviders}) {
-    // TODO: implement updateRecord
     throw UnimplementedError();
   }
 

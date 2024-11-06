@@ -609,9 +609,10 @@ class BricksSync implements FlipperInterfaceCapella {
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {
     final repository = brick.Repository();
-    final query = brick.Query.where(
-        'branchId', brick.And('receiptType').isExactly(receiptType),
-        limit1: true);
+    final query = brick.Query(where: [
+      brick.Where('branchId').isExactly(branchId),
+      brick.Where('receiptType').isExactly(receiptType),
+    ]);
     final counter = await repository.get<models.Counter>(query: query);
     return counter
         .map((e) => Counter(

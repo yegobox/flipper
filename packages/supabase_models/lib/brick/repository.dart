@@ -7,7 +7,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/brick.g.dart';
 
 import 'db/schema.g.dart';
-export 'package:brick_core/query.dart' show And, Or, Query, QueryAction, Where, WherePhrase,Compare;
+// ignore: depend_on_referenced_packages
+export 'package:brick_core/query.dart'
+    show And, Or, Query, QueryAction, Where, WherePhrase, Compare;
 
 class Repository extends OfflineFirstWithSupabaseRepository {
   static late Repository? _singleton;
@@ -44,7 +46,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _singleton = Repository._(
       supabaseProvider: provider,
       sqliteProvider: SqliteProvider(
-        'my_repository.sqlite',
+        'flipper_v1.sqlite',
         databaseFactory: databaseFactory,
         modelDictionary: sqliteModelDictionary,
       ),
