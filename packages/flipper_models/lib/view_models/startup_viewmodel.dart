@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
@@ -13,7 +12,6 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:realm/realm.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:talker_flutter/talker_flutter.dart';
 
 class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   final appService = loc.getIt<AppService>();
@@ -25,7 +23,6 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   Future<void> runStartupLogic({
     required bool refreshCredentials,
   }) async {
-    final talker = TalkerFlutter.init();
     // logOut();
     try {
       await appService.isLoggedIn();

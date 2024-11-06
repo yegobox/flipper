@@ -1872,4 +1872,17 @@ class Capella with Booting implements FlipperInterfaceCapella {
     // TODO: implement whoAmI
     talker.warning("I am capella");
   }
+
+  @override
+  Future<Configurations> saveTax(
+      {required int configId, required double taxPercentage}) {
+    // TODO: implement saveTax
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Configurations> taxes({required int branchId}) {
+    // TODO: implement taxes
+    throw UnimplementedError();
+  }
 }

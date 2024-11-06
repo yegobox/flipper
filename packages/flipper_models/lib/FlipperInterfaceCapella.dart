@@ -42,6 +42,7 @@ abstract class DataMigratorToLocal {
 
 abstract class FlipperInterfaceCapella {
   DatabaseProvider? capella;
+
   AsyncCollection? branchCollection;
   AsyncCollection? businessCollection;
   AsyncCollection? accessCollection;
@@ -50,6 +51,10 @@ abstract class FlipperInterfaceCapella {
   Future<List<Counter>> getCounters({required int branchId});
   Future<List<Product>> products({required int branchId});
   Future<void> startReplicator();
+
+  Future<Configurations> taxes({required int branchId});
+  Future<Configurations> saveTax(
+      {required int configId, required double taxPercentage});
 
   void replicateData<T>(String tableName, T data,
       {bool? useNewImplementation = false});

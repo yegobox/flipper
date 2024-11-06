@@ -39,7 +39,7 @@ class CronService {
     );
     ProxyService.capela.startReplicator();
     if (Platform.isWindows) {
-      ProxyService.setStrategy(Strategy.cloudSync);
+      ProxyService.setStrategy(Strategy.bricks);
       ProxyService.strategy.whoAmI();
     } else {
       ProxyService.setStrategy(Strategy.capella);

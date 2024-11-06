@@ -1,12 +1,16 @@
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 // import 'package:flipper_services/DatabaseProvider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:supabase_models/brick/models/branch.model.dart';
+import 'package:supabase_models/brick/repository.dart';
 
 class AdminControl extends StatefulWidget {
   const AdminControl({super.key});
@@ -51,6 +55,20 @@ class _AdminControlState extends State<AdminControl> {
     // ProxyService.capela.startReplicator();
 
     try {
+      final repository = Repository();
+
+      final user = Branch(
+        id: randomNumber(),
+        name: "test",
+        serverId: ProxyService.box.getBranchId()!,
+        location: "rw",
+        description: "test",
+        active: true,
+        businessId: ProxyService.box.getBusinessId()!,
+        latitude: "1.0",
+        longitude: "1.0",
+      );
+      await repository.upsert<Branch>(user);
       // Switch implementation
 
       // Map<String, dynamic> map = {"id": 1521};
@@ -77,14 +95,12 @@ class _AdminControlState extends State<AdminControl> {
       //       // Optionally, you can log or perform further operations here
       //       print("Document saved: ${doc.id}");
       //     });
-      await ProxyService.box.writeBool(
-          key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
+      // await ProxyService.box.writeBool(
+      //     key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
 
-      // await ProxyService.capela.startReplicator();
-
-      setState(() {
-        forceUPSERT = ProxyService.box.forceUPSERT();
-      });
+      // setState(() {
+      //   forceUPSERT = ProxyService.box.forceUPSERT();
+      // });
     } catch (e, s) {
       talker.error(e, s);
     }

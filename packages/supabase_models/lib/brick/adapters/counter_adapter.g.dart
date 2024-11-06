@@ -5,16 +5,19 @@ Future<Counter> _$CounterFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Counter(
-      id: data['id'] as String,
-      frozen: data['frozen'] as bool,
-      branch: await BranchAdapter().fromSupabase(data['branch'],
-          provider: provider, repository: repository),
+      id: data['id'] as int,
       businessId: data['business_id'] as int?,
       branchId: data['branch_id'] as int?,
       receiptType: data['receipt_type'] as String?,
       totRcptNo: data['tot_rcpt_no'] as int?,
       curRcptNo: data['cur_rcpt_no'] as int?,
-      invcNo: data['invc_no'] as int?);
+      invcNo: data['invc_no'] as int?,
+      lastTouched: data['last_touched'] == null
+          ? null
+          : DateTime.tryParse(data['last_touched'] as String),
+      createdAt: data['created_at'] == null
+          ? null
+          : DateTime.tryParse(data['created_at'] as String));
 }
 
 Future<Map<String, dynamic>> _$CounterToSupabase(Counter instance,
@@ -22,16 +25,14 @@ Future<Map<String, dynamic>> _$CounterToSupabase(Counter instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
-    'frozen': instance.frozen,
-    'branch': await BranchAdapter().toSupabase(instance.branch,
-        provider: provider, repository: repository),
     'business_id': instance.businessId,
     'branch_id': instance.branchId,
     'receipt_type': instance.receiptType,
     'tot_rcpt_no': instance.totRcptNo,
     'cur_rcpt_no': instance.curRcptNo,
     'invc_no': instance.invcNo,
-    'customer_id': instance.customerId
+    'last_touched': instance.lastTouched?.toIso8601String(),
+    'created_at': instance.createdAt?.toIso8601String()
   };
 }
 
@@ -39,13 +40,7 @@ Future<Counter> _$CounterFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Counter(
-      id: data['id'] as String,
-      frozen: data['frozen'] == 1,
-      branch: (await repository!.getAssociation<Branch>(
-        Query.where('primaryKey', data['branch_Branch_brick_id'] as int,
-            limit1: true),
-      ))!
-          .first,
+      id: data['id'] as int,
       businessId:
           data['business_id'] == null ? null : data['business_id'] as int?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
@@ -55,7 +50,17 @@ Future<Counter> _$CounterFromSqlite(Map<String, dynamic> data,
           data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
       curRcptNo:
           data['cur_rcpt_no'] == null ? null : data['cur_rcpt_no'] as int?,
-      invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?)
+      invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
+      lastTouched: data['last_touched'] == null
+          ? null
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String),
+      createdAt: data['created_at'] == null
+          ? null
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String))
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -64,15 +69,14 @@ Future<Map<String, dynamic>> _$CounterToSqlite(Counter instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
-    'frozen': instance.frozen ? 1 : 0,
-    'branch_Branch_brick_id': instance.branch.primaryKey ??
-        await provider.upsert<Branch>(instance.branch, repository: repository),
     'business_id': instance.businessId,
     'branch_id': instance.branchId,
     'receipt_type': instance.receiptType,
     'tot_rcpt_no': instance.totRcptNo,
     'cur_rcpt_no': instance.curRcptNo,
-    'invc_no': instance.invcNo
+    'invc_no': instance.invcNo,
+    'last_touched': instance.lastTouched?.toIso8601String(),
+    'created_at': instance.createdAt?.toIso8601String()
   };
 }
 
@@ -89,17 +93,6 @@ class CounterAdapter extends OfflineFirstWithSupabaseAdapter<Counter> {
     'id': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'id',
-    ),
-    'frozen': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'frozen',
-    ),
-    'branch': const RuntimeSupabaseColumnDefinition(
-      association: true,
-      columnName: 'branch',
-      associationType: Branch,
-      associationIsNullable: false,
-      foreignKey: 'branch_id',
     ),
     'businessId': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -125,9 +118,13 @@ class CounterAdapter extends OfflineFirstWithSupabaseAdapter<Counter> {
       association: false,
       columnName: 'invc_no',
     ),
-    'customerId': const RuntimeSupabaseColumnDefinition(
+    'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
-      columnName: 'customer_id',
+      columnName: 'last_touched',
+    ),
+    'createdAt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'created_at',
     )
   };
   @override
@@ -146,19 +143,7 @@ class CounterAdapter extends OfflineFirstWithSupabaseAdapter<Counter> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: String,
-    ),
-    'frozen': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'frozen',
-      iterable: false,
-      type: bool,
-    ),
-    'branch': const RuntimeSqliteColumnDefinition(
-      association: true,
-      columnName: 'branch_Branch_brick_id',
-      iterable: false,
-      type: Branch,
+      type: int,
     ),
     'businessId': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -195,6 +180,18 @@ class CounterAdapter extends OfflineFirstWithSupabaseAdapter<Counter> {
       columnName: 'invc_no',
       iterable: false,
       type: int,
+    ),
+    'lastTouched': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'last_touched',
+      iterable: false,
+      type: DateTime,
+    ),
+    'createdAt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'created_at',
+      iterable: false,
+      type: DateTime,
     )
   };
   @override

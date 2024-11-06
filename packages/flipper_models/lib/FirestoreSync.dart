@@ -327,7 +327,14 @@ class FirestoreSync implements FlipperInterfaceCapella {
       }
     }
     if (syncProviders.contains(SyncProvider.SUPABASE)) {
-      /// do bricks here
+      /// replicate data to second database as well.
+      ProxyService.bricks.updateRecord(
+        tableName: tableName,
+        idField: idField,
+        map: map,
+        id: id,
+        syncProviders: syncProviders,
+      );
     }
   }
 
@@ -2092,5 +2099,18 @@ class FirestoreSync implements FlipperInterfaceCapella {
   @override
   void whoAmI() {
     talker.warning("I am FirestoreSync");
+  }
+
+  @override
+  Future<Configurations> saveTax(
+      {required int configId, required double taxPercentage}) {
+    // TODO: implement saveTax
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Configurations> taxes({required int branchId}) {
+    // TODO: implement taxes
+    throw UnimplementedError();
   }
 }

@@ -3,7 +3,7 @@ import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_services/Capella.dart';
 
-enum Strategy { capella, cloudSync }
+enum Strategy { capella, cloudSync, bricks }
 
 class SyncStrategy {
   final Capella capella;

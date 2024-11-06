@@ -4,7 +4,9 @@ import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:http/src/response.dart';
 import 'package:realm_dart/src/realm_object.dart';
@@ -22,6 +24,8 @@ import 'package:cbl/cbl.dart'
 
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+import 'package:supabase_models/brick/repository.dart' as brick;
+import 'package:supabase_models/brick/models/all_models.dart' as models;
 
 class BricksSync implements FlipperInterfaceCapella {
   @override
@@ -580,9 +584,73 @@ class BricksSync implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<List<Counter>> getCounters({required int branchId}) {
-    // TODO: implement getCounters
-    throw UnimplementedError();
+  Future<void> updateRecord(
+      {required String tableName,
+      required String idField,
+      required Map<String, dynamic> map,
+      required int id,
+      required List<SyncProvider> syncProviders}) async {
+    final repository = brick.Repository();
+    if (tableName == countersTable) {
+      try {
+        final upCounter = models.Counter(
+          id: map['id'],
+          lastTouched: DateTime.now(),
+          createdAt: DateTime.now(),
+          branchId: map['branchId'],
+          curRcptNo: map['curRcptNo'],
+          totRcptNo: map['totRcptNo'],
+          invcNo: map['invcNo'],
+          businessId: map['businessId'],
+          receiptType: map['receiptType'],
+        );
+        repository.upsert(upCounter);
+      } catch (e) {
+        talker.error(e);
+      }
+    }
+    throw Exception();
+  }
+
+  @override
+  void updateCounters(
+      {required List<Counter> counters, RwApiResponse? receiptSignature}) {
+    final repository = brick.Repository();
+    // build brick Counter to pass in to upsert
+    for (Counter counter in counters) {
+      final upCounter = models.Counter(
+        createdAt: DateTime.now(),
+        lastTouched: DateTime.now(),
+        id: counter.id!,
+        branchId: counter.branchId,
+        curRcptNo: counter.curRcptNo,
+        totRcptNo: counter.totRcptNo,
+        invcNo: counter.invcNo,
+        businessId: counter.businessId,
+        receiptType: counter.receiptType,
+      );
+      repository.upsert(upCounter);
+    }
+  }
+
+  @override
+  Future<List<Counter>> getCounters({required int branchId}) async {
+    final repository = brick.Repository();
+    final query = brick.Query.where('branch_id', branchId);
+    final counters = await repository.get<models.Counter>(query: query);
+
+    return counters
+        .map((e) => Counter(
+              id: e.id,
+              branchId: e.branchId,
+              businessId: e.businessId,
+              receiptType: e.receiptType,
+              totRcptNo: e.totRcptNo,
+              curRcptNo: e.curRcptNo,
+              invcNo: e.invcNo,
+              lastTouched: DateTime.now(),
+            ))
+        .toList();
   }
 
   @override
@@ -1510,26 +1578,9 @@ class BricksSync implements FlipperInterfaceCapella {
   }
 
   @override
-  void updateCounters(
-      {required List<Counter> counters, RwApiResponse? receiptSignature}) {
-    // TODO: implement updateCounters
-  }
-
-  @override
   Future<int> updateNonRealm<T>(
       {required T data, required HttpClientInterface flipperHttpClient}) {
     // TODO: implement updateNonRealm
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> updateRecord(
-      {required String tableName,
-      required String idField,
-      required Map<String, dynamic> map,
-      required int id,
-      required List<SyncProvider> syncProviders}) {
-    // TODO: implement updateRecord
     throw UnimplementedError();
   }
 
@@ -1604,5 +1655,18 @@ class BricksSync implements FlipperInterfaceCapella {
   @override
   void whoAmI() {
     // TODO: implement whoAmI
+  }
+
+  @override
+  Future<Configurations> saveTax(
+      {required int configId, required double taxPercentage}) {
+    // TODO: implement saveTax
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Configurations> taxes({required int branchId}) {
+    // TODO: implement taxes
+    throw UnimplementedError();
   }
 }
