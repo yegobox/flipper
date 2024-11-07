@@ -8,6 +8,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_services/abstractions/storage.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:http/src/response.dart';
 import 'package:realm_dart/src/realm_object.dart';
 import 'package:realm_dart/src/results.dart';
@@ -666,6 +667,13 @@ class BricksSync implements FlipperInterfaceCapella {
         receiptType: counter.receiptType,
       );
       repository.upsert(upCounter);
+      counter.invcNo = counter.invcNo! + 1;
+      ProxyService.capela.updateRecord(
+          tableName: countersTable,
+          idField: 'id',
+          map: counter.toJson(),
+          id: counter.id!,
+          syncProviders: [SyncProvider.CAPELLA]);
     }
   }
 

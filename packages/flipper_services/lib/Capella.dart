@@ -1656,19 +1656,22 @@ class Capella with Booting implements FlipperInterfaceCapella {
       required Map<String, dynamic> map,
       required int id,
       required List<SyncProvider> syncProviders}) async {
-    final collection = await getCountersCollection();
-
     try {
       final doc = MutableDocument.withId(map['id'].toString());
 
-      /// remove illegal fields
-      map.remove("_id");
-      map["channels"] = [
-        ProxyService.box.getBranchId()?.toString(),
-      ];
-      doc.setData(map);
-      await collection.saveDocument(doc);
-      talker.warning("Document saved successfully: ${doc.id}");
+      if (tableName == countersTable) {
+        final collection = await getCountersCollection();
+
+        /// remove illegal fields
+        map.remove("_id");
+        map.remove("lastTouched");
+        map["channels"] = [
+          ProxyService.box.getBranchId()?.toString(),
+        ];
+        doc.setData(map);
+        await collection.saveDocument(doc);
+        talker.warning("Document saved successfully: ${doc.id}:${tableName}");
+      }
     } catch (e) {
       talker.warning('Error updating record: $e');
     }

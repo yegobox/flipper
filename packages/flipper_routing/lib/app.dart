@@ -697,3 +697,7 @@ class App {}
 
 // https://cloudapi.cloud.couchbase.com/v4/organizations/{organizationId}/projects/{projectId}/clusters/{clusterId}/buckets/{bucketId}/scopes
 
+// Couchbase
+// https://www.youtube.com/watch?v=j2Zs1mzwdME
+// https://www.youtube.com/watch?v=X0hL1Z32ck0
+

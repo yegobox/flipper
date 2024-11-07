@@ -23,7 +23,7 @@ import 'package:cbl/src/database/collection.dart'
 
 enum ClearData { Business, Branch }
 
-enum SyncProvider { FIRESTORE, POWERSYNC, SUPABASE }
+enum SyncProvider { FIRESTORE, CAPELLA, SUPABASE }
 
 abstract class DataMigratorToLocal {
   Future<DataMigratorToLocal> configure(
