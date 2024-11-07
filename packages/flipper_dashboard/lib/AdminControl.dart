@@ -52,55 +52,13 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   Future<void> toggleForceUPSERT(bool value) async {
-    // ProxyService.capela.startReplicator();
-
     try {
-      final repository = Repository();
+      await ProxyService.box.writeBool(
+          key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
 
-      final user = Branch(
-        id: randomNumber(),
-        name: "test",
-        serverId: ProxyService.box.getBranchId()!,
-        location: "rw",
-        description: "test",
-        active: true,
-        businessId: ProxyService.box.getBusinessId()!,
-        latitude: "1.0",
-        longitude: "1.0",
-      );
-      await repository.upsert<Branch>(user);
-      // Switch implementation
-
-      // Map<String, dynamic> map = {"id": 1521};
-      // final db = ProxyService.capela.capella!.flipperDatabase!;
-      // Use the writeN method to write the document
-      // await db.writeN(
-      //     tableName: "your_table_name",
-      //     writeCallback: () {
-      //       // Create a document with the given ID and map data
-      //       final document = MutableDocument.withId("1521", map);
-
-      //       // Return the created document (of type T, in this case a MutableDocument)
-      //       return document;
-      //     },
-      //     onAdd: (doc) async {
-      //       // After the write operation, save the document to the collection
-      //       final collection =
-      //           await ProxyService.capela.getCountersCollection();
-
-      //       // add name to doc
-      //       doc.setString("Murag Richard", key: "name");
-      //       await collection.saveDocument(doc);
-
-      //       // Optionally, you can log or perform further operations here
-      //       print("Document saved: ${doc.id}");
-      //     });
-      // await ProxyService.box.writeBool(
-      //     key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
-
-      // setState(() {
-      //   forceUPSERT = ProxyService.box.forceUPSERT();
-      // });
+      setState(() {
+        forceUPSERT = ProxyService.box.forceUPSERT();
+      });
     } catch (e, s) {
       talker.error(e, s);
     }

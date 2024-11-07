@@ -576,7 +576,8 @@ class RWTax with NetworkHelper implements TaxApi {
     if (receiptType == "NR") {
       /// this is normal refund add rfdDt refunded date
       /// ATTENTION: rfdDt was added later and it might cause trouble we need to watch out.
-      json['rfdDt'] = timeToUse.toYYYMMdd();
+      /// 'rfdDt': Must be a valid date in yyyyMMddHHmmss format. rejected value: '20241107'
+      json['rfdDt'] = timeToUse.toYYYMMddHHmmss();
       json['orgInvcNo'] = counter.invcNo! - 1;
     }
     if (customer != null) {

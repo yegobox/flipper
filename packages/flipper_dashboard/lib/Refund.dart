@@ -67,8 +67,11 @@ class _RefundState extends State<Refund> {
                       toast("This is already refunded");
                       return;
                     }
-
-                    await handleReceipt(filterType: FilterType.NR);
+                    if (widget.transaction!.receiptType == "CS") {
+                      await handleReceipt(filterType: FilterType.CR);
+                    } else {
+                      await handleReceipt(filterType: FilterType.NR);
+                    }
 
                     talker.error(
                         "RefundableTransactionId: ${int.parse(widget.transactionId)}");
@@ -167,6 +170,25 @@ class _RefundState extends State<Refund> {
     );
   }
 
+  String getStringReceiptType(FilterType filterType) {
+    switch (filterType) {
+      case FilterType.CS:
+        return 'CS';
+      case FilterType.NR:
+        return 'NR';
+      case FilterType.CR:
+        return 'CR';
+      case FilterType.PS:
+        return 'PS';
+      case FilterType.TS:
+        return 'TS';
+      case FilterType.NS:
+        return 'NS';
+      default:
+        return 'CS';
+    }
+  }
+
   Future<void> handleReceipt({required FilterType filterType}) async {
     try {
       setState(() {
@@ -178,12 +200,11 @@ class _RefundState extends State<Refund> {
       });
 
       ProxyService.local.realm!.write(() {
-        widget.transaction?.receiptType = filterType == FilterType.NR
-            ? TransactionReceptType.NR
-            : TransactionReceptType.CS;
+        widget.transaction?.receiptType = getStringReceiptType(filterType);
       });
 
-      await TaxController(object: widget.transaction).handleReceipt();
+      await TaxController(object: widget.transaction)
+          .handleReceipt(filterType: filterType);
 
       setState(() {
         if (filterType == FilterType.CS) {

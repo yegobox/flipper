@@ -311,6 +311,12 @@ extension DateTimeToYYYMMdd on DateTime {
     final dateFormat = DateFormat('yyyyMMdd');
     return dateFormat.format(localDateTime);
   }
+
+  String toYYYMMddHHmmss() {
+    final localDateTime = this.toLocal();
+    final dateFormat = DateFormat('yyyyMMddHHmmss');
+    return dateFormat.format(localDateTime);
+  }
 }
 
 /// validate a string tin is valid tin

@@ -19,14 +19,14 @@ class TaxController<OBJ> {
 
   Future<({RwApiResponse response, Uint8List? bytes})> handleReceipt(
       {bool skiGenerateRRAReceiptSignature = false,
-      String? purchaseCode}) async {
+      String? purchaseCode,
+      required FilterType filterType}) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
-
-      if (transaction.receiptType == TransactionReceptType.NS) {
+      if (filterType == FilterType.CR) {
         try {
           return await printReceipt(
-            receiptType: transaction.receiptType!,
+            receiptType: TransactionReceptType.CR,
             transaction: transaction,
             purchaseCode: purchaseCode,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
@@ -34,44 +34,55 @@ class TaxController<OBJ> {
         } catch (e) {
           rethrow;
         }
-      } else if (transaction.receiptType == TransactionReceptType.NR) {
+      } else if (filterType == FilterType.NS) {
+        try {
+          return await printReceipt(
+            receiptType: TransactionReceptType.NS,
+            transaction: transaction,
+            purchaseCode: purchaseCode,
+            skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+          );
+        } catch (e) {
+          rethrow;
+        }
+      } else if (filterType == FilterType.NR) {
         try {
           return await printReceipt(
             purchaseCode: purchaseCode,
-            receiptType: transaction.receiptType!,
+            receiptType: TransactionReceptType.NR,
             transaction: transaction,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           );
         } catch (e) {
           rethrow;
         }
-      } else if (transaction.receiptType == TransactionReceptType.TS) {
+      } else if (filterType == FilterType.TS) {
         try {
           return await printReceipt(
             purchaseCode: purchaseCode,
-            receiptType: transaction.receiptType!,
+            receiptType: TransactionReceptType.TS,
             transaction: transaction,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           );
         } catch (e) {
           rethrow;
         }
-      } else if (transaction.receiptType == TransactionReceptType.PS) {
+      } else if (filterType == FilterType.PS) {
         try {
           return await printReceipt(
             purchaseCode: purchaseCode,
-            receiptType: transaction.receiptType!,
+            receiptType: TransactionReceptType.PS,
             transaction: transaction,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           );
         } catch (e) {
           rethrow;
         }
-      } else if (transaction.receiptType == TransactionReceptType.CS) {
+      } else if (filterType == FilterType.CS) {
         try {
           return await printReceipt(
             purchaseCode: purchaseCode,
-            receiptType: transaction.receiptType!,
+            receiptType: TransactionReceptType.CS,
             transaction: transaction,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           );
@@ -249,6 +260,7 @@ class TaxController<OBJ> {
       /// this line if first to attempt getting all counters refreshed from remove
       /// in nutshell this is only needed on brick db.
       await ProxyService.strategy.getCounters(branchId: branchId);
+
       odm.Counter? counter = await ProxyService.strategy
           .getCounter(branchId: branchId, receiptType: receiptType);
       if (counter == null) {
@@ -301,7 +313,7 @@ class TaxController<OBJ> {
           writeCallback: () {
             transaction.receiptNumber = receiptSignature.data?.rcptNo;
             transaction.totalReceiptNumber = receiptSignature.data?.totRcptNo;
-            transaction.invoiceNumber = counter!.invcNo;
+            transaction.invoiceNumber = counter.invcNo;
             return transaction;
           },
           onAdd: (data) {

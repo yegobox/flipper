@@ -33,7 +33,7 @@ Future<void> main() async {
         child: OverlaySupport.global(
           child: Sizer(builder: (context, orientation, deviceType) {
             return MaterialApp.router(
-              debugShowCheckedModeBanner: true,
+              debugShowCheckedModeBanner: false,
               title: 'flipper',
               theme: ThemeData(
                 textTheme: GoogleFonts.poppinsTextTheme(),
