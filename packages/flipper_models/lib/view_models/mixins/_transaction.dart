@@ -4,6 +4,7 @@ import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
@@ -159,6 +160,7 @@ mixin TransactionMixin {
 
       final responseFrom = await TaxController(object: trans).handleReceipt(
         purchaseCode: purchaseCode,
+        filterType: FilterType.NS,
       );
       final (:response, :bytes) = responseFrom;
 

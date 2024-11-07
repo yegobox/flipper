@@ -11,6 +11,15 @@ const String PAYMENT_REACTIVATION_REQUIRED =
 // Enums
 enum FilterType { CUSTOMER, TRANSACTION, NS, CS, NR, TS, PS, CR }
 
+class TransactionReceptType {
+  static const NS = "NS";
+  static const NR = "NR";
+  static const CS = "CS";
+  static const TS = "TS";
+  static const PS = "PS";
+  static const CR = "CR";
+}
+
 // Classes
 class RequestStatus {
   static const String pending = 'pending';
@@ -57,15 +66,6 @@ class AppActions {
   static const String created = "created";
   static const String defaultCategory = "default";
   static const String remote = "remote";
-}
-
-class TransactionReceptType {
-  static const NS = "NS";
-  static const NR = "NR";
-  static const CS = "CS";
-  static const TS = "TS";
-  static const PS = "PS";
-  static const CR = "CR";
 }
 
 class TransactionType {

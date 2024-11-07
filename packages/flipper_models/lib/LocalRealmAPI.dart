@@ -3246,7 +3246,8 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
 
       //NOTE: trigger EBM, now
       if (directlyHandleReceipt) {
-        TaxController(object: transaction).handleReceipt();
+        TaxController(object: transaction)
+            .handleReceipt(filterType: FilterType.NS);
       }
       return transaction;
     } catch (e, s) {
