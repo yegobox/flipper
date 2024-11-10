@@ -19,20 +19,24 @@ import 'package:sqflite_common/sqlite_api.dart' show DatabaseExecutor;
 
 import '../brick/models/counter.model.dart';
 import '../brick/models/branch.model.dart';
+import '../brick/models/plans.model.dart';
 
 part 'adapters/counter_adapter.g.dart';
 part 'adapters/branch_adapter.g.dart';
+part 'adapters/plan_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Counter: CounterAdapter(),
-  Branch: BranchAdapter()
+  Branch: BranchAdapter(),
+  Plan: PlanAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
 /// Sqlite mappings should only be used when initializing a [SqliteProvider]
 final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Counter: CounterAdapter(),
-  Branch: BranchAdapter()
+  Branch: BranchAdapter(),
+  Plan: PlanAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

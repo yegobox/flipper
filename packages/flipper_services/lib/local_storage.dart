@@ -62,6 +62,7 @@ class SharedPreferenceStorage implements LocalStorage {
         'enableDebug',
         'switchToCloudSync',
         'useInHouseSyncGateway',
+        'customPhoneNumberForPayment',
       },
     ));
     return this;
@@ -358,5 +359,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   bool? useInHouseSyncGateway() {
     return prefs.getBool('useInHouseSyncGateway') ?? false;
+  }
+
+  @override
+  String? customPhoneNumberForPayment() {
+    return prefs.getString('customPhoneNumberForPayment');
   }
 }

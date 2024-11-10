@@ -13,7 +13,7 @@ import 'package:http/src/response.dart';
 import 'package:realm_dart/src/realm_object.dart';
 import 'package:realm_dart/src/results.dart';
 import 'dart:async';
-
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'dart:typed_data';
 import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:firestore_models/firestore_models.dart';
@@ -611,7 +611,8 @@ class BricksSync implements FlipperInterfaceCapella {
     final repository = brick.Repository();
     final query =
         brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
-    final counters = await repository.get<models.Counter>(query: query);
+    final counters = await repository.get<models.Counter>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemote);
 
     return counters
         .map((e) => Counter(
@@ -628,6 +629,70 @@ class BricksSync implements FlipperInterfaceCapella {
   }
 
   @override
+  Future<PaymentPlan?> getPaymentPlan({required int businessId}) async {
+    final repository = brick.Repository();
+    final query = brick.Query(where: [
+      brick.Where('businessId').isExactly(businessId),
+      brick.Where('paymentCompletedByUser').isExactly(true),
+      
+    ]);
+    final result = await repository.get<models.Plan>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+    return result
+        .map((e) => PaymentPlan(
+              businessId: e.businessId,
+              selectedPlan: e.selectedPlan,
+              additionalDevices: e.additionalDevices,
+              isYearlyPlan: e.isYearlyPlan,
+              totalPrice: e.totalPrice?.toDouble(),
+              createdAt: e.createdAt,
+              paymentCompletedByUser: e.paymentCompletedByUser,
+              payStackCustomerId: e.payStackCustomerId,
+              rule: e.rule,
+              paymentMethod: e.paymentMethod,
+            ))
+        .firstOrNull;
+  }
+
+  @override
+  Future<PaymentPlan> saveOrUpdatePaymentPlan(
+      {required int businessId,
+      required String selectedPlan,
+      required int additionalDevices,
+      required bool isYearlyPlan,
+      required double totalPrice,
+      required int payStackUserId,
+      required String paymentMethod,
+      String? customerCode,
+      required HttpClientInterface flipperHttpClient}) async {
+    final repository = brick.Repository();
+    final model = await repository.upsert(models.Plan(
+      id: businessId,
+      businessId: businessId,
+      selectedPlan: selectedPlan,
+      additionalDevices: additionalDevices,
+      isYearlyPlan: isYearlyPlan,
+      totalPrice: totalPrice.toInt(),
+      createdAt: DateTime.now(),
+      payStackCustomerId: payStackUserId,
+      paymentMethod: paymentMethod,
+      paymentCompletedByUser: false,
+    ));
+
+    return PaymentPlan(
+      id: model.id,
+      businessId: model.businessId,
+      selectedPlan: model.selectedPlan,
+      additionalDevices: model.additionalDevices,
+      isYearlyPlan: model.isYearlyPlan,
+      totalPrice: model.totalPrice?.toDouble(),
+      createdAt: model.createdAt,
+      payStackCustomerId: model.payStackCustomerId,
+      paymentMethod: model.paymentMethod,
+    );
+  }
+
+  @override
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {
     final repository = brick.Repository();
@@ -635,7 +700,8 @@ class BricksSync implements FlipperInterfaceCapella {
       brick.Where('branchId').isExactly(branchId),
       brick.Where('receiptType').isExactly(receiptType),
     ]);
-    final counter = await repository.get<models.Counter>(query: query);
+    final counter = await repository.get<models.Counter>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemote);
     return counter
         .map((e) => Counter(
             id: e.id,
@@ -781,12 +847,6 @@ class BricksSync implements FlipperInterfaceCapella {
   @override
   FlipperSaleCompaign? getLatestCompaign() {
     // TODO: implement getLatestCompaign
-    throw UnimplementedError();
-  }
-
-  @override
-  PaymentPlan? getPaymentPlan({required int businessId}) {
-    // TODO: implement getPaymentPlan
     throw UnimplementedError();
   }
 
@@ -1017,9 +1077,9 @@ class BricksSync implements FlipperInterfaceCapella {
   @override
   Future<bool> hasActiveSubscription(
       {required int businessId,
-      required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement hasActiveSubscription
-    throw UnimplementedError();
+      required HttpClientInterface flipperHttpClient}) async {
+    return ProxyService.local.hasActiveSubscription(
+        businessId: businessId, flipperHttpClient: flipperHttpClient);
   }
 
   @override
@@ -1306,21 +1366,6 @@ class BricksSync implements FlipperInterfaceCapella {
       required String severUrl,
       required String bhFId}) {
     // TODO: implement saveEbm
-  }
-
-  @override
-  Future<PaymentPlan> saveOrUpdatePaymentPlan(
-      {required int businessId,
-      required String selectedPlan,
-      required int additionalDevices,
-      required bool isYearlyPlan,
-      required double totalPrice,
-      required int payStackUserId,
-      required String paymentMethod,
-      String? customerCode,
-      required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement saveOrUpdatePaymentPlan
-    throw UnimplementedError();
   }
 
   @override

@@ -280,4 +280,9 @@ class SharedPreferenceStorageMock implements LocalStorage {
   bool? useInHouseSyncGateway() {
     return true;
   }
+
+  @override
+  String customPhoneNumberForPayment() {
+    return "";
+  }
 }

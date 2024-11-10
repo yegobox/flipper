@@ -1237,7 +1237,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
   }
 
   @override
-  PaymentPlan? getPaymentPlan({required int businessId}) {
+  Future<PaymentPlan?> getPaymentPlan({required int businessId}) {
     // TODO: implement getPaymentPlan
     throw UnimplementedError();
   }

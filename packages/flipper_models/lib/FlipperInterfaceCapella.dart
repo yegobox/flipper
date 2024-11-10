@@ -566,7 +566,7 @@ abstract class FlipperInterfaceCapella {
     String? customerCode,
     required HttpClientInterface flipperHttpClient,
   });
-  PaymentPlan? getPaymentPlan({required int businessId});
+  Future<PaymentPlan?> getPaymentPlan({required int businessId});
   FlipperSaleCompaign? getLatestCompaign();
   Stream<PaymentPlan?> paymentPlanStream({required int businessId});
 

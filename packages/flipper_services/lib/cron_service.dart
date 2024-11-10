@@ -31,6 +31,7 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
+    ProxyService.box.remove(key: "customPhoneNumberForPayment");
     List<ConnectivityResult> results = await Connectivity().checkConnectivity();
 
     await ProxyService.capela.configureCapella(
@@ -78,7 +79,8 @@ class CronService {
     //         print("Document saved: ${doc.id}");
     //       });
     // }
-
+    ProxyService.bricks
+        .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
     if (results.any((result) => result != ConnectivityResult.none)) {
       if (FirebaseAuth.instance.currentUser == null) {
         await ProxyService.backUp.firebaseLogin();

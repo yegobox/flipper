@@ -77,6 +77,7 @@ final Device _device = getIt<Device>();
 
 final PayStackServiceInterface _payStack = getIt<PayStackServiceInterface>();
 final HttpClientInterface _http = getIt<HttpClientInterface>();
+final RealmViaHttp _ht = getIt<RealmViaHttp>();
 final RealmViaHttp _realmHttp = getIt<RealmViaHttp>();
 
 final SupabaseInterface _supa = getIt<SupabaseInterface>();
@@ -116,6 +117,7 @@ abstract class ProxyService {
 
   static LocalStorage get box => _box;
   static HttpClientInterface get http => _http;
+  static RealmViaHttp get ht => _ht;
   static Api get api => _apiService;
   static TaxApi get tax => _tax;
 

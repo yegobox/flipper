@@ -157,7 +157,6 @@ class ReplicatorProvider {
 
       final collectionConfig = CollectionConfiguration(
         channels: [
-          "default",
           ProxyService.box.getBranchId()!.toString()],
         pullFilter: (document, flags) => true,
         conflictResolver: conflictResolver,
@@ -189,7 +188,8 @@ class ReplicatorProvider {
           replicatorType: ReplicatorType.pull,
           heartbeat: const Duration(seconds: 1),
           pinnedServerCertificate: pem.buffer.asUint8List(),
-        )..addCollections([counterCollection], collectionConfig);
+        )
+        ..addCollections([counterCollection], collectionConfig);
 
         // Create and start pull replicator immediately
         _pullReplicator = await Replicator.create(_pullConfiguration!);

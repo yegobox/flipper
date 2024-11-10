@@ -1,4 +1,4 @@
-import 'package:flipper_models/realm/schemas.dart';
+// import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firestore_models/firestore_models.dart';
 
 class FailedPayment extends HookConsumerWidget {
   const FailedPayment({Key? key}) : super(key: key);
@@ -22,8 +23,8 @@ class FailedPayment extends HookConsumerWidget {
     useEffect(() {
       Future<void> fetchPlan() async {
         try {
-          final fetchedPlan =
-              await ProxyService.local.getPaymentPlan(businessId: 1);
+          final fetchedPlan = await ProxyService.bricks
+              .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
           plan.value = fetchedPlan;
         } catch (e) {
           error.value = 'Failed to fetch plan details: ${e.toString()}';
@@ -146,7 +147,7 @@ class FailedPayment extends HookConsumerWidget {
     if (plan.paymentMethod == "Card") {
       int finalPrice = plan.totalPrice!.toInt();
       isLoading.value = true;
-      FlipperSaleCompaign? compaign = ProxyService.local.getLatestCompaign();
+      FlipperSaleCompaign? compaign = ProxyService.bricks.getLatestCompaign();
       try {
         if (kDebugMode) {
           if (compaign != null) {
@@ -192,8 +193,8 @@ class FailedPayment extends HookConsumerWidget {
     const delayBetweenAttempts = Duration(seconds: 5);
 
     while (true) {
-      PaymentPlan? planUpdated =
-          ProxyService.local.getPaymentPlan(businessId: plan.businessId ?? 0);
+      PaymentPlan? planUpdated = await ProxyService.bricks
+          .getPaymentPlan(businessId: plan.businessId ?? 0);
 
       if (planUpdated != null && planUpdated.paymentCompletedByUser == true) {
         return; // Exit the loop and complete the function once payment is completed

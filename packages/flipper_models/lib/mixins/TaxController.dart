@@ -257,10 +257,6 @@ class TaxController<OBJ> {
     try {
       int branchId = ProxyService.box.getBranchId()!;
 
-      /// this line if first to attempt getting all counters refreshed from remove
-      /// in nutshell this is only needed on brick db.
-      await ProxyService.strategy.getCounters(branchId: branchId);
-
       odm.Counter? counter = await ProxyService.strategy
           .getCounter(branchId: branchId, receiptType: receiptType);
       if (counter == null) {

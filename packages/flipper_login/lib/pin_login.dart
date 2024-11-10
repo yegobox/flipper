@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -21,7 +22,7 @@ class PinLogin extends StatefulWidget {
   State<PinLogin> createState() => _PinLoginState();
 }
 
-class _PinLoginState extends State<PinLogin> {
+class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
   final GlobalKey<FormState> _form = GlobalKey<FormState>();
 
   final TextEditingController _pin = TextEditingController();
@@ -36,7 +37,7 @@ class _PinLoginState extends State<PinLogin> {
       // Attempt to sign in with the custom token
 
       final defaultApp = ProxyService.box.getDefaultApp();
-      
+
       if (defaultApp == "2") {
         final _routerService = locator<RouterService>();
         _routerService.navigateTo(SocialHomeViewRoute());

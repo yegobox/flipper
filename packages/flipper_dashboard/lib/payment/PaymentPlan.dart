@@ -327,11 +327,10 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
                   userIdentifier.toFlipperEmail(),
                   ProxyService.http);
 
-          ProxyService.local.saveOrUpdatePaymentPlan(
+          ProxyService.bricks.saveOrUpdatePaymentPlan(
               businessId: ProxyService.box.getBusinessId()!,
               selectedPlan: selectedPlan,
-              paymentMethod:
-                  "Card", // set card as preferred, can be changed on finalization stage
+              paymentMethod: "Card",
               flipperHttpClient: ProxyService.http,
               additionalDevices: additionalDevices,
               isYearlyPlan: isYearlyPlan,

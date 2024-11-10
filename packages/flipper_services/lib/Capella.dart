@@ -78,7 +78,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
 
   void _setApiEndpoints() {
     if (foundation.kDebugMode) {
-      apihub = AppSecrets.apihubUat;
+      apihub = AppSecrets.coreApi;
       commApi = AppSecrets.commApi;
     } else {
       apihub = AppSecrets.apihubProd;
@@ -914,7 +914,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  PaymentPlan? getPaymentPlan({required int businessId}) {
+  Future<PaymentPlan?> getPaymentPlan({required int businessId}) {
     // TODO: implement getPaymentPlan
     throw UnimplementedError();
   }

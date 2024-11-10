@@ -73,7 +73,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   late String commApi;
   void _setApiEndpoints() {
     if (foundation.kDebugMode) {
-      apihub = AppSecrets.apihubUat;
+      apihub = AppSecrets.coreApi;
       commApi = AppSecrets.commApi;
     } else {
       apihub = AppSecrets.apihubProd;
@@ -187,7 +187,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
 
     // Set API keys based on the environment
     if (foundation.kDebugMode) {
-      apihub = AppSecrets.apihubUat;
+      apihub = AppSecrets.coreApi;
       commApi = AppSecrets.commApi;
     } else {
       apihub = AppSecrets.apihubProd;
@@ -301,7 +301,20 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       await setDefaultApp(user);
     }
     ProxyService.box.writeBool(key: 'pinLogin', value: false);
+
+    /// check user subs
+    try {
+      _hasActiveSubscription();
+    } catch (e) {
+      rethrow;
+    }
     return user;
+  }
+
+  Future<void> _hasActiveSubscription() async {
+    await hasActiveSubscription(
+        businessId: ProxyService.box.getBusinessId()!,
+        flipperHttpClient: ProxyService.http);
   }
 
   String _formatPhoneNumber(String userPhone) {
@@ -2379,10 +2392,15 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   Future<bool> hasActiveSubscription(
       {required int businessId,
       required HttpClientInterface flipperHttpClient}) async {
-    PaymentPlan? plan = getPaymentPlan(businessId: businessId);
+    PaymentPlan? plan = await getPaymentPlan(businessId: businessId);
+
+    if (plan == null) {
+      throw NoPaymentPlanFound(
+          "No payment plan found for businessId: $businessId");
+    }
 
     // If paymentCompletedByUser is false, sync again and check
-    if (!(plan?.paymentCompletedByUser ?? false)) {
+    if (!(plan.paymentCompletedByUser ?? false)) {
       final isPaymentComplete = await ProxyService.realmHttp.isPaymentComplete(
           flipperHttpClient: flipperHttpClient, businessId: businessId);
 
@@ -2453,9 +2471,24 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  PaymentPlan? getPaymentPlan({required int businessId}) {
-    return realm!
-        .query<PaymentPlan>(r'businessId == $0', [businessId]).firstOrNull;
+  Future<PaymentPlan?> getPaymentPlan({required int businessId}) async {
+    final result =
+        await ProxyService.bricks.getPaymentPlan(businessId: businessId);
+    return result == null
+        ? null
+        : PaymentPlan(
+            ObjectId(),
+            businessId: result.businessId,
+            selectedPlan: result.selectedPlan,
+            additionalDevices: result.additionalDevices,
+            isYearlyPlan: result.isYearlyPlan,
+            totalPrice: result.totalPrice,
+            createdAt: result.createdAt,
+            paymentCompletedByUser: result.paymentCompletedByUser,
+            payStackCustomerId: result.payStackCustomerId,
+            rule: result.rule,
+            paymentMethod: result.paymentMethod,
+          );
   }
 
   @override

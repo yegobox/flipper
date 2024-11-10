@@ -62,4 +62,5 @@ abstract class LocalStorage {
   bool? enableDebug();
   bool? switchToCloudSync();
   bool? useInHouseSyncGateway();
+  String? customPhoneNumberForPayment();
 }

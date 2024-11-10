@@ -21,6 +21,8 @@ import 'package:flipper_models/FlipperInterface.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart' as f;
 import 'package:http/src/response.dart';
 import 'package:realm_dart/src/realm_class.dart';
 
@@ -37,6 +39,10 @@ abstract class RealmViaHttp {
   Future<bool> hasAcessSaved(
       {required HttpClientInterface flipperHttpClient,
       required int businessId});
+  Future<bool> makePayment(
+      {required HttpClientInterface flipperHttpClient,
+      required int businessId,
+      required int amount});
 }
 
 class HttpApi implements RealmViaHttp, FlipperInterface {
@@ -163,33 +169,41 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
   }
 
   @override
-  Future<bool> isPaymentComplete(
-      {required HttpClientInterface flipperHttpClient,
-      required int businessId}) async {
+  Future<bool> isPaymentComplete({
+    required HttpClientInterface flipperHttpClient,
+    required int businessId,
+  }) async {
     var headers = {
       'api-key': AppSecrets.apikey,
       'Content-Type': 'application/json'
     };
-    final response = await flipperHttpClient.post(
+
+    try {
+      final response = await flipperHttpClient.get(
         headers: headers,
-        Uri.parse(AppSecrets.mongoBaseUrl + '/data/v1/action/find'),
-        body: json.encode({
-          "collection": AppSecrets.paymentPlanCollection,
-          "database": AppSecrets.database,
-          "dataSource": AppSecrets.dataSource,
-          "filter": {"businessId": businessId}
-        }));
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      final List documents = responseData['documents'] ?? [];
-      if (documents.isNotEmpty) {
-        // Print the discountRate of the first document
-        return documents.first['paymentCompletedByUser'];
-      } else {
-        return false;
+        Uri.parse('${AppSecrets.coreApi}/api/plan/$businessId'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> responseData = json.decode(response.body);
+
+        // Check if the response list is not empty
+        if (responseData.isNotEmpty) {
+          // Get the first item from the array
+          final Map<String, dynamic> planData = responseData.first;
+
+          // Return the payment completion status
+          return planData['paymentCompletedByUser'] ?? false;
+        }
       }
+
+      // Return false for any other status code or empty response
+      return false;
+    } catch (e) {
+      // Handle any errors that might occur during the API call
+      print('Error checking payment completion: $e');
+      return false;
     }
-    return false;
   }
 
   @override
@@ -643,7 +657,7 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
   }
 
   @override
-  PaymentPlan? getPaymentPlan({required int businessId}) {
+  Future<PaymentPlan?> getPaymentPlan({required int businessId}) {
     // TODO: implement getPaymentPlan
     throw UnimplementedError();
   }
@@ -1648,6 +1662,35 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
     // TODO: implement saveTax
     throw UnimplementedError();
   }
+
+  @override
+  Future<bool> makePayment(
+      {required HttpClientInterface flipperHttpClient,
+      required int businessId,
+      required int amount}) async {
+    //  Business business = ProxyService.local.getBusiness();
+    final phone =
+        ProxyService.box.customPhoneNumberForPayment()?.replaceAll("+", "") ??
+            ProxyService.box.getUserPhone()!.replaceAll("+", "");
+    final response = await flipperHttpClient.post(
+        headers: {
+          'api-key': AppSecrets.apikey,
+          'Content-Type': 'application/json'
+        },
+        Uri.parse('${AppSecrets.coreApi}/v2/api/payments/payNow'),
+        body: json.encode({
+          "amount": f.kDebugMode ? 10 : amount,
+          "currency": "RWF",
+          "payer": {
+            "partyIdType": "MSISDN",
+            "partyId": phone,
+          },
+          "payerMessage": "Flipper Subscription",
+          "payeeNote": "Flipper Subscription",
+          "businessId": ProxyService.box.getBusinessId()!,
+        }));
+    return response.statusCode == 200;
+  }
 }
 
 class RealmViaHttpServiceMock implements RealmViaHttp {
@@ -1670,6 +1713,15 @@ class RealmViaHttpServiceMock implements RealmViaHttp {
       {required HttpClientInterface flipperHttpClient,
       required int businessId}) {
     // TODO: implement hasAcessSaved
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> makePayment(
+      {required HttpClientInterface flipperHttpClient,
+      required int businessId,
+      required int amount}) {
+    // TODO: implement makePayment
     throw UnimplementedError();
   }
 }

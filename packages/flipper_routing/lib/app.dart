@@ -92,6 +92,7 @@ class App {}
 // TODO: before adding a package see from the bellow list if we don't
 // modal_bottom_sheet: ^3.0.0-pre
 // `dart run build_runner build --delete-conflicting-outputs`
+// dart run build_runner watch
 // `dart run realm generate --watch`
 // dart pub cache clean
 //  dart pub global run melos bootstrap
@@ -700,4 +701,6 @@ class App {}
 // Couchbase
 // https://www.youtube.com/watch?v=j2Zs1mzwdME
 // https://www.youtube.com/watch?v=X0hL1Z32ck0
+// CREATE PRIMARY INDEX ON `flipper`.`user_data`.`counters`;
+
 

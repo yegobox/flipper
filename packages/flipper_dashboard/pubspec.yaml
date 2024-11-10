@@ -118,6 +118,7 @@ dependencies:
   flipper_mocks: any
   excel: ^4.0.6
   supabase_models: any
+  supabase_flutter: ^2.8.0
 
 dependency_overrides:
   http: ^1.2.2

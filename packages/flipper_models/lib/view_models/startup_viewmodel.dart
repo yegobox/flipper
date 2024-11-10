@@ -99,12 +99,11 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     } else if (e is SubscriptionError) {
       _routerService.navigateTo(PaymentPlanUIRoute());
     } else if (e is FailedPaymentException) {
-      // TODO: improve this when a client is stuck on this page and call customer support to get help
-      // for now we are going to return  _routerService.navigateTo(FlipperAppRoute()); as usual waiting for a fix
-      _routerService.navigateTo(FlipperAppRoute());
-      // _routerService.navigateTo(FailedPaymentRoute());
+      _routerService.navigateTo(FailedPaymentRoute());
     } else if (e is RealmException) {
       talker.warning("Realm Exception $e occurred");
+    } else if (e is NoPaymentPlanFound) {
+      _routerService.navigateTo(PaymentPlanUIRoute());
     } else {
       // Handle other unexpected errors.
       await logOut();
@@ -121,7 +120,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   }
 
   Future<void> _hasActiveSubscription() async {
-    await ProxyService.local.hasActiveSubscription(
+    await ProxyService.bricks.hasActiveSubscription(
         businessId: ProxyService.box.getBusinessId()!,
         flipperHttpClient: ProxyService.http);
   }
