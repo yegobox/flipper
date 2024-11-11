@@ -23,7 +23,7 @@ class FailedPayment extends HookConsumerWidget {
     useEffect(() {
       Future<void> fetchPlan() async {
         try {
-          final fetchedPlan = await ProxyService.bricks
+          final fetchedPlan = await ProxyService.backUp
               .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
           plan.value = fetchedPlan;
         } catch (e) {
@@ -147,7 +147,7 @@ class FailedPayment extends HookConsumerWidget {
     if (plan.paymentMethod == "Card") {
       int finalPrice = plan.totalPrice!.toInt();
       isLoading.value = true;
-      FlipperSaleCompaign? compaign = ProxyService.bricks.getLatestCompaign();
+      FlipperSaleCompaign? compaign = ProxyService.backUp.getLatestCompaign();
       try {
         if (kDebugMode) {
           if (compaign != null) {
@@ -193,7 +193,7 @@ class FailedPayment extends HookConsumerWidget {
     const delayBetweenAttempts = Duration(seconds: 5);
 
     while (true) {
-      PaymentPlan? planUpdated = await ProxyService.bricks
+      PaymentPlan? planUpdated = await ProxyService.backUp
           .getPaymentPlan(businessId: plan.businessId ?? 0);
 
       if (planUpdated != null && planUpdated.paymentCompletedByUser == true) {

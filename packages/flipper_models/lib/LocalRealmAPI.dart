@@ -2473,7 +2473,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   @override
   Future<PaymentPlan?> getPaymentPlan({required int businessId}) async {
     final result =
-        await ProxyService.bricks.getPaymentPlan(businessId: businessId);
+        await ProxyService.backUp.getPaymentPlan(businessId: businessId);
     return result == null
         ? null
         : PaymentPlan(

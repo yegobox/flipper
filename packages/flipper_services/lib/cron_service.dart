@@ -79,7 +79,7 @@ class CronService {
     //         print("Document saved: ${doc.id}");
     //       });
     // }
-    ProxyService.bricks
+    ProxyService.backUp
         .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
     if (results.any((result) => result != ConnectivityResult.none)) {
       if (FirebaseAuth.instance.currentUser == null) {

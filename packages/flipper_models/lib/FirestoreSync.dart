@@ -14,10 +14,11 @@ import 'package:http/http.dart' as http;
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart' as old;
 import 'package:flipper_models/power_sync/schema.dart';
-
+import 'package:supabase_models/brick/models/all_models.dart' as models;
+import 'package:supabase_models/brick/repository.dart' as brick;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'dart:typed_data';
 import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:firestore_models/firestore_models.dart';
@@ -328,7 +329,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
     }
     if (syncProviders.contains(SyncProvider.SUPABASE)) {
       /// replicate data to second database as well.
-      ProxyService.bricks.updateRecord(
+      brickUpdateRecord(
         tableName: tableName,
         idField: idField,
         map: map,
@@ -342,6 +343,33 @@ class FirestoreSync implements FlipperInterfaceCapella {
       //   id: id,
       //   syncProviders: syncProviders,
       // );
+    }
+  }
+
+  brickUpdateRecord(
+      {required String tableName,
+      required String idField,
+      required Map<String, dynamic> map,
+      required int id,
+      required List<SyncProvider> syncProviders}) async {
+    final repository = brick.Repository();
+    if (tableName == countersTable) {
+      try {
+        final upCounter = models.Counter(
+          id: map['id'],
+          lastTouched: DateTime.now(),
+          createdAt: DateTime.now(),
+          branchId: map['branchId'],
+          curRcptNo: map['curRcptNo'],
+          totRcptNo: map['totRcptNo'],
+          invcNo: map['invcNo'],
+          businessId: map['businessId'],
+          receiptType: map['receiptType'],
+        );
+        repository.upsert(upCounter);
+      } catch (e) {
+        talker.error(e);
+      }
     }
   }
 
@@ -1112,21 +1140,46 @@ class FirestoreSync implements FlipperInterfaceCapella {
   @override
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {
-    talker.warning("Using FirestoreSync");
-    final result = await counterRef
-        .whereBranchId(isEqualTo: branchId)
-        .whereReceiptType(isEqualTo: receiptType)
-        .get();
-    if (result.docs.isEmpty) {
-      return null;
-    }
-    return result.docs.first.data;
+    final repository = brick.Repository();
+    final query = brick.Query(where: [
+      brick.Where('branchId').isExactly(branchId),
+      brick.Where('receiptType').isExactly(receiptType),
+    ]);
+    final counter = await repository.get<models.Counter>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+    return counter
+        .map((e) => Counter(
+            id: e.id,
+            branchId: e.branchId,
+            businessId: e.businessId,
+            receiptType: e.receiptType,
+            totRcptNo: e.totRcptNo,
+            curRcptNo: e.curRcptNo,
+            invcNo: e.invcNo,
+            lastTouched: e.lastTouched))
+        .firstOrNull;
   }
 
   @override
   Future<List<Counter>> getCounters({required int branchId}) async {
-    final snapshot = await counterRef.whereBranchId(isEqualTo: branchId).get();
-    return snapshot.docs.map((doc) => doc.data).toList();
+    final repository = brick.Repository();
+    final query =
+        brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
+    final counters = await repository.get<models.Counter>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+
+    return counters
+        .map((e) => Counter(
+              id: e.id,
+              branchId: e.branchId,
+              businessId: e.businessId,
+              receiptType: e.receiptType,
+              totRcptNo: e.totRcptNo,
+              curRcptNo: e.curRcptNo,
+              invcNo: e.invcNo,
+              lastTouched: DateTime.now(),
+            ))
+        .toList();
   }
 
   @override
@@ -1237,9 +1290,28 @@ class FirestoreSync implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<PaymentPlan?> getPaymentPlan({required int businessId}) {
-    // TODO: implement getPaymentPlan
-    throw UnimplementedError();
+  Future<PaymentPlan?> getPaymentPlan({required int businessId}) async {
+    final repository = brick.Repository();
+    final query = brick.Query(where: [
+      brick.Where('businessId').isExactly(businessId),
+      brick.Where('paymentCompletedByUser').isExactly(true),
+    ]);
+    final result = await repository.get<models.Plan>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+    return result
+        .map((e) => PaymentPlan(
+              businessId: e.businessId,
+              selectedPlan: e.selectedPlan,
+              additionalDevices: e.additionalDevices,
+              isYearlyPlan: e.isYearlyPlan,
+              totalPrice: e.totalPrice?.toDouble(),
+              createdAt: e.createdAt,
+              paymentCompletedByUser: e.paymentCompletedByUser,
+              payStackCustomerId: e.payStackCustomerId,
+              rule: e.rule,
+              paymentMethod: e.paymentMethod,
+            ))
+        .firstOrNull;
   }
 
   @override
@@ -1443,9 +1515,9 @@ class FirestoreSync implements FlipperInterfaceCapella {
   @override
   Future<bool> hasActiveSubscription(
       {required int businessId,
-      required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement hasActiveSubscription
-    throw UnimplementedError();
+      required HttpClientInterface flipperHttpClient}) async {
+    return ProxyService.local.hasActiveSubscription(
+        businessId: businessId, flipperHttpClient: flipperHttpClient);
   }
 
   @override
@@ -1733,7 +1805,6 @@ class FirestoreSync implements FlipperInterfaceCapella {
       required String bhFId}) {
     // TODO: implement saveEbm
   }
-
   @override
   Future<PaymentPlan> saveOrUpdatePaymentPlan(
       {required int businessId,
@@ -1744,9 +1815,32 @@ class FirestoreSync implements FlipperInterfaceCapella {
       required int payStackUserId,
       required String paymentMethod,
       String? customerCode,
-      required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement saveOrUpdatePaymentPlan
-    throw UnimplementedError();
+      required HttpClientInterface flipperHttpClient}) async {
+    final repository = brick.Repository();
+    final model = await repository.upsert(models.Plan(
+      id: businessId,
+      businessId: businessId,
+      selectedPlan: selectedPlan,
+      additionalDevices: additionalDevices,
+      isYearlyPlan: isYearlyPlan,
+      totalPrice: totalPrice.toInt(),
+      createdAt: DateTime.now(),
+      payStackCustomerId: payStackUserId,
+      paymentMethod: paymentMethod,
+      paymentCompletedByUser: false,
+    ));
+
+    return PaymentPlan(
+      id: model.id,
+      businessId: model.businessId,
+      selectedPlan: model.selectedPlan,
+      additionalDevices: model.additionalDevices,
+      isYearlyPlan: model.isYearlyPlan,
+      totalPrice: model.totalPrice?.toDouble(),
+      createdAt: model.createdAt,
+      payStackCustomerId: model.payStackCustomerId,
+      paymentMethod: model.paymentMethod,
+    );
   }
 
   @override
@@ -2030,9 +2124,29 @@ class FirestoreSync implements FlipperInterfaceCapella {
   @override
   void updateCounters(
       {required List<Counter> counters, RwApiResponse? receiptSignature}) {
-    counters.forEach((counter) {
-      counterRef.doc(counter.id.toString()).set(counter);
-    });
+    final repository = brick.Repository();
+    // build brick Counter to pass in to upsert
+    for (Counter counter in counters) {
+      final upCounter = models.Counter(
+        createdAt: DateTime.now(),
+        lastTouched: DateTime.now(),
+        id: counter.id!,
+        branchId: counter.branchId,
+        curRcptNo: counter.curRcptNo,
+        totRcptNo: counter.totRcptNo,
+        invcNo: counter.invcNo! + 1,
+        businessId: counter.businessId,
+        receiptType: counter.receiptType,
+      );
+      repository.upsert(upCounter);
+      counter.invcNo = counter.invcNo! + 1;
+      ProxyService.capela.updateRecord(
+          tableName: countersTable,
+          idField: 'id',
+          map: counter.toJson(),
+          id: counter.id!,
+          syncProviders: [SyncProvider.CAPELLA]);
+    }
   }
 
   @override

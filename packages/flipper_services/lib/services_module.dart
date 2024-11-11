@@ -1,5 +1,4 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flipper_models/BricksSync.dart';
 import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
@@ -24,7 +23,7 @@ import 'package:http/http.dart' as httP;
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
-import 'package:flipper_services/abstractions/system_time.dart';
+import 'package:flipper_services/abstractions/system_time.dart';  
 import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
 import 'package:flipper_services/constants.dart';
@@ -73,12 +72,6 @@ abstract class ServicesModule {
     return FirestoreSync(firestore);
   }
 
-  @LazySingleton()
-  @Named('bricks')
-  FlipperInterfaceCapella provideBricksSync() {
-    return BricksSync();
-  }
-
   @preResolve
   @Named('capella')
   @LazySingleton()
@@ -101,12 +94,10 @@ abstract class ServicesModule {
   SyncStrategy provideStrategy(
     @Named('capella') FlipperInterfaceCapella capella,
     @Named('backup') FlipperInterfaceCapella backup,
-    @Named('bricks') FlipperInterfaceCapella bricks,
   ) {
     return SyncStrategy(
       capella: capella as Capella,
       cloudSync: backup as FirestoreSync,
-      bricksSync: bricks as BricksSync,
     );
   }
 
@@ -120,9 +111,8 @@ abstract class ServicesModule {
         box: box,
         useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
       );
-    } else {
-      return HttpApi();
     }
+    throw Exception("This is not supported on web");
   }
 
   @singleton

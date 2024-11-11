@@ -109,10 +109,6 @@ extension GetItInjectableX on _i174.GetIt {
         () => servicesModule.forcedataEntry());
     gh.lazySingleton<_i36.BillingService>(() => servicesModule.billing());
     gh.lazySingleton<_i489.FlipperInterfaceCapella>(
-      () => servicesModule.provideBricksSync(),
-      instanceName: 'bricks',
-    );
-    gh.lazySingleton<_i489.FlipperInterfaceCapella>(
       () => servicesModule.provideSyncInterface(gh<_i974.FirebaseFirestore>()),
       instanceName: 'backup',
     );
@@ -129,7 +125,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => servicesModule.provideStrategy(
         gh<_i489.FlipperInterfaceCapella>(instanceName: 'capella'),
         gh<_i489.FlipperInterfaceCapella>(instanceName: 'backup'),
-        gh<_i489.FlipperInterfaceCapella>(instanceName: 'bricks'),
       ),
       instanceName: 'strategy',
     );
