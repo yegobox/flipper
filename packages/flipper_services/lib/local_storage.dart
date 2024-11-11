@@ -63,6 +63,7 @@ class SharedPreferenceStorage implements LocalStorage {
         'switchToCloudSync',
         'useInHouseSyncGateway',
         'customPhoneNumberForPayment',
+        'purchaseCode',
       },
     ));
     return this;
@@ -364,5 +365,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String? customPhoneNumberForPayment() {
     return prefs.getString('customPhoneNumberForPayment');
+  }
+
+  @override
+  String? purchaseCode() {
+    return prefs.getString('purchaseCode');
   }
 }

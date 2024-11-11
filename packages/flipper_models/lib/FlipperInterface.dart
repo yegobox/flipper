@@ -455,7 +455,7 @@ abstract class FlipperInterface {
   void saveComposite({required Composite composite});
   List<Composite> composites({required int productId});
   List<Composite> compositesByVariantId({required int variantId});
-  Composite composite({required int variantId});
+  Composite? composite({required int variantId});
   Stream<SKU?> sku({required int branchId, required int businessId});
   void createVariant(
       {required String barCode,

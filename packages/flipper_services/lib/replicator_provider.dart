@@ -134,7 +134,7 @@ class ReplicatorProvider {
 
   ReplicatorStatus? _replicatorStatus;
   ReplicatorStatus? get replicatorStatus => _replicatorStatus;
-  String get scope => "user_data";
+  String get scope => "_default";
 
   Future<void> init() async {
     if (isInitialized) {
@@ -156,8 +156,7 @@ class ReplicatorProvider {
       final counterCollection = await db.createCollection(countersTable, scope);
 
       final collectionConfig = CollectionConfiguration(
-        channels: [
-          ProxyService.box.getBranchId()!.toString()],
+        channels: [ProxyService.box.getBranchId()!.toString()],
         pullFilter: (document, flags) => true,
         conflictResolver: conflictResolver,
       );
@@ -180,24 +179,6 @@ class ReplicatorProvider {
 
         final endPoint = UrlEndpoint(url);
 
-        // Configure pull-only replicator for initial sync
-        _pullConfiguration = ReplicatorConfiguration(
-          target: endPoint,
-          authenticator: basicAuthenticator,
-          continuous: false,
-          replicatorType: ReplicatorType.pull,
-          heartbeat: const Duration(seconds: 1),
-          pinnedServerCertificate: pem.buffer.asUint8List(),
-        )
-        ..addCollections([counterCollection], collectionConfig);
-
-        // Create and start pull replicator immediately
-        _pullReplicator = await Replicator.create(_pullConfiguration!);
-        await _setupReplicatorListeners(_pullReplicator!, true);
-        await _pullReplicator!
-            .start(); // Start replicator immediately after setup
-
-        // Configure push-pull replicator for ongoing sync
         _pushPullConfiguration = ReplicatorConfiguration(
           target: endPoint,
           authenticator: basicAuthenticator,
@@ -206,6 +187,10 @@ class ReplicatorProvider {
           heartbeat: const Duration(seconds: 10),
           pinnedServerCertificate: pem.buffer.asUint8List(),
         )..addCollections([counterCollection], collectionConfig);
+
+        _pushPullReplicator = await Replicator.create(_pushPullConfiguration!);
+        await _pushPullReplicator!.start(reset: true);
+        await _setupReplicatorListeners(_pushPullReplicator!, true);
       } else {
         // Local sync gateway configuration
         final url = Uri(
@@ -260,12 +245,6 @@ class ReplicatorProvider {
     await replicator.addChangeListener((change) {
       talker.debug('Replicator status changed: ${change.status.activity}');
       talker.debug('Replicator status details: ${change.status}');
-
-      if (change.status.activity == ReplicatorActivityLevel.stopped) {
-        if (isPullOnly && !_initialSyncComplete) {
-          _handleInitialSyncComplete();
-        }
-      }
 
       if (change.status.error != null) {
         talker.error('Replication error detected:');
@@ -355,24 +334,6 @@ class ReplicatorProvider {
     }
   }
 
-  Future<void> _handleInitialSyncComplete() async {
-    if (!_initialSyncComplete) {
-      _initialSyncComplete = true;
-      debugPrint(
-          '${DateTime.now()} [ReplicatorProvider] Initial sync complete, switching to push-pull mode');
-
-      // Clean up pull-only replicator
-      await stopReplicator();
-
-      // Set up and start push-pull replicator
-      if (_pushPullConfiguration != null) {
-        _pushPullReplicator = await Replicator.create(_pushPullConfiguration!);
-        await _setupReplicatorListeners(_pushPullReplicator!, false);
-        await _pushPullReplicator!.start();
-      }
-    }
-  }
-
   Future<void> startReplicator() async {
     if (!isInitialized) {
       throw Exception('ReplicatorProvider not initialized. Call init() first.');
@@ -382,8 +343,7 @@ class ReplicatorProvider {
         '${DateTime.now()} [ReplicatorProvider] info: starting replicator.');
 
     try {
-      final replicator =
-          _initialSyncComplete ? _pushPullReplicator : _pullReplicator;
+      final replicator = _pushPullReplicator;
       if (replicator == null) {
         throw Exception('Replicator is null');
       }
@@ -403,36 +363,6 @@ class ReplicatorProvider {
       debugPrint(
           '${DateTime.now()} [ReplicatorProvider] stackTrace: $stackTrace');
       rethrow;
-    }
-  }
-
-  Future<void> stopReplicator() async {
-    final replicator =
-        _initialSyncComplete ? _pushPullReplicator : _pullReplicator;
-    if (replicator != null) {
-      debugPrint(
-          '${DateTime.now()} [ReplicatorProvider] info: stopping replicator.');
-
-      try {
-        await removeDocumentReplicationListener();
-        await removeStatusChangeListener();
-        await replicator.stop();
-
-        statusChangedToken = null;
-        documentReplicationToken = null;
-
-        debugPrint(
-            '${DateTime.now()} [ReplicatorProvider] info: stopped replicator.');
-      } catch (e, stackTrace) {
-        debugPrint(
-            '${DateTime.now()} [ReplicatorProvider] error stopping replicator: $e');
-        debugPrint(
-            '${DateTime.now()} [ReplicatorProvider] stackTrace: $stackTrace');
-        rethrow;
-      }
-    } else {
-      debugPrint(
-          '${DateTime.now()} [ReplicatorProvider] warning: tried to stop replicator but it was null.');
     }
   }
 

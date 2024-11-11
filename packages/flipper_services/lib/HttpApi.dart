@@ -1668,7 +1668,6 @@ class HttpApi implements RealmViaHttp, FlipperInterface {
       {required HttpClientInterface flipperHttpClient,
       required int businessId,
       required int amount}) async {
-    //  Business business = ProxyService.local.getBusiness();
     final phone =
         ProxyService.box.customPhoneNumberForPayment()?.replaceAll("+", "") ??
             ProxyService.box.getUserPhone()!.replaceAll("+", "");

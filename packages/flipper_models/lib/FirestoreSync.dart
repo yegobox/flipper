@@ -335,13 +335,13 @@ class FirestoreSync implements FlipperInterfaceCapella {
         id: id,
         syncProviders: syncProviders,
       );
-      ProxyService.capela.updateRecord(
-        tableName: tableName,
-        idField: idField,
-        map: map,
-        id: id,
-        syncProviders: syncProviders,
-      );
+      // ProxyService.capela.updateRecord(
+      //   tableName: tableName,
+      //   idField: idField,
+      //   map: map,
+      //   id: id,
+      //   syncProviders: syncProviders,
+      // );
     }
   }
 

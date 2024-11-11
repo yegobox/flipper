@@ -2116,10 +2116,10 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  Composite composite({required int variantId}) {
+  Composite? composite({required int variantId}) {
     final queryBuilder =
         realm!.query<Composite>(r'variantId == $0', [variantId]);
-    return queryBuilder.first;
+    return queryBuilder.firstOrNull;
   }
 
   @override

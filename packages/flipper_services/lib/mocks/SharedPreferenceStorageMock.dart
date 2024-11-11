@@ -285,4 +285,9 @@ class SharedPreferenceStorageMock implements LocalStorage {
   String customPhoneNumberForPayment() {
     return "";
   }
+
+  @override
+  String? purchaseCode() {
+    return "";
+  }
 }

@@ -702,5 +702,8 @@ class App {}
 // https://www.youtube.com/watch?v=j2Zs1mzwdME
 // https://www.youtube.com/watch?v=X0hL1Z32ck0
 // CREATE PRIMARY INDEX ON `flipper`.`user_data`.`counters`;
+// https://docs.couchbase.com/couchbase-lite/current/java/gs-build.html
+// https://docs.couchbase.com/cloud/app-services/user-management/create-app-role.html
+// https://docs.couchbase.com/cloud/app-services/deployment/access-control-data-validation.html
 
 

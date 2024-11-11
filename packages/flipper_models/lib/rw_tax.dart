@@ -494,6 +494,14 @@ class RWTax with NetworkHelper implements TaxApi {
         ProxyService.local.getByTaxType(taxtype: "C");
     Configurations taxConfigTaxD =
         ProxyService.local.getByTaxType(taxtype: "D");
+    if (transaction.customerId != null) {
+      //  it mighbe a copy re-assign a customer
+      talker.warning("Overriding customer");
+      Customer? cus =
+          ProxyService.local.getCustomer(id: transaction.customerId!);
+      customer = cus;
+      talker.warning(customer);
+    }
 
     /// TODO: for totalTax we are not accounting other taxes only B
     /// so need to account them in future
@@ -585,7 +593,7 @@ class RWTax with NetworkHelper implements TaxApi {
           customer: customer,
           json: json,
           transaction: transaction,
-          purchaseCode: purchaseCode);
+          purchaseCode: purchaseCode ?? ProxyService.box.purchaseCode());
     }
     // print(json);
     return json;
@@ -625,7 +633,7 @@ class RWTax with NetworkHelper implements TaxApi {
     required Map<String, dynamic> json,
     required ITransaction transaction,
     required Customer customer,
-    String? purchaseCode,
+    String? purchaseCode
   }) {
     if (transaction.customerId != null && purchaseCode != null) {
       json[custTinKey] = customer.custTin;
@@ -633,7 +641,6 @@ class RWTax with NetworkHelper implements TaxApi {
       json[prcOrdCd] = purchaseCode;
       json['receipt'][custTinKey] = customer.custTin;
     }
-
     return json;
   }
 

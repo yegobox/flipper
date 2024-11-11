@@ -246,9 +246,9 @@ mixin TransactionMixin {
         // Add new item (for both custom and new non-custom items)
         double computedQty = isCustom ? 1.0 : quantity;
         if (partOfComposite) {
-          Composite composite =
+          Composite? composite =
               ProxyService.local.composite(variantId: variation.id!);
-          computedQty = composite.qty ?? 0.0;
+          computedQty = composite?.qty ?? 0.0;
         }
 
         TransactionItem newItem = TransactionItem(

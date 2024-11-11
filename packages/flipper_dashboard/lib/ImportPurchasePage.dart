@@ -179,7 +179,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       setState(() {
         isLoading = true;
       });
-      talker.warning("salesListLrnghts" + salesList.length.toString());
+      talker.warning("salesListLenghts" + salesList.length.toString());
       for (SaleList supplier in salesList) {
         for (ItemList item in supplier.itemList!) {
           item.retailPrice ??= item.prc;
@@ -200,8 +200,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               createdAt: DateTime.now().toIso8601String(),
               spplrNm: supplier.spplrNm,
             ),
-            supplyPrice: item.prc,
-            retailPrice: item.prc,
+            supplyPrice: item.splyAmt,
+            retailPrice: item.retailPrice ?? item.prc,
             itemSeq: item.itemSeq,
             ebmSynced: false,
           );
@@ -226,7 +226,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               customItem: false,
               currentStock: variant.stock!.currentStock,
               pendingTransaction: pendingTransaction,
-              partOfComposite: true,
+              partOfComposite: false,
               compositePrice: 0,
             );
             // mark the transaction as parked until completed

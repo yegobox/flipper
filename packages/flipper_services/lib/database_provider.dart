@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart';
 
 class DatabaseProvider {
   //database information
-  final String dbName = 'flipper';
+  final String dbName = 'flipper_remote_v1';
 
   //directory and file information
   String cblPreBuiltDatabasePath = "";
