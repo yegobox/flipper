@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/secrets.dart';
 
-// import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
-
 abstract class RealmViaHttp {
   Future<bool> isCouponValid(
       {required HttpClientInterface flipperHttpClient,

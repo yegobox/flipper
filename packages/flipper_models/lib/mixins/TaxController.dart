@@ -264,7 +264,7 @@ class TaxController<OBJ> {
             "Counter have not been initialized, call +250783054874");
       }
 
-      ProxyService.capela.capella!.flipperDatabase?.writeN(
+      ProxyService.capela.capella!.database?.writeN(
           writeCallback: () {
             final doc =
                 MutableDocument.withId(counter.id.toString(), counter.toJson());

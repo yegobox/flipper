@@ -46,13 +46,15 @@ class CronService {
       ProxyService.setStrategy(Strategy.bricks);
       ProxyService.strategy.whoAmI();
     }
+    final counter = await ProxyService.capela.getCounters(branchId: 1);
+    talker.warning("Counters HIGHHHHH: ${counter.length}");
 
     // AsyncCollection? collection = await ProxyService
     //     .capela.capella?.flipperDatabase!
     //     .collection(countersTable, 'user_data');
     // if (collection == null) {
     //   collection = await ProxyService.capela.capella?.flipperDatabase!
-    //       .createCollection(countersTable, "user_data");
+    //       .createCollection(countersTable, "default");
     // }
     // // counters
     // List<Counter> counters = ProxyService.local.realm!.all<Counter>().toList();

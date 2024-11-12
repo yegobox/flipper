@@ -145,15 +145,14 @@ class ReplicatorProvider {
 
     debugPrint('${DateTime.now()} [ReplicatorProvider] info: starting init.');
     try {
-      final db = databaseProvider.flipperDatabase;
+      final db = databaseProvider.database;
       if (db == null) {
         throw Exception('Database is null');
       }
       // Create the conflict resolver
       final conflictResolver = CustomConflictResolver();
 
-      // Create collection first
-      final counterCollection = await db.createCollection(countersTable, scope);
+      final counterCollections = await db.collections(scope);
 
       final collectionConfig = CollectionConfiguration(
         channels: [ProxyService.box.getBranchId()!.toString()],
@@ -186,10 +185,10 @@ class ReplicatorProvider {
           replicatorType: ReplicatorType.pushAndPull,
           heartbeat: const Duration(seconds: 10),
           pinnedServerCertificate: pem.buffer.asUint8List(),
-        )..addCollections([counterCollection], collectionConfig);
+        )..addCollections(counterCollections, collectionConfig);
 
         _pushPullReplicator = await Replicator.create(_pushPullConfiguration!);
-        await _pushPullReplicator!.start(reset: true);
+        await _pushPullReplicator!.start(reset: false);
         await _setupReplicatorListeners(_pushPullReplicator!, true);
       } else {
         // Local sync gateway configuration
@@ -211,7 +210,7 @@ class ReplicatorProvider {
           continuous: false,
           replicatorType: ReplicatorType.pull,
           heartbeat: const Duration(seconds: 30),
-        )..addCollections([counterCollection], collectionConfig);
+        )..addCollections(counterCollections, collectionConfig);
 
         // Create and start pull replicator immediately
         _pullReplicator = await Replicator.create(_pullConfiguration!);
@@ -225,7 +224,7 @@ class ReplicatorProvider {
           continuous: true,
           replicatorType: ReplicatorType.pushAndPull,
           heartbeat: const Duration(seconds: 60),
-        )..addCollections([counterCollection], collectionConfig);
+        )..addCollections(counterCollections, collectionConfig);
       }
 
       isInitialized = true;
@@ -278,7 +277,7 @@ class ReplicatorProvider {
 
   Future<void> _handlePotentialConflict(String documentId) async {
     try {
-      final db = databaseProvider.flipperDatabase;
+      final db = databaseProvider.database;
       if (db == null) return;
 
       final collection = await db.collection(countersTable, scope);

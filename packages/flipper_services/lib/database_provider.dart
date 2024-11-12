@@ -2,299 +2,248 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert' show utf8;
 import 'package:crypto/crypto.dart' show sha256;
-import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_services/file_system.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:cbl_flutter/cbl_flutter.dart';
 import 'package:cbl/cbl.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
+/// A provider class for managing Couchbase Lite database operations
 class DatabaseProvider {
-  //database information
-  final String dbName = 'flipper_remote_v1';
+  // Constants
+  static const String _dbName = 'flipper_remote_v1';
+  static const int _maxLogFileSize = 1024 * 1024; // 1MB
+  static const int _maxLogRotateCount = 5;
 
-  //directory and file information
-  String cblPreBuiltDatabasePath = "";
-
-  late Directory cblLogsDirectory;
-  late Directory cblDatabaseDirectory;
-
-  //database pointers
-  AsyncDatabase? flipperDatabase;
-
-  bool isInitialized = false;
-  bool isReplicatorStarted = false;
-
-  // Add singleton pattern to ensure single instance
+  // Private fields
+  late final Directory _databaseDirectory;
+  late final Directory _logsDirectory;
+  AsyncDatabase? _database;
   Uint8List? _encryptionKeyBytes;
-  final List<String> userEncryptionKey;
+  bool _isInitialized = false;
+  bool _isInitializing = false;
 
-  DatabaseProvider._internal(this.userEncryptionKey);
+  // Private constructor
+  DatabaseProvider._({
+    required List<String> encryptionKey,
+  }) : _userEncryptionKey = encryptionKey;
 
+  // Singleton instance
   static DatabaseProvider? _instance;
+  final List<String> _userEncryptionKey;
 
-  factory DatabaseProvider(List<String> userEncryptionKey) {
-    _instance ??= DatabaseProvider._internal(userEncryptionKey);
-    return _instance!;
+  /// Factory constructor enforcing singleton pattern
+  factory DatabaseProvider({required List<String> encryptionKey}) {
+    return _instance ??= DatabaseProvider._(encryptionKey: encryptionKey);
   }
 
+  /// Initializes the database provider
   Future<DatabaseProvider> initialize() async {
+    if (_isInitializing) {
+      throw DatabaseException('Initialization already in progress');
+    }
+
+    if (_isInitialized) {
+      return this;
+    }
+
+    _isInitializing = true;
+
     try {
-      if (!isInitialized) {
-        isInitialized = true;
-
-        await setupFileSystem();
-        await CouchbaseLiteFlutter.init();
-        await _setupCouchbaseLogging();
-
-        // Check if database exists
-        bool databaseExists =
-            await File('${cblDatabaseDirectory.path}/$dbName.cblite2').exists();
-
-        if (!databaseExists) {
-          talker.warning('Database does not exist, creating new one');
-          // If database doesn't exist, we'll create it and then pull data
-          await initDatabases();
-        } else {
-          talker.warning('Database exists, opening existing one');
-          await initDatabases();
-        }
-
-        debugPrint(
-            '${DateTime.now()} [DatabaseProvider] info: Successfully initialized DatabaseProvider');
-      }
+      await _initializeCore();
+      await _initializeDatabase();
+      _isInitialized = true;
       return this;
     } catch (e, stackTrace) {
-      isInitialized = false;
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] error: Initialization failed: $e');
-      debugPrint('Stack trace: $stackTrace');
+      _logError('Initialization failed', e, stackTrace);
+      _isInitialized = false;
       throw DatabaseException('Failed to initialize DatabaseProvider: $e');
+    } finally {
+      _isInitializing = false;
     }
   }
 
-  Future<DatabaseProvider> initDatabases() async {
-    if (flipperDatabase != null) {
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] info: Database already initialized');
-      return this;
-    }
-
+  /// Initializes core components
+  Future<void> _initializeCore() async {
     try {
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] info: Initializing database');
-
-      final dbConfig = DatabaseConfiguration(
-        directory: cblDatabaseDirectory.path,
-      );
-
-      // Open or create the database
-      flipperDatabase = await Database.openAsync(dbName, dbConfig);
-
-      if (flipperDatabase == null) {
-        throw DatabaseException(
-            'Failed to open database: null database instance');
-      }
-
-      // Create collections after database is opened
-      await _createCollections();
-
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] info: Database initialized successfully');
-    } catch (e, stackTrace) {
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] error: Failed to initialize database: $e');
-      debugPrint('Stack trace: $stackTrace');
-      await _handleDatabaseError(e);
-      throw DatabaseException('Failed to initialize database: $e');
-    }
-    return this;
-  }
-
-  Future<void> _createCollections() async {
-    try {
-      final db = flipperDatabase;
-      if (db != null) {
-        // Create your collections here
-        await db.createCollection('counters', 'user_data');
-        // Add other collections as needed
-      }
+      await _setupFileSystem();
+      await CouchbaseLiteFlutter.init();
+      await _setupLogging();
     } catch (e) {
-      debugPrint('Error creating collections: $e');
-      rethrow;
+      throw DatabaseException('Failed to initialize core components: $e');
     }
   }
 
-  String getDatabasePath() => '${cblDatabaseDirectory.path}/$dbName';
+  /// Sets up the file system for database and logs
+  Future<void> _setupFileSystem() async {
+    final appDir = await getApplicationDocumentsDirectory();
 
-  Future<void> setupFileSystem() async {
-    try {
-      final databaseDirectory = await getApplicationDocumentsDirectory();
-      final logsDirectory = await getApplicationDocumentsDirectory();
+    _databaseDirectory =
+        await Directory('${appDir.path}/databases').create(recursive: true);
 
-      // Create directories if they don't exist
-      cblDatabaseDirectory = await databaseDirectory
-          .subDirectory('databases')
-          .create(recursive: true);
+    _logsDirectory =
+        await Directory('${appDir.path}/logs/cbl').create(recursive: true);
 
-      cblLogsDirectory = await logsDirectory
-          .subDirectory('logs')
-          .subDirectory('cbl')
-          .create(recursive: true);
-
-      cblPreBuiltDatabasePath = "${cblDatabaseDirectory.path}/$dbName.cblite2";
-
-      talker.warning('cblPreBuiltDatabasePath: $cblPreBuiltDatabasePath');
-
-      // Verify directories are writable
-      if (!await cblDatabaseDirectory.exists() ||
-          !await cblLogsDirectory.exists()) {
-        throw DatabaseException('Failed to create required directories');
-      }
-    } catch (e) {
-      throw DatabaseException('Failed to setup file system: $e');
+    if (!await _databaseDirectory.exists() || !await _logsDirectory.exists()) {
+      throw DatabaseException('Failed to create required directories');
     }
   }
 
-  Future<void> closeDatabases() async {
+  /// Configures database logging
+  Future<void> _setupLogging() async {
     try {
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] info: Closing databases');
-
-      if (flipperDatabase != null) {
-        await flipperDatabase?.close();
-        flipperDatabase = null;
-        isInitialized = false; // Reset initialization flag
-      }
-
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] info: Databases closed successfully');
-    } catch (e, stackTrace) {
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] error: Failed to close databases: $e');
-      debugPrint('Stack trace: $stackTrace');
-      throw DatabaseException('Failed to close databases: $e');
-    }
-  }
-
-  Future<void> _setupCouchbaseLogging() async {
-    try {
-      // Ensure directories exist before setting up logging
-      if (!await cblLogsDirectory.exists()) {
-        await cblLogsDirectory.create(recursive: true);
-      }
-
-      // Configure file logging with rotation and size limits
       Database.log.file.config = LogFileConfiguration(
-        directory: cblLogsDirectory.path,
+        directory: _logsDirectory.path,
         usePlainText: true,
-        maxSize: 1024 * 1024, // 1MB per file
-        maxRotateCount: 5, // Keep 5 rotation files
+        maxSize: _maxLogFileSize,
+        maxRotateCount: _maxLogRotateCount,
       );
 
-      // Configure custom logging if available
-      final customLogger = Database.log.custom;
-      if (customLogger != null) {
-        customLogger.level = LogLevel.verbose;
-      }
-
-      // Enable console logging for development
       if (kDebugMode) {
         Database.log.console.level = LogLevel.info;
       }
 
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] info: Logging setup completed');
+      final customLogger = Database.log.custom;
+      if (customLogger != null) {
+        customLogger.level = LogLevel.verbose;
+      }
     } catch (e) {
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] error: Failed to setup logging: $e');
-      // Don't throw here - logging failure shouldn't stop initialization
+      _logWarning('Logging setup failed', e);
     }
   }
 
-  // Optional: Add encryption support
-  Future<EncryptionKey?> _getEncryptionKey() async {
+  /// Initializes the database
+  Future<void> _initializeDatabase() async {
+    if (_database != null) {
+      _logInfo('Database already initialized');
+      return;
+    }
+
     try {
-      if (userEncryptionKey.isEmpty) {
-        debugPrint(
-            '${DateTime.now()} [DatabaseProvider] warning: No encryption key provided');
-        return null;
+      final dbConfig = DatabaseConfiguration(
+        directory: _databaseDirectory.path,
+        // encryptionKey: await _getEncryptionKey(),
+      );
+
+      _database = await Database.openAsync(_dbName, dbConfig);
+
+      if (_database == null) {
+        throw DatabaseException('Failed to open database: null instance');
       }
 
+      await _createCollections();
+      _logInfo('Database initialized successfully');
+    } catch (e) {
+      await _handleDatabaseError(e);
+      throw DatabaseException('Failed to initialize database: $e');
+    }
+  }
+
+  /// Creates database collections
+  Future<void> _createCollections() async {
+    final db = _database;
+    if (db == null) return;
+
+    try {
+      await db.createCollection('counters', "_default");
+      // Add other collections as needed
+    } catch (e) {
+      _logError('Failed to create collections', e);
+      rethrow;
+    }
+  }
+
+  /// Processes and returns the encryption key
+  Future<EncryptionKey?> _getEncryptionKey() async {
+    if (_userEncryptionKey.isEmpty) {
+      _logWarning('No encryption key provided', null);
+      return null;
+    }
+
+    try {
       if (_encryptionKeyBytes == null) {
-        _encryptionKeyBytes = await _processEncryptionKey(userEncryptionKey);
+        _encryptionKeyBytes = await _processEncryptionKey();
       }
 
       if (_encryptionKeyBytes!.length != 32) {
-        throw DatabaseException(
-            'Invalid encryption key length: ${_encryptionKeyBytes!.length} bytes. Required: 32 bytes');
+        throw DatabaseException('Invalid encryption key length');
       }
 
       return await EncryptionKey.key(_encryptionKeyBytes!);
-    } catch (e, stackTrace) {
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] error: Encryption key processing failed: $e');
-      debugPrint('Stack trace: $stackTrace');
+    } catch (e) {
       throw DatabaseException('Failed to process encryption key: $e');
     }
   }
 
-  Future<Uint8List> _processEncryptionKey(List<String> keyParts) async {
+  /// Processes the encryption key parts
+  Future<Uint8List> _processEncryptionKey() async {
     try {
-      final combinedKey = keyParts.join();
+      final combinedKey = _userEncryptionKey.join();
       final keyBytes = utf8.encode(combinedKey);
-      final digest = await _hashKey(keyBytes);
-
-      // Convert List<int> to Uint8List
-      return Uint8List.fromList(digest);
+      return Uint8List.fromList(await _hashKey(keyBytes));
     } catch (e) {
-      throw DatabaseException('Failed to process encryption key parts: $e');
+      throw DatabaseException('Failed to process encryption key: $e');
     }
   }
 
+  /// Hashes the encryption key
   Future<List<int>> _hashKey(List<int> keyBytes) async {
-    try {
-      return await compute((List<int> bytes) {
-        final digest = sha256.convert(bytes);
-        return digest.bytes;
-      }, keyBytes);
-    } catch (e) {
-      throw DatabaseException('Failed to hash encryption key: $e');
-    }
+    return compute((List<int> bytes) => sha256.convert(bytes).bytes, keyBytes);
   }
 
-  // Add method to clear encryption key from memory when needed
-  Future<void> clearEncryptionKey() async {
+  /// Closes the database
+  Future<void> close() async {
     try {
-      if (_encryptionKeyBytes != null) {
-        // Overwrite the bytes with zeros before clearing
-        _encryptionKeyBytes!.fillRange(0, _encryptionKeyBytes!.length, 0);
-        _encryptionKeyBytes = null;
+      if (_database != null) {
+        await _database?.close();
+        _database = null;
+        _isInitialized = false;
+        await clearEncryptionKey();
       }
     } catch (e) {
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] error: Failed to clear encryption key: $e');
+      throw DatabaseException('Failed to close database: $e');
     }
   }
 
-  // Optional: Handle database migrations
-  Future<void> _performDatabaseMigrationIfNeeded() async {
-    // Implement database schema migrations
+  /// Clears the encryption key from memory
+  Future<void> clearEncryptionKey() async {
+    if (_encryptionKeyBytes != null) {
+      _encryptionKeyBytes!.fillRange(0, _encryptionKeyBytes!.length, 0);
+      _encryptionKeyBytes = null;
+    }
   }
 
+  /// Handles database errors
   Future<void> _handleDatabaseError(dynamic error) async {
-    // Implement error recovery logic
-    try {
-      await closeDatabases();
-      // Could add retry logic, backup recovery, etc.
-    } catch (e) {
-      debugPrint(
-          '${DateTime.now()} [DatabaseProvider] error: Error recovery failed: $e');
+    _logError('Database error occurred', error);
+    await close();
+  }
+
+  // Logging utilities
+  void _logInfo(String message) {
+    debugPrint('${DateTime.now()} [DatabaseProvider] info: $message');
+  }
+
+  void _logWarning(String message, dynamic error) {
+    debugPrint(
+        '${DateTime.now()} [DatabaseProvider] warning: $message ${error ?? ''}');
+  }
+
+  void _logError(String message, dynamic error, [StackTrace? stackTrace]) {
+    debugPrint('${DateTime.now()} [DatabaseProvider] error: $message: $error');
+    if (stackTrace != null) {
+      debugPrint('Stack trace: $stackTrace');
     }
   }
+
+  // Getters
+  String get databasePath => '${_databaseDirectory.path}/$_dbName';
+  bool get isInitialized => _isInitialized;
+  AsyncDatabase? get database => _database;
 }
 
-// Custom exception for database-related errors
+/// Custom exception for database-related errors
 class DatabaseException implements Exception {
   final String message;
   DatabaseException(this.message);

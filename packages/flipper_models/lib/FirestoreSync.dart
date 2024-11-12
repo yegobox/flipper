@@ -1292,6 +1292,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
   @override
   Future<PaymentPlan?> getPaymentPlan({required int businessId}) async {
     final repository = brick.Repository();
+    
     final query = brick.Query(where: [
       brick.Where('businessId').isExactly(businessId),
       brick.Where('paymentCompletedByUser').isExactly(true),

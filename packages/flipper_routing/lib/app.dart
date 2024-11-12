@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'all_routes.dart';
+
 @StackedApp(
   routes: [
     CustomRoute(page: StartUpView, initial: true),
@@ -635,7 +636,7 @@ class App {}
 // https://medium.com/blocship/integrate-apple-sign-in-on-android-using-flutter-bf5d61c85332
 
 //  Map<String, dynamic> map = {"id": 15};
-//       final db = ProxyService.capela.capella!.flipperDatabase!;
+//       final db = ProxyService.capela.capella!.database!;
 
 // // Use the writeN method to write the document
 // await db.writeN(
@@ -656,7 +657,7 @@ class App {}
 //   // Optionally, you can log or perform further operations here
 //   print("Document saved: ${doc.id}");
 // });
-//  await capella!.flipperDatabase!.writeN(
+//  await capella!.database!.writeN(
 //           tableName: countersTable,
 //           writeCallback: () {
 //             Counter counter = Counter(id: randomNumber(), curRcptNo: 1111);

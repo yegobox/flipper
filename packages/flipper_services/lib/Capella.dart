@@ -59,21 +59,19 @@ class Capella with Booting implements FlipperInterfaceCapella {
   @override
   // TODO: implement countersCollection
   Future<AsyncCollection> getCountersCollection() async {
-    final database = capella!.flipperDatabase!;
-    final collection = await database.collection(countersTable, 'user_data');
+    final database = capella!.database!;
+    final collection = await database.collection(countersTable, scope);
 
-    return collection ??
-        await database.createCollection(countersTable, 'user_data');
+    return collection ?? await database.createCollection(countersTable, scope);
   }
 
   // get configurations collection
   Future<AsyncCollection> getConfigurationsCollection() async {
-    final database = capella!.flipperDatabase!;
-    final collection =
-        await database.collection(configurationsTable, 'user_data');
+    final database = capella!.database!;
+    final collection = await database.collection(configurationsTable, scope);
 
     return collection ??
-        await database.createCollection(configurationsTable, 'user_data');
+        await database.createCollection(configurationsTable, scope);
   }
 
   void _setApiEndpoints() {
@@ -91,20 +89,20 @@ class Capella with Booting implements FlipperInterfaceCapella {
     _setApiEndpoints();
 
     /// create databse indexes
-    // final collection = await capella?.flipperDatabase?.defaultCollection;
+    // final collection = await capella?.database!.defaultCollection;
     /// end of creation of indexes
     // final config = ValueIndexConfiguration(['branchId', 'receiptType']);
     // await collection!.createIndex('branchIdReceiptType', config);
     branchCollection =
-        await capella?.flipperDatabase?.createCollection(branchesTable, scope);
+        await capella?.database!.createCollection(branchesTable, scope);
 
-    businessCollection = await capella?.flipperDatabase
-        ?.createCollection(businessesTable, scope);
+    businessCollection =
+        await capella?.database?.createCollection(businessesTable, scope);
 
     accessCollection =
-        await capella?.flipperDatabase?.createCollection(accessesTable, scope);
+        await capella?.database!.createCollection(accessesTable, scope);
 
-    await capella?.flipperDatabase?.createCollection(countersTable, scope);
+    await capella?.database!.createCollection(countersTable, scope);
 
     // init replicator
   }
@@ -115,10 +113,9 @@ class Capella with Booting implements FlipperInterfaceCapella {
     talker.warning("The real implementation of capella called");
 
     capella = await (await DatabaseProvider(
-                ProxyService.box.encryptionKey().toStringList())
-            .initialize())
-        .initDatabases();
-    talker.warning("CapelaDB ${capella?.flipperDatabase}");
+            encryptionKey: ProxyService.box.encryptionKey().toStringList())
+        .initialize());
+    talker.warning("CapelaDB ${capella?.database}");
     await initCollections();
     // init replicator for now here, it will be moved into settings later
     // await startReplicator();
@@ -194,10 +191,10 @@ class Capella with Booting implements FlipperInterfaceCapella {
   Future<List<Counter>> getCounters({required int branchId}) async {
     try {
       AsyncCollection? collection =
-          await capella!.flipperDatabase!.collection(countersTable, scope);
+          await capella!.database!.collection(countersTable, scope);
       if (collection == null) {
-        collection = await capella!.flipperDatabase!
-            .createCollection(countersTable, scope);
+        collection =
+            await capella!.database!.createCollection(countersTable, scope);
       }
 
       final query = QueryBuilder()
@@ -236,17 +233,17 @@ class Capella with Booting implements FlipperInterfaceCapella {
     }
   }
 
-  String get scope => "user_data";
+  String get scope => "_default";
   @override
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {
     talker.warning("Using capella");
     try {
       AsyncCollection? collection =
-          await capella!.flipperDatabase!.collection(countersTable, scope);
+          await capella!.database!.collection(countersTable, scope);
       if (collection == null) {
-        collection = await capella!.flipperDatabase!
-            .createCollection(countersTable, scope);
+        collection =
+            await capella!.database!.createCollection(countersTable, scope);
       }
 
       final query = QueryBuilder()
@@ -1684,7 +1681,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }) async {
     final collection = await getCountersCollection();
 
-    await capella!.flipperDatabase!.writeN(
+    await capella!.database!.writeN(
       tableName: countersTable,
       writeCallback: () {
         List<MutableDocument> documents = [];
