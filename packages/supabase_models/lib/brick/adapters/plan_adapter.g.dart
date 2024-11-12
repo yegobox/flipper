@@ -5,7 +5,7 @@ Future<Plan> _$PlanFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Plan(
-      id: data['id'] as int,
+      id: data['id'] as int?,
       businessId: data['business_id'] as int?,
       selectedPlan: data['selected_plan'] as String?,
       additionalDevices: data['additional_devices'] as int?,
@@ -42,7 +42,7 @@ Future<Plan> _$PlanFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Plan(
-      id: data['id'] as int,
+      id: data['id'] == null ? null : data['id'] as int?,
       businessId:
           data['business_id'] == null ? null : data['business_id'] as int?,
       selectedPlan: data['selected_plan'] == null

@@ -1293,10 +1293,9 @@ class FirestoreSync implements FlipperInterfaceCapella {
   Future<PaymentPlan?> getPaymentPlan({required int businessId}) async {
     try {
       final repository = brick.Repository();
-      // repository.reset();
+
       final query = brick.Query(where: [
         brick.Where('businessId').isExactly(businessId),
-        brick.Where('paymentCompletedByUser').isExactly(true),
       ]);
       final result = await repository.get<models.Plan>(
           query: query, policy: OfflineFirstGetPolicy.awaitRemote);
@@ -1825,7 +1824,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
     try {
       final repository = brick.Repository();
       final model = await repository.upsert(
-        // policy: OfflineFirstUpsertPolicy.optimisticLocal,
+          // policy: OfflineFirstUpsertPolicy.optimisticLocal,
           models.Plan(
             id: businessId,
             businessId: businessId,

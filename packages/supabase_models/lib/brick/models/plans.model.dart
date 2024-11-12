@@ -9,7 +9,7 @@ import 'package:brick_supabase/brick_supabase.dart';
 class Plan extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   @Supabase(unique: true)
-  final int id;
+  final int? id;
   @Supabase(name: "business_id")
   final int? businessId;
   @Supabase(name: "selected_plan")
