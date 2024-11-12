@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart' as f;
 
 abstract class RealmViaHttp {
   Future<bool> isCouponValid(
@@ -131,9 +133,29 @@ class HttpApi implements RealmViaHttp {
   Future<bool> makePayment(
       {required HttpClientInterface flipperHttpClient,
       required int businessId,
-      required int amount}) {
-    // TODO: implement makePayment
-    throw UnimplementedError();
+      required int amount}) async {
+    final phone =
+        ProxyService.box.customPhoneNumberForPayment()?.replaceAll("+", "") ??
+            ProxyService.box.getUserPhone()!.replaceAll("+", "");
+    final response = await flipperHttpClient.post(
+        headers: {
+          'api-key': AppSecrets.apikey,
+          'Content-Type': 'application/json'
+        },
+        Uri.parse('${AppSecrets.coreApi}/v2/api/payments/payNow'),
+        body: json.encode({
+          // "amount": f.kDebugMode ? 10 : amount,
+          "amount": amount,
+          "currency": "RWF",
+          "payer": {
+            "partyIdType": "MSISDN",
+            "partyId": phone,
+          },
+          "payerMessage": "Flipper Subscription",
+          "payeeNote": "Flipper Subscription",
+          "businessId": ProxyService.box.getBusinessId()!,
+        }));
+    return response.statusCode == 200;
   }
 }
 

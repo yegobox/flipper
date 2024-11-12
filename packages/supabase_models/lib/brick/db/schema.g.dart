@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20241110055244.migration.dart';
+part '20241112145602.migration.dart';
 part '20241105105510.migration.dart';
 part '20241106083218.migration.dart';
 part '20241106093750.migration.dart';
@@ -18,16 +18,17 @@ part '20241106093753.migration.dart';
 part '20241106093749.migration.dart';
 part '20241106090504.migration.dart';
 part '20241106090549.migration.dart';
+part '20241110055244.migration.dart';
 part '20241106090910.migration.dart';
+part '20241109201939.migration.dart';
 part '20241108161334.migration.dart';
 part '20241106112436.migration.dart';
 part '20241106081113.migration.dart';
 part '20241106112448.migration.dart';
-part '20241109201939.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20241110055244(),
+  const Migration20241112145602(),
   const Migration20241105105510(),
   const Migration20241106083218(),
   const Migration20241106093750(),
@@ -44,16 +45,17 @@ final migrations = <Migration>{
   const Migration20241106093749(),
   const Migration20241106090504(),
   const Migration20241106090549(),
+  const Migration20241110055244(),
   const Migration20241106090910(),
+  const Migration20241109201939(),
   const Migration20241108161334(),
   const Migration20241106112436(),
   const Migration20241106081113(),
-  const Migration20241106112448(),
-  const Migration20241109201939()
+  const Migration20241106112448()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20241110055244, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20241112145602, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('Counter', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -85,7 +87,7 @@ final schema = Schema(20241110055244, generatorVersion: 1, tables: <SchemaTable>
   SchemaTable('Plan', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('id', Column.integer),
+    SchemaColumn('id', Column.integer, unique: true),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('selected_plan', Column.varchar),
     SchemaColumn('additional_devices', Column.integer),

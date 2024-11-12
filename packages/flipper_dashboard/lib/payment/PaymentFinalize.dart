@@ -296,6 +296,8 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
       PaymentPlan? paymentPlan = await ProxyService.local
           .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
 
+      talker.warning("CurrentPaymentPlan: $paymentPlan");
+
       int finalPrice = 0;
       //findout if there is ongoing compaign to apply discount
       if (ProxyService.box.couponCode() != null) {

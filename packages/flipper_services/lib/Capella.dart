@@ -1659,7 +1659,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
       if (tableName == countersTable) {
         final collection = await getCountersCollection();
 
-        /// remove illegal fields
+        /// remove illegal fields, the _id comes from realm maybe?
         map.remove("_id");
         map.remove("lastTouched");
         map["channels"] = [
@@ -1667,6 +1667,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
         ];
         doc.setData(map);
         await collection.saveDocument(doc);
+        
         talker.warning("Document saved successfully: ${doc.id}:${tableName}");
       }
     } catch (e) {

@@ -230,8 +230,18 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-          Plan instance, DatabaseExecutor executor) async =>
-      instance.primaryKey;
+      Plan instance, DatabaseExecutor executor) async {
+    final results = await executor.rawQuery('''
+        SELECT * FROM `Plan` WHERE id = ? LIMIT 1''', [instance.id]);
+
+    // SQFlite returns [{}] when no results are found
+    if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
+      return null;
+    }
+
+    return results.first['_brick_id'] as int;
+  }
+
   @override
   final String tableName = 'Plan';
 

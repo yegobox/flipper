@@ -5,7 +5,6 @@ import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
 import 'package:sqflite/sqflite.dart' show databaseFactory;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/brick.g.dart';
-// import 'package:brick_offline_first/brick_offline_first.dart';
 import 'db/schema.g.dart';
 // ignore: depend_on_referenced_packages
 export 'package:brick_core/query.dart'
@@ -46,7 +45,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _singleton = Repository._(
       supabaseProvider: provider,
       sqliteProvider: SqliteProvider(
-        'flipper_v9.sqlite',
+        'flipper_v10.sqlite',
         databaseFactory: databaseFactory,
         modelDictionary: sqliteModelDictionary,
       ),
@@ -55,24 +54,4 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       memoryCacheProvider: MemoryCacheProvider(),
     );
   }
-
-  // @override
-  // Stream<List<TModel extends OfflineFirstWithSupabaseModel>> subscribe({
-  //   OfflineFirstGetPolicy policy = OfflineFirstGetPolicy.localOnly,
-  //   Query? query,
-  // }) {
-  //   final adapter = supabaseProvider.modelDictionary.adapterFor[TModel]!;
-
-  //   final channel = Supabase.instance.client
-  //       .channel(adapter.supabaseTableName)
-  //       .onPostgresChanges(
-  //         event: PostgresChangeEvent.update,
-  //         schema: 'public',
-  //         table: adapter.supabaseTableName,
-  //         callback: (_) => get<TModel>(query: query);
-  //       )
-  //       .subscribe();
-  //   // handle channel.unsubscribe logic
-  //   return super.subscribe(policy: policy, query: query);
-  // }
 }

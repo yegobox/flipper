@@ -1,22 +1,33 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
+import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 
 @ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(),
+  supabaseConfig: SupabaseSerializable(tableName: 'plans'),
+  sqliteConfig: SqliteSerializable(),
 )
 class Plan extends OfflineFirstWithSupabaseModel {
+  @Sqlite(unique: true)
   @Supabase(unique: true)
   final int id;
+  @Supabase(name: "business_id")
   final int? businessId;
+  @Supabase(name: "selected_plan")
   final String? selectedPlan;
+  @Supabase(name: "additional_devices")
   final int? additionalDevices;
+  @Supabase(name: "is_yearly_plan")
   final bool? isYearlyPlan;
+  @Supabase(name: "total_price")
   final int? totalPrice;
+  @Supabase(name: "created_at")
   final DateTime? createdAt;
+  @Supabase(name: "payment_completed_by_user")
   bool? paymentCompletedByUser = false;
   @Supabase(name: "paystack_customer_id")
   final int? payStackCustomerId;
   final String? rule;
+  @Supabase(name: "payment_method")
   final String? paymentMethod;
   Plan({
     required this.id,

@@ -158,6 +158,7 @@ class ReplicatorProvider {
         channels: [ProxyService.box.getBranchId()!.toString()],
         pullFilter: (document, flags) => true,
         conflictResolver: conflictResolver,
+        // pushFilter: (document, flags) => ,
       );
 
       if (!ProxyService.box.useInHouseSyncGateway()!) {

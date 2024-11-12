@@ -12,7 +12,7 @@ import 'package:crypto/crypto.dart';
 /// A provider class for managing Couchbase Lite database operations
 class DatabaseProvider {
   // Constants
-  static const String _dbName = 'flipper_remote_v1';
+  static const String _dbName = 'flipper_remote_v3';
   static const int _maxLogFileSize = 1024 * 1024; // 1MB
   static const int _maxLogRotateCount = 5;
 
