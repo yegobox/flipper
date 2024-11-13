@@ -7,6 +7,7 @@ import 'package:brick_supabase/brick_supabase.dart';
 )
 class Counter extends OfflineFirstWithSupabaseModel {
   /// Read more about `@Sqlite`: https://github.com/GetDutchie/brick/tree/main/packages/brick_sqlite#fields
+  @Supabase(unique: true, name: "id")
   @Sqlite(unique: true)
   final int id;
 
