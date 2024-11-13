@@ -75,11 +75,16 @@ class _RefundState extends ConsumerState<Refund> {
                       bool purchaseCodeReceived = await showPurchaseCodeModal();
                       if (purchaseCodeReceived) {
                         // Proceed with refund
-                        await proceed();
+                        await proceed(receiptType: "CR");
                       }
                     } else {
-                      // Proceed with refund without purchase code
-                      await proceed();
+                      if (widget.transaction!.receiptType! == "CS") {
+                        await proceed(receiptType: "CR");
+                      } else {
+                        // Proceed with refund without purchase code
+                        await proceed(
+                            receiptType: widget.transaction!.receiptType!);
+                      }
                     }
                   },
                   busy: isRefundProcessing,
@@ -94,10 +99,18 @@ class _RefundState extends ConsumerState<Refund> {
                         widget.transaction!.customerId != 0) {
                       bool purchaseCodeReceived = await showPurchaseCodeModal();
                       if (purchaseCodeReceived) {
-                        await handleReceipt(filterType: FilterType.CS);
+                        if (widget.transaction!.isRefunded) {
+                          await handleReceipt(filterType: FilterType.CR);
+                        } else {
+                          await handleReceipt(filterType: FilterType.CS);
+                        }
                       }
                     } else {
-                      await handleReceipt(filterType: FilterType.CS);
+                      if (widget.transaction!.isRefunded) {
+                        await handleReceipt(filterType: FilterType.CR);
+                      } else {
+                        await handleReceipt(filterType: FilterType.CS);
+                      }
                     }
                   },
                 ),
@@ -195,10 +208,12 @@ class _RefundState extends ConsumerState<Refund> {
   }
 
 // Common refund logic
-  Future<void> proceed() async {
-    if (widget.transaction!.receiptType == "CS") {
+  Future<void> proceed({required String receiptType}) async {
+    if (receiptType == "CR") {
       await handleReceipt(filterType: FilterType.CR);
-    } else {
+    } else if (receiptType == "CS") {
+      await handleReceipt(filterType: FilterType.CS);
+    } else if (receiptType == "NR") {
       await handleReceipt(filterType: FilterType.NR);
     }
 
@@ -274,10 +289,6 @@ class _RefundState extends ConsumerState<Refund> {
         } else {
           isRefundProcessing = true;
         }
-      });
-
-      ProxyService.local.realm!.write(() {
-        widget.transaction?.receiptType = getStringReceiptType(filterType);
       });
 
       await TaxController(object: widget.transaction)

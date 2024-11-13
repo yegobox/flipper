@@ -458,6 +458,8 @@ class RWTax with NetworkHelper implements TaxApi {
     switch (receiptType) {
       case 'NR':
         return {'salesTyCd': 'N', 'rcptTyCd': 'R'};
+      case 'CR':
+        return {'salesTyCd': 'C', 'rcptTyCd': 'R'};
       case 'NS':
         return {'salesTyCd': 'N', 'rcptTyCd': 'S'};
       case 'CS':
@@ -467,7 +469,7 @@ class RWTax with NetworkHelper implements TaxApi {
       case 'PS':
         return {'salesTyCd': 'P', 'rcptTyCd': 'S'};
       default:
-        return {'salesTyCd': 'N', 'rcptTyCd': 'S'};
+        return {'salesTyCd': 'N', 'rcptTyCd': 'R'};
     }
   }
 
@@ -581,12 +583,19 @@ class RWTax with NetworkHelper implements TaxApi {
       },
       "itemList": itemsList,
     };
-    if (receiptType == "NR") {
+    if (receiptType == "NR" ||
+        receiptType == "CR" ||
+        receiptType == "TS" ||
+        receiptType == "PS") {
       /// this is normal refund add rfdDt refunded date
       /// ATTENTION: rfdDt was added later and it might cause trouble we need to watch out.
       /// 'rfdDt': Must be a valid date in yyyyMMddHHmmss format. rejected value: '20241107'
       json['rfdDt'] = timeToUse.toYYYMMddHHmmss();
-      json['orgInvcNo'] = counter.invcNo! - 1;
+      // get a transaction being refunded
+      // final trans = ProxyService.local.getTransactionById(
+      //     id: transaction.id!);
+      json['orgInvcNo'] = transaction.invoiceNumber;
+      // json['orgInvcNo'] = counter.invcNo! - 1;
     }
     if (customer != null) {
       json = addFieldIfCondition(
@@ -629,12 +638,11 @@ class RWTax with NetworkHelper implements TaxApi {
   String custNmKey = "custNm";
   String prcOrdCd = "prcOrdCd";
 
-  Map<String, dynamic> addFieldIfCondition({
-    required Map<String, dynamic> json,
-    required ITransaction transaction,
-    required Customer customer,
-    String? purchaseCode
-  }) {
+  Map<String, dynamic> addFieldIfCondition(
+      {required Map<String, dynamic> json,
+      required ITransaction transaction,
+      required Customer customer,
+      String? purchaseCode}) {
     if (transaction.customerId != null && purchaseCode != null) {
       json[custTinKey] = customer.custTin;
       json[custNmKey] = customer.custNm;

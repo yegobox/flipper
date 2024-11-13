@@ -149,18 +149,28 @@ mixin TransactionMixin {
     }
   }
 
+  FilterType getFilterType({required String transactionType}) {
+    if (transactionType == "NS") {
+      return FilterType.NS;
+    } else if (transactionType == "PS") {
+      return FilterType.PS;
+    } else if (transactionType == "TS") {
+      return FilterType.TS;
+    } else {
+      return FilterType.NS;
+    }
+  }
+
   Future<RwApiResponse> handleReceiptGeneration(
       {String? purchaseCode,
       ITransaction? transaction,
       required GlobalKey<FormState> formKey,
       required BuildContext context}) async {
     try {
-      ITransaction? trans =
-          await ProxyService.local.getTransactionById(id: transaction!.id!);
-
-      final responseFrom = await TaxController(object: trans).handleReceipt(
+      final responseFrom =
+          await TaxController(object: transaction!).handleReceipt(
         purchaseCode: purchaseCode,
-        filterType: FilterType.NS,
+        filterType: getFilterType(transactionType: transaction.receiptType!),
       );
       final (:response, :bytes) = responseFrom;
 

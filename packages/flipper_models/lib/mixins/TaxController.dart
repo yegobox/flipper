@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flutter/foundation.dart';
@@ -10,6 +11,7 @@ import 'package:firestore_models/firestore_models.dart' as odm;
 import 'package:flipper_services/proxy.dart';
 import 'package:cbl/cbl.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+import 'package:realm/realm.dart';
 import 'package:receipt/print.dart';
 
 class TaxController<OBJ> {
@@ -130,7 +132,7 @@ class TaxController<OBJ> {
       try {
         responses = await generateRRAReceiptSignature(
           transaction: transaction,
-          receiptType: transaction.receiptType!,
+          receiptType: receiptType,
           purchaseCode: purchaseCode,
         );
 
@@ -304,18 +306,132 @@ class TaxController<OBJ> {
             .getCounters(branchId: ProxyService.box.getBranchId()!);
 
         /// update transaction with receipt number and total receipt number
-        ProxyService.local.realm!.writeN(
-          tableName: transactionTable,
-          writeCallback: () {
+        ProxyService.local.realm!.write(() {
+          if (receiptType == "CR" ||
+              receiptType == "NR" ||
+              receiptType == "CS") {
+            final tran = ITransaction(
+              ObjectId(),
+              id: randomNumber(),
+              receiptNumber: receiptSignature.data?.rcptNo,
+              totalReceiptNumber: receiptSignature.data?.totRcptNo,
+              invoiceNumber: counter.invcNo,
+              paymentType: transaction.paymentType,
+              subTotal: transaction.subTotal,
+              // Adding other fields from transaction object
+              reference: transaction.reference,
+              categoryId: transaction.categoryId,
+              transactionNumber: transaction.transactionNumber,
+              branchId: transaction.branchId,
+              status: transaction.status,
+              transactionType: transaction.transactionType,
+              cashReceived: transaction.cashReceived,
+              customerChangeDue: transaction.customerChangeDue,
+              createdAt: transaction.createdAt,
+              receiptType: receiptType,
+              updatedAt: transaction.updatedAt,
+              customerId: transaction.customerId,
+              customerType: transaction.customerType,
+              note: transaction.note,
+              lastTouched: transaction.lastTouched,
+              ticketName: transaction.ticketName,
+              deletedAt: transaction.deletedAt,
+              supplierId: transaction.supplierId,
+              ebmSynced: transaction.ebmSynced,
+              isIncome: transaction.isIncome,
+              isExpense: transaction.isExpense,
+              isRefunded: transaction.isRefunded,
+              customerName: transaction.customerName,
+              customerTin: transaction.customerTin,
+              remark: transaction.remark,
+              customerBhfId: transaction.customerBhfId,
+              sarTyCd: transaction.sarTyCd,
+            );
+            //query item and re-assign
+            final List<TransactionItem> items =
+                ProxyService.local.transactionItems(
+              branchId: ProxyService.box.getBranchId()!,
+              transactionId: transaction.id!,
+              doneWithTransaction: true,
+              active: true,
+            );
+            // copy TransactionItem
+            for (TransactionItem item in items) {
+              final copy = TransactionItem(
+                ObjectId(),
+                id: item.id,
+                qty: item.qty,
+                discount: item.discount,
+                remainingStock: item.remainingStock,
+                itemCd: item.itemCd,
+                transactionId: tran.id,
+                variantId: transaction.id,
+                qtyUnitCd: item.qtyUnitCd,
+                prc: item.prc,
+                regrId: item.regrId,
+                regrNm: item.regrNm,
+                modrId: item.modrId,
+                modrNm: item.modrNm,
+                name: item.name,
+                quantityRequested: item.quantityRequested,
+                quantityApproved: item.quantityApproved,
+                quantityShipped: item.quantityShipped,
+                price: item.price,
+                type: item.type,
+                createdAt: item.createdAt,
+                updatedAt: item.updatedAt,
+                isTaxExempted: item.isTaxExempted,
+                isRefunded: item.isRefunded,
+                doneWithTransaction: item.doneWithTransaction,
+                active: item.active,
+                dcRt: item.dcRt,
+                dcAmt: item.dcAmt,
+                taxblAmt: item.taxblAmt,
+                taxAmt: item.taxAmt,
+                totAmt: item.totAmt,
+                itemSeq: item.itemSeq,
+                isrccCd: item.isrccCd,
+                isrccNm: item.isrccNm,
+                isrcRt: item.isrcRt,
+                isrcAmt: item.isrcAmt,
+                taxTyCd: item.taxTyCd,
+                bcd: item.bcd,
+                itemClsCd: item.itemClsCd,
+                itemTyCd: item.itemTyCd,
+                itemStdNm: item.itemStdNm,
+                orgnNatCd: item.orgnNatCd,
+                pkg: item.pkg,
+                pkgUnitCd: item.pkgUnitCd,
+                itemNm: item.itemNm,
+                splyAmt: item.splyAmt,
+                tin: item.tin,
+                bhfId: item.bhfId,
+                dftPrc: item.dftPrc,
+                addInfo: item.addInfo,
+                isrcAplcbYn: item.isrcAplcbYn,
+                useYn: item.useYn,
+                lastTouched: item.lastTouched,
+                deletedAt: item.deletedAt,
+                branchId: item.branchId,
+                ebmSynced: item.ebmSynced,
+                partOfComposite: item.partOfComposite,
+                compositePrice: item.compositePrice,
+              );
+
+              ProxyService.local.realm!.add(copy);
+              ProxyService.backUp.replicateData(transactionTable, copy);
+            }
+
+            ProxyService.local.realm!.add(tran);
+          } else if (receiptType == "NS" ||
+              receiptType == "TS" ||
+              receiptType == "PS") {
             transaction.receiptNumber = receiptSignature.data?.rcptNo;
             transaction.totalReceiptNumber = receiptSignature.data?.totRcptNo;
             transaction.invoiceNumber = counter.invcNo;
-            return transaction;
-          },
-          onAdd: (data) {
-            ProxyService.backUp.replicateData(transactionTable, data);
-          },
-        );
+            ProxyService.backUp.replicateData(transactionTable, transaction);
+          }
+        });
 
         await saveReceipt(
             receiptSignature, transaction, qrCode, counter, receiptNumber,

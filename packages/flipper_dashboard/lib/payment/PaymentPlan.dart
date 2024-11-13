@@ -38,11 +38,11 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           if (_taxReporting) basePrice += 30000;
           break;
         case '3 Devices':
-          basePrice = 120000;
+          basePrice = 150000;
           if (_taxReporting) basePrice += 30000;
           break;
         case 'More than 3 Devices':
-          basePrice = 120000 + (_additionalDevices * 15000);
+          basePrice = 150000 + (_additionalDevices * 15000);
           // Add costs for premium additional services
           if (_extraSupport) basePrice += 800000;
           if (_taxReporting)
@@ -140,13 +140,13 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
             Icons.devices),
         SizedBox(height: 8),
         _buildPlanCard(
-            '3 Devices',
-            '3 Devices',
-            _isYearlyPlan ? '1,152,000 RWF/year' : '120,000 RWF/month',
+            'Mobile + Desktop',
+            '4 Devices Max',
+            _isYearlyPlan ? '1,440,000 RWF/year' : '150,000 RWF/month',
             Icons.device_hub),
         SizedBox(height: 8),
         _buildPlanCard(
-            'More than 3 Devices',
+            'Unlimited Devices',
             'Custom',
             _isYearlyPlan ? '1,152,000+ RWF/year' : '120,000+ RWF/month',
             Icons.devices),
@@ -425,7 +425,6 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
               additionalDevices: additionalDevices,
               isYearlyPlan: isYearlyPlan,
               payStackUserId: customer.data.id,
-              
               totalPrice: totalPrice);
           locator<RouterService>().navigateTo(PaymentFinalizeRoute());
         } catch (e, s) {

@@ -57,7 +57,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
           : (data is old.Stock
               ? data.toEJson(includeVariant: false)?.toFlipperJson() ?? {}
               : data.toEJson()?.toFlipperJson() ?? {});
-
+      talker.warning(map);
       final id = _getId(map);
 
       if (!useNewImplementation) {
@@ -78,7 +78,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
   }
 
 // Helper to extract and parse `id`
-  dynamic _getId(Map<String, dynamic> map) {
+  dynamic _getId(Map<dynamic, dynamic> map) {
     return map['id'] is String
         ? int.parse(map['id'])
         : map['id'] ??= randomNumber();
