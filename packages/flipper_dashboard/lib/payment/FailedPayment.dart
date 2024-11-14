@@ -5,15 +5,47 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter/services.dart';
 
 class FailedPayment extends HookConsumerWidget with PaymentHandler {
   const FailedPayment({Key? key}) : super(key: key);
+  String? _getPhoneNumberError(String value) {
+    // Remove spaces for validation
+    String digitsOnly = value.replaceAll(' ', '');
+
+    if (digitsOnly.isEmpty) {
+      return null;
+    }
+
+    if (!digitsOnly.startsWith('250')) {
+      return 'Phone number must start with 250';
+    }
+
+    if (digitsOnly.length < 12) {
+      return 'Phone number must be 12 digits';
+    }
+
+    if (digitsOnly.length > 12) {
+      return 'Phone number cannot exceed 12 digits';
+    }
+
+    // Validate MTN prefixes (78, 79)
+    String prefix = digitsOnly.substring(3, 5);
+    if (!['78', '79'].contains(prefix)) {
+      return 'Invalid MTN number prefix (must start with 78 or 79)';
+    }
+
+    return null;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = useState(true);
     final error = useState<String?>(null);
     final plan = useState<PaymentPlan?>(null);
+    final usePhoneNumber = useState(false); // Toggle state
+    final phoneNumber = useState<String?>(""); // Phone number input
+    TextEditingController phoneNumberController = TextEditingController();
 
     useEffect(() {
       Future<void> fetchPlan() async {
@@ -75,6 +107,105 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
                 ),
               ),
             const SizedBox(height: 32.0),
+
+            // Toggle for phone number input
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Change Phone number for payment',
+                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600),
+                ),
+                Switch(
+                  value: usePhoneNumber.value,
+                  onChanged: (bool value) {
+                    usePhoneNumber.value = value;
+                  },
+                ),
+              ],
+            ),
+
+            // Phone number input field (shown when toggle is enabled)
+            // Inside your HookConsumerWidget
+            if (usePhoneNumber.value)
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: TextField(
+                  controller: phoneNumberController,
+                  keyboardType: TextInputType.phone,
+                  maxLength: 15, // Including spaces: "250 781 468 740"
+                  buildCounter: (context,
+                      {required currentLength, required isFocused, maxLength}) {
+                    return null; // Removes the built-in counter
+                  },
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[\d ]')),
+                  ],
+                  decoration: InputDecoration(
+                    labelText: 'Phone Number',
+                    hintText: '250 781 468 740',
+                    prefixIcon: const Icon(Icons.phone),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                    errorText: _getPhoneNumberError(phoneNumberController.text),
+                    helperText: 'Rwanda phone number (12 digits)',
+                    suffixIcon: phoneNumberController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              phoneNumberController.clear();
+                              ProxyService.box.writeString(
+                                key: "customPhoneNumberForPayment",
+                                value: '',
+                              );
+                            },
+                          )
+                        : null,
+                  ),
+                  onChanged: (value) {
+                    String digitsOnly = value.replaceAll(RegExp(r'\D'), '');
+
+                    // Ensure the number starts with 250 if not already present
+                    if (digitsOnly.length >= 1 &&
+                        !digitsOnly.startsWith('250')) {
+                      if (digitsOnly.startsWith('0')) {
+                        // If starts with 0, replace it with 250
+                        digitsOnly = '25${digitsOnly}';
+                      } else {
+                        // Add 250 prefix
+                        digitsOnly = '250$digitsOnly';
+                      }
+                    }
+
+                    // Format the number with spaces for readability: 250 781 468 740
+                    String formattedNumber = '';
+                    for (int i = 0; i < digitsOnly.length; i++) {
+                      if (i == 3 || i == 6 || i == 9) {
+                        formattedNumber += ' ';
+                      }
+                      formattedNumber += digitsOnly[i];
+                    }
+
+                    // Update the controller with the formatted number
+                    phoneNumberController.value = TextEditingValue(
+                      text: formattedNumber,
+                      selection: TextSelection.collapsed(
+                          offset: formattedNumber.length),
+                    );
+
+                    // Store the validated number
+                    ProxyService.box.writeString(
+                      key: "customPhoneNumberForPayment",
+                      value: digitsOnly, // Store without formatting
+                    );
+                  },
+                ),
+              ),
+
+            const SizedBox(height: 32.0),
             Center(
               child: isLoading.value
                   ? CircularProgressIndicator(
@@ -98,7 +229,11 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
                       ),
                       onPressed: plan.value != null
                           ? () => _retryPayment(context,
-                              plan: plan.value!, isLoading: isLoading)
+                              plan: plan.value!,
+                              isLoading: isLoading,
+                              phoneNumber: usePhoneNumber.value
+                                  ? phoneNumber.value
+                                  : null)
                           : null,
                     ),
             ),
@@ -161,7 +296,8 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
 
   Future<void> _retryPayment(BuildContext context,
       {required PaymentPlan plan,
-      required ValueNotifier<bool> isLoading}) async {
+      required ValueNotifier<bool> isLoading,
+      String? phoneNumber}) async {
     if (plan.paymentMethod == "Card") {
       int finalPrice = plan.totalPrice!.toInt();
       isLoading.value = true;
@@ -169,7 +305,13 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
     } else {
       isLoading.value = true;
       int finalPrice = plan.totalPrice!.toInt();
-      handleMomoPayment(finalPrice);
+
+      // Handle mobile payment with phone number if provided
+      if (phoneNumber != null && phoneNumber.isNotEmpty) {
+        handleMomoPayment(finalPrice);
+      } else {
+        handleMomoPayment(finalPrice);
+      }
     }
   }
 }
