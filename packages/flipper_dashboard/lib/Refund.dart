@@ -75,13 +75,25 @@ class _RefundState extends ConsumerState<Refund> {
                       bool purchaseCodeReceived = await showPurchaseCodeModal();
                       if (purchaseCodeReceived) {
                         // Proceed with refund
-                        await proceed(receiptType: "CR");
+                        if (widget.transaction!.receiptType == "TS") {
+                          await proceed(receiptType: "TR");
+                        }
+                        if (widget.transaction!.receiptType == "PS") {
+                          toast("Can not refund a proforma");
+                          return;
+                        } else {
+                          await proceed(receiptType: "CR");
+                        }
                       }
                     } else {
                       if (widget.transaction!.receiptType! == "CS") {
                         await proceed(receiptType: "CR");
+                      } else if (widget.transaction!.receiptType == "TS") {
+                        await proceed(receiptType: "TS");
+                      } else if (widget.transaction!.receiptType == "PS") {
+                        toast("Can not refund a proforma");
+                        return;
                       } else {
-                        // Proceed with refund without purchase code
                         await proceed(
                             receiptType: widget.transaction!.receiptType!);
                       }
@@ -95,21 +107,42 @@ class _RefundState extends ConsumerState<Refund> {
                   busy: isPrintingCopy,
                   title: "Print Copy Receipt",
                   onTap: () async {
+                    if (widget.transaction!.receiptType == "TS" ||
+                        widget.transaction!.receiptType == "PS") {
+                      toast("This receipt does not have a copy to print");
+                      return;
+                    }
                     if (widget.transaction!.customerId != null &&
                         widget.transaction!.customerId != 0) {
                       bool purchaseCodeReceived = await showPurchaseCodeModal();
                       if (purchaseCodeReceived) {
+                        if (widget.transaction!.receiptType == "PS") {
+                          if (widget.transaction!.isRefunded) {
+                            await handleReceipt(filterType: FilterType.CP);
+                          } else {
+                            await handleReceipt(filterType: FilterType.CP);
+                          }
+                        } else {
+                          if (widget.transaction!.isRefunded) {
+                            await handleReceipt(filterType: FilterType.PR);
+                          } else {
+                            await handleReceipt(filterType: FilterType.CS);
+                          }
+                        }
+                      }
+                    } else {
+                      if (widget.transaction!.receiptType == "PS") {
+                        if (widget.transaction!.isRefunded) {
+                          await handleReceipt(filterType: FilterType.PR);
+                        } else {
+                          await handleReceipt(filterType: FilterType.CP);
+                        }
+                      } else {
                         if (widget.transaction!.isRefunded) {
                           await handleReceipt(filterType: FilterType.CR);
                         } else {
                           await handleReceipt(filterType: FilterType.CS);
                         }
-                      }
-                    } else {
-                      if (widget.transaction!.isRefunded) {
-                        await handleReceipt(filterType: FilterType.CR);
-                      } else {
-                        await handleReceipt(filterType: FilterType.CS);
                       }
                     }
                   },

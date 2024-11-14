@@ -19,6 +19,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   int _additionalDevices = 0;
   bool _isYearlyPlan = false;
   double _totalPrice = 5000;
+  List<String> _additionalServices = [];
 
   // Add toggles for additional services
   bool _extraSupport = false;
@@ -37,12 +38,9 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           basePrice = 120000;
           if (_taxReporting) basePrice += 30000;
           break;
-        case '3 Devices':
-          basePrice = 150000;
-          if (_taxReporting) basePrice += 30000;
-          break;
-        case 'More than 3 Devices':
-          basePrice = 150000 + (_additionalDevices * 15000);
+
+        case 'Entreprise':
+          basePrice = 1500000;
           // Add costs for premium additional services
           if (_extraSupport) basePrice += 800000;
           if (_taxReporting)
@@ -140,15 +138,9 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
             Icons.devices),
         SizedBox(height: 8),
         _buildPlanCard(
-            'Mobile + Desktop',
-            '4 Devices Max',
-            _isYearlyPlan ? '1,440,000 RWF/year' : '150,000 RWF/month',
-            Icons.device_hub),
-        SizedBox(height: 8),
-        _buildPlanCard(
-            'Unlimited Devices',
-            'Custom',
-            _isYearlyPlan ? '1,152,000+ RWF/year' : '120,000+ RWF/month',
+            'Entreprise',
+            'Entreprise',
+            _isYearlyPlan ? '14,400,000+ RWF/year' : '1,500,000+ RWF/month',
             Icons.devices),
       ],
     );
@@ -264,7 +256,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   }
 
   Widget _buildAdditionalServices() {
-    if (_selectedPlan == 'More than 3 Devices') {
+    if (_selectedPlan == 'Entreprise') {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -278,6 +270,10 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
             '800,000 RWF${_isYearlyPlan ? '/year' : '/month'}',
             _extraSupport,
             (value) {
+              if (value && !_additionalServices.contains("Extra Support")) {
+                _additionalServices.add("Extra Support");
+              }
+
               setState(() {
                 _extraSupport = value;
                 _calculatePrice();
@@ -290,6 +286,11 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
             '400,000 RWF${_isYearlyPlan ? '/year' : '/month'}',
             _taxReporting,
             (value) {
+              if (value &&
+                  !_additionalServices
+                      .contains("Premium Tax Reporting Consulting")) {
+                _additionalServices.add("Premium Tax Reporting Consulting");
+              }
               setState(() {
                 _taxReporting = value;
                 _calculatePrice();
@@ -302,6 +303,11 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
             '600,000 RWF${_isYearlyPlan ? '/year' : '/month'}',
             _unlimitedBranches,
             (value) {
+              if (value &&
+                  !_additionalServices
+                      .contains("Unlimited Branches & Agents")) {
+                _additionalServices.add("Unlimited Branches & Agents");
+              }
               setState(() {
                 _unlimitedBranches = value;
                 _calculatePrice();
@@ -390,7 +396,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           Text('Total Price',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           Text(
-            '${_totalPrice.toStringAsFixed(0)} RWF${_isYearlyPlan ? '/year' : '/month'}',
+            '${_totalPrice.toRwf()} ${_isYearlyPlan ? '/year' : '/month'}',
             style: TextStyle(
                 fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
           ),
@@ -420,6 +426,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           ProxyService.backUp.saveOrUpdatePaymentPlan(
               businessId: ProxyService.box.getBusinessId()!,
               selectedPlan: selectedPlan,
+              addons: _additionalServices,
               paymentMethod: "Card",
               flipperHttpClient: ProxyService.http,
               additionalDevices: additionalDevices,

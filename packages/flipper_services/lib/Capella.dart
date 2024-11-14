@@ -1394,6 +1394,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   Future<PaymentPlan> saveOrUpdatePaymentPlan(
       {required int businessId,
       required String selectedPlan,
+      List<String>? addons,
       required int additionalDevices,
       required bool isYearlyPlan,
       required double totalPrice,
@@ -1667,7 +1668,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
         ];
         doc.setData(map);
         await collection.saveDocument(doc);
-        
+
         talker.warning("Document saved successfully: ${doc.id}:${tableName}");
       }
     } catch (e) {

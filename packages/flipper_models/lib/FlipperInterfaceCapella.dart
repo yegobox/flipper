@@ -557,6 +557,7 @@ abstract class FlipperInterfaceCapella {
 
   Future<PaymentPlan> saveOrUpdatePaymentPlan({
     required int businessId,
+    List<String>? addons,
     required String selectedPlan,
     required int additionalDevices,
     required bool isYearlyPlan,

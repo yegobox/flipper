@@ -17,7 +17,13 @@ Future<Plan> _$PlanFromSupabase(Map<String, dynamic> data,
       paymentCompletedByUser: data['payment_completed_by_user'] as bool?,
       payStackCustomerId: data['paystack_customer_id'] as int?,
       rule: data['rule'] as String?,
-      paymentMethod: data['payment_method'] as String?);
+      paymentMethod: data['payment_method'] as String?,
+      addons: await Future.wait<PlanAddon>(data['addons']
+              ?.map((d) => PlanAddonAdapter()
+                  .fromSupabase(d, provider: provider, repository: repository))
+              .toList()
+              .cast<Future<PlanAddon>>() ??
+          []));
 }
 
 Future<Map<String, dynamic>> _$PlanToSupabase(Plan instance,
@@ -34,7 +40,11 @@ Future<Map<String, dynamic>> _$PlanToSupabase(Plan instance,
     'payment_completed_by_user': instance.paymentCompletedByUser,
     'paystack_customer_id': instance.payStackCustomerId,
     'rule': instance.rule,
-    'payment_method': instance.paymentMethod
+    'payment_method': instance.paymentMethod,
+    'addons': await Future.wait<Map<String, dynamic>>(instance.addons
+        .map((s) => PlanAddonAdapter()
+            .toSupabase(s, provider: provider, repository: repository))
+        .toList())
   };
 }
 
@@ -69,7 +79,19 @@ Future<Plan> _$PlanFromSqlite(Map<String, dynamic> data,
       rule: data['rule'] == null ? null : data['rule'] as String?,
       paymentMethod: data['payment_method'] == null
           ? null
-          : data['payment_method'] as String?)
+          : data['payment_method'] as String?,
+      addons: (await provider.rawQuery(
+              'SELECT DISTINCT `f_PlanAddon_brick_id` FROM `_brick_Plan_addons` WHERE l_Plan_brick_id = ?',
+              [data['_brick_id'] as int]).then((results) {
+        final ids = results.map((r) => r['f_PlanAddon_brick_id']);
+        return Future.wait<PlanAddon>(ids.map((primaryKey) => repository!
+            .getAssociation<PlanAddon>(
+              Query.where('primaryKey', primaryKey, limit1: true),
+            )
+            .then((r) => r!.first)));
+      }))
+          .toList()
+          .cast<PlanAddon>())
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -147,6 +169,12 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
     'paymentMethod': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'payment_method',
+    ),
+    'addons': const RuntimeSupabaseColumnDefinition(
+      association: true,
+      columnName: 'addons',
+      associationType: PlanAddon,
+      associationIsNullable: false,
     )
   };
   @override
@@ -226,6 +254,12 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
       columnName: 'payment_method',
       iterable: false,
       type: String,
+    ),
+    'addons': const RuntimeSqliteColumnDefinition(
+      association: true,
+      columnName: 'addons',
+      iterable: true,
+      type: PlanAddon,
     )
   };
   @override
@@ -244,6 +278,34 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
 
   @override
   final String tableName = 'Plan';
+  @override
+  Future<void> afterSave(instance, {required provider, repository}) async {
+    if (instance.primaryKey != null) {
+      final addonsOldColumns = await provider.rawQuery(
+          'SELECT `f_PlanAddon_brick_id` FROM `_brick_Plan_addons` WHERE `l_Plan_brick_id` = ?',
+          [instance.primaryKey]);
+      final addonsOldIds =
+          addonsOldColumns.map((a) => a['f_PlanAddon_brick_id']);
+      final addonsNewIds =
+          instance.addons.map((s) => s.primaryKey).whereType<int>();
+      final addonsIdsToDelete =
+          addonsOldIds.where((id) => !addonsNewIds.contains(id));
+
+      await Future.wait<void>(addonsIdsToDelete.map((id) async {
+        return await provider.rawExecute(
+            'DELETE FROM `_brick_Plan_addons` WHERE `l_Plan_brick_id` = ? AND `f_PlanAddon_brick_id` = ?',
+            [instance.primaryKey, id]).catchError((e) => null);
+      }));
+
+      await Future.wait<int?>(instance.addons.map((s) async {
+        final id = s.primaryKey ??
+            await provider.upsert<PlanAddon>(s, repository: repository);
+        return await provider.rawInsert(
+            'INSERT OR IGNORE INTO `_brick_Plan_addons` (`l_Plan_brick_id`, `f_PlanAddon_brick_id`) VALUES (?, ?)',
+            [instance.primaryKey, id]);
+      }));
+    }
+  }
 
   @override
   Future<Plan> fromSupabase(Map<String, dynamic> input,

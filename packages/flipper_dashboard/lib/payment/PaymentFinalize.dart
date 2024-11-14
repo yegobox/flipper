@@ -1,21 +1,17 @@
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realm/schemas.dart';
+import 'package:firestore_models/firestore_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/services.dart';
+import 'package:flipper_services/PaymentHandler.dart';
 
 class PaymentFinalize extends StatefulWidget {
   @override
   _PaymentFinalizeState createState() => _PaymentFinalizeState();
 }
 
-class _PaymentFinalizeState extends State<PaymentFinalize> {
+class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
   String selectedCountry = 'Other';
   String selectedPaymentMethod = 'Card';
   bool isLoading = false;
@@ -293,7 +289,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
       isLoading = true;
     });
     try {
-      PaymentPlan? paymentPlan = await ProxyService.local
+      PaymentPlan? paymentPlan = await ProxyService.backUp
           .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
 
       talker.warning("CurrentPaymentPlan: $paymentPlan");
@@ -310,72 +306,11 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
       }
       if (selectedPaymentMethod == "Card") {
         toast("Card Payment is temporarily unavailable");
-        final (:url, :userId, :customerCode) =
-            await ProxyService.local.subscribe(
-          businessId: ProxyService.box.getBusinessId()!,
-          business: ProxyService.local.getBusiness(),
-          agentCode: 1,
-          flipperHttpClient: ProxyService.http,
-          amount: finalPrice,
-        );
-
-        await ProxyService.local.saveOrUpdatePaymentPlan(
-            businessId: paymentPlan!.businessId!,
-            selectedPlan: paymentPlan.selectedPlan!,
-            paymentMethod: selectedPaymentMethod,
-            customerCode: customerCode,
-            additionalDevices: paymentPlan.additionalDevices!,
-            isYearlyPlan: paymentPlan.isYearlyPlan!,
-            totalPrice: paymentPlan.totalPrice!,
-            flipperHttpClient: ProxyService.http,
-            payStackUserId: userId);
-        if (!await launchUrl(Uri.parse(url))) {
-          throw Exception('Could not launch $url');
-        }
-        bool keepLoop = true;
-        do {
-          /// force instant update from remote db
-
-          PaymentPlan? plan = await ProxyService.local
-              .getPaymentPlan(businessId: paymentPlan.businessId!);
-          if (plan != null && plan.paymentCompletedByUser!) {
-            talker.warning("A user has Completed payment");
-            keepLoop = false;
-            setState(() {
-              isLoading = false;
-            });
-            locator<RouterService>().navigateTo(FlipperAppRoute());
-          }
-        } while (keepLoop);
+        await cardPayment(finalPrice, paymentPlan!, selectedPaymentMethod);
 
         /// listen on stream to check if payment has been completed by a user
       } else {
-        ProxyService.ht.makePayment(
-          businessId: ProxyService.box.getBusinessId()!,
-          amount: finalPrice,
-          flipperHttpClient: ProxyService.http,
-        );
-        final supabase = Supabase.instance.client;
-        final myChannel = supabase.channel('plans');
-
-        myChannel
-            .onPostgresChanges(
-              event: PostgresChangeEvent.all,
-              schema: 'public',
-              table: 'plans',
-              filter: PostgresChangeFilter(
-                type: PostgresChangeFilterType.eq,
-                column: 'payment_completed_by_user',
-                value: true,
-              ),
-              callback: (payload) {
-                print('Change received! $payload');
-                if (payload.newRecord['payment_completed_by_user']) {
-                  locator<RouterService>().navigateTo(FlipperAppRoute());
-                }
-              },
-            )
-            .subscribe();
+        handleMomoPayment(finalPrice);
       }
     } catch (e, s) {
       talker.warning(e.toString());

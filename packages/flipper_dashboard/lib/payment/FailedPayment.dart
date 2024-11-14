@@ -1,17 +1,12 @@
-// import 'package:flipper_models/realm/schemas.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
+import 'package:firestore_models/firestore_models.dart';
+import 'package:flipper_services/PaymentHandler.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
-import 'package:flutter/foundation.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:firestore_models/firestore_models.dart';
 
-class FailedPayment extends HookConsumerWidget {
+class FailedPayment extends HookConsumerWidget with PaymentHandler {
   const FailedPayment({Key? key}) : super(key: key);
 
   @override
@@ -40,44 +35,53 @@ class FailedPayment extends HookConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Payment Failed'),
+        title: const Text(
+          'Payment Failed',
+          style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.redAccent,
         elevation: 2.0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Center(
               child: Icon(
                 Icons.error_outline,
-                color: Colors.red,
-                size: 64.0,
+                color: Colors.redAccent,
+                size: 72.0,
               ),
             ),
-            const SizedBox(height: 24.0),
+            const SizedBox(height: 32.0),
             Text(
               'We couldn\'t process your payment for the following plan:',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.black87,
+                    fontWeight: FontWeight.w600,
                   ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24.0),
             if (plan.value != null) _buildPlanDetails(plan.value!),
             if (error.value != null)
-              Text(
-                error.value!,
-                style: TextStyle(color: Colors.red),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Text(
+                  error.value!,
+                  style: const TextStyle(color: Colors.red, fontSize: 16.0),
+                ),
               ),
-            const SizedBox(height: 24.0),
+            const SizedBox(height: 32.0),
             Center(
               child: isLoading.value
                   ? CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.black.withOpacity(0.7)),
-                      strokeWidth: 3,
+                        Colors.redAccent.withOpacity(0.8),
+                      ),
+                      strokeWidth: 4,
                       backgroundColor: Colors.grey.shade300,
                     )
                   : ElevatedButton.icon(
@@ -87,7 +91,7 @@ class FailedPayment extends HookConsumerWidget {
                         backgroundColor: Colors.redAccent,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 32.0, vertical: 16.0),
+                            horizontal: 36.0, vertical: 16.0),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.0),
                         ),
@@ -106,12 +110,13 @@ class FailedPayment extends HookConsumerWidget {
 
   Widget _buildPlanDetails(PaymentPlan plan) {
     return Card(
-      elevation: 4.0,
+      elevation: 6.0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: BorderRadius.circular(12.0),
       ),
+      margin: const EdgeInsets.only(bottom: 24.0),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -130,12 +135,25 @@ class FailedPayment extends HookConsumerWidget {
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text(value),
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16.0,
+              color: Colors.black54,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16.0,
+              color: Colors.black87,
+            ),
+          ),
         ],
       ),
     );
@@ -147,60 +165,11 @@ class FailedPayment extends HookConsumerWidget {
     if (plan.paymentMethod == "Card") {
       int finalPrice = plan.totalPrice!.toInt();
       isLoading.value = true;
-      FlipperSaleCompaign? compaign = ProxyService.backUp.getLatestCompaign();
-      try {
-        if (kDebugMode) {
-          if (compaign != null) {
-            finalPrice = (plan.totalPrice! -
-                    ((plan.totalPrice! * compaign.discountRate!) / 100))
-                .toInt();
-          } else {
-            finalPrice = plan.totalPrice!.toInt();
-          }
-        }
-
-        final (:url, :userId, :customerCode) =
-            await ProxyService.local.subscribe(
-          business: ProxyService.local.getBusiness(),
-          // rule: plan.isYearlyPlan! ? 'annually' : 'monthly',
-          businessId: ProxyService.box.getBusinessId() ?? 0,
-          agentCode: 1,
-          flipperHttpClient: ProxyService.http,
-          amount: finalPrice,
-        );
-        if (!await launchUrl(Uri.parse(url))) {
-          throw Exception('Could not launch $url');
-        }
-        await _waitForPaymentCompletion(plan);
-        isLoading.value = false;
-        locator<RouterService>().navigateTo(FlipperAppRoute());
-      } catch (e) {
-        isLoading.value = false;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
-      }
+      await cardPayment(finalPrice, plan, plan.paymentMethod!);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content:
-                Text('Mobile Money payment coming soon, choose card payment')),
-      );
-    }
-  }
-
-  Future<void> _waitForPaymentCompletion(PaymentPlan plan) async {
-    const delayBetweenAttempts = Duration(seconds: 5);
-
-    while (true) {
-      PaymentPlan? planUpdated = await ProxyService.backUp
-          .getPaymentPlan(businessId: plan.businessId ?? 0);
-
-      if (planUpdated != null && planUpdated.paymentCompletedByUser == true) {
-        return; // Exit the loop and complete the function once payment is completed
-      }
-
-      await Future.delayed(delayBetweenAttempts); // Wait before checking again
+      isLoading.value = true;
+      int finalPrice = plan.totalPrice!.toInt();
+      handleMomoPayment(finalPrice);
     }
   }
 }

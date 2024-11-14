@@ -1813,6 +1813,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
   @override
   Future<PaymentPlan> saveOrUpdatePaymentPlan(
       {required int businessId,
+      List<String>? addons,
       required String selectedPlan,
       required int additionalDevices,
       required bool isYearlyPlan,
@@ -1835,6 +1836,15 @@ class FirestoreSync implements FlipperInterfaceCapella {
             createdAt: DateTime.now(),
             payStackCustomerId: payStackUserId,
             paymentMethod: paymentMethod,
+            addons: addons
+                    ?.map((e) => models.PlanAddon(
+                          id: randomNumber(),
+                          addonName: e,
+                          createdAt: DateTime.now(),
+                          planId: businessId,
+                        ))
+                    .toList() ??
+                [],
             paymentCompletedByUser: false,
           ),
           query: brick.Query(

@@ -1,6 +1,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:supabase_models/brick/models/plan_addon.model.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'plans'),
@@ -29,6 +30,9 @@ class Plan extends OfflineFirstWithSupabaseModel {
   final String? rule;
   @Supabase(name: "payment_method")
   final String? paymentMethod;
+
+  @Supabase(name: "addons")
+  final List<PlanAddon> addons;
   Plan({
     required this.id,
     this.businessId,
@@ -41,5 +45,6 @@ class Plan extends OfflineFirstWithSupabaseModel {
     this.payStackCustomerId,
     this.rule,
     this.paymentMethod,
+    this.addons = const [],
   });
 }
