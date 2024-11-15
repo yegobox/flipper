@@ -85,7 +85,7 @@ class TenantWidget extends ConsumerWidget {
                     side: BorderSide(
                       color: FirebaseAuth.instance.currentUser != null
                           ? Colors.green
-                          : Colors.red,
+                          : Colors.green,
                       width: 3,
                     ),
                   ),

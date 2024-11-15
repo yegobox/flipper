@@ -468,6 +468,8 @@ class RWTax with NetworkHelper implements TaxApi {
         return {'salesTyCd': 'T', 'rcptTyCd': 'S'};
       case 'PS':
         return {'salesTyCd': 'P', 'rcptTyCd': 'S'};
+      case 'TR':
+        return {'salesTyCd': 'T', 'rcptTyCd': 'R'};
       default:
         return {'salesTyCd': 'N', 'rcptTyCd': 'R'};
     }
@@ -583,10 +585,7 @@ class RWTax with NetworkHelper implements TaxApi {
       },
       "itemList": itemsList,
     };
-    if (receiptType == "NR" ||
-        receiptType == "CR" ||
-        receiptType == "TS" ||
-        receiptType == "PS") {
+    if (receiptType == "NR" || receiptType == "CR" || receiptType == "TR") {
       /// this is normal refund add rfdDt refunded date
       /// ATTENTION: rfdDt was added later and it might cause trouble we need to watch out.
       /// 'rfdDt': Must be a valid date in yyyyMMddHHmmss format. rejected value: '20241107'

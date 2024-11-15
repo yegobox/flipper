@@ -81,21 +81,24 @@ class _RefundState extends ConsumerState<Refund> {
                         if (widget.transaction!.receiptType == "PS") {
                           toast("Can not refund a proforma");
                           return;
-                        } else {
+                        } else if ((widget.transaction!.receiptType == "NS")) {
+                          await proceed(receiptType: "NR");
+                        } else if ((widget.transaction!.receiptType == "CS")) {
                           await proceed(receiptType: "CR");
                         }
                       }
                     } else {
-                      if (widget.transaction!.receiptType! == "CS") {
+                      if (widget.transaction!.receiptType == "TS") {
+                        await proceed(receiptType: "TR");
+                      } else if (widget.transaction!.receiptType! == "CS") {
                         await proceed(receiptType: "CR");
                       } else if (widget.transaction!.receiptType == "TS") {
                         await proceed(receiptType: "TS");
                       } else if (widget.transaction!.receiptType == "PS") {
                         toast("Can not refund a proforma");
                         return;
-                      } else {
-                        await proceed(
-                            receiptType: widget.transaction!.receiptType!);
+                      } else if (widget.transaction!.receiptType == "NS") {
+                        await proceed(receiptType: "NR");
                       }
                     }
                   },
@@ -246,6 +249,8 @@ class _RefundState extends ConsumerState<Refund> {
       await handleReceipt(filterType: FilterType.CR);
     } else if (receiptType == "CS") {
       await handleReceipt(filterType: FilterType.CS);
+    } else if (receiptType == "TR") {
+      await handleReceipt(filterType: FilterType.TR);
     } else if (receiptType == "NR") {
       await handleReceipt(filterType: FilterType.NR);
     }

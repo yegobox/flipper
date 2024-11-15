@@ -80,6 +80,17 @@ class TaxController<OBJ> {
         } catch (e) {
           rethrow;
         }
+      } else if (filterType == FilterType.TR) {
+        try {
+          return await printReceipt(
+            purchaseCode: purchaseCode,
+            receiptType: TransactionReceptType.TR,
+            transaction: transaction,
+            skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+          );
+        } catch (e) {
+          rethrow;
+        }
       } else if (filterType == FilterType.CS) {
         try {
           return await printReceipt(
@@ -268,17 +279,17 @@ class TaxController<OBJ> {
 
       ProxyService.capela.capella!.database?.writeN(
           writeCallback: () {
-            final doc =
-                MutableDocument.withId(counter.id.toString(), counter.toJson());
-            return doc;
+            // final doc =
+            //     MutableDocument.withId(counter.id.toString(), counter.toJson());
+            // return doc;
           },
           tableName: countersTable,
           onAdd: (counter) async {
-            AsyncCollection countersCollection =
-                await ProxyService.capela.getCountersCollection();
+            // AsyncCollection countersCollection =
+            //     await ProxyService.capela.getCountersCollection();
 
-            countersCollection.saveDocument(counter);
-            ProxyService.backUp.replicateData(countersTable, counter);
+            // countersCollection.saveDocument(counter);
+            // ProxyService.backUp.replicateData(countersTable, counter);
           });
 
       /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
@@ -309,6 +320,7 @@ class TaxController<OBJ> {
         ProxyService.local.realm!.write(() {
           if (receiptType == "CR" ||
               receiptType == "NR" ||
+              receiptType == "TR" ||
               receiptType == "CS") {
             final tran = ITransaction(
               ObjectId(),

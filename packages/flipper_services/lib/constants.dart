@@ -9,7 +9,7 @@ const String PAYMENT_REACTIVATION_REQUIRED =
     "Payment failed. Please re-activate your payment method";
 
 // Enums
-enum FilterType { CUSTOMER, TRANSACTION, NS, CS, NR, TS, PS, CR, CP, PR }
+enum FilterType { CUSTOMER, TRANSACTION, NS, CS, NR, TS, PS, CR, CP, PR, TR }
 
 class TransactionReceptType {
   static const NS = "NS";
@@ -18,6 +18,7 @@ class TransactionReceptType {
   static const TS = "TS";
   static const PS = "PS";
   static const CR = "CR";
+  static const TR = "TR";
 }
 
 // Classes

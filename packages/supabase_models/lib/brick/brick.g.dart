@@ -9,7 +9,9 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:brick_supabase/brick_supabase.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/plan_addon.model.dart';// GENERATED CODE DO NOT EDIT
+import 'package:supabase_models/brick/models/plan_addon.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/brick/models/transactionItem.model.dart';// GENERATED CODE DO NOT EDIT
 // ignore: unused_import
 import 'dart:convert';
 import 'package:brick_sqlite/brick_sqlite.dart' show SqliteModel, SqliteAdapter, SqliteModelDictionary, RuntimeSqliteColumnDefinition, SqliteProvider;
@@ -23,18 +25,24 @@ import '../brick/models/counter.model.dart';
 import '../brick/models/branch.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/plan_addon.model.dart';
+import '../brick/models/transactionItem.model.dart';
+import '../brick/models/stockRequest.model.dart';
 
 part 'adapters/counter_adapter.g.dart';
 part 'adapters/branch_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 part 'adapters/plan_addon_adapter.g.dart';
+part 'adapters/transaction_item_adapter.g.dart';
+part 'adapters/stock_request_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Counter: CounterAdapter(),
   Branch: BranchAdapter(),
   Plan: PlanAdapter(),
-  PlanAddon: PlanAddonAdapter()
+  PlanAddon: PlanAddonAdapter(),
+  TransactionItem: TransactionItemAdapter(),
+  StockRequest: StockRequestAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -43,6 +51,8 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Counter: CounterAdapter(),
   Branch: BranchAdapter(),
   Plan: PlanAdapter(),
-  PlanAddon: PlanAddonAdapter()
+  PlanAddon: PlanAddonAdapter(),
+  TransactionItem: TransactionItemAdapter(),
+  StockRequest: StockRequestAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

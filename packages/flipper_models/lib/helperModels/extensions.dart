@@ -67,6 +67,61 @@ extension CurrencyFormatExtension on num {
 
     return numberFormat.format(this);
   }
+
+  String toNoCurrencyFormatted({String? symbol}) {
+    // Use the intl package's NumberFormat to format the number correctly
+    final numberFormat = NumberFormat.currency(
+      locale: 'en',
+      symbol: symbol ?? '',
+      decimalDigits: 2,
+    );
+
+    // Check if the number is 0 or 0.0
+    if (this == 0 || this == 0.0) {
+      return symbol ?? '';
+    }
+
+    return numberFormat.format(this);
+  }
+
+  String toNoCurrency({String? symbol}) {
+    // Use the intl package's NumberFormat to format the number correctly
+    final numberFormat = NumberFormat.currency(
+      locale: 'en',
+      symbol: symbol ?? '',
+      decimalDigits: 2,
+    );
+
+    // Check if the number is 0 or 0.0
+    if (this == 0 || this == 0.0) {
+      return symbol ?? '';
+    }
+
+    // Function to abbreviate large numbers
+    String abbreviateNumber(num number) {
+      if (number >= 1e9) {
+        // Billions
+        return '${(number / 1e9).toStringAsFixed(2)}B';
+      } else if (number >= 1e6) {
+        // Millions
+        return '${(number / 1e6).toStringAsFixed(2)}M';
+      } else if (number >= 1e3) {
+        // Thousands
+        return '${(number / 1e3).toStringAsFixed(2)}K';
+      } else {
+        // If the number is less than 1,000, just return it formatted
+        return numberFormat.format(number);
+      }
+    }
+
+    // Check if the number has 10 digits or more and abbreviate if necessary
+    if (this >= 1e10) {
+      return abbreviateNumber(this);
+    } else {
+      // If the number has less than 10 digits, format it normally
+      return numberFormat.format(this);
+    }
+  }
 }
 
 extension DoubleExtension on double {
