@@ -9,10 +9,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:flutter/material.dart';
 import '_transaction.dart';
+import 'package:http/http.dart' as http;
 
 final unsavedProductProvider =
     StateNotifierProvider<ProductNotifier, Product?>((ref) {
   return ProductNotifier();
+});
+
+final connectivityStreamProvider = StreamProvider<bool>((ref) {
+  return Stream.periodic(const Duration(seconds: 5)).asyncMap((_) async {
+    try {
+      final url = ProxyService.box.getServerUrl() ?? "https://example.com";
+      final response = await http.get(Uri.parse(url));
+
+      print('Connectivity check!: ${response.statusCode == 404}');
+      return response.statusCode == 404;
+    } catch (e) {
+      print('Connectivity check failed: $e');
+      return false;
+    }
+  });
 });
 
 class ProductNotifier extends StateNotifier<Product?> {
