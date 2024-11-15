@@ -64,4 +64,6 @@ abstract class LocalStorage {
   bool? useInHouseSyncGateway();
   String? customPhoneNumberForPayment();
   String? purchaseCode();
+
+  bool A4();
 }

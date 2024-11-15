@@ -129,6 +129,15 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
                         });
                       },
                     ),
+                    _buildSwitchTile(
+                      title: 'Print A4',
+                      value: model.printA4,
+                      onChanged: (value) {
+                        setState(() {
+                          model.printA4 = value;
+                        });
+                      },
+                    ),
                     const SizedBox(height: 24),
                     _buildProformaUrlForm(),
                   ],

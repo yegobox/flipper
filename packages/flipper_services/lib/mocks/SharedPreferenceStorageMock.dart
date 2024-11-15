@@ -290,4 +290,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
   String? purchaseCode() {
     return "";
   }
+
+  @override
+  bool A4() {
+    // TODO: implement A4
+    return false;
+  }
 }
