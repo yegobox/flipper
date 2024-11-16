@@ -161,8 +161,12 @@ class _AddVariationState extends State<AddVariation> {
         viewModelBuilder: () => ProductViewModel());
   }
 
-  Future<void> _saveVariation(ProductViewModel model,
-      {required String selectedProductType}) async {
+  Future<void> _saveVariation(
+    ProductViewModel model, {
+    required String selectedProductType,
+    Map<int, TextEditingController>? rates,
+    Map<int, TextEditingController>? dates,
+  }) async {
     Business business = await ProxyService.local.getBusiness();
     String itemPrefix = "flip-";
     String clip = itemPrefix +
@@ -215,10 +219,8 @@ class _AddVariationState extends State<AddVariation> {
     await model.addVariant(
       selectedProductType: selectedProductType,
       packagingUnit: "BJ",
-      discountRate: model.discountRate,
-      expirationDate: model.expirationDate == null
-          ? null
-          : DateTime.parse(model.expirationDate!),
+      rates: rates,
+      dates: dates,
       variations: variations,
     );
   }

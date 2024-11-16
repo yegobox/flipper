@@ -7,6 +7,7 @@ import 'package:firestore_models/firestore_models.dart' as newMod;
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_services/locator.dart' as loc;
+import 'package:flutter/material.dart';
 
 mixin ProductMixin {
   final ProductService productService = loc.getIt<ProductService>();
@@ -29,8 +30,8 @@ mixin ProductMixin {
   Future<void> addVariant(
       {List<Variant>? variations,
       required packagingUnit,
-      required double discountRate,
-      required DateTime? expirationDate,
+      Map<int, TextEditingController>? rates,
+      Map<int, TextEditingController>? dates,
       required String selectedProductType}) async {
     ///loop variations add pkgUnitCd this come from UI but a lot of
     ///EBM fields will be hard coded to simplify the UI, so we will loop the variation
@@ -49,8 +50,12 @@ mixin ProductMixin {
               variations[i].itemClsCd = variations[i].itemClsCd ?? "5020230602";
               variations[i].isrccNm = "";
               variations[i].isrcRt = 0;
-              variations[i].dcRt = discountRate;
-              variations[i].expirationDate = expirationDate;
+              variations[i].dcRt = rates?[variations[i]] == null
+                  ? 0
+                  : double.parse(rates![variations[i]]!.text);
+              variations[i].expirationDate = dates?[variations[i].id] == null
+                  ? null
+                  : DateTime.parse(dates![variations[i].id]!.text);
 
               variations[i].color = currentColor;
               variations[i].pkg = "1";

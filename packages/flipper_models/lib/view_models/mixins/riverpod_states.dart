@@ -508,7 +508,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
         state = AsyncData(products);
       }
     } catch (error) {
-      state = AsyncError(error, StackTrace.current);
+      if (mounted) state = AsyncError(error, StackTrace.current);
     }
   }
 

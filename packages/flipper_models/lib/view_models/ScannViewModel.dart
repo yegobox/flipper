@@ -10,6 +10,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:flutter/material.dart';
 
 class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   List<Variant> scannedVariants = [];
@@ -216,7 +217,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   }
 
   Future<void> bulkUpdateVariants(bool editmode,
-      {required String color, required String selectedProductType}) async {
+      {required String color,
+      required String selectedProductType,
+      Map<int, TextEditingController>? rates,
+      Map<int, TextEditingController>? dates}) async {
     if (editmode) {
       try {
         final variantsLength = scannedVariants.length;
@@ -224,13 +228,18 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         // loop through all variants and update all with retailPrice and supplyPrice
         ProxyService.local.realm!.write(() {
           for (var i = 0; i < variantsLength; i++) {
+            double rate = rates?[scannedVariants[i].id] == null
+                ? 0
+                : double.parse(rates![scannedVariants[i].id]!.text) / 100;
             scannedVariants[i].color = color;
             scannedVariants[i].itemNm = scannedVariants[i].name;
             scannedVariants[i].ebmSynced = false;
             scannedVariants[i].itemTyCd = selectedProductType;
-            scannedVariants[i].dcRt = discountRate;
+            scannedVariants[i].dcRt = rate;
             scannedVariants[i].expirationDate =
-                expirationDate == null ? null : DateTime.parse(expirationDate!);
+                dates?[scannedVariants[i].id] == null
+                    ? null
+                    : DateTime.parse(dates![scannedVariants[i].id]!.text);
             // If found, update it
             if (retailPrice != 0) {
               scannedVariants[i].retailPrice = retailPrice;

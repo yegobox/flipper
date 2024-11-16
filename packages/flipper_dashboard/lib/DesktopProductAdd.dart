@@ -64,7 +64,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   double _iconSize = 24;
   Color pickerColor = Colors.amber;
 
-  Map<int, TextEditingController> _discountRate = {};
+  Map<int, TextEditingController> _rates = {};
   Map<int, TextEditingController> _dates = {};
 
   bool _selectAll = false;
@@ -360,13 +360,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
     if (widget.productId != null) {
       await model.bulkUpdateVariants(true,
-          color: model.currentColor, selectedProductType: selectedProductType);
+          color: model.currentColor,
+          selectedProductType: selectedProductType,
+          rates: _rates,
+          dates: _dates);
     } else {
       await model.addVariant(
-          discountRate: model.discountRate,
-          expirationDate: model.expirationDate == null
-              ? null
-              : DateTime.parse(model.expirationDate!),
+          rates: _rates,
+          dates: _dates,
           variations: model.scannedVariants,
           selectedProductType: selectedProductType,
           packagingUnit: selectedPackageUnitValue.split(":")[0]);
@@ -1048,7 +1049,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                         label: Text('Price',
                             style: TextStyle(fontWeight: FontWeight.bold))),
                     const DataColumn(
-                        label: Text('Created At',
+                        label: Text('Date',
                             style: TextStyle(fontWeight: FontWeight.bold))),
                     const DataColumn(
                         label: Text('Quantity',
@@ -1103,7 +1104,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     bool isSelected = _selectedVariants[variant.id!] ?? false;
 
                     /// update the discount rate if we are in edit to have the value saved
-                    _discountRate[variant.id!] = TextEditingController(
+                    _rates[variant.id!] = TextEditingController(
                       text: variant.dcRt.toString(),
                     );
                     _dates[variant.id!] = TextEditingController(
@@ -1144,9 +1145,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           Text(
                             variant.lastTouched == null
                                 ? ''
-                                : variant.lastTouched!
-                                    .toLocal()
-                                    .toIso8601String(),
+                                : variant.lastTouched!.toLocal().toYYYMMdd(),
                           ),
                         ),
                         DataCell(
@@ -1177,7 +1176,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               suffixText: '%',
                               hintText: 'Enter Discount',
                             ),
-                            controller: _discountRate[variant.id],
+                            controller: _rates[variant.id],
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
                             ],
@@ -1186,9 +1185,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               final discount = int.tryParse(value) ?? 0;
                               if (discount < 0 || discount > 100) {
                                 // Optional: Ensure the value is between 0% and 100%
-                                _discountRate[variant.id]?.text = '0';
+                                _rates[variant.id]?.text = '0';
                               }
-                              model.discountRate = discount / 100;
                             },
                           ),
                         ),
