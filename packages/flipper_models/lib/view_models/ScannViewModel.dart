@@ -239,7 +239,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             scannedVariants[i].expirationDate =
                 dates?[scannedVariants[i].id] == null
                     ? null
-                    : DateTime.parse(dates![scannedVariants[i].id]!.text);
+                    : DateTime.tryParse(dates![scannedVariants[i].id]!.text);
             // If found, update it
             if (retailPrice != 0) {
               scannedVariants[i].retailPrice = retailPrice;

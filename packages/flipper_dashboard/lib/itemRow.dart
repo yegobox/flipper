@@ -9,6 +9,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -90,7 +91,8 @@ class RowItem extends StatefulHookConsumerWidget {
   _RowItemState createState() => _RowItemState();
 }
 
-class _RowItemState extends ConsumerState<RowItem> with Refresh {
+class _RowItemState extends ConsumerState<RowItem>
+    with Refresh, CoreMiscellaneous {
   final _routerService = locator<RouterService>();
 
   @override
@@ -262,13 +264,7 @@ class _RowItemState extends ConsumerState<RowItem> with Refresh {
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {
-    Directory appSupportDir;
-    if (Platform.isAndroid) {
-      // Try to get external storage, fall back to internal if not available
-      appSupportDir = await getApplicationCacheDirectory();
-    } else {
-      appSupportDir = await getApplicationCacheDirectory();
-    }
+    Directory appSupportDir = await getSupportDir();
 
     final imageFilePath = path.join(appSupportDir.path, imageFileName);
     final file = File(imageFilePath);

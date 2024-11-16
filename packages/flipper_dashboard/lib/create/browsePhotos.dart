@@ -47,6 +47,7 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                 model.browsePictureFromGallery(
                   id: ref.watch(unsavedProductProvider)!.id!,
                   callBack: (product) {
+                    talker.warning("ImageToProduct:${product.imageUrl}");
                     ref
                         .read(unsavedProductProvider.notifier)
                         .emitProduct(value: product);

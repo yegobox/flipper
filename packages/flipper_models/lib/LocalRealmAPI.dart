@@ -25,6 +25,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/AppInitializer.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:path/path.dart' as p;
 import 'package:flipper_models/realmModels.dart';
@@ -65,7 +66,9 @@ import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 //
-class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
+class LocalRealmApi
+    with Booting, CoreMiscellaneous, defaultData.Data
+    implements FlipperInterface {
   bool offlineLogin = false;
   @override
   Realm? realm;
@@ -1831,13 +1834,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       {required int branchId,
       required String assetName,
       required String subPath}) async {
-    Directory directoryPath;
-    if (Platform.isAndroid) {
-      // Try to get external storage, fall back to internal if not available
-      directoryPath = await getApplicationCacheDirectory();
-    } else {
-      directoryPath = await getApplicationSupportDirectory();
-    }
+    Directory directoryPath = await getSupportDir();
 
     final filePath = path.join(directoryPath.path, assetName);
 

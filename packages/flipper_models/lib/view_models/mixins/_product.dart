@@ -55,7 +55,7 @@ mixin ProductMixin {
                   : double.parse(rates![variations[i]]!.text);
               variations[i].expirationDate = dates?[variations[i].id] == null
                   ? null
-                  : DateTime.parse(dates![variations[i].id]!.text);
+                  : DateTime.tryParse(dates![variations[i].id]!.text);
 
               variations[i].color = currentColor;
               variations[i].pkg = "1";
