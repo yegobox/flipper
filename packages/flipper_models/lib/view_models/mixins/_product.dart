@@ -14,11 +14,11 @@ mixin ProductMixin {
   double _discountRate = 0;
   double get discountRate => _discountRate;
 
-  String _expirationDate = "";
+  String? _expirationDate = null;
 
-  String get expirationDate => _expirationDate;
+  String? get expirationDate => _expirationDate;
 
-  set expirationDate(String expirationDate) {
+  set expirationDate(String? expirationDate) {
     _expirationDate = expirationDate;
   }
 
@@ -30,7 +30,7 @@ mixin ProductMixin {
       {List<Variant>? variations,
       required packagingUnit,
       required double discountRate,
-      required DateTime expirationDate,
+      required DateTime? expirationDate,
       required String selectedProductType}) async {
     ///loop variations add pkgUnitCd this come from UI but a lot of
     ///EBM fields will be hard coded to simplify the UI, so we will loop the variation

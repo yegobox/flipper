@@ -63,8 +63,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   double _blurRadius = 5;
   double _iconSize = 24;
   Color pickerColor = Colors.amber;
-  final TextEditingController dateController = TextEditingController();
-  final TextEditingController discountController = TextEditingController();
+
+  Map<int, TextEditingController> _discountRate = {};
+  Map<int, TextEditingController> _dates = {};
 
   bool _selectAll = false;
   bool _showDeleteButton = false;
@@ -363,7 +364,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     } else {
       await model.addVariant(
           discountRate: model.discountRate,
-          expirationDate: DateTime.parse(model.expirationDate),
+          expirationDate: model.expirationDate == null
+              ? null
+              : DateTime.parse(model.expirationDate!),
           variations: model.scannedVariants,
           selectedProductType: selectedProductType,
           packagingUnit: selectedPackageUnitValue.split(":")[0]);
@@ -1100,9 +1103,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     bool isSelected = _selectedVariants[variant.id!] ?? false;
 
                     /// update the discount rate if we are in edit to have the value saved
-                    discountController.text = variant.dcRt.toString();
-                    dateController.text =
-                        variant.expirationDate?.toYYYMMdd() ?? "";
+                    _discountRate[variant.id!] = TextEditingController(
+                      text: variant.dcRt.toString(),
+                    );
+                    _dates[variant.id!] = TextEditingController(
+                      text: variant.expirationDate?.toYYYMMdd() ?? "",
+                    );
 
                     return DataRow(
                       selected: isSelected, // Use selection status from map
@@ -1171,7 +1177,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               suffixText: '%',
                               hintText: 'Enter Discount',
                             ),
-                            controller: discountController,
+                            controller: _discountRate[variant.id],
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
                             ],
@@ -1180,7 +1186,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               final discount = int.tryParse(value) ?? 0;
                               if (discount < 0 || discount > 100) {
                                 // Optional: Ensure the value is between 0% and 100%
-                                discountController.text = '0';
+                                _discountRate[variant.id]?.text = '0';
                               }
                               model.discountRate = discount / 100;
                             },
@@ -1193,7 +1199,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               hintText: 'Select Date',
                               suffixIcon: Icon(Icons.calendar_today),
                             ),
-                            controller: dateController,
+                            controller: _dates[variant.id],
                             onTap: () async {
                               // Open the date picker dialog
                               DateTime? pickedDate = await showDatePicker(
@@ -1205,10 +1211,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
                               if (pickedDate != null) {
                                 // Update the text controller with the selected date
-                                dateController.text =
+                                _dates[variant.id]?.text =
                                     DateFormat('yyyy-MM-dd').format(pickedDate);
                               }
-                              model.expirationDate = dateController.text;
+                              model.expirationDate = _dates[variant.id]?.text;
                             },
                           ),
                         ),
