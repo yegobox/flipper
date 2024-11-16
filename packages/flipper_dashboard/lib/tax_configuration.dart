@@ -67,7 +67,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
       onViewModelReady: (model) async {
         try {
           final isTaxEnabledForBusiness = await ProxyService.local
-              .isTaxEnabled(business: ProxyService.local.getBusiness());
+              .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
           if (isTaxEnabledForBusiness) {
             setState(() {
               isTaxEnabled = true;

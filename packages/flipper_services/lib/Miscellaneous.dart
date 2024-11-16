@@ -5,8 +5,15 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 
 mixin CoreMiscellaneous {
+  Future<bool> isServerUp() async {
+    final url = ProxyService.box.getServerUrl() ?? "https://example.com";
+    final response = await http.get(Uri.parse(url));
+    return response.statusCode == 404;
+  }
+
   Future<bool> logOut() async {
     try {
       ProxyService.box.remove(key: 'authComplete');

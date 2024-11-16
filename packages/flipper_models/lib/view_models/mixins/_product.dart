@@ -11,10 +11,26 @@ import 'package:flipper_services/locator.dart' as loc;
 mixin ProductMixin {
   final ProductService productService = loc.getIt<ProductService>();
   String currentColor = '#0984e3';
+  double _discountRate = 0;
+  double get discountRate => _discountRate;
+
+  String _expirationDate = "";
+
+  String get expirationDate => _expirationDate;
+
+  set expirationDate(String expirationDate) {
+    _expirationDate = expirationDate;
+  }
+
+  set discountRate(double discountRate) {
+    _discountRate = discountRate;
+  }
 
   Future<void> addVariant(
       {List<Variant>? variations,
       required packagingUnit,
+      required double discountRate,
+      required DateTime expirationDate,
       required String selectedProductType}) async {
     ///loop variations add pkgUnitCd this come from UI but a lot of
     ///EBM fields will be hard coded to simplify the UI, so we will loop the variation
@@ -33,6 +49,8 @@ mixin ProductMixin {
               variations[i].itemClsCd = variations[i].itemClsCd ?? "5020230602";
               variations[i].isrccNm = "";
               variations[i].isrcRt = 0;
+              variations[i].dcRt = discountRate;
+              variations[i].expirationDate = expirationDate;
 
               variations[i].color = currentColor;
               variations[i].pkg = "1";

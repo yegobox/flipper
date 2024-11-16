@@ -4091,6 +4091,8 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     String taxType = "B",
     Iterable<int> branchIds = const [],
     Stock? stock,
+    double dcRt = 0.0,
+    DateTime? expirationDate,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Variant>({
@@ -4121,6 +4123,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
         'retailPrice': 0.0,
         'ebmSynced': false,
         'taxType': "B",
+        'dcRt': 0.0,
       });
     }
     RealmObjectBase.set(this, 'id', id);
@@ -4177,6 +4180,8 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set<RealmList<int>>(
         this, 'branchIds', RealmList<int>(branchIds));
     RealmObjectBase.set(this, 'stock', stock);
+    RealmObjectBase.set(this, 'dcRt', dcRt);
+    RealmObjectBase.set(this, 'expirationDate', expirationDate);
   }
 
   Variant._();
@@ -4484,6 +4489,18 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'stock', value);
 
   @override
+  double get dcRt => RealmObjectBase.get<double>(this, 'dcRt') as double;
+  @override
+  set dcRt(double value) => RealmObjectBase.set(this, 'dcRt', value);
+
+  @override
+  DateTime? get expirationDate =>
+      RealmObjectBase.get<DateTime>(this, 'expirationDate') as DateTime?;
+  @override
+  set expirationDate(DateTime? value) =>
+      RealmObjectBase.set(this, 'expirationDate', value);
+
+  @override
   Stream<RealmObjectChanges<Variant>> get changes =>
       RealmObjectBase.getChanges<Variant>(this);
 
@@ -4549,6 +4566,8 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       'taxType': taxType.toEJson(),
       'branchIds': branchIds.toEJson(),
       'stock': includeStock ? stock.toEJson() : null,
+      'dcRt': dcRt.toEJson(),
+      'expirationDate': expirationDate.toEJson(),
     };
   }
 
@@ -4613,6 +4632,8 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
           taxType: fromEJson(ejson['taxType'], defaultValue: "B"),
           branchIds: fromEJson(ejson['branchIds']),
           stock: fromEJson(ejson['stock']),
+          dcRt: fromEJson(ejson['dcRt'], defaultValue: 0.0),
+          expirationDate: fromEJson(ejson['expirationDate']),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -4680,6 +4701,9 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
           collectionType: RealmCollectionType.list),
       SchemaProperty('stock', RealmPropertyType.object,
           optional: true, linkTarget: 'Stock'),
+      SchemaProperty('dcRt', RealmPropertyType.double),
+      SchemaProperty('expirationDate', RealmPropertyType.timestamp,
+          optional: true),
     ]);
   }();
 

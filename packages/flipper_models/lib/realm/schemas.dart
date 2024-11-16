@@ -591,6 +591,9 @@ class _Variant {
   /// we want to assign this variant to multiple branch
   late List<int> branchIds;
   late _Stock? stock;
+
+  double dcRt = 0.0;
+  DateTime? expirationDate;
 }
 
 @RealmModel()

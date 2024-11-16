@@ -215,6 +215,8 @@ class _AddVariationState extends State<AddVariation> {
     await model.addVariant(
       selectedProductType: selectedProductType,
       packagingUnit: "BJ",
+      discountRate: model.discountRate,
+      expirationDate: DateTime.parse(model.expirationDate),
       variations: variations,
     );
   }

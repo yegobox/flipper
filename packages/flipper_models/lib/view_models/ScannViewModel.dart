@@ -11,9 +11,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
-import 'mixins/_product.dart';
-
-class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
+class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   List<Variant> scannedVariants = [];
   double retailPrice = 0.0;
   double supplyPrice = 0.0;
@@ -39,6 +37,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   }
 
   final talker = TalkerFlutter.init();
+
   void onAddVariant(
       {required String barCode,
       required bool isTaxExempted,
@@ -217,29 +216,36 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   Future<void> bulkUpdateVariants(bool editmode,
       {required String color, required String selectedProductType}) async {
     if (editmode) {
-      final variantsLength = scannedVariants.length;
+      try {
+        final variantsLength = scannedVariants.length;
 
-      // loop through all variants and update all with retailPrice and supplyPrice
-      ProxyService.local.realm!.write(() {
-        for (var i = 0; i < variantsLength; i++) {
-          scannedVariants[i].color = color;
-          scannedVariants[i].itemNm = scannedVariants[i].name;
-          scannedVariants[i].ebmSynced = false;
-          scannedVariants[i].itemTyCd = selectedProductType;
-          // If found, update it
-          if (retailPrice != 0) {
-            scannedVariants[i].retailPrice = retailPrice;
+        // loop through all variants and update all with retailPrice and supplyPrice
+        ProxyService.local.realm!.write(() {
+          for (var i = 0; i < variantsLength; i++) {
+            scannedVariants[i].color = color;
+            scannedVariants[i].itemNm = scannedVariants[i].name;
+            scannedVariants[i].ebmSynced = false;
+            scannedVariants[i].itemTyCd = selectedProductType;
+            scannedVariants[i].dcRt = discountRate;
+            scannedVariants[i].expirationDate = DateTime.parse(expirationDate);
+            // If found, update it
+            if (retailPrice != 0) {
+              scannedVariants[i].retailPrice = retailPrice;
+            }
+
+            if (supplyPrice != 0) {
+              scannedVariants[i].supplyPrice = supplyPrice;
+            }
+
+            scannedVariants[i].qty = (scannedVariants[i].qty);
+            scannedVariants[i].lastTouched = DateTime.now().toLocal();
+            notifyListeners();
           }
-
-          if (supplyPrice != 0) {
-            scannedVariants[i].supplyPrice = supplyPrice;
-          }
-
-          scannedVariants[i].qty = (scannedVariants[i].qty);
-          scannedVariants[i].lastTouched = DateTime.now().toLocal();
-          notifyListeners();
-        }
-      });
+        });
+      } catch (e) {
+        talker.error(e);
+        rethrow;
+      }
     }
   }
 }

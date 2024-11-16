@@ -4114,8 +4114,8 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  bool isTaxEnabled({required Business business}) {
-    return business.tinNumber != null;
+  bool isTaxEnabled({required int businessId}) {
+    return getBusiness().tinNumber != null;
   }
 
   @override
@@ -5208,7 +5208,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
     try {
       if (realm == null) return;
 
-      if (isTaxEnabled(business: ProxyService.local.getBusiness())) {
+      if (isTaxEnabled(businessId: ProxyService.box.getBusinessId()!)) {
         // 1. Create the ReceivePort to receive messages from the isolate
         receivePort = ReceivePort();
 

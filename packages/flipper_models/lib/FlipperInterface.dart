@@ -313,7 +313,7 @@ abstract class FlipperInterface {
       required bool active});
 
   Variant? getVariantById({required int id});
-  bool isTaxEnabled({required Business business});
+  bool isTaxEnabled({required int businessId});
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
       required DateTime whenCreated,

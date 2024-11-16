@@ -10,6 +10,7 @@ import 'package:flipper_dashboard/ToggleButtonWidget.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_ui/style_widget/text.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flipper_dashboard/create/browsePhotos.dart';
@@ -24,6 +25,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flutter/services.dart';
 
 class QuantityCell extends StatelessWidget {
   final double? quantity;
@@ -61,6 +63,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   double _blurRadius = 5;
   double _iconSize = 24;
   Color pickerColor = Colors.amber;
+  final TextEditingController dateController = TextEditingController();
+  final TextEditingController discountController = TextEditingController();
 
   bool _selectAll = false;
   bool _showDeleteButton = false;
@@ -358,6 +362,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           color: model.currentColor, selectedProductType: selectedProductType);
     } else {
       await model.addVariant(
+          discountRate: model.discountRate,
+          expirationDate: DateTime.parse(model.expirationDate),
           variations: model.scannedVariants,
           selectedProductType: selectedProductType,
           packagingUnit: selectedPackageUnitValue.split(":")[0]);
@@ -640,101 +646,106 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () {
-                        /// form is validated and we are not dealing with composite product
-                        if (_formKey.currentState!.validate() &&
-                            !ref.watch(isCompositeProvider)) {
-                          if (productRef == null) {
-                            Navigator.maybePop(context);
-                            return;
-                          }
-                          _onSaveButtonPressed(
-                            selectedProductType: selectedProductType,
-                            productModel,
-                            context,
-                            productRef,
-                          );
-                        } else if (_fieldComposite.currentState?.validate() ??
-                            false) {
-                          /// we are now officially dealing with composite product
-                          talker.info(
-                              "we are dealing with composite product now handle down");
-
-                          List<VariantState> partOfComposite =
-                              ref.watch(selectedVariantsLocalProvider);
-                          for (var i = 0; i < partOfComposite.length; i++) {
-                            partOfComposite[i].variant.id;
-                            talker.info(
-                                "This is the variant on composite${partOfComposite[i].variant.id}");
-
-                            /// now save each
-                            ProxyService.local.saveComposite(
-                              composite: Composite(ObjectId(),
-                                  id: randomNumber(),
-                                  businessId: ProxyService.box.getBusinessId(),
-                                  productId:
-                                      ref.read(unsavedProductProvider)!.id!,
-                                  qty: partOfComposite[i].quantity,
-                                  actualPrice: double.tryParse(
-                                          retailPriceController.text) ??
-                                      0.0,
-                                  branchId: ProxyService.box.getBranchId(),
-                                  variantId: partOfComposite[i].variant.id),
+                        try {
+                          /// form is validated and we are not dealing with composite product
+                          if (_formKey.currentState!.validate() &&
+                              !ref.watch(isCompositeProvider)) {
+                            if (productRef == null) {
+                              Navigator.maybePop(context);
+                              return;
+                            }
+                            _onSaveButtonPressed(
+                              selectedProductType: selectedProductType,
+                              productModel,
+                              context,
+                              productRef,
                             );
+                          } else if (_fieldComposite.currentState?.validate() ??
+                              false) {
+                            /// we are now officially dealing with composite product
+                            talker.info(
+                                "we are dealing with composite product now handle down");
+
+                            List<VariantState> partOfComposite =
+                                ref.watch(selectedVariantsLocalProvider);
+                            for (var i = 0; i < partOfComposite.length; i++) {
+                              partOfComposite[i].variant.id;
+                              talker.info(
+                                  "This is the variant on composite${partOfComposite[i].variant.id}");
+
+                              /// now save each
+                              ProxyService.local.saveComposite(
+                                composite: Composite(ObjectId(),
+                                    id: randomNumber(),
+                                    businessId:
+                                        ProxyService.box.getBusinessId(),
+                                    productId:
+                                        ref.read(unsavedProductProvider)!.id!,
+                                    qty: partOfComposite[i].quantity,
+                                    actualPrice: double.tryParse(
+                                            retailPriceController.text) ??
+                                        0.0,
+                                    branchId: ProxyService.box.getBranchId(),
+                                    variantId: partOfComposite[i].variant.id),
+                              );
+                            }
+
+                            /// because this product has no variant attached
+                            // final productRef = ref.watch(productProvider);
+                            String sku = skuController.text;
+                            String barCode = barCodeController.text;
+                            String name = productNameController.text;
+
+                            /// print the sku and bar
+                            talker.info("SKU ${sku} Bar Code ${barCode}");
+
+                            Product? product = ProxyService.local.getProduct(
+                                id: ref.read(unsavedProductProvider)!.id!);
+
+                            /// update the product with propper name
+                            ProxyService.local.realm!.write(() {
+                              product?.name = productNameController.text;
+                              product?.color = model.currentColor;
+                              product?.isComposite = true;
+                            });
+
+                            /// create the default variant to represent this composite item, in flipper each product
+                            /// has a default variant
+                            ProxyService.local.createVariant(
+                              tinNumber: ProxyService.box.tin(),
+                              branchId: ProxyService.box.getBranchId()!,
+                              itemSeq: 1,
+
+                              /// because this is a placeholder variant, then qty does not matter in this scenario
+                              /// we only care about it when the qty will be involved in manaing stock
+                              /// but for composite, stock is managed to the level of the composites item not the default item on product
+                              qty: 1,
+                              barCode: barCode,
+                              sku: sku,
+                              retailPrice:
+                                  double.tryParse(retailPriceController.text) ??
+                                      0,
+                              supplierPrice:
+                                  double.tryParse(supplyPriceController.text) ??
+                                      0,
+                              productId: product!.id!,
+                              color: product.color,
+                              name: name,
+                            );
+
+                            /// refresh the list
+                            final combinedNotifier = ref.read(refreshProvider);
+                            combinedNotifier.performActions(
+                                productName: "", scanMode: true);
+                            ref
+                                .read(selectedVariantsLocalProvider.notifier)
+                                .clearState();
+                            Navigator.maybePop(context);
+
+                            /// at the end then save the product with the composite attached.
                           }
-
-                          /// because this product has no variant attached
-                          // final productRef = ref.watch(productProvider);
-                          String sku = skuController.text;
-                          String barCode = barCodeController.text;
-                          String name = productNameController.text;
-
-                          /// print the sku and bar
-                          talker.info("SKU ${sku} Bar Code ${barCode}");
-
-                          Product? product = ProxyService.local.getProduct(
-                              id: ref.read(unsavedProductProvider)!.id!);
-
-                          /// update the product with propper name
-                          ProxyService.local.realm!.write(() {
-                            product?.name = productNameController.text;
-                            product?.color = model.currentColor;
-                            product?.isComposite = true;
-                          });
-
-                          /// create the default variant to represent this composite item, in flipper each product
-                          /// has a default variant
-                          ProxyService.local.createVariant(
-                            tinNumber: ProxyService.box.tin(),
-                            branchId: ProxyService.box.getBranchId()!,
-                            itemSeq: 1,
-
-                            /// because this is a placeholder variant, then qty does not matter in this scenario
-                            /// we only care about it when the qty will be involved in manaing stock
-                            /// but for composite, stock is managed to the level of the composites item not the default item on product
-                            qty: 1,
-                            barCode: barCode,
-                            sku: sku,
-                            retailPrice:
-                                double.tryParse(retailPriceController.text) ??
-                                    0,
-                            supplierPrice:
-                                double.tryParse(supplyPriceController.text) ??
-                                    0,
-                            productId: product!.id!,
-                            color: product.color,
-                            name: name,
-                          );
-
-                          /// refresh the list
-                          final combinedNotifier = ref.read(refreshProvider);
-                          combinedNotifier.performActions(
-                              productName: "", scanMode: true);
-                          ref
-                              .read(selectedVariantsLocalProvider.notifier)
-                              .clearState();
-                          Navigator.maybePop(context);
-
-                          /// at the end then save the product with the composite attached.
+                        } catch (e) {
+                          talker.warning(e);
                         }
                       },
                       child: const Text('Save'),
@@ -1047,6 +1058,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                         label: Text('Classification',
                             style: TextStyle(fontWeight: FontWeight.bold))),
                     const DataColumn(
+                        label: Text('Discount',
+                            style: TextStyle(fontWeight: FontWeight.bold))),
+                    const DataColumn(
+                        label: Text('Expiration',
+                            style: TextStyle(fontWeight: FontWeight.bold))),
+                    const DataColumn(
                         label: Text('Action',
                             style: TextStyle(fontWeight: FontWeight.bold))),
                   ],
@@ -1141,20 +1158,67 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                         DataCell(_buildUniversalProductDropDown(
                             context, model, variant)),
                         DataCell(
-                          ElevatedButton(
+                          TextFormField(
+                            keyboardType: TextInputType
+                                .number, // Ensures only numeric input
+                            decoration: InputDecoration(
+                              suffixText:
+                                  '%', // Adds a percentage symbol at the end
+                              hintText: 'Enter Discount', // Placeholder text
+                            ),
+                            controller:
+                                discountController, // Use a controller to manage the discount input
+                            inputFormatters: [
+                              FilteringTextInputFormatter
+                                  .digitsOnly, // Allows only digits
+                            ],
+                            onChanged: (value) {
+                              // Optionally, handle any validation or processing when the value changes
+                              final discount = int.tryParse(value) ?? 0;
+                              if (discount < 0 || discount > 100) {
+                                // Optional: Ensure the value is between 0% and 100%
+                                discountController.text = '0';
+                              }
+                              model.discountRate = discount / 100;
+                            },
+                          ),
+                        ),
+                        DataCell(
+                          TextFormField(
+                            readOnly: true,
+                            decoration: InputDecoration(
+                              hintText: 'Select Date',
+                              suffixIcon: Icon(Icons.calendar_today),
+                            ),
+                            controller: dateController,
+                            onTap: () async {
+                              // Open the date picker dialog
+                              DateTime? pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(2023),
+                                lastDate: DateTime(2100),
+                              );
+
+                              if (pickedDate != null) {
+                                // Update the text controller with the selected date
+                                dateController.text =
+                                    DateFormat('yyyy-MM-dd').format(pickedDate);
+                              }
+                              model.expirationDate = dateController.text;
+                            },
+                          ),
+                        ),
+                        DataCell(
+                          IconButton(
                             onPressed: () {
                               model.removeVariant(id: variant.id!);
                             },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.redAccent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.redAccent,
                             ),
-                            child: const Flippertext(
-                              'Delete',
-                              color: Colors.white,
-                            ),
+                            tooltip: 'Delete',
                           ),
                         ),
                       ],
