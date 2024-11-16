@@ -899,6 +899,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
               model.onAddVariant(
                 editmode: widget.productId != null,
                 barCode: barCodeInput,
+                retailPrice: double.tryParse(retailPriceController.text) ?? 0,
+                supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
                 isTaxExempted: false,
                 product: productRef!,
               );
@@ -1097,6 +1099,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     }
                     bool isSelected = _selectedVariants[variant.id!] ?? false;
 
+                    /// update the discount rate if we are in edit to have the value saved
+                    discountController.text = variant.dcRt.toString();
+                    dateController.text =
+                        variant.expirationDate?.toYYYMMdd() ?? "";
+
                     return DataRow(
                       selected: isSelected, // Use selection status from map
                       color: WidgetStateProperty.resolveWith<Color?>(
@@ -1125,7 +1132,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             },
                           ),
                         ),
-                        DataCell(Text(variant.name!)),
+                        DataCell(Text(variant.bcd ?? variant.name!)),
                         DataCell(Text(variant.retailPrice.toStringAsFixed(2))),
                         DataCell(
                           Text(
@@ -1159,18 +1166,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             context, model, variant)),
                         DataCell(
                           TextFormField(
-                            keyboardType: TextInputType
-                                .number, // Ensures only numeric input
+                            keyboardType: TextInputType.number,
                             decoration: InputDecoration(
-                              suffixText:
-                                  '%', // Adds a percentage symbol at the end
-                              hintText: 'Enter Discount', // Placeholder text
+                              suffixText: '%',
+                              hintText: 'Enter Discount',
                             ),
-                            controller:
-                                discountController, // Use a controller to manage the discount input
+                            controller: discountController,
                             inputFormatters: [
-                              FilteringTextInputFormatter
-                                  .digitsOnly, // Allows only digits
+                              FilteringTextInputFormatter.digitsOnly,
                             ],
                             onChanged: (value) {
                               // Optionally, handle any validation or processing when the value changes

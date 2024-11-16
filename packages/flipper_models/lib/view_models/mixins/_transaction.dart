@@ -314,6 +314,8 @@ mixin TransactionMixin {
           modrId: variation.modrId,
           modrNm: variation.modrNm,
           partOfComposite: partOfComposite,
+          dcRt: variation.dcRt,
+          dcAmt: (variation.retailPrice * variation.qty) * variation.dcRt,
         );
 // 428129618288376
         ProxyService.local.addTransactionItem(

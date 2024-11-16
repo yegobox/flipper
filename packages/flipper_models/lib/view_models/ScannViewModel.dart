@@ -42,6 +42,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       {required String barCode,
       required bool isTaxExempted,
       required Product product,
+      required double retailPrice,
+      required double supplyPrice,
       required bool editmode}) {
     int branchId = ProxyService.box.getBranchId()!;
 
