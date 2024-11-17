@@ -66,4 +66,5 @@ abstract class LocalStorage {
   String? purchaseCode();
 
   bool A4();
+  int? numberOfPayments();
 }

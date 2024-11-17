@@ -564,6 +564,7 @@ abstract class FlipperInterfaceCapella {
     required double totalPrice,
     required int payStackUserId,
     required String paymentMethod,
+    int numberOfPayments = 1,
     String? customerCode,
     models.Plan? plan,
     required HttpClientInterface flipperHttpClient,

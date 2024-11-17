@@ -1809,11 +1809,17 @@ class FirestoreSync implements FlipperInterfaceCapella {
     required String paymentMethod,
     String? customerCode,
     models.Plan? plan,
+    int numberOfPayments = 1,
     required HttpClientInterface flipperHttpClient,
   }) async {
     final repository = brick.Repository();
 
     try {
+      final num = ProxyService.box.numberOfPayments() ?? numberOfPayments;
+      // compute next billing date
+      final nextBillingDate = isYearlyPlan
+          ? DateTime.now().add(Duration(days: 365 * num))
+          : DateTime.now().add(Duration(days: 30 * num));
       // Fetch existing plan and addons
       final existingPlanAddons =
           await _fetchExistingAddons(repository, businessId);
@@ -1838,6 +1844,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
         payStackUserId: payStackUserId,
         paymentMethod: paymentMethod,
         addons: updatedAddons,
+        nextBillingDate: nextBillingDate,
       );
     } catch (e) {
       talker.error('Failed to save/update payment plan: $e');
@@ -1932,6 +1939,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
     required int payStackUserId,
     required String paymentMethod,
     required List<models.PlanAddon> addons,
+    required DateTime nextBillingDate,
   }) async {
     final plan = models.Plan(
       id: businessId,
@@ -1942,6 +1950,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
       rule: isYearlyPlan ? 'yearly' : 'monthly',
       totalPrice: totalPrice.toInt(),
       createdAt: DateTime.now(),
+      nextBillingDate: nextBillingDate,
       payStackCustomerId: payStackUserId,
       paymentMethod: paymentMethod,
       addons: addons,

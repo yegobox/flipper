@@ -23,7 +23,10 @@ Future<Plan> _$PlanFromSupabase(Map<String, dynamic> data,
                   .fromSupabase(d, provider: provider, repository: repository))
               .toList()
               .cast<Future<PlanAddon>>() ??
-          []));
+          []),
+      nextBillingDate: data['next_billing_date'] == null
+          ? null
+          : DateTime.tryParse(data['next_billing_date'] as String));
 }
 
 Future<Map<String, dynamic>> _$PlanToSupabase(Plan instance,
@@ -44,7 +47,8 @@ Future<Map<String, dynamic>> _$PlanToSupabase(Plan instance,
     'addons': await Future.wait<Map<String, dynamic>>(instance.addons
         .map((s) => PlanAddonAdapter()
             .toSupabase(s, provider: provider, repository: repository))
-        .toList())
+        .toList()),
+    'next_billing_date': instance.nextBillingDate?.toIso8601String()
   };
 }
 
@@ -91,7 +95,12 @@ Future<Plan> _$PlanFromSqlite(Map<String, dynamic> data,
             .then((r) => r!.first)));
       }))
           .toList()
-          .cast<PlanAddon>())
+          .cast<PlanAddon>(),
+      nextBillingDate: data['next_billing_date'] == null
+          ? null
+          : data['next_billing_date'] == null
+              ? null
+              : DateTime.tryParse(data['next_billing_date'] as String))
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -112,7 +121,8 @@ Future<Map<String, dynamic>> _$PlanToSqlite(Plan instance,
         : (instance.paymentCompletedByUser! ? 1 : 0),
     'pay_stack_customer_id': instance.payStackCustomerId,
     'rule': instance.rule,
-    'payment_method': instance.paymentMethod
+    'payment_method': instance.paymentMethod,
+    'next_billing_date': instance.nextBillingDate?.toIso8601String()
   };
 }
 
@@ -175,6 +185,10 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
       columnName: 'addons',
       associationType: PlanAddon,
       associationIsNullable: false,
+    ),
+    'nextBillingDate': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'next_billing_date',
     )
   };
   @override
@@ -260,6 +274,12 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
       columnName: 'addons',
       iterable: true,
       type: PlanAddon,
+    ),
+    'nextBillingDate': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'next_billing_date',
+      iterable: false,
+      type: DateTime,
     )
   };
   @override

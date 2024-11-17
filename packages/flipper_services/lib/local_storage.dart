@@ -64,7 +64,8 @@ class SharedPreferenceStorage implements LocalStorage {
         'useInHouseSyncGateway',
         'customPhoneNumberForPayment',
         'purchaseCode',
-        'A4'
+        'A4',
+        'numberOfPayments'
       },
     ));
     return this;
@@ -376,5 +377,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   bool A4() {
     return prefs.getBool('A4') ?? false;
+  }
+
+  @override
+  int? numberOfPayments() {
+    return prefs.getInt('numberOfPayments');
   }
 }

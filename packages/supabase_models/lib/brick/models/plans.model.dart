@@ -34,6 +34,9 @@ class Plan extends OfflineFirstWithSupabaseModel {
   @Supabase(name: "addons")
   final List<PlanAddon> addons;
 
+  @Supabase(name: "next_billing_date")
+  final DateTime? nextBillingDate;
+
   Plan({
     required this.id,
     this.businessId,
@@ -46,6 +49,7 @@ class Plan extends OfflineFirstWithSupabaseModel {
     this.payStackCustomerId,
     this.rule,
     this.paymentMethod,
+    this.nextBillingDate,
     this.addons = const [],
   });
 }

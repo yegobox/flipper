@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class PaymentPlanUI extends StatefulWidget {
@@ -25,6 +26,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   bool _extraSupport = false;
   bool _taxReporting = false;
   bool _unlimitedBranches = false;
+  final paymentController = TextEditingController();
 
   void _calculatePrice() {
     setState(() {
@@ -428,11 +430,13 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
               selectedPlan: selectedPlan,
               addons: _additionalServices,
               paymentMethod: "Card",
+              numberOfPayments: int.tryParse(paymentController.text) ?? 1,
               flipperHttpClient: ProxyService.http,
               additionalDevices: additionalDevices,
               isYearlyPlan: isYearlyPlan,
               payStackUserId: customer.data.id,
-              totalPrice: totalPrice);
+              totalPrice:
+                  totalPrice * (int.tryParse(paymentController.text) ?? 1));
           locator<RouterService>().navigateTo(PaymentFinalizeRoute());
         } catch (e, s) {
           talker.warning(e);
@@ -486,6 +490,9 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
               _buildPriceSummary(),
               SizedBox(height: 16),
               CouponToggle(),
+              NumberOfPaymentsToggle(
+                paymentController: paymentController,
+              ),
               SizedBox(height: 16),
               _buildProceedButton(),
             ],

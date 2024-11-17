@@ -296,4 +296,9 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement A4
     return false;
   }
+
+  @override
+  int? numberOfPayments() {
+    return 1;
+  }
 }

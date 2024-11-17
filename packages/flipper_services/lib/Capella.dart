@@ -1394,6 +1394,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   @override
   Future<PaymentPlan> saveOrUpdatePaymentPlan(
       {required int businessId,
+      int numberOfPayments = 1,
       required String selectedPlan,
       List<String>? addons,
       required int additionalDevices,
