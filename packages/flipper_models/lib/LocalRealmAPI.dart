@@ -4,7 +4,7 @@ import 'dart:isolate';
 import 'dart:ui';
 import 'package:cbl/cbl.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-
+import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/FirestoreSync.dart';
@@ -2389,7 +2389,7 @@ class LocalRealmApi
   Future<bool> hasActiveSubscription(
       {required int businessId,
       required HttpClientInterface flipperHttpClient}) async {
-    PaymentPlan? plan = await getPaymentPlan(businessId: businessId);
+    models.Plan? plan = await getPaymentPlan(businessId: businessId);
 
     if (plan == null) {
       throw NoPaymentPlanFound(
@@ -2468,24 +2468,10 @@ class LocalRealmApi
   }
 
   @override
-  Future<PaymentPlan?> getPaymentPlan({required int businessId}) async {
+  Future<models.Plan?> getPaymentPlan({required int businessId}) async {
     final result =
         await ProxyService.backUp.getPaymentPlan(businessId: businessId);
-    return result == null
-        ? null
-        : PaymentPlan(
-            ObjectId(),
-            businessId: result.businessId,
-            selectedPlan: result.selectedPlan,
-            additionalDevices: result.additionalDevices,
-            isYearlyPlan: result.isYearlyPlan,
-            totalPrice: result.totalPrice,
-            createdAt: result.createdAt,
-            paymentCompletedByUser: result.paymentCompletedByUser,
-            payStackCustomerId: result.payStackCustomerId,
-            rule: result.rule,
-            paymentMethod: result.paymentMethod,
-          );
+    return result;
   }
 
   @override

@@ -1,5 +1,5 @@
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:firestore_models/firestore_models.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -289,7 +289,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
       isLoading = true;
     });
     try {
-      PaymentPlan? paymentPlan = await ProxyService.backUp
+      models.Plan? paymentPlan = await ProxyService.backUp
           .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
 
       talker.warning("CurrentPaymentPlan: $paymentPlan");
@@ -306,11 +306,12 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
       }
       if (selectedPaymentMethod == "Card") {
         toast("Card Payment is temporarily unavailable");
-        await cardPayment(finalPrice, paymentPlan!, selectedPaymentMethod);
+        await cardPayment(finalPrice, paymentPlan!, selectedPaymentMethod,
+            plan: paymentPlan);
 
         /// listen on stream to check if payment has been completed by a user
       } else {
-        handleMomoPayment(finalPrice);
+        handleMomoPayment(finalPrice, plan: paymentPlan);
       }
     } catch (e, s) {
       talker.warning(e.toString());

@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as models;
 
 class FailedPayment extends HookConsumerWidget with PaymentHandler {
   const FailedPayment({Key? key}) : super(key: key);
@@ -42,7 +43,7 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = useState(true);
     final error = useState<String?>(null);
-    final plan = useState<PaymentPlan?>(null);
+    final plan = useState<models.Plan?>(null);
     final usePhoneNumber = useState(false); // Toggle state
     final phoneNumber = useState<String?>(""); // Phone number input
     TextEditingController phoneNumberController = TextEditingController();
@@ -243,7 +244,7 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
     );
   }
 
-  Widget _buildPlanDetails(PaymentPlan plan) {
+  Widget _buildPlanDetails(models.Plan plan) {
     return Card(
       elevation: 6.0,
       shape: RoundedRectangleBorder(
@@ -295,13 +296,13 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
   }
 
   Future<void> _retryPayment(BuildContext context,
-      {required PaymentPlan plan,
+      {required models.Plan plan,
       required ValueNotifier<bool> isLoading,
       String? phoneNumber}) async {
-    if (plan.paymentMethod == "Card") {
+    if (plan.paymentMethod == "Card" || plan.paymentMethod == "CARD") {
       int finalPrice = plan.totalPrice!.toInt();
       isLoading.value = true;
-      await cardPayment(finalPrice, plan, plan.paymentMethod!);
+      await cardPayment(finalPrice, plan, plan.paymentMethod!, plan: plan);
     } else {
       isLoading.value = true;
       int finalPrice = plan.totalPrice!.toInt();

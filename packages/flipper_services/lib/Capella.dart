@@ -13,6 +13,7 @@ import 'package:firestore_models/transaction.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/Booting.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -911,7 +912,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<PaymentPlan?> getPaymentPlan({required int businessId}) {
+  Future<models.Plan?> getPaymentPlan({required int businessId}) {
     // TODO: implement getPaymentPlan
     throw UnimplementedError();
   }
@@ -1401,6 +1402,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
       required int payStackUserId,
       required String paymentMethod,
       String? customerCode,
+      models.Plan? plan,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement saveOrUpdatePaymentPlan
     throw UnimplementedError();

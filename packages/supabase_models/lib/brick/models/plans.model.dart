@@ -33,6 +33,7 @@ class Plan extends OfflineFirstWithSupabaseModel {
 
   @Supabase(name: "addons")
   final List<PlanAddon> addons;
+
   Plan({
     required this.id,
     this.businessId,

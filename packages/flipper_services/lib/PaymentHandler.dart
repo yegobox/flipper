@@ -1,5 +1,4 @@
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:firestore_models/firestore_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -9,19 +8,32 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 mixin PaymentHandler {
-  void handleMomoPayment(int finalPrice) {
+  void handleMomoPayment(int finalPrice, {Plan? plan}) {
     ProxyService.ht.makePayment(
       businessId: ProxyService.box.getBusinessId()!,
       amount: finalPrice,
       flipperHttpClient: ProxyService.http,
+    );
+    // upsert plan with new payment method
+
+    ProxyService.backUp.saveOrUpdatePaymentPlan(
+      additionalDevices: plan!.additionalDevices!,
+      businessId: ProxyService.box.getBusinessId()!,
+      payStackUserId: plan.payStackCustomerId!,
+      flipperHttpClient: ProxyService.http,
+      isYearlyPlan: plan.isYearlyPlan!,
+      paymentMethod: "MTNMOMO",
+      plan: plan,
+      selectedPlan: plan.selectedPlan!,
+      totalPrice: finalPrice.toDouble(),
     );
 
     final query = Query(where: [
       Where('businessId').isExactly(ProxyService.box.getBusinessId()!),
       Where('paymentCompletedByUser').isExactly(true),
     ]);
-    final plan = Repository().subscribeToRealtime<Plan>(query: query);
-    plan.listen(
+    final paymentPlan = Repository().subscribeToRealtime<Plan>(query: query);
+    paymentPlan.listen(
       (data) {
         if (data.isNotEmpty) {
           talker.warning(data);
@@ -34,14 +46,27 @@ mixin PaymentHandler {
     );
   }
 
-  Future<void> cardPayment(int finalPrice, PaymentPlan paymentPlan,
-      String selectedPaymentMethod) async {
+  Future<void> cardPayment(
+      int finalPrice, Plan paymentPlan, String selectedPaymentMethod,
+      {required Plan plan}) async {
     final (:url, :userId, :customerCode) = await ProxyService.local.subscribe(
       businessId: ProxyService.box.getBusinessId()!,
       business: ProxyService.local.getBusiness(),
       agentCode: 1,
       flipperHttpClient: ProxyService.http,
       amount: finalPrice,
+    );
+
+    ProxyService.backUp.saveOrUpdatePaymentPlan(
+      additionalDevices: plan.additionalDevices!,
+      businessId: ProxyService.box.getBusinessId()!,
+      payStackUserId: plan.payStackCustomerId!,
+      flipperHttpClient: ProxyService.http,
+      isYearlyPlan: plan.isYearlyPlan!,
+      paymentMethod: "CARD",
+      plan: plan,
+      selectedPlan: plan.selectedPlan!,
+      totalPrice: finalPrice.toDouble(),
     );
 
     await ProxyService.local.saveOrUpdatePaymentPlan(
@@ -51,7 +76,7 @@ mixin PaymentHandler {
         customerCode: customerCode,
         additionalDevices: paymentPlan.additionalDevices!,
         isYearlyPlan: paymentPlan.isYearlyPlan!,
-        totalPrice: paymentPlan.totalPrice!,
+        totalPrice: paymentPlan.totalPrice!.toDouble(),
         flipperHttpClient: ProxyService.http,
         payStackUserId: userId);
     if (!await launchUrl(Uri.parse(url))) {
@@ -61,7 +86,7 @@ mixin PaymentHandler {
     do {
       /// force instant update from remote db
 
-      PaymentPlan? plan = await ProxyService.backUp
+      Plan? plan = await ProxyService.backUp
           .getPaymentPlan(businessId: paymentPlan.businessId!);
       if (plan != null && plan.paymentCompletedByUser!) {
         talker.warning("A user has Completed payment");

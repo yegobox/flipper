@@ -1,15 +1,14 @@
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/helper_models.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 // import 'package:flipper_services/DatabaseProvider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:supabase_models/brick/models/branch.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 
 class AdminControl extends StatefulWidget {
@@ -52,6 +51,50 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   Future<void> toggleForceUPSERT(bool value) async {
+    // for (var a in [
+    //   {
+    //     "id": 183227847530079,
+    //     "plan_id": 1,
+    //     "addon_name": "Premium Tax Reporting Consulting",
+    //     "created_at": "2024-11-17T08:14:42.316728"
+    //   },
+    //   {
+    //     "id": 751162390621838,
+    //     "plan_id": 1,
+    //     "addon_name": "Extra Support",
+    //     "created_at": "2024-11-17T08:14:42.317825"
+    //   },
+    //   {
+    //     "id": 606132478175833,
+    //     "plan_id": 1,
+    //     "addon_name": "Unlimited Branches & Agents",
+    //     "created_at": "2024-11-17T08:14:42.317848"
+    //   }
+    // ]) {
+    //   final repository = Repository();
+    //   await repository.upsert(models.PlanAddon(
+    //       id: (a["id"] as int),
+    //       planId: (a["plan_id"] as int),
+    //       addonName: (a["addon_name"] as String),
+    //       createdAt: DateTime.parse(a["created_at"] as String)));
+    // }
+    // models.Plan? plan = await ProxyService.backUp
+    //     .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
+    // talker.warning(plan?.addons.toString());
+
+    // final repository = Repository();
+
+    // final query = Query.where('addons', Where('planId').isExactly(1));
+    // final planWithAddons = await repository.get<models.Plan>(
+    //     query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+    // talker.warning(planWithAddons.first.addons.length.toString());
+
+    // final query = Query(where: [
+    //   Where('businessId').isExactly(1),
+    // ]);
+    // final result = await repository.get<models.Plan>(
+    //     query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+
     try {
       await ProxyService.box.writeBool(
           key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());

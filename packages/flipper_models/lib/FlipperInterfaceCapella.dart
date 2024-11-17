@@ -15,7 +15,7 @@ import 'package:realm/realm.dart' as realmO;
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 import 'package:cbl/src/database/collection.dart'
@@ -555,7 +555,7 @@ abstract class FlipperInterfaceCapella {
       {required int businessId,
       required HttpClientInterface flipperHttpClient});
 
-  Future<PaymentPlan> saveOrUpdatePaymentPlan({
+  Future<void> saveOrUpdatePaymentPlan({
     required int businessId,
     List<String>? addons,
     required String selectedPlan,
@@ -565,9 +565,10 @@ abstract class FlipperInterfaceCapella {
     required int payStackUserId,
     required String paymentMethod,
     String? customerCode,
+    models.Plan? plan,
     required HttpClientInterface flipperHttpClient,
   });
-  Future<PaymentPlan?> getPaymentPlan({required int businessId});
+  Future<models.Plan?> getPaymentPlan({required int businessId});
   FlipperSaleCompaign? getLatestCompaign();
   Stream<PaymentPlan?> paymentPlanStream({required int businessId});
 

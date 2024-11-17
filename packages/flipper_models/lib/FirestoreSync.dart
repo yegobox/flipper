@@ -1290,7 +1290,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<PaymentPlan?> getPaymentPlan({required int businessId}) async {
+  Future<models.Plan?> getPaymentPlan({required int businessId}) async {
     try {
       final repository = brick.Repository();
 
@@ -1299,20 +1299,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
       ]);
       final result = await repository.get<models.Plan>(
           query: query, policy: OfflineFirstGetPolicy.awaitRemote);
-      return result
-          .map((e) => PaymentPlan(
-                businessId: e.businessId,
-                selectedPlan: e.selectedPlan,
-                additionalDevices: e.additionalDevices,
-                isYearlyPlan: e.isYearlyPlan,
-                totalPrice: e.totalPrice?.toDouble(),
-                createdAt: e.createdAt,
-                paymentCompletedByUser: e.paymentCompletedByUser,
-                payStackCustomerId: e.payStackCustomerId,
-                rule: e.rule,
-                paymentMethod: e.paymentMethod,
-              ))
-          .firstOrNull;
+      return result.firstOrNull;
     } catch (e) {
       talker.error(e);
       rethrow;
@@ -1811,60 +1798,161 @@ class FirestoreSync implements FlipperInterfaceCapella {
     // TODO: implement saveEbm
   }
   @override
-  Future<PaymentPlan> saveOrUpdatePaymentPlan(
-      {required int businessId,
-      List<String>? addons,
-      required String selectedPlan,
-      required int additionalDevices,
-      required bool isYearlyPlan,
-      required double totalPrice,
-      required int payStackUserId,
-      required String paymentMethod,
-      String? customerCode,
-      required HttpClientInterface flipperHttpClient}) async {
-    try {
-      final repository = brick.Repository();
-      final model = await repository.upsert(
-          // policy: OfflineFirstUpsertPolicy.optimisticLocal,
-          models.Plan(
-            id: businessId,
-            businessId: businessId,
-            selectedPlan: selectedPlan,
-            additionalDevices: additionalDevices,
-            isYearlyPlan: isYearlyPlan,
-            totalPrice: totalPrice.toInt(),
-            createdAt: DateTime.now(),
-            payStackCustomerId: payStackUserId,
-            paymentMethod: paymentMethod,
-            addons: addons
-                    ?.map((e) => models.PlanAddon(
-                          id: randomNumber(),
-                          addonName: e,
-                          createdAt: DateTime.now(),
-                          planId: businessId,
-                        ))
-                    .toList() ??
-                [],
-            paymentCompletedByUser: false,
-          ),
-          query: brick.Query(
-              where: [brick.Where('businessId').isExactly(businessId)]));
+  Future<void> saveOrUpdatePaymentPlan({
+    required int businessId,
+    List<String>? addons,
+    required String selectedPlan,
+    required int additionalDevices,
+    required bool isYearlyPlan,
+    required double totalPrice,
+    required int payStackUserId,
+    required String paymentMethod,
+    String? customerCode,
+    models.Plan? plan,
+    required HttpClientInterface flipperHttpClient,
+  }) async {
+    final repository = brick.Repository();
 
-      return PaymentPlan(
-        id: model.id,
-        businessId: model.businessId,
-        selectedPlan: model.selectedPlan,
-        additionalDevices: model.additionalDevices,
-        isYearlyPlan: model.isYearlyPlan,
-        totalPrice: model.totalPrice?.toDouble(),
-        createdAt: model.createdAt,
-        payStackCustomerId: model.payStackCustomerId,
-        paymentMethod: model.paymentMethod,
+    try {
+      // Fetch existing plan and addons
+      final existingPlanAddons =
+          await _fetchExistingAddons(repository, businessId);
+
+      // Process new addons if provided
+      final updatedAddons = await _processNewAddons(
+        repository: repository,
+        businessId: businessId,
+        existingAddons: existingPlanAddons,
+        newAddonNames: addons,
+        isYearlyPlan: isYearlyPlan,
+      );
+
+      // Create or update the plan
+      await _upsertPlan(
+        repository: repository,
+        businessId: businessId,
+        selectedPlan: selectedPlan,
+        additionalDevices: additionalDevices,
+        isYearlyPlan: isYearlyPlan,
+        totalPrice: totalPrice,
+        payStackUserId: payStackUserId,
+        paymentMethod: paymentMethod,
+        addons: updatedAddons,
       );
     } catch (e) {
-      talker.error(e);
+      talker.error('Failed to save/update payment plan: $e');
       rethrow;
     }
+  }
+
+  Future<List<models.PlanAddon>> _fetchExistingAddons(
+    brick.Repository repository,
+    int businessId,
+  ) async {
+    try {
+      final query = brick.Query.where(
+        'addons',
+        brick.Where('planId').isExactly(businessId),
+      );
+
+      final planWithAddons = await repository.get<models.Plan>(
+        query: query,
+        policy: OfflineFirstGetPolicy.awaitRemote,
+      );
+
+      return planWithAddons.expand((plan) => plan.addons).toList();
+    } catch (e) {
+      talker.error('Failed to fetch existing addons: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<models.PlanAddon>> _processNewAddons({
+    required brick.Repository repository,
+    required int businessId,
+    required List<models.PlanAddon> existingAddons,
+    required List<String>? newAddonNames,
+    required bool isYearlyPlan,
+  }) async {
+    if (newAddonNames == null) return existingAddons;
+
+    final updatedAddons = List<models.PlanAddon>.from(existingAddons);
+    final existingAddonNames = existingAddons.map((e) => e.addonName).toSet();
+
+    for (final addonName in newAddonNames) {
+      if (existingAddonNames.contains(addonName)) continue;
+
+      final newAddon = models.PlanAddon(
+        id: randomNumber(),
+        addonName: addonName,
+        createdAt: DateTime.now(),
+        planId: businessId,
+      );
+
+      // Create temporary plan for foreign key relationship
+      await _createTemporaryPlan(
+        repository: repository,
+        businessId: businessId,
+        isYearlyPlan: isYearlyPlan,
+        addons: updatedAddons,
+      );
+
+      await repository.upsert(newAddon);
+      updatedAddons.add(newAddon);
+    }
+
+    return updatedAddons;
+  }
+
+  Future<void> _createTemporaryPlan({
+    required brick.Repository repository,
+    required int businessId,
+    required bool isYearlyPlan,
+    required List<models.PlanAddon> addons,
+  }) async {
+    await repository.upsert(
+      models.Plan(
+        id: businessId,
+        rule: isYearlyPlan ? 'yearly' : 'monthly',
+        addons: addons,
+      ),
+      query: brick.Query(
+        where: [brick.Where('businessId').isExactly(businessId)],
+      ),
+    );
+  }
+
+  Future<void> _upsertPlan({
+    required brick.Repository repository,
+    required int businessId,
+    required String selectedPlan,
+    required int additionalDevices,
+    required bool isYearlyPlan,
+    required double totalPrice,
+    required int payStackUserId,
+    required String paymentMethod,
+    required List<models.PlanAddon> addons,
+  }) async {
+    final plan = models.Plan(
+      id: businessId,
+      businessId: businessId,
+      selectedPlan: selectedPlan,
+      additionalDevices: additionalDevices,
+      isYearlyPlan: isYearlyPlan,
+      rule: isYearlyPlan ? 'yearly' : 'monthly',
+      totalPrice: totalPrice.toInt(),
+      createdAt: DateTime.now(),
+      payStackCustomerId: payStackUserId,
+      paymentMethod: paymentMethod,
+      addons: addons,
+    );
+
+    await repository.upsert(
+      plan,
+      query: brick.Query(
+        where: [brick.Where('businessId').isExactly(businessId)],
+      ),
+    );
   }
 
   @override
