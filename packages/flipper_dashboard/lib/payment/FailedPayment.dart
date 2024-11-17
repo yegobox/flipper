@@ -1,4 +1,3 @@
-import 'package:firestore_models/firestore_models.dart';
 import 'package:flipper_services/PaymentHandler.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
