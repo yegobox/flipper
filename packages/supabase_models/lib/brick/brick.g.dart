@@ -27,6 +27,7 @@ import '../brick/models/plans.model.dart';
 import '../brick/models/plan_addon.model.dart';
 import '../brick/models/transactionItem.model.dart';
 import '../brick/models/stockRequest.model.dart';
+import '../brick/models/ebm.model.dart';
 
 part 'adapters/counter_adapter.g.dart';
 part 'adapters/branch_adapter.g.dart';
@@ -34,6 +35,7 @@ part 'adapters/plan_adapter.g.dart';
 part 'adapters/plan_addon_adapter.g.dart';
 part 'adapters/transaction_item_adapter.g.dart';
 part 'adapters/stock_request_adapter.g.dart';
+part 'adapters/ebm_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
@@ -42,7 +44,8 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Plan: PlanAdapter(),
   PlanAddon: PlanAddonAdapter(),
   TransactionItem: TransactionItemAdapter(),
-  StockRequest: StockRequestAdapter()
+  StockRequest: StockRequestAdapter(),
+  Ebm: EbmAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -53,6 +56,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Plan: PlanAdapter(),
   PlanAddon: PlanAddonAdapter(),
   TransactionItem: TransactionItemAdapter(),
-  StockRequest: StockRequestAdapter()
+  StockRequest: StockRequestAdapter(),
+  Ebm: EbmAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

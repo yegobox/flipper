@@ -1,25 +1,27 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20241117103838.migration.dart';
+part '20241117164713.migration.dart';
 part '20241113144615.migration.dart';
 part '20241113200548.migration.dart';
 part '20241114183152.migration.dart';
 part '20241114183418.migration.dart';
 part '20241117083433.migration.dart';
+part '20241117103838.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20241117103838(),
+  const Migration20241117164713(),
   const Migration20241113144615(),
   const Migration20241113200548(),
   const Migration20241114183152(),
   const Migration20241114183418(),
-  const Migration20241117083433()
+  const Migration20241117083433(),
+  const Migration20241117103838()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20241117103838, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20241117164713, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('Counter', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -184,5 +186,18 @@ final schema = Schema(20241117103838, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('driver_request_delivery_confirmation', Column.boolean),
     SchemaColumn('driver_id', Column.integer),
     SchemaColumn('updated_at', Column.datetime)
+  }, indices: <SchemaIndex>{}),
+  SchemaTable('Ebm', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('bhf_id', Column.varchar),
+    SchemaColumn('tin_number', Column.integer),
+    SchemaColumn('dvc_srl_no', Column.varchar),
+    SchemaColumn('user_id', Column.integer),
+    SchemaColumn('tax_server_url', Column.varchar),
+    SchemaColumn('business_id', Column.integer),
+    SchemaColumn('branch_id', Column.integer),
+    SchemaColumn('last_touched', Column.datetime)
   }, indices: <SchemaIndex>{})
 });
