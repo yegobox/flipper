@@ -45,7 +45,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _singleton = Repository._(
       supabaseProvider: provider,
       sqliteProvider: SqliteProvider(
-        'flipper_v25.sqlite',
+        'flipper_v26.sqlite',
         databaseFactory: databaseFactory,
         modelDictionary: sqliteModelDictionary,
       ),

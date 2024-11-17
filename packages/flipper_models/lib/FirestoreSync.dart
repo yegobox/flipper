@@ -1830,6 +1830,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
         businessId: businessId,
         existingAddons: existingPlanAddons,
         newAddonNames: addons,
+       
         isYearlyPlan: isYearlyPlan,
       );
 
@@ -1838,6 +1839,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
         repository: repository,
         businessId: businessId,
         selectedPlan: selectedPlan,
+         numberOfPayments: numberOfPayments,
         additionalDevices: additionalDevices,
         isYearlyPlan: isYearlyPlan,
         totalPrice: totalPrice,
@@ -1939,7 +1941,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
     required int payStackUserId,
     required String paymentMethod,
     required List<models.PlanAddon> addons,
-    required DateTime nextBillingDate,
+    required DateTime nextBillingDate, required int numberOfPayments,
   }) async {
     final plan = models.Plan(
       id: businessId,
@@ -1950,6 +1952,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
       rule: isYearlyPlan ? 'yearly' : 'monthly',
       totalPrice: totalPrice.toInt(),
       createdAt: DateTime.now(),
+      numberOfPayments: numberOfPayments,
       nextBillingDate: nextBillingDate,
       payStackCustomerId: payStackUserId,
       paymentMethod: paymentMethod,

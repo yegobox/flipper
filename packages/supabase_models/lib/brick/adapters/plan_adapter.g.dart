@@ -26,7 +26,8 @@ Future<Plan> _$PlanFromSupabase(Map<String, dynamic> data,
           []),
       nextBillingDate: data['next_billing_date'] == null
           ? null
-          : DateTime.tryParse(data['next_billing_date'] as String));
+          : DateTime.tryParse(data['next_billing_date'] as String),
+      numberOfPayments: data['number_of_payments'] as int?);
 }
 
 Future<Map<String, dynamic>> _$PlanToSupabase(Plan instance,
@@ -48,7 +49,8 @@ Future<Map<String, dynamic>> _$PlanToSupabase(Plan instance,
         .map((s) => PlanAddonAdapter()
             .toSupabase(s, provider: provider, repository: repository))
         .toList()),
-    'next_billing_date': instance.nextBillingDate?.toIso8601String()
+    'next_billing_date': instance.nextBillingDate?.toIso8601String(),
+    'number_of_payments': instance.numberOfPayments
   };
 }
 
@@ -86,7 +88,9 @@ Future<Plan> _$PlanFromSqlite(Map<String, dynamic> data,
           : data['payment_method'] as String?,
       addons: (await provider.rawQuery(
               'SELECT DISTINCT `f_PlanAddon_brick_id` FROM `_brick_Plan_addons` WHERE l_Plan_brick_id = ?',
-              [data['_brick_id'] as int]).then((results) {
+              [
+            data['_brick_id'] as int
+          ]).then((results) {
         final ids = results.map((r) => r['f_PlanAddon_brick_id']);
         return Future.wait<PlanAddon>(ids.map((primaryKey) => repository!
             .getAssociation<PlanAddon>(
@@ -100,7 +104,10 @@ Future<Plan> _$PlanFromSqlite(Map<String, dynamic> data,
           ? null
           : data['next_billing_date'] == null
               ? null
-              : DateTime.tryParse(data['next_billing_date'] as String))
+              : DateTime.tryParse(data['next_billing_date'] as String),
+      numberOfPayments: data['number_of_payments'] == null
+          ? null
+          : data['number_of_payments'] as int?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -122,7 +129,8 @@ Future<Map<String, dynamic>> _$PlanToSqlite(Plan instance,
     'pay_stack_customer_id': instance.payStackCustomerId,
     'rule': instance.rule,
     'payment_method': instance.paymentMethod,
-    'next_billing_date': instance.nextBillingDate?.toIso8601String()
+    'next_billing_date': instance.nextBillingDate?.toIso8601String(),
+    'number_of_payments': instance.numberOfPayments
   };
 }
 
@@ -189,6 +197,10 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
     'nextBillingDate': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'next_billing_date',
+    ),
+    'numberOfPayments': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'number_of_payments',
     )
   };
   @override
@@ -280,6 +292,12 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
       columnName: 'next_billing_date',
       iterable: false,
       type: DateTime,
+    ),
+    'numberOfPayments': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'number_of_payments',
+      iterable: false,
+      type: int,
     )
   };
   @override

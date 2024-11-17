@@ -1,23 +1,25 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20241117083433.migration.dart';
+part '20241117103838.migration.dart';
 part '20241113144615.migration.dart';
 part '20241113200548.migration.dart';
 part '20241114183152.migration.dart';
 part '20241114183418.migration.dart';
+part '20241117083433.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20241117083433(),
+  const Migration20241117103838(),
   const Migration20241113144615(),
   const Migration20241113200548(),
   const Migration20241114183152(),
-  const Migration20241114183418()
+  const Migration20241114183418(),
+  const Migration20241117083433()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20241117083433, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20241117103838, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('Counter', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -77,7 +79,8 @@ final schema = Schema(20241117083433, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('pay_stack_customer_id', Column.integer),
     SchemaColumn('rule', Column.varchar),
     SchemaColumn('payment_method', Column.varchar),
-    SchemaColumn('next_billing_date', Column.datetime)
+    SchemaColumn('next_billing_date', Column.datetime),
+    SchemaColumn('number_of_payments', Column.integer)
   }, indices: <SchemaIndex>{}),
   SchemaTable('PlanAddon', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
