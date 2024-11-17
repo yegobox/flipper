@@ -19,7 +19,8 @@ final unsavedProductProvider =
 final connectivityStreamProvider = StreamProvider<bool>((ref) {
   return Stream.periodic(const Duration(seconds: 5)).asyncMap((_) async {
     try {
-      final url = ProxyService.box.getServerUrl() ?? "https://example.com";
+      final url =
+          await ProxyService.box.getServerUrl() ?? "https://example.com";
       final response = await http.get(Uri.parse(url));
 
       print('Connectivity check!: ${response.statusCode == 404}');
@@ -768,7 +769,7 @@ final selectImportItemsProvider = FutureProvider.autoDispose
   // Fetch the list of variants from a remote service.
   final response = await ProxyService.local.selectImportItems(
       tin: 999909695,
-      bhfId: ProxyService.box.bhfId() ?? "00",
+      bhfId: await ProxyService.box.bhfId() ?? "00",
       lastReqDt: "20210331000000");
 
   return response;

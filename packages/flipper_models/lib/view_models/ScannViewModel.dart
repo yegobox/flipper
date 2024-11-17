@@ -19,15 +19,15 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   bool EBMenabled = false;
   List<String> pkgUnits = [];
 
-  void initialize() {
+  Future<void> initialize() async {
     setProductName(name: null);
     pkgUnits = RRADEFAULTS.packagingUnits;
     log(ProxyService.box.tin().toString(), name: "ScannViewModel");
     log(ProxyService.box.bhfId().toString(), name: "ScannViewModel");
 
     /// when ebm enabled,additional feature will start to appear on UI e.g when adding new product on desktop
-    EBMenabled =
-        ProxyService.box.tin() != -1 && ProxyService.box.bhfId()!.isNotEmpty;
+    EBMenabled = ProxyService.box.tin() != -1 &&
+        (await ProxyService.box.bhfId())!.isNotEmpty;
     log(EBMenabled.toString(), name: "ScannViewModel");
     notifyListeners();
   }
@@ -95,7 +95,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     int branchId = ProxyService.box.getBranchId()!;
     return await ProxyService.local.createProduct(
       tinNumber: ProxyService.box.tin(),
-      bhFId: ProxyService.box.bhfId() ?? "00",
+      bhFId: await ProxyService.box.bhfId() ?? "00",
       businessId: ProxyService.box.getBusinessId()!,
       branchId: ProxyService.box.getBranchId()!,
       product: Product(

@@ -391,8 +391,8 @@ abstract class FlipperInterface {
       })> getUnSyncedData();
   Future<Conversation> sendMessage(
       {required String message, required Conversation latestConversation});
-  EBM? ebm({required int branchId});
-  void saveEbm(
+  Future<models.Ebm?> ebm({required int branchId});
+  Future<void> saveEbm(
       {required int branchId, required String severUrl, required String bhFId});
 
   // Future<ITenant> authState({required int branchId});

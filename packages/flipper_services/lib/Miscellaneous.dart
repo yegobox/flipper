@@ -10,7 +10,7 @@ import 'package:path_provider/path_provider.dart';
 
 mixin CoreMiscellaneous {
   Future<bool> isServerUp() async {
-    final url = ProxyService.box.getServerUrl() ?? "https://example.com";
+    final url = await ProxyService.box.getServerUrl() ?? "https://example.com";
     final response = await http.get(Uri.parse(url));
     return response.statusCode == 404;
   }

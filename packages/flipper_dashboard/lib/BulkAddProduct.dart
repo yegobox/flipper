@@ -243,7 +243,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           qtyUnitCd: "U",
           regrNm: item.name,
           tin: ProxyService.box.tin(),
-          bhfId: ProxyService.box.bhfId() ?? "00",
+          bhfId: await ProxyService.box.bhfId() ?? "00",
           isTaxExempted: false,
           itemNm: product.name,
           ebmSynced: false,

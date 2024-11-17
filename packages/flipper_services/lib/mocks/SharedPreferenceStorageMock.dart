@@ -78,7 +78,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
-  String? getServerUrl() {
+  Future<String?> getServerUrl() async {
     return "https://example.com"; // Sample server URL
   }
 
@@ -189,7 +189,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
-  String bhfId() {
+  Future<String> bhfId() async {
     return "sample_bhf_id"; // Sample BHF ID
   }
 

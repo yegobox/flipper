@@ -37,7 +37,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
         final businesses = ref.watch(businessesProvider);
         final branches = ref.watch(branchesProvider((includeSelf: true)));
 
-
         return Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
@@ -273,10 +272,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
     });
   }
 
-  void _updateBusinessPreferences(Business business) {
+  Future<void> _updateBusinessPreferences(Business business) async {
     ProxyService.box
       ..writeInt(key: 'businessId', value: business.serverId!)
-      ..writeString(key: 'bhfId', value: ProxyService.box.bhfId() ?? "00")
+      ..writeString(key: 'bhfId', value: await ProxyService.box.bhfId() ?? "00")
       ..writeInt(key: 'tin', value: business.tinNumber ?? 0)
       ..writeString(key: 'encryptionKey', value: business.encryptionKey!);
   }

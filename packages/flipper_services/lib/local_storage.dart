@@ -126,8 +126,8 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  String? getServerUrl() {
-    final ebm = ProxyService.local.ebm(branchId: getBranchId()!);
+  Future<String?> getServerUrl() async {
+    final ebm =await ProxyService.local.ebm(branchId: getBranchId()!);
     if (ebm != null) {
       return ebm.taxServerUrl;
     }
@@ -245,8 +245,8 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  String? bhfId() {
-    final ebm = ProxyService.local.ebm(branchId: getBranchId()!);
+  Future<String?> bhfId() async {
+    final ebm =await  ProxyService.local.ebm(branchId: getBranchId()!);
     if (ebm != null) {
       return ebm.bhfId;
     }

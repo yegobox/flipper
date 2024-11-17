@@ -534,7 +534,7 @@ class PaymentsState extends ConsumerState<Payments> {
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
-      bhfId: ProxyService.box.bhfId() ?? "00",
+      bhfId: await ProxyService.box.bhfId() ?? "00",
       cashReceived: amount,
       transaction: widget.transaction,
       categoryId: categoryId,

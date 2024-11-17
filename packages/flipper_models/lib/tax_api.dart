@@ -13,6 +13,7 @@ abstract class TaxApi {
     required SaleList item,
     required String URI,
     required Realm realm,
+    required String bhfId,
     String rcptTyCd = "S",
   });
   Future<RwApiResponse> saveStockItems(

@@ -33,6 +33,8 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:supabase_models/brick/repository.dart';
+import 'package:supabase_models/brick/repository.dart' as brick;
 // ignore: unused_import
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -61,7 +63,7 @@ import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
 import 'SessionManager.dart';
 import 'package:path/path.dart' as path;
-
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
@@ -81,6 +83,46 @@ class LocalRealmApi
     } else {
       apihub = AppSecrets.apihubProd;
       commApi = AppSecrets.commApi;
+    }
+  }
+
+  @override
+  Future<models.Ebm?> ebm({required int branchId}) async {
+    final repository = Repository();
+    final query =
+        brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
+    final result = await repository.get<models.Ebm>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+    return result.firstOrNull;
+  }
+
+  @override
+  Future<void> saveEbm(
+      {required int branchId,
+      required String severUrl,
+      required String bhFId}) async {
+    Business business = getBusiness();
+    final repository = Repository();
+    final query =
+        brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
+    final ebm = await repository.get<models.Ebm>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+    if (ebm.firstOrNull == null) {
+      final ebm = models.Ebm(
+        id: randomNumber(),
+        bhfId: bhFId,
+        tinNumber: business.tinNumber!,
+        dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
+        userId: ProxyService.box.getUserId()!,
+        taxServerUrl: severUrl,
+        businessId: business.serverId!,
+        branchId: branchId,
+      );
+      repository.upsert(ebm);
+    } else {
+      final ebms = ebm.firstOrNull;
+      ebms!.taxServerUrl = severUrl;
+      repository.upsert(ebms);
     }
   }
 
@@ -1402,7 +1444,7 @@ class LocalRealmApi
             supplyPrice: 0.0,
             retailPrice: 0.0,
             itemNm: product.name,
-            bhfId: ProxyService.box.bhfId() ?? '00',
+            bhfId: await ProxyService.box.bhfId() ?? '00',
             isTaxExempted: false,
             // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
             itemClsCd: "5020230602",
@@ -1700,12 +1742,14 @@ class LocalRealmApi
 
   @override
   Future<RwApiResponse> selectImportItems(
-      {required int tin, required String bhfId, required String lastReqDt}) {
+      {required int tin,
+      required String bhfId,
+      required String lastReqDt}) async {
     return ProxyService.tax.selectImportItems(
       tin: tin,
       bhfId: bhfId,
       lastReqDt: lastReqDt,
-      URI: ProxyService.box.getServerUrl()!,
+      URI: await ProxyService.box.getServerUrl() ?? "",
     );
   }
 
@@ -3212,13 +3256,13 @@ class LocalRealmApi
 
           realm!.writeN(
             tableName: stocksTable,
-            writeCallback: () {
+            writeCallback: () async {
               stock.rsdQty = finalStock;
               stock.currentStock = finalStock;
               // stock value after item deduct
               stock.value = finalStock * (stock.retailPrice);
               stock.ebmSynced = false;
-              stock.bhfId = stock.bhfId ?? ProxyService.box.bhfId();
+              stock.bhfId = stock.bhfId ?? await ProxyService.box.bhfId();
               stock.tin = stock.tin ?? ProxyService.box.tin();
               return stock;
             },
@@ -3811,41 +3855,6 @@ class LocalRealmApi
   @override
   Future<List<Discount>> getDiscounts({required int branchId}) async {
     return realm!.query<Discount>(r'branchId == $0', [branchId]).toList();
-  }
-
-  @override
-  EBM? ebm({required int branchId}) {
-    return realm!.query<EBM>(r'branchId == $0', [branchId]).firstOrNull;
-  }
-
-  void saveEbm(
-      {required int branchId,
-      required String severUrl,
-      required String bhFId}) {
-    Business business = getBusiness();
-    final ebm = realm!.query<EBM>(
-        r'branchId == $0', [ProxyService.box.getBranchId()!]).firstOrNull;
-    if (ebm == null) {
-      realm!.write(() {
-        final ebm = EBM(
-            ObjectId(),
-            bhFId,
-            business.tinNumber!,
-            business.dvcSrlNo ?? "vsdcyegoboxltd",
-            ProxyService.box.getUserId()!, // Convert ObjectId to int
-            business.serverId!,
-            branchId,
-            'created',
-            id: randomNumber(),
-            taxServerUrl: severUrl,
-            lastTouched: DateTime.now());
-        realm!.add<EBM>(ebm);
-      });
-    } else {
-      realm!.write(() {
-        ebm.taxServerUrl = severUrl;
-      });
-    }
   }
 
   @override

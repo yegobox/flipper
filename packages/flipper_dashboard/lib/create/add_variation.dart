@@ -202,7 +202,7 @@ class _AddVariationState extends State<AddVariation> {
       ..branchId = ProxyService.box.getBranchId()!
       ..taxPercentage = 0.0
       // RRA fields
-      ..bhfId = ProxyService.box.bhfId() ?? "00"
+      ..bhfId = await ProxyService.box.bhfId() ?? "00"
       ..tin = business.tinNumber
       ..itemCd = clip
       ..itemStdNm = "Regular"

@@ -13,6 +13,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/tax_api.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as models;
 // ignore: unused_import
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -65,11 +66,11 @@ class RWTax with NetworkHelper implements TaxApi {
       required String dvcSrlNo,
       required String URI}) async {
     String? token = ProxyService.box.readString(key: 'bearerToken');
-    EBM? ebm =
+    models.Ebm? ebm =
         await ProxyService.local.ebm(branchId: ProxyService.box.getBranchId()!);
     var headers = {'Authorization': token!, 'Content-Type': 'application/json'};
     var request = http.Request(
-        'POST', Uri.parse(ebm!.taxServerUrl! + 'initializer/selectInitInfo'));
+        'POST', Uri.parse(ebm!.taxServerUrl + 'initializer/selectInitInfo'));
     request.body =
         json.encode({"tin": tinNumber, "bhfId": bhfId, "dvcSrlNo": dvcSrlNo});
     request.headers.addAll(headers);
@@ -112,8 +113,10 @@ class RWTax with NetworkHelper implements TaxApi {
 
       List<TransactionItem> items = realm.query<TransactionItem>(
           r'transactionId == $0', [transaction.id]).toList();
-      List<Map<String, dynamic>> itemsList =
-          items.map((item) => mapItemToJson(item, realm)).toList();
+
+      List<Map<String, dynamic>> itemsList = items
+          .map((item) => mapItemToJson(item, realm, bhfId: bhFId))
+          .toList();
       if (itemsList.isEmpty) throw Exception("No items to save");
 
       /// add totDcAmt: "0"
@@ -279,7 +282,7 @@ class RWTax with NetworkHelper implements TaxApi {
     required String URI,
     String lastReqDt = "20210523000000",
   }) async {
-    EBM? ebm =
+    models.Ebm? ebm =
         await ProxyService.local.ebm(branchId: ProxyService.box.getBranchId()!);
     if (ebm == null) {
       return false;
@@ -317,20 +320,19 @@ class RWTax with NetworkHelper implements TaxApi {
   }) async {
     // Get business details
     Business? business = await ProxyService.local.getBusiness();
-    List<TransactionItem> items =
-        await ProxyService.local.getTransactionItemsByTransactionId(
-      transactionId: transaction.id,
-    );
+    List<TransactionItem> items = await ProxyService.local
+        .getTransactionItemsByTransactionId(transactionId: transaction.id);
 
     // Get the current date and time in the required format yyyyMMddHHmmss
     String date = timeToUser
         .toIso8601String()
         .replaceAll(RegExp(r'[:-\sT]'), '')
         .substring(0, 14);
-
+    final bhfId = await ProxyService.box.bhfId() ?? "00";
     // Build item list
     List<Map<String, dynamic>> itemsList = items
-        .map((item) => mapItemToJson(item, ProxyService.local.realm!))
+        .map((item) =>
+            mapItemToJson(item, ProxyService.local.realm!, bhfId: bhfId))
         .toList();
 
     // Calculate total for non-tax-exempt items
@@ -350,6 +352,7 @@ class RWTax with NetworkHelper implements TaxApi {
     Map<String, dynamic> requestData = buildRequestData(
         business: business,
         counter: counter,
+        bhFId: bhfId,
         transaction: transaction,
         date: date,
         totalTaxable: totalTaxable,
@@ -390,7 +393,8 @@ class RWTax with NetworkHelper implements TaxApi {
   }
 
 // Helper function to map TransactionItem to JSON
-  Map<String, dynamic> mapItemToJson(TransactionItem item, Realm realm) {
+  Map<String, dynamic> mapItemToJson(TransactionItem item, Realm realm,
+      {required String bhfId}) {
     Configurations taxConfig =
         // ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
         realm.query<Configurations>(r'taxType == $0', [item.taxTyCd!]).first;
@@ -427,7 +431,7 @@ class RWTax with NetworkHelper implements TaxApi {
       orgnNatCd: "RW",
       pkgUnitCd: "NT",
       splyAmt: item.price * item.qty,
-      bhfId: item.bhfId ?? ProxyService.box.bhfId(),
+      bhfId: item.bhfId ?? bhfId,
       dftPrc: item.price,
       addInfo: "",
       isrcAplcbYn: "N",
@@ -489,6 +493,7 @@ class RWTax with NetworkHelper implements TaxApi {
     String? purchaseCode,
     required String receiptType,
     required DateTime timeToUse,
+    required String bhFId,
   }) {
     Configurations taxConfigTaxB =
         ProxyService.local.getByTaxType(taxtype: "B");
@@ -521,7 +526,7 @@ class RWTax with NetworkHelper implements TaxApi {
     Map<String, dynamic> json = {
       "tin": business?.tinNumber.toString() ?? "999909695",
       // "custTin": customer?.custTin ?? "",
-      "bhfId": ProxyService.box.bhfId() ?? "00",
+      "bhfId": bhFId,
       "invcNo": counter.invcNo,
       "orgInvcNo": 0,
       "salesTyCd": receiptCodes['salesTyCd'],
@@ -696,6 +701,7 @@ class RWTax with NetworkHelper implements TaxApi {
       {required SaleList item,
       required String URI,
       String rcptTyCd = "S",
+      required String bhfId,
       required Realm realm}) async {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'trnsPurchase/savePurchases')
@@ -704,7 +710,7 @@ class RWTax with NetworkHelper implements TaxApi {
         realm.query<Business>(r'isDefault == $0', [true]).firstOrNull;
     Map<String, dynamic> data = item.toJson();
     data['tin'] = business?.tinNumber ?? 999909695;
-    data['bhfId'] = ProxyService.box.bhfId() ?? "00";
+    data['bhfId'] = bhfId;
     data['pchsDt'] = convertDateToString(DateTime.now()).substring(0, 8);
     data['invcNo'] = item.spplrInvcNo;
     data['regrId'] = randomNumber().toString();
@@ -835,7 +841,7 @@ class RWTax with NetworkHelper implements TaxApi {
         /// that way we will be updating the product's variant with no question
         /// otherwise then create a complete new product.
         ProxyService.local.createProduct(
-          bhFId: ProxyService.box.bhfId() ?? "00",
+          bhFId: await ProxyService.box.bhfId() ?? "00",
           tinNumber: ProxyService.box.tin(),
           businessId: ProxyService.box.getBusinessId()!,
           branchId: ProxyService.box.getBranchId()!,

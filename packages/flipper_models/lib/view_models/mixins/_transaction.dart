@@ -35,11 +35,12 @@ mixin TransactionMixin {
       required Function onComplete,
       required double discount}) async {
     try {
+      final bhfId = await ProxyService.box.bhfId() ?? "00";
       final taxExanbled = ProxyService.local
           .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
       RwApiResponse? response;
-      final hasServerUrl = ProxyService.box.getServerUrl() != null;
-      final hasUser = ProxyService.box.bhfId() != null;
+      final hasServerUrl = await ProxyService.box.getServerUrl() != null;
+      final hasUser = await ProxyService.box.bhfId() != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService();
 
       /// update transaction type
@@ -58,6 +59,7 @@ mixin TransactionMixin {
         } else {
           updateCustomerTransaction(
               transaction,
+              bhfId: bhfId,
               customerNameController.text,
               customerNameController,
               amount,
@@ -70,6 +72,7 @@ mixin TransactionMixin {
       } else {
         updateCustomerTransaction(
             transaction,
+            bhfId: bhfId,
             customerNameController.text,
             customerNameController,
             amount,
@@ -97,12 +100,13 @@ mixin TransactionMixin {
       String transactionType,
       String paymentType,
       double discount,
-      {required Function onComplete}) {
+      {required Function onComplete,
+      required String bhfId}) {
     ProxyService.local.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
-      bhfId: ProxyService.box.bhfId() ?? "00",
+      bhfId: bhfId,
       cashReceived: amount,
       transaction: transaction,
       categoryId: categoryId,

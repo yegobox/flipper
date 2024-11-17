@@ -216,7 +216,7 @@ class CoreViewModel extends FlipperBaseModel
 
     Variant? variation = await ProxyService.local.getCustomVariant(
         tinNumber: ProxyService.box.tin(),
-        bhFId: ProxyService.box.bhfId() ?? "00",
+        bhFId: await ProxyService.box.bhfId() ?? "00",
         businessId: ProxyService.box.getBusinessId()!,
         branchId: ProxyService.box.getBranchId()!);
     if (variation == null) return;
@@ -262,7 +262,7 @@ class CoreViewModel extends FlipperBaseModel
     // double amount = double.parse(ProxyService.keypad.key);
     Variant? variation = await ProxyService.local.getCustomVariant(
         tinNumber: ProxyService.box.tin(),
-        bhFId: ProxyService.box.bhfId() ?? "00",
+        bhFId: await ProxyService.box.bhfId() ?? "00",
         businessId: ProxyService.box.getBusinessId()!,
         branchId: ProxyService.box.getBranchId()!);
     if (variation == null) return;
@@ -482,7 +482,7 @@ class CoreViewModel extends FlipperBaseModel
         branchId: ProxyService.box.getBranchId()!,
         isProformaMode: ProxyService.box.isProformaMode(),
         isTrainingMode: ProxyService.box.isTrainingMode(),
-        bhfId: ProxyService.box.bhfId() ?? "00",
+        bhfId: await ProxyService.box.bhfId() ?? "00",
         cashReceived: cashReceived,
         transaction: transaction,
         categoryId: categoryId,
@@ -511,13 +511,13 @@ class CoreViewModel extends FlipperBaseModel
     }
   }
 
-  void addCustomer(
+  Future<void> addCustomer(
       {required String email,
       required String phone,
       required String name,
       required int transactionId,
       required String customerType,
-      required String tinNumber}) {
+      required String tinNumber}) async {
     int branchId = ProxyService.box.getBranchId()!;
     ProxyService.local.addCustomer(
         customer: Customer(
@@ -536,7 +536,7 @@ class CoreViewModel extends FlipperBaseModel
           ebmSynced: false,
           tin: ProxyService.box.tin(),
           modrNm: randomNumber().toString().substring(0, 5),
-          bhfId: ProxyService.box.bhfId() ?? "00",
+          bhfId: await ProxyService.box.bhfId() ?? "00",
           useYn: "N",
           customerType: customerType,
         ),
