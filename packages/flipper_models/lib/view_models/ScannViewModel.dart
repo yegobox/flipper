@@ -230,7 +230,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           for (var i = 0; i < variantsLength; i++) {
             double rate = rates?[scannedVariants[i].id] == null
                 ? 0
-                : double.parse(rates![scannedVariants[i].id]!.text) / 100;
+                : double.parse(rates![scannedVariants[i].id]!.text);
             scannedVariants[i].color = color;
             scannedVariants[i].itemNm = scannedVariants[i].name;
             scannedVariants[i].ebmSynced = false;

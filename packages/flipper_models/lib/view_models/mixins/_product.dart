@@ -53,6 +53,7 @@ mixin ProductMixin {
               variations[i].dcRt = rates?[variations[i]] == null
                   ? 0
                   : double.parse(rates![variations[i]]!.text);
+
               variations[i].expirationDate = dates?[variations[i].id] == null
                   ? null
                   : DateTime.tryParse(dates![variations[i].id]!.text);

@@ -160,25 +160,59 @@ class TaxController<OBJ> {
           double totalC = 0;
           double totalA = 0;
           double totalD = 0;
+          double totalDiscount = 0;
 
           try {
             for (var item in items) {
-              if (item.taxTyCd == "B") {
-                totalB = totalB + (item.price * item.qty);
+              // Calculate discounted price if discount rate exists and is not 0
+              var discountedPrice = item.price;
+              if (item.dcRt != 0) {
+                discountedPrice = item.price * (1 - item.dcRt / 100);
+                // Calculate and add the discount amount for this item
+                var discountAmount = (item.price - discountedPrice) * item.qty;
+                totalDiscount += discountAmount;
               }
-              if (item.taxTyCd == "C") {
-                totalC = totalC + (item.price * item.qty);
-              }
-              if (item.taxTyCd == "A") {
-                totalA = totalA + (item.price * item.qty);
-              }
-              if (item.taxTyCd == "D") {
-                totalD = totalD + (item.price * item.qty);
+
+              // Calculate total with discounted price * quantity
+              var itemTotal = discountedPrice * item.qty;
+
+              // Add to respective totals based on tax type code
+              switch (item.taxTyCd) {
+                case "B":
+                  totalB += itemTotal;
+                  break;
+                case "C":
+                  totalC += itemTotal;
+                  break;
+                case "A":
+                  totalA += itemTotal;
+                  break;
+                case "D":
+                  totalD += itemTotal;
+                  break;
               }
             }
           } catch (s) {
             rethrow;
           }
+          // try {
+          //   for (var item in items) {
+          //     if (item.taxTyCd == "B") {
+          //       totalB = totalB + (item.price * item.qty);
+          //     }
+          //     if (item.taxTyCd == "C") {
+          //       totalC = totalC + (item.price * item.qty);
+          //     }
+          //     if (item.taxTyCd == "A") {
+          //       totalA = totalA + (item.price * item.qty);
+          //     }
+          //     if (item.taxTyCd == "D") {
+          //       totalD = totalD + (item.price * item.qty);
+          //     }
+          //   }
+          // } catch (s) {
+          //   rethrow;
+          // }
 
           Configurations taxConfigTaxB =
               ProxyService.local.getByTaxType(taxtype: "B");
@@ -198,6 +232,7 @@ class TaxController<OBJ> {
           talker.error("taxB: ${calculateTotalTax(totalB, taxConfigTaxB)}");
 
           await print.print(
+            totalDiscount:totalDiscount,
             whenCreated: receipt!.whenCreated!,
             taxB: totalB,
             taxC: totalC,

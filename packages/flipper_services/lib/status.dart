@@ -3,6 +3,8 @@ import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:http/http.dart' as http;
 
 abstract class Status {
   Future<void> appBarColor(Color color);
@@ -26,32 +28,69 @@ class StatusAppBarForWindowsAndWeb
   @override
   Future<void> appBarColor(color) async {
     _statusColor.value = color;
+    notifyListeners();
   }
 
   @override
   void updateStatusColor() {
     _statusText.value = "";
+    // Check initial connectivity and tax server status
+    _checkConnectivity();
+    // Start listening for periodic tax server checks
+    _startTaxServerCheck();
+  }
+
+  // Add this method to check initial connectivity
+  Future<void> _checkConnectivity() async {
+    // Listen to connectivity changes
     Connectivity().onConnectivityChanged.listen((connectivityResult) {
-      if (connectivityResult != ConnectivityResult.none) {
+      if (connectivityResult
+          .any((result) => result != ConnectivityResult.none)) {
+        // If connected to the internet, clear any error messages
         _statusText.value = "";
         _statusColor.value = Colors.black;
-        appBarColor(Colors.black);
+        notifyListeners();
       } else {
+        // If there's no internet connection
         _statusColor.value = Colors.red;
-        _statusText.value = "Connectivity issues";
-        appBarColor(Color(0xFF8B0000));
+        _statusText.value = "Flipper could not connect to the internet";
+        notifyListeners();
       }
-      notifyListeners();
     });
   }
 
-  StatusAppBarForWindowsAndWeb() {
-    listenToReactiveValues([_statusColor, _statusText]);
+  // Start periodic check for the tax server
+  void _startTaxServerCheck() {
+    Stream.periodic(const Duration(seconds: 5)).listen((_) async {
+      await _checkTaxServerStatus();
+    });
+  }
+
+  // Check the status of the tax server
+  Future<void> _checkTaxServerStatus() async {
+    try {
+      final url =
+          await ProxyService.box.getServerUrl() ?? "https://example.com";
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 404) {
+        notifyListeners();
+      }
+    } catch (e) {
+      // Error checking the tax server (e.g., no internet)
+      _statusText.value = "Tax Server is down";
+      _statusColor.value = Colors.red;
+      notifyListeners();
+    }
   }
 
   @override
   Future<bool> isInternetAvailable() async {
     return await InternetConnectionChecker().hasConnection;
+  }
+
+  StatusAppBarForWindowsAndWeb() {
+    listenToReactiveValues([_statusColor, _statusText]);
   }
 }
 
@@ -77,13 +116,14 @@ class StatusAppBarForAndroidAndIos
     _statusText.value = "";
 
     Connectivity().onConnectivityChanged.listen((connectivityResult) {
-      if (connectivityResult != ConnectivityResult.none) {
+      if (connectivityResult
+          .any((result) => result != ConnectivityResult.none)) {
         _statusText.value = "";
         _statusColor.value = Colors.black;
         appBarColor(Colors.black);
       } else {
         _statusColor.value = Color(0xFF8B0000);
-        _statusText.value = "Connectivity issues";
+        _statusText.value = "flipper could not connect to internet";
         appBarColor(Color(0xFF8B0000));
       }
       notifyListeners();

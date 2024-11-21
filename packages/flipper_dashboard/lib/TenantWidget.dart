@@ -59,14 +59,14 @@ class TenantWidget extends ConsumerWidget {
     // Use AsyncValue pattern matching to handle all states
     final backgroundColor = connectivityStatus.when(
       data: (isReachable) {
-        print('Connection status changed: $isReachable');
+        // print('Connection status changed: $isReachable');
         return (!isUserLoggedIn || !isReachable) ? Colors.red : Colors.green;
       },
       loading: () => Colors.blue,
       error: (_, __) => Colors.red,
     );
 
-    print('Background color updated: $backgroundColor');
+    // print('Background color updated: $backgroundColor');
 
     return Column(
       children: [

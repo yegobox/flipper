@@ -13,9 +13,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screen_lock/flutter_screen_lock.dart';
+// import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nfc_manager/nfc_manager.dart';
@@ -43,7 +42,10 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initLogic();
+    // Initialize status monitoring
+    ProxyService.status.updateStatusColor();
   }
 
   void _initLogic() {
@@ -66,7 +68,6 @@ class FlipperAppState extends ConsumerState<FlipperApp>
               write: false,
             );
       } catch (e) {
-        // Handle NFC related exceptions here (optional)
         print("Error starting NFC: $e");
       }
     }
@@ -92,9 +93,10 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   @override
   void dispose() {
-    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     AppService.cleanedDataController.close();
     notificationStream.dispose();
+    super.dispose();
   }
 
   @override
@@ -111,13 +113,16 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     }
   }
 
-  void _handleResumedState() {}
+  void _handleResumedState() {
+    // Refresh status when app resumes
+    ProxyService.status.updateStatusColor();
+  }
 
   void _handlePausedState() {}
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<CoreViewModel>.nonReactive(
+    return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) {
         _viewModelReadyLogic(model);
@@ -174,17 +179,12 @@ class FlipperAppState extends ConsumerState<FlipperApp>
       },
       child: Scaffold(
         extendBody: true,
-        appBar: _buildAppBar(),
+        appBar: _buildAppBar(context, ref),
         body: Consumer(
           builder: (context, ref, child) {
             return GestureDetector(
                 behavior: HitTestBehavior.translucent,
-                onTap: () {
-                  // TODO: enable this once enabled generally on atlas side
-                  // ProxyService.local.recordUserActivity(
-                  //     userId: ProxyService.box.getUserId()!,
-                  //     activity: 'TapOnSreen');
-                },
+                onTap: () {},
                 child: _buildAppLayoutDrawer(context, model, ref));
           },
         ),
@@ -192,22 +192,35 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      title: Center(
-        child: Text(
-          ProxyService.status.statusText.value ?? "",
-          style: GoogleFonts.poppins(
-            fontSize: 16.0,
-            fontWeight: FontWeight.w300,
-            color: Colors.white,
-          ),
-        ),
+  double preferredHeight = 0;
+  PreferredSizeWidget _buildAppBar(BuildContext context, ref) {
+    return PreferredSize(
+      preferredSize: Size.fromHeight(
+          ref.watch(statusTextProvider).value?.isEmpty ? 0 : 25),
+      child: Consumer(
+        builder: (context, ref, child) {
+          final statusTextValue = ref.watch(statusTextProvider);
+          final statusColorValue = ref.watch(statusColorProvider);
+          preferredHeight = statusTextValue.value?.isNotEmpty == true ? 25 : 0;
+
+          return AppBar(
+            title: Center(
+              child: Text(
+                statusTextValue.value ??
+                    "", // Add .value since it's an AsyncValue
+                style: GoogleFonts.poppins(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            backgroundColor: statusColorValue.value ??
+                Colors.black, // Add .value since it's an AsyncValue
+            automaticallyImplyLeading: false,
+          );
+        },
       ),
-      backgroundColor: ProxyService.status.statusColor.value,
-      automaticallyImplyLeading: false,
-      toolbarHeight:
-          ProxyService.status.statusText.value?.isNotEmpty == true ? 25 : 0,
     );
   }
 
@@ -224,58 +237,10 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   Widget _buildAppLayoutDrawerInner(BuildContext context, CoreViewModel model,
       AsyncSnapshot<Tenant?> snapshot, WidgetRef ref) {
-    /// TODO: re-work on this.
-    // if (snapshot.hasData &&
-    //     !(snapshot.data!.sessionActive == null
-    //         ? false
-    //         : snapshot.data!.sessionActive!)) {
-    //   _handleSessionInactive(context, model, snapshot.data!);
-    // } else if (snapshot.hasData && snapshot.data!.sessionActive!) {
-    //   model.passCode = snapshot.data!.pin.toString();
-    // }
-
     return AppLayoutDrawer(
       controller: controller,
       tabSelected: tabSelected,
       focusNode: focusNode,
-    );
-  }
-
-  void _handleSessionInactive(
-      BuildContext context, CoreViewModel model, Tenant tenant) {
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      if (ProxyService.remoteConfig.isLocalAuthAvailable() &&
-          (tenant.pin != null && tenant.pin != 0)) {
-        _showLocalAuthOverlay(context, model);
-      }
-    });
-  }
-
-  Future<void> _showLocalAuthOverlay(
-      BuildContext context, CoreViewModel model) async {
-    List<Tenant> tenants = await ProxyService.local
-        .tenants(businessId: ProxyService.box.getBusinessId()!);
-    screenLock(
-      context: context,
-      correctString: model.passCode,
-      canCancel: false,
-      onUnlocked: () async {
-        Tenant? tenant = await ProxyService.local
-            .getTenantBYPin(pin: int.tryParse(model.passCode) ?? 0);
-        model.weakUp(userId: tenant!.userId!, pin: model.passCode);
-        Navigator.of(context).maybePop();
-      },
-      onValidate: (input) async {
-        for (Tenant tenant in tenants) {
-          log(tenant.pin.toString(), name: 'given pins');
-          if (input.allMatches(tenant.pin.toString()).isNotEmpty) {
-            model.passCode = input;
-            return true;
-          }
-          return false;
-        }
-        return true;
-      },
     );
   }
 

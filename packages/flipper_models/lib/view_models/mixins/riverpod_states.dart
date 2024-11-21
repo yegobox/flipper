@@ -1092,6 +1092,18 @@ class BranchSelectionState {
   }
 }
 
+final statusTextProvider = StreamProvider<String?>((ref) {
+  return Stream.periodic(const Duration(milliseconds: 100), (_) {
+    return ProxyService.status.statusText.value;
+  }).distinct();
+});
+
+final statusColorProvider = StreamProvider<Color?>((ref) {
+  return Stream.periodic(const Duration(milliseconds: 100), (_) {
+    return ProxyService.status.statusColor.value;
+  }).distinct();
+});
+
 class BranchSelectionNotifier extends StateNotifier<BranchSelectionState> {
   BranchSelectionNotifier() : super(BranchSelectionState(isLoading: false));
 

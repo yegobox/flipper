@@ -125,9 +125,9 @@ class Capella with Booting implements FlipperInterfaceCapella {
 
   @override
   Future<void> startReplicator() async {
-    final replicatorProvider = ReplicatorProvider(databaseProvider: capella!);
-    await replicatorProvider.init();
-    await replicatorProvider.startReplicator();
+    // final replicatorProvider = ReplicatorProvider(databaseProvider: capella!);
+    // await replicatorProvider.init();
+    // await replicatorProvider.startReplicator();
   }
 
   @override
