@@ -73,6 +73,8 @@ class TransactionType {
   static const String cashIn = 'Cash In';
   static const String cashOut = 'Cash Out';
   static const String sale = 'Sale';
+  static const String purchase = 'Purchase';
+  static const String importation = 'Import';
   static const String salary = 'Salary';
   static const String transport = 'Transport';
   static const String airtime = 'Airtime';

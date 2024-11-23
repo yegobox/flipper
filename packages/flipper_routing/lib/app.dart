@@ -706,5 +706,18 @@ class App {}
 
 // TESTING:
 // https://github.com/nektos/act
-
+// {
+//     "resultCd": "000",
+//     "resultMsg": "It is succeeded",
+//     "resultDt": "20241123193851",
+//     "data": {
+//         "rcptNo": 1029,
+//         "intrlData": "ZB2QJS3QLLULGJRSCRVGWNHCKU",
+//         "rcptSign": "GHTWTMU66UNYGXZQ",
+//         "totRcptNo": 1379,
+//         "vsdcRcptPbctDate": "20241123193851",
+//         "sdcId": "SDC010000052",
+//         "mrcNo": "WIS00000052"
+//     }
+// }
 

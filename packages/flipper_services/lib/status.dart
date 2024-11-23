@@ -73,7 +73,9 @@ class StatusAppBarForWindowsAndWeb
           await ProxyService.box.getServerUrl() ?? "https://example.com";
       final response = await http.get(Uri.parse(url));
 
-      if (response.statusCode == 404) {
+      if (response.statusCode != 200) {
+        _statusText.value = "Tax Server is down";
+        _statusColor.value = Colors.red;
         notifyListeners();
       }
     } catch (e) {

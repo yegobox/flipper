@@ -122,7 +122,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<CoreViewModel>.reactive(
+    return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) {
         _viewModelReadyLogic(model);
@@ -196,7 +196,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   PreferredSizeWidget _buildAppBar(BuildContext context, ref) {
     return PreferredSize(
       preferredSize: Size.fromHeight(
-          ref.watch(statusTextProvider).value?.isEmpty ? 0 : 25),
+          ref.watch(statusTextProvider).value?.isEmpty ?? true ? 0 : 25),
       child: Consumer(
         builder: (context, ref, child) {
           final statusTextValue = ref.watch(statusTextProvider);

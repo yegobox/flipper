@@ -4135,8 +4135,11 @@ class LocalRealmApi
       {required String transactionType,
       required bool isExpense,
       required int branchId}) async {
-    ITransaction? existTransaction =
-        await _pendingTransaction(branchId: branchId, isExpense: isExpense);
+    ITransaction? existTransaction = await _pendingTransaction(
+      branchId: branchId,
+      isExpense: isExpense,
+      transactionType: transactionType,
+    );
 
     int businessId = ProxyService.box.getBusinessId()!;
     if (existTransaction == null) {
@@ -4177,6 +4180,7 @@ class LocalRealmApi
     final ITransaction? existTransaction = await _pendingTransaction(
         branchId: branchId,
         isExpense: isExpense,
+        transactionType: transactionType,
         includeSubTotalCheck: includeSubTotalCheck!);
 
     if (existTransaction == null) {
@@ -4224,6 +4228,7 @@ class LocalRealmApi
     ITransaction? existTransaction = _pendingTransaction(
         branchId: branchId,
         isExpense: isExpense,
+        transactionType: transactionType,
         includeSubTotalCheck: includeSubTotalCheck!);
     if (existTransaction == null) {
       final int id = randomNumber();
@@ -4293,12 +4298,13 @@ class LocalRealmApi
   /// we should first return any transaction that has item first.
   ITransaction? _pendingTransaction({
     required int branchId,
+    required String transactionType,
     required bool isExpense,
     bool includeSubTotalCheck = true,
   }) {
     String query =
-        r'branchId == $0 AND isExpense == $1 AND status == $2 SORT(createdAt DESC)';
-    List<dynamic> parameters = [branchId, isExpense, PENDING];
+        r'branchId == $0 AND isExpense == $1 AND status == $2 AND transactionType == $3 SORT(createdAt DESC)';
+    List<dynamic> parameters = [branchId, isExpense, PENDING, transactionType];
 
     if (includeSubTotalCheck) {
       query += ' AND subTotal > 0';
@@ -5172,7 +5178,7 @@ class LocalRealmApi
     sendPort!.send({
       'task': 'sync',
       'branchId': ProxyService.box.getBranchId()!,
-      "URI": ProxyService.box.getServerUrl(),
+      "URI": await ProxyService.box.getServerUrl(),
       "userId": ProxyService.box.getUserId()!,
       "businessId": ProxyService.box.getBusinessId()!,
       'encryptionKey': ProxyService.box.encryptionKey(),
@@ -5184,8 +5190,8 @@ class LocalRealmApi
     sendPort!.send({
       'task': 'taxService',
       'branchId': ProxyService.box.getBranchId()!,
-      "URI": ProxyService.box.getServerUrl(),
-      "bhfId": ProxyService.box.bhfId(),
+      "URI": await ProxyService.box.getServerUrl(),
+      "bhfId": await ProxyService.box.bhfId(),
       'tinNumber': business.tinNumber,
       'encryptionKey': ProxyService.box.encryptionKey(),
       'dbPath': await ProxyService.local.dbPath(

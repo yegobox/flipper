@@ -14,12 +14,192 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
 import 'dart:collection';
-
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:open_filex/open_filex.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final GlobalKey<SfDataGridState> workBookKey = GlobalKey<SfDataGridState>();
+  void addFooter(DataGridPdfHeaderFooterExportDetails headerFooterExport,
+      {required ExportConfig config}) {
+    final double width = headerFooterExport.pdfPage.getClientSize().width;
+
+    // Create a footer element with specific height
+    final PdfPageTemplateElement footer = PdfPageTemplateElement(
+      Rect.fromLTWH(0, 0, width, 40), // Footer height adjusted
+    );
+
+    // Create a PdfGrid for the footer layout
+    final PdfGrid footerGrid = PdfGrid();
+    footerGrid.columns.add(count: 4);
+
+    // Adjust column widths for the layout
+    footerGrid.columns[0].width = width * 0.2; // "Total:" label
+    footerGrid.columns[1].width = width * 0.4; // Empty space
+    footerGrid.columns[2].width = width * 0.2; // First value (e.g., "400")
+    footerGrid.columns[3].width = width * 0.2; // Second value (e.g., "8000")
+
+    // Add a row for the footer
+    final PdfGridRow footerRow = footerGrid.rows.add();
+    footerRow.height = 30; // Adjust row height if needed
+
+    // Add data to the cells
+    footerRow.cells[0].value = 'Total:';
+    footerRow.cells[0].style = PdfGridCellStyle(
+      borders: PdfBorders(
+        left: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+        right: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+        top: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+        bottom: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+      ),
+      font: PdfStandardFont(PdfFontFamily.helvetica, 12,
+          style: PdfFontStyle.bold),
+    );
+
+    // Leave the second cell empty
+    footerRow.cells[1].value = '';
+    footerRow.cells[1].style = PdfGridCellStyle(
+      borders: PdfBorders(
+        left: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+        right: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+        top: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+        bottom: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+      ),
+      font: PdfStandardFont(PdfFontFamily.helvetica, 12),
+    );
+
+    // Add values to the third and fourth cells
+    footerRow.cells[2].value = config.transactions
+        .fold<double>(0, (sum, trans) => sum + trans.subTotal)
+        .toRwf();
+    footerRow.cells[2].style = PdfGridCellStyle(
+      borders: PdfBorders(
+        left: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+        right: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+        top: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+        bottom: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+      ),
+      font: PdfStandardFont(PdfFontFamily.helvetica, 12),
+    );
+
+    footerRow.cells[3].value = config.transactions
+        .fold<double>(0, (sum, trans) => sum + trans.cashReceived)
+        .toRwf();
+    footerRow.cells[3].style = PdfGridCellStyle(
+      borders: PdfBorders(
+        left: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+        right: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+        top: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+        bottom: PdfPen(PdfColor(211, 211, 211), width: 0.5),
+      ),
+      font: PdfStandardFont(PdfFontFamily.helvetica, 12,
+          style: PdfFontStyle.bold),
+    );
+
+    // Draw the grid in the footer
+    footerGrid.draw(
+      graphics: footer.graphics,
+      bounds: Rect.fromLTWH(0, 0, width, 30), // Positioning of the grid
+    );
+
+    // Set the footer for the PDF document
+    headerFooterExport.pdfDocumentTemplate.bottom = footer;
+  }
+
+  void exportToPdf(
+    DataGridPdfHeaderFooterExportDetails headerFooterExport,
+    Business business,
+    ExportConfig config,
+  ) {
+    final double width = headerFooterExport.pdfPage.getClientSize().width;
+
+    // Adjust the header size to only fit the necessary content
+    final PdfPageTemplateElement header = PdfPageTemplateElement(
+      Rect.fromLTWH(0, 0, width, 150), // Adjusted height for compact spacing
+    );
+
+    // Create fonts
+    final PdfStandardFont titleFont =
+        PdfStandardFont(PdfFontFamily.helvetica, 20, style: PdfFontStyle.bold);
+    final PdfStandardFont headerFont =
+        PdfStandardFont(PdfFontFamily.helvetica, 11);
+    final PdfStandardFont headerBoldFont =
+        PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
+
+    header.graphics.drawRectangle(
+      brush: PdfSolidBrush(PdfColor(68, 114, 196)), // Blue background
+      bounds: Rect.fromLTWH(
+          0, 0, width, 40), // Increased height for better visibility
+    );
+
+    header.graphics.drawString(
+      'Sales Report',
+      titleFont,
+      brush: PdfBrushes.white, // White text for better contrast
+      bounds: Rect.fromLTWH(0, 10, width, 30), // Adjusted Y-position and height
+      format: PdfStringFormat(
+        alignment: PdfTextAlignment.center,
+        lineAlignment: PdfVerticalAlignment.middle,
+      ),
+    );
+
+    // Define the vertical offset for content positioning
+    double currentY = 40; // Start closer to the title for compact spacing
+
+    // Increment the Y position for the next content block
+    currentY += 20; // Reduced space between sections
+
+    // Helper function to draw a label-value pair
+    void drawLabelValuePair(String label, String value, double x, double y) {
+      // Draw the label in bold
+      header.graphics.drawString(
+        label,
+        headerBoldFont,
+        bounds: Rect.fromLTWH(x, y, width * 0.2, 20),
+      );
+
+      // Draw the value next to the label
+      header.graphics.drawString(
+        value,
+        headerFont,
+        bounds: Rect.fromLTWH(x + width * 0.2, y, width * 0.3, 20),
+      );
+    }
+
+    // Draw the first row of information
+    drawLabelValuePair(
+        'TIN Number:', business.tinNumber?.toString() ?? '', 0, currentY);
+    drawLabelValuePair('Start Date:', config.startDate?.toYYYMMdd() ?? '',
+        width * 0.5, currentY);
+
+    // Increment Y position for the next row
+    currentY += 20; // Reduced space between rows
+
+    // Draw the second row of information
+    drawLabelValuePair('BHF ID:', '00', 0, currentY);
+    drawLabelValuePair(
+        'End Date:', config.endDate?.toYYYMMdd() ?? '', width * 0.5, currentY);
+
+    // Increment Y position for the next row
+    currentY += 20; // Reduced space between rows
+
+    // Draw the third row of information
+    drawLabelValuePair(
+        'Gross Profit:', config.grossProfit?.toRwf() ?? '', 0, currentY);
+    drawLabelValuePair('Opening Balance:', 100.toRwf(), width * 0.5, currentY);
+
+    // Increment Y position for the next row
+    currentY += 20; // Reduced space between rows
+
+    // Draw the fourth row of information
+    drawLabelValuePair(
+        'Net Profit:', config.netProfit?.toRwf() ?? '', 0, currentY);
+    drawLabelValuePair('Tax Amount:', (config.grossProfit ?? 0).toRwf(),
+        width * 0.5, currentY);
+
+    // Set the adjusted header to the PDF document template
+    headerFooterExport.pdfDocumentTemplate.top = header;
+  }
 
   Future<void> exportDataGridToExcel({
     required ExportConfig config,
@@ -28,37 +208,57 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }) async {
     try {
       ref.read(isProcessingProvider.notifier).startProcessing();
+      String filePath;
 
-      final excel.Workbook workbook =
-          workBookKey.currentState!.exportToExcelWorkbook();
-      final excel.Worksheet reportSheet = workbook.worksheets[0];
-      reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
-
-      if (!isStockRecount) {
+      if (ProxyService.box.exportAsPdf()) {
         final business = await ProxyService.local.getBusiness();
-        final drawer = await ProxyService.local
-            .getDrawer(cashierId: ProxyService.box.getUserId()!);
-        final ExcelStyler styler = ExcelStyler(workbook);
-
-        _addHeaderAndInfoRows(
-          reportSheet: reportSheet,
-          styler: styler,
-          config: config,
-          business: business,
-          drawer: drawer,
+        final PdfDocument document =
+            workBookKey.currentState!.exportToPdfDocument(
+          fitAllColumnsInOnePage: true,
+          canRepeatHeaders: false,
+          exportStackedHeaders: false,
+          exportTableSummaries: true,
+          headerFooterExport: (headerFooterExport) {
+            exportToPdf(headerFooterExport, business, config);
+            addFooter(headerFooterExport, config: config);
+          },
         );
 
-        _addClosingBalanceRow(reportSheet, styler, config.currencyFormat);
-        _formatColumns(reportSheet, config.currencyFormat);
+        filePath = await _savePdfFile(document);
+        document.dispose();
+      } else {
+        final excel.Workbook workbook =
+            workBookKey.currentState!.exportToExcelWorkbook();
+        final excel.Worksheet reportSheet = workbook.worksheets[0];
+        reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
 
-        if (expenses != null && expenses.isNotEmpty) {
-          _addExpensesSheet(workbook, expenses, styler, config.currencyFormat);
+        if (!isStockRecount) {
+          final business = await ProxyService.local.getBusiness();
+          final drawer = await ProxyService.local
+              .getDrawer(cashierId: ProxyService.box.getUserId()!);
+          final ExcelStyler styler = ExcelStyler(workbook);
+
+          await _addHeaderAndInfoRows(
+            reportSheet: reportSheet,
+            styler: styler,
+            config: config,
+            business: business,
+            drawer: drawer,
+          );
+
+          _addClosingBalanceRow(reportSheet, styler, config.currencyFormat);
+          _formatColumns(reportSheet, config.currencyFormat);
+
+          if (expenses != null && expenses.isNotEmpty) {
+            _addExpensesSheet(
+                workbook, expenses, styler, config.currencyFormat);
+          }
+          _addPaymentMethodSheet(workbook, config, styler);
         }
-        _addPaymentMethodSheet(workbook, config, styler);
-      }
 
-      final String filePath = await _saveExcelFile(workbook);
-      workbook.dispose();
+        filePath = await _saveExcelFile(workbook);
+        workbook.dispose();
+      }
 
       ref.read(isProcessingProvider.notifier).stopProcessing();
       await _openOrShareFile(filePath);
@@ -69,13 +269,13 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
-  Map<String, excel.Range> _addHeaderAndInfoRows({
+  Future<Map<String, excel.Range>> _addHeaderAndInfoRows({
     required excel.Worksheet reportSheet,
     required ExcelStyler styler,
     required ExportConfig config,
     required Business business,
     required Drawers? drawer,
-  }) {
+  }) async {
     final headerStyle = styler.createStyle(
         fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
     final infoStyle = styler.createStyle(
@@ -93,7 +293,7 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     final infoData = [
       ['TIN Number', business.tinNumber?.toString() ?? ''],
-      ['BHF ID', ProxyService.box.bhfId() ?? '00'],
+      ['BHF ID', await ProxyService.box.bhfId() ?? '00'],
       ['Start Date', config.startDate?.toIso8601String() ?? '-'],
       ['End Date', config.endDate?.toIso8601String() ?? '-'],
       ['Opening Balance', drawer?.openingBalance ?? 0],
@@ -377,7 +577,28 @@ mixin ExcelExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final _mimeTypes = {
     'xls': 'application/vnd.ms-excel',
     'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'pdf': 'application/pdf',
   };
+
+  Future<String> _savePdfFile(PdfDocument document) async {
+    final List<int> bytes = await document.save();
+    final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+    final fileName = '${formattedDate}-Report.pdf';
+
+    try {
+      final tempDir = await getApplicationDocumentsDirectory();
+      final filePath = path.join(tempDir.path, fileName);
+      final file = File(filePath);
+
+      await file.create(recursive: true);
+      await file.writeAsBytes(bytes, flush: true);
+
+      return filePath;
+    } catch (e) {
+      talker.error('Error saving PDF file: $e');
+      rethrow;
+    }
+  }
 }
 
 class ExcelStyler {

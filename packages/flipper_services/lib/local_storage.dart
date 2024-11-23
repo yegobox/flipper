@@ -65,7 +65,8 @@ class SharedPreferenceStorage implements LocalStorage {
         'customPhoneNumberForPayment',
         'purchaseCode',
         'A4',
-        'numberOfPayments'
+        'numberOfPayments',
+        'exportAsPdf'
       },
     ));
     return this;
@@ -127,7 +128,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   Future<String?> getServerUrl() async {
-    final ebm =await ProxyService.local.ebm(branchId: getBranchId()!);
+    final ebm = await ProxyService.local.ebm(branchId: getBranchId()!);
     if (ebm != null) {
       return ebm.taxServerUrl;
     }
@@ -246,7 +247,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   Future<String?> bhfId() async {
-    final ebm =await  ProxyService.local.ebm(branchId: getBranchId()!);
+    final ebm = await ProxyService.local.ebm(branchId: getBranchId()!);
     if (ebm != null) {
       return ebm.bhfId;
     }
@@ -382,5 +383,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   int? numberOfPayments() {
     return prefs.getInt('numberOfPayments');
+  }
+
+  @override
+  bool exportAsPdf() {
+    return prefs.getBool('exportAsPdf') ?? false;
   }
 }

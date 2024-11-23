@@ -23,8 +23,8 @@ final connectivityStreamProvider = StreamProvider<bool>((ref) {
           await ProxyService.box.getServerUrl() ?? "https://example.com";
       final response = await http.get(Uri.parse(url));
 
-      print('Connectivity check!: ${response.statusCode == 404}');
-      return response.statusCode == 404;
+      print('Connectivity check!: ${response.statusCode == 200}');
+      return response.statusCode == 200;
     } catch (e) {
       print('Connectivity check failed: $e');
       return false;

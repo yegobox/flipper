@@ -362,6 +362,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       await model.bulkUpdateVariants(true,
           color: model.currentColor,
           selectedProductType: selectedProductType,
+          newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
           rates: _rates,
           dates: _dates);
     } else {

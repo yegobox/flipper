@@ -195,24 +195,6 @@ class TaxController<OBJ> {
           } catch (s) {
             rethrow;
           }
-          // try {
-          //   for (var item in items) {
-          //     if (item.taxTyCd == "B") {
-          //       totalB = totalB + (item.price * item.qty);
-          //     }
-          //     if (item.taxTyCd == "C") {
-          //       totalC = totalC + (item.price * item.qty);
-          //     }
-          //     if (item.taxTyCd == "A") {
-          //       totalA = totalA + (item.price * item.qty);
-          //     }
-          //     if (item.taxTyCd == "D") {
-          //       totalD = totalD + (item.price * item.qty);
-          //     }
-          //   }
-          // } catch (s) {
-          //   rethrow;
-          // }
 
           Configurations taxConfigTaxB =
               ProxyService.local.getByTaxType(taxtype: "B");
@@ -232,7 +214,7 @@ class TaxController<OBJ> {
           talker.error("taxB: ${calculateTotalTax(totalB, taxConfigTaxB)}");
 
           await print.print(
-            totalDiscount:totalDiscount,
+            totalDiscount: totalDiscount,
             whenCreated: receipt!.whenCreated!,
             taxB: totalB,
             taxC: totalC,

@@ -220,6 +220,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       {required String color,
       required String selectedProductType,
       Map<int, TextEditingController>? rates,
+      required double newRetailPrice,
       Map<int, TextEditingController>? dates}) async {
     if (editmode) {
       try {
@@ -234,6 +235,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             scannedVariants[i].color = color;
             scannedVariants[i].itemNm = scannedVariants[i].name;
             scannedVariants[i].ebmSynced = false;
+            scannedVariants[i].retailPrice = newRetailPrice == 0
+                ? scannedVariants[i].retailPrice
+                : newRetailPrice;
             scannedVariants[i].itemTyCd = selectedProductType;
             scannedVariants[i].dcRt = rate;
             scannedVariants[i].expirationDate =

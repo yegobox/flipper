@@ -215,8 +215,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               .getVariantByProductId(productId: product.id!);
           talker.warning("Variant ${variant?.id}");
           pendingTransaction = ProxyService.local.manageTransaction(
-            transactionType: TransactionType.sale,
-            isExpense: false,
+            transactionType: TransactionType.purchase,
+            isExpense: true,
             branchId: ProxyService.box.getBranchId()!,
           );
           if (variant != null) {
@@ -245,7 +245,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           }
 
           /// save purchased item
-          ProxyService.tax.savePurchases(
+          await ProxyService.tax.savePurchases(
               item: supplier,
               bhfId: await ProxyService.box.bhfId() ?? "00",
               realm: ProxyService.local.realm!,

@@ -142,6 +142,15 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
                         });
                       },
                     ),
+                    _buildSwitchTile(
+                      title: 'Export as PDF',
+                      value: model.exportAsPdf,
+                      onChanged: (value) {
+                        setState(() {
+                          model.exportAsPdf = value;
+                        });
+                      },
+                    ),
                     const SizedBox(height: 24),
                     _buildProformaUrlForm(),
                   ],

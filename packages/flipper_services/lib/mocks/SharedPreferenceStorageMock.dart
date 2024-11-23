@@ -301,4 +301,8 @@ class SharedPreferenceStorageMock implements LocalStorage {
   int? numberOfPayments() {
     return 1;
   }
+  @override
+  bool exportAsPdf() {
+    return false;
+  }
 }

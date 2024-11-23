@@ -5,6 +5,8 @@ import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/RowsPerPageInput.dart';
 import 'package:flipper_dashboard/TransactionDataSource.dart';
 import 'package:flipper_dashboard/TransactionItemDataSource.dart';
+import 'package:flipper_models/helperModels/extensions.dart';
+
 import 'package:flipper_dashboard/exportExcel.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/realm/schemas.dart';
@@ -228,7 +230,7 @@ class DataViewState extends ConsumerState<DataView>
       child: FlipperButton(
         onPressed: _exportToExcel,
         height: 80,
-        text: 'Export to Excel',
+        text: 'Export',
         textColor: Colors.black,
         busy: ref.watch(isProcessingProvider),
       ),
@@ -237,27 +239,59 @@ class DataViewState extends ConsumerState<DataView>
 
   Widget _buildDataGrid(BoxConstraints constraint) {
     return SfDataGridTheme(
-      data: SfDataGridThemeData(
-        headerHoverColor: Colors.yellow,
-        gridLineColor: Colors.amber,
-        gridLineStrokeWidth: 1.0,
-        rowHoverColor: Colors.yellow,
-        selectionColor: Colors.yellow,
-        rowHoverTextStyle: TextStyle(color: Colors.red, fontSize: 14),
-      ),
-      child: SfDataGrid(
-        key: workBookKey,
-        source: _dataGridSource,
-        allowFiltering: true,
-        highlightRowOnHover: true,
-        gridLinesVisibility: GridLinesVisibility.both,
-        headerGridLinesVisibility: GridLinesVisibility.both,
-        columnWidthMode: ColumnWidthMode.fill,
-        onCellTap: _handleCellTap,
-        columns: _getTableHeaders(),
-        rowsPerPage: widget.rowsPerPage,
-      ),
-    );
+        data: SfDataGridThemeData(
+          headerHoverColor: Colors.yellow,
+          gridLineColor: Colors.amber,
+          gridLineStrokeWidth: 1.0,
+          rowHoverColor: Colors.yellow,
+          selectionColor: Colors.yellow,
+          rowHoverTextStyle: TextStyle(color: Colors.red, fontSize: 14),
+        ),
+        child: Expanded(
+          child: SfDataGrid(
+            // tableSummaryRows: [
+            //   GridTableSummaryRow(
+            //       showSummaryInRow: true,
+            //       title: 'Total:',
+            //       columns: [
+            //         GridSummaryColumn(
+            //             name: 'Sum',
+            //             columnName: 'CashReceived',
+            //             summaryType: GridSummaryType.sum),
+            //       ],
+            //       position: GridTableSummaryRowPosition.top)
+            // ],
+            selectionMode: SelectionMode.multiple,
+            allowSorting: true,
+            allowColumnsResizing: true,
+            key: workBookKey,
+            source: _dataGridSource,
+            allowFiltering: true,
+            highlightRowOnHover: true,
+            gridLinesVisibility: GridLinesVisibility.both,
+            headerGridLinesVisibility: GridLinesVisibility.both,
+            columnWidthMode: ColumnWidthMode.fill,
+            onCellTap: _handleCellTap,
+            columns: _getTableHeaders(),
+            rowsPerPage: widget.rowsPerPage,
+            footer: Padding(
+              padding: EdgeInsets.all(8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Total:"),
+                  Text(widget.transactions
+                          ?.fold<double>(
+                              0,
+                              (sum, transaction) =>
+                                  sum + transaction.cashReceived)
+                          .toRwf() ??
+                      ""),
+                ],
+              ),
+            ),
+          ),
+        ));
   }
 
   Widget _buildDataPager(BoxConstraints constraint) {
@@ -283,6 +317,7 @@ class DataViewState extends ConsumerState<DataView>
       return zReportTableHeader(headerPadding);
     }
   }
+
   /// build an adapter of different view of the data, e.g transactions vs transactionItems and more to be
   /// supported
   DataGridSource _buildDataGridSource({
@@ -309,6 +344,7 @@ class DataViewState extends ConsumerState<DataView>
       return;
     }
 
+    /// Expenses these incudes purchases,import and any other type of expenses.
     final expenses = ProxyService.local.transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
@@ -316,7 +352,7 @@ class DataViewState extends ConsumerState<DataView>
       branchId: ProxyService.box.getBranchId(),
     );
 
-    final nonExpense = ProxyService.local.transactions(
+    final sales = ProxyService.local.transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: false,
@@ -324,7 +360,7 @@ class DataViewState extends ConsumerState<DataView>
     );
     final isStockRecount = widget.stocks != null && widget.stocks!.isNotEmpty;
     final config = ExportConfig(
-      transactions: nonExpense,
+      transactions: sales,
       endDate: widget.endDate,
       startDate: widget.startDate,
     );
@@ -342,6 +378,7 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   double _calculateGrossProfit() {
+    if (widget.transactionItems == null) return 0;
     return widget.transactionItems!.fold<double>(
       0.0,
       (sum, item) =>
@@ -350,6 +387,7 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   double _calculateNetProfit() {
+    if (widget.transactionItems == null) return 0;
     final grossProfit = _calculateGrossProfit();
     final taxAmount = widget.transactionItems!.fold<double>(
       0.0,

@@ -336,13 +336,17 @@ class RWTax with NetworkHelper implements TaxApi {
         .toList();
 
     // Calculate total for non-tax-exempt items
-    double totalTaxable = items
-        .where((item) => !item.isTaxExempted)
-        .fold(0, (sum, item) => sum + (item.price * item.qty));
+    double totalTaxable =
+        items.where((item) => !item.isTaxExempted).fold(0, (sum, item) {
+      double discountedPrice =
+          item.dcRt != 0 ? item.price * (1 - item.dcRt / 100) : item.price;
+      return sum + (discountedPrice * item.qty);
+    });
 
     // Get sales and receipt type codes
     Map<String, String> receiptCodes = getReceiptCodes(receiptType);
     Map<String, double> taxTotals = calculateTaxTotals(items);
+    Map<String, double> discounts = calculateDiscounts(items);
 
     // Retrieve customer information
     Customer? customer =
@@ -360,6 +364,7 @@ class RWTax with NetworkHelper implements TaxApi {
         receiptCodes: receiptCodes,
         customer: customer,
         itemsList: itemsList,
+        discountB: discounts["B"]!,
         purchaseCode: purchaseCode,
         timeToUse: timeToUser,
         receiptType: receiptType);
@@ -398,8 +403,12 @@ class RWTax with NetworkHelper implements TaxApi {
     Configurations taxConfig =
         // ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
         realm.query<Configurations>(r'taxType == $0', [item.taxTyCd!]).first;
-    double taxAmount = (((item.price * item.qty) * taxConfig.taxPercentage!) /
-        (100 + taxConfig.taxPercentage!));
+
+    final total = item.price * item.qty;
+    double taxAmount =
+        (((total - ((total * item.dcRt) / 100)) * taxConfig.taxPercentage!) /
+            (100 + taxConfig.taxPercentage!));
+
     final itemJson = ITransactionItem(
       id: item.id,
       qty: item.qty,
@@ -408,17 +417,22 @@ class RWTax with NetworkHelper implements TaxApi {
       itemCd: item.itemCd,
       variantId: item.id,
       qtyUnitCd: "U",
-      prc: item.price,
+
       regrNm: item.regrNm ?? "Registrar",
       dcRt: item.dcRt,
-      dcAmt: item.dcAmt,
+      dcAmt: item.dcRt != 0 ? ((total * item.dcRt) / 100) : 0,
+      totAmt: item.dcRt != 0
+          ? (total - ((total * item.dcRt) / 100))
+          : item.price * item.qty,
       pkg: item.qty.toInt(),
 
-      taxblAmt: (item.price * item.qty),
+      taxblAmt: item.dcRt != 0
+          ? (total - ((total * item.dcRt) / 100))
+          : item.price * item.qty,
       taxAmt: ((taxAmount) * 100).round() / 100,
       itemClsCd: item.itemClsCd,
       itemNm: item.name,
-      totAmt: item.price * item.qty,
+
       itemSeq: item.itemSeq,
       isrccCd: "",
       isrccNm: "",
@@ -432,9 +446,10 @@ class RWTax with NetworkHelper implements TaxApi {
       pkgUnitCd: "NT",
       splyAmt: item.price * item.qty,
       bhfId: item.bhfId ?? bhfId,
-      dftPrc: item.price,
+      dftPrc: item.price * item.qty,
       addInfo: "",
       isrcAplcbYn: "N",
+      prc: item.price * item.qty,
       useYn: "Y",
       regrId:
           item.regrId?.toString() ?? randomNumber().toString().substring(0, 20),
@@ -444,6 +459,21 @@ class RWTax with NetworkHelper implements TaxApi {
     ).toJson();
 
     return itemJson;
+  }
+
+  Map<String, double> calculateDiscounts(List<TransactionItem> items) {
+    Map<String, double> taxTotals = {'A': 0.0, 'B': 0.0, 'C': 0.0, 'D': 0.0};
+    for (var item in items) {
+      String taxType = item.taxTyCd ?? 'B';
+      final total = item.price * item.qty;
+      double discount = 0;
+      if (item.dcRt != 0) {
+        discount = (total - ((total * item.dcRt) / 100));
+      }
+
+      taxTotals[taxType] = discount;
+    }
+    return taxTotals;
   }
 
 // Helper function to calculate tax totals
@@ -494,6 +524,7 @@ class RWTax with NetworkHelper implements TaxApi {
     required String receiptType,
     required DateTime timeToUse,
     required String bhFId,
+    required double discountB,
   }) {
     Configurations taxConfigTaxB =
         ProxyService.local.getByTaxType(taxtype: "B");
@@ -514,7 +545,9 @@ class RWTax with NetworkHelper implements TaxApi {
 
     /// TODO: for totalTax we are not accounting other taxes only B
     /// so need to account them in future
-    final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118);
+    final totalTax = discountB != 0
+        ? discountB * 18 / 118
+        : ((taxTotals['B'] ?? 0.0) * 18 / 118);
     talker.warning("HARD COPY TOTALTAX: ${totalTax.toStringAsFixed(2)}");
 
     final topMessage =
@@ -540,7 +573,7 @@ class RWTax with NetworkHelper implements TaxApi {
 
       // Ensure tax amounts and taxable amounts are set to 0 if null
       "taxblAmtA": taxTotals['A'] ?? 0.0,
-      "taxblAmtB": taxTotals['B'] ?? 0.0,
+      "taxblAmtB": discountB != 0 ? discountB : (taxTotals['B'] ?? 0.0),
       "taxblAmtC": taxTotals['C'] ?? 0.0,
       "taxblAmtD": taxTotals['D'] ?? 0.0,
 
@@ -548,8 +581,10 @@ class RWTax with NetworkHelper implements TaxApi {
               (taxConfigTaxA.taxPercentage ?? 0) /
               (100 + (taxConfigTaxA.taxPercentage ?? 0)))
           .toStringAsFixed(2),
-      "taxAmtB":
-          double.parse(((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2)),
+      "taxAmtB": discountB != 0
+          ? double.parse(((discountB) * 18 / 118).toStringAsFixed(2))
+          : double.parse(
+              ((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2)),
       "taxAmtC": double.parse(((taxTotals['C'] ?? 0.0) *
               (taxConfigTaxC.taxPercentage ?? 0) /
               (100 + (taxConfigTaxC.taxPercentage ?? 0)))
@@ -573,7 +608,8 @@ class RWTax with NetworkHelper implements TaxApi {
       "regrNm": transaction.id,
       "modrId": transaction.id,
       "modrNm": transaction.id,
-      "rfdRsnCd": ProxyService.box.getRefundReason(),
+      "rfdRsnCd":
+          receiptType == "NR" ? ProxyService.box.getRefundReason() : null,
 
       "custNm": customer?.custNm ?? ProxyService.box.customerName() ?? "N/A",
       "remark": "",
