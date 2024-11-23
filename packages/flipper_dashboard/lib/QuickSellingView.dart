@@ -222,8 +222,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           Row(
             children: [
               if (!isOrdering) ...[
-                Expanded(child: _buildDiscountField()),
-                SizedBox(width: 16.0),
+                // Commenting this as manual discount is not supported, it need to be saved per item for now.
+                // Expanded(child: _buildDiscountField()),
+                // SizedBox(width: 16.0),
                 Expanded(child: _buildReceivedAmountField()),
               ],
             ],
