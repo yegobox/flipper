@@ -12,7 +12,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   local_notifier
   printing
   realm
-  screen_retriever
+  screen_retriever_linux
   sentry_flutter
   smart_auth
   tray_manager
