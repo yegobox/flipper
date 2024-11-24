@@ -18,7 +18,7 @@ dependencies:
   flutter:
     sdk: flutter
   get: ^4.6.1
-  flipper_models: ^0.0.1-dev.5
+  flipper_models: any
   flipper_routing: ^0.0.1-dev.3
   timeago: ^3.4.0
   mime: ^1.0.5
