@@ -11,7 +11,7 @@ dependencies:
   get_it: ^7.7.0
   stacked: ^3.4.3
   # maybe it is time to move all constants to its own package
-  flipper_services: ^1.0.0-dev
+  flipper_services: any
   # causing issue on web https://github.com/pd4d10/flutter-vector-icons/issues/19
   
   meta: "^1.7.0"
