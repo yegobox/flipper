@@ -154,7 +154,7 @@ dependencies:
   # may be it is time to create utils package and move everything shareble
   
   # in all packages or use flipper_ui package
-  flipper_dashboard: ^0.0.1-dev.5
+  flipper_dashboard: any
   stacked_services: ^1.0.4
   url_strategy: ^0.2.0
   logger: ^1.1.0

@@ -32,7 +32,7 @@ dependencies:
   #TODO: added flipper_dashboard here only becase we need customAppBar
   # may be it is time to create utils package and move everything shareble
   # in all packages or use flipper_ui package
-  flipper_dashboard: ^0.0.1-dev.5
+  flipper_dashboard: any
   url_launcher: ^6.3.0
 dependency_overrides:
   http: ^1.2.2

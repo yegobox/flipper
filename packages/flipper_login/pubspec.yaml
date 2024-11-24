@@ -14,7 +14,7 @@ dependencies:
   flutter_form_bloc: 0.31.0-dev
   firebase_core: ^3.6.0
   flipper_services: any
-  flipper_dashboard: ^0.0.1-dev.5
+  flipper_dashboard: any
   universal_platform: ^1.0.0+1
   flutter_carousel_slider: ^1.0.9
   country_code_picker: ^3.0.0
