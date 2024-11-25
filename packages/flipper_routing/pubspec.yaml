@@ -25,6 +25,7 @@ dependency_overrides:
   web: ^1.0.0
   json_annotation: ^4.9.0
   sqlite3: ^2.4.7
+  stacked: ^3.4.2
   
 dev_dependencies:
   flutter_test:
