@@ -1,6 +1,6 @@
 name: firestore_models
 description: "A new Flutter package project."
-version: 0.0.1
+version: 1.0.0
 # homepage:
 
 environment:
@@ -37,10 +37,4 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
- 
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
-# flutter:
