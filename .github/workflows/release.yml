@@ -174,19 +174,7 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      - run: |
-          dart pub global activate melos 6.2.0
-          melos bootstrap
-          cd apps/flipper
-          dart run msix:create -v --install-certificate false
-      - name: Configure Release (optional)
-        env:
-          VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
-        run: |
-          echo "## Release Notes" >> release_notes.txt
-          echo " - New features..." >> release_notes.txt
-          echo " - Bug fixes..." >> release_notes.txt
-            # Replace Visual Studio 17.12 with 17.10 to workaround Firebase issue
+      # Replace Visual Studio 17.12 with 17.10 to workaround Firebase issue
       # https://github.com/firebase/flutterfire/issues/16536
       # TODO: remove this visual studio change when https://github.com/firebase/flutterfire/issues/16536 is resolved.
       - name: Cleanup Visual Studio Installer
@@ -206,6 +194,19 @@ jobs:
           Write-Output $process.ExitCode
         shell: pwsh
         # End of issue
+      - run: |
+          dart pub global activate melos 6.2.0
+          melos bootstrap
+          cd apps/flipper
+          dart run msix:create -v --install-certificate false
+      - name: Configure Release (optional)
+        env:
+          VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
+        run: |
+          echo "## Release Notes" >> release_notes.txt
+          echo " - New features..." >> release_notes.txt
+          echo " - Bug fixes..." >> release_notes.txt
+     
       - name: Extract msix_version
         id: get_version
         shell: powershell
