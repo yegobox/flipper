@@ -618,6 +618,7 @@ class App {}
 // firebase crashlytics:symbols:upload --app=yegobox-2ee43 PATH/TO/symbols
 // https://firebase.google.com/docs/crashlytics/get-started?platform=flutter
 // https://github.com/firebase/flutterfire/issues/11547
+// https://github.com/firebase/flutterfire/issues/16536 (Can't use latest firebase_auth)
 //https://firebase.google.com/docs/crashlytics/get-started?platform=flutter
 // https://stackoverflow.com/questions/48390821/unable-to-upload-crashlytics-dsym-file-during-build-phase-due-to-script-error
 
