@@ -188,6 +188,7 @@ jobs:
           echo " - Bug fixes..." >> release_notes.txt
             # Replace Visual Studio 17.12 with 17.10 to workaround Firebase issue
       # https://github.com/firebase/flutterfire/issues/16536
+      # TODO: remove this visual studio change when https://github.com/firebase/flutterfire/issues/16536 is resolved.
       - name: Cleanup Visual Studio Installer
         continue-on-error: true
         run: |
@@ -204,6 +205,7 @@ jobs:
           $process = Start-Process -FilePath '.\vs_enterprise.exe' -ArgumentList "--add", "Microsoft.VisualStudio.Workload.NativeDesktop", "--quiet", "--norestart", "--wait", "--includeRecommended" -Wait -PassThru
           Write-Output $process.ExitCode
         shell: pwsh
+        # End of issue
       - name: Extract msix_version
         id: get_version
         shell: powershell
