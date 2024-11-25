@@ -108,7 +108,7 @@ jobs:
 #           FIRESTORE_EMULATOR_HOST: localhost:8081
 #           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 #         run: |
-#           dart pub global activate melos
+#           dart pub global activate melos 6.2.0
 #           melos bootstrap
 #           cd apps/flipper
           
@@ -164,7 +164,7 @@ jobs:
           # --install-certificate false
           # https://github.com/YehudaKremer/msix/issues/126
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 6.2.0
           melos bootstrap
           cd apps/flipper
           dart run msix:create -v --install-certificate false

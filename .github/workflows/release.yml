@@ -65,7 +65,7 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 6.2.0
           melos clean
           melos bootstrap
           cd apps/flipper
@@ -126,7 +126,7 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}  
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 6.2.0
           melos bootstrap
           cd apps/flipper
           dart run realm install
@@ -175,7 +175,7 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 6.2.0
           melos bootstrap
           cd apps/flipper
           dart run msix:create -v --install-certificate false
@@ -245,7 +245,7 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 6.2.0
           melos bootstrap
           cd apps/flipper
           dart run msix:create 	--store
@@ -336,7 +336,7 @@ jobs:
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
         working-directory: apps/flipper/android
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 6.2.0
           melos bootstrap
       - name: Install Android SDK
         uses: malinskiy/action-android/install-sdk@release/0.1.7
@@ -405,7 +405,7 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 6.2.0
           melos bootstrap
       # Setup Ruby, Bundler, and Gemfile dependencies
       - name: Setup Fastlane

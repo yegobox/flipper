@@ -57,7 +57,7 @@
 #   #         AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 #   #     - name: Run Flutter Tests
 #   #       run: |
-#   #         dart pub global activate melos
+#   #         dart pub global activate melos 6.2.0
 #   #         melos bootstrap
 #   #         cd apps/flipper
 #   #         dart run realm install
@@ -134,7 +134,7 @@
 #           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
 #       - run: |
-#           dart pub global activate melos
+#           dart pub global activate melos 6.2.0
 #           melos clean
 #           melos bootstrap
 #           cd packages/flipper_dashboard
@@ -194,7 +194,7 @@
 #           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}  
 #           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 #       - run: |
-#           dart pub global activate melos
+#           dart pub global activate melos 6.2.0
 #           melos bootstrap
 #           cd apps/flipper
 #           dart run realm install
@@ -249,7 +249,7 @@
 #           # --install-certificate false
 #           # https://github.com/YehudaKremer/msix/issues/126
 #       - run: |
-#           dart pub global activate melos
+#           dart pub global activate melos 6.2.0
 #           melos bootstrap
 #           cd apps/flipper
 #           dart run msix:create -v --install-certificate false
@@ -355,7 +355,7 @@
 #           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
 #         working-directory: apps/flipper/android
 #       - run: |
-#           dart pub global activate melos
+#           dart pub global activate melos 6.2.0
 #           melos bootstrap
 #       - name: Install Android SDK
 #         uses: malinskiy/action-android/install-sdk@release/0.1.7
@@ -426,7 +426,7 @@
 
 #   #     - name: Setup Melos
 #   #       run: |
-#   #         dart pub global activate melos
+#   #         dart pub global activate melos 6.2.0
 #   #         melos bootstrap
 
 #   #     - name: Configure Keystore
@@ -503,7 +503,7 @@
 #           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
 #           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 #       - run: |
-#           dart pub global activate melos
+#           dart pub global activate melos 6.2.0
 #           melos bootstrap
 #       # Setup Ruby, Bundler, and Gemfile dependencies
 #       - name: Setup Fastlane
@@ -566,7 +566,7 @@
 #   #         echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
 #   #     - run: git submodule update --init
 
-#   #     - run: dart pub global activate melos 2.9.0
+#   #     - run: dart pub global activate melos 6.2.0 2.9.0
 #   #     - name: "Run Melos bootstrap"
 #   #       run: melos bootstrap
 #   #     - name: Configure Missing files
