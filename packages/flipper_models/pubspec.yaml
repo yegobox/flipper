@@ -11,7 +11,7 @@ dependencies:
   
   meta: ^1.3.0
   universal_platform: ^1.0.0+1
-  stacked_services: ^1.0.4
+  stacked_services: ^1.6.0
   firebase_auth: ^5.3.3
   stacked: ^3.4.2
   built_value: ^8.1.4
