@@ -604,16 +604,13 @@ class App {}
 // Download ios Simulator
 // https://developer.apple.com/download/all/?q=Simulator%20Runtime
 
-
 // Power sync isolate example TODO: when https://github.com/aws-amplify/amplify-flutter/issues/5477 is closed.
 // https://github.com/powersync-ja/powersync.dart/discussions/178
 // https://gist.github.com/rkistner/e1067e51ad340f9447c4e55bc7bc96e1
 
-
 // import 'package:flipper_models/realmExtension.dart';
 // import 'package:flipper_models/power_sync/schema.dart';
 // https://github.com/firebase/flutterfire/blob/master/.github/workflows/scripts/start-firebase-emulator.sh
-
 
 // firebase deploy --only firestore:rules
 // firebase emulators:start --only firestore,auth
@@ -675,11 +672,10 @@ class App {}
 //   bloc: ^8.1.0
 //  cbl_flutter_ce: ^3.1.3
 //   cbl_flutter: ^3.1.3
-//   
+//
 //   collection: ^1.16.0
 //   cupertino_icons: ^1.0.5
 //   equatable: ^2.0.5
-
 
 // curl -X PUT http://127.0.0.1:4985/flipper/ \
 //  -H "Content-Type: application/json" \
@@ -688,11 +684,10 @@ class App {}
 //    "bucket": "flipper",
 //    "enable_shared_bucket_access": true,
 //    "import_docs": true
-   
+
 //  }'
 
-
-// 
+//
 
 // https://cloudapi.cloud.couchbase.com/v4/organizations/{organizationId}/projects/{projectId}/clusters/{clusterId}/buckets/{bucketId}/scopes
 
@@ -720,4 +715,3 @@ class App {}
 //         "mrcNo": "WIS00000052"
 //     }
 // }
-

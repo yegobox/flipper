@@ -13,7 +13,8 @@ const List<MigrationCommand> _migration_20241114183152_up = [
   InsertTable('TransactionItem'),
   InsertColumn('id', Column.integer, onTable: 'TransactionItem', unique: true),
   InsertColumn('name', Column.varchar, onTable: 'TransactionItem'),
-  InsertColumn('quantity_requested', Column.integer, onTable: 'TransactionItem'),
+  InsertColumn('quantity_requested', Column.integer,
+      onTable: 'TransactionItem'),
   InsertColumn('quantity_approved', Column.integer, onTable: 'TransactionItem'),
   InsertColumn('quantity_shipped', Column.integer, onTable: 'TransactionItem'),
   InsertColumn('transaction_id', Column.integer, onTable: 'TransactionItem'),
@@ -27,7 +28,8 @@ const List<MigrationCommand> _migration_20241114183152_up = [
   InsertColumn('updated_at', Column.varchar, onTable: 'TransactionItem'),
   InsertColumn('is_tax_exempted', Column.boolean, onTable: 'TransactionItem'),
   InsertColumn('is_refunded', Column.boolean, onTable: 'TransactionItem'),
-  InsertColumn('done_with_transaction', Column.boolean, onTable: 'TransactionItem'),
+  InsertColumn('done_with_transaction', Column.boolean,
+      onTable: 'TransactionItem'),
   InsertColumn('active', Column.boolean, onTable: 'TransactionItem'),
   InsertColumn('dc_rt', Column.Double, onTable: 'TransactionItem'),
   InsertColumn('dc_amt', Column.Double, onTable: 'TransactionItem'),
@@ -142,9 +144,9 @@ const List<MigrationCommand> _migration_20241114183152_down = [
 )
 class Migration20241114183152 extends Migration {
   const Migration20241114183152()
-    : super(
-        version: 20241114183152,
-        up: _migration_20241114183152_up,
-        down: _migration_20241114183152_down,
-      );
+      : super(
+          version: 20241114183152,
+          up: _migration_20241114183152_up,
+          down: _migration_20241114183152_down,
+        );
 }

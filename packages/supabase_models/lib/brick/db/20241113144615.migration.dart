@@ -35,8 +35,14 @@ const List<MigrationCommand> _migration_20241113144615_up = [
   InsertColumn('longitude', Column.varchar, onTable: 'Branch'),
   InsertColumn('is_default', Column.boolean, onTable: 'Branch'),
   InsertColumn('is_online', Column.boolean, onTable: 'Branch'),
-  InsertForeignKey('_brick_Plan_addons', 'Plan', foreignKeyColumn: 'l_Plan_brick_id', onDeleteCascade: true, onDeleteSetDefault: false),
-  InsertForeignKey('_brick_Plan_addons', 'PlanAddon', foreignKeyColumn: 'f_PlanAddon_brick_id', onDeleteCascade: true, onDeleteSetDefault: false),
+  InsertForeignKey('_brick_Plan_addons', 'Plan',
+      foreignKeyColumn: 'l_Plan_brick_id',
+      onDeleteCascade: true,
+      onDeleteSetDefault: false),
+  InsertForeignKey('_brick_Plan_addons', 'PlanAddon',
+      foreignKeyColumn: 'f_PlanAddon_brick_id',
+      onDeleteCascade: true,
+      onDeleteSetDefault: false),
   InsertColumn('id', Column.integer, onTable: 'Plan', unique: true),
   InsertColumn('business_id', Column.integer, onTable: 'Plan'),
   InsertColumn('selected_plan', Column.varchar, onTable: 'Plan'),
@@ -53,7 +59,10 @@ const List<MigrationCommand> _migration_20241113144615_up = [
   InsertColumn('addon_id', Column.integer, onTable: 'PlanAddon'),
   InsertColumn('addon_name', Column.varchar, onTable: 'PlanAddon'),
   InsertColumn('created_at', Column.datetime, onTable: 'PlanAddon'),
-  CreateIndex(columns: ['l_Plan_brick_id', 'f_PlanAddon_brick_id'], onTable: '_brick_Plan_addons', unique: true)
+  CreateIndex(
+      columns: ['l_Plan_brick_id', 'f_PlanAddon_brick_id'],
+      onTable: '_brick_Plan_addons',
+      unique: true)
 ];
 
 const List<MigrationCommand> _migration_20241113144615_down = [
@@ -114,9 +123,9 @@ const List<MigrationCommand> _migration_20241113144615_down = [
 )
 class Migration20241113144615 extends Migration {
   const Migration20241113144615()
-    : super(
-        version: 20241113144615,
-        up: _migration_20241113144615_up,
-        down: _migration_20241113144615_down,
-      );
+      : super(
+          version: 20241113144615,
+          up: _migration_20241113144615_up,
+          down: _migration_20241113144615_down,
+        );
 }

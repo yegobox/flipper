@@ -7,7 +7,6 @@ part 'category.g.dart';
 class Category with _$Category {
   const factory Category({
     int? id,
-    
     bool? active,
     @Default(false) bool focused,
     String? name,
@@ -16,5 +15,6 @@ class Category with _$Category {
     DateTime? lastTouched,
   }) = _Category;
 
-  factory Category.fromJson(Map<String, dynamic> json) => _$CategoryFromJson(json);
+  factory Category.fromJson(Map<String, dynamic> json) =>
+      _$CategoryFromJson(json);
 }

@@ -7,7 +7,6 @@ part 'pin.g.dart';
 class Pin with _$Pin {
   const factory Pin({
     int? id,
-  
     int? userId,
     String? phoneNumber,
     int? pin,

@@ -67,6 +67,6 @@ class TransactionItem with _$TransactionItem {
     @Default(0.0) double compositePrice,
   }) = _TransactionItem;
 
-  factory TransactionItem.fromJson(Map<String, dynamic> json) => 
+  factory TransactionItem.fromJson(Map<String, dynamic> json) =>
       _$TransactionItemFromJson(json);
 }

@@ -28,9 +28,9 @@ const List<MigrationCommand> _migration_20241117103838_down = [
 )
 class Migration20241117103838 extends Migration {
   const Migration20241117103838()
-    : super(
-        version: 20241117103838,
-        up: _migration_20241117103838_up,
-        down: _migration_20241117103838_down,
-      );
+      : super(
+          version: 20241117103838,
+          up: _migration_20241117103838_up,
+          down: _migration_20241117103838_down,
+        );
 }

@@ -1,40 +1,38 @@
 // firestore isolate
-  // static Future<void> cloudDownload(List<dynamic> args) async {
-  //   final rootIsolateToken = args[0] as RootIsolateToken;
-  //   final sendPort = args[1] as SendPort;
-  //   String? dbPatch = args[3] as String?;
-  //   String? key = args[4] as String?;
-  //   String? local = args[9] as String?;
+// static Future<void> cloudDownload(List<dynamic> args) async {
+//   final rootIsolateToken = args[0] as RootIsolateToken;
+//   final sendPort = args[1] as SendPort;
+//   String? dbPatch = args[3] as String?;
+//   String? key = args[4] as String?;
+//   String? local = args[9] as String?;
 
-  //   if (dbPatch == null || key == null) return;
-  //   BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
-  //   DartPluginRegistrant.ensureInitialized();
+//   if (dbPatch == null || key == null) return;
+//   BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+//   DartPluginRegistrant.ensureInitialized();
 
-  //   try {
-  //     LocalConfiguration configLocal = localConfig(key.toIntList(), local!);
-  //     final Completer<void> completer = Completer<void>();
-  //     Timer(Duration(seconds: 5), () {
-  //       if (!completer.isCompleted) {
-  //         sendPort.send(1);
-  //       }
-  //     });
-      // await Firebase.initializeApp(
-      //   options: DefaultFirebaseOptions.currentPlatform,
-      // );
-  //     completer.complete();
+//   try {
+//     LocalConfiguration configLocal = localConfig(key.toIntList(), local!);
+//     final Completer<void> completer = Completer<void>();
+//     Timer(Duration(seconds: 5), () {
+//       if (!completer.isCompleted) {
+//         sendPort.send(1);
+//       }
+//     });
+// await Firebase.initializeApp(
+//   options: DefaultFirebaseOptions.currentPlatform,
+// );
+//     completer.complete();
 
-  //     /// re-init firestore
-  //     // final firestore = FirebaseFirestore.instance;
-  //     localRealm?.close();
-  //     localRealm = Realm(configLocal);
+//     /// re-init firestore
+//     // final firestore = FirebaseFirestore.instance;
+//     localRealm?.close();
+//     localRealm = Realm(configLocal);
 
-  //     sendPort.send(1);
-  //   } catch (e) {
-  //     talker.error(e);
-  //   }
-  // }
-
-
+//     sendPort.send(1);
+//   } catch (e) {
+//     talker.error(e);
+//   }
+// }
 
 // import 'dart:convert';
 

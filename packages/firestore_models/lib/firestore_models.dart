@@ -16,7 +16,7 @@ export 'branch.dart';
 export 'business.dart';
 export 'l_permission.dart';
 export 'counter.dart';
-// export 'transaction.dart'; 
+// export 'transaction.dart';
 export 'pcolor.dart';
 export 'category.dart';
 export 'customer.dart';

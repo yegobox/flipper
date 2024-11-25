@@ -23,7 +23,7 @@ import 'package:http/http.dart' as httP;
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
-import 'package:flipper_services/abstractions/system_time.dart';  
+import 'package:flipper_services/abstractions/system_time.dart';
 import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
 import 'package:flipper_services/constants.dart';

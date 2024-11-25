@@ -6,7 +6,7 @@ part 'branch.g.dart'; // Needed for JSON serialization
 @freezed
 class Branch with _$Branch {
   factory Branch({
-    int? id,   
+    int? id,
     int? serverId,
     bool? active,
     String? description,
@@ -15,7 +15,6 @@ class Branch with _$Branch {
     String? longitude,
     String? latitude,
     String? location,
-
     @Default(false) bool isDefault,
     DateTime? lastTouched,
     DateTime? deletedAt,

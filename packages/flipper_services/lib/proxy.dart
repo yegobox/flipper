@@ -99,7 +99,6 @@ abstract class ProxyService {
   static FlipperInterfaceCapella get strategy => _strategy.current;
   static void setStrategy(Strategy strategy) => _strategy.setStrategy(strategy);
 
-
   static Crash get crash => _crash;
   static SupabaseInterface get supa => _supa;
 

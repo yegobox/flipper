@@ -13,9 +13,7 @@ const List<MigrationCommand> _migration_20241113200548_up = [
   DropColumn('addon_id', onTable: 'PlanAddon')
 ];
 
-const List<MigrationCommand> _migration_20241113200548_down = [
-  
-];
+const List<MigrationCommand> _migration_20241113200548_down = [];
 
 //
 // DO NOT EDIT BELOW THIS LINE
@@ -28,9 +26,9 @@ const List<MigrationCommand> _migration_20241113200548_down = [
 )
 class Migration20241113200548 extends Migration {
   const Migration20241113200548()
-    : super(
-        version: 20241113200548,
-        up: _migration_20241113200548_up,
-        down: _migration_20241113200548_down,
-      );
+      : super(
+          version: 20241113200548,
+          up: _migration_20241113200548_up,
+          down: _migration_20241113200548_down,
+        );
 }

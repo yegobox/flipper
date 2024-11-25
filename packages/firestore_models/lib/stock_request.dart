@@ -25,6 +25,6 @@ class StockRequest with _$StockRequest {
     DateTime? updatedAt,
   }) = _StockRequest;
 
-  factory StockRequest.fromJson(Map<String, dynamic> json) => 
+  factory StockRequest.fromJson(Map<String, dynamic> json) =>
       _$StockRequestFromJson(json);
 }

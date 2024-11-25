@@ -25,7 +25,8 @@ class Composite {
   });
 
   // Factory constructor to create a Composite from JSON
-  factory Composite.fromJson(Map<String, dynamic> json) => _$CompositeFromJson(json);
+  factory Composite.fromJson(Map<String, dynamic> json) =>
+      _$CompositeFromJson(json);
 
   // Method to convert Composite to JSON
   Map<String, dynamic> toJson() => _$CompositeToJson(this);
@@ -51,4 +52,5 @@ class Composite {
     );
   }
 }
+
 final compositesRef = CompositeCollectionReference();

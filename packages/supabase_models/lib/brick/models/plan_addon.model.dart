@@ -27,7 +27,7 @@ class PlanAddon extends OfflineFirstWithSupabaseModel {
     this.createdAt,
   });
   // copyWith
-  PlanAddon copyWith({  
+  PlanAddon copyWith({
     int? id,
     int? planId,
     String? addonName,

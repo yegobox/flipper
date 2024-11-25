@@ -21,7 +21,8 @@ final migrations = <Migration>{
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20241117164713, generatorVersion: 1, tables: <SchemaTable>{
+final schema =
+    Schema(20241117164713, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('Counter', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),

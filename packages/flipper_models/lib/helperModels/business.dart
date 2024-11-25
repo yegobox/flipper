@@ -119,8 +119,6 @@ class IBusiness extends IJsonSerializable {
 
   String encryptionKey;
 
-
-
   factory IBusiness.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode
     /// data from remote server and id from remote server is considered remoteId on local
