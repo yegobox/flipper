@@ -7,7 +7,7 @@ import 'package:flipper_dashboard/TransactionDataSource.dart';
 import 'package:flipper_dashboard/TransactionItemDataSource.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 
-import 'package:flipper_dashboard/exportExcel.dart';
+import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -54,7 +54,7 @@ class DataView extends StatefulHookConsumerWidget {
 }
 
 class DataViewState extends ConsumerState<DataView>
-    with ExcelExportMixin, DateCoreWidget, Headers {
+    with ExportMixin, DateCoreWidget, Headers {
   static const double dataPagerHeight = 60;
   late DataGridSource _dataGridSource;
   int pageIndex = 0;
@@ -228,7 +228,7 @@ class DataViewState extends ConsumerState<DataView>
       height: 40.0,
       width: 150.0,
       child: FlipperButton(
-        onPressed: _exportToExcel,
+        onPressed: _export,
         height: 80,
         text: 'Export',
         textColor: Colors.black,
@@ -338,7 +338,7 @@ class DataViewState extends ConsumerState<DataView>
     throw Exception('No valid data source available');
   }
 
-  Future<void> _exportToExcel() async {
+  Future<void> _export({String headerTitle = "Sales Report"}) async {
     if (workBookKey.currentState == null) {
       toast("Error: Workbook is null");
       return;
@@ -370,9 +370,10 @@ class DataViewState extends ConsumerState<DataView>
       config.netProfit = _calculateNetProfit();
     }
 
-    exportDataGridToExcel(
+    exportDataGrid(
       isStockRecount: isStockRecount,
       config: config,
+      headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
       expenses: expenses,
     );
   }

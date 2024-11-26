@@ -362,8 +362,6 @@ mixin StockRequestApprovalLogic {
       branchId: variant.branchId!,
       variantId: variant.id!,
       variant: variant,
-      retailPrice: variant.retailPrice,
-      supplyPrice: variant.supplyPrice,
       currentStock: approvedQuantity.toDouble(),
       rsdQty: approvedQuantity.toDouble(),
       value: (approvedQuantity * variant.retailPrice).toDouble(),

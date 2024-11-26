@@ -1267,8 +1267,6 @@ class LocalRealmApi
               lastTouched: DateTime.now(),
               branchId: branchId,
               variantId: variation.id!,
-              retailPrice: variation.retailPrice,
-              supplyPrice: variation.supplyPrice,
               currentStock: variation.qty,
               rsdQty: variation.qty,
               value: (variation.qty * (variation.retailPrice)).toDouble(),
@@ -1301,8 +1299,6 @@ class LocalRealmApi
             branchId: branchId,
             variant: variation,
             variantId: variation.id,
-            retailPrice: variation.retailPrice,
-            supplyPrice: variation.supplyPrice,
             currentStock: variation.qty,
             value: (variation.qty * (variation.retailPrice)).toDouble(),
             productId: variation.productId)
@@ -1496,8 +1492,6 @@ class LocalRealmApi
           ..currentStock = 0.0
           ..branchId = branchId
           ..variantId = variantId
-          ..supplyPrice = 0.0
-          ..retailPrice = 0.0
           ..lowStock = 10.0 // default static
           ..canTrackingStock = true
           ..showLowStockAlert = true
@@ -1621,7 +1615,8 @@ class LocalRealmApi
       // Find corresponding transactions for this stock
 
       // Assuming retailPrice is the price for each unit sold, and sold stock is based on the difference
-      double stockSoldValue = (stock.initialStock!) * stock.retailPrice;
+      double stockSoldValue =
+          (stock.initialStock!) * (stock.variant?.retailPrice ?? 0);
 
       // Add to the total sold value
       totalSoldValue += stockSoldValue;
@@ -1645,8 +1640,8 @@ class LocalRealmApi
       // Find corresponding transactions for this stock
 
       // Assuming retailPrice is the price for each unit sold, and sold stock is based on the difference
-      double stockSoldValue =
-          (stock.initialStock! - stock.currentStock) * stock.retailPrice;
+      double stockSoldValue = (stock.initialStock! - stock.currentStock) *
+          (stock.variant?.retailPrice ?? 0);
 
       // Add to the total sold value
       totalSoldValue += stockSoldValue;
@@ -1662,7 +1657,9 @@ class LocalRealmApi
 
     // Calculate the total stock value
     double totalStockValue = stocks.fold(
-        0, (sum, stock) => sum + (stock.currentStock * stock.retailPrice));
+        0,
+        (sum, stock) =>
+            sum + (stock.currentStock * (stock.variant?.retailPrice ?? 0)));
 
     // Yield the total stock value
     yield totalStockValue;
@@ -2262,8 +2259,9 @@ class LocalRealmApi
 
     // Iterate over all stock items and calculate gross and net profit
     for (var stock in query) {
-      final grossProfit =
-          (stock.retailPrice - stock.supplyPrice) * stock.currentStock;
+      final grossProfit = ((stock.variant?.retailPrice ?? 0) -
+              (stock.variant?.supplyPrice ?? 0)) *
+          stock.currentStock;
       totalGrossProfit += grossProfit;
 
       // If net profit needs other expenses deducted, adjust accordingly
@@ -2667,8 +2665,6 @@ class LocalRealmApi
         branchId: subBranchId,
         variant: variant,
         variantId: variant.id!,
-        retailPrice: variant.retailPrice,
-        supplyPrice: variant.supplyPrice,
         currentStock: item.quantityRequested!.toDouble(),
         rsdQty: item.quantityRequested!.toDouble(),
         value: (item.quantityRequested! * variant.retailPrice).toDouble(),
@@ -2944,8 +2940,6 @@ class LocalRealmApi
   @override
   Future<Stock?> addStockToVariant({required Variant variant}) async {
     Stock stock = Stock(ObjectId(),
-        retailPrice: variant.retailPrice,
-        supplyPrice: variant.supplyPrice,
         id: randomNumber(),
         variant: variant,
         productId: variant.productId,
@@ -3253,7 +3247,7 @@ class LocalRealmApi
                 stock.rsdQty = finalStock;
                 stock.currentStock = finalStock;
                 // stock value after item deduct
-                stock.value = finalStock * (stock.retailPrice);
+                stock.value = finalStock * (stock.variant?.retailPrice ?? 0);
                 stock.ebmSynced = false;
                 stock.bhfId = stock.bhfId ?? bhfId;
                 stock.tin = stock.tin ?? ProxyService.box.tin();
@@ -4884,8 +4878,6 @@ class LocalRealmApi
         branchId: variant.branchId,
         variant: variant,
         variantId: variant.id!,
-        retailPrice: variant.retailPrice,
-        supplyPrice: variant.supplyPrice,
         currentStock: variant.qty,
         rsdQty: variant.rsdQty,
         value: (variant.qty * variant.retailPrice).toDouble(),

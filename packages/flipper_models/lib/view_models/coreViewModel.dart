@@ -404,7 +404,8 @@ class CoreViewModel extends FlipperBaseModel
 
   void handleCustomQtySetBeforeSelectingVariation() {
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
+      keypad.setAmount(
+          amount: (_currentItemStock!.variant?.retailPrice ?? 0) * quantity);
     }
   }
 
@@ -412,7 +413,8 @@ class CoreViewModel extends FlipperBaseModel
   void customQtyIncrease(double quantity) {
     ProxyService.keypad.increaseQty(custom: true, qty: quantity);
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
+      keypad.setAmount(
+          amount: (_currentItemStock!.variant?.retailPrice ?? 0) * quantity);
     }
   }
 
@@ -420,7 +422,8 @@ class CoreViewModel extends FlipperBaseModel
   void decreaseQty(Function callback) {
     ProxyService.keypad.decreaseQty();
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
+      keypad.setAmount(
+          amount: (_currentItemStock!.variant?.retailPrice ?? 0) * quantity);
     }
     callback(quantity);
   }
@@ -430,7 +433,8 @@ class CoreViewModel extends FlipperBaseModel
   void increaseQty({required Function callback, required bool custom}) {
     ProxyService.keypad.increaseQty(custom: custom);
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
+      keypad.setAmount(
+          amount: (_currentItemStock!.variant?.retailPrice ?? 0) * quantity);
       rebuildUi();
     }
     callback(keypad.quantity);

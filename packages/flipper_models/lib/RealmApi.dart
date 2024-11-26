@@ -582,8 +582,6 @@ class RealmAPI<M extends IJsonSerializable>
         active: obj.active,
         value: obj.value,
         rsdQty: obj.rsdQty,
-        supplyPrice: obj.supplyPrice,
-        retailPrice: obj.retailPrice,
         lastTouched: obj.lastTouched,
 
         deletedAt: obj.deletedAt,
@@ -635,8 +633,6 @@ class RealmAPI<M extends IJsonSerializable>
                 modrNm: obj.variant!.modrNm,
                 rsdQty: obj.rsdQty,
                 lastTouched: obj.lastTouched,
-                supplyPrice: obj.supplyPrice,
-                retailPrice: obj.retailPrice,
                 spplrItemClsCd: obj.variant!.spplrItemClsCd,
                 spplrItemCd: obj.variant!.spplrItemCd,
                 spplrItemNm: obj.variant!.spplrItemNm,

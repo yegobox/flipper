@@ -1087,8 +1087,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             lastTouched: DateTime.now(),
                             branchId: variant.branchId,
                             variantId: variant.id!,
-                            retailPrice: variant.retailPrice,
-                            supplyPrice: variant.supplyPrice,
                             currentStock: variant.qty,
                             rsdQty: variant.qty,
                             value: (variant.qty * (variant.retailPrice))

@@ -3736,8 +3736,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     bool? active,
     double value = 0.0,
     double rsdQty = 0.0,
-    double supplyPrice = 0.0,
-    double retailPrice = 0.0,
     DateTime? lastTouched,
     DateTime? deletedAt,
     bool ebmSynced = false,
@@ -3753,8 +3751,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
         'showLowStockAlert': true,
         'value': 0.0,
         'rsdQty': 0.0,
-        'supplyPrice': 0.0,
-        'retailPrice': 0.0,
         'ebmSynced': false,
         'cloudSynced': true,
       });
@@ -3773,8 +3769,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'active', active);
     RealmObjectBase.set(this, 'value', value);
     RealmObjectBase.set(this, 'rsdQty', rsdQty);
-    RealmObjectBase.set(this, 'supplyPrice', supplyPrice);
-    RealmObjectBase.set(this, 'retailPrice', retailPrice);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
@@ -3864,20 +3858,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
   set rsdQty(double value) => RealmObjectBase.set(this, 'rsdQty', value);
 
   @override
-  double get supplyPrice =>
-      RealmObjectBase.get<double>(this, 'supplyPrice') as double;
-  @override
-  set supplyPrice(double value) =>
-      RealmObjectBase.set(this, 'supplyPrice', value);
-
-  @override
-  double get retailPrice =>
-      RealmObjectBase.get<double>(this, 'retailPrice') as double;
-  @override
-  set retailPrice(double value) =>
-      RealmObjectBase.set(this, 'retailPrice', value);
-
-  @override
   DateTime? get lastTouched =>
       RealmObjectBase.get<DateTime>(this, 'lastTouched') as DateTime?;
   @override
@@ -3944,8 +3924,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       'active': active.toEJson(),
       'value': value.toEJson(),
       'rsdQty': rsdQty.toEJson(),
-      'supplyPrice': supplyPrice.toEJson(),
-      'retailPrice': retailPrice.toEJson(),
       'lastTouched': lastTouched.toEJson(),
       'deletedAt': deletedAt.toEJson(),
       'ebmSynced': ebmSynced.toEJson(),
@@ -3983,8 +3961,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
           active: fromEJson(ejson['active']),
           value: fromEJson(ejson['value'], defaultValue: 0.0),
           rsdQty: fromEJson(ejson['rsdQty'], defaultValue: 0.0),
-          supplyPrice: fromEJson(ejson['supplyPrice'], defaultValue: 0.0),
-          retailPrice: fromEJson(ejson['retailPrice'], defaultValue: 0.0),
           lastTouched: fromEJson(ejson['lastTouched']),
           deletedAt: fromEJson(ejson['deletedAt']),
           ebmSynced: fromEJson(ejson['ebmSynced'], defaultValue: false),
@@ -4017,8 +3993,6 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('active', RealmPropertyType.bool, optional: true),
       SchemaProperty('value', RealmPropertyType.double),
       SchemaProperty('rsdQty', RealmPropertyType.double),
-      SchemaProperty('supplyPrice', RealmPropertyType.double),
-      SchemaProperty('retailPrice', RealmPropertyType.double),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),

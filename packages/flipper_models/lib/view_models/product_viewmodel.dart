@@ -314,7 +314,7 @@ class ProductViewModel extends FlipperBaseModel
                 variantId: variation.id!,
                 branchId: ProxyService.box.getBranchId()!);
 
-            stock!.supplyPrice = supplyPrice;
+            stock!.variant?.supplyPrice = supplyPrice;
           }
         }
       }
@@ -331,7 +331,7 @@ class ProductViewModel extends FlipperBaseModel
                 variantId: variation.id!,
                 branchId: ProxyService.box.getBranchId()!);
 
-            stock!.retailPrice = retailPrice;
+            stock!.variant?.retailPrice = retailPrice;
           }
         }
       }

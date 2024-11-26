@@ -285,8 +285,6 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           active: true,
           value: variant.qty,
           rsdQty: variant.qty,
-          supplyPrice: variant.supplyPrice,
-          retailPrice: variant.retailPrice,
           lastTouched: DateTime.now(),
           variant: variant,
           branchId: ProxyService.box.getBranchId()!,

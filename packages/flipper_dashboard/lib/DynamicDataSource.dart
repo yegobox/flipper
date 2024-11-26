@@ -90,6 +90,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
           columnName: 'Name', value: item.variant?.productName ?? ''),
       DataGridCell<double>(
           columnName: 'CurrentStock', value: item.currentStock),
+      DataGridCell<double>(
+          columnName: 'Price', value: item.variant?.retailPrice),
     ]);
   }
 

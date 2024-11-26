@@ -1,6 +1,6 @@
 import "realm_model_export.dart";
 
-int schemaVersion = 28;
+int schemaVersion = 29;
 
 /// for local db
 final localModels = [

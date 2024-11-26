@@ -183,14 +183,6 @@ class PullChange {
           rsdQty: data['rsd_qty'] is int || data['rsd_qty'] is double
               ? data['rsd_qty'].toDouble()
               : double.tryParse(data['rsd_qty']) ?? 0.0,
-          supplyPrice:
-              data['supply_price'] is int || data['supply_price'] is double
-                  ? data['supply_price'].toDouble()
-                  : double.tryParse(data['supplyPrice']) ?? 0.0,
-          retailPrice: data['retail_price'] is int ||
-                  data['retail_price'] is double && data['retail_price'] != null
-              ? data['retail_price'].toDouble()
-              : double.tryParse(data['retail_price']) ?? 0.0,
           lastTouched: data['last_touched'] is DateTime
               ? data['last_touched']
               : DateTime.tryParse(data['last_touched']) ?? DateTime.now(),
@@ -244,8 +236,6 @@ class PullChange {
           active: data['active'] ?? false,
           value: data['value'].toDouble(),
           rsdQty: data['rsd_qty'].toDouble(),
-          supplyPrice: data['supply_price'].toDouble(),
-          retailPrice: data['retail_price'].toDouble(),
           lastTouched: data['last_touched'] == null
               ? DateTime.now()
               : DateTime.tryParse(data['last_touched']),

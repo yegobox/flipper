@@ -466,9 +466,6 @@ class _Stock {
   // RRA fields
   double rsdQty = 0.0;
 
-  double supplyPrice = 0.0;
-  double retailPrice = 0.0;
-
   DateTime? lastTouched;
 
   DateTime? deletedAt;

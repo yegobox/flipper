@@ -83,6 +83,18 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           child: const Text('Current Stock', overflow: TextOverflow.ellipsis),
         ),
       ),
+      GridColumn(
+        columnName: 'Price',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Price', overflow: TextOverflow.ellipsis),
+        ),
+      ),
     ];
   }
 
