@@ -40,7 +40,7 @@ dependencies:
   hooks_riverpod: ^2.0.0
   loading_animation_widget: ^1.2.0+4
   sentry: ^8.6.0
-  sentry_flutter: ^8.9.0
+  sentry_flutter: ^8.10.1
   flipper_models: any
   realm: ^20.0.0
   google_sign_in: ^6.2.1

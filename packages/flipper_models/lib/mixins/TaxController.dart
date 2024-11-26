@@ -381,8 +381,6 @@ class TaxController<OBJ> {
                 ProxyService.local.transactionItems(
               branchId: ProxyService.box.getBranchId()!,
               transactionId: transaction.id!,
-              doneWithTransaction: true,
-              active: true,
             );
             // copy TransactionItem
             for (TransactionItem item in items) {
@@ -447,7 +445,7 @@ class TaxController<OBJ> {
                 compositePrice: item.compositePrice,
               );
 
-              ProxyService.local.realm!.add(copy);
+              ProxyService.local.realm!.add<TransactionItem>(copy);
               ProxyService.backUp.replicateData(transactionTable, copy);
             }
 

@@ -192,7 +192,7 @@ abstract class FlipperInterface {
     required String bhFId,
   });
   // Future<Spenn> spennPayment({required double amount, required phoneNumber});
-  ITransaction collectPayment({
+  Future<ITransaction> collectPayment({
     required double cashReceived,
     required ITransaction transaction,
     required String paymentType,
@@ -303,9 +303,9 @@ abstract class FlipperInterface {
   /// get a list of transactionItems given transactionId
   List<TransactionItem> transactionItems(
       {required int transactionId,
-      required bool doneWithTransaction,
+      bool? doneWithTransaction,
       required int branchId,
-      required bool active});
+      bool? active});
 
   List<TransactionItem> transactionItemsFuture(
       {required int transactionId,

@@ -2572,28 +2572,23 @@ class LocalRealmApi
   @override
   List<TransactionItem> transactionItems(
       {required int transactionId,
-      required bool doneWithTransaction,
+      bool? doneWithTransaction,
       required int branchId,
-      required bool active}) {
+      bool? active}) {
     String queryString = "";
 
-    /// fint all and delete
-    // List<TransactionItem> itemss = realm!.query<TransactionItem>(
-    //     r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3',
-    //     [transactionId, doneWithTransaction, branchId, active]).toList();
-
-    // for (TransactionItem item in itemss) {
-    //   realm!.write(() {
-    //     realm!.delete(item);
-    //   });
-    // }
-    queryString =
-        r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3';
-
-    final items = realm!.query<TransactionItem>(queryString,
-        [transactionId, doneWithTransaction, branchId, active]).toList();
-
-    return items;
+    if (doneWithTransaction == null || active == null) {
+      queryString = r'transactionId == $0  && branchId ==$1';
+      final items = realm!.query<TransactionItem>(
+          queryString, [transactionId, branchId]).toList();
+      return items;
+    } else {
+      queryString =
+          r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3';
+      final items = realm!.query<TransactionItem>(queryString,
+          [transactionId, doneWithTransaction, branchId, active]).toList();
+      return items;
+    }
   }
 
   @override
@@ -3176,7 +3171,7 @@ class LocalRealmApi
   }
 
   @override
-  ITransaction collectPayment(
+  Future<ITransaction> collectPayment(
       {required double cashReceived,
       required ITransaction transaction,
       required String paymentType,
@@ -3188,13 +3183,10 @@ class LocalRealmApi
       required bool isProformaMode,
       required bool isTrainingMode,
       required String transactionType,
-      bool directlyHandleReceipt = true}) {
+      bool directlyHandleReceipt = true}) async {
     try {
-      List<TransactionItem> items = transactionItems(
-          branchId: branchId,
-          transactionId: transaction.id!,
-          doneWithTransaction: false,
-          active: true);
+      List<TransactionItem> items =
+          transactionItems(branchId: branchId, transactionId: transaction.id!);
 
       realm!.writeN(
         tableName: transactionTable,
@@ -3253,23 +3245,28 @@ class LocalRealmApi
           Stock? stock =
               stockByVariantId(variantId: item.variantId!, branchId: branchId);
           final finalStock = (stock!.currentStock - item.qty);
-
-          realm!.writeN(
-            tableName: stocksTable,
-            writeCallback: () async {
-              stock.rsdQty = finalStock;
-              stock.currentStock = finalStock;
-              // stock value after item deduct
-              stock.value = finalStock * (stock.retailPrice);
-              stock.ebmSynced = false;
-              stock.bhfId = stock.bhfId ?? await ProxyService.box.bhfId();
-              stock.tin = stock.tin ?? ProxyService.box.tin();
-              return stock;
-            },
-            onAdd: (data) {
-              ProxyService.backUp.replicateData(stocksTable, data);
-            },
-          );
+          final bhfId = await ProxyService.box.bhfId();
+          try {
+            realm!.writeN(
+              tableName: stocksTable,
+              writeCallback: () {
+                stock.rsdQty = finalStock;
+                stock.currentStock = finalStock;
+                // stock value after item deduct
+                stock.value = finalStock * (stock.retailPrice);
+                stock.ebmSynced = false;
+                stock.bhfId = stock.bhfId ?? bhfId;
+                stock.tin = stock.tin ?? ProxyService.box.tin();
+                return stock;
+              },
+              onAdd: (data) {
+                ProxyService.backUp.replicateData(stocksTable, data);
+              },
+            );
+          } catch (e, s) {
+            talker.warning(e);
+            talker.warning(s);
+          }
           realm!.writeN(
             tableName: transactionItemsTable,
             writeCallback: () {

@@ -608,9 +608,6 @@ class RWTax with NetworkHelper implements TaxApi {
       "regrNm": transaction.id,
       "modrId": transaction.id,
       "modrNm": transaction.id,
-      "rfdRsnCd":
-          receiptType == "NR" ? ProxyService.box.getRefundReason() : null,
-
       "custNm": customer?.custNm ?? ProxyService.box.customerName() ?? "N/A",
       "remark": "",
       "prchrAcptcYn": "Y",
@@ -626,11 +623,15 @@ class RWTax with NetworkHelper implements TaxApi {
       },
       "itemList": itemsList,
     };
+    if (receiptType == "NR" || receiptType == "CR") {
+      json['rfdRsnCd'] = ProxyService.box.getRefundReason() ?? "05";
+    }
     if (receiptType == "NR" || receiptType == "CR" || receiptType == "TR") {
       /// this is normal refund add rfdDt refunded date
       /// ATTENTION: rfdDt was added later and it might cause trouble we need to watch out.
       /// 'rfdDt': Must be a valid date in yyyyMMddHHmmss format. rejected value: '20241107'
       json['rfdDt'] = timeToUse.toYYYMMddHHmmss();
+
       // get a transaction being refunded
       // final trans = ProxyService.local.getTransactionById(
       //     id: transaction.id!);
