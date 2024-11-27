@@ -1146,7 +1146,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
       brick.Where('receiptType').isExactly(receiptType),
     ]);
     final counter = await repository.get<models.Counter>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     return counter
         .map((e) => Counter(
             id: e.id,
@@ -1166,7 +1166,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
     final query =
         brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
     final counters = await repository.get<models.Counter>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
     return counters
         .map((e) => Counter(
@@ -1298,7 +1298,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
         brick.Where('businessId').isExactly(businessId),
       ]);
       final result = await repository.get<models.Plan>(
-          query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+          query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
       return result.firstOrNull;
     } catch (e) {
       talker.error(e);
@@ -1865,7 +1865,7 @@ class FirestoreSync implements FlipperInterfaceCapella {
 
       final planWithAddons = await repository.get<models.Plan>(
         query: query,
-        policy: OfflineFirstGetPolicy.awaitRemote,
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       );
 
       return planWithAddons.expand((plan) => plan.addons).toList();

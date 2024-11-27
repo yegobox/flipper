@@ -86,14 +86,14 @@ class _AdminControlState extends State<AdminControl> {
 
     // final query = Query.where('addons', Where('planId').isExactly(1));
     // final planWithAddons = await repository.get<models.Plan>(
-    //     query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+    //     query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     // talker.warning(planWithAddons.first.addons.length.toString());
 
     // final query = Query(where: [
     //   Where('businessId').isExactly(1),
     // ]);
     // final result = await repository.get<models.Plan>(
-    //     query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+    //     query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
     try {
       await ProxyService.box.writeBool(

@@ -92,7 +92,7 @@ class LocalRealmApi
     final query =
         brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
     final result = await repository.get<models.Ebm>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     return result.firstOrNull;
   }
 
@@ -106,7 +106,7 @@ class LocalRealmApi
     final query =
         brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
     final ebm = await repository.get<models.Ebm>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemote);
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     if (ebm.firstOrNull == null) {
       final ebm = models.Ebm(
         id: randomNumber(),

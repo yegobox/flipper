@@ -338,15 +338,17 @@ class RWTax with NetworkHelper implements TaxApi {
     // Calculate total for non-tax-exempt items
     double totalTaxable =
         items.where((item) => !item.isTaxExempted).fold(0, (sum, item) {
-      double discountedPrice =
-          item.dcRt != 0 ? item.price * (1 - item.dcRt / 100) : item.price;
-      return sum + (discountedPrice * item.qty);
+      double discountedPrice = item.dcRt != 0
+          ? item.price *
+              item.qty *
+              (1 - (item.dcRt / 100)) // Fixed: Discount calculation
+          : item.price * item.qty;
+      return sum + discountedPrice; // Fixed: Add to sum
     });
 
     // Get sales and receipt type codes
     Map<String, String> receiptCodes = getReceiptCodes(receiptType);
-    Map<String, double> taxTotals = calculateTaxTotals(items);
-    Map<String, double> discounts = calculateDiscounts(items);
+    Map<String, double> taxTotals = calculateTaxTotals(itemsList);
 
     // Retrieve customer information
     Customer? customer =
@@ -364,7 +366,6 @@ class RWTax with NetworkHelper implements TaxApi {
         receiptCodes: receiptCodes,
         customer: customer,
         itemsList: itemsList,
-        discountB: discounts["B"]!,
         purchaseCode: purchaseCode,
         timeToUse: timeToUser,
         receiptType: receiptType);
@@ -401,38 +402,46 @@ class RWTax with NetworkHelper implements TaxApi {
   Map<String, dynamic> mapItemToJson(TransactionItem item, Realm realm,
       {required String bhfId}) {
     Configurations taxConfig =
-        // ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
         realm.query<Configurations>(r'taxType == $0', [item.taxTyCd!]).first;
 
-    final total = item.price * item.qty;
+    // Base calculations
+    final unitPrice = item.price;
+    final quantity = item.qty;
+    final baseTotal = unitPrice * quantity;
+
+    // Calculate discount amount correctly for the total
+    final discountRate = item.dcRt;
+    final totalDiscountAmount = (baseTotal * discountRate) / 100;
+
+    // Calculate total after discount
+    final totalAfterDiscount = baseTotal - totalDiscountAmount;
+
+    // Get tax percentage and calculate tax
+    final taxPercentage = taxConfig.taxPercentage ?? 0.0;
     double taxAmount =
-        (((total - ((total * item.dcRt) / 100)) * taxConfig.taxPercentage!) /
-            (100 + taxConfig.taxPercentage!));
+        (totalAfterDiscount * taxPercentage) / (100 + taxPercentage);
+    taxAmount = (taxAmount * 100).round() / 100;
 
     final itemJson = ITransactionItem(
       id: item.id,
-      qty: item.qty,
+      qty: quantity,
       discount: item.discount,
       remainingStock: item.remainingStock,
       itemCd: item.itemCd,
       variantId: item.id,
       qtyUnitCd: "U",
-
       regrNm: item.regrNm ?? "Registrar",
-      dcRt: item.dcRt,
-      dcAmt: item.dcRt != 0 ? ((total * item.dcRt) / 100) : 0,
-      totAmt: item.dcRt != 0
-          ? (total - ((total * item.dcRt) / 100))
-          : item.price * item.qty,
-      pkg: item.qty.toInt(),
 
-      taxblAmt: item.dcRt != 0
-          ? (total - ((total * item.dcRt) / 100))
-          : item.price * item.qty,
-      taxAmt: ((taxAmount) * 100).round() / 100,
+      // Fixed calculations
+      dcRt: discountRate,
+      dcAmt: totalDiscountAmount,
+      totAmt: totalAfterDiscount,
+
+      pkg: quantity.toInt(),
+      taxblAmt: totalAfterDiscount,
+      taxAmt: taxAmount,
       itemClsCd: item.itemClsCd,
       itemNm: item.name,
-
       itemSeq: item.itemSeq,
       isrccCd: "",
       isrccNm: "",
@@ -445,45 +454,67 @@ class RWTax with NetworkHelper implements TaxApi {
       orgnNatCd: "RW",
       pkgUnitCd: "NT",
       splyAmt: item.price * item.qty,
+      price: item.price,
       bhfId: item.bhfId ?? bhfId,
-      dftPrc: item.price * item.qty,
+      dftPrc: baseTotal,
       addInfo: "",
       isrcAplcbYn: "N",
-      prc: item.price * item.qty,
+      prc: item.price,
       useYn: "Y",
       regrId:
           item.regrId?.toString() ?? randomNumber().toString().substring(0, 20),
       modrId: item.modrId ?? "ModifierID",
-      modrNm: item.modrNm ?? "Modifier", // Ensure modrNm is not null
+      modrNm: item.modrNm ?? "Modifier",
       name: item.name,
     ).toJson();
 
     return itemJson;
   }
 
-  Map<String, double> calculateDiscounts(List<TransactionItem> items) {
-    Map<String, double> taxTotals = {'A': 0.0, 'B': 0.0, 'C': 0.0, 'D': 0.0};
+  Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
+    // Initialize tax totals with zero values
+    Map<String, double> taxTotals = {
+      'A': 0.0,
+      'B': 0.0,
+      'C': 0.0,
+      'D': 0.0,
+    };
+
     for (var item in items) {
-      String taxType = item.taxTyCd ?? 'B';
-      final total = item.price * item.qty;
-      double discount = 0;
-      if (item.dcRt != 0) {
-        discount = (total - ((total * item.dcRt) / 100));
+      try {
+        // Validate and fetch data with default fallback
+        String taxType = (item['taxTyCd'] as String?) ?? 'B';
+
+        // Ensure taxType is one of the valid types
+        if (!taxTotals.containsKey(taxType)) {
+          print(
+              'Warning: Invalid tax type $taxType found. Using default type B');
+          taxType = 'B';
+        }
+
+        final unitPrice = item['price'];
+        final quantity = (item['qty'] as num?)?.toDouble() ?? 0.0;
+        final discountRate = item['dcRt'] * item['qty'];
+
+        // Calculate unit discount and taxable amount
+        double unitDiscount = (unitPrice * discountRate) / 100;
+        double unitTaxableAmount = unitPrice - unitDiscount;
+
+        // Multiply by quantity
+        double totalTaxableAmount = unitTaxableAmount * quantity;
+
+        // Add to the appropriate tax type total using direct addition
+        taxTotals[taxType] = taxTotals[taxType]! + totalTaxableAmount;
+
+        // Optional: Add debug print to verify calculations
+        print(
+            'Processing item - Tax Type: $taxType, Amount: $totalTaxableAmount, New Total: ${taxTotals[taxType]}');
+      } catch (e) {
+        print('Error processing item: $item');
+        print('Error details: $e');
       }
-
-      taxTotals[taxType] = discount;
     }
-    return taxTotals;
-  }
 
-// Helper function to calculate tax totals
-  Map<String, double> calculateTaxTotals(List<TransactionItem> items) {
-    Map<String, double> taxTotals = {'A': 0.0, 'B': 0.0, 'C': 0.0, 'D': 0.0};
-    for (var item in items) {
-      String taxType = item.taxTyCd ?? 'B';
-      double taxAmount = item.price * item.qty;
-      taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
-    }
     return taxTotals;
   }
 
@@ -524,7 +555,6 @@ class RWTax with NetworkHelper implements TaxApi {
     required String receiptType,
     required DateTime timeToUse,
     required String bhFId,
-    required double discountB,
   }) {
     Configurations taxConfigTaxB =
         ProxyService.local.getByTaxType(taxtype: "B");
@@ -545,9 +575,7 @@ class RWTax with NetworkHelper implements TaxApi {
 
     /// TODO: for totalTax we are not accounting other taxes only B
     /// so need to account them in future
-    final totalTax = discountB != 0
-        ? discountB * 18 / 118
-        : ((taxTotals['B'] ?? 0.0) * 18 / 118);
+    final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118);
     talker.warning("HARD COPY TOTALTAX: ${totalTax.toStringAsFixed(2)}");
 
     final topMessage =
@@ -558,7 +586,6 @@ class RWTax with NetworkHelper implements TaxApi {
 
     Map<String, dynamic> json = {
       "tin": business?.tinNumber.toString() ?? "999909695",
-      // "custTin": customer?.custTin ?? "",
       "bhfId": bhFId,
       "invcNo": counter.invcNo,
       "orgInvcNo": 0,
@@ -573,7 +600,7 @@ class RWTax with NetworkHelper implements TaxApi {
 
       // Ensure tax amounts and taxable amounts are set to 0 if null
       "taxblAmtA": taxTotals['A'] ?? 0.0,
-      "taxblAmtB": discountB != 0 ? discountB : (taxTotals['B'] ?? 0.0),
+      "taxblAmtB": (taxTotals['B'] ?? 0.0),
       "taxblAmtC": taxTotals['C'] ?? 0.0,
       "taxblAmtD": taxTotals['D'] ?? 0.0,
 
@@ -581,10 +608,8 @@ class RWTax with NetworkHelper implements TaxApi {
               (taxConfigTaxA.taxPercentage ?? 0) /
               (100 + (taxConfigTaxA.taxPercentage ?? 0)))
           .toStringAsFixed(2),
-      "taxAmtB": discountB != 0
-          ? double.parse(((discountB) * 18 / 118).toStringAsFixed(2))
-          : double.parse(
-              ((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2)),
+      "taxAmtB":
+          double.parse(((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2)),
       "taxAmtC": double.parse(((taxTotals['C'] ?? 0.0) *
               (taxConfigTaxC.taxPercentage ?? 0) /
               (100 + (taxConfigTaxC.taxPercentage ?? 0)))
