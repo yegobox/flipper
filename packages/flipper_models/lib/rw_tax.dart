@@ -494,7 +494,7 @@ class RWTax with NetworkHelper implements TaxApi {
 
         final unitPrice = item['price'];
         final quantity = (item['qty'] as num?)?.toDouble() ?? 0.0;
-        final discountRate = item['dcRt'] * item['qty'];
+        final discountRate = item['dcRt'];
 
         // Calculate unit discount and taxable amount
         double unitDiscount = (unitPrice * discountRate) / 100;
