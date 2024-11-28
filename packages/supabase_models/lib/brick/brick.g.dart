@@ -9,9 +9,15 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:brick_supabase/brick_supabase.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/brick/models/stock.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/brick/models/composite.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/plan_addon.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/transactionItem.model.dart'; // GENERATED CODE DO NOT EDIT
+import 'package:supabase_models/brick/models/variant.model.dart'; // GENERATED CODE DO NOT EDIT
 // ignore: unused_import
 import 'dart:convert';
 import 'package:brick_sqlite/brick_sqlite.dart'
@@ -35,29 +41,41 @@ import 'package:sqflite_common/sqlite_api.dart' show DatabaseExecutor;
 
 import '../brick/models/counter.model.dart';
 import '../brick/models/branch.model.dart';
-import '../brick/models/plans.model.dart';
 import '../brick/models/plan_addon.model.dart';
 import '../brick/models/transactionItem.model.dart';
 import '../brick/models/stockRequest.model.dart';
 import '../brick/models/ebm.model.dart';
+import '../brick/models/variant.model.dart';
+import '../brick/models/product.model.dart';
+import '../brick/models/plans.model.dart';
+import '../brick/models/stock.model.dart';
+import '../brick/models/composite.model.dart';
 
 part 'adapters/counter_adapter.g.dart';
 part 'adapters/branch_adapter.g.dart';
-part 'adapters/plan_adapter.g.dart';
 part 'adapters/plan_addon_adapter.g.dart';
 part 'adapters/transaction_item_adapter.g.dart';
 part 'adapters/stock_request_adapter.g.dart';
 part 'adapters/ebm_adapter.g.dart';
+part 'adapters/variant_adapter.g.dart';
+part 'adapters/product_adapter.g.dart';
+part 'adapters/plan_adapter.g.dart';
+part 'adapters/stock_adapter.g.dart';
+part 'adapters/composite_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Counter: CounterAdapter(),
   Branch: BranchAdapter(),
-  Plan: PlanAdapter(),
   PlanAddon: PlanAddonAdapter(),
   TransactionItem: TransactionItemAdapter(),
   StockRequest: StockRequestAdapter(),
-  Ebm: EbmAdapter()
+  Ebm: EbmAdapter(),
+  Variant: VariantAdapter(),
+  Product: ProductAdapter(),
+  Plan: PlanAdapter(),
+  Stock: StockAdapter(),
+  Composite: CompositeAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -65,10 +83,14 @@ final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Counter: CounterAdapter(),
   Branch: BranchAdapter(),
-  Plan: PlanAdapter(),
   PlanAddon: PlanAddonAdapter(),
   TransactionItem: TransactionItemAdapter(),
   StockRequest: StockRequestAdapter(),
-  Ebm: EbmAdapter()
+  Ebm: EbmAdapter(),
+  Variant: VariantAdapter(),
+  Product: ProductAdapter(),
+  Plan: PlanAdapter(),
+  Stock: StockAdapter(),
+  Composite: CompositeAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

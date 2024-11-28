@@ -1,5 +1,5 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flipper_models/FirestoreSync.dart';
+import 'package:flipper_models/CoreSync.dart';
 import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/Supabase.dart';
@@ -8,7 +8,7 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/MockHttpClient.dart';
-import 'package:flipper_models/FlipperInterface.dart';
+import 'package:flipper_models/RealmInterface.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
@@ -69,7 +69,7 @@ abstract class ServicesModule {
   @LazySingleton()
   @Named('backup')
   FlipperInterfaceCapella provideSyncInterface(FirebaseFirestore firestore) {
-    return FirestoreSync(firestore);
+    return CoreSync(firestore);
   }
 
   @preResolve
@@ -84,7 +84,7 @@ abstract class ServicesModule {
         useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
       );
     } else {
-      return FirestoreSync(firestore);
+      return CoreSync(firestore);
     }
   }
 
@@ -97,13 +97,13 @@ abstract class ServicesModule {
   ) {
     return SyncStrategy(
       capella: capella as Capella,
-      cloudSync: backup as FirestoreSync,
+      cloudSync: backup as CoreSync,
     );
   }
 
   @preResolve
   @LazySingleton()
-  Future<FlipperInterface> localRealm(
+  Future<RealmInterface> localRealm(
     LocalStorage box,
   ) async {
     if (!kIsWeb) {

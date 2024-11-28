@@ -7,7 +7,7 @@ import 'package:cbl/cbl.dart'
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flipper_models/FirestoreSync.dart';
+import 'package:flipper_models/CoreSync.dart';
 import 'package:flipper_models/DownloadQueue.dart';
 import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -42,7 +42,7 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 
-import 'package:flipper_models/FlipperInterface.dart';
+import 'package:flipper_models/RealmInterface.dart';
 // ignore: unused_import
 import 'dart:async';
 import 'dart:typed_data';
@@ -70,7 +70,7 @@ import 'package:flipper_services/database_provider.dart'
 //
 class LocalRealmApi
     with Booting, CoreMiscellaneous, defaultData.Data
-    implements FlipperInterface {
+    implements RealmInterface {
   bool offlineLogin = false;
   @override
   Realm? realm;
@@ -223,7 +223,7 @@ class LocalRealmApi
   }
 
   @override
-  Future<FlipperInterface> configureLocal(
+  Future<RealmInterface> configureLocal(
       {required bool useInMemory, required LocalStorage box}) async {
     _setApiEndpoints();
 
@@ -552,14 +552,11 @@ class LocalRealmApi
       IPin? pin = await ProxyService.local.getPin(
           pinString: ProxyService.box.getUserId().toString(),
           flipperHttpClient: ProxyService.http);
-      if (pin == null) {
-        throw PinError(term: "Not found");
-      }
 
       ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
       Pin? savedPin = await savePin(
           pin: Pin(ObjectId(),
-              userId: int.parse(pin.userId),
+              userId: int.parse(pin!.userId),
               id: int.parse(pin.userId),
               branchId: pin.branchId,
               businessId: pin.businessId,
@@ -4864,7 +4861,7 @@ class LocalRealmApi
   }
 
   @override
-  FlipperInterface instance() {
+  RealmInterface instance() {
     // TODO: implement instance
     throw UnimplementedError();
   }
@@ -5003,23 +5000,23 @@ class LocalRealmApi
     try {
       clearVariants();
       final firestore = FirebaseFirestore.instance;
-      FirestoreSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: productsTable);
-      FirestoreSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: variantTable);
-      FirestoreSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: stocksTable);
-      FirestoreSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: transactionItemsTable);
-      FirestoreSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: stockRequestsTable);
-      FirestoreSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: accessesTable);
-      FirestoreSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: transactionItemsTable);
-      FirestoreSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: assetsTable);
-      FirestoreSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: categoriesTable);
 
       /// get all Products
@@ -5370,7 +5367,7 @@ class LocalRealmApi
   }
 
   @override
-  Future<FlipperInterface> configureCapella(
+  Future<RealmInterface> configureCapella(
       {required bool useInMemory, required LocalStorage box}) {
     // TODO: implement configureCapella
     talker.warning("This should not be called");

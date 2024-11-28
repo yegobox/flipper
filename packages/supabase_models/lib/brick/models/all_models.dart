@@ -3,3 +3,7 @@ export 'counter.model.dart';
 export 'plans.model.dart';
 export 'plan_addon.model.dart';
 export 'ebm.model.dart';
+export 'variant.model.dart';
+export 'product.model.dart';
+export 'stock.model.dart';
+export 'composite.model.dart';

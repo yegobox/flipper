@@ -41,7 +41,7 @@
 // import 'package:flipper_models/helperModels/iuser.dart';
 // import 'package:flipper_models/helperModels/talker.dart';
 // import 'package:flipper_models/helper_models.dart' as ext;
-// import 'package:flipper_models/FlipperInterface.dart';
+// import 'package:flipper_models/RealmInterface.dart';
 // import 'package:flipper_models/secrets.dart';
 // import 'package:flipper_services/proxy.dart';
 // import 'package:realm/realm.dart';
@@ -118,14 +118,14 @@
 // /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 // /// anotherone to acheive sync for flipper app
 
-// class FirestoreSync extends SupabaseImpl implements SyncInterface {
+// class CoreSync extends SupabaseImpl implements SyncInterface {
 //   final Map<String, StreamSubscription<QuerySnapshot>> _subscriptions = {};
 
 //   final FirebaseFirestore? _firestore;
 //   final RealmApiInterface _realm;
 //   final Set<int> _processingIds = {};
 
-//   FirestoreSync(this._firestore, this._realm, {SupabaseClient? client})
+//   CoreSync(this._firestore, this._realm, {SupabaseClient? client})
 //       : super(client: client);
 //   @override
 //   Future<void> deleteDuplicate({required String tableName}) async {

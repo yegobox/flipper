@@ -2,7 +2,7 @@ import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_models/FlipperInterface.dart';
+import 'package:flipper_models/RealmInterface.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -80,7 +80,7 @@ final RealmViaHttp _realmHttp = getIt<RealmViaHttp>();
 final SupabaseInterface _supa = getIt<SupabaseInterface>();
 final Crash _crash = getIt<Crash>();
 
-final FlipperInterface _localRealm = getIt<FlipperInterface>();
+final RealmInterface _localRealm = getIt<RealmInterface>();
 
 abstract class ProxyService {
   static final FlipperInterfaceCapella _capela =
@@ -94,7 +94,7 @@ abstract class ProxyService {
 
   static FlipperInterfaceCapella get backUp => _synchronize;
   static FlipperInterfaceCapella get capela => _capela;
-  static FlipperInterface get local => _localRealm;
+  static RealmInterface get local => _localRealm;
 
   static FlipperInterfaceCapella get strategy => _strategy.current;
   static void setStrategy(Strategy strategy) => _strategy.setStrategy(strategy);

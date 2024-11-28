@@ -11,7 +11,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart' as _i974;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart' as _i141;
 import 'package:flipper_models/flipper_http_client.dart' as _i843;
-import 'package:flipper_models/FlipperInterface.dart' as _i445;
+import 'package:flipper_models/RealmInterface.dart' as _i445;
 import 'package:flipper_models/FlipperInterfaceCapella.dart' as _i489;
 import 'package:flipper_models/Supabase.dart' as _i163;
 import 'package:flipper_models/sync_service.dart' as _i211;
@@ -112,7 +112,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => servicesModule.provideSyncInterface(gh<_i974.FirebaseFirestore>()),
       instanceName: 'backup',
     );
-    await gh.lazySingletonAsync<_i445.FlipperInterface>(
+    await gh.lazySingletonAsync<_i445.RealmInterface>(
       () => servicesModule.localRealm(gh<_i740.LocalStorage>()),
       preResolve: true,
     );

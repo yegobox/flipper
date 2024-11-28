@@ -1,28 +1,36 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20241117164713.migration.dart';
+part '20241114183152.migration.dart';
+part '20241117103838.migration.dart';
 part '20241113144615.migration.dart';
 part '20241113200548.migration.dart';
-part '20241114183152.migration.dart';
+part '20241117164713.migration.dart';
 part '20241114183418.migration.dart';
 part '20241117083433.migration.dart';
-part '20241117103838.migration.dart';
+part '20241128071810.migration.dart';
+part '20241128071851.migration.dart';
+part '20241128071917.migration.dart';
+part '20241128072540.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20241117164713(),
+  const Migration20241114183152(),
+  const Migration20241117103838(),
   const Migration20241113144615(),
   const Migration20241113200548(),
-  const Migration20241114183152(),
+  const Migration20241117164713(),
   const Migration20241114183418(),
   const Migration20241117083433(),
-  const Migration20241117103838()
+  const Migration20241128071810(),
+  const Migration20241128071851(),
+  const Migration20241128071917(),
+  const Migration20241128072540()
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema =
-    Schema(20241117164713, generatorVersion: 1, tables: <SchemaTable>{
+    Schema(20241128072540, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('Counter', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -50,40 +58,6 @@ final schema =
     SchemaColumn('longitude', Column.varchar),
     SchemaColumn('is_default', Column.boolean),
     SchemaColumn('is_online', Column.boolean)
-  }, indices: <SchemaIndex>{}),
-  SchemaTable('_brick_Plan_addons', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('l_Plan_brick_id', Column.integer,
-        isForeignKey: true,
-        foreignTableName: 'Plan',
-        onDeleteCascade: true,
-        onDeleteSetDefault: false),
-    SchemaColumn('f_PlanAddon_brick_id', Column.integer,
-        isForeignKey: true,
-        foreignTableName: 'PlanAddon',
-        onDeleteCascade: true,
-        onDeleteSetDefault: false)
-  }, indices: <SchemaIndex>{
-    SchemaIndex(
-        columns: ['l_Plan_brick_id', 'f_PlanAddon_brick_id'], unique: true)
-  }),
-  SchemaTable('Plan', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('id', Column.integer, unique: true),
-    SchemaColumn('business_id', Column.integer),
-    SchemaColumn('selected_plan', Column.varchar),
-    SchemaColumn('additional_devices', Column.integer),
-    SchemaColumn('is_yearly_plan', Column.boolean),
-    SchemaColumn('total_price', Column.integer),
-    SchemaColumn('created_at', Column.datetime),
-    SchemaColumn('payment_completed_by_user', Column.boolean),
-    SchemaColumn('pay_stack_customer_id', Column.integer),
-    SchemaColumn('rule', Column.varchar),
-    SchemaColumn('payment_method', Column.varchar),
-    SchemaColumn('next_billing_date', Column.datetime),
-    SchemaColumn('number_of_payments', Column.integer)
   }, indices: <SchemaIndex>{}),
   SchemaTable('PlanAddon', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
@@ -200,5 +174,180 @@ final schema =
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('last_touched', Column.datetime)
+  }, indices: <SchemaIndex>{}),
+  SchemaTable('Variant', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('deleted_at', Column.datetime),
+    SchemaColumn('name', Column.varchar),
+    SchemaColumn('color', Column.varchar),
+    SchemaColumn('sku', Column.varchar),
+    SchemaColumn('product_id', Column.integer),
+    SchemaColumn('unit', Column.varchar),
+    SchemaColumn('product_name', Column.varchar),
+    SchemaColumn('branch_id', Column.integer),
+    SchemaColumn('tax_name', Column.varchar),
+    SchemaColumn('tax_percentage', Column.Double),
+    SchemaColumn('item_seq', Column.integer),
+    SchemaColumn('isrcc_cd', Column.varchar),
+    SchemaColumn('isrcc_nm', Column.varchar),
+    SchemaColumn('isrc_rt', Column.integer),
+    SchemaColumn('isrc_amt', Column.integer),
+    SchemaColumn('tax_ty_cd', Column.varchar),
+    SchemaColumn('bcd', Column.varchar),
+    SchemaColumn('item_cls_cd', Column.varchar),
+    SchemaColumn('item_ty_cd', Column.varchar),
+    SchemaColumn('item_std_nm', Column.varchar),
+    SchemaColumn('orgn_nat_cd', Column.varchar),
+    SchemaColumn('pkg', Column.varchar),
+    SchemaColumn('item_cd', Column.varchar),
+    SchemaColumn('pkg_unit_cd', Column.varchar),
+    SchemaColumn('qty_unit_cd', Column.varchar),
+    SchemaColumn('item_nm', Column.varchar),
+    SchemaColumn('qty', Column.Double),
+    SchemaColumn('prc', Column.Double),
+    SchemaColumn('sply_amt', Column.Double),
+    SchemaColumn('tin', Column.integer),
+    SchemaColumn('bhf_id', Column.varchar),
+    SchemaColumn('dft_prc', Column.Double),
+    SchemaColumn('add_info', Column.varchar),
+    SchemaColumn('isrc_aplcb_yn', Column.varchar),
+    SchemaColumn('use_yn', Column.varchar),
+    SchemaColumn('regr_id', Column.varchar),
+    SchemaColumn('regr_nm', Column.varchar),
+    SchemaColumn('modr_id', Column.varchar),
+    SchemaColumn('modr_nm', Column.varchar),
+    SchemaColumn('rsd_qty', Column.Double),
+    SchemaColumn('last_touched', Column.datetime),
+    SchemaColumn('supply_price', Column.Double),
+    SchemaColumn('retail_price', Column.Double),
+    SchemaColumn('spplr_item_cls_cd', Column.varchar),
+    SchemaColumn('spplr_item_cd', Column.varchar),
+    SchemaColumn('spplr_item_nm', Column.varchar),
+    SchemaColumn('ebm_synced', Column.boolean),
+    SchemaColumn('branch_ids', Column.varchar),
+    SchemaColumn('stock_Stock_brick_id', Column.integer,
+        isForeignKey: true,
+        foreignTableName: 'Stock',
+        onDeleteCascade: false,
+        onDeleteSetDefault: false),
+    SchemaColumn('dc_rt', Column.Double),
+    SchemaColumn('expiration_date', Column.datetime)
+  }, indices: <SchemaIndex>{}),
+  SchemaTable('_brick_Product_composites', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('l_Product_brick_id', Column.integer,
+        isForeignKey: true,
+        foreignTableName: 'Product',
+        onDeleteCascade: true,
+        onDeleteSetDefault: false),
+    SchemaColumn('f_Composite_brick_id', Column.integer,
+        isForeignKey: true,
+        foreignTableName: 'Composite',
+        onDeleteCascade: true,
+        onDeleteSetDefault: false)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(
+        columns: ['l_Product_brick_id', 'f_Composite_brick_id'], unique: true)
+  }),
+  SchemaTable('Product', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('name', Column.varchar),
+    SchemaColumn('description', Column.varchar),
+    SchemaColumn('tax_id', Column.varchar),
+    SchemaColumn('color', Column.varchar),
+    SchemaColumn('business_id', Column.integer),
+    SchemaColumn('branch_id', Column.integer),
+    SchemaColumn('supplier_id', Column.varchar),
+    SchemaColumn('category_id', Column.integer),
+    SchemaColumn('created_at', Column.varchar),
+    SchemaColumn('unit', Column.varchar),
+    SchemaColumn('image_url', Column.varchar),
+    SchemaColumn('expiry_date', Column.varchar),
+    SchemaColumn('bar_code', Column.varchar),
+    SchemaColumn('nfc_enabled', Column.boolean),
+    SchemaColumn('binded_to_tenant_id', Column.integer),
+    SchemaColumn('is_favorite', Column.boolean),
+    SchemaColumn('last_touched', Column.datetime),
+    SchemaColumn('deleted_at', Column.datetime),
+    SchemaColumn('search_match', Column.boolean),
+    SchemaColumn('spplr_nm', Column.varchar),
+    SchemaColumn('is_composite', Column.boolean)
+  }, indices: <SchemaIndex>{}),
+  SchemaTable('_brick_Plan_addons', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('l_Plan_brick_id', Column.integer,
+        isForeignKey: true,
+        foreignTableName: 'Plan',
+        onDeleteCascade: true,
+        onDeleteSetDefault: false),
+    SchemaColumn('f_PlanAddon_brick_id', Column.integer,
+        isForeignKey: true,
+        foreignTableName: 'PlanAddon',
+        onDeleteCascade: true,
+        onDeleteSetDefault: false)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(
+        columns: ['l_Plan_brick_id', 'f_PlanAddon_brick_id'], unique: true)
+  }),
+  SchemaTable('Plan', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('business_id', Column.integer),
+    SchemaColumn('selected_plan', Column.varchar),
+    SchemaColumn('additional_devices', Column.integer),
+    SchemaColumn('is_yearly_plan', Column.boolean),
+    SchemaColumn('total_price', Column.integer),
+    SchemaColumn('created_at', Column.datetime),
+    SchemaColumn('payment_completed_by_user', Column.boolean),
+    SchemaColumn('pay_stack_customer_id', Column.integer),
+    SchemaColumn('rule', Column.varchar),
+    SchemaColumn('payment_method', Column.varchar),
+    SchemaColumn('next_billing_date', Column.datetime),
+    SchemaColumn('number_of_payments', Column.integer)
+  }, indices: <SchemaIndex>{}),
+  SchemaTable('Stock', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('tin', Column.integer),
+    SchemaColumn('bhf_id', Column.varchar),
+    SchemaColumn('branch_id', Column.integer),
+    SchemaColumn('variant_id', Column.integer),
+    SchemaColumn('current_stock', Column.Double),
+    SchemaColumn('low_stock', Column.Double),
+    SchemaColumn('can_tracking_stock', Column.boolean),
+    SchemaColumn('show_low_stock_alert', Column.boolean),
+    SchemaColumn('product_id', Column.integer),
+    SchemaColumn('active', Column.boolean),
+    SchemaColumn('value', Column.Double),
+    SchemaColumn('rsd_qty', Column.Double),
+    SchemaColumn('last_touched', Column.datetime),
+    SchemaColumn('deleted_at', Column.datetime),
+    SchemaColumn('ebm_synced', Column.boolean),
+    SchemaColumn('cloud_synced', Column.boolean),
+    SchemaColumn('variant_Variant_brick_id', Column.integer,
+        isForeignKey: true,
+        foreignTableName: 'Variant',
+        onDeleteCascade: false,
+        onDeleteSetDefault: false),
+    SchemaColumn('initial_stock', Column.Double)
+  }, indices: <SchemaIndex>{}),
+  SchemaTable('Composite', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('product_id', Column.integer),
+    SchemaColumn('variant_id', Column.integer),
+    SchemaColumn('qty', Column.Double),
+    SchemaColumn('branch_id', Column.integer),
+    SchemaColumn('business_id', Column.integer),
+    SchemaColumn('actual_price', Column.Double)
   }, indices: <SchemaIndex>{})
 });
