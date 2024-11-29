@@ -770,7 +770,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ],
                 ),
               ),
-              if (product?.imageUrl != null)
+              if (product?.isValid ?? true && product?.imageUrl != null)
                 FutureBuilder(
                   future: getImageFilePath(imageFileName: product!.imageUrl!),
                   builder: (context, snapshot) {
@@ -1083,7 +1083,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           Stock(
                             ObjectId(),
                             id: id,
-                            
                             lastTouched: DateTime.now(),
                             branchId: variant.branchId,
                             variantId: variant.id!,
