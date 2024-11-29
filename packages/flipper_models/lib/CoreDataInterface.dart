@@ -7,7 +7,8 @@ import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
-import 'package:firestore_models/firestore_models.dart';
+// import 'package:firestore_models/firestore_models.dart';
+import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:firestore_models/transaction.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
@@ -56,8 +57,8 @@ abstract class CoreDataInterface {
   Future<Configurations> saveTax(
       {required int configId, required double taxPercentage});
 
-  void replicateData<T>(String tableName, T data,
-      {bool? useNewImplementation = false});
+  // void replicateData<T>(String tableName, T data,
+  // {bool? useNewImplementation = false});
   Future<void> processbatchBackUp<T extends realmO.RealmObject>(List<T> batch);
   Future<bool> firebaseLogin({String? token});
   void cancelWatch({required String tableName});
@@ -212,8 +213,6 @@ abstract class CoreDataInterface {
       double retailPrice = 0,
       int itemSeq = 1,
       bool ebmSynced = false});
-
-  Future<Voucher?> consumeVoucher({required int voucherCode});
 
   Stream<Transaction> manageTransactionStream(
       {required String transactionType,
@@ -445,7 +444,7 @@ abstract class CoreDataInterface {
       })> getUnSyncedData();
   // Future<Conversation> sendMessage(
   //     {required String message, required Conversation latestConversation});
-  EBM? ebm({required int branchId});
+  Ebm? ebm({required int branchId});
   void saveEbm(
       {required int branchId, required String severUrl, required String bhFId});
 
@@ -536,9 +535,9 @@ abstract class CoreDataInterface {
 
   /// determine if current running user is admin
   bool isAdmin({required int userId, required String appFeature});
-  Future<LPermission?> permission({required int userId});
-  List<LPermission> permissions({required int userId});
-  List<Accesses> access({required int userId});
+  // Future<LPermission?> permission({required int userId});
+  // List<LPermission> permissions({required int userId});
+  List<Access> access({required int userId});
   Stream<List<StockRequest>> requestsStream(
       {required int branchId, required String filter});
   List<StockRequest> requests({required int branchId});
@@ -571,7 +570,7 @@ abstract class CoreDataInterface {
   });
   Future<models.Plan?> getPaymentPlan({required int businessId});
   FlipperSaleCompaign? getLatestCompaign();
-  Stream<PaymentPlan?> paymentPlanStream({required int businessId});
+  Stream<Plan?> paymentPlanStream({required int businessId});
 
   Stream<List<TransactionItem>> transactionItemList(
       {DateTime? startDate, DateTime? endDate, bool? isPluReport});
@@ -586,7 +585,6 @@ abstract class CoreDataInterface {
   void createOrUpdateBranchOnCloud(
       {required Branch branch, required bool isOnline});
 
-  Future<List<Activity>> activities({required int userId});
   Future<void> refreshSession({required int branchId, int? refreshRate = 5});
   int createStockRequest(List<TransactionItem> items,
       {required String deliveryNote,
@@ -636,10 +634,8 @@ abstract class CoreDataInterface {
       required Branch branch,
       required HttpClientInterface flipperHttpClient,
       required String userType});
-  Future<List<UniversalProduct>> universalProductNames({required int branchId});
-  Stream<List<AppNotification>> notificationStream({required int identifier});
-  void notify({required AppNotification notification});
-  AppNotification notification({required int id});
+  Future<List<UnversalProduct>> universalProductNames({required int branchId});
+
   Future<Branch> addBranch(
       {required String name,
       required int businessId,

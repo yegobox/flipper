@@ -3,7 +3,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:firestore_models/firestore_models.dart' as newMod;
+import 'package:supabase_models/brick/models/all_models.dart' as newMod;
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_services/locator.dart' as loc;
@@ -173,7 +173,7 @@ mixin ProductMixin {
         return mproduct;
       },
       onAdd: (data) {
-        ProxyService.backUp.replicateData(productsTable, data);
+        // ProxyService.backUp.replicateData(productsTable, data);
       },
     );
 

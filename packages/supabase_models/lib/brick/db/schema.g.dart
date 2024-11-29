@@ -13,6 +13,7 @@ part '20241128071851.migration.dart';
 part '20241128071917.migration.dart';
 part '20241128072540.migration.dart';
 part '20241128141446.migration.dart';
+part '20241129195847.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -27,12 +28,13 @@ final migrations = <Migration>{
   const Migration20241128071851(),
   const Migration20241128071917(),
   const Migration20241128072540(),
-  const Migration20241128141446()
+  const Migration20241128141446(),
+  const Migration20241129195847()
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema =
-    Schema(20241128141446, generatorVersion: 1, tables: <SchemaTable>{
+    Schema(20241129195847, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('Counter', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -694,5 +696,14 @@ final schema =
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer)
+  }, indices: <SchemaIndex>{}),
+  SchemaTable('Assets', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('branch_id', Column.integer),
+    SchemaColumn('business_id', Column.integer),
+    SchemaColumn('asset_name', Column.varchar),
+    SchemaColumn('product_id', Column.integer)
   }, indices: <SchemaIndex>{})
 });

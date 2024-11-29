@@ -2760,7 +2760,7 @@ class LocalRealmApi
           return item;
         },
         onAdd: (data) {
-          ProxyService.backUp.replicateData(transactionItemsTable, data);
+          // ProxyService.backUp.replicateData(transactionItemsTable, data);
         },
       );
     }
@@ -2783,7 +2783,7 @@ class LocalRealmApi
         return stockRequest;
       },
       onAdd: (data) {
-        ProxyService.backUp.replicateData(stockRequestsTable, data);
+        // ProxyService.backUp.replicateData(stockRequestsTable, data);
       },
     );
     return orderId;
@@ -2808,7 +2808,7 @@ class LocalRealmApi
           return stock;
         },
         onAdd: (data) {
-          ProxyService.backUp.replicateData(stocksTable, data);
+          // ProxyService.backUp.replicateData(stocksTable, data);
         },
       );
     }
@@ -3255,7 +3255,7 @@ class LocalRealmApi
                 return stock;
               },
               onAdd: (data) {
-                ProxyService.backUp.replicateData(stocksTable, data);
+                // ProxyService.backUp.replicateData(stocksTable, data);
               },
             );
           } catch (e, s) {
@@ -3271,7 +3271,7 @@ class LocalRealmApi
               return item;
             },
             onAdd: (data) {
-              ProxyService.backUp.replicateData(transactionItemsTable, data);
+              // ProxyService.backUp.replicateData(transactionItemsTable, data);
             },
           );
 
@@ -3286,7 +3286,7 @@ class LocalRealmApi
                 return variant;
               },
               onAdd: (data) {
-                ProxyService.backUp.replicateData(variantTable, data);
+                // ProxyService.backUp.replicateData(variantTable, data);
               },
             );
           }
@@ -3439,7 +3439,7 @@ class LocalRealmApi
       required int invoiceNumber,
       required DateTime whenCreated,
       required String receiptType,
-      required odm.Counter counter}) async {
+      required brick.Counter counter}) async {
     int branchId = ProxyService.box.getBranchId()!;
 
     Receipt receipt = Receipt(ObjectId(),
@@ -3496,7 +3496,7 @@ class LocalRealmApi
           }
         },
         onAdd: (data) {
-          ProxyService.backUp.replicateData(receiptsTable, data);
+          // ProxyService.backUp.replicateData(receiptsTable, data);
         },
       );
 
@@ -4925,7 +4925,7 @@ class LocalRealmApi
       },
       onAdd: (data) {
         for (Counter counter in data) {
-          ProxyService.backUp.replicateData(countersTable, counter);
+          // ProxyService.backUp.replicateData(countersTable, counter);
         }
       },
     );
@@ -4959,7 +4959,7 @@ class LocalRealmApi
           return savedPin!;
         },
         onAdd: (data) {
-          ProxyService.backUp.replicateData(pinsTable, data);
+          // ProxyService.backUp.replicateData(pinsTable, data);
         },
       );
       return savedPin!;
@@ -5241,7 +5241,7 @@ class LocalRealmApi
                       return variant;
                     },
                     onAdd: (data) {
-                      ProxyService.backUp.replicateData(variantTable, data);
+                      // ProxyService.backUp.replicateData(variantTable, data);
                     },
                   );
                 }
@@ -5259,7 +5259,7 @@ class LocalRealmApi
                       return stock;
                     },
                     onAdd: (data) {
-                      ProxyService.backUp.replicateData(stocksTable, data);
+                      // ProxyService.backUp.replicateData(stocksTable, data);
                     },
                   );
                 }
@@ -5277,7 +5277,7 @@ class LocalRealmApi
                       return customer;
                     },
                     onAdd: (data) {
-                      ProxyService.backUp.replicateData(customersTable, data);
+                      // ProxyService.backUp.replicateData(customersTable, data);
                     },
                   );
                 }
@@ -5296,7 +5296,7 @@ class LocalRealmApi
                       return transaction;
                     },
                     onAdd: (data) {
-                      ProxyService.backUp.replicateData(transactionTable, data);
+                      // ProxyService.backUp.replicateData(transactionTable, data);
                     },
                   );
                 }
@@ -5423,7 +5423,7 @@ class LocalRealmApi
           return transaction;
         },
         onAdd: (data) {
-          ProxyService.backUp.replicateData(transactionTable, data);
+          // ProxyService.backUp.replicateData(transactionTable, data);
         });
   }
 
@@ -5506,7 +5506,7 @@ class LocalRealmApi
     );
 
     // Get tax type configuration
-    config.Configurations? taxType = await ProxyService.strategy
+    brick.Configurations? taxType = await ProxyService.strategy
         .getByTaxType(taxtype: taxTypes[product.barCode] ?? "B");
 
     talker.warning("ItemClass${itemClasses[product.barCode] ?? "5020230602"}");
@@ -5516,7 +5516,7 @@ class LocalRealmApi
       tableName: productsTable,
       writeCallback: () => ProxyService.local.realm!.add<Product>(product),
       onAdd: (data) {
-        ProxyService.backUp.replicateData(productsTable, data);
+        // ProxyService.backUp.replicateData(productsTable, data);
       },
     );
 
@@ -5548,7 +5548,7 @@ class LocalRealmApi
       tableName: variantTable,
       writeCallback: () => ProxyService.local.realm!.add<Variant>(variant),
       onAdd: (data) {
-        ProxyService.backUp.replicateData(variantTable, data);
+        // ProxyService.backUp.replicateData(variantTable, data);
       },
     );
 
@@ -5560,7 +5560,7 @@ class LocalRealmApi
         return variant;
       },
       onAdd: (data) {
-        ProxyService.backUp.replicateData(variantTable, data);
+        // ProxyService.backUp.replicateData(variantTable, data);
       },
     );
 
@@ -5569,7 +5569,7 @@ class LocalRealmApi
       tableName: stocksTable,
       writeCallback: () => ProxyService.local.realm!.add<Stock>(stock),
       onAdd: (data) {
-        ProxyService.backUp.replicateData(stocksTable, data);
+        // ProxyService.backUp.replicateData(stocksTable, data);
       },
     );
   }
@@ -5603,7 +5603,7 @@ class LocalRealmApi
     required brick.Item item,
     required Product product,
     required Stock stock,
-    required config.Configurations? taxType,
+    required brick.Configurations? taxType,
     required int branchId,
     required int variantId,
     required Map<String, String> taxTypes,

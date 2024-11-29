@@ -21,7 +21,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'dart:typed_data';
 import 'package:flipper_models/CoreDataInterface.dart';
-import 'package:firestore_models/firestore_models.dart';
+import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:firestore_models/transaction.dart' as trans;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
@@ -44,44 +44,6 @@ class CoreSync implements CoreDataInterface {
 
   bool isInIsolate() {
     return Isolate.current.debugName != null;
-  }
-
-  @override
-  void replicateData<T>(String tableName, T data,
-      {bool? useNewImplementation = false}) {
-    try {
-      final map = useNewImplementation!
-          ? (data is Counter
-              ? data.toJson()
-              : (data != null ? (data as dynamic).toJson() : {}))
-          : (data is old.Stock
-              ? data.toEJson()?.toFlipperJson() ?? {}
-              : data.toEJson()?.toFlipperJson() ?? {});
-      talker.warning(map);
-      final id = _getId(map);
-
-      if (!useNewImplementation) {
-        _removeFields(map, ['variant', 'stock', 'branch_ids']);
-      }
-
-      updateRecord(
-        tableName: tableName,
-        idField: "${tableName.singularize()}_id",
-        map: map,
-        id: id,
-        syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
-      );
-    } catch (e) {
-      print(e);
-      rethrow;
-    }
-  }
-
-// Helper to extract and parse `id`
-  dynamic _getId(Map<dynamic, dynamic> map) {
-    return map['id'] is String
-        ? int.parse(map['id'])
-        : map['id'] ??= randomNumber();
   }
 
 // Helper to remove unwanted fields from the map
@@ -659,7 +621,7 @@ class CoreSync implements CoreDataInterface {
   SendPort? sendPort;
 
   @override
-  List<Accesses> access({required int userId}) {
+  List<Access> access({required int userId}) {
     // TODO: implement access
     throw UnimplementedError();
   }
@@ -679,12 +641,6 @@ class CoreSync implements CoreDataInterface {
   @override
   Category? activeCategory({required int branchId}) {
     // TODO: implement activeCategory
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Activity>> activities({required int userId}) {
-    // TODO: implement activities
     throw UnimplementedError();
   }
 
@@ -890,12 +846,6 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  Future<Voucher?> consumeVoucher({required int voucherCode}) {
-    // TODO: implement consumeVoucher
-    throw UnimplementedError();
-  }
-
-  @override
   Future<T?> create<T>({required T data}) {
     // TODO: implement create
     throw UnimplementedError();
@@ -1051,7 +1001,7 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  EBM? ebm({required int branchId}) {
+  Ebm? ebm({required int branchId}) {
     // TODO: implement ebm
     throw UnimplementedError();
   }
@@ -1113,14 +1063,15 @@ class CoreSync implements CoreDataInterface {
 
   @override
   Future<Configurations?> getByTaxType({required String taxtype}) async {
-    final response = await configurationsRef
-        .whereTaxType(isEqualTo: taxtype)
-        .whereBranchId(isEqualTo: ProxyService.box.getBranchId()!)
-        .get();
-    if (response.docs.isEmpty) {
-      return null;
-    }
-    return response.docs.first.data;
+    throw UnimplementedError();
+    // final response = await configurationsRef
+    //     .whereTaxType(isEqualTo: taxtype)
+    //     .whereBranchId(isEqualTo: ProxyService.box.getBranchId()!)
+    //     .get();
+    // if (response.docs.isEmpty) {
+    //   return null;
+    // }
+    // return response.docs.first.data;
   }
 
   @override
@@ -1145,17 +1096,7 @@ class CoreSync implements CoreDataInterface {
     ]);
     final counter = await repository.get<models.Counter>(
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-    return counter
-        .map((e) => Counter(
-            id: e.id,
-            branchId: e.branchId,
-            businessId: e.businessId,
-            receiptType: e.receiptType,
-            totRcptNo: e.totRcptNo,
-            curRcptNo: e.curRcptNo,
-            invcNo: e.invcNo,
-            lastTouched: e.lastTouched))
-        .firstOrNull;
+    return counter.firstOrNull;
   }
 
   @override
@@ -1166,18 +1107,7 @@ class CoreSync implements CoreDataInterface {
     final counters = await repository.get<models.Counter>(
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
-    return counters
-        .map((e) => Counter(
-              id: e.id,
-              branchId: e.branchId,
-              businessId: e.businessId,
-              receiptType: e.receiptType,
-              totRcptNo: e.totRcptNo,
-              curRcptNo: e.curRcptNo,
-              invcNo: e.invcNo,
-              lastTouched: DateTime.now(),
-            ))
-        .toList();
+    return counters;
   }
 
   @override
@@ -1628,23 +1558,6 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  AppNotification notification({required int id}) {
-    // TODO: implement notification
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<AppNotification>> notificationStream({required int identifier}) {
-    // TODO: implement notificationStream
-    throw UnimplementedError();
-  }
-
-  @override
-  void notify({required AppNotification notification}) {
-    // TODO: implement notify
-  }
-
-  @override
   Drawers? openDrawer({required Drawers drawer}) {
     // TODO: implement openDrawer
     throw UnimplementedError();
@@ -1663,43 +1576,34 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  Stream<PaymentPlan?> paymentPlanStream({required int businessId}) {
+  Stream<Plan?> paymentPlanStream({required int businessId}) {
     // TODO: implement paymentPlanStream
     throw UnimplementedError();
   }
 
   @override
-  Future<LPermission?> permission({required int userId}) {
-    // TODO: implement permission
-    throw UnimplementedError();
-  }
-
-  @override
-  List<LPermission> permissions({required int userId}) {
-    // TODO: implement permissions
-    throw UnimplementedError();
-  }
-
-  @override
   Stream<List<Product>> productStreams({int? prodIndex}) {
-    final products = productsRef
-        .whereId(isEqualTo: prodIndex)
-        .whereBranchId(isEqualTo: ProxyService.box.getBranchId()!);
-    return products
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => doc.data).toList());
+    // final products = productsRef
+    //     .whereId(isEqualTo: prodIndex)
+    //     .whereBranchId(isEqualTo: ProxyService.box.getBranchId()!);
+    // return products
+    //     .snapshots()
+    //     .map((snapshot) => snapshot.docs.map((doc) => doc.data).toList());
+    throw UnimplementedError();
   }
 
   @override
   Future<List<Product>> products({required int branchId}) async {
-    final products = await productsRef.whereBranchId(isEqualTo: branchId).get();
-    return products.docs.map((doc) => doc.data).toList();
+    // final products = await productsRef.whereBranchId(isEqualTo: branchId).get();
+    // return products.docs.map((doc) => doc.data).toList();
+    throw UnimplementedError();
   }
 
   @override
   Future<List<Product>> productsFuture({required int branchId}) async {
-    final products = await productsRef.whereBranchId(isEqualTo: branchId).get();
-    return products.docs.map((doc) => doc.data).toList();
+    // final products = await productsRef.whereBranchId(isEqualTo: branchId).get();
+    // return products.docs.map((doc) => doc.data).toList();
+    throw UnimplementedError();
   }
 
   @override
@@ -1764,21 +1668,23 @@ class CoreSync implements CoreDataInterface {
   @override
   Stream<List<StockRequest>> requestsStream(
       {required int branchId, required String filter}) {
-    final response =
-        stockRequestsRef.whereMain_branch_id(isEqualTo: branchId).snapshots();
-    return response
-        .map((snapshot) => snapshot.docs.map((doc) => doc.data).toList());
+    // final response =
+    //     stockRequestsRef.whereMain_branch_id(isEqualTo: branchId).snapshots();
+    // return response
+    //     .map((snapshot) => snapshot.docs.map((doc) => doc.data).toList());
+    throw UnimplementedError();
   }
 
   @override
   void saveComposite({required Composite composite}) {
-    updateRecord(
-      tableName: compositesTable,
-      idField: "${compositesTable.singularize()}_id",
-      map: composite.toJson(),
-      id: composite.id!,
-      syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
-    );
+    // updateRecord(
+    //   tableName: compositesTable,
+    //   idField: "${compositesTable.singularize()}_id",
+    //   map: composite.toJson(),
+    //   id: composite.id!,
+    //   syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+    // );
+    throw UnimplementedError();
   }
 
   @override
@@ -2219,8 +2125,7 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  Future<List<UniversalProduct>> universalProductNames(
-      {required int branchId}) {
+  Future<List<UnversalProduct>> universalProductNames({required int branchId}) {
     // TODO: implement universalProductNames
     throw UnimplementedError();
   }
@@ -2252,7 +2157,7 @@ class CoreSync implements CoreDataInterface {
       final upCounter = models.Counter(
         createdAt: DateTime.now(),
         lastTouched: DateTime.now(),
-        id: counter.id!,
+        id: counter.id,
         branchId: counter.branchId,
         curRcptNo: counter.curRcptNo,
         totRcptNo: counter.totRcptNo,
@@ -2262,12 +2167,6 @@ class CoreSync implements CoreDataInterface {
       );
       repository.upsert(upCounter);
       counter.invcNo = counter.invcNo! + 1;
-      ProxyService.capela.updateRecord(
-          tableName: countersTable,
-          idField: 'id',
-          map: counter.toJson(),
-          id: counter.id!,
-          syncProviders: [SyncProvider.CAPELLA]);
     }
   }
 

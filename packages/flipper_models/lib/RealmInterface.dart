@@ -14,7 +14,7 @@ import 'package:flipper_models/sync.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:firestore_models/firestore_models.dart' as odm;
+import 'package:supabase_models/brick/models/all_models.dart' as odm;
 import 'package:realm/realm.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/tenant.dart';

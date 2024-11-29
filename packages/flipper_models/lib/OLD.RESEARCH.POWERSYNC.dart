@@ -1,3 +1,44 @@
+// TODO: firstore old useful code
+
+// @override
+// void replicateData<T>(String tableName, T data,
+//     {bool? useNewImplementation = false}) {
+//   try {
+//     final map = useNewImplementation!
+//         ? (data is Counter
+//             ? data.toJson()
+//             : (data != null ? (data as dynamic).toJson() : {}))
+//         : (data is old.Stock
+//             ? data.toEJson()?.toFlipperJson() ?? {}
+//             : data.toEJson()?.toFlipperJson() ?? {});
+//     talker.warning(map);
+//     final id = _getId(map);
+
+//     if (!useNewImplementation) {
+//       _removeFields(map, ['variant', 'stock', 'branch_ids']);
+//     }
+
+//     updateRecord(
+//       tableName: tableName,
+//       idField: "${tableName.singularize()}_id",
+//       map: map,
+//       id: id,
+//       syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+//     );
+//   } catch (e) {
+//     print(e);
+//     rethrow;
+//   }
+// }
+
+// Helper to extract and parse `id`
+// dynamic _getId(Map<dynamic, dynamic> map) {
+//   return map['id'] is String
+//       ? int.parse(map['id'])
+//       : map['id'] ??= randomNumber();
+// }
+
+
 // firestore isolate
 // static Future<void> cloudDownload(List<dynamic> args) async {
 //   final rootIsolateToken = args[0] as RootIsolateToken;

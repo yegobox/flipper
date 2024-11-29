@@ -286,7 +286,7 @@ class _RefundState extends ConsumerState<Refund> {
                 return stock;
               },
               onAdd: (data) {
-                ProxyService.backUp.replicateData(stocksTable, data);
+                // ProxyService.backUp.replicateData(stocksTable, data);
               },
             );
 
@@ -297,7 +297,7 @@ class _RefundState extends ConsumerState<Refund> {
                 return variant;
               },
               onAdd: (data) {
-                ProxyService.backUp.replicateData(variantTable, data);
+                // ProxyService.backUp.replicateData(variantTable, data);
               },
             );
 
@@ -308,7 +308,7 @@ class _RefundState extends ConsumerState<Refund> {
                 return widget.transaction;
               },
               onAdd: (data) {
-                ProxyService.backUp.replicateData(transactionTable, data);
+                // ProxyService.backUp.replicateData(transactionTable, data);
               },
             );
           }

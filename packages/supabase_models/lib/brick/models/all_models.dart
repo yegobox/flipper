@@ -28,3 +28,8 @@ export 'transaction.model.dart';
 export 'unit.model.dart';
 export 'universalProduct.model.dart';
 export 'item.dart';
+export 'transactionItem.model.dart';
+// export 'access.model.dart';
+export 'stockRequest.model.dart';
+export 'transactionPaymentRecord.dart';
+export 'flipperSaleCompagin.dart';

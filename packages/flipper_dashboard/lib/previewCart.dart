@@ -17,7 +17,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import 'package:firestore_models/firestore_models.dart' as odm;
+import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:realm/realm.dart';
 
@@ -164,7 +164,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
           return transaction;
         },
         onAdd: (data) {
-          ProxyService.backUp.replicateData(transactionTable, data);
+          // ProxyService.backUp.replicateData(transactionTable, data);
         },
       );
     } catch (e) {
@@ -249,7 +249,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       if (v == "Invoice number already exists.") {
         // talker.error("IIIII");
         // A Quick fix increment counter for now.
-        List<odm.Counter> counters = await ProxyService.strategy
+        List<brick.Counter> counters = await ProxyService.strategy
             .getCounters(branchId: ProxyService.box.getBranchId()!);
 
         ProxyService.strategy.updateCounters(counters: counters);

@@ -4,11 +4,10 @@ import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:flipper_models/power_sync/schema.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:realm_dart/src/realm_object.dart';
 import 'package:realm_dart/src/results.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
-import 'package:firestore_models/firestore_models.dart';
+import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:firestore_models/transaction.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/AppInitializer.dart';
@@ -183,55 +182,50 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<Voucher?> consumeVoucher({required int voucherCode}) {
-    // TODO: implement consumeVoucher
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<Counter>> getCounters({required int branchId}) async {
-    try {
-      AsyncCollection? collection =
-          await capella!.database!.collection(countersTable, scope);
-      if (collection == null) {
-        collection =
-            await capella!.database!.createCollection(countersTable, scope);
-      }
+    throw UnimplementedError();
+    // try {
+    //   AsyncCollection? collection =
+    //       await capella!.database!.collection(countersTable, scope);
+    //   if (collection == null) {
+    //     collection =
+    //         await capella!.database!.createCollection(countersTable, scope);
+    //   }
 
-      final query = QueryBuilder()
-          .select(SelectResult.all())
-          .from(DataSource.collection(collection))
-          .where(Expression.property('branchId')
-              .equalTo(Expression.integer(branchId)));
+    //   final query = QueryBuilder()
+    //       .select(SelectResult.all())
+    //       .from(DataSource.collection(collection))
+    //       .where(Expression.property('branchId')
+    //           .equalTo(Expression.integer(branchId)));
 
-      final result = await query.execute();
-      final results = await result.allResults();
+    //   final result = await query.execute();
+    //   final results = await result.allResults();
 
-      List<Counter> counters = [];
+    //   List<Counter> counters = [];
 
-      for (var item in results) {
-        final Map<String, dynamic> json = item.toPlainMap();
-        talker.warning("Query result: $json");
+    //   for (var item in results) {
+    //     final Map<String, dynamic> json = item.toPlainMap();
+    //     talker.warning("Query result: $json");
 
-        // Handle both nested and flat JSON structures
-        final Map<String, dynamic> counterData =
-            json.containsKey(countersTable) ? json[countersTable] : json;
+    //     // Handle both nested and flat JSON structures
+    //     final Map<String, dynamic> counterData =
+    //         json.containsKey(countersTable) ? json[countersTable] : json;
 
-        try {
-          final counter = Counter.fromJson(counterData);
-          counters.add(counter);
-        } catch (e) {
-          talker.error('Error parsing counter: $e');
-          // Continue processing other items even if one fails
-          continue;
-        }
-      }
+    //     try {
+    //       final counter = Counter.fromJson(counterData);
+    //       counters.add(counter);
+    //     } catch (e) {
+    //       talker.error('Error parsing counter: $e');
+    //       // Continue processing other items even if one fails
+    //       continue;
+    //     }
+    //   }
 
-      return counters;
-    } catch (e) {
-      talker.error('Error getting counters: $e');
-      return [];
-    }
+    //   return counters;
+    // } catch (e) {
+    //   talker.error('Error getting counters: $e');
+    //   return [];
+    // }
   }
 
   String get scope => "_default";
@@ -239,68 +233,70 @@ class Capella with Booting implements CoreDataInterface {
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {
     talker.warning("Using capella");
-    try {
-      AsyncCollection? collection =
-          await capella!.database!.collection(countersTable, scope);
-      if (collection == null) {
-        collection =
-            await capella!.database!.createCollection(countersTable, scope);
-      }
+    throw UnimplementedError();
+    // try {
+    //   AsyncCollection? collection =
+    //       await capella!.database!.collection(countersTable, scope);
+    //   if (collection == null) {
+    //     collection =
+    //         await capella!.database!.createCollection(countersTable, scope);
+    //   }
 
-      final query = QueryBuilder()
-          .select(SelectResult.all())
-          .from(DataSource.collection(collection))
-          .where(Expression.property('receiptType')
-              .equalTo(Expression.string(receiptType))
-              .and(Expression.property('branchId')
-                  .equalTo(Expression.integer(branchId))))
-          .limit(Expression.integer(1));
+    //   final query = QueryBuilder()
+    //       .select(SelectResult.all())
+    //       .from(DataSource.collection(collection))
+    //       .where(Expression.property('receiptType')
+    //           .equalTo(Expression.string(receiptType))
+    //           .and(Expression.property('branchId')
+    //               .equalTo(Expression.integer(branchId))))
+    //       .limit(Expression.integer(1));
 
-      final result = await query.execute();
-      final results = await result.allResults();
+    //   final result = await query.execute();
+    //   final results = await result.allResults();
 
-      if (results.isEmpty) {
-        return null;
-      }
+    //   if (results.isEmpty) {
+    //     return null;
+    //   }
 
-      final Map<String, dynamic> json = results.first.toPlainMap();
-      talker.warning("Query result: $json");
+    //   final Map<String, dynamic> json = results.first.toPlainMap();
+    //   talker.warning("Query result: $json");
 
-      final Map<String, dynamic> counterData =
-          json.containsKey(countersTable) ? json[countersTable] : json;
+    //   final Map<String, dynamic> counterData =
+    //       json.containsKey(countersTable) ? json[countersTable] : json;
 
-      return Counter.fromJson(counterData);
-    } catch (e) {
-      talker.error('Error getting counter: $e');
-      return null;
-    }
+    //   return Counter.fromJson(counterData);
+    // } catch (e) {
+    //   talker.error('Error getting counter: $e');
+    //   return null;
+    // }
   }
 
   @override
   Future<Configurations?> getByTaxType({required String taxtype}) async {
-    try {
-      AsyncCollection? collection = await getConfigurationsCollection();
-      final query = QueryBuilder()
-          .select(SelectResult.all())
-          .from(DataSource.collection(collection))
-          .where(Expression.property('taxType')
-              .equalTo(Expression.string(taxtype))
-              .and(Expression.property('branchId').equalTo(
-                  Expression.integer(ProxyService.box.getBranchId()!))))
-          .limit(Expression.integer(1));
+    throw UnimplementedError();
+    // try {
+    //   AsyncCollection? collection = await getConfigurationsCollection();
+    //   final query = QueryBuilder()
+    //       .select(SelectResult.all())
+    //       .from(DataSource.collection(collection))
+    //       .where(Expression.property('taxType')
+    //           .equalTo(Expression.string(taxtype))
+    //           .and(Expression.property('branchId').equalTo(
+    //               Expression.integer(ProxyService.box.getBranchId()!))))
+    //       .limit(Expression.integer(1));
 
-      final result = await query.execute();
-      final results = await result.allResults();
+    //   final result = await query.execute();
+    //   final results = await result.allResults();
 
-      if (results.isNotEmpty) {
-        final Map<String, dynamic> json = results.first.toPlainMap();
-        talker.warning("Query result: $json");
-        return Configurations.fromJson(json);
-      }
-      return null;
-    } catch (e) {
-      rethrow;
-    }
+    //   if (results.isNotEmpty) {
+    //     final Map<String, dynamic> json = results.first.toPlainMap();
+    //     talker.warning("Query result: $json");
+    //     return Configurations.fromJson(json);
+    //   }
+    //   return null;
+    // } catch (e) {
+    //   rethrow;
+    // }
   }
 
   @override
@@ -366,7 +362,7 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  List<Accesses> access({required int userId}) {
+  List<Access> access({required int userId}) {
     // TODO: implement access
     throw UnimplementedError();
   }
@@ -386,12 +382,6 @@ class Capella with Booting implements CoreDataInterface {
   @override
   Category? activeCategory({required int branchId}) {
     // TODO: implement activeCategory
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Activity>> activities({required int userId}) {
-    // TODO: implement activities
     throw UnimplementedError();
   }
 
@@ -738,7 +728,7 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  EBM? ebm({required int branchId}) {
+  Ebm? ebm({required int branchId}) {
     // TODO: implement ebm
     throw UnimplementedError();
   }
@@ -1235,23 +1225,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  AppNotification notification({required int id}) {
-    // TODO: implement notification
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<AppNotification>> notificationStream({required int identifier}) {
-    // TODO: implement notificationStream
-    throw UnimplementedError();
-  }
-
-  @override
-  void notify({required AppNotification notification}) {
-    // TODO: implement notify
-  }
-
-  @override
   Drawers? openDrawer({required Drawers drawer}) {
     // TODO: implement openDrawer
     throw UnimplementedError();
@@ -1270,20 +1243,8 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Stream<PaymentPlan?> paymentPlanStream({required int businessId}) {
+  Stream<Plan?> paymentPlanStream({required int businessId}) {
     // TODO: implement paymentPlanStream
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<LPermission?> permission({required int userId}) {
-    // TODO: implement permission
-    throw UnimplementedError();
-  }
-
-  @override
-  List<LPermission> permissions({required int userId}) {
-    // TODO: implement permissions
     throw UnimplementedError();
   }
 
@@ -1392,7 +1353,7 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<PaymentPlan> saveOrUpdatePaymentPlan(
+  Future<Plan> saveOrUpdatePaymentPlan(
       {required int businessId,
       int numberOfPayments = 1,
       required String selectedPlan,
@@ -1626,8 +1587,7 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<List<UniversalProduct>> universalProductNames(
-      {required int branchId}) {
+  Future<List<UnversalProduct>> universalProductNames({required int branchId}) {
     // TODO: implement universalProductNames
     throw UnimplementedError();
   }
@@ -1685,85 +1645,85 @@ class Capella with Booting implements CoreDataInterface {
     RwApiResponse? receiptSignature,
   }) async {
     final collection = await getCountersCollection();
+    throw UnimplementedError();
+    // await capella!.database!.writeN(
+    //   tableName: countersTable,
+    //   writeCallback: () {
+    //     List<MutableDocument> documents = [];
 
-    await capella!.database!.writeN(
-      tableName: countersTable,
-      writeCallback: () {
-        List<MutableDocument> documents = [];
+    //     for (Counter counter in counters) {
+    //       try {
+    //         talker.warning("JSONN${counter.toJson()}");
+    //         // Ensure document ID is string
+    //         String documentId = counter.id.toString();
 
-        for (Counter counter in counters) {
-          try {
-            talker.warning("JSONN${counter.toJson()}");
-            // Ensure document ID is string
-            String documentId = counter.id.toString();
+    //         // Create updated counter
+    //         Counter updatedCounter = counter.copyWith(
+    //           totRcptNo: receiptSignature?.data?.totRcptNo,
+    //           curRcptNo: receiptSignature?.data?.rcptNo,
+    //           invcNo: (counter.invcNo != null) ? counter.invcNo! + 1 : 1,
+    //         );
 
-            // Create updated counter
-            Counter updatedCounter = counter.copyWith(
-              totRcptNo: receiptSignature?.data?.totRcptNo,
-              curRcptNo: receiptSignature?.data?.rcptNo,
-              invcNo: (counter.invcNo != null) ? counter.invcNo! + 1 : 1,
-            );
+    //         // Create document and set data
+    //         final doc = MutableDocument.withId(documentId);
 
-            // Create document and set data
-            final doc = MutableDocument.withId(documentId);
+    //         // Convert updatedCounter to a map once
+    //         var updatedCounterMap = updatedCounter.toJson();
 
-            // Convert updatedCounter to a map once
-            var updatedCounterMap = updatedCounter.toJson();
+    //         // Remove the "lastTouched" key if it exists
+    //         updatedCounterMap.remove("lastTouched");
 
-            // Remove the "lastTouched" key if it exists
-            updatedCounterMap.remove("lastTouched");
+    //         // Set "lastTouched" to the current time
+    //         updatedCounterMap["lastTouched"] = DateTime.now().toIso8601String();
 
-            // Set "lastTouched" to the current time
-            updatedCounterMap["lastTouched"] = DateTime.now().toIso8601String();
+    //         updatedCounterMap["channels"] = [
+    //           ProxyService.box.getBranchId()?.toString(),
+    //         ];
 
-            updatedCounterMap["channels"] = [
-              ProxyService.box.getBranchId()?.toString(),
-            ];
+    //         // Write the modified map to the document
+    //         doc.setData(updatedCounterMap);
 
-            // Write the modified map to the document
-            doc.setData(updatedCounterMap);
+    //         documents.add(doc);
+    //       } catch (e, s) {
+    //         talker.warning(s);
+    //       }
+    //     }
 
-            documents.add(doc);
-          } catch (e, s) {
-            talker.warning(s);
-          }
-        }
+    //     return documents;
+    //   },
+    //   onAdd: (docs) async {
+    //     try {
+    //       talker.warning("LENGHT:${docs.length}");
 
-        return documents;
-      },
-      onAdd: (docs) async {
-        try {
-          talker.warning("LENGHT:${docs.length}");
+    //       for (var doc in docs) {
+    //         // Get existing document if it exists
+    //         final existingDoc = await collection.document(doc.id);
 
-          for (var doc in docs) {
-            // Get existing document if it exists
-            final existingDoc = await collection.document(doc.id);
-
-            // If document exists, update it with new data
-            if (existingDoc != null) {
-              final mutableExisting = existingDoc.toMutable();
-              talker.warning("Data to save: ${doc.toPlainMap()}");
-              mutableExisting.setData(doc.toPlainMap());
-              await collection.saveDocument(mutableExisting);
-            } else {
-              // Save new document
-              await collection.saveDocument(doc);
-            }
-            // update firestore
-            ProxyService.backUp.replicateData(
-              countersTable,
-              Counter.fromJson(doc.toPlainMap()),
-              useNewImplementation: true,
-            );
-            talker.warning("Document saved successfully: ${doc.id}");
-          }
-        } catch (e, s) {
-          talker.warning("Error saving document: $e");
-          talker.error("Error saving document: $s");
-          rethrow;
-        }
-      },
-    );
+    //         // If document exists, update it with new data
+    //         if (existingDoc != null) {
+    //           final mutableExisting = existingDoc.toMutable();
+    //           talker.warning("Data to save: ${doc.toPlainMap()}");
+    //           mutableExisting.setData(doc.toPlainMap());
+    //           await collection.saveDocument(mutableExisting);
+    //         } else {
+    //           // Save new document
+    //           await collection.saveDocument(doc);
+    //         }
+    //         // update firestore
+    //         ProxyService.backUp.replicateData(
+    //           countersTable,
+    //           Counter.fromJson(doc.toPlainMap()),
+    //           useNewImplementation: true,
+    //         );
+    //         talker.warning("Document saved successfully: ${doc.id}");
+    //       }
+    //     } catch (e, s) {
+    //       talker.warning("Error saving document: $e");
+    //       talker.error("Error saving document: $s");
+    //       rethrow;
+    //     }
+    //   },
+    // );
   }
 
   @override
@@ -1846,12 +1806,6 @@ class Capella with Booting implements CoreDataInterface {
       required SyncProvider syncProvider}) {
     // TODO: implement handleRealmChangesAsync
     throw UnimplementedError();
-  }
-
-  @override
-  void replicateData<T>(String tableName, T data,
-      {bool? useNewImplementation = false}) {
-    // TODO: implement now
   }
 
   @override

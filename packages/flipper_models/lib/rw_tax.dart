@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:firestore_models/firestore_models.dart' as odm;
+import 'package:supabase_models/brick/models/all_models.dart' as odm;
 import 'package:dio/dio.dart';
 import 'package:flipper_models/NetworkHelper.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';

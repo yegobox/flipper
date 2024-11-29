@@ -7,7 +7,7 @@ import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:intl/intl.dart';
-import 'package:firestore_models/firestore_models.dart' as odm;
+import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:flipper_services/proxy.dart';
 import 'package:cbl/cbl.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
@@ -287,7 +287,7 @@ class TaxController<OBJ> {
     try {
       int branchId = ProxyService.box.getBranchId()!;
 
-      odm.Counter? counter = await ProxyService.strategy
+      brick.Counter? counter = await ProxyService.strategy
           .getCounter(branchId: branchId, receiptType: receiptType);
       if (counter == null) {
         throw Exception(
@@ -330,7 +330,7 @@ class TaxController<OBJ> {
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
         String qrCode = generateQRCode(now.toYYYMMdd(), receiptSignature);
-        List<odm.Counter> counters = await ProxyService.strategy
+        List<brick.Counter> counters = await ProxyService.strategy
             .getCounters(branchId: ProxyService.box.getBranchId()!);
 
         /// update transaction with receipt number and total receipt number
@@ -446,7 +446,7 @@ class TaxController<OBJ> {
               );
 
               ProxyService.local.realm!.add<TransactionItem>(copy);
-              ProxyService.backUp.replicateData(transactionTable, copy);
+              // ProxyService.backUp.replicateData(transactionTable, copy);
             }
 
             ProxyService.local.realm!.add(tran);
@@ -456,7 +456,7 @@ class TaxController<OBJ> {
             transaction.receiptNumber = receiptSignature.data?.rcptNo;
             transaction.totalReceiptNumber = receiptSignature.data?.totRcptNo;
             transaction.invoiceNumber = counter.invcNo;
-            ProxyService.backUp.replicateData(transactionTable, transaction);
+            // ProxyService.backUp.replicateData(transactionTable, transaction);
           }
         });
 
@@ -521,7 +521,7 @@ class TaxController<OBJ> {
       RwApiResponse receiptSignature,
       ITransaction transaction,
       String qrCode,
-      odm.Counter counter,
+      brick.Counter counter,
       String receiptType,
       {required DateTime whenCreated,
       required int invoiceNumber}) async {

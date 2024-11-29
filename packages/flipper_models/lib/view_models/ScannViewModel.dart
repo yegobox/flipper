@@ -173,7 +173,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           return stock;
         },
         onAdd: (data) {
-          ProxyService.backUp.replicateData(stocksTable, data);
+          // ProxyService.backUp.replicateData(stocksTable, data);
         },
       );
       notifyListeners();

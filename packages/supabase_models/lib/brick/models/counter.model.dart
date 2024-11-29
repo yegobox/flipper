@@ -18,7 +18,7 @@ class Counter extends OfflineFirstWithSupabaseModel {
   final String? receiptType;
   final int? totRcptNo;
   final int? curRcptNo;
-  final int? invcNo;
+  int? invcNo;
   final DateTime? lastTouched;
   final DateTime? createdAt;
 
