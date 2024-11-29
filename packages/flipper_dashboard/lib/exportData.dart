@@ -182,18 +182,18 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     currentY += 20; // Reduced space between rows
 
     // Draw the third row of information
-    drawLabelValuePair(
-        'Gross Profit:', config.grossProfit?.toRwf() ?? '', 0, currentY);
-    drawLabelValuePair('Opening Balance:', 100.toRwf(), width * 0.5, currentY);
+    // drawLabelValuePair(
+    //     'Gross Profit:', config.grossProfit?.toRwf() ?? '', 0, currentY);
+    // drawLabelValuePair('Opening Balance:', 100.toRwf(), width * 0.5, currentY);
 
     // Increment Y position for the next row
     currentY += 20; // Reduced space between rows
 
     // Draw the fourth row of information
-    drawLabelValuePair(
-        'Net Profit:', config.netProfit?.toRwf() ?? '', 0, currentY);
-    drawLabelValuePair('Tax Amount:', (config.grossProfit ?? 0).toRwf(),
-        width * 0.5, currentY);
+    // drawLabelValuePair(
+    //     'Net Profit:', config.netProfit?.toRwf() ?? '', 0, currentY);
+    // drawLabelValuePair('Tax Amount:', (config.grossProfit ?? 0).toRwf(),
+    // width * 0.5, currentY);
 
     // Set the adjusted header to the PDF document template
     headerFooterExport.pdfDocumentTemplate.top = header;

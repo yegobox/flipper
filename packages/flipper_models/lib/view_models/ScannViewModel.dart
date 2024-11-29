@@ -229,6 +229,11 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         // loop through all variants and update all with retailPrice and supplyPrice
         ProxyService.local.realm!.write(() {
           for (var i = 0; i < variantsLength; i++) {
+            // get product
+            Product? product = ProxyService.local
+                .getProduct(id: scannedVariants[i].productId!);
+            product?.name = scannedVariants[i].name;
+            scannedVariants[i].productName = scannedVariants[i].name;
             double rate = rates?[scannedVariants[i].id] == null
                 ? 0
                 : double.parse(rates![scannedVariants[i].id]!.text);

@@ -198,9 +198,7 @@ mixin TransactionMixin {
       required double currentStock,
       required bool partOfComposite}) async {
     try {
-      String name = variation.productName != 'Custom Amount'
-          ? '${variation.productName}(${variation.name})'
-          : variation.productName!;
+      String name = variation.productName ?? "N/A";
 
       TransactionItem? existTransactionItem = ProxyService.local
           .getTransactionItemByVariantId(

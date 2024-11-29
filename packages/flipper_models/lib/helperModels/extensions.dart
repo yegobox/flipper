@@ -137,6 +137,17 @@ extension CurrencyFormatExtension on num {
   }
 
   String toNoCurrencyFormatted({String? symbol}) {
+    // Convert `num` to `String` and clean the input
+    String cleanedInput = toString().replaceAll(',', '');
+
+    // Parse the cleaned string to a double
+    final double? parsedNumber = double.tryParse(cleanedInput);
+
+    // Handle cases where parsing fails
+    if (parsedNumber == null) {
+      throw FormatException('Invalid double value: $this');
+    }
+
     // Use the intl package's NumberFormat to format the number correctly
     final numberFormat = NumberFormat.currency(
       locale: 'en',
@@ -144,12 +155,12 @@ extension CurrencyFormatExtension on num {
       decimalDigits: 2,
     );
 
-    // Check if the number is 0 or 0.0
-    if (this == 0 || this == 0.0) {
+    // Check if the number is 0
+    if (parsedNumber == 0.0) {
       return symbol ?? '';
     }
 
-    return numberFormat.format(this);
+    return numberFormat.format(parsedNumber);
   }
 
   String toNoCurrency({String? symbol}) {

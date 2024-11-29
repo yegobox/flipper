@@ -181,6 +181,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
         isLoading = true;
       });
       talker.warning("salesListLenghts" + salesList.length.toString());
+      final ref = randomNumber();
       for (SaleList supplier in salesList) {
         for (ItemList item in supplier.itemList!) {
           item.retailPrice ??= item.prc;
@@ -230,16 +231,25 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               partOfComposite: false,
               compositePrice: 0,
             );
+            final bhfId = await ProxyService.box.bhfId() ?? "00";
+
             // mark the transaction as parked until completed
-            ProxyService.local.realm!.write(() async {
+            ProxyService.local.realm!.write(() {
               /// when sarTyCd == 6 it is incoming adjustment
               pendingTransaction!.sarTyCd = "6";
+              pendingTransaction.subTotal =
+                  pendingTransaction.subTotal + item.splyAmt;
+              pendingTransaction.cashReceived =
+                  -(pendingTransaction.subTotal + item.splyAmt);
               pendingTransaction.customerName =
                   ProxyService.local.getBusiness().name;
+              pendingTransaction.receiptNumber = ref;
+              pendingTransaction.reference = ref.toString();
+              pendingTransaction.invoiceNumber = ref;
+              pendingTransaction.receiptType = TransactionType.purchase;
               pendingTransaction.customerTin =
                   ProxyService.box.tin().toString();
-              pendingTransaction.customerBhfId =
-                  await ProxyService.box.bhfId() ?? "00";
+              pendingTransaction.customerBhfId = bhfId;
               pendingTransaction.status = PARKED;
             });
           }

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'dart:typed_data';
-import 'package:flipper_models/FlipperInterfaceCapella.dart';
+import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:realm_dart/src/realm_object.dart';
@@ -34,7 +34,7 @@ import 'package:flipper_services/database_provider.dart'
 import 'package:flipper_services/replicator_provider.dart'
     if (dart.library.html) 'DatabaseProvider.dart';
 
-class Capella with Booting implements FlipperInterfaceCapella {
+class Capella with Booting implements CoreDataInterface {
   @override
   DatabaseProvider? capella;
   bool offlineLogin = false;
@@ -109,7 +109,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<FlipperInterfaceCapella> configureCapella(
+  Future<CoreDataInterface> configureCapella(
       {required bool useInMemory, required LocalStorage box}) async {
     talker.warning("The real implementation of capella called");
 
@@ -136,7 +136,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<FlipperInterfaceCapella> configureLocal(
+  Future<CoreDataInterface> configureLocal(
       {required bool useInMemory, required LocalStorage box}) {
     throw UnimplementedError();
   }
@@ -1124,7 +1124,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  FlipperInterfaceCapella instance() {
+  CoreDataInterface instance() {
     // TODO: implement instance
     throw UnimplementedError();
   }

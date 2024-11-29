@@ -1,4 +1,3 @@
-import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/flipper_http_client.dart';
@@ -8,7 +7,7 @@ import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/HttpApi.dart';
 import 'package:flipper_services/PayStackService.dart';
-
+import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/abstractions/remote.dart';
@@ -83,20 +82,20 @@ final Crash _crash = getIt<Crash>();
 final RealmInterface _localRealm = getIt<RealmInterface>();
 
 abstract class ProxyService {
-  static final FlipperInterfaceCapella _capela =
-      getIt<FlipperInterfaceCapella>(instanceName: 'capella');
+  static final CoreDataInterface _capela =
+      getIt<CoreDataInterface>(instanceName: 'capella');
 
-  static final FlipperInterfaceCapella _synchronize =
-      getIt<FlipperInterfaceCapella>(instanceName: 'backup');
+  static final CoreDataInterface _synchronize =
+      getIt<CoreDataInterface>(instanceName: 'backup');
 
   static final SyncStrategy _strategy =
       getIt<SyncStrategy>(instanceName: 'strategy');
 
-  static FlipperInterfaceCapella get backUp => _synchronize;
-  static FlipperInterfaceCapella get capela => _capela;
+  static CoreDataInterface get backUp => _synchronize;
+  static CoreDataInterface get capela => _capela;
   static RealmInterface get local => _localRealm;
 
-  static FlipperInterfaceCapella get strategy => _strategy.current;
+  static CoreDataInterface get strategy => _strategy.current;
   static void setStrategy(Strategy strategy) => _strategy.setStrategy(strategy);
 
   static Crash get crash => _crash;

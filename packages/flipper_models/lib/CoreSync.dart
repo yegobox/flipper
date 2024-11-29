@@ -20,7 +20,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'dart:typed_data';
-import 'package:flipper_models/FlipperInterfaceCapella.dart';
+import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:firestore_models/firestore_models.dart';
 import 'package:firestore_models/transaction.dart' as trans;
 import 'package:flipper_models/flipper_http_client.dart';
@@ -36,7 +36,7 @@ import 'package:flipper_services/database_provider.dart'
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
 
-class CoreSync implements FlipperInterfaceCapella {
+class CoreSync implements CoreDataInterface {
   final Map<String, StreamSubscription<QuerySnapshot>> _subscriptions = {};
   final FirebaseFirestore? _firestore;
   realmO.Realm? realm;
@@ -866,14 +866,14 @@ class CoreSync implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<FlipperInterfaceCapella> configureCapella(
+  Future<CoreDataInterface> configureCapella(
       {required bool useInMemory, required storage.LocalStorage box}) {
     // TODO: implement configureCapella
     throw UnimplementedError();
   }
 
   @override
-  Future<FlipperInterfaceCapella> configureLocal(
+  Future<CoreDataInterface> configureLocal(
       {required bool useInMemory, required storage.LocalStorage box}) {
     // TODO: implement configureLocal
     throw UnimplementedError();
@@ -1519,7 +1519,7 @@ class CoreSync implements FlipperInterfaceCapella {
   }
 
   @override
-  FlipperInterfaceCapella instance() {
+  CoreDataInterface instance() {
     // TODO: implement instance
     throw UnimplementedError();
   }

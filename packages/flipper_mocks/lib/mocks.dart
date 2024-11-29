@@ -1,6 +1,5 @@
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:realm/realm.dart';

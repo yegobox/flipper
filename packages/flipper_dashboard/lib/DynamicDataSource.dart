@@ -79,8 +79,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
           columnName: 'Name', value: item.invoiceNumber?.toString() ?? "-"),
       DataGridCell<String>(columnName: 'Type', value: item.receiptType ?? "-"),
       DataGridCell<double>(columnName: 'Amount', value: item.subTotal),
-      DataGridCell<double>(
-          columnName: 'CashReceived', value: item.cashReceived),
+      DataGridCell<double>(columnName: 'Cash', value: item.cashReceived),
     ]);
   }
 

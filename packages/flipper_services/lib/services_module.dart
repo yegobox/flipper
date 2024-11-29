@@ -1,6 +1,6 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flipper_models/CoreSync.dart';
-import 'package:flipper_models/FlipperInterfaceCapella.dart';
+import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -68,14 +68,14 @@ import 'package:flipper_services/DeviceIdService.dart' as dev;
 abstract class ServicesModule {
   @LazySingleton()
   @Named('backup')
-  FlipperInterfaceCapella provideSyncInterface(FirebaseFirestore firestore) {
+  CoreDataInterface provideSyncInterface(FirebaseFirestore firestore) {
     return CoreSync(firestore);
   }
 
   @preResolve
   @Named('capella')
   @LazySingleton()
-  Future<FlipperInterfaceCapella> capella(
+  Future<CoreDataInterface> capella(
     LocalStorage box,
   ) async {
     if (!kIsWeb) {
@@ -92,8 +92,8 @@ abstract class ServicesModule {
   @lazySingleton
   @Named('strategy')
   SyncStrategy provideStrategy(
-    @Named('capella') FlipperInterfaceCapella capella,
-    @Named('backup') FlipperInterfaceCapella backup,
+    @Named('capella') CoreDataInterface capella,
+    @Named('backup') CoreDataInterface backup,
   ) {
     return SyncStrategy(
       capella: capella as Capella,

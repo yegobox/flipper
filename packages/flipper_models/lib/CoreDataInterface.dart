@@ -40,7 +40,7 @@ abstract class DataMigratorToLocal {
   List<String> activeRealmSubscriptions();
 }
 
-abstract class FlipperInterfaceCapella {
+abstract class CoreDataInterface {
   DatabaseProvider? capella;
 
   AsyncCollection? branchCollection;
@@ -116,10 +116,10 @@ abstract class FlipperInterfaceCapella {
   });
   Future<void> deleteDuplicate({required String tableName});
 
-  Future<FlipperInterfaceCapella> configureLocal(
+  Future<CoreDataInterface> configureLocal(
       {required bool useInMemory, required LocalStorage box});
 
-  Future<FlipperInterfaceCapella> configureCapella(
+  Future<CoreDataInterface> configureCapella(
       {required bool useInMemory, required LocalStorage box});
   void whoAmI();
   Future<void> initCollections();
@@ -523,7 +523,7 @@ abstract class FlipperInterfaceCapella {
       required String name});
 
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName);
-  FlipperInterfaceCapella instance();
+  CoreDataInterface instance();
   Tenant? tenant({int? businessId, int? userId});
   Stream<List<Report>> reports({required int branchId});
   Report report({required int id});

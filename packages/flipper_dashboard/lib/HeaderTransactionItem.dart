@@ -42,7 +42,7 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ),
       ),
       GridColumn(
-        columnName: 'CashReceived',
+        columnName: 'Cash',
         label: Container(
           decoration: BoxDecoration(
             color: Colors.grey.shade200,
@@ -50,7 +50,7 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Cash Received', overflow: TextOverflow.ellipsis),
+          child: const Text('Cash ', overflow: TextOverflow.ellipsis),
         ),
       ),
     ];

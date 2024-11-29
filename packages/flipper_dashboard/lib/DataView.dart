@@ -338,7 +338,7 @@ class DataViewState extends ConsumerState<DataView>
     throw Exception('No valid data source available');
   }
 
-  Future<void> _export({String headerTitle = "Sales Report"}) async {
+  Future<void> _export({String headerTitle = "Report"}) async {
     if (workBookKey.currentState == null) {
       toast("Error: Workbook is null");
       return;
