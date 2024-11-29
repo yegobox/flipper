@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
@@ -66,6 +67,8 @@ import 'package:path/path.dart' as path;
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as brick;
+import 'package:firestore_models/configurations.dart' as config;
 
 //
 class LocalRealmApi
@@ -1260,25 +1263,27 @@ class LocalRealmApi
         if (stock == null) {
           final newStock = Stock(ObjectId(),
               id: stockId,
-              variant: variation,
               lastTouched: DateTime.now(),
               branchId: branchId,
               variantId: variation.id!,
-              currentStock: variation.qty,
-              rsdQty: variation.qty,
-              value: (variation.qty * (variation.retailPrice)).toDouble(),
+              currentStock: stock?.rsdQty ?? 0,
+              rsdQty: stock?.rsdQty ?? 0,
+              value: (variation.stock?.rsdQty ?? 0 * (variation.retailPrice))
+                  .toDouble(),
               productId: variation.productId,
               active: false);
           realm!.put<Stock>(newStock, tableName: 'stocks');
         }
 
-        stock!.currentStock = stock.currentStock + variation.qty;
-        stock.rsdQty = stock.currentStock + variation.qty;
+        stock!.currentStock =
+            stock.currentStock + (variation.stock?.rsdQty ?? 0);
+        stock.rsdQty = stock.currentStock + (stock.rsdQty);
         stock.lastTouched = DateTime.now().toLocal();
-        stock.value = (variation.qty * (variation.retailPrice)).toDouble();
+        stock.value =
+            (variation.stock?.rsdQty ?? 0 * (variation.retailPrice)).toDouble();
         realm!.put<Stock>(stock, tableName: 'stocks');
 
-        variant.qty = variation.qty;
+        variant.stock?.rsdQty = variation.stock?.rsdQty ?? 0;
         variant.retailPrice = variation.retailPrice;
         variant.supplyPrice = variation.supplyPrice;
         variant.lastTouched = DateTime.now().toLocal();
@@ -1294,10 +1299,10 @@ class LocalRealmApi
             id: stockId,
             lastTouched: DateTime.now(),
             branchId: branchId,
-            variant: variation,
             variantId: variation.id,
-            currentStock: variation.qty,
-            value: (variation.qty * (variation.retailPrice)).toDouble(),
+            currentStock: variation.stock?.rsdQty ?? 0,
+            value: (variation.stock?.rsdQty ?? 0 * (variation.retailPrice))
+                .toDouble(),
             productId: variation.productId)
           ..active = true;
 
@@ -1375,7 +1380,6 @@ class LocalRealmApi
         modrId: number,
         pkgUnitCd: "BJ",
         regrId: randomNumber().toString().substring(0, 5),
-        rsdQty: qty,
         itemTyCd: "2", // this is a finished product
         /// available type for itemTyCd are 1 for raw material and 3 for service
         /// is insurance applicable default is not applicable
@@ -1446,7 +1450,6 @@ class LocalRealmApi
             modrId: number,
             pkgUnitCd: "BJ",
             regrId: randomNumber().toString().substring(0, 5),
-            rsdQty: 1,
             itemTyCd: "2", // this is a finished product
             /// available type for itemTyCd are 1 for raw material and 3 for service
             /// is insurance applicable default is not applicable
@@ -1610,10 +1613,11 @@ class LocalRealmApi
 
     for (var stock in stocks) {
       // Find corresponding transactions for this stock
-
+      // get variant
+      Variant? variant = await getVariantById(id: stock.variantId!);
       // Assuming retailPrice is the price for each unit sold, and sold stock is based on the difference
       double stockSoldValue =
-          (stock.initialStock!) * (stock.variant?.retailPrice ?? 0);
+          (stock.initialStock!) * (variant?.retailPrice ?? 0);
 
       // Add to the total sold value
       totalSoldValue += stockSoldValue;
@@ -1635,10 +1639,10 @@ class LocalRealmApi
 
     for (var stock in stocks) {
       // Find corresponding transactions for this stock
-
+      Variant? variant = await getVariantById(id: stock.variantId!);
       // Assuming retailPrice is the price for each unit sold, and sold stock is based on the difference
       double stockSoldValue = (stock.initialStock! - stock.currentStock) *
-          (stock.variant?.retailPrice ?? 0);
+          (variant?.retailPrice ?? 0);
 
       // Add to the total sold value
       totalSoldValue += stockSoldValue;
@@ -1653,10 +1657,8 @@ class LocalRealmApi
         r'currentStock > $0 AND branchId == $1', [0, branchId]).toList();
 
     // Calculate the total stock value
-    double totalStockValue = stocks.fold(
-        0,
-        (sum, stock) =>
-            sum + (stock.currentStock * (stock.variant?.retailPrice ?? 0)));
+    double totalStockValue =
+        stocks.fold(0, (sum, stock) => sum + (stock.value));
 
     // Yield the total stock value
     yield totalStockValue;
@@ -2123,7 +2125,6 @@ class LocalRealmApi
       final Stock stock = Stock(ObjectId(),
           lastTouched: DateTime.now(),
           id: randomNumber(),
-          variant: newVariant,
           branchId: branchId,
           variantId: newVariant.id!,
           currentStock: qty,
@@ -2256,9 +2257,11 @@ class LocalRealmApi
 
     // Iterate over all stock items and calculate gross and net profit
     for (var stock in query) {
-      final grossProfit = ((stock.variant?.retailPrice ?? 0) -
-              (stock.variant?.supplyPrice ?? 0)) *
-          stock.currentStock;
+      final grossProfit =
+          (((await getVariantById(id: stock.variantId!))?.retailPrice ?? 0) -
+                  ((await getVariantById(id: stock.variantId!))?.supplyPrice ??
+                      0)) *
+              stock.currentStock;
       totalGrossProfit += grossProfit;
 
       // If net profit needs other expenses deducted, adjust accordingly
@@ -2660,7 +2663,6 @@ class LocalRealmApi
         id: randomNumber(),
         lastTouched: DateTime.now(),
         branchId: subBranchId,
-        variant: variant,
         variantId: variant.id!,
         currentStock: item.quantityRequested!.toDouble(),
         rsdQty: item.quantityRequested!.toDouble(),
@@ -2938,7 +2940,6 @@ class LocalRealmApi
   Future<Stock?> addStockToVariant({required Variant variant}) async {
     Stock stock = Stock(ObjectId(),
         id: randomNumber(),
-        variant: variant,
         productId: variant.productId,
         variantId: variant.id,
         branchId: variant.branchId);
@@ -3238,13 +3239,16 @@ class LocalRealmApi
           final finalStock = (stock!.currentStock - item.qty);
           final bhfId = await ProxyService.box.bhfId();
           try {
+            final s = finalStock *
+                ((await getVariantById(id: stock.variantId!))?.retailPrice ??
+                    0);
             realm!.writeN(
               tableName: stocksTable,
               writeCallback: () {
                 stock.rsdQty = finalStock;
                 stock.currentStock = finalStock;
                 // stock value after item deduct
-                stock.value = finalStock * (stock.variant?.retailPrice ?? 0);
+                stock.value = s;
                 stock.ebmSynced = false;
                 stock.bhfId = stock.bhfId ?? bhfId;
                 stock.tin = stock.tin ?? ProxyService.box.tin();
@@ -3273,13 +3277,12 @@ class LocalRealmApi
 
           /// search the related product and touch them to make them as most used
           /// hence why we are adding time to it
-          Variant? variant = getVariantById(id: item.variantId!);
+          Variant? variant = await getVariantById(id: item.variantId!);
           Product? product = getProduct(id: variant!.productId!);
           if (product != null) {
             realm!.writeN(
               tableName: variantTable,
               writeCallback: () {
-                variant.qty = finalStock;
                 return variant;
               },
               onAdd: (data) {
@@ -4058,7 +4061,7 @@ class LocalRealmApi
   }
 
   @override
-  Variant? getVariantById({required int id}) {
+  Future<Variant?> getVariantById({required int id}) async {
     return realm!.query<Variant>(r'id == $0', [id]).firstOrNull;
   }
 
@@ -4866,18 +4869,18 @@ class LocalRealmApi
     throw UnimplementedError();
   }
 
-  void saveStock({required Variant variant}) {
+  @override
+  void saveStock({required Variant variant, required double rsdQty}) {
     realm!.write(() {
       final stock = Stock(
         ObjectId(),
         id: randomNumber(),
         lastTouched: DateTime.now(),
         branchId: variant.branchId,
-        variant: variant,
         variantId: variant.id!,
-        currentStock: variant.qty,
-        rsdQty: variant.rsdQty,
-        value: (variant.qty * variant.retailPrice).toDouble(),
+        currentStock: variant.stock?.rsdQty ?? 0,
+        rsdQty: rsdQty,
+        value: (variant.stock?.rsdQty ?? 0 * variant.retailPrice).toDouble(),
         productId: variant.productId,
       );
       realm!.add<Stock>(stock);
@@ -5084,7 +5087,7 @@ class LocalRealmApi
         ProxyService.backUp.updateRecord(
           tableName: stocksTable,
           idField: "${stocksTable.singularize()}_id",
-          map: stock.toEJson(includeVariant: true).toFlipperJson(),
+          map: stock.toEJson().toFlipperJson(),
           id: stock.id!,
           syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
         );
@@ -5438,5 +5441,219 @@ class LocalRealmApi
       tax.taxPercentage = taxPercentage;
     });
     return tax;
+  }
+
+  @override
+  Future<void> updateVariant({
+    required List<Variant> updatables,
+    String? color,
+    double? newRetailPrice,
+    double? retailPrice,
+    double? supplyPrice,
+    Map<int, String>? dates,
+    Map<int, String>? rates,
+    String? selectedProductType,
+  }) async {
+    final variantsLength = updatables.length;
+    // loop through all variants and update all with retailPrice and supplyPrice
+    ProxyService.local.realm!.write(() {
+      for (var i = 0; i < variantsLength; i++) {
+        // get product
+        Product? product = getProduct(id: updatables[i].productId!);
+        product?.name = updatables[i].name;
+        updatables[i].productName = updatables[i].name;
+        double rate = rates?[updatables[i].id] == null
+            ? 0
+            : double.parse(rates![updatables[i].id]!);
+        updatables[i].color = color;
+        updatables[i].itemNm = updatables[i].name;
+        updatables[i].ebmSynced = false;
+        updatables[i].retailPrice =
+            newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
+        updatables[i].itemTyCd = selectedProductType;
+        updatables[i].dcRt = rate;
+        updatables[i].expirationDate = dates?[updatables[i].id] == null
+            ? null
+            : DateTime.tryParse(dates![updatables[i].id]!);
+        // If found, update it
+        if (retailPrice != 0) {
+          updatables[i].retailPrice = retailPrice ?? 0;
+        }
+        if (retailPrice != 0) {
+          updatables[i].retailPrice = retailPrice ?? 0;
+        }
+
+        updatables[i].stock?.rsdQty = (updatables[i].stock?.rsdQty ?? 0);
+        updatables[i].lastTouched = DateTime.now().toLocal();
+      }
+    });
+  }
+
+  @override
+  Future<void> processItem({
+    required brick.Item item,
+    required Map<String, String> quantitis,
+    required Map<String, String> taxTypes,
+    required Map<String, String> itemClasses,
+    required Map<String, String> itemTypes,
+  }) async {
+    // Create a new product
+    Product product = Product(
+      ObjectId(),
+      id: randomNumber(),
+      name: item.name,
+      barCode: item.barCode,
+    );
+
+    // Get tax type configuration
+    config.Configurations? taxType = await ProxyService.strategy
+        .getByTaxType(taxtype: taxTypes[product.barCode] ?? "B");
+
+    talker.warning("ItemClass${itemClasses[product.barCode] ?? "5020230602"}");
+
+    // Add the product to the Realm
+    ProxyService.local.realm!.writeN(
+      tableName: productsTable,
+      writeCallback: () => ProxyService.local.realm!.add<Product>(product),
+      onAdd: (data) {
+        ProxyService.backUp.replicateData(productsTable, data);
+      },
+    );
+
+    final branchId = await ProxyService.box.getBranchId()!;
+    final bhfId = await ProxyService.box.bhfId();
+    final int variantId = randomNumber();
+
+    // Create stock for the variant
+    Stock stock = _createStock(
+        product: product,
+        branchId: branchId,
+        bhfId: bhfId,
+        quantitis: quantitis);
+
+    // Create variant for the product
+    Variant variant = await _createVariant(
+        item: item,
+        product: product,
+        stock: stock,
+        taxType: taxType,
+        branchId: branchId,
+        variantId: variantId,
+        taxTypes: taxTypes,
+        itemClasses: itemClasses,
+        itemTypes: itemTypes);
+
+    // Add the variant to the Realm
+    ProxyService.local.realm!.writeN(
+      tableName: variantTable,
+      writeCallback: () => ProxyService.local.realm!.add<Variant>(variant),
+      onAdd: (data) {
+        ProxyService.backUp.replicateData(variantTable, data);
+      },
+    );
+
+    // Update variant with stock
+    ProxyService.local.realm!.writeN(
+      tableName: variantTable,
+      writeCallback: () {
+        variant.stock = stock;
+        return variant;
+      },
+      onAdd: (data) {
+        ProxyService.backUp.replicateData(variantTable, data);
+      },
+    );
+
+    // Add the stock to the Realm
+    ProxyService.local.realm!.writeN(
+      tableName: stocksTable,
+      writeCallback: () => ProxyService.local.realm!.add<Stock>(stock),
+      onAdd: (data) {
+        ProxyService.backUp.replicateData(stocksTable, data);
+      },
+    );
+  }
+
+  Stock _createStock({
+    required Product product,
+    required int branchId,
+    required String? bhfId,
+    required Map<String, String> quantitis,
+  }) {
+    return Stock(
+      ObjectId(),
+      id: randomNumber(),
+      variantId: randomNumber(),
+      currentStock: double.parse(quantitis[product.barCode] ?? "1"),
+      lowStock: 0,
+      canTrackingStock: false,
+      showLowStockAlert: true,
+      productId: product.id!,
+      bhfId: bhfId,
+      active: true,
+      value: double.parse(quantitis[product.barCode] ?? "1"),
+      rsdQty: double.parse(quantitis[product.barCode] ?? "1"),
+      lastTouched: DateTime.now(),
+      branchId: branchId,
+      ebmSynced: false,
+    );
+  }
+
+  Future<Variant> _createVariant({
+    required brick.Item item,
+    required Product product,
+    required Stock stock,
+    required config.Configurations? taxType,
+    required int branchId,
+    required int variantId,
+    required Map<String, String> taxTypes,
+    required Map<String, String> itemClasses,
+    required Map<String, String> itemTypes,
+  }) async {
+    return Variant(
+      ObjectId(),
+      id: variantId,
+      branchIds: [branchId],
+      productId: product.id!,
+      sku: product.barCode,
+      name: product.barCode,
+      productName: product.name,
+      stock: stock,
+      retailPrice: double.parse(item.price),
+      supplyPrice: double.parse(item.price),
+      color: randomizeColor(),
+      itemSeq: 1,
+      pkg: "1",
+      taxTyCd: taxTypes[product.barCode] ?? "B",
+      itemClsCd: itemClasses[product.barCode] ?? "5020230602",
+      spplrItemCd: "",
+      spplrItemClsCd: "",
+      bcd: randomNumber().toString(),
+      qtyUnitCd: "U",
+      regrNm: item.name,
+      tin: ProxyService.box.tin(),
+      bhfId: await ProxyService.box.bhfId() ?? "00",
+      isTaxExempted: false,
+      itemNm: product.name,
+      ebmSynced: false,
+      itemStdNm: product.name,
+      orgnNatCd: "RW",
+      prc: double.parse(item.price),
+      splyAmt: double.parse(item.price),
+      itemCd: DateTime.now().generateFlipperClip(),
+      modrNm: product.name,
+      modrId: product.barCode,
+      pkgUnitCd: "BJ",
+      regrId: product.barCode,
+      useYn: "N",
+      itemTyCd: itemTypes[product.barCode] ?? "1",
+      lastTouched: DateTime.now(),
+      branchId: branchId,
+      taxPercentage: taxType?.taxPercentage ?? 18,
+    );
+  }
+
+  String randomizeColor() {
+    return '#${(Random().nextInt(0x1000000) | 0x800000).toRadixString(16).padLeft(6, '0').toUpperCase()}';
   }
 }

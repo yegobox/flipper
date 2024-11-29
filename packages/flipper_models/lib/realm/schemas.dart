@@ -558,9 +558,6 @@ class _Variant {
   String? modrId;
   String? modrNm;
 
-  /// property for stock but presented here for easy
-  double rsdQty = 0.0;
-
   DateTime? lastTouched;
 
   double supplyPrice = 0.0;

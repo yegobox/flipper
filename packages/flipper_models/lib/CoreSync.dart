@@ -55,7 +55,7 @@ class CoreSync implements CoreDataInterface {
               ? data.toJson()
               : (data != null ? (data as dynamic).toJson() : {}))
           : (data is old.Stock
-              ? data.toEJson(includeVariant: false)?.toFlipperJson() ?? {}
+              ? data.toEJson()?.toFlipperJson() ?? {}
               : data.toEJson()?.toFlipperJson() ?? {});
       talker.warning(map);
       final id = _getId(map);
@@ -475,9 +475,7 @@ class CoreSync implements CoreDataInterface {
 
                   if (realmObject != null) {
                     var eJson = (realmObject is old.Stock)
-                        ? realmObject
-                            .toEJson(includeVariant: false)
-                            .toFlipperJson()
+                        ? realmObject.toEJson().toFlipperJson()
                         : realmObject.toEJson().toFlipperJson();
 
                     realm!.add<old.DeletedObject>(

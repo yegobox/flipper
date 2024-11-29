@@ -1083,7 +1083,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           Stock(
                             ObjectId(),
                             id: id,
-                            variant: variant,
+                            
                             lastTouched: DateTime.now(),
                             branchId: variant.branchId,
                             variantId: variant.id!,

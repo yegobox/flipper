@@ -402,39 +402,46 @@ class CoreViewModel extends FlipperBaseModel
   //   ProxyService.keypad.reset();
   // }
 
-  void handleCustomQtySetBeforeSelectingVariation() {
+  Future<void> handleCustomQtySetBeforeSelectingVariation() async {
+    ProxyService.keypad.decreaseQty();
+    Variant? variant = await ProxyService.local
+        .getVariantById(id: _currentItemStock!.variantId!);
     if (_currentItemStock != null) {
-      keypad.setAmount(
-          amount: (_currentItemStock!.variant?.retailPrice ?? 0) * quantity);
+      keypad.setAmount(amount: (variant?.retailPrice ?? 0) * quantity);
     }
   }
 
   /// setAmount is the amount shown on top of product when increasing the quantity
-  void customQtyIncrease(double quantity) {
+  Future<void> customQtyIncrease(double quantity) async {
     ProxyService.keypad.increaseQty(custom: true, qty: quantity);
+    Variant? variant = await ProxyService.local
+        .getVariantById(id: _currentItemStock!.variantId!);
     if (_currentItemStock != null) {
-      keypad.setAmount(
-          amount: (_currentItemStock!.variant?.retailPrice ?? 0) * quantity);
+      keypad.setAmount(amount: (variant?.retailPrice ?? 0) * quantity);
     }
   }
 
   /// We take _variantsStocks[0] because we know
-  void decreaseQty(Function callback) {
+  Future<void> decreaseQty(Function callback) async {
     ProxyService.keypad.decreaseQty();
+    Variant? variant = await ProxyService.local
+        .getVariantById(id: _currentItemStock!.variantId!);
     if (_currentItemStock != null) {
-      keypad.setAmount(
-          amount: (_currentItemStock!.variant?.retailPrice ?? 0) * quantity);
+      keypad.setAmount(amount: (variant?.retailPrice ?? 0) * quantity);
     }
     callback(quantity);
   }
 
   /// setAmount is the amount shown on top of product when increasing the quantity
 
-  void increaseQty({required Function callback, required bool custom}) {
+  Future<void> increaseQty(
+      {required Function callback, required bool custom}) async {
     ProxyService.keypad.increaseQty(custom: custom);
+    ProxyService.keypad.decreaseQty();
+    Variant? variant = await ProxyService.local
+        .getVariantById(id: _currentItemStock!.variantId!);
     if (_currentItemStock != null) {
-      keypad.setAmount(
-          amount: (_currentItemStock!.variant?.retailPrice ?? 0) * quantity);
+      keypad.setAmount(amount: (variant?.retailPrice ?? 0) * quantity);
       rebuildUi();
     }
     callback(keypad.quantity);
@@ -774,7 +781,7 @@ class CoreViewModel extends FlipperBaseModel
     keypad.setAmount(amount: variants.first.retailPrice * quantity);
     toggleCheckbox(variantId: variants.first.id!);
     increaseQty(callback: (quantity) {}, custom: true);
-    Variant? variant = ProxyService.local.getVariantById(id: checked);
+    Variant? variant = await ProxyService.local.getVariantById(id: checked);
     Stock? stock = await ProxyService.local.stockByVariantId(
         variantId: checked, branchId: ProxyService.box.getBranchId()!);
     await saveTransaction(

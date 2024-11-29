@@ -24,6 +24,17 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     }).toList();
   }
 
+  DataGridRow _buildStockRow(Stock stock) {
+    return DataGridRow(cells: [
+      DataGridCell<String>(
+          columnName: 'Name', value: stock.variant?.productName ?? ''),
+      DataGridCell<double>(
+          columnName: 'CurrentStock', value: stock.currentStock),
+      DataGridCell<double>(
+          columnName: 'Price', value: stock.variant?.retailPrice),
+    ]);
+  }
+
   DataGridRow _buildTransactionItemRow(TransactionItem item) {
     var taxConfig = ProxyService.local
         .getByTaxType(taxtype: item.isValid ? item.taxTyCd ?? "B" : "B");
@@ -80,17 +91,6 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       DataGridCell<String>(columnName: 'Type', value: item.receiptType ?? "-"),
       DataGridCell<double>(columnName: 'Amount', value: item.subTotal),
       DataGridCell<double>(columnName: 'Cash', value: item.cashReceived),
-    ]);
-  }
-
-  DataGridRow _buildStockRow(Stock item) {
-    return DataGridRow(cells: [
-      DataGridCell<String>(
-          columnName: 'Name', value: item.variant?.productName ?? ''),
-      DataGridCell<double>(
-          columnName: 'CurrentStock', value: item.currentStock),
-      DataGridCell<double>(
-          columnName: 'Price', value: item.variant?.retailPrice),
     ]);
   }
 

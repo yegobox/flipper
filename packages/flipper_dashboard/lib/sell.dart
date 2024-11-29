@@ -62,7 +62,7 @@ class SellState extends ConsumerState<Sell> {
                   variantId: model.checked,
                   branchId: ProxyService.box.getBranchId()!);
               Variant? variant =
-                  ProxyService.local.getVariantById(id: model.checked);
+                  await ProxyService.local.getVariantById(id: model.checked);
 
               bool saved = await model.saveTransaction(
                   partOfComposite: false,

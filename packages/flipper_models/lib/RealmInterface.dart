@@ -24,7 +24,7 @@ import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 import 'package:cbl/src/database/collection.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-
+import 'package:supabase_models/brick/models/all_models.dart' as brick;
 // enum ClearData { Business, Branch }
 
 abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
@@ -312,7 +312,7 @@ abstract class RealmInterface {
       required bool doneWithTransaction,
       required bool active});
 
-  Variant? getVariantById({required int id});
+  Future<Variant?> getVariantById({required int id});
   bool isTaxEnabled({required int businessId});
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
@@ -608,7 +608,7 @@ abstract class RealmInterface {
   void clearData({required ClearData data});
 
   Drawers? closeDrawer({required Drawers drawer, required double eod});
-  void saveStock({required Variant variant});
+  void saveStock({required Variant variant, required double rsdQty});
   void updateTransactionStatus(ITransaction transaction, String receiptType);
   void savePaymentType({required TransactionPaymentRecord paymentRecord});
   List<TransactionPaymentRecord> getPaymentType({required int transactionId});
@@ -629,4 +629,28 @@ abstract class RealmInterface {
       {required ITransaction transaction,
       required bool isProformaMode,
       required bool isTrainingMode});
+  Future<void> updateVariant({
+    required List<Variant> updatables,
+    String? color,
+    double? newRetailPrice,
+    double? retailPrice,
+    Map<int, String>? rates,
+    double? supplyPrice,
+    Map<int, String>? dates,
+    String? selectedProductType,
+  });
+
+  // Stock createStock({
+  //   required Product product,
+  //   required int branchId,
+  //   required String? bhfId,
+  //   required Map<String, String> quantitis,
+  // });
+  Future<void> processItem({
+    required brick.Item item,
+    required Map<String, String> quantitis,
+    required Map<String, String> taxTypes,
+    required Map<String, String> itemClasses,
+    required Map<String, String> itemTypes,
+  });
 }

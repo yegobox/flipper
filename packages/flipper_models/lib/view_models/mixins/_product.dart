@@ -65,8 +65,7 @@ mixin ProductMixin {
               variations[i].modrId = number;
               variations[i].itemNm = variations[i].name;
               variations[i].regrId = randomNumber().toString().substring(0, 5);
-              variations[i].rsdQty = variations[i].qty;
-              variations[i].qty = variations[i].qty;
+
               variations[i].itemTyCd = selectedProductType;
 
               /// available type for itemTyCd are 1 for raw material and 3 for service

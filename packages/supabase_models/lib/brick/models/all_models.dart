@@ -27,3 +27,4 @@ export 'tenant.model.dart';
 export 'transaction.model.dart';
 export 'unit.model.dart';
 export 'universalProduct.model.dart';
+export 'item.dart';

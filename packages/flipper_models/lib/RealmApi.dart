@@ -362,7 +362,7 @@ class RealmAPI<M extends IJsonSerializable>
         List<Variant> variants = ProxyService.local.realm!.query<Variant>(
             r'branchId == $0', [ProxyService.box.getBranchId()]).toList();
         for (Variant variant in variants) {
-          ProxyService.local.saveStock(variant: variant);
+          ProxyService.local.saveStock(variant: variant, rsdQty: 1);
         }
         // Copy Stock and Composite objects together in one transaction
         ProxyService.local.realm!.write(() {
@@ -540,7 +540,7 @@ class RealmAPI<M extends IJsonSerializable>
         pkgUnitCd: obj.pkgUnitCd,
         qtyUnitCd: obj.qtyUnitCd,
         itemNm: obj.itemNm,
-        qty: obj.qty,
+        stock: obj.stock,
         prc: obj.prc,
         splyAmt: obj.splyAmt,
         tin: obj.tin,
@@ -553,7 +553,6 @@ class RealmAPI<M extends IJsonSerializable>
         regrNm: obj.regrNm,
         modrId: obj.modrId,
         modrNm: obj.modrNm,
-        rsdQty: obj.rsdQty,
         lastTouched: obj.lastTouched,
         supplyPrice: obj.supplyPrice,
         retailPrice: obj.retailPrice,
@@ -588,59 +587,6 @@ class RealmAPI<M extends IJsonSerializable>
         ebmSynced: obj.ebmSynced,
 
         /// add relationship later.
-        variant: obj.variant != null
-            ? Variant(
-                obj.variant!.realmId,
-                name: obj.variant!.name,
-                color: obj.variant!.color,
-                sku: obj.variant!.sku,
-                productId: obj.variant!.productId,
-                unit: obj.variant!.unit,
-                productName: obj.variant!.productName,
-                branchId: obj.variant!.branchId,
-                taxName: obj.variant!.taxName,
-                taxPercentage: obj.variant!.taxPercentage,
-                deletedAt: obj.deletedAt,
-                isTaxExempted: obj.variant!.isTaxExempted,
-                itemSeq: obj.variant!.itemSeq,
-                isrccCd: obj.variant!.isrccCd,
-                isrccNm: obj.variant!.isrccNm,
-                isrcRt: obj.variant!.isrcRt,
-                isrcAmt: obj.variant!.isrcAmt,
-                taxTyCd: obj.variant!.taxTyCd,
-                bcd: obj.variant!.bcd,
-                itemClsCd: obj.variant!.itemClsCd,
-                itemTyCd: obj.variant!.itemTyCd,
-                itemStdNm: obj.variant!.itemStdNm,
-                orgnNatCd: obj.variant!.orgnNatCd,
-                pkg: obj.variant!.pkg,
-                itemCd: obj.variant!.itemCd,
-                pkgUnitCd: obj.variant!.pkgUnitCd,
-                qtyUnitCd: obj.variant!.qtyUnitCd,
-                itemNm: obj.variant!.itemNm,
-                qty: obj.variant!.qty,
-                prc: obj.variant!.prc,
-                splyAmt: obj.variant!.splyAmt,
-                tin: obj.tin,
-                bhfId: obj.bhfId,
-                dftPrc: obj.variant!.dftPrc,
-                addInfo: obj.variant!.addInfo,
-                isrcAplcbYn: obj.variant!.isrcAplcbYn,
-                useYn: obj.variant!.useYn,
-                regrId: obj.variant!.regrId,
-                regrNm: obj.variant!.regrNm,
-                modrId: obj.variant!.modrId,
-                modrNm: obj.variant!.modrNm,
-                rsdQty: obj.rsdQty,
-                lastTouched: obj.lastTouched,
-                spplrItemClsCd: obj.variant!.spplrItemClsCd,
-                spplrItemCd: obj.variant!.spplrItemCd,
-                spplrItemNm: obj.variant!.spplrItemNm,
-                ebmSynced: obj.ebmSynced,
-                taxType: obj.variant!.taxType,
-                branchIds: obj.variant!.branchIds.map((e) => e).toList(),
-              )
-            : null,
       ) as T;
     } else if (obj is Category) {
       return Category(

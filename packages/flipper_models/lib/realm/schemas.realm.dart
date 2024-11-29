@@ -3908,7 +3908,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
   @override
   Stock freeze() => RealmObjectBase.freezeObject<Stock>(this);
 
-  EJsonValue toEJson({bool includeVariant = false}) {
+  EJsonValue toEJson() {
     return <String, dynamic>{
       'id': id.toEJson(),
       '_id': realmId.toEJson(),
@@ -3928,11 +3928,7 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       'deletedAt': deletedAt.toEJson(),
       'ebmSynced': ebmSynced.toEJson(),
       'cloudSynced': cloudSynced.toEJson(),
-      'variant': includeVariant
-          ? variant == null
-              ? null
-              : (variant as Variant).toEJson(includeStock: false)
-          : null,
+      'variant': variant.toEJson(),
       'initialStock': initialStock.toEJson(),
     };
   }
@@ -4054,7 +4050,6 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     String? regrNm,
     String? modrId,
     String? modrNm,
-    double rsdQty = 0.0,
     DateTime? lastTouched,
     double supplyPrice = 0.0,
     double retailPrice = 0.0,
@@ -4092,7 +4087,6 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
         'addInfo': "",
         'isrcAplcbYn': "",
         'useYn': "",
-        'rsdQty': 0.0,
         'supplyPrice': 0.0,
         'retailPrice': 0.0,
         'ebmSynced': false,
@@ -4142,7 +4136,6 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'regrNm', regrNm);
     RealmObjectBase.set(this, 'modrId', modrId);
     RealmObjectBase.set(this, 'modrNm', modrNm);
-    RealmObjectBase.set(this, 'rsdQty', rsdQty);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'supplyPrice', supplyPrice);
     RealmObjectBase.set(this, 'retailPrice', retailPrice);
@@ -4393,11 +4386,6 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
   set modrNm(String? value) => RealmObjectBase.set(this, 'modrNm', value);
 
   @override
-  double get rsdQty => RealmObjectBase.get<double>(this, 'rsdQty') as double;
-  @override
-  set rsdQty(double value) => RealmObjectBase.set(this, 'rsdQty', value);
-
-  @override
   DateTime? get lastTouched =>
       RealmObjectBase.get<DateTime>(this, 'lastTouched') as DateTime?;
   @override
@@ -4485,7 +4473,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
   @override
   Variant freeze() => RealmObjectBase.freezeObject<Variant>(this);
 
-  EJsonValue toEJson({bool includeStock = true}) {
+  EJsonValue toEJson() {
     return <String, dynamic>{
       'id': id.toEJson(),
       '_id': realmId.toEJson(),
@@ -4529,7 +4517,6 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       'regrNm': regrNm.toEJson(),
       'modrId': modrId.toEJson(),
       'modrNm': modrNm.toEJson(),
-      'rsdQty': rsdQty.toEJson(),
       'lastTouched': lastTouched.toEJson(),
       'supplyPrice': supplyPrice.toEJson(),
       'retailPrice': retailPrice.toEJson(),
@@ -4539,7 +4526,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       'ebmSynced': ebmSynced.toEJson(),
       'taxType': taxType.toEJson(),
       'branchIds': branchIds.toEJson(),
-      'stock': includeStock ? stock.toEJson() : null,
+      'stock': stock.toEJson(),
       'dcRt': dcRt.toEJson(),
       'expirationDate': expirationDate.toEJson(),
     };
@@ -4595,7 +4582,6 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
           regrNm: fromEJson(ejson['regrNm']),
           modrId: fromEJson(ejson['modrId']),
           modrNm: fromEJson(ejson['modrNm']),
-          rsdQty: fromEJson(ejson['rsdQty'], defaultValue: 0.0),
           lastTouched: fromEJson(ejson['lastTouched']),
           supplyPrice: fromEJson(ejson['supplyPrice'], defaultValue: 0.0),
           retailPrice: fromEJson(ejson['retailPrice'], defaultValue: 0.0),
@@ -4660,7 +4646,6 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('regrNm', RealmPropertyType.string, optional: true),
       SchemaProperty('modrId', RealmPropertyType.string, optional: true),
       SchemaProperty('modrNm', RealmPropertyType.string, optional: true),
-      SchemaProperty('rsdQty', RealmPropertyType.double),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
       SchemaProperty('supplyPrice', RealmPropertyType.double),

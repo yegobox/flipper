@@ -429,7 +429,6 @@ class IsolateHandler {
       // Write updated sold quantity to realm
       localRealm.write(() {
         if (variant != null) {
-          stock.variant = variant;
           print("Healed Stock: ${stock.id}");
         }
       });
@@ -486,10 +485,11 @@ class IsolateHandler {
             lastTouched: DateTime.now(),
             branchId: variant.branchId,
             variantId: variant.id!,
-            currentStock: variant.qty,
-            rsdQty: variant.qty,
+            currentStock: variant.stock?.rsdQty ?? 0,
+            rsdQty: variant.stock?.rsdQty ?? 0,
             ebmSynced: false,
-            value: (variant.qty * variant.retailPrice).toDouble(),
+            value:
+                (variant.stock?.rsdQty ?? 0 * variant.retailPrice).toDouble(),
             productId: variant.productId,
             active: false,
           );
@@ -577,13 +577,13 @@ class IsolateHandler {
               Stock(
                 ObjectId(),
                 id: id,
-                variant: variant,
                 lastTouched: DateTime.now(),
                 branchId: variant.branchId,
                 variantId: variant.id!,
-                currentStock: variant.qty,
-                rsdQty: variant.qty,
-                value: (variant.qty * (variant.retailPrice)).toDouble(),
+                currentStock: variant.stock?.rsdQty ?? 0,
+                rsdQty: variant.stock?.rsdQty ?? 0,
+                value: (variant.stock?.rsdQty ?? 0 * (variant.retailPrice))
+                    .toDouble(),
                 productId: variant.productId,
                 active: false,
               ),

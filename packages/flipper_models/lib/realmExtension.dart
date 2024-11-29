@@ -89,7 +89,7 @@ extension RealmExtension on Realm {
 
   void _syncToFirestoreDelete<T>(String tableName, T data) {
     final map = data is Stock
-        ? data.toEJson(includeVariant: false)!.toFlipperJson()
+        ? data.toEJson()!.toFlipperJson()
         : data.toEJson().toFlipperJson();
     final id = map['id'];
     map['deleted_at'] = DateTime.now().toIso8601String();

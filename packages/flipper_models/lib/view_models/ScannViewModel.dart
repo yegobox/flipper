@@ -83,7 +83,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         branchId: branchId,
         isTaxExempted: isTaxExempted,
         lastTouched: DateTime.now(),
-        qty: 1,
       ),
     );
 
@@ -150,17 +149,17 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           scannedVariants.firstWhere((variant) => variant.id == id);
 
       // If the variant is found, update its quantity
-      ProxyService.local.realm!.writeN(
-        tableName: variantTable,
-        writeCallback: () {
-          variant.qty = newQuantity;
-          variant.ebmSynced = false;
-          return variant;
-        },
-        onAdd: (data) {
-          ProxyService.backUp.replicateData(variantTable, data);
-        },
-      );
+      // ProxyService.local.realm!.writeN(
+      //   tableName: variantTable,
+      //   writeCallback: () {
+      //     variant.qty = newQuantity;
+      //     variant.ebmSynced = false;
+      //     return variant;
+      //   },
+      //   onAdd: (data) {
+      //     ProxyService.backUp.replicateData(variantTable, data);
+      //   },
+      // );
 
       Stock? stock = ProxyService.local.stockByVariantId(
           variantId: variant.id!, branchId: ProxyService.box.getBranchId()!);
@@ -224,45 +223,14 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       Map<int, TextEditingController>? dates}) async {
     if (editmode) {
       try {
-        final variantsLength = scannedVariants.length;
-
-        // loop through all variants and update all with retailPrice and supplyPrice
-        ProxyService.local.realm!.write(() {
-          for (var i = 0; i < variantsLength; i++) {
-            // get product
-            Product? product = ProxyService.local
-                .getProduct(id: scannedVariants[i].productId!);
-            product?.name = scannedVariants[i].name;
-            scannedVariants[i].productName = scannedVariants[i].name;
-            double rate = rates?[scannedVariants[i].id] == null
-                ? 0
-                : double.parse(rates![scannedVariants[i].id]!.text);
-            scannedVariants[i].color = color;
-            scannedVariants[i].itemNm = scannedVariants[i].name;
-            scannedVariants[i].ebmSynced = false;
-            scannedVariants[i].retailPrice = newRetailPrice == 0
-                ? scannedVariants[i].retailPrice
-                : newRetailPrice;
-            scannedVariants[i].itemTyCd = selectedProductType;
-            scannedVariants[i].dcRt = rate;
-            scannedVariants[i].expirationDate =
-                dates?[scannedVariants[i].id] == null
-                    ? null
-                    : DateTime.tryParse(dates![scannedVariants[i].id]!.text);
-            // If found, update it
-            if (retailPrice != 0) {
-              scannedVariants[i].retailPrice = retailPrice;
-            }
-
-            if (supplyPrice != 0) {
-              scannedVariants[i].supplyPrice = supplyPrice;
-            }
-
-            scannedVariants[i].qty = (scannedVariants[i].qty);
-            scannedVariants[i].lastTouched = DateTime.now().toLocal();
-            notifyListeners();
-          }
-        });
+        ProxyService.local.updateVariant(
+          updatables: scannedVariants,
+          newRetailPrice: newRetailPrice,
+          rates: rates?.map((key, value) => MapEntry(key, value.text)),
+          dates: dates?.map((key, value) => MapEntry(key, value.text)),
+          supplyPrice: supplyPrice != 0 ? supplyPrice : null,
+          retailPrice: retailPrice != 0 ? retailPrice : null,
+        );
       } catch (e) {
         talker.error(e);
         rethrow;

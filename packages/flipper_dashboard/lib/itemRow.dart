@@ -220,7 +220,7 @@ class _RowItemState extends ConsumerState<RowItem>
         for (Composite composite in composites) {
           /// find a stock for a given variant
           Variant? variant =
-              ProxyService.local.getVariantById(id: composite.variantId!);
+              await ProxyService.local.getVariantById(id: composite.variantId!);
           model.saveTransaction(
             variation: variant!,
             amountTotal: variant.retailPrice,

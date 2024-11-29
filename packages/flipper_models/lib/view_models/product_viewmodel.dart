@@ -310,11 +310,6 @@ class ProductViewModel extends FlipperBaseModel
             variation.productName = product!.name;
 
             variation.productId = variation.productId;
-            Stock? stock = await ProxyService.local.stockByVariantId(
-                variantId: variation.id!,
-                branchId: ProxyService.box.getBranchId()!);
-
-            stock!.variant?.supplyPrice = supplyPrice;
           }
         }
       }
@@ -327,11 +322,6 @@ class ProductViewModel extends FlipperBaseModel
             variation.prc = retailPrice;
 
             variation.productName = product!.name;
-            Stock? stock = await ProxyService.local.stockByVariantId(
-                variantId: variation.id!,
-                branchId: ProxyService.box.getBranchId()!);
-
-            stock!.variant?.retailPrice = retailPrice;
           }
         }
       }

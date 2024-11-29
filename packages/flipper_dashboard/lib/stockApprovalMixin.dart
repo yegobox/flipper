@@ -67,8 +67,8 @@ mixin StockRequestApprovalLogic {
   }
 
   void _updateVariantBranch(
-      {required int variantId, required int subBranchId}) {
-    Variant? variant = ProxyService.local.getVariantById(id: variantId);
+      {required int variantId, required int subBranchId}) async {
+    Variant? variant = await ProxyService.local.getVariantById(id: variantId);
     if (variant != null) {
       if (!variant.branchIds.contains(subBranchId)) {
         ProxyService.local.realm!.write(() {
@@ -79,12 +79,13 @@ mixin StockRequestApprovalLogic {
   }
 
   void _updateOrCreateStock(
-      {required TransactionItem item, required int subBranchId}) {
+      {required TransactionItem item, required int subBranchId}) async {
     Stock? stock = ProxyService.local.stockByVariantId(
       variantId: item.variantId!,
       branchId: subBranchId,
     );
-    Variant? variant = ProxyService.local.getVariantById(id: item.variantId!);
+    Variant? variant =
+        await ProxyService.local.getVariantById(id: item.variantId!);
 
     /// stock for this item should be available in our location then creating item in new location
     /// we check that this item is not from location we would like to copy it to.
@@ -329,8 +330,9 @@ mixin StockRequestApprovalLogic {
   void _updateStockForApprovedItem(
       {required TransactionItem item,
       required int approvedQuantity,
-      required int subBranchId}) {
-    Variant? variant = ProxyService.local.getVariantById(id: item.variantId!);
+      required int subBranchId}) async {
+    Variant? variant =
+        await ProxyService.local.getVariantById(id: item.variantId!);
     if (variant == null) return;
 
     Stock? stock = ProxyService.local
@@ -361,7 +363,6 @@ mixin StockRequestApprovalLogic {
       lastTouched: DateTime.now(),
       branchId: variant.branchId!,
       variantId: variant.id!,
-      variant: variant,
       currentStock: approvedQuantity.toDouble(),
       rsdQty: approvedQuantity.toDouble(),
       value: (approvedQuantity * variant.retailPrice).toDouble(),
@@ -387,15 +388,11 @@ mixin StockRequestApprovalLogic {
       variantId: variantId,
       branchId: ProxyService.box.getBranchId()!,
     );
-    Variant? variant = ProxyService.local.getVariantById(id: variantId);
 
     if (mainBranchStock != null) {
       mainBranchStock.currentStock =
           mainBranchStock.currentStock - approvedQuantity.toDouble();
       mainBranchStock.lastTouched = DateTime.now();
-
-      variant!.qty = mainBranchStock.currentStock;
-      variant.rsdQty = mainBranchStock.currentStock;
     }
   }
 }

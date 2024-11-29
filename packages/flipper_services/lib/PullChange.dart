@@ -941,7 +941,6 @@ class PullChange {
           pkgUnitCd: data['pkg_unit_cd'] == null ? "" : data['pkg_unit_cd'],
           qtyUnitCd: data['qty_unit_cd'] == null ? "" : data['qty_unit_cd'],
           itemNm: data['item_nm'],
-          qty: data['qty'] == null ? 0.0 : data['qty'],
           prc: data['prc'] == null ? 0.0 : data['prc'],
           splyAmt: data['sply_amt'] == null ? 0.0 : data['sply_amt'],
           tin: data['tin'] == null ? 0 : data['tin'],
@@ -955,7 +954,6 @@ class PullChange {
           regrNm: data['regr_nm'] == null ? "" : data['regr_nm'],
           modrId: data['modr_id'] == null ? "" : data['modr_id'],
           modrNm: data['modr_nm'] == null ? "" : data['modr_nm'],
-          rsdQty: data['rsd_qty'] == null ? 0.0 : data['rsd_qty'],
           supplyPrice:
               data['supply_price'] == null ? 0.0 : data['supply_price'],
           retailPrice:
@@ -1022,9 +1020,7 @@ class PullChange {
             variant.pkgUnitCd = data['pkg_unit_cd'] ?? variant.pkgUnitCd;
             variant.qtyUnitCd = data['qty_unit_cd'] ?? variant.qtyUnitCd;
             variant.itemNm = data['item_nm'] ?? variant.itemNm;
-            variant.qty = data['qty'] is double
-                ? data['qty']
-                : double.tryParse(data['qty']) ?? variant.qty;
+
             variant.prc = data['prc'] is double
                 ? data['prc']
                 : double.tryParse(data['prc']) ?? variant.prc;
@@ -1041,9 +1037,7 @@ class PullChange {
             variant.regrNm = data['regr_nm'] ?? variant.regrNm;
             variant.modrId = data['modr_id'] ?? variant.modrId;
             variant.modrNm = data['modr_nm'] ?? variant.modrNm;
-            variant.rsdQty = data['rsd_qty'] is double
-                ? data['rsd_qty']
-                : double.tryParse(data['rsd_qty']) ?? variant.rsdQty;
+
             variant.supplyPrice = data['supply_price'] is double
                 ? data['supply_price']
                 : double.tryParse(data['supply_price']) ?? variant.supplyPrice;
