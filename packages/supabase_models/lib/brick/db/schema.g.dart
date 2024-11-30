@@ -15,8 +15,6 @@ part '20241128141446.migration.dart';
 part '20241129195847.migration.dart';
 part '20241130074803.migration.dart';
 part '20241128071810.migration.dart';
-part '20241130104344.migration.dart';
-part '20241130104438.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -34,8 +32,6 @@ final migrations = <Migration>{
   const Migration20241129195847(),
   const Migration20241130074803(),
   const Migration20241128071810(),
-  const Migration20241130104344(),
-  const Migration20241130104438()
 };
 
 /// A consumable database structure including the latest generated migration.

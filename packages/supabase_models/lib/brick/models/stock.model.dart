@@ -5,7 +5,6 @@ import 'variant.model.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'stocks'),
-  sqliteConfig: SqliteSerializable(),
 )
 class Stock extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
@@ -26,7 +25,6 @@ class Stock extends OfflineFirstWithSupabaseModel {
   DateTime? lastTouched;
   DateTime? deletedAt;
   bool ebmSynced = false;
-  bool cloudSynced = true;
   final Variant? variant;
   double? initialStock;
 
@@ -47,7 +45,6 @@ class Stock extends OfflineFirstWithSupabaseModel {
     this.lastTouched,
     this.deletedAt,
     this.ebmSynced = false,
-    this.cloudSynced = true,
     this.variant,
     this.initialStock,
   });

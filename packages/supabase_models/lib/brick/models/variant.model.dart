@@ -41,7 +41,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? pkgUnitCd = "CT";
   String? qtyUnitCd = "BX";
   String? itemNm;
-  double qty = 0.0;
   double prc = 0.0;
   double splyAmt = 0.0;
   int? tin;
@@ -54,8 +53,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? regrNm;
   String? modrId;
   String? modrNm;
+  int? stockId;
 
-  double rsdQty = 0.0;
   DateTime? lastTouched;
   double supplyPrice = 0.0;
   double retailPrice = 0.0;
@@ -64,7 +63,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? spplrItemNm;
   bool ebmSynced = false;
 
-  final List<int> branchIds;
   final Stock? stock; // Assuming Stock is a defined class
   double dcRt = 0.0;
   DateTime? expirationDate;
@@ -72,6 +70,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   Variant({
     required this.id,
     this.deletedAt,
+    required this.stockId,
     this.name,
     this.color,
     this.sku,
@@ -97,7 +96,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.pkgUnitCd = "CT",
     this.qtyUnitCd = "BX",
     this.itemNm,
-    this.qty = 0.0,
     this.prc = 0.0,
     this.splyAmt = 0.0,
     this.tin,
@@ -110,7 +108,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.regrNm,
     this.modrId,
     this.modrNm,
-    this.rsdQty = 0.0,
     this.lastTouched,
     this.supplyPrice = 0.0,
     this.retailPrice = 0.0,
@@ -118,7 +115,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.spplrItemCd,
     this.spplrItemNm,
     this.ebmSynced = false,
-    required this.branchIds,
     this.stock,
     this.dcRt = 0.0,
     this.expirationDate,

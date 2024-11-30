@@ -84,7 +84,6 @@ const List<MigrationCommand> _migration_20241128071810_up = [
   InsertColumn('is_favorite', Column.boolean, onTable: 'Product'),
   InsertColumn('last_touched', Column.datetime, onTable: 'Product'),
   InsertColumn('deleted_at', Column.datetime, onTable: 'Product'),
-  InsertColumn('search_match', Column.boolean, onTable: 'Product'),
   InsertColumn('spplr_nm', Column.varchar, onTable: 'Product'),
   InsertColumn('is_composite', Column.boolean, onTable: 'Product'),
   InsertColumn('id', Column.integer, onTable: 'Stock', unique: true),
@@ -189,7 +188,6 @@ const List<MigrationCommand> _migration_20241128071810_down = [
   DropColumn('is_favorite', onTable: 'Product'),
   DropColumn('last_touched', onTable: 'Product'),
   DropColumn('deleted_at', onTable: 'Product'),
-  DropColumn('search_match', onTable: 'Product'),
   DropColumn('spplr_nm', onTable: 'Product'),
   DropColumn('is_composite', onTable: 'Product'),
   DropColumn('id', onTable: 'Stock'),
@@ -230,9 +228,9 @@ const List<MigrationCommand> _migration_20241128071810_down = [
 )
 class Migration20241128071810 extends Migration {
   const Migration20241128071810()
-    : super(
-        version: 20241128071810,
-        up: _migration_20241128071810_up,
-        down: _migration_20241128071810_down,
-      );
+      : super(
+          version: 20241128071810,
+          up: _migration_20241128071810_up,
+          down: _migration_20241128071810_down,
+        );
 }

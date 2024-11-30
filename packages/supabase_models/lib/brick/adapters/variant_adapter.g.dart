@@ -34,7 +34,6 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       pkgUnitCd: data['pkg_unit_cd'] as String?,
       qtyUnitCd: data['qty_unit_cd'] as String?,
       itemNm: data['item_nm'] as String?,
-      qty: data['qty'] as double,
       prc: data['prc'] as double,
       splyAmt: data['sply_amt'] as double,
       tin: data['tin'] as int?,
@@ -47,7 +46,7 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       regrNm: data['regr_nm'] as String?,
       modrId: data['modr_id'] as String?,
       modrNm: data['modr_nm'] as String?,
-      rsdQty: data['rsd_qty'] as double,
+      stockId: data['stock_id'] as int?,
       lastTouched: data['last_touched'] == null
           ? null
           : DateTime.tryParse(data['last_touched'] as String),
@@ -57,7 +56,6 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       spplrItemCd: data['spplr_item_cd'] as String?,
       spplrItemNm: data['spplr_item_nm'] as String?,
       ebmSynced: data['ebm_synced'] as bool,
-      branchIds: data['branch_ids'].toList().cast<int>(),
       stock: data['stock'] == null
           ? null
           : await StockAdapter().fromSupabase(data['stock'],
@@ -99,7 +97,6 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'pkg_unit_cd': instance.pkgUnitCd,
     'qty_unit_cd': instance.qtyUnitCd,
     'item_nm': instance.itemNm,
-    'qty': instance.qty,
     'prc': instance.prc,
     'sply_amt': instance.splyAmt,
     'tin': instance.tin,
@@ -112,7 +109,7 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'regr_nm': instance.regrNm,
     'modr_id': instance.modrId,
     'modr_nm': instance.modrNm,
-    'rsd_qty': instance.rsdQty,
+    'stock_id': instance.stockId,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'supply_price': instance.supplyPrice,
     'retail_price': instance.retailPrice,
@@ -120,7 +117,6 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'spplr_item_cd': instance.spplrItemCd,
     'spplr_item_nm': instance.spplrItemNm,
     'ebm_synced': instance.ebmSynced,
-    'branch_ids': instance.branchIds,
     'stock': instance.stock != null
         ? await StockAdapter().toSupabase(instance.stock!,
             provider: provider, repository: repository)
@@ -172,7 +168,6 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
       qtyUnitCd:
           data['qty_unit_cd'] == null ? null : data['qty_unit_cd'] as String?,
       itemNm: data['item_nm'] == null ? null : data['item_nm'] as String?,
-      qty: data['qty'] as double,
       prc: data['prc'] as double,
       splyAmt: data['sply_amt'] as double,
       tin: data['tin'] == null ? null : data['tin'] as int?,
@@ -187,7 +182,7 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
       regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
       modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
       modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
-      rsdQty: data['rsd_qty'] as double,
+      stockId: data['stock_id'] == null ? null : data['stock_id'] as int?,
       lastTouched: data['last_touched'] == null
           ? null
           : data['last_touched'] == null
@@ -205,7 +200,6 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
           ? null
           : data['spplr_item_nm'] as String?,
       ebmSynced: data['ebm_synced'] == 1,
-      branchIds: jsonDecode(data['branch_ids']).toList().cast<int>(),
       stock: data['stock_Stock_brick_id'] == null
           ? null
           : (data['stock_Stock_brick_id'] > -1
@@ -255,7 +249,6 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'pkg_unit_cd': instance.pkgUnitCd,
     'qty_unit_cd': instance.qtyUnitCd,
     'item_nm': instance.itemNm,
-    'qty': instance.qty,
     'prc': instance.prc,
     'sply_amt': instance.splyAmt,
     'tin': instance.tin,
@@ -268,7 +261,7 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'regr_nm': instance.regrNm,
     'modr_id': instance.modrId,
     'modr_nm': instance.modrNm,
-    'rsd_qty': instance.rsdQty,
+    'stock_id': instance.stockId,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'supply_price': instance.supplyPrice,
     'retail_price': instance.retailPrice,
@@ -276,7 +269,6 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'spplr_item_cd': instance.spplrItemCd,
     'spplr_item_nm': instance.spplrItemNm,
     'ebm_synced': instance.ebmSynced ? 1 : 0,
-    'branch_ids': jsonEncode(instance.branchIds),
     'stock_Stock_brick_id': instance.stock != null
         ? instance.stock!.primaryKey ??
             await provider.upsert<Stock>(instance.stock!,
@@ -405,10 +397,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'item_nm',
     ),
-    'qty': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'qty',
-    ),
     'prc': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'prc',
@@ -457,9 +445,9 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'modr_nm',
     ),
-    'rsdQty': const RuntimeSupabaseColumnDefinition(
+    'stockId': const RuntimeSupabaseColumnDefinition(
       association: false,
-      columnName: 'rsd_qty',
+      columnName: 'stock_id',
     ),
     'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -488,10 +476,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'ebmSynced': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'ebm_synced',
-    ),
-    'branchIds': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'branch_ids',
     ),
     'stock': const RuntimeSupabaseColumnDefinition(
       association: true,
@@ -682,12 +666,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       iterable: false,
       type: String,
     ),
-    'qty': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'qty',
-      iterable: false,
-      type: double,
-    ),
     'prc': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'prc',
@@ -760,11 +738,11 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       iterable: false,
       type: String,
     ),
-    'rsdQty': const RuntimeSqliteColumnDefinition(
+    'stockId': const RuntimeSqliteColumnDefinition(
       association: false,
-      columnName: 'rsd_qty',
+      columnName: 'stock_id',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'lastTouched': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -807,12 +785,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       columnName: 'ebm_synced',
       iterable: false,
       type: bool,
-    ),
-    'branchIds': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'branch_ids',
-      iterable: true,
-      type: int,
     ),
     'stock': const RuntimeSqliteColumnDefinition(
       association: true,

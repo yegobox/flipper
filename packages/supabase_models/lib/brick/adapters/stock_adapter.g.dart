@@ -25,7 +25,6 @@ Future<Stock> _$StockFromSupabase(Map<String, dynamic> data,
           ? null
           : DateTime.tryParse(data['deleted_at'] as String),
       ebmSynced: data['ebm_synced'] as bool,
-      cloudSynced: data['cloud_synced'] as bool,
       variant: data['variant'] == null
           ? null
           : await VariantAdapter().fromSupabase(data['variant'],
@@ -53,7 +52,6 @@ Future<Map<String, dynamic>> _$StockToSupabase(Stock instance,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'ebm_synced': instance.ebmSynced,
-    'cloud_synced': instance.cloudSynced,
     'variant': instance.variant != null
         ? await VariantAdapter().toSupabase(instance.variant!,
             provider: provider, repository: repository)
@@ -94,7 +92,6 @@ Future<Stock> _$StockFromSqlite(Map<String, dynamic> data,
               ? null
               : DateTime.tryParse(data['deleted_at'] as String),
       ebmSynced: data['ebm_synced'] == 1,
-      cloudSynced: data['cloud_synced'] == 1,
       variant: data['variant_Variant_brick_id'] == null
           ? null
           : (data['variant_Variant_brick_id'] > -1
@@ -135,7 +132,6 @@ Future<Map<String, dynamic>> _$StockToSqlite(Stock instance,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'ebm_synced': instance.ebmSynced ? 1 : 0,
-    'cloud_synced': instance.cloudSynced ? 1 : 0,
     'variant_Variant_brick_id': instance.variant != null
         ? instance.variant!.primaryKey ??
             await provider.upsert<Variant>(instance.variant!,
@@ -218,10 +214,6 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
     'ebmSynced': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'ebm_synced',
-    ),
-    'cloudSynced': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'cloud_synced',
     ),
     'variant': const RuntimeSupabaseColumnDefinition(
       association: true,
@@ -339,12 +331,6 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
     'ebmSynced': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'ebm_synced',
-      iterable: false,
-      type: bool,
-    ),
-    'cloudSynced': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'cloud_synced',
       iterable: false,
       type: bool,
     ),

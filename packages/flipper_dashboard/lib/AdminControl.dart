@@ -1,7 +1,7 @@
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:brick_offline_first/brick_offline_first.dart';
+// import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -81,8 +81,83 @@ class _AdminControlState extends State<AdminControl> {
         spplrNm: product.spplrNm,
         isComposite: product.isComposite,
         composites: [],
-        // composites: product.composites,
       ));
+    }
+    List<Variant> variants =
+        ProxyService.local.variants(branchId: ProxyService.box.getBranchId()!);
+    for (Variant variant in variants) {
+      final vv = models.Variant(
+        id: variant.id!,
+        // branchIds: [ProxyService.box.getBranchId()!],
+        stockId: variant.stock!.id,
+        deletedAt: variant.deletedAt,
+        name: variant.name ?? "", // Use empty string if name is null
+        color: variant.color,
+        sku: variant.sku,
+        productId: variant.productId,
+        unit: variant.unit,
+        productName: variant.productName ?? "",
+        branchId: variant.branchId, // Assuming this is optional
+        taxName: variant.taxName ?? "",
+        taxPercentage: variant.taxPercentage,
+        itemSeq: variant.itemSeq,
+        isrccCd: variant.isrccCd ?? "",
+        isrccNm: variant.isrccNm ?? "",
+        isrcRt: variant.isrcRt ?? 0,
+        isrcAmt: variant.isrcAmt ?? 0,
+        taxTyCd: variant.taxTyCd ?? "B", // Default to "B" if null
+        bcd: variant.bcd ?? "",
+        itemClsCd: variant.itemClsCd,
+        itemTyCd: variant.itemTyCd,
+        itemStdNm: variant.itemStdNm ?? "",
+        orgnNatCd: variant.orgnNatCd ?? "",
+        pkg: variant.pkg ?? "1", // Default to "1" if null
+        itemCd: variant.itemCd ?? "",
+        pkgUnitCd: variant.pkgUnitCd ?? "CT", // Default to "CT" if null
+        qtyUnitCd: variant.qtyUnitCd ?? "BX", // Default to "BX" if null
+        itemNm: variant.itemNm,
+        prc: variant.prc,
+        splyAmt: variant.splyAmt,
+        tin: variant.tin,
+        bhfId: variant.bhfId,
+        dftPrc: variant.dftPrc ?? 0,
+        addInfo: variant.addInfo ?? "",
+        isrcAplcbYn: variant.isrcAplcbYn ?? "",
+        useYn: variant.useYn ?? "",
+        regrId: variant.regrId,
+        regrNm: variant.regrNm,
+        modrId: variant.modrId,
+        modrNm: variant.modrNm,
+        lastTouched: variant.lastTouched,
+        supplyPrice: variant.supplyPrice,
+        retailPrice: variant.retailPrice,
+        spplrItemClsCd: variant.spplrItemClsCd,
+        spplrItemCd: variant.spplrItemCd,
+        spplrItemNm: variant.spplrItemNm,
+        ebmSynced: variant.ebmSynced,
+        dcRt: variant.dcRt,
+        expirationDate: variant.expirationDate,
+      );
+      // upsert stock first
+      await repository.upsert(models.Stock(
+        id: variant.stock!.id!,
+        tin: variant.stock!.tin,
+        bhfId: variant.stock!.bhfId,
+        branchId: variant.stock!.branchId,
+        currentStock: variant.stock!.currentStock,
+        lowStock: variant.stock!.lowStock,
+        canTrackingStock: variant.stock!.canTrackingStock,
+        showLowStockAlert: variant.stock!.showLowStockAlert,
+        productId: variant.stock!.productId,
+        active: variant.stock!.active,
+        value: variant.stock!.value,
+        rsdQty: variant.stock!.rsdQty,
+        lastTouched: variant.stock!.lastTouched,
+        ebmSynced: variant.stock!.ebmSynced,
+        variant: vv,
+        variantId: variant.id,
+      ));
+      await repository.upsert(vv);
     }
     try {
       await ProxyService.box.writeBool(

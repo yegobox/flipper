@@ -1223,10 +1223,11 @@ class CoreSync with Booting implements CoreDataInterface {
     try {
       if (variant == null) {
         int variantId = randomNumber();
-
+        final stockId = randomNumber();
         variant = Variant(
             id: variantId,
-            branchIds: [ProxyService.box.getBranchId()!],
+            stockId: stockId,
+            // branchIds: [ProxyService.box.getBranchId()!],
             lastTouched: DateTime.now(),
             name: product!.name,
             color: product.color,
@@ -1278,7 +1279,7 @@ class CoreSync with Booting implements CoreDataInterface {
 
         Stock stock = Stock(
             lastTouched: DateTime.now(),
-            id: randomNumber(),
+            id: stockId,
             branchId: branchId,
             variantId: variantId,
             currentStock: 0.0,
@@ -2754,8 +2755,7 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  void updateTransactionStatus(
-      ITransaction transaction, String receiptType) {
+  void updateTransactionStatus(ITransaction transaction, String receiptType) {
     // TODO: implement updateTransactionStatus
   }
 

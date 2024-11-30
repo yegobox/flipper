@@ -4,7 +4,6 @@ import 'package:brick_supabase/brick_supabase.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'transaction_items'),
-  sqliteConfig: SqliteSerializable(),
 )
 class TransactionItem extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
