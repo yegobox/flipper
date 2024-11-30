@@ -15,7 +15,7 @@ class SyncStrategy {
   });
 
   CoreDataInterface get current =>
-      _currentStrategy == Strategy.capella ? capella : cloudSync;
+      _currentStrategy == Strategy.capella ? capella as CoreDataInterface : cloudSync;
 
   void setStrategy(Strategy strategy) {
     _currentStrategy = strategy;

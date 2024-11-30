@@ -8,7 +8,6 @@ import 'package:realm_dart/src/realm_object.dart';
 import 'package:realm_dart/src/results.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:supabase_models/brick/models/all_models.dart';
-import 'package:firestore_models/transaction.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/Booting.dart';
@@ -30,6 +29,7 @@ import 'package:cbl/cbl.dart'
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'DatabaseProvider.dart';
 
+// ignore: unused_import
 import 'package:flipper_services/replicator_provider.dart'
     if (dart.library.html) 'DatabaseProvider.dart';
 
@@ -56,7 +56,6 @@ class Capella with Booting implements CoreDataInterface {
   late String apihub;
   late String commApi;
 
-  @override
   // TODO: implement countersCollection
   Future<AsyncCollection> getCountersCollection() async {
     final database = capella!.database!;
@@ -127,11 +126,6 @@ class Capella with Booting implements CoreDataInterface {
     // final replicatorProvider = ReplicatorProvider(databaseProvider: capella!);
     // await replicatorProvider.init();
     // await replicatorProvider.startReplicator();
-  }
-
-  @override
-  Branch? branch({required int serverId}) {
-    throw UnimplementedError();
   }
 
   @override
@@ -416,14 +410,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  void addTransactionItem(
-      {required Transaction transaction,
-      required TransactionItem item,
-      required bool partOfComposite}) {
-    // TODO: implement addTransactionItem
-  }
-
-  @override
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units}) {
     // TODO: implement addUnits
     throw UnimplementedError();
@@ -508,49 +494,14 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  void clearVariants() {
-    // TODO: implement clearVariants
-  }
-
-  @override
-  void close() {
-    // TODO: implement close
-  }
-
-  @override
   Drawers? closeDrawer({required Drawers drawer, required double eod}) {
     // TODO: implement closeDrawer
     throw UnimplementedError();
   }
 
   @override
-  Future<Transaction> collectPayment(
-      {required double cashReceived,
-      required Transaction transaction,
-      required String paymentType,
-      required double discount,
-      required int branchId,
-      required String bhfId,
-      required bool isProformaMode,
-      required bool isTrainingMode,
-      required String transactionType,
-      String? categoryId,
-      bool directlyHandleReceipt = false,
-      required bool isIncome}) {
-    // TODO: implement collectPayment
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<PColor>> colors({required int branchId}) {
     // TODO: implement colors
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Transaction>> completedTransactions(
-      {required int branchId, String? status = COMPLETE}) {
-    // TODO: implement completedTransactions
     throw UnimplementedError();
   }
 
@@ -606,19 +557,6 @@ class Capella with Booting implements CoreDataInterface {
       int itemSeq = 1,
       bool ebmSynced = false}) {
     // TODO: implement createProduct
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Receipt?> createReceipt(
-      {required RwApiResponse signature,
-      required DateTime whenCreated,
-      required Transaction transaction,
-      required String qrCode,
-      required String receiptType,
-      required Counter counter,
-      required int invoiceNumber}) {
-    // TODO: implement createReceipt
     throw UnimplementedError();
   }
 
@@ -728,24 +666,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Ebm? ebm({required int branchId}) {
-    // TODO: implement ebm
-    throw UnimplementedError();
-  }
-
-  @override
-  void emptySentMessageQueue() {
-    // TODO: implement emptySentMessageQueue
-  }
-
-  @override
-  Future<bool> enableAttendance(
-      {required int businessId, required String email}) {
-    // TODO: implement enableAttendance
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Product?> findProductByTenantId({required int tenantId}) {
     // TODO: implement findProductByTenantId
     throw UnimplementedError();
@@ -758,24 +678,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Assets? getAsset({String? assetName, int? productId}) {
-    // TODO: implement getAsset
-    throw UnimplementedError();
-  }
-
-  @override
-  Business getBusiness({int? businessId}) {
-    // TODO: implement getBusiness
-    throw UnimplementedError();
-  }
-
-  @override
-  Business? getBusinessById({required int businessId}) {
-    // TODO: implement getBusinessById
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Business?> getBusinessFromOnlineGivenId(
       {required int id, required HttpClientInterface flipperHttpClient}) {
     // TODO: implement getBusinessFromOnlineGivenId
@@ -783,20 +685,8 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<Business> getBusinessFuture({int? businessId}) {
-    // TODO: implement getBusinessFuture
-    throw UnimplementedError();
-  }
-
-  @override
   Future<PColor?> getColor({required int id}) {
     // TODO: implement getColor
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Business>> getContacts() {
-    // TODO: implement getContacts
     throw UnimplementedError();
   }
 
@@ -813,18 +703,6 @@ class Capella with Booting implements CoreDataInterface {
   @override
   Future<Customer?> getCustomer({String? key, int? id}) {
     // TODO: implement getCustomer
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Customer?> getCustomerFuture({String? key, int? id}) {
-    // TODO: implement getCustomerFuture
-    throw UnimplementedError();
-  }
-
-  @override
-  List<Customer> getCustomers({String? key, int? id}) {
-    // TODO: implement getCustomers
     throw UnimplementedError();
   }
 
@@ -896,20 +774,8 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  FlipperSaleCompaign? getLatestCompaign() {
-    // TODO: implement getLatestCompaign
-    throw UnimplementedError();
-  }
-
-  @override
   Future<models.Plan?> getPaymentPlan({required int businessId}) {
     // TODO: implement getPaymentPlan
-    throw UnimplementedError();
-  }
-
-  @override
-  List<TransactionPaymentRecord> getPaymentType({required int transactionId}) {
-    // TODO: implement getPaymentType
     throw UnimplementedError();
   }
 
@@ -1034,12 +900,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<Transaction?> getTransactionById({required int id}) {
-    // TODO: implement getTransactionById
-    throw UnimplementedError();
-  }
-
-  @override
   Future<TransactionItem?> getTransactionItemById({required int id}) {
     // TODO: implement getTransactionItemById
     throw UnimplementedError();
@@ -1063,21 +923,6 @@ class Capella with Booting implements CoreDataInterface {
   Future<({double expense, double income})> getTransactionsAmountsSum(
       {required String period}) {
     // TODO: implement getTransactionsAmountsSum
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<
-      ({
-        List<Device> devices,
-        List<Favorite> favorites,
-        List<Product> products,
-        List<Stock> stocks,
-        List<TransactionItem> transactionItems,
-        List<Transaction> transactions,
-        List<Variant> variants
-      })> getUnSyncedData() {
-    // TODO: implement getUnSyncedData
     throw UnimplementedError();
   }
 
@@ -1182,42 +1027,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<extensions.SocialToken?> loginOnSocial(
-      {String? phoneNumberOrEmail, String? password}) {
-    // TODO: implement loginOnSocial
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Transaction> manageCashInOutTransaction(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId}) {
-    // TODO: implement manageCashInOutTransaction
-    throw UnimplementedError();
-  }
-
-  @override
-  Transaction manageTransaction(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId,
-      bool? includeSubTotalCheck = false}) {
-    // TODO: implement manageTransaction
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<Transaction> manageTransactionStream(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId,
-      bool? includeSubTotalCheck = false}) {
-    // TODO: implement manageTransactionStream
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> markModelForEbmUpdate<T>(
       {required T model, bool updated = true}) {
     // TODO: implement markModelForEbmUpdate
@@ -1227,12 +1036,6 @@ class Capella with Booting implements CoreDataInterface {
   @override
   Drawers? openDrawer({required Drawers drawer}) {
     // TODO: implement openDrawer
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Transaction>> orders({required int branchId}) {
-    // TODO: implement orders
     throw UnimplementedError();
   }
 
@@ -1294,11 +1097,6 @@ class Capella with Booting implements CoreDataInterface {
   Future<int> registerOnSocial({String? phoneNumberOrEmail, String? password}) {
     // TODO: implement registerOnSocial
     throw UnimplementedError();
-  }
-
-  @override
-  void removeCustomerFromTransaction({required Transaction transaction}) {
-    // TODO: implement removeCustomerFromTransaction
   }
 
   @override
@@ -1489,18 +1287,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<List<Transaction>> tickets() {
-    // TODO: implement tickets
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Transaction>> ticketsStreams() {
-    // TODO: implement ticketsStreams
-    throw UnimplementedError();
-  }
-
-  @override
   Future<double> totalStock({int? productId, int? variantId}) {
     // TODO: implement totalStock
     throw UnimplementedError();
@@ -1539,44 +1325,6 @@ class Capella with Booting implements CoreDataInterface {
       required bool doneWithTransaction,
       required bool active}) {
     // TODO: implement transactionItemsStreams
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Transaction>> transactionList(
-      {DateTime? startDate, DateTime? endDate}) {
-    // TODO: implement transactionList
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Transaction>> transactionStreamById(
-      {required int id, required FilterType filterType}) {
-    // TODO: implement transactionStreamById
-    throw UnimplementedError();
-  }
-
-  @override
-  List<Transaction> transactions(
-      {DateTime? startDate,
-      DateTime? endDate,
-      String? status,
-      String? transactionType,
-      int? branchId,
-      bool isExpense = false,
-      bool includePending = false}) {
-    // TODO: implement transactions
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Transaction>> transactionsStream(
-      {String? status,
-      String? transactionType,
-      int? branchId,
-      bool isCashOut = false,
-      bool includePending = false}) {
-    // TODO: implement transactionsStream
     throw UnimplementedError();
   }
 
@@ -1727,11 +1475,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  void updateTransactionStatus(Transaction transaction, String receiptType) {
-    // TODO: implement updateTransactionStatus
-  }
-
-  @override
   Future<Variant?> variant({int? variantId, String? name}) {
     // TODO: implement variant
     throw UnimplementedError();
@@ -1857,5 +1600,201 @@ class Capella with Booting implements CoreDataInterface {
   Future<Configurations> taxes({required int branchId}) {
     // TODO: implement taxes
     throw UnimplementedError();
+  }
+
+  @override
+  void addTransactionItem(
+      {required ITransaction transaction,
+      required TransactionItem item,
+      required bool partOfComposite}) {
+    // TODO: implement addTransactionItem
+  }
+
+  @override
+  Future<Branch?> branch({required int serverId}) {
+    // TODO: implement branch
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ITransaction> collectPayment(
+      {required double cashReceived,
+      required ITransaction transaction,
+      required String paymentType,
+      required double discount,
+      required int branchId,
+      required String bhfId,
+      required bool isProformaMode,
+      required bool isTrainingMode,
+      required String transactionType,
+      String? categoryId,
+      bool directlyHandleReceipt = false,
+      required bool isIncome}) {
+    // TODO: implement collectPayment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<ITransaction>> completedTransactions(
+      {required int branchId, String? status = COMPLETE}) {
+    // TODO: implement completedTransactions
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Receipt?> createReceipt(
+      {required RwApiResponse signature,
+      required DateTime whenCreated,
+      required ITransaction transaction,
+      required String qrCode,
+      required String receiptType,
+      required Counter counter,
+      required int invoiceNumber}) {
+    // TODO: implement createReceipt
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Ebm?> ebm({required int branchId}) {
+    // TODO: implement ebm
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Assets?> getAsset({String? assetName, int? productId}) {
+    // TODO: implement getAsset
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Business> getBusiness({int? businessId}) {
+    // TODO: implement getBusiness
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Business?> getBusinessById({required int businessId}) {
+    // TODO: implement getBusinessById
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Customer>> getCustomers({String? key, int? id}) {
+    // TODO: implement getCustomers
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<FlipperSaleCompaign?> getLatestCompaign() {
+    // TODO: implement getLatestCompaign
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<TransactionPaymentRecord>> getPaymentType(
+      {required int transactionId}) {
+    // TODO: implement getPaymentType
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ITransaction?> getTransactionById({required int id}) {
+    // TODO: implement getTransactionById
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ITransaction> manageCashInOutTransaction(
+      {required String transactionType,
+      required bool isExpense,
+      required int branchId}) {
+    // TODO: implement manageCashInOutTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ITransaction> manageTransaction(
+      {required String transactionType,
+      required bool isExpense,
+      required int branchId,
+      bool? includeSubTotalCheck = false}) {
+    // TODO: implement manageTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<ITransaction> manageTransactionStream(
+      {required String transactionType,
+      required bool isExpense,
+      required int branchId,
+      bool? includeSubTotalCheck = false}) {
+    // TODO: implement manageTransactionStream
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<ITransaction>> orders({required int branchId}) {
+    // TODO: implement orders
+    throw UnimplementedError();
+  }
+
+  @override
+  void removeCustomerFromTransaction({required ITransaction transaction}) {
+    // TODO: implement removeCustomerFromTransaction
+  }
+
+  @override
+  Future<List<ITransaction>> tickets() {
+    // TODO: implement tickets
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<ITransaction>> ticketsStreams() {
+    // TODO: implement ticketsStreams
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<ITransaction>> transactionList(
+      {DateTime? startDate, DateTime? endDate}) {
+    // TODO: implement transactionList
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<ITransaction>> transactionStreamById(
+      {required int id, required FilterType filterType}) {
+    // TODO: implement transactionStreamById
+    throw UnimplementedError();
+  }
+
+  @override
+  List<ITransaction> transactions(
+      {DateTime? startDate,
+      DateTime? endDate,
+      String? status,
+      String? transactionType,
+      int? branchId,
+      bool isExpense = false,
+      bool includePending = false}) {
+    // TODO: implement transactions
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<ITransaction>> transactionsStream(
+      {String? status,
+      String? transactionType,
+      int? branchId,
+      bool isCashOut = false,
+      bool includePending = false}) {
+    // TODO: implement transactionsStream
+    throw UnimplementedError();
+  }
+
+  @override
+  void updateTransactionStatus(ITransaction transaction, String receiptType) {
+    // TODO: implement updateTransactionStatus
   }
 }

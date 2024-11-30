@@ -9,6 +9,8 @@ class Business extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   final int id;
 
+  int serverId;
+
   String? name;
   String? currency;
   String? categoryId;
@@ -59,6 +61,7 @@ class Business extends OfflineFirstWithSupabaseModel {
   Business({
     required this.id,
     this.name,
+    required this.serverId,
     this.currency,
     this.categoryId,
     this.latitude,

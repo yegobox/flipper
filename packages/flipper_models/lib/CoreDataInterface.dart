@@ -6,10 +6,8 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/helperModels/social_token.dart';
 // import 'package:firestore_models/firestore_models.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
-import 'package:firestore_models/transaction.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:realm/realm.dart' as realmO;
@@ -48,7 +46,6 @@ abstract class CoreDataInterface {
   AsyncCollection? businessCollection;
   AsyncCollection? accessCollection;
   AsyncCollection? permissionCollection;
-  Future<AsyncCollection> getCountersCollection();
   Future<List<Counter>> getCounters({required int branchId});
   Future<List<Product>> products({required int branchId});
   Future<void> startReplicator();
@@ -131,14 +128,11 @@ abstract class CoreDataInterface {
   //   required Future<void> Function(T) onAdd,
   // });
 
-  Future<SocialToken?> loginOnSocial(
-      {String? phoneNumberOrEmail, String? password});
-
   Future<double> totalStock({int? productId, int? variantId});
   List<Stock> stocks({required int branchId});
   Stream<double> getStockStream(
       {int? productId, int? variantId, required int branchId});
-  List<Transaction> transactions({
+  List<ITransaction> transactions({
     DateTime? startDate,
     DateTime? endDate,
     String? status,
@@ -149,7 +143,7 @@ abstract class CoreDataInterface {
   });
   Stream<List<Product>> productStreams({int? prodIndex});
 
-  Stream<List<Transaction>> orders({required int branchId});
+  Stream<List<ITransaction>> orders({required int branchId});
   Future<List<Product>> getProductList({int? prodIndex, required int branchId});
   Future<Stock?> stockByVariantId(
       {required int variantId,
@@ -214,7 +208,7 @@ abstract class CoreDataInterface {
       int itemSeq = 1,
       bool ebmSynced = false});
 
-  Stream<Transaction> manageTransactionStream(
+  Stream<ITransaction> manageTransactionStream(
       {required String transactionType,
       required bool isExpense,
       required int branchId,
@@ -222,21 +216,21 @@ abstract class CoreDataInterface {
 
   ///create an transaction if no pending transaction exist should create a new one
   ///then if it exist should return the existing one!
-  Transaction manageTransaction(
+  Future<ITransaction> manageTransaction(
       {required String transactionType,
       required bool isExpense,
       required int branchId,
       bool? includeSubTotalCheck = false});
 
-  Future<Transaction> manageCashInOutTransaction(
+  Future<ITransaction> manageCashInOutTransaction(
       {required String transactionType,
       required bool isExpense,
       required int branchId});
 
-  Future<List<Transaction>> completedTransactions(
+  Future<List<ITransaction>> completedTransactions(
       {required int branchId, String? status = COMPLETE});
   Future<TransactionItem?> getTransactionItemById({required int id});
-  Stream<List<Transaction>> transactionList(
+  Stream<List<ITransaction>> transactionList(
       {DateTime? startDate, DateTime? endDate});
   Future<Variant?> getCustomVariant({
     required int businessId,
@@ -245,9 +239,9 @@ abstract class CoreDataInterface {
     required String bhFId,
   });
   // Future<Spenn> spennPayment({required double amount, required phoneNumber});
-  Future<Transaction> collectPayment({
+  Future<ITransaction> collectPayment({
     required double cashReceived,
-    required Transaction transaction,
+    required ITransaction transaction,
     required String paymentType,
     required double discount,
     required int branchId,
@@ -280,15 +274,14 @@ abstract class CoreDataInterface {
       {required Customer customer, required int transactionId});
   void assignCustomerToTransaction(
       {required int customerId, int? transactionId});
-  void removeCustomerFromTransaction({required Transaction transaction});
+  void removeCustomerFromTransaction({required ITransaction transaction});
   Future<Customer?> getCustomer({String? key, int? id});
-  List<Customer> getCustomers({String? key, int? id});
-  Future<Customer?> getCustomerFuture({String? key, int? id});
+  Future<List<Customer>> getCustomers({String? key, int? id});
 
-  Future<Transaction?> getTransactionById({required int id});
-  Future<List<Transaction>> tickets();
-  Stream<List<Transaction>> ticketsStreams();
-  Stream<List<Transaction>> transactionStreamById(
+  Future<ITransaction?> getTransactionById({required int id});
+  Future<List<ITransaction>> tickets();
+  Stream<List<ITransaction>> ticketsStreams();
+  Stream<List<ITransaction>> transactionStreamById(
       {required int id, required FilterType filterType});
   Future<int> deleteTransactionByIndex({required int transactionIndex});
 
@@ -313,11 +306,9 @@ abstract class CoreDataInterface {
   // Future<List<Discount>> getDiscounts({required int branchId});
 
   void addTransactionItem(
-      {required Transaction transaction,
+      {required ITransaction transaction,
       required TransactionItem item,
       required bool partOfComposite});
-
-  void emptySentMessageQueue();
 
   Future<int> userNameAvailable(
       {required String name, required HttpClientInterface flipperHttpClient});
@@ -330,8 +321,6 @@ abstract class CoreDataInterface {
   Future<bool> isSubscribed({required String feature, required int businessId});
 
   Future<bool> checkIn({required String? checkInCode});
-  Future<bool> enableAttendance(
-      {required int businessId, required String email});
 
   // Future<Profile?> profile({required int businessId});
   // Future<Profile?> updateProfile({required Profile profile});
@@ -345,7 +334,7 @@ abstract class CoreDataInterface {
 
   Future<List<Product>> productsFuture({required int branchId});
 
-  Stream<List<Transaction>> transactionsStream({
+  Stream<List<ITransaction>> transactionsStream({
     String? status,
     String? transactionType,
     int? branchId,
@@ -370,7 +359,7 @@ abstract class CoreDataInterface {
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
       required DateTime whenCreated,
-      required Transaction transaction,
+      required ITransaction transaction,
       required String qrCode,
       required String receiptType,
       required Counter counter,
@@ -432,19 +421,8 @@ abstract class CoreDataInterface {
 
   Future<({double income, double expense})> getTransactionsAmountsSum(
       {required String period});
-  Future<
-      ({
-        List<Stock> stocks,
-        List<Variant> variants,
-        List<Product> products,
-        List<Favorite> favorites,
-        List<Device> devices,
-        List<Transaction> transactions,
-        List<TransactionItem> transactionItems
-      })> getUnSyncedData();
-  // Future<Conversation> sendMessage(
-  //     {required String message, required Conversation latestConversation});
-  Ebm? ebm({required int branchId});
+
+  Future<Ebm?> ebm({required int branchId});
   void saveEbm(
       {required int branchId, required String severUrl, required String bhFId});
 
@@ -456,7 +434,7 @@ abstract class CoreDataInterface {
       {required int userId, required String activity});
 
   List<Customer> customers({required int branchId});
-  void close();
+
   void clear();
   // Future<List<SyncRecord>> syncedModels({required int branchId});
   // Future<Permission?> permission({required int userId});
@@ -498,7 +476,7 @@ abstract class CoreDataInterface {
   Future<Stream<double>> downloadAssetSave(
       {String? assetName, String? subPath = "branch"});
   Future<bool> removeS3File({required String fileName});
-  Assets? getAsset({String? assetName, int? productId});
+  Future<Assets?> getAsset({String? assetName, int? productId});
   Future<void> amplifyLogout();
   List<Product> getProducts({String? key});
   List<Variant> getVariants({String? key});
@@ -569,7 +547,7 @@ abstract class CoreDataInterface {
     required HttpClientInterface flipperHttpClient,
   });
   Future<models.Plan?> getPaymentPlan({required int businessId});
-  FlipperSaleCompaign? getLatestCompaign();
+  Future<FlipperSaleCompaign?> getLatestCompaign();
   Stream<Plan?> paymentPlanStream({required int businessId});
 
   Stream<List<TransactionItem>> transactionItemList(
@@ -616,9 +594,8 @@ abstract class CoreDataInterface {
       {required int businessId, bool? includeSelf = false});
   Future<List<ITenant>> signup(
       {required Map business, required HttpClientInterface flipperHttpClient});
-  Business getBusiness({int? businessId});
-  Business? getBusinessById({required int businessId});
-  Future<Business> getBusinessFuture({int? businessId});
+  Future<Business> getBusiness({int? businessId});
+  Future<Business?> getBusinessById({required int businessId});
   Future<Business?> defaultBusiness();
   Branch? defaultBranch();
   Future<Branch> activeBranch();
@@ -628,7 +605,6 @@ abstract class CoreDataInterface {
       required HttpClientInterface flipperHttpClient});
   Future<Business?> getBusinessFromOnlineGivenId(
       {required int id, required HttpClientInterface flipperHttpClient});
-  Future<List<Business>> getContacts();
   Future<Tenant?> saveTenant(String phoneNumber, String name,
       {required Business business,
       required Branch branch,
@@ -644,7 +620,7 @@ abstract class CoreDataInterface {
       required HttpClientInterface flipperHttpClient});
   Future<void> deleteBranch(
       {required int branchId, required HttpClientInterface flipperHttpClient});
-  Branch? branch({required int serverId});
+  Future<Branch?> branch({required int serverId});
 
   Future<http.Response> sendLoginRequest(
       String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
@@ -660,9 +636,10 @@ abstract class CoreDataInterface {
 
   Drawers? closeDrawer({required Drawers drawer, required double eod});
   void saveStock({required Variant variant});
-  void updateTransactionStatus(Transaction transaction, String receiptType);
+  void updateTransactionStatus(ITransaction transaction, String receiptType);
   void savePaymentType({required TransactionPaymentRecord paymentRecord});
-  List<TransactionPaymentRecord> getPaymentType({required int transactionId});
+  Future<List<TransactionPaymentRecord>> getPaymentType(
+      {required int transactionId});
 
   void updateCounters({
     required List<Counter> counters,
@@ -675,5 +652,4 @@ abstract class CoreDataInterface {
   Future<void> sendMessageToIsolate();
   Future<void> spawnIsolate(dynamic isolateHandler);
   void reDownloadAsset();
-  void clearVariants();
 }

@@ -48,13 +48,13 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   /// and this operation might fail at time of us making the call and our software can work offline
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
-  bool ebmSynced = false;
+  bool? ebmSynced = false;
 
   // Add methods to check type
   bool isIncome = false;
 
   bool isExpense = false;
-  bool isRefunded = false;
+  bool? isRefunded = false;
   String? customerName;
   String? customerTin;
   String? remark;
@@ -78,24 +78,24 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     required this.cashReceived,
     required this.customerChangeDue,
     required this.createdAt,
-    required this.receiptType,
+    this.receiptType,
     required this.updatedAt,
-    required this.customerId,
-    required this.customerType,
-    required this.note,
-    required this.lastTouched,
-    required this.supplierId,
-    required this.ebmSynced,
+    this.customerId,
+    this.customerType,
+    this.note,
+    this.lastTouched,
+    this.supplierId,
+    this.ebmSynced,
     required this.isIncome,
     required this.isExpense,
-    required this.isRefunded,
-    required this.customerName,
-    required this.customerTin,
-    required this.remark,
-    required this.customerBhfId,
-    required this.sarTyCd,
-    required this.receiptNumber,
-    required this.totalReceiptNumber,
-    required this.invoiceNumber,
+    this.isRefunded,
+    this.customerName,
+    this.customerTin,
+    this.remark,
+    this.customerBhfId,
+    this.sarTyCd,
+    this.receiptNumber,
+    this.totalReceiptNumber,
+    this.invoiceNumber,
   });
 }

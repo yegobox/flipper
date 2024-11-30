@@ -14,7 +14,6 @@ import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
-import 'package:firestore_models/firestore_models.dart' as odm;
 import 'package:flipper_models/Booting.dart';
 import 'package:flipper_models/DATA.dart' as defaultData;
 import 'package:flipper_models/flipper_http_client.dart';
@@ -68,7 +67,6 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
-import 'package:firestore_models/configurations.dart' as config;
 
 //
 class LocalRealmApi

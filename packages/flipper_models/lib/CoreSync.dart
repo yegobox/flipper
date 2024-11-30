@@ -1,15 +1,22 @@
 import 'dart:convert';
 import 'dart:isolate';
+import 'package:flipper_models/helperModels/business.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_models/helperModels/branch.dart';
+import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/helperModels/pin.dart';
+import 'package:flipper_models/Booting.dart';
 import 'package:realm/realm.dart' as realmO;
 import 'dart:async';
+import 'package:flipper_models/exceptions.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:http/http.dart' as http;
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart' as old;
@@ -22,10 +29,11 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 import 'dart:typed_data';
 import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
-import 'package:firestore_models/transaction.dart' as trans;
+
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_services/abstractions/storage.dart' as storage;
+import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:cbl/cbl.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
@@ -36,11 +44,14 @@ import 'package:flipper_services/database_provider.dart'
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
 
-class CoreSync implements CoreDataInterface {
+class CoreSync with Booting implements CoreDataInterface {
   final Map<String, StreamSubscription<QuerySnapshot>> _subscriptions = {};
   final FirebaseFirestore? _firestore;
   realmO.Realm? realm;
   final Set<int> _processingIds = {};
+  final String apihub = AppSecrets.apihubProd;
+  final repository = Repository();
+  bool offlineLogin = false;
 
   bool isInIsolate() {
     return Isolate.current.debugName != null;
@@ -676,7 +687,7 @@ class CoreSync implements CoreDataInterface {
 
   @override
   void addTransactionItem(
-      {required trans.Transaction transaction,
+      {required ITransaction transaction,
       required TransactionItem item,
       required bool partOfComposite}) {
     // TODO: implement addTransactionItem
@@ -716,12 +727,6 @@ class CoreSync implements CoreDataInterface {
   @override
   Future<bool> bindProduct({required int productId, required int tenantId}) {
     // TODO: implement bindProduct
-    throw UnimplementedError();
-  }
-
-  @override
-  Branch? branch({required int serverId}) {
-    // TODO: implement branch
     throw UnimplementedError();
   }
 
@@ -768,18 +773,31 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  void clearData({required ClearData data}) {
-    // TODO: implement clearData
-  }
+  void clearData({required ClearData data}) async {
+    try {
+      if (data == ClearData.Branch) {
+        // Retrieve the list of Branches to delete based on the query
+        // final query = brick.Query();
+        final List<Branch> branches = await repository.get<Branch>();
 
-  @override
-  void clearVariants() {
-    // TODO: implement clearVariants
-  }
+        for (final branch in branches) {
+          await repository.delete<Branch>(branch);
+        }
+      }
 
-  @override
-  void close() {
-    // TODO: implement close
+      if (data == ClearData.Business) {
+        // Retrieve the list of Businesses to delete
+        final List<Business> businesses = await repository.get<Business>();
+
+        for (final business in businesses) {
+          await repository.delete<Business>(business);
+        }
+      }
+    } catch (e, s) {
+      // Log the error with talker
+      talker.error('Failed to clear data: $e');
+      talker.error('Stack trace: $s');
+    }
   }
 
   @override
@@ -795,7 +813,7 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  Future<List<trans.Transaction>> completedTransactions(
+  Future<List<ITransaction>> completedTransactions(
       {required int branchId, String? status = COMPLETE}) {
     // TODO: implement completedTransactions
     throw UnimplementedError();
@@ -886,7 +904,7 @@ class CoreSync implements CoreDataInterface {
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
       required DateTime whenCreated,
-      required trans.Transaction transaction,
+      required ITransaction transaction,
       required String qrCode,
       required String receiptType,
       required Counter counter,
@@ -1001,89 +1019,127 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  Ebm? ebm({required int branchId}) {
-    // TODO: implement ebm
-    throw UnimplementedError();
+  Future<Ebm?> ebm({required int branchId}) async {
+    final repository = Repository();
+    final query =
+        brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
+    final result = await repository.get<models.Ebm>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return result.firstOrNull;
   }
 
   @override
-  void emptySentMessageQueue() {
-    // TODO: implement emptySentMessageQueue
+  Future<Product?> findProductByTenantId({required int tenantId}) async {
+    final query = brick.Query(
+        where: [brick.Where('bindedToTenantId').isExactly(tenantId)]);
+    final result = await repository.get<models.Product>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return result.firstOrNull;
   }
 
   @override
-  Future<bool> enableAttendance(
-      {required int businessId, required String email}) {
-    // TODO: implement enableAttendance
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Product?> findProductByTenantId({required int tenantId}) {
-    // TODO: implement findProductByTenantId
-    throw UnimplementedError();
+  Future<Branch?> branch({required int serverId}) async {
+    final repository = Repository();
+    final query =
+        brick.Query(where: [brick.Where('serverId').isExactly(serverId)]);
+    final result = await repository.get<models.Branch>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return result.firstOrNull;
   }
 
   @override
   Stream<List<Variant>> geVariantStreamByProductId({required int productId}) {
-    // TODO: implement geVariantStreamByProductId
-    throw UnimplementedError();
+    final repository = Repository();
+    final query =
+        brick.Query(where: [brick.Where('productId').isExactly(productId)]);
+    // Return the stream directly instead of storing in variable
+    return repository.subscribe<Variant>(query: query);
   }
 
   @override
-  Assets? getAsset({String? assetName, int? productId}) {
-    // TODO: implement getAsset
-    throw UnimplementedError();
+  Future<Assets?> getAsset({String? assetName, int? productId}) async {
+    final repository = Repository();
+    final query = brick.Query(
+        where: assetName != null
+            ? [brick.Where('assetName').isExactly(assetName)]
+            : productId != null
+                ? [brick.Where('productId').isExactly(productId)]
+                : throw Exception("no asset"));
+    final result = await repository.get<models.Assets>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return result.firstOrNull;
   }
 
   @override
-  Business getBusiness({int? businessId}) {
-    // TODO: implement getBusiness
-    throw UnimplementedError();
+  Future<Business> getBusiness({int? businessId}) async {
+    final repository = Repository();
+    final query = brick.Query(
+        where: businessId != null
+            ? [brick.Where('serverId').isExactly(businessId)]
+            : [brick.Where('isDefault').isExactly(true)]);
+    final result = await repository.get<models.Business>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return result.first;
   }
 
   @override
-  Business? getBusinessById({required int businessId}) {
-    // TODO: implement getBusinessById
-    throw UnimplementedError();
+  Future<Business?> getBusinessById({required int businessId}) async {
+    final repository = Repository();
+    final query =
+        brick.Query(where: [brick.Where('serverId').isExactly(businessId)]);
+    final result = await repository.get<models.Business>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return result.firstOrNull;
   }
 
   @override
   Future<Business?> getBusinessFromOnlineGivenId(
-      {required int id, required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement getBusinessFromOnlineGivenId
-    throw UnimplementedError();
-  }
+      {required int id, required HttpClientInterface flipperHttpClient}) async {
+    final repository = Repository();
+    final query = brick.Query(where: [brick.Where('serverId').isExactly(id)]);
+    final result = await repository.get<models.Business>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    Business? business = result.firstOrNull;
 
-  @override
-  Future<Business> getBusinessFuture({int? businessId}) {
-    // TODO: implement getBusinessFuture
-    throw UnimplementedError();
+    if (business != null) return business;
+    final http.Response response =
+        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/business/$id"));
+    if (response.statusCode == 200) {
+      int id = randomNumber();
+      IBusiness iBusiness = IBusiness.fromJson(json.decode(response.body));
+      Business business = Business(
+          id: iBusiness.id!,
+          serverId: iBusiness.id!,
+          name: iBusiness.name,
+          userId: iBusiness.userId,
+          createdAt: DateTime.now().toIso8601String());
+
+      business.serverId = id;
+      await repository.upsert<models.Business>(business);
+      return business;
+    }
+    return null;
   }
 
   @override
   Future<Configurations?> getByTaxType({required String taxtype}) async {
-    throw UnimplementedError();
-    // final response = await configurationsRef
-    //     .whereTaxType(isEqualTo: taxtype)
-    //     .whereBranchId(isEqualTo: ProxyService.box.getBranchId()!)
-    //     .get();
-    // if (response.docs.isEmpty) {
-    //   return null;
-    // }
-    // return response.docs.first.data;
+    final repository = Repository();
+    final query = brick.Query(where: [
+      brick.Where('taxType').isExactly(taxtype),
+      brick.Where('branchId').isExactly(ProxyService.box.getBranchId()!),
+    ]);
+    final result = await repository.get<models.Configurations>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return result.firstOrNull;
   }
 
   @override
-  Future<PColor?> getColor({required int id}) {
-    // TODO: implement getColor
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Business>> getContacts() {
-    // TODO: implement getContacts
-    throw UnimplementedError();
+  Future<PColor?> getColor({required int id}) async {
+    final repository = Repository();
+    final query = brick.Query(where: [brick.Where('id').isExactly(id)]);
+    final result = await repository.get<models.PColor>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return result.firstOrNull;
   }
 
   @override
@@ -1111,110 +1167,348 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  Future<AsyncCollection> getCountersCollection() {
-    // TODO: implement getCountersCollection
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Variant?> getCustomVariant(
       {required int businessId,
       required int branchId,
       required int tinNumber,
-      required String bhFId}) {
+      required String bhFId}) async {
     // TODO: implement getCustomVariant
-    throw UnimplementedError();
+    final repository = Repository();
+    final productQuery = brick.Query(where: [
+      brick.Where('name').isExactly(CUSTOM_PRODUCT),
+      brick.Where('branchId').isExactly(branchId),
+    ]);
+    final productResult = await repository.get<models.Product>(
+        query: productQuery,
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    Product? product = productResult.firstOrNull;
+
+    if (product == null) {
+      // Create a new custom product if it doesn't exist
+      product = await createProduct(
+          tinNumber: tinNumber,
+          bhFId: bhFId,
+          branchId: branchId,
+          businessId: businessId,
+          product: models.Product(
+              id: randomNumber(),
+              lastTouched: DateTime.now(),
+              name: CUSTOM_PRODUCT,
+              businessId: businessId,
+              color: "#e74c3c",
+              createdAt: DateTime.now().toIso8601String(),
+              branchId: branchId));
+    }
+
+    /// for whatever reason if a product exist and there is no related variant please add it before we proceed.
+    final variantQuery =
+        brick.Query(where: [brick.Where('productId').isExactly(product!.id)]);
+    final variantResult = await repository.get<models.Variant>(
+        query: variantQuery,
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    Variant? variant = variantResult.firstOrNull;
+
+    if (variant == null) {
+      /// If the variant doesn't exist, add it
+      variant = await _addMissingVariant(variant, product, branchId, tinNumber);
+    }
+
+    return variant;
+  }
+
+  Future<Variant?> _addMissingVariant(
+      Variant? variant, Product? product, int branchId, int tinNumber) async {
+    final number = randomNumber().toString().substring(0, 5);
+    final repository = Repository();
+    try {
+      if (variant == null) {
+        int variantId = randomNumber();
+
+        variant = Variant(
+            id: variantId,
+            branchIds: [ProxyService.box.getBranchId()!],
+            lastTouched: DateTime.now(),
+            name: product!.name,
+            color: product.color,
+            sku: 'sku',
+            productId: product.id,
+            unit: 'Per Item',
+            productName: product.name,
+            branchId: branchId,
+            supplyPrice: 0.0,
+            retailPrice: 0.0,
+            itemNm: product.name,
+            bhfId: await ProxyService.box.bhfId() ?? '00',
+            // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
+            itemClsCd: "5020230602",
+            itemCd: randomNumber().toString().substring(0, 5),
+            modrNm: number,
+            modrId: number,
+            pkgUnitCd: "BJ",
+            regrId: randomNumber().toString().substring(0, 5),
+            itemTyCd: "2", // this is a finished product
+            /// available type for itemTyCd are 1 for raw material and 3 for service
+            /// is insurance applicable default is not applicable
+            isrcAplcbYn: "N",
+            useYn: "N",
+            itemSeq: 1,
+            itemStdNm: product.name,
+            taxPercentage: 18.0,
+            tin: tinNumber,
+            bcd: CUSTOM_PRODUCT,
+
+            /// country of origin for this item we default until we support something different
+            /// and this will happen when we do import.
+            orgnNatCd: "RW",
+
+            /// registration name
+            regrNm: CUSTOM_PRODUCT,
+
+            /// taxation type code
+            taxTyCd: "B", // available types A(A-EX),B(B-18.00%),C,D
+            // default unit price
+            dftPrc: 0,
+
+            // NOTE: I believe bellow item are required when saving purchase
+            ///but I wonder how to get them when saving an item.
+            spplrItemCd: randomNumber().toString().substring(0, 5),
+            spplrItemClsCd: randomNumber().toString().substring(0, 5),
+            spplrItemNm: CUSTOM_PRODUCT,
+            qtyUnitCd: "U");
+
+        Stock stock = Stock(
+            lastTouched: DateTime.now(),
+            id: randomNumber(),
+            branchId: branchId,
+            variantId: variantId,
+            currentStock: 0.0,
+            productId: product.id)
+          ..canTrackingStock = false
+          ..showLowStockAlert = false
+          ..currentStock = 0.0
+          ..branchId = branchId
+          ..variantId = variantId
+          ..lowStock = 10.0 // default static
+          ..canTrackingStock = true
+          ..showLowStockAlert = true
+          ..active = false
+          ..productId = product.id
+          ..rsdQty = 0.0;
+
+        repository.upsert<Variant>(variant);
+
+        repository.upsert<Stock>(stock);
+
+        final variantQuery =
+            brick.Query(where: [brick.Where('id').isExactly(variantId)]);
+        final variantResult = await repository.get<models.Variant>(
+            query: variantQuery,
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        return variantResult.firstOrNull;
+      }
+    } catch (e, s) {
+      // Handle error during write operation
+      talker.error(e);
+      talker.error(s);
+      throw Exception(e);
+    }
+    return variant;
+  }
+
+  Future<Customer?> getCustomer({String? key, int? id}) async {
+    if (key != null && id != null) {
+      throw ArgumentError(
+          'Cannot provide both a key and an id at the same time');
+    }
+
+    if (id != null) {
+      // Query by ID
+      final query = brick.Query(where: [
+        brick.Where('id', value: id, compare: brick.Compare.exact),
+      ]);
+      final List<Customer> customers =
+          await repository.get<Customer>(query: query);
+      return customers.isNotEmpty ? customers.first : null;
+    } else if (key != null) {
+      // Queries for each field combined with OR logic
+      final queries = [
+        brick.Query(where: [
+          brick.Where('deletedAt', compare: brick.Compare.doesNotContain),
+          brick.Where('custNm', value: key, compare: brick.Compare.contains),
+        ]),
+        brick.Query(where: [
+          brick.Where('deletedAt', compare: brick.Compare.doesNotContain),
+          brick.Where('email', value: key, compare: brick.Compare.contains),
+        ]),
+        brick.Query(where: [
+          brick.Where('deletedAt', compare: brick.Compare.doesNotContain),
+          brick.Where('telNo', value: key, compare: brick.Compare.contains),
+        ]),
+      ];
+
+      for (final query in queries) {
+        final List<Customer> customers = await repository.get<Customer>(
+            query: query,
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        if (customers.isNotEmpty) return customers.first;
+      }
+    }
+
+    return null;
   }
 
   @override
-  Future<Customer?> getCustomer({String? key, int? id}) {
-    // TODO: implement getCustomer
-    throw UnimplementedError();
-  }
+  Future<List<Customer>> getCustomers({String? key, int? id}) async {
+    final List<Customer> customers = [];
+    if (id != null) {
+      // Query by ID
+      final query = brick.Query(where: [
+        brick.Where('id', value: id, compare: brick.Compare.exact),
+      ]);
+      final List<Customer> fetchedCustomers =
+          await repository.get<Customer>(query: query);
+      customers.addAll(fetchedCustomers);
+    } else if (key != null) {
+      // Queries for each field combined with OR logic
+      final queries = [
+        brick.Query(where: [
+          brick.Where('deletedAt', compare: brick.Compare.doesNotContain),
+          brick.Where('custNm', value: key, compare: brick.Compare.contains),
+        ]),
+        brick.Query(where: [
+          brick.Where('deletedAt', compare: brick.Compare.doesNotContain),
+          brick.Where('email', value: key, compare: brick.Compare.contains),
+        ]),
+        brick.Query(where: [
+          brick.Where('deletedAt', compare: brick.Compare.doesNotContain),
+          brick.Where('telNo', value: key, compare: brick.Compare.contains),
+        ]),
+      ];
 
-  @override
-  Future<Customer?> getCustomerFuture({String? key, int? id}) {
-    // TODO: implement getCustomerFuture
-    throw UnimplementedError();
-  }
-
-  @override
-  List<Customer> getCustomers({String? key, int? id}) {
-    // TODO: implement getCustomers
-    throw UnimplementedError();
+      for (final query in queries) {
+        final List<Customer> fetchedCustomers = await repository.get<Customer>(
+            query: query,
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        customers.addAll(fetchedCustomers);
+      }
+    }
+    return customers;
   }
 
   @override
   Stream<Tenant?> getDefaultTenant({required int businessId}) {
-    // TODO: implement getDefaultTenant
-    throw UnimplementedError();
+    final query =
+        brick.Query(where: [brick.Where('businessId').isExactly(businessId)]);
+    // Return the stream directly instead of storing in variable
+    return repository
+        .subscribe<Tenant>(
+            query: query,
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
+        .map((tenants) => tenants.firstOrNull);
   }
 
   @override
   Future<Device?> getDevice(
-      {required String phone, required String linkingCode}) {
-    // TODO: implement getDevice
-    throw UnimplementedError();
+      {required String phone, required String linkingCode}) async {
+    final query = brick.Query(where: [
+      brick.Where('phone', value: phone, compare: brick.Compare.exact),
+      brick.Where(
+        'linkingCode',
+        value: linkingCode,
+        compare: brick.Compare.exact,
+      ),
+    ]);
+    final List<Device> fetchedDevices =
+        await repository.get<Device>(query: query);
+    return fetchedDevices.firstOrNull;
   }
 
   @override
-  Future<Device?> getDeviceById({required int id}) {
-    // TODO: implement getDeviceById
-    throw UnimplementedError();
+  Future<Device?> getDeviceById({required int id}) async {
+    final query = brick.Query(where: [brick.Where('id').isExactly(id)]);
+    final List<Device> fetchedDevices = await repository.get<Device>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return fetchedDevices.firstOrNull;
   }
 
   @override
-  Future<List<Device>> getDevices({required int businessId}) {
-    // TODO: implement getDevices
-    throw UnimplementedError();
+  Future<List<Device>> getDevices({required int businessId}) async {
+    final query = brick.Query(
+      where: [brick.Where('businessId').isExactly(businessId)],
+    );
+    final List<Device> fetchedDevices = await repository.get<Device>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return fetchedDevices;
   }
 
   @override
-  Future<Drawers?> getDrawer({required int cashierId}) {
-    // TODO: implement getDrawer
-    throw UnimplementedError();
+  Future<Drawers?> getDrawer({required int cashierId}) async {
+    final query =
+        brick.Query(where: [brick.Where('cashierId').isExactly(cashierId)]);
+    final List<Drawers> fetchedDrawers = await repository.get<Drawers>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return fetchedDrawers.firstOrNull;
   }
 
   @override
-  Future<Favorite?> getFavoriteById({required int favId}) {
-    // TODO: implement getFavoriteById
-    throw UnimplementedError();
+  Future<Favorite?> getFavoriteById({required int favId}) async {
+    final query = brick.Query(where: [brick.Where('id').isExactly(favId)]);
+    final List<Favorite> fetchedFavorites = await repository.get<Favorite>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return fetchedFavorites.firstOrNull;
   }
 
   @override
-  Future<Favorite?> getFavoriteByIndex({required int favIndex}) {
-    // TODO: implement getFavoriteByIndex
-    throw UnimplementedError();
+  Future<Favorite?> getFavoriteByIndex({required int favIndex}) async {
+    final query =
+        brick.Query(where: [brick.Where('favIndex').isExactly(favIndex)]);
+    final List<Favorite> fetchedFavorites = await repository.get<Favorite>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return fetchedFavorites.firstOrNull;
   }
 
   @override
   Stream<Favorite?> getFavoriteByIndexStream({required int favIndex}) {
-    // TODO: implement getFavoriteByIndexStream
-    throw UnimplementedError();
+    final repository = brick.Repository();
+    final query =
+        brick.Query(where: [brick.Where('favIndex').isExactly(favIndex)]);
+    return repository
+        .subscribe<Favorite>(
+            query: query,
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
+        .map((data) => data.firstOrNull);
   }
 
   @override
-  Future<Favorite?> getFavoriteByProdId({required int prodId}) {
-    // TODO: implement getFavoriteByProdId
-    throw UnimplementedError();
+  Future<Favorite?> getFavoriteByProdId({required int prodId}) async {
+    final query =
+        brick.Query(where: [brick.Where('productId').isExactly(prodId)]);
+    final List<Favorite> fetchedFavorites = await repository.get<Favorite>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return fetchedFavorites.firstOrNull;
   }
 
   @override
-  Future<List<Favorite>> getFavorites() {
-    // TODO: implement getFavorites
-    throw UnimplementedError();
+  Future<List<Favorite>> getFavorites() async {
+    final query = brick.Query();
+    final List<Favorite> fetchedFavorites = await repository.get<Favorite>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return fetchedFavorites;
   }
 
   @override
-  Future<String> getIdToken() {
-    // TODO: implement getIdToken
-    throw UnimplementedError();
+  Future<String> getIdToken() async {
+    return await FirebaseAuth.instance.currentUser?.getIdToken() ?? "NONE";
   }
 
   @override
-  FlipperSaleCompaign? getLatestCompaign() {
-    // TODO: implement getLatestCompaign
-    throw UnimplementedError();
+  Future<FlipperSaleCompaign?> getLatestCompaign() async {
+    final query = brick.Query(providerArgs: {'orderBy': 'createdAt DESC'});
+    final List<FlipperSaleCompaign> fetchedCampaigns =
+        await repository.get<FlipperSaleCompaign>(
+            query: query,
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return fetchedCampaigns.firstOrNull;
   }
 
   @override
@@ -1235,17 +1529,66 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  List<TransactionPaymentRecord> getPaymentType({required int transactionId}) {
-    // TODO: implement getPaymentType
-    throw UnimplementedError();
+  Future<List<TransactionPaymentRecord>> getPaymentType(
+      {required int transactionId}) async {
+    final query = brick.Query(
+        where: [brick.Where('transactionId').isExactly(transactionId)]);
+    final List<TransactionPaymentRecord> fetchedPaymentTypes =
+        await repository.get<TransactionPaymentRecord>(
+            query: query,
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return fetchedPaymentTypes;
   }
 
   @override
   Future<ext.IPin?> getPin(
       {required String pinString,
-      required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement getPin
-    throw UnimplementedError();
+      required HttpClientInterface flipperHttpClient}) async {
+    final Uri uri = Uri.parse("$apihub/v2/api/pin/$pinString");
+
+    try {
+      final localPin = await repository.get<Pin>(
+          query:
+              brick.Query(where: [brick.Where('userId').isExactly(pinString)]),
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+
+      if (localPin.firstOrNull != null) {
+        Business? business = await getBusinessById(
+            businessId: localPin.firstOrNull!.businessId!);
+        Branch? branchE =
+            await branch(serverId: localPin.firstOrNull!.branchId!);
+        if (branchE != null || business != null) {
+          return IPin(
+              id: localPin.firstOrNull?.id,
+              pin: localPin.firstOrNull?.pin ?? int.parse(pinString),
+              userId: localPin.firstOrNull!.userId!.toString(),
+              phoneNumber: localPin.firstOrNull!.phoneNumber!,
+              branchId: localPin.firstOrNull!.branchId!,
+              businessId: localPin.firstOrNull!.businessId!,
+              ownerName: localPin.firstOrNull!.ownerName!,
+              tokenUid: localPin.firstOrNull!.tokenUid!);
+        } else {
+          clearData(data: ClearData.Branch);
+          clearData(data: ClearData.Business);
+        }
+      } else {
+        clearData(data: ClearData.Branch);
+        clearData(data: ClearData.Business);
+      }
+      final response = await flipperHttpClient.get(uri);
+
+      if (response.statusCode == 200) {
+        return IPin.fromJson(json.decode(response.body));
+      } else if (response.statusCode == 404) {
+        throw PinError(term: "Not found");
+      } else {
+        throw PinError(term: "Not found");
+      }
+    } catch (e, s) {
+      talker.warning(e, s);
+
+      throw UnknownError(term: e.toString());
+    }
   }
 
   @override
@@ -1361,7 +1704,7 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  Future<trans.Transaction?> getTransactionById({required int id}) {
+  Future<ITransaction?> getTransactionById({required int id}) {
     // TODO: implement getTransactionById
     throw UnimplementedError();
   }
@@ -1390,21 +1733,6 @@ class CoreSync implements CoreDataInterface {
   Future<({double expense, double income})> getTransactionsAmountsSum(
       {required String period}) {
     // TODO: implement getTransactionsAmountsSum
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<
-      ({
-        List<Device> devices,
-        List<Favorite> favorites,
-        List<Product> products,
-        List<Stock> stocks,
-        List<TransactionItem> transactionItems,
-        List<trans.Transaction> transactions,
-        List<Variant> variants
-      })> getUnSyncedData() {
-    // TODO: implement getUnSyncedData
     throw UnimplementedError();
   }
 
@@ -1496,11 +1824,25 @@ class CoreSync implements CoreDataInterface {
     throw UnimplementedError();
   }
 
+  bool isEmail(String input) {
+    // Implement your logic to check if input is an email
+    // You can use regular expressions or any other email validation mechanism
+    // For simplicity, this example checks if the input contains '@'
+    return input.contains('@');
+  }
+
   @override
   Future<void> loadConversations(
       {required int businessId, int? pageSize = 10, String? pk, String? sk}) {
     // TODO: implement loadConversations
     throw UnimplementedError();
+  }
+
+  String _formatPhoneNumber(String userPhone) {
+    if (!isEmail(userPhone) && !userPhone.startsWith('+')) {
+      return '+$userPhone';
+    }
+    return userPhone;
   }
 
   @override
@@ -1509,39 +1851,262 @@ class CoreSync implements CoreDataInterface {
       required bool skipDefaultAppSetup,
       bool stopAfterConfigure = false,
       required Pin pin,
-      required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement login
-    throw UnimplementedError();
+      required HttpClientInterface flipperHttpClient}) async {
+    final String phoneNumber = _formatPhoneNumber(userPhone);
+    final IUser user =
+        await _authenticateUser(phoneNumber, pin, flipperHttpClient);
+    await ProxyService.box.writeBool(key: 'authComplete', value: true);
+    if (stopAfterConfigure) return user;
+    if (!skipDefaultAppSetup) {
+      await setDefaultApp(user);
+    }
+    ProxyService.box.writeBool(key: 'pinLogin', value: false);
+    try {
+      _hasActiveSubscription();
+    } catch (e) {
+      rethrow;
+    }
+    return user;
+  }
+
+  Future<void> _hasActiveSubscription() async {
+    await hasActiveSubscription(
+        businessId: ProxyService.box.getBusinessId()!,
+        flipperHttpClient: ProxyService.http);
+  }
+
+  Future<IUser> _authenticateUser(String phoneNumber, Pin pin,
+      HttpClientInterface flipperHttpClient) async {
+    List<Business> businessesE = businesses();
+    List<Branch> branchesE = await branches(businessId: pin.businessId!);
+
+    if (businessesE.isNotEmpty && branchesE.isNotEmpty) {
+      offlineLogin = true;
+
+      return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
+    }
+
+    final http.Response response =
+        await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
+
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      /// path the user pin, with
+      final IUser user = IUser.fromJson(json.decode(response.body));
+      await _patchPin(user.id!, flipperHttpClient, apihub,
+          ownerName: user.tenants.first.name);
+      ProxyService.box.writeInt(key: 'userId', value: user.id!);
+      await ProxyService.backUp.firebaseLogin(token: user.uid);
+      return user;
+    } else {
+      await _handleLoginError(response);
+      throw Exception("Error during login");
+    }
+  }
+
+  Future<http.Response> _patchPin(
+      int pin, HttpClientInterface flipperHttpClient, String apihub,
+      {required String ownerName}) async {
+    return await flipperHttpClient.patch(
+      Uri.parse(apihub + '/v2/api/pin/${pin}'),
+      body: jsonEncode(<String, String?>{
+        'ownerName': ownerName,
+        'tokenUid': firebase.FirebaseAuth.instance.currentUser?.uid
+      }),
+    );
+  }
+
+  Future<void> _handleLoginError(http.Response response) async {
+    if (response.statusCode == 401) {
+      throw SessionException(term: "session expired");
+    } else if (response.statusCode == 500) {
+      throw PinError(term: "Not found");
+    } else {
+      throw UnknownError(term: response.statusCode.toString());
+    }
+  }
+
+  IUser _createOfflineUser(String phoneNumber, Pin pin,
+      List<Business> businesses, List<Branch> branches) {
+    return IUser(
+      token: pin.tokenUid!,
+      uid: pin.tokenUid,
+      channels: [],
+      phoneNumber: pin.phoneNumber!,
+      id: pin.userId!,
+      tenants: [
+        ITenant(
+            id: randomNumber(),
+            name: pin.ownerName == null ? "DEFAULT" : pin.ownerName!,
+            phoneNumber: phoneNumber,
+            permissions: [],
+            branches: _convertBranches(branches),
+            businesses: _convertBusinesses(businesses),
+            businessId: 0,
+            nfcEnabled: false,
+            userId: pin.userId!,
+            isDefault: false)
+      ],
+    );
+  }
+
+  List<IBranch> _convertBranches(List<Branch> branches) {
+    return branches
+        .map((e) => IBranch(
+            id: e.id,
+            name: e.name,
+            businessId: e.businessId,
+            longitude: e.longitude,
+            latitude: e.latitude,
+            location: e.location,
+            active: e.active,
+            isDefault: e.isDefault ?? false))
+        .toList();
+  }
+
+  List<IBusiness> _convertBusinesses(List<Business> businesses) {
+    return businesses
+        .map((e) => IBusiness(
+              id: e.serverId,
+              encryptionKey: e.encryptionKey!,
+              name: e.name,
+              currency: e.currency,
+              categoryId: e.categoryId,
+              latitude: e.latitude,
+              longitude: e.longitude,
+              userId: e.userId,
+              timeZone: e.timeZone,
+              country: e.country,
+              businessUrl: e.businessUrl,
+              hexColor: e.hexColor,
+              imageUrl: e.imageUrl,
+              type: e.type,
+              active: e.active,
+              metadata: e.metadata,
+              lastSeen: e.lastSeen,
+              firstName: e.firstName,
+              lastName: e.lastName,
+              deviceToken: e.deviceToken,
+              chatUid: e.chatUid,
+              backUpEnabled: e.backUpEnabled,
+              subscriptionPlan: e.subscriptionPlan,
+              nextBillingDate: e.nextBillingDate,
+              previousBillingDate: e.previousBillingDate,
+              isLastSubscriptionPaymentSucceeded:
+                  e.isLastSubscriptionPaymentSucceeded,
+              backupFileId: e.backupFileId,
+              email: e.email,
+              lastDbBackup: e.lastDbBackup,
+              fullName: e.fullName,
+              role: e.role,
+              tinNumber: e.tinNumber,
+              bhfId: e.bhfId,
+              dvcSrlNo: e.dvcSrlNo,
+              adrs: e.adrs,
+              taxEnabled: e.taxEnabled,
+              taxServerUrl: e.taxServerUrl,
+              isDefault: e.isDefault,
+              businessTypeId: e.businessTypeId,
+              deletedAt: e.deletedAt,
+            ))
+        .toList();
+  }
+
+  Future<ITransaction?> _pendingTransaction({
+    required int branchId,
+    required String transactionType,
+    required bool isExpense,
+    bool includeSubTotalCheck = true,
+  }) async {
+    try {
+      // Build the query
+      final query = brick.Query(where: [
+        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
+        brick.Where('isExpense',
+            value: isExpense, compare: brick.Compare.exact),
+        brick.Where('status', value: PENDING, compare: brick.Compare.exact),
+        brick.Where('transactionType',
+            value: transactionType, compare: brick.Compare.exact),
+        if (includeSubTotalCheck)
+          brick.Where('subTotal', value: 0, compare: brick.Compare.greaterThan),
+      ]);
+
+      // Fetch transactions
+      final List<ITransaction> transactions =
+          await repository.get<ITransaction>(query: query);
+
+      // Check for transactions with items
+      for (final transaction in transactions) {
+        final List<TransactionItem> items = await transactionItems(
+          branchId: branchId,
+          transactionId: transaction.id,
+          doneWithTransaction: false,
+          active: true,
+        );
+
+        if (items.isNotEmpty) {
+          return transaction;
+        }
+      }
+
+      // If no transaction with items found, return the first transaction (if any)
+      return transactions.isNotEmpty ? transactions.first : null;
+    } catch (e, s) {
+      // Log errors (optional, replace talker with your preferred logger)
+      talker.error('Error in _pendingTransaction: $e');
+      talker.error('Stack trace: $s');
+      return null;
+    }
   }
 
   @override
-  Future<ext.SocialToken?> loginOnSocial(
-      {String? phoneNumberOrEmail, String? password}) {
-    // TODO: implement loginOnSocial
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<trans.Transaction> manageCashInOutTransaction(
+  Future<ITransaction> manageCashInOutTransaction(
       {required String transactionType,
       required bool isExpense,
-      required int branchId}) {
-    // TODO: implement manageCashInOutTransaction
+      required int branchId}) async {
     throw UnimplementedError();
   }
 
   @override
-  trans.Transaction manageTransaction(
+  Future<ITransaction> manageTransaction(
       {required String transactionType,
       required bool isExpense,
       required int branchId,
-      bool? includeSubTotalCheck = false}) {
-    // TODO: implement manageTransaction
-    throw UnimplementedError();
+      bool? includeSubTotalCheck = false}) async {
+    ITransaction? existTransaction = await _pendingTransaction(
+        branchId: branchId,
+        isExpense: isExpense,
+        transactionType: transactionType,
+        includeSubTotalCheck: includeSubTotalCheck!);
+    if (existTransaction == null) {
+      final int id = randomNumber();
+      final transaction = ITransaction(
+          lastTouched: DateTime.now(),
+          id: id,
+          reference: randomNumber().toString(),
+          transactionNumber: randomNumber().toString(),
+          status: PENDING,
+          isExpense: isExpense,
+          isIncome: !isExpense,
+          transactionType: transactionType,
+          subTotal: 0,
+          cashReceived: 0,
+          updatedAt: DateTime.now().toIso8601String(),
+          customerChangeDue: 0.0,
+          paymentType: ProxyService.box.paymentType() ?? "Cash",
+          branchId: branchId,
+          createdAt: DateTime.now().toIso8601String());
+
+      // save transaction to isar
+      repository.upsert<ITransaction>(transaction);
+
+      return transaction;
+    } else {
+      return existTransaction;
+    }
   }
 
   @override
-  Stream<trans.Transaction> manageTransactionStream(
+  Stream<ITransaction> manageTransactionStream(
       {required String transactionType,
       required bool isExpense,
       required int branchId,
@@ -1564,7 +2129,7 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  Stream<List<trans.Transaction>> orders({required int branchId}) {
+  Stream<List<ITransaction>> orders({required int branchId}) {
     // TODO: implement orders
     throw UnimplementedError();
   }
@@ -1637,7 +2202,7 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  void removeCustomerFromTransaction({required trans.Transaction transaction}) {
+  void removeCustomerFromTransaction({required ITransaction transaction}) {
     // TODO: implement removeCustomerFromTransaction
   }
 
@@ -2027,13 +2592,13 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  Future<List<trans.Transaction>> tickets() {
+  Future<List<ITransaction>> tickets() {
     // TODO: implement tickets
     throw UnimplementedError();
   }
 
   @override
-  Stream<List<trans.Transaction>> ticketsStreams() {
+  Stream<List<ITransaction>> ticketsStreams() {
     // TODO: implement ticketsStreams
     throw UnimplementedError();
   }
@@ -2081,21 +2646,21 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  Stream<List<trans.Transaction>> transactionList(
+  Stream<List<ITransaction>> transactionList(
       {DateTime? startDate, DateTime? endDate}) {
     // TODO: implement transactionList
     throw UnimplementedError();
   }
 
   @override
-  Stream<List<trans.Transaction>> transactionStreamById(
+  Stream<List<ITransaction>> transactionStreamById(
       {required int id, required FilterType filterType}) {
     // TODO: implement transactionStreamById
     throw UnimplementedError();
   }
 
   @override
-  List<trans.Transaction> transactions(
+  List<ITransaction> transactions(
       {DateTime? startDate,
       DateTime? endDate,
       String? status,
@@ -2108,7 +2673,7 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  Stream<List<trans.Transaction>> transactionsStream(
+  Stream<List<ITransaction>> transactionsStream(
       {String? status,
       String? transactionType,
       int? branchId,
@@ -2190,7 +2755,7 @@ class CoreSync implements CoreDataInterface {
 
   @override
   void updateTransactionStatus(
-      trans.Transaction transaction, String receiptType) {
+      ITransaction transaction, String receiptType) {
     // TODO: implement updateTransactionStatus
   }
 
@@ -2221,9 +2786,9 @@ class CoreSync implements CoreDataInterface {
   }
 
   @override
-  Future<trans.Transaction> collectPayment(
+  Future<ITransaction> collectPayment(
       {required double cashReceived,
-      required trans.Transaction transaction,
+      required ITransaction transaction,
       required String paymentType,
       required double discount,
       required int branchId,

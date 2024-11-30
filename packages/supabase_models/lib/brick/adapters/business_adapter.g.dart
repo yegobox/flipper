@@ -6,6 +6,7 @@ Future<Business> _$BusinessFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Business(
       id: data['id'] as int,
+      serverId: data['server_id'] as int,
       name: data['name'] as String?,
       currency: data['currency'] as String?,
       categoryId: data['category_id'] as String?,
@@ -59,6 +60,7 @@ Future<Map<String, dynamic>> _$BusinessToSupabase(Business instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
+    'server_id': instance.serverId,
     'name': instance.name,
     'currency': instance.currency,
     'category_id': instance.categoryId,
@@ -109,6 +111,7 @@ Future<Business> _$BusinessFromSqlite(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Business(
       id: data['id'] as int,
+      serverId: data['server_id'] as int,
       name: data['name'] == null ? null : data['name'] as String?,
       currency: data['currency'] == null ? null : data['currency'] as String?,
       categoryId:
@@ -193,6 +196,7 @@ Future<Map<String, dynamic>> _$BusinessToSqlite(Business instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
+    'server_id': instance.serverId,
     'name': instance.name,
     'currency': instance.currency,
     'category_id': instance.categoryId,
@@ -257,6 +261,10 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
     'id': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'id',
+    ),
+    'serverId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'server_id',
     ),
     'name': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -438,6 +446,12 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
     'id': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'id',
+      iterable: false,
+      type: int,
+    ),
+    'serverId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'server_id',
       iterable: false,
       type: int,
     ),
