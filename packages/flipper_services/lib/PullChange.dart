@@ -1136,7 +1136,7 @@ class PullChange {
             product.deletedAt = data['deleted_at'] == null
                 ? DateTime.now()
                 : DateTime.parse(data['deleted_at']);
-            product.searchMatch = data['search_match'] ?? product.searchMatch;
+            
             product.spplrNm = data['spplr_nm'] ?? product.spplrNm;
             product.isComposite = data['is_composite'] ?? product.isComposite;
           });

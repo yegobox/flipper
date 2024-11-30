@@ -7,6 +7,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 // import 'package:flipper_services/DatabaseProvider.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -51,50 +52,38 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   Future<void> toggleForceUPSERT(bool value) async {
-    // for (var a in [
-    //   {
-    //     "id": 183227847530079,
-    //     "plan_id": 1,
-    //     "addon_name": "Premium Tax Reporting Consulting",
-    //     "created_at": "2024-11-17T08:14:42.316728"
-    //   },
-    //   {
-    //     "id": 751162390621838,
-    //     "plan_id": 1,
-    //     "addon_name": "Extra Support",
-    //     "created_at": "2024-11-17T08:14:42.317825"
-    //   },
-    //   {
-    //     "id": 606132478175833,
-    //     "plan_id": 1,
-    //     "addon_name": "Unlimited Branches & Agents",
-    //     "created_at": "2024-11-17T08:14:42.317848"
-    //   }
-    // ]) {
-    //   final repository = Repository();
-    //   await repository.upsert(models.PlanAddon(
-    //       id: (a["id"] as int),
-    //       planId: (a["plan_id"] as int),
-    //       addonName: (a["addon_name"] as String),
-    //       createdAt: DateTime.parse(a["created_at"] as String)));
-    // }
-    // models.Plan? plan = await ProxyService.backUp
-    //     .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
-    // talker.warning(plan?.addons.toString());
-
-    // final repository = Repository();
-
-    // final query = Query.where('addons', Where('planId').isExactly(1));
-    // final planWithAddons = await repository.get<models.Plan>(
-    //     query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-    // talker.warning(planWithAddons.first.addons.length.toString());
-
-    // final query = Query(where: [
-    //   Where('businessId').isExactly(1),
-    // ]);
-    // final result = await repository.get<models.Plan>(
-    //     query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-
+    /// get product attempt to save'em in sqlite.
+    final repository = Repository();
+    List<Product> products = await ProxyService.local
+        .products(branchId: ProxyService.box.getBranchId()!);
+    for (Product product in products) {
+      await repository.upsert(models.Product(
+        id: product.id!,
+        name: product.name,
+        taxId: product.taxId,
+        description: product.description,
+        color: product.color,
+        businessId: product.businessId,
+        branchId: product.branchId,
+        supplierId: product.supplierId,
+        categoryId: product.categoryId,
+        // taxId: product.taxId,
+        unit: product.unit,
+        imageUrl: product.imageUrl,
+        expiryDate: product.expiryDate,
+        barCode: product.barCode,
+        nfcEnabled: product.nfcEnabled,
+        bindedToTenantId: product.bindedToTenantId,
+        isFavorite: product.isFavorite,
+        lastTouched: product.lastTouched,
+        deletedAt: product.deletedAt,
+        searchMatch: product.searchMatch,
+        spplrNm: product.spplrNm,
+        isComposite: product.isComposite,
+        composites: [],
+        // composites: product.composites,
+      ));
+    }
     try {
       await ProxyService.box.writeBool(
           key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());

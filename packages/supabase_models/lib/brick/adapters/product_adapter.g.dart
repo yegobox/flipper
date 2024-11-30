@@ -28,7 +28,6 @@ Future<Product> _$ProductFromSupabase(Map<String, dynamic> data,
       deletedAt: data['deleted_at'] == null
           ? null
           : DateTime.tryParse(data['deleted_at'] as String),
-      searchMatch: data['search_match'] as bool,
       spplrNm: data['spplr_nm'] as String?,
       isComposite: data['is_composite'] as bool?,
       composites: await Future.wait<Composite>(data['composites']
@@ -62,13 +61,13 @@ Future<Map<String, dynamic>> _$ProductToSupabase(Product instance,
     'is_favorite': instance.isFavorite,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
-    'search_match': instance.searchMatch,
     'spplr_nm': instance.spplrNm,
     'is_composite': instance.isComposite,
     'composites': await Future.wait<Map<String, dynamic>>(instance.composites
-        .map((s) => CompositeAdapter()
-            .toSupabase(s, provider: provider, repository: repository))
-        .toList())
+            ?.map((s) => CompositeAdapter()
+                .toSupabase(s, provider: provider, repository: repository))
+            .toList() ??
+        [])
   };
 }
 
@@ -111,7 +110,6 @@ Future<Product> _$ProductFromSqlite(Map<String, dynamic> data,
           : data['deleted_at'] == null
               ? null
               : DateTime.tryParse(data['deleted_at'] as String),
-      searchMatch: data['search_match'] == 1,
       spplrNm: data['spplr_nm'] == null ? null : data['spplr_nm'] as String?,
       isComposite:
           data['is_composite'] == null ? null : data['is_composite'] == 1,
@@ -153,7 +151,6 @@ Future<Map<String, dynamic>> _$ProductToSqlite(Product instance,
     'is_favorite': instance.isFavorite ? 1 : 0,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
-    'search_match': instance.searchMatch ? 1 : 0,
     'spplr_nm': instance.spplrNm,
     'is_composite':
         instance.isComposite == null ? null : (instance.isComposite! ? 1 : 0)
@@ -246,10 +243,6 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
       association: false,
       columnName: 'deleted_at',
     ),
-    'searchMatch': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'search_match',
-    ),
     'spplrNm': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'spplr_nm',
@@ -262,13 +255,13 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
       association: true,
       columnName: 'composites',
       associationType: Composite,
-      associationIsNullable: false,
+      associationIsNullable: true,
     )
   };
   @override
   final ignoreDuplicates = false;
   @override
-  final uniqueFields = {};
+  final uniqueFields = {'id'};
   @override
   final Map<String, RuntimeSqliteColumnDefinition> fieldsToSqliteColumns = {
     'primaryKey': const RuntimeSqliteColumnDefinition(
@@ -391,12 +384,7 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
       iterable: false,
       type: DateTime,
     ),
-    'searchMatch': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'search_match',
-      iterable: false,
-      type: bool,
-    ),
+    
     'spplrNm': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'spplr_nm',
@@ -441,7 +429,7 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
       final compositesOldIds =
           compositesOldColumns.map((a) => a['f_Composite_brick_id']);
       final compositesNewIds =
-          instance.composites.map((s) => s.primaryKey).whereType<int>();
+          instance.composites?.map((s) => s.primaryKey).whereType<int>() ?? [];
       final compositesIdsToDelete =
           compositesOldIds.where((id) => !compositesNewIds.contains(id));
 
@@ -451,13 +439,14 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
             [instance.primaryKey, id]).catchError((e) => null);
       }));
 
-      await Future.wait<int?>(instance.composites.map((s) async {
-        final id = s.primaryKey ??
-            await provider.upsert<Composite>(s, repository: repository);
-        return await provider.rawInsert(
-            'INSERT OR IGNORE INTO `_brick_Product_composites` (`l_Product_brick_id`, `f_Composite_brick_id`) VALUES (?, ?)',
-            [instance.primaryKey, id]);
-      }));
+      await Future.wait<int?>(instance.composites?.map((s) async {
+            final id = s.primaryKey ??
+                await provider.upsert<Composite>(s, repository: repository);
+            return await provider.rawInsert(
+                'INSERT OR IGNORE INTO `_brick_Product_composites` (`l_Product_brick_id`, `f_Composite_brick_id`) VALUES (?, ?)',
+                [instance.primaryKey, id]);
+          }) ??
+          []);
     }
   }
 

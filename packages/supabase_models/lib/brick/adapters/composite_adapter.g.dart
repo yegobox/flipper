@@ -28,7 +28,6 @@ Future<Map<String, dynamic>> _$CompositeToSupabase(Composite instance,
   };
 }
 
-
 Future<Composite> _$CompositeFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {

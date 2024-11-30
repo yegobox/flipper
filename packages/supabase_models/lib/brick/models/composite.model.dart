@@ -11,6 +11,7 @@ class Composite extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   final int id;
 
+
   int? productId;
   int? variantId;
   double? qty = 1.0;

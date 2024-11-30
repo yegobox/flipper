@@ -9,6 +9,7 @@ import 'composite.model.dart';
 )
 class Product extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
+  @Supabase(unique: true)
   final int id;
 
   String? name;
@@ -39,7 +40,8 @@ class Product extends OfflineFirstWithSupabaseModel {
   String? spplrNm;
   bool? isComposite = false;
 
-  List<Composite> composites = [];
+  @Supabase(name: "composites")
+  final List<Composite>? composites;
 
   Product({
     required this.id,
