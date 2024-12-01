@@ -58,7 +58,8 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       dcRt: data['dc_rt'] as int?,
       expirationDate: data['expiration_date'] == null
           ? null
-          : DateTime.tryParse(data['expiration_date'] as String));
+          : DateTime.tryParse(data['expiration_date'] as String),
+      stockId: data['stock_id'] as int?);
 }
 
 Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
@@ -112,7 +113,8 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'spplr_item_nm': instance.spplrItemNm,
     'ebm_synced': instance.ebmSynced,
     'dc_rt': instance.dcRt,
-    'expiration_date': instance.expirationDate?.toIso8601String()
+    'expiration_date': instance.expirationDate?.toIso8601String(),
+    'stock_id': instance.stockId
   };
 }
 
@@ -198,7 +200,8 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
           ? null
           : data['expiration_date'] == null
               ? null
-              : DateTime.tryParse(data['expiration_date'] as String))
+              : DateTime.tryParse(data['expiration_date'] as String),
+      stockId: data['stock_id'] == null ? null : data['stock_id'] as int?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -254,7 +257,8 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'ebm_synced':
         instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
     'dc_rt': instance.dcRt,
-    'expiration_date': instance.expirationDate?.toIso8601String()
+    'expiration_date': instance.expirationDate?.toIso8601String(),
+    'stock_id': instance.stockId
   };
 }
 
@@ -459,6 +463,10 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'expirationDate': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'expiration_date',
+    ),
+    'stockId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'stock_id',
     )
   };
   @override
@@ -760,6 +768,12 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       columnName: 'expiration_date',
       iterable: false,
       type: DateTime,
+    ),
+    'stockId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'stock_id',
+      iterable: false,
+      type: int,
     )
   };
   @override

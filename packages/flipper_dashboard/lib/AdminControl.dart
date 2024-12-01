@@ -142,7 +142,7 @@ class _AdminControlState extends State<AdminControl> {
         );
         final addedV = await repository.upsert<models.Variant>(vv);
         // upsert stock first
-        await repository.upsert<models.Stock>(models.Stock(
+        final stock = await repository.upsert<models.Stock>(models.Stock(
           variant: addedV,
           id: variant.stock!.id!,
           tin: variant.stock!.tin,
@@ -160,7 +160,10 @@ class _AdminControlState extends State<AdminControl> {
           ebmSynced: variant.stock!.ebmSynced,
           variantId: addedV.id,
         ));
-        // await repository.upsert<models.Variant>(addedV);
+        // re-assign variant with the stock
+        // addedV.stock = stock;
+        addedV.stockId = stock.id;
+        await repository.upsert<models.Variant>(addedV);
       }
     } catch (e, s) {
       talker.warning(e);

@@ -27,6 +27,9 @@ part '20241201190935.migration.dart';
 part '20241201192623.migration.dart';
 part '20241201192839.migration.dart';
 part '20241201193049.migration.dart';
+part '20241201194613.migration.dart';
+part '20241201195050.migration.dart';
+part '20241201203523.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -55,12 +58,15 @@ final migrations = <Migration>{
   const Migration20241201190935(),
   const Migration20241201192623(),
   const Migration20241201192839(),
-  const Migration20241201193049()
+  const Migration20241201193049(),
+  const Migration20241201194613(),
+  const Migration20241201195050(),
+  const Migration20241201203523()
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema =
-    Schema(20241201193049, generatorVersion: 1, tables: <SchemaTable>{
+    Schema(20241201203523, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('Stock', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -315,7 +321,8 @@ final schema =
     SchemaColumn('spplr_item_nm', Column.varchar),
     SchemaColumn('ebm_synced', Column.boolean),
     SchemaColumn('dc_rt', Column.integer),
-    SchemaColumn('expiration_date', Column.datetime)
+    SchemaColumn('expiration_date', Column.datetime),
+    SchemaColumn('stock_id', Column.integer)
   }, indices: <SchemaIndex>{}),
   SchemaTable('Device', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,

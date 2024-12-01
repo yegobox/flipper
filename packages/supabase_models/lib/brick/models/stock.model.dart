@@ -34,7 +34,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
   @Supabase(defaultValue: "1")
   int? initialStock;
 
-  @Supabase(name: 'variant')
+  
   final Variant variant;
 
   Stock({

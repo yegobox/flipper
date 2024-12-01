@@ -1,6 +1,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:supabase_models/brick/models/stock.model.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'variants'),
@@ -67,9 +68,18 @@ class Variant extends OfflineFirstWithSupabaseModel {
   int? dcRt;
   DateTime? expirationDate;
 
+  // create circula relationship, I know!
+  @Supabase(nullable: true, ignore: true)
+  @Sqlite(nullable: true, ignore: true)
+  Stock? stock;
+
+  int? stockId;
+
   Variant({
     required this.id,
     this.deletedAt,
+    this.stock,
+    this.stockId,
     // required this.stockId,
     this.name,
     this.color,
