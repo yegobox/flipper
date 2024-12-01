@@ -1226,7 +1226,7 @@ class CoreSync with Booting implements CoreDataInterface {
         final stockId = randomNumber();
         variant = Variant(
             id: variantId,
-            stockId: stockId,
+
             // branchIds: [ProxyService.box.getBranchId()!],
             lastTouched: DateTime.now(),
             name: product!.name,
@@ -1236,8 +1236,8 @@ class CoreSync with Booting implements CoreDataInterface {
             unit: 'Per Item',
             productName: product.name,
             branchId: branchId,
-            supplyPrice: 0.0,
-            retailPrice: 0.0,
+            supplyPrice: 0,
+            retailPrice: 0,
             itemNm: product.name,
             bhfId: await ProxyService.box.bhfId() ?? '00',
             // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
@@ -1254,7 +1254,7 @@ class CoreSync with Booting implements CoreDataInterface {
             useYn: "N",
             itemSeq: 1,
             itemStdNm: product.name,
-            taxPercentage: 18.0,
+            taxPercentage: 18,
             tin: tinNumber,
             bcd: CUSTOM_PRODUCT,
 
@@ -1278,6 +1278,7 @@ class CoreSync with Booting implements CoreDataInterface {
             qtyUnitCd: "U");
 
         Stock stock = Stock(
+            variant: variant,
             lastTouched: DateTime.now(),
             id: stockId,
             branchId: branchId,

@@ -59,12 +59,12 @@ class _AdminControlState extends State<AdminControl> {
     for (Product product in products) {
       await repository.upsert(models.Product(
         id: product.id!,
-        name: product.name,
+        name: product.name!,
         taxId: product.taxId,
         description: product.description,
         color: product.color,
-        businessId: product.businessId,
-        branchId: product.branchId,
+        businessId: product.businessId!,
+        branchId: product.branchId!,
         supplierId: product.supplierId,
         categoryId: product.categoryId,
         // taxId: product.taxId,
@@ -77,87 +77,94 @@ class _AdminControlState extends State<AdminControl> {
         isFavorite: product.isFavorite,
         lastTouched: product.lastTouched,
         deletedAt: product.deletedAt,
-        searchMatch: product.searchMatch,
+
         spplrNm: product.spplrNm,
         isComposite: product.isComposite,
         composites: [],
       ));
     }
-    List<Variant> variants =
-        ProxyService.local.variants(branchId: ProxyService.box.getBranchId()!);
-    for (Variant variant in variants) {
-      final vv = models.Variant(
-        id: variant.id!,
-        // branchIds: [ProxyService.box.getBranchId()!],
-        stockId: variant.stock!.id,
-        deletedAt: variant.deletedAt,
-        name: variant.name ?? "", // Use empty string if name is null
-        color: variant.color,
-        sku: variant.sku,
-        productId: variant.productId,
-        unit: variant.unit,
-        productName: variant.productName ?? "",
-        branchId: variant.branchId, // Assuming this is optional
-        taxName: variant.taxName ?? "",
-        taxPercentage: variant.taxPercentage,
-        itemSeq: variant.itemSeq,
-        isrccCd: variant.isrccCd ?? "",
-        isrccNm: variant.isrccNm ?? "",
-        isrcRt: variant.isrcRt ?? 0,
-        isrcAmt: variant.isrcAmt ?? 0,
-        taxTyCd: variant.taxTyCd ?? "B", // Default to "B" if null
-        bcd: variant.bcd ?? "",
-        itemClsCd: variant.itemClsCd,
-        itemTyCd: variant.itemTyCd,
-        itemStdNm: variant.itemStdNm ?? "",
-        orgnNatCd: variant.orgnNatCd ?? "",
-        pkg: variant.pkg ?? "1", // Default to "1" if null
-        itemCd: variant.itemCd ?? "",
-        pkgUnitCd: variant.pkgUnitCd ?? "CT", // Default to "CT" if null
-        qtyUnitCd: variant.qtyUnitCd ?? "BX", // Default to "BX" if null
-        itemNm: variant.itemNm,
-        prc: variant.prc,
-        splyAmt: variant.splyAmt,
-        tin: variant.tin,
-        bhfId: variant.bhfId,
-        dftPrc: variant.dftPrc ?? 0,
-        addInfo: variant.addInfo ?? "",
-        isrcAplcbYn: variant.isrcAplcbYn ?? "",
-        useYn: variant.useYn ?? "",
-        regrId: variant.regrId,
-        regrNm: variant.regrNm,
-        modrId: variant.modrId,
-        modrNm: variant.modrNm,
-        lastTouched: variant.lastTouched,
-        supplyPrice: variant.supplyPrice,
-        retailPrice: variant.retailPrice,
-        spplrItemClsCd: variant.spplrItemClsCd,
-        spplrItemCd: variant.spplrItemCd,
-        spplrItemNm: variant.spplrItemNm,
-        ebmSynced: variant.ebmSynced,
-        dcRt: variant.dcRt,
-        expirationDate: variant.expirationDate,
-      );
-      // upsert stock first
-      await repository.upsert(models.Stock(
-        id: variant.stock!.id!,
-        tin: variant.stock!.tin,
-        bhfId: variant.stock!.bhfId,
-        branchId: variant.stock!.branchId,
-        currentStock: variant.stock!.currentStock,
-        lowStock: variant.stock!.lowStock,
-        canTrackingStock: variant.stock!.canTrackingStock,
-        showLowStockAlert: variant.stock!.showLowStockAlert,
-        productId: variant.stock!.productId,
-        active: variant.stock!.active,
-        value: variant.stock!.value,
-        rsdQty: variant.stock!.rsdQty,
-        lastTouched: variant.stock!.lastTouched,
-        ebmSynced: variant.stock!.ebmSynced,
-        variant: vv,
-        variantId: variant.id,
-      ));
-      await repository.upsert(vv);
+    try {
+      List<Variant> variants = ProxyService.local
+          .variants(branchId: ProxyService.box.getBranchId()!);
+      talker.warning("I Expect ${variants.length} When seeding");
+      for (Variant variant in variants) {
+        final vv = models.Variant(
+          id: variant.id!,
+          // branchIds: [ProxyService.box.getBranchId()!],
+          deletedAt: variant.deletedAt,
+          name: variant.name ?? "", // Use empty string if name is null
+          color: variant.color,
+          sku: variant.sku,
+
+          productId: variant.productId,
+          unit: variant.unit,
+          productName: variant.productName ?? "",
+          branchId: variant.branchId, // Assuming this is optional
+          taxName: variant.taxName ?? "",
+          taxPercentage: variant.taxPercentage.toInt(),
+          itemSeq: variant.itemSeq,
+          isrccCd: variant.isrccCd ?? "",
+          isrccNm: variant.isrccNm ?? "",
+          isrcRt: variant.isrcRt ?? 0,
+          isrcAmt: variant.isrcAmt ?? 0,
+          taxTyCd: variant.taxTyCd ?? "B", // Default to "B" if null
+          bcd: variant.bcd ?? "",
+          itemClsCd: variant.itemClsCd,
+          itemTyCd: variant.itemTyCd,
+          itemStdNm: variant.itemStdNm ?? "",
+          orgnNatCd: variant.orgnNatCd ?? "",
+          pkg: variant.pkg ?? "1", // Default to "1" if null
+          itemCd: variant.itemCd ?? "",
+          pkgUnitCd: variant.pkgUnitCd ?? "CT", // Default to "CT" if null
+          qtyUnitCd: variant.qtyUnitCd ?? "BX", // Default to "BX" if null
+          itemNm: variant.itemNm,
+          prc: variant.retailPrice.toInt(),
+          splyAmt: variant.splyAmt.toInt(),
+          tin: variant.tin,
+          bhfId: variant.bhfId,
+          dftPrc: variant.dftPrc?.toInt() ?? 0,
+          addInfo: variant.addInfo ?? "",
+          isrcAplcbYn: variant.isrcAplcbYn ?? "",
+          useYn: variant.useYn ?? "",
+          regrId: variant.regrId,
+          regrNm: variant.regrNm,
+          modrId: variant.modrId,
+          modrNm: variant.modrNm,
+          lastTouched: variant.lastTouched,
+          supplyPrice: variant.supplyPrice.toInt(),
+          retailPrice: variant.retailPrice.toInt(),
+          spplrItemClsCd: variant.spplrItemClsCd,
+          spplrItemCd: variant.spplrItemCd,
+          spplrItemNm: variant.spplrItemNm,
+          ebmSynced: variant.ebmSynced,
+          dcRt: variant.dcRt.toInt(),
+          expirationDate: variant.expirationDate,
+        );
+        await repository.upsert<models.Variant>(vv);
+        // upsert stock first
+        // await repository.upsert<models.Stock>(models.Stock(
+        //   variant: addedV,
+        //   id: randomNumber(),
+        //   tin: variant.stock!.tin,
+        //   bhfId: variant.stock!.bhfId,
+        //   branchId: variant.stock!.branchId,
+        //   currentStock: variant.stock!.currentStock,
+        //   lowStock: variant.stock!.lowStock,
+        //   canTrackingStock: variant.stock!.canTrackingStock,
+        //   showLowStockAlert: variant.stock!.showLowStockAlert,
+        //   productId: variant.stock!.productId,
+        //   active: variant.stock!.active,
+        //   value: variant.stock!.value,
+        //   rsdQty: variant.stock!.rsdQty,
+        //   lastTouched: variant.stock!.lastTouched,
+        //   ebmSynced: variant.stock!.ebmSynced,
+        //   variantId: addedV.id,
+        // ));
+        // await repository.upsert<models.Variant>(addedV);
+      }
+    } catch (e, s) {
+      talker.warning(e);
+      talker.error(s);
     }
     try {
       await ProxyService.box.writeBool(

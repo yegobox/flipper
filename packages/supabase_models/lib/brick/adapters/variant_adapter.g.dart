@@ -17,7 +17,7 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       productName: data['product_name'] as String?,
       branchId: data['branch_id'] as int?,
       taxName: data['tax_name'] as String?,
-      taxPercentage: data['tax_percentage'] as double,
+      taxPercentage: data['tax_percentage'] as int? ?? 18,
       itemSeq: data['item_seq'] as int?,
       isrccCd: data['isrcc_cd'] as String?,
       isrccNm: data['isrcc_nm'] as String?,
@@ -34,11 +34,11 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       pkgUnitCd: data['pkg_unit_cd'] as String?,
       qtyUnitCd: data['qty_unit_cd'] as String?,
       itemNm: data['item_nm'] as String?,
-      prc: data['prc'] as double,
-      splyAmt: data['sply_amt'] as double,
+      prc: data['prc'] as int? ?? 0,
+      splyAmt: data['sply_amt'] as int?,
       tin: data['tin'] as int?,
       bhfId: data['bhf_id'] as String?,
-      dftPrc: data['dft_prc'] as double?,
+      dftPrc: data['dft_prc'] as int? ?? 0,
       addInfo: data['add_info'] as String?,
       isrcAplcbYn: data['isrc_aplcb_yn'] as String?,
       useYn: data['use_yn'] as String?,
@@ -46,21 +46,16 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       regrNm: data['regr_nm'] as String?,
       modrId: data['modr_id'] as String?,
       modrNm: data['modr_nm'] as String?,
-      stockId: data['stock_id'] as int?,
       lastTouched: data['last_touched'] == null
           ? null
           : DateTime.tryParse(data['last_touched'] as String),
-      supplyPrice: data['supply_price'] as double,
-      retailPrice: data['retail_price'] as double,
+      supplyPrice: data['supply_price'] as int?,
+      retailPrice: data['retail_price'] as int?,
       spplrItemClsCd: data['spplr_item_cls_cd'] as String?,
       spplrItemCd: data['spplr_item_cd'] as String?,
       spplrItemNm: data['spplr_item_nm'] as String?,
-      ebmSynced: data['ebm_synced'] as bool,
-      stock: data['stock'] == null
-          ? null
-          : await StockAdapter().fromSupabase(data['stock'],
-              provider: provider, repository: repository),
-      dcRt: data['dc_rt'] as double,
+      ebmSynced: data['ebm_synced'] as bool?,
+      dcRt: data['dc_rt'] as int?,
       expirationDate: data['expiration_date'] == null
           ? null
           : DateTime.tryParse(data['expiration_date'] as String));
@@ -109,7 +104,6 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'regr_nm': instance.regrNm,
     'modr_id': instance.modrId,
     'modr_nm': instance.modrNm,
-    'stock_id': instance.stockId,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'supply_price': instance.supplyPrice,
     'retail_price': instance.retailPrice,
@@ -117,10 +111,6 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'spplr_item_cd': instance.spplrItemCd,
     'spplr_item_nm': instance.spplrItemNm,
     'ebm_synced': instance.ebmSynced,
-    'stock': instance.stock != null
-        ? await StockAdapter().toSupabase(instance.stock!,
-            provider: provider, repository: repository)
-        : null,
     'dc_rt': instance.dcRt,
     'expiration_date': instance.expirationDate?.toIso8601String()
   };
@@ -145,7 +135,9 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
           data['product_name'] == null ? null : data['product_name'] as String?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
-      taxPercentage: data['tax_percentage'] as double,
+      taxPercentage: data['tax_percentage'] == null
+          ? null
+          : data['tax_percentage'] as int?,
       itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
       isrccCd: data['isrcc_cd'] == null ? null : data['isrcc_cd'] as String?,
       isrccNm: data['isrcc_nm'] == null ? null : data['isrcc_nm'] as String?,
@@ -168,11 +160,11 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
       qtyUnitCd:
           data['qty_unit_cd'] == null ? null : data['qty_unit_cd'] as String?,
       itemNm: data['item_nm'] == null ? null : data['item_nm'] as String?,
-      prc: data['prc'] as double,
-      splyAmt: data['sply_amt'] as double,
+      prc: data['prc'] == null ? null : data['prc'] as int?,
+      splyAmt: data['sply_amt'] == null ? null : data['sply_amt'] as int?,
       tin: data['tin'] == null ? null : data['tin'] as int?,
       bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-      dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as double?,
+      dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as int?,
       addInfo: data['add_info'] == null ? null : data['add_info'] as String?,
       isrcAplcbYn: data['isrc_aplcb_yn'] == null
           ? null
@@ -182,14 +174,15 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
       regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
       modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
       modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
-      stockId: data['stock_id'] == null ? null : data['stock_id'] as int?,
       lastTouched: data['last_touched'] == null
           ? null
           : data['last_touched'] == null
               ? null
               : DateTime.tryParse(data['last_touched'] as String),
-      supplyPrice: data['supply_price'] as double,
-      retailPrice: data['retail_price'] as double,
+      supplyPrice:
+          data['supply_price'] == null ? null : data['supply_price'] as int?,
+      retailPrice:
+          data['retail_price'] == null ? null : data['retail_price'] as int?,
       spplrItemClsCd: data['spplr_item_cls_cd'] == null
           ? null
           : data['spplr_item_cls_cd'] as String?,
@@ -199,17 +192,8 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
       spplrItemNm: data['spplr_item_nm'] == null
           ? null
           : data['spplr_item_nm'] as String?,
-      ebmSynced: data['ebm_synced'] == 1,
-      stock: data['stock_Stock_brick_id'] == null
-          ? null
-          : (data['stock_Stock_brick_id'] > -1
-              ? (await repository?.getAssociation<Stock>(
-                  Query.where('primaryKey', data['stock_Stock_brick_id'] as int,
-                      limit1: true),
-                ))
-                  ?.first
-              : null),
-      dcRt: data['dc_rt'] as double,
+      ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
+      dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as int?,
       expirationDate: data['expiration_date'] == null
           ? null
           : data['expiration_date'] == null
@@ -261,19 +245,14 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'regr_nm': instance.regrNm,
     'modr_id': instance.modrId,
     'modr_nm': instance.modrNm,
-    'stock_id': instance.stockId,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'supply_price': instance.supplyPrice,
     'retail_price': instance.retailPrice,
     'spplr_item_cls_cd': instance.spplrItemClsCd,
     'spplr_item_cd': instance.spplrItemCd,
     'spplr_item_nm': instance.spplrItemNm,
-    'ebm_synced': instance.ebmSynced ? 1 : 0,
-    'stock_Stock_brick_id': instance.stock != null
-        ? instance.stock!.primaryKey ??
-            await provider.upsert<Stock>(instance.stock!,
-                repository: repository)
-        : null,
+    'ebm_synced':
+        instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
     'dc_rt': instance.dcRt,
     'expiration_date': instance.expirationDate?.toIso8601String()
   };
@@ -445,10 +424,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'modr_nm',
     ),
-    'stockId': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'stock_id',
-    ),
     'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'last_touched',
@@ -477,12 +452,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'ebm_synced',
     ),
-    'stock': const RuntimeSupabaseColumnDefinition(
-      association: true,
-      columnName: 'stock',
-      associationType: Stock,
-      associationIsNullable: true,
-    ),
     'dcRt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'dc_rt',
@@ -495,7 +464,7 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
   @override
   final ignoreDuplicates = false;
   @override
-  final uniqueFields = {};
+  final uniqueFields = {'id'};
   @override
   final Map<String, RuntimeSqliteColumnDefinition> fieldsToSqliteColumns = {
     'primaryKey': const RuntimeSqliteColumnDefinition(
@@ -568,7 +537,7 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'tax_percentage',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'itemSeq': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -670,13 +639,13 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'prc',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'splyAmt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'sply_amt',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'tin': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -694,7 +663,7 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'dft_prc',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'addInfo': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -738,12 +707,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       iterable: false,
       type: String,
     ),
-    'stockId': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'stock_id',
-      iterable: false,
-      type: int,
-    ),
     'lastTouched': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'last_touched',
@@ -754,13 +717,13 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'supply_price',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'retailPrice': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'retail_price',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'spplrItemClsCd': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -786,17 +749,11 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       iterable: false,
       type: bool,
     ),
-    'stock': const RuntimeSqliteColumnDefinition(
-      association: true,
-      columnName: 'stock_Stock_brick_id',
-      iterable: false,
-      type: Stock,
-    ),
     'dcRt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'dc_rt',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'expirationDate': const RuntimeSqliteColumnDefinition(
       association: false,

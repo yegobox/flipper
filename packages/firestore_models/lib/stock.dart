@@ -7,7 +7,6 @@ import 'variant.dart';
 
 part 'stock.g.dart';
 
-
 @JsonSerializable()
 @Collection<Stock>('stocks')
 class Stock {

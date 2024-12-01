@@ -6,12 +6,12 @@ Future<Product> _$ProductFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Product(
       id: data['id'] as int,
-      name: data['name'] as String?,
+      name: data['name'] as String,
       description: data['description'] as String?,
       taxId: data['tax_id'] as String?,
       color: data['color'] as String,
-      businessId: data['business_id'] as int?,
-      branchId: data['branch_id'] as int?,
+      businessId: data['business_id'] as int,
+      branchId: data['branch_id'] as int,
       supplierId: data['supplier_id'] as String?,
       categoryId: data['category_id'] as int?,
       createdAt: data['created_at'] as String?,
@@ -19,9 +19,9 @@ Future<Product> _$ProductFromSupabase(Map<String, dynamic> data,
       imageUrl: data['image_url'] as String?,
       expiryDate: data['expiry_date'] as String?,
       barCode: data['bar_code'] as String?,
-      nfcEnabled: data['nfc_enabled'] as bool,
+      nfcEnabled: data['nfc_enabled'] as bool? ?? false,
       bindedToTenantId: data['binded_to_tenant_id'] as int?,
-      isFavorite: data['is_favorite'] as bool,
+      isFavorite: data['is_favorite'] as bool? ?? false,
       lastTouched: data['last_touched'] == null
           ? null
           : DateTime.tryParse(data['last_touched'] as String),
@@ -29,7 +29,7 @@ Future<Product> _$ProductFromSupabase(Map<String, dynamic> data,
           ? null
           : DateTime.tryParse(data['deleted_at'] as String),
       spplrNm: data['spplr_nm'] as String?,
-      isComposite: data['is_composite'] as bool?,
+      isComposite: data['is_composite'] as bool? ?? false,
       composites: await Future.wait<Composite>(data['composites']
               ?.map((d) => CompositeAdapter()
                   .fromSupabase(d, provider: provider, repository: repository))
@@ -76,14 +76,13 @@ Future<Product> _$ProductFromSqlite(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Product(
       id: data['id'] as int,
-      name: data['name'] == null ? null : data['name'] as String?,
+      name: data['name'] as String,
       description:
           data['description'] == null ? null : data['description'] as String?,
       taxId: data['tax_id'] == null ? null : data['tax_id'] as String?,
       color: data['color'] as String,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+      businessId: data['business_id'] as int,
+      branchId: data['branch_id'] as int,
       supplierId:
           data['supplier_id'] == null ? null : data['supplier_id'] as String?,
       categoryId:
@@ -95,11 +94,11 @@ Future<Product> _$ProductFromSqlite(Map<String, dynamic> data,
       expiryDate:
           data['expiry_date'] == null ? null : data['expiry_date'] as String?,
       barCode: data['bar_code'] == null ? null : data['bar_code'] as String?,
-      nfcEnabled: data['nfc_enabled'] == 1,
+      nfcEnabled: data['nfc_enabled'] == null ? null : data['nfc_enabled'] == 1,
       bindedToTenantId: data['binded_to_tenant_id'] == null
           ? null
           : data['binded_to_tenant_id'] as int?,
-      isFavorite: data['is_favorite'] == 1,
+      isFavorite: data['is_favorite'] == null ? null : data['is_favorite'] == 1,
       lastTouched: data['last_touched'] == null
           ? null
           : data['last_touched'] == null
@@ -146,9 +145,11 @@ Future<Map<String, dynamic>> _$ProductToSqlite(Product instance,
     'image_url': instance.imageUrl,
     'expiry_date': instance.expiryDate,
     'bar_code': instance.barCode,
-    'nfc_enabled': instance.nfcEnabled ? 1 : 0,
+    'nfc_enabled':
+        instance.nfcEnabled == null ? null : (instance.nfcEnabled! ? 1 : 0),
     'binded_to_tenant_id': instance.bindedToTenantId,
-    'is_favorite': instance.isFavorite ? 1 : 0,
+    'is_favorite':
+        instance.isFavorite == null ? null : (instance.isFavorite! ? 1 : 0),
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'spplr_nm': instance.spplrNm,
@@ -384,7 +385,6 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
       iterable: false,
       type: DateTime,
     ),
-    
     'spplrNm': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'spplr_nm',

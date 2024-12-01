@@ -1,7 +1,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
-import 'composite.model.dart';
+import 'package:supabase_models/brick/models/composite.model.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'products'),
@@ -12,13 +12,13 @@ class Product extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   final int id;
 
-  String? name;
+  final String name;
   String? description;
   String? taxId;
-  String color = "#e74c3c";
-  int? businessId;
+  String color;
+  final int businessId;
 
-  int? branchId;
+  final int branchId;
   String? supplierId;
   int? categoryId;
   String? createdAt;
@@ -27,30 +27,32 @@ class Product extends OfflineFirstWithSupabaseModel {
   String? expiryDate;
 
   String? barCode;
-  bool nfcEnabled = false;
+  @Supabase(defaultValue: "false")
+  bool? nfcEnabled;
 
   int? bindedToTenantId;
-  bool isFavorite = false;
+  @Supabase(defaultValue: "false")
+  bool? isFavorite;
 
   DateTime? lastTouched;
 
   DateTime? deletedAt;
 
-  bool searchMatch = false;
   String? spplrNm;
-  bool? isComposite = false;
+  @Supabase(defaultValue: "false")
+  bool? isComposite;
 
   @Supabase(name: "composites")
   final List<Composite>? composites;
 
   Product({
     required this.id,
-    this.name,
+    required this.name,
     this.description,
     this.taxId,
-    this.color = "#e74c3c",
-    this.businessId,
-    this.branchId,
+    required this.color,
+    required this.businessId,
+    required this.branchId,
     this.supplierId,
     this.categoryId,
     this.createdAt,
@@ -58,14 +60,13 @@ class Product extends OfflineFirstWithSupabaseModel {
     this.imageUrl,
     this.expiryDate,
     this.barCode,
-    this.nfcEnabled = false,
+    this.nfcEnabled,
     this.bindedToTenantId,
-    this.isFavorite = false,
+    this.isFavorite,
     this.lastTouched,
     this.deletedAt,
-    this.searchMatch = false,
     this.spplrNm,
-    this.isComposite = false,
+    this.isComposite,
     this.composites = const [], // Initialize as an empty list
   });
 }

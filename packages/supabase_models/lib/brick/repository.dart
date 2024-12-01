@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
@@ -45,8 +47,11 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _singleton = Repository._(
       supabaseProvider: provider,
       sqliteProvider: SqliteProvider(
-        'flipper_v27.sqlite',
-        databaseFactory: databaseFactory,
+        'flipper_v1.sqlite',
+        databaseFactory: (Platform.isLinux || Platform.isWindows)
+            ? databaseFactoryFfi
+            : databaseFactory,
+        // databaseFactory: databaseFactory,
         modelDictionary: sqliteModelDictionary,
       ),
       migrations: migrations,

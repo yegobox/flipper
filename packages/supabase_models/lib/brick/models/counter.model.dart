@@ -3,7 +3,7 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 
 @ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(),
+  supabaseConfig: SupabaseSerializable(tableName: 'counters'),
 )
 class Counter extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

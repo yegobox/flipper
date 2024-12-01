@@ -1,12 +1,13 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
-import 'variant.model.dart';
+import 'package:supabase_models/brick/models/variant.model.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'stocks'),
 )
 class Stock extends OfflineFirstWithSupabaseModel {
+  @Supabase(unique: true)
   @Sqlite(unique: true)
   final int id;
 
@@ -14,38 +15,45 @@ class Stock extends OfflineFirstWithSupabaseModel {
   String? bhfId;
   int? branchId;
   int? variantId;
-  double currentStock = 0.0;
-  double lowStock = 0;
-  bool? canTrackingStock = true;
-  bool? showLowStockAlert = true;
+  double? currentStock;
+  @Supabase(defaultValue: "0.0")
+  double? lowStock;
+  @Supabase(defaultValue: "true")
+  bool? canTrackingStock;
+  @Supabase(defaultValue: "true")
+  bool? showLowStockAlert;
   int? productId;
   bool? active;
-  double value = 0.0;
-  double rsdQty = 0.0;
+  double? value;
+  double? rsdQty;
   DateTime? lastTouched;
   DateTime? deletedAt;
-  bool ebmSynced = false;
-  final Variant? variant;
+  @Supabase(defaultValue: "false")
+  bool? ebmSynced;
+  @Supabase(defaultValue: "1")
   double? initialStock;
+
+  @Supabase(name: 'variant')
+  final Variant variant;
 
   Stock({
     required this.id,
     this.tin,
     this.bhfId,
+    required this.variant,
     this.branchId,
     this.variantId,
-    this.currentStock = 0.0,
-    this.lowStock = 0,
-    this.canTrackingStock = true,
-    this.showLowStockAlert = true,
+    this.currentStock,
+    this.lowStock,
+    this.canTrackingStock,
+    this.showLowStockAlert,
     this.productId,
     this.active,
-    this.value = 0.0,
-    this.rsdQty = 0.0,
+    this.value,
+    this.rsdQty,
     this.lastTouched,
     this.deletedAt,
-    this.ebmSynced = false,
-    this.variant,
+    this.ebmSynced,
     this.initialStock,
   });
 }

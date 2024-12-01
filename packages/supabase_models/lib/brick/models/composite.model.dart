@@ -11,17 +11,16 @@ class Composite extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   final int id;
 
-
   int? productId;
   int? variantId;
-  double? qty = 1.0;
+  double? qty;
   int? branchId;
   int? businessId;
 
   /// this hold the actual price of the sum of item on composite
   /// sound like if we have 4 item on a composite, they will all have this column to represent the price
   /// of the whole composite.
-  double? actualPrice = 0;
+  double? actualPrice;
 
   Composite({
     required this.id,
