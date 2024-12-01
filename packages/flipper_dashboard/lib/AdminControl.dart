@@ -140,26 +140,26 @@ class _AdminControlState extends State<AdminControl> {
           dcRt: variant.dcRt.toInt(),
           expirationDate: variant.expirationDate,
         );
-        await repository.upsert<models.Variant>(vv);
+        final addedV = await repository.upsert<models.Variant>(vv);
         // upsert stock first
-        // await repository.upsert<models.Stock>(models.Stock(
-        //   variant: addedV,
-        //   id: randomNumber(),
-        //   tin: variant.stock!.tin,
-        //   bhfId: variant.stock!.bhfId,
-        //   branchId: variant.stock!.branchId,
-        //   currentStock: variant.stock!.currentStock,
-        //   lowStock: variant.stock!.lowStock,
-        //   canTrackingStock: variant.stock!.canTrackingStock,
-        //   showLowStockAlert: variant.stock!.showLowStockAlert,
-        //   productId: variant.stock!.productId,
-        //   active: variant.stock!.active,
-        //   value: variant.stock!.value,
-        //   rsdQty: variant.stock!.rsdQty,
-        //   lastTouched: variant.stock!.lastTouched,
-        //   ebmSynced: variant.stock!.ebmSynced,
-        //   variantId: addedV.id,
-        // ));
+        await repository.upsert<models.Stock>(models.Stock(
+          variant: addedV,
+          id: variant.stock!.id!,
+          tin: variant.stock!.tin,
+          bhfId: variant.stock!.bhfId,
+          branchId: variant.stock!.branchId,
+          currentStock: variant.stock!.currentStock.toInt(),
+          lowStock: variant.stock!.lowStock.toInt(),
+          canTrackingStock: variant.stock!.canTrackingStock,
+          showLowStockAlert: variant.stock!.showLowStockAlert,
+          productId: variant.stock!.productId,
+          active: variant.stock!.active,
+          value: variant.stock!.value.toInt(),
+          rsdQty: variant.stock!.rsdQty.toInt(),
+          lastTouched: variant.stock!.lastTouched,
+          ebmSynced: variant.stock!.ebmSynced,
+          variantId: addedV.id,
+        ));
         // await repository.upsert<models.Variant>(addedV);
       }
     } catch (e, s) {

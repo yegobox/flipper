@@ -10,14 +10,14 @@ Future<Stock> _$StockFromSupabase(Map<String, dynamic> data,
       bhfId: data['bhf_id'] as String?,
       branchId: data['branch_id'] as int?,
       variantId: data['variant_id'] as int?,
-      currentStock: data['current_stock'] as double?,
-      lowStock: data['low_stock'] as double? ?? 0.0,
+      currentStock: data['current_stock'] as int? ?? 0,
+      lowStock: data['low_stock'] as int? ?? 0,
       canTrackingStock: data['can_tracking_stock'] as bool? ?? true,
       showLowStockAlert: data['show_low_stock_alert'] as bool? ?? true,
       productId: data['product_id'] as int?,
       active: data['active'] as bool?,
-      value: data['value'] as double?,
-      rsdQty: data['rsd_qty'] as double?,
+      value: data['value'] as int?,
+      rsdQty: data['rsd_qty'] as int?,
       lastTouched: data['last_touched'] == null
           ? null
           : DateTime.tryParse(data['last_touched'] as String),
@@ -25,7 +25,7 @@ Future<Stock> _$StockFromSupabase(Map<String, dynamic> data,
           ? null
           : DateTime.tryParse(data['deleted_at'] as String),
       ebmSynced: data['ebm_synced'] as bool? ?? false,
-      initialStock: data['initial_stock'] as double? ?? 1,
+      initialStock: data['initial_stock'] as int? ?? 1,
       variant: await VariantAdapter().fromSupabase(data['variant'],
           provider: provider, repository: repository));
 }
@@ -65,10 +65,9 @@ Future<Stock> _$StockFromSqlite(Map<String, dynamic> data,
       bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       variantId: data['variant_id'] == null ? null : data['variant_id'] as int?,
-      currentStock: data['current_stock'] == null
-          ? null
-          : data['current_stock'] as double?,
-      lowStock: data['low_stock'] == null ? null : data['low_stock'] as double?,
+      currentStock:
+          data['current_stock'] == null ? null : data['current_stock'] as int?,
+      lowStock: data['low_stock'] == null ? null : data['low_stock'] as int?,
       canTrackingStock: data['can_tracking_stock'] == null
           ? null
           : data['can_tracking_stock'] == 1,
@@ -77,8 +76,8 @@ Future<Stock> _$StockFromSqlite(Map<String, dynamic> data,
           : data['show_low_stock_alert'] == 1,
       productId: data['product_id'] == null ? null : data['product_id'] as int?,
       active: data['active'] == null ? null : data['active'] == 1,
-      value: data['value'] == null ? null : data['value'] as double?,
-      rsdQty: data['rsd_qty'] == null ? null : data['rsd_qty'] as double?,
+      value: data['value'] == null ? null : data['value'] as int?,
+      rsdQty: data['rsd_qty'] == null ? null : data['rsd_qty'] as int?,
       lastTouched: data['last_touched'] == null
           ? null
           : data['last_touched'] == null
@@ -90,9 +89,8 @@ Future<Stock> _$StockFromSqlite(Map<String, dynamic> data,
               ? null
               : DateTime.tryParse(data['deleted_at'] as String),
       ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
-      initialStock: data['initial_stock'] == null
-          ? null
-          : data['initial_stock'] as double?,
+      initialStock:
+          data['initial_stock'] == null ? null : data['initial_stock'] as int?,
       variant: (await repository!.getAssociation<Variant>(
         Query.where('primaryKey', data['variant_Variant_brick_id'] as int,
             limit1: true),
@@ -263,13 +261,13 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
       association: false,
       columnName: 'current_stock',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'lowStock': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'low_stock',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'canTrackingStock': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -299,13 +297,13 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
       association: false,
       columnName: 'value',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'rsdQty': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'rsd_qty',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'lastTouched': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -329,7 +327,7 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
       association: false,
       columnName: 'initial_stock',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'variant': const RuntimeSqliteColumnDefinition(
       association: true,

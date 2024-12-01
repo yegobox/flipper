@@ -1,7 +1,6 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20241201190935.migration.dart';
 part '20241114183152.migration.dart';
 part '20241128071851.migration.dart';
 part '20241129195847.migration.dart';
@@ -24,10 +23,13 @@ part '20241201185919.migration.dart';
 part '20241201190104.migration.dart';
 part '20241201190309.migration.dart';
 part '20241201190658.migration.dart';
+part '20241201190935.migration.dart';
+part '20241201192623.migration.dart';
+part '20241201192839.migration.dart';
+part '20241201193049.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20241201190935(),
   const Migration20241114183152(),
   const Migration20241128071851(),
   const Migration20241129195847(),
@@ -49,11 +51,16 @@ final migrations = <Migration>{
   const Migration20241201185919(),
   const Migration20241201190104(),
   const Migration20241201190309(),
-  const Migration20241201190658()
+  const Migration20241201190658(),
+  const Migration20241201190935(),
+  const Migration20241201192623(),
+  const Migration20241201192839(),
+  const Migration20241201193049()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20241201190935, generatorVersion: 1, tables: <SchemaTable>{
+final schema =
+    Schema(20241201193049, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('Stock', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -62,18 +69,18 @@ final schema = Schema(20241201190935, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('bhf_id', Column.varchar),
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('variant_id', Column.integer),
-    SchemaColumn('current_stock', Column.Double),
-    SchemaColumn('low_stock', Column.Double),
+    SchemaColumn('current_stock', Column.integer),
+    SchemaColumn('low_stock', Column.integer),
     SchemaColumn('can_tracking_stock', Column.boolean),
     SchemaColumn('show_low_stock_alert', Column.boolean),
     SchemaColumn('product_id', Column.integer),
     SchemaColumn('active', Column.boolean),
-    SchemaColumn('value', Column.Double),
-    SchemaColumn('rsd_qty', Column.Double),
+    SchemaColumn('value', Column.integer),
+    SchemaColumn('rsd_qty', Column.integer),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('ebm_synced', Column.boolean),
-    SchemaColumn('initial_stock', Column.Double),
+    SchemaColumn('initial_stock', Column.integer),
     SchemaColumn('variant_Variant_brick_id', Column.integer,
         isForeignKey: true,
         foreignTableName: 'Variant',

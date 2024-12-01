@@ -15,23 +15,24 @@ class Stock extends OfflineFirstWithSupabaseModel {
   String? bhfId;
   int? branchId;
   int? variantId;
-  double? currentStock;
-  @Supabase(defaultValue: "0.0")
-  double? lowStock;
+  @Supabase(defaultValue: "0")
+  int? currentStock;
+  @Supabase(defaultValue: "0")
+  int? lowStock;
   @Supabase(defaultValue: "true")
   bool? canTrackingStock;
   @Supabase(defaultValue: "true")
   bool? showLowStockAlert;
   int? productId;
   bool? active;
-  double? value;
-  double? rsdQty;
+  int? value;
+  int? rsdQty;
   DateTime? lastTouched;
   DateTime? deletedAt;
   @Supabase(defaultValue: "false")
   bool? ebmSynced;
   @Supabase(defaultValue: "1")
-  double? initialStock;
+  int? initialStock;
 
   @Supabase(name: 'variant')
   final Variant variant;

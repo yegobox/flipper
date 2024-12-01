@@ -1283,19 +1283,19 @@ class CoreSync with Booting implements CoreDataInterface {
             id: stockId,
             branchId: branchId,
             variantId: variantId,
-            currentStock: 0.0,
+            currentStock: 0,
             productId: product.id)
           ..canTrackingStock = false
           ..showLowStockAlert = false
-          ..currentStock = 0.0
+          ..currentStock = 0
           ..branchId = branchId
           ..variantId = variantId
-          ..lowStock = 10.0 // default static
+          ..lowStock = 10 // default static
           ..canTrackingStock = true
           ..showLowStockAlert = true
           ..active = false
           ..productId = product.id
-          ..rsdQty = 0.0;
+          ..rsdQty = 0;
 
         repository.upsert<Variant>(variant);
 
