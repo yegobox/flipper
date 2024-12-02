@@ -84,6 +84,8 @@ class _AdminControlState extends State<AdminControl> {
       ));
     }
     try {
+      // deal with items
+
       List<Variant> variants = ProxyService.local
           .variants(branchId: ProxyService.box.getBranchId()!);
       talker.warning("I Expect ${variants.length} variants When seeding");
@@ -202,7 +204,76 @@ class _AdminControlState extends State<AdminControl> {
             lastTouched: transaction.lastTouched,
             customerTin: transaction.customerTin,
             note: transaction.note);
-        await repository.upsert<models.ITransaction>(transItem);
+        // await repository.upsert<models.ITransaction>(transItem);
+
+        List<TransactionItem> items = ProxyService.local
+            .transactionItems(branchId: ProxyService.box.getBranchId()!);
+        talker
+            .warning("I Expect ${items.length} transactions Item When seeding");
+        for (TransactionItem item in items) {
+          final ite = models.TransactionItem(
+            id: item.id!,
+            splyAmt: item.splyAmt,
+            prc: item.prc,
+            name: (item.name ?? item.itemNm)!,
+            itemNm: (item.name ?? item.itemNm)!,
+            quantityRequested: item.quantityRequested,
+            quantityApproved: item.quantityApproved,
+            quantityShipped: item.quantityShipped,
+            transactionId: item.transactionId,
+            variantId: item.variantId,
+            qty: item.qty,
+            price: item.price,
+            discount: item.discount,
+            type: item.type,
+            remainingStock: item.remainingStock,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+            isTaxExempted: item.isTaxExempted,
+            isRefunded: item.isRefunded,
+            doneWithTransaction: item.doneWithTransaction,
+            active: item.active,
+            dcRt: item.dcRt,
+            dcAmt: item.dcAmt,
+            taxblAmt: item.taxblAmt,
+            taxAmt: item.taxAmt,
+            totAmt: item.totAmt,
+            itemSeq: item.itemSeq,
+            isrccCd: item.isrccCd,
+            isrccNm: item.isrccNm,
+            isrcRt: 0,
+            isrcAmt: 0,
+            taxTyCd: item.taxTyCd,
+            bcd: item.bcd,
+            itemClsCd: item.itemClsCd,
+            itemTyCd: item.itemTyCd,
+            itemStdNm: item.itemStdNm,
+            orgnNatCd: item.orgnNatCd,
+            pkg: item.pkg,
+            itemCd: item.itemCd,
+            pkgUnitCd: item.pkgUnitCd,
+            qtyUnitCd: item.qtyUnitCd,
+            // itemNm already handled above
+            // prc already handled above
+            tin: item.tin,
+            bhfId: item.bhfId,
+            dftPrc: item.dftPrc,
+            addInfo: item.addInfo,
+            isrcAplcbYn: item.isrcAplcbYn,
+            useYn: item.useYn,
+            regrId: item.regrId,
+            regrNm: item.regrNm,
+            modrId: item.modrId,
+            modrNm: item.modrNm,
+            lastTouched: item.lastTouched,
+            deletedAt: item.deletedAt,
+            branchId: item.branchId,
+            ebmSynced: item.ebmSynced,
+            partOfComposite: item.partOfComposite,
+            compositePrice: item.compositePrice,
+          );
+          await repository.upsert<models.TransactionItem>(ite);
+        }
       }
     } catch (e, s) {
       talker.warning(e);

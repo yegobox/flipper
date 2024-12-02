@@ -32,6 +32,7 @@ part '20241201195050.migration.dart';
 part '20241201203523.migration.dart';
 part '20241202043131.migration.dart';
 part '20241202043225.migration.dart';
+part '20241202075940.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -65,12 +66,13 @@ final migrations = <Migration>{
   const Migration20241201195050(),
   const Migration20241201203523(),
   const Migration20241202043131(),
-  const Migration20241202043225()
+  const Migration20241202043225(),
+  const Migration20241202075940()
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema =
-    Schema(20241202043225, generatorVersion: 1, tables: <SchemaTable>{
+    Schema(20241202075940, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('Stock', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -243,8 +245,8 @@ final schema =
     SchemaColumn('item_seq', Column.integer),
     SchemaColumn('isrcc_cd', Column.varchar),
     SchemaColumn('isrcc_nm', Column.varchar),
-    SchemaColumn('isrc_r', Column.integer),
-    SchemaColumn('isrc_am', Column.integer),
+    SchemaColumn('isrc_rt', Column.integer),
+    SchemaColumn('isrc_amt', Column.integer),
     SchemaColumn('tax_ty_cd', Column.varchar),
     SchemaColumn('bcd', Column.varchar),
     SchemaColumn('item_cls_cd', Column.varchar),

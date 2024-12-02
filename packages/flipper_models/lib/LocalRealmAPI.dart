@@ -2567,13 +2567,18 @@ class LocalRealmApi
   /// then this means item is on cart
   @override
   List<TransactionItem> transactionItems(
-      {required int transactionId,
+      {int? transactionId,
       bool? doneWithTransaction,
       required int branchId,
       bool? active}) {
     String queryString = "";
 
-    if (doneWithTransaction == null || active == null) {
+    if (transactionId == null) {
+      queryString = r'branchId == $0';
+      final items =
+          realm!.query<TransactionItem>(queryString, [branchId]).toList();
+      return items;
+    } else if (doneWithTransaction == null || active == null) {
       queryString = r'transactionId == $0  && branchId ==$1';
       final items = realm!.query<TransactionItem>(
           queryString, [transactionId, branchId]).toList();

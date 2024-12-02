@@ -10,7 +10,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   final int id;
 
-  final String? name;
+  final String name;
   final int? quantityRequested;
   final int? quantityApproved;
   final int? quantityShipped;
@@ -18,8 +18,8 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   final int? variantId;
   // quantity
   final double? qty;
-  final double? price;
-  final double? discount;
+  final double price;
+  final double discount;
   final String? type;
   final double? remainingStock;
   final String? createdAt;
@@ -53,9 +53,9 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   // insurance name
   final String? isrccNm;
   // premium rate
-  final int? isrcR;
+  final int? isrcRt;
   // insurance amount
-  final int? isrcAm;
+  final int? isrcAmt;
   // taxation type code.
   final String? taxTyCd;
   // bar code
@@ -77,7 +77,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
 
   final String? qtyUnitCd;
   // same as name but for rra happiness
-  final String? itemNm;
+  final String itemNm;
   // unit price
   // check if prc is saved as same as retailPrice again this property is same as price on this model!
   final double prc;
@@ -114,7 +114,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.itemCd,
     this.pkgUnitCd,
     this.qtyUnitCd,
-    this.itemNm,
+    required this.itemNm,
     this.tin,
     this.bhfId,
     this.dftPrc,
@@ -131,15 +131,15 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.ebmSynced,
     this.partOfComposite,
     this.compositePrice,
-    this.name,
+    required this.name,
     this.quantityRequested,
     this.quantityApproved,
     this.quantityShipped,
     this.transactionId,
     this.variantId,
     this.qty,
-    this.price,
-    this.discount,
+    required this.price,
+    required this.discount,
     this.type,
     this.remainingStock,
     this.createdAt,
@@ -156,8 +156,8 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.itemSeq,
     this.isrccCd,
     this.isrccNm,
-    this.isrcR,
-    this.isrcAm,
+    this.isrcRt,
+    this.isrcAmt,
     required this.prc,
   });
 }

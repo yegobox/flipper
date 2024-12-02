@@ -302,7 +302,7 @@ abstract class RealmInterface {
 
   /// get a list of transactionItems given transactionId
   List<TransactionItem> transactionItems(
-      {required int transactionId,
+      {int? transactionId,
       bool? doneWithTransaction,
       required int branchId,
       bool? active});
