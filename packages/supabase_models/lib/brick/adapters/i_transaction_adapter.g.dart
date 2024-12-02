@@ -12,10 +12,10 @@ Future<ITransaction> _$ITransactionFromSupabase(Map<String, dynamic> data,
       branchId: data['branch_id'] as int?,
       status: data['status'] as String?,
       transactionType: data['transaction_type'] as String?,
-      subTotal: data['sub_total'] as double,
+      subTotal: data['sub_total'] as int? ?? 0,
       paymentType: data['payment_type'] as String?,
-      cashReceived: data['cash_received'] as double,
-      customerChangeDue: data['customer_change_due'] as double,
+      cashReceived: data['cash_received'] as int? ?? 0,
+      customerChangeDue: data['customer_change_due'] as int? ?? 0,
       createdAt: data['created_at'] as String?,
       receiptType: data['receipt_type'] as String?,
       updatedAt: data['updated_at'] as String?,
@@ -30,10 +30,10 @@ Future<ITransaction> _$ITransactionFromSupabase(Map<String, dynamic> data,
           ? null
           : DateTime.tryParse(data['deleted_at'] as String),
       supplierId: data['supplier_id'] as int?,
-      ebmSynced: data['ebm_synced'] as bool?,
-      isIncome: data['is_income'] as bool,
-      isExpense: data['is_expense'] as bool,
-      isRefunded: data['is_refunded'] as bool?,
+      ebmSynced: data['ebm_synced'] as bool? ?? false,
+      isIncome: data['is_income'] as bool? ?? true,
+      isExpense: data['is_expense'] as bool? ?? false,
+      isRefunded: data['is_refunded'] as bool? ?? false,
       customerName: data['customer_name'] as String?,
       customerTin: data['customer_tin'] as String?,
       remark: data['remark'] as String?,
@@ -101,11 +101,14 @@ Future<ITransaction> _$ITransactionFromSqlite(Map<String, dynamic> data,
       transactionType: data['transaction_type'] == null
           ? null
           : data['transaction_type'] as String?,
-      subTotal: data['sub_total'] as double,
+      subTotal: data['sub_total'] == null ? null : data['sub_total'] as int?,
       paymentType:
           data['payment_type'] == null ? null : data['payment_type'] as String?,
-      cashReceived: data['cash_received'] as double,
-      customerChangeDue: data['customer_change_due'] as double,
+      cashReceived:
+          data['cash_received'] == null ? null : data['cash_received'] as int?,
+      customerChangeDue: data['customer_change_due'] == null
+          ? null
+          : data['customer_change_due'] as int?,
       createdAt:
           data['created_at'] == null ? null : data['created_at'] as String?,
       receiptType:
@@ -133,8 +136,8 @@ Future<ITransaction> _$ITransactionFromSqlite(Map<String, dynamic> data,
       supplierId:
           data['supplier_id'] == null ? null : data['supplier_id'] as int?,
       ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
-      isIncome: data['is_income'] == 1,
-      isExpense: data['is_expense'] == 1,
+      isIncome: data['is_income'] == null ? null : data['is_income'] == 1,
+      isExpense: data['is_expense'] == null ? null : data['is_expense'] == 1,
       isRefunded: data['is_refunded'] == null ? null : data['is_refunded'] == 1,
       customerName: data['customer_name'] == null
           ? null
@@ -185,8 +188,10 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(ITransaction instance,
     'supplier_id': instance.supplierId,
     'ebm_synced':
         instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
-    'is_income': instance.isIncome ? 1 : 0,
-    'is_expense': instance.isExpense ? 1 : 0,
+    'is_income':
+        instance.isIncome == null ? null : (instance.isIncome! ? 1 : 0),
+    'is_expense':
+        instance.isExpense == null ? null : (instance.isExpense! ? 1 : 0),
     'is_refunded':
         instance.isRefunded == null ? null : (instance.isRefunded! ? 1 : 0),
     'customer_name': instance.customerName,
@@ -347,7 +352,7 @@ class ITransactionAdapter
   @override
   final ignoreDuplicates = false;
   @override
-  final uniqueFields = {};
+  final uniqueFields = {'id'};
   @override
   final Map<String, RuntimeSqliteColumnDefinition> fieldsToSqliteColumns = {
     'primaryKey': const RuntimeSqliteColumnDefinition(
@@ -402,7 +407,7 @@ class ITransactionAdapter
       association: false,
       columnName: 'sub_total',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'paymentType': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -414,13 +419,13 @@ class ITransactionAdapter
       association: false,
       columnName: 'cash_received',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'customerChangeDue': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'customer_change_due',
       iterable: false,
-      type: double,
+      type: int,
     ),
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,

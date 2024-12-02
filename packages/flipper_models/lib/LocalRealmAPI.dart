@@ -4612,6 +4612,15 @@ class LocalRealmApi
       queryString += ' && status != "PENDING" ';
     }
 
+    // If no dates are provided, remove date conditions from the query string
+    if (startDate == null && endDate == null) {
+      queryString = r'''
+  status == $0
+  && branchId == $1
+  ''';
+      parameters = [status ?? COMPLETE, branchId ?? 0];
+    }
+
     // Ensure realm is not null
     if (realm == null) {
       throw Exception("Realm instance is not initialized.");

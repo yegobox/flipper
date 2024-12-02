@@ -30,6 +30,8 @@ part '20241201193049.migration.dart';
 part '20241201194613.migration.dart';
 part '20241201195050.migration.dart';
 part '20241201203523.migration.dart';
+part '20241202043131.migration.dart';
+part '20241202043225.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -61,12 +63,14 @@ final migrations = <Migration>{
   const Migration20241201193049(),
   const Migration20241201194613(),
   const Migration20241201195050(),
-  const Migration20241201203523()
+  const Migration20241201203523(),
+  const Migration20241202043131(),
+  const Migration20241202043225()
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema =
-    Schema(20241201203523, generatorVersion: 1, tables: <SchemaTable>{
+    Schema(20241202043225, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('Stock', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -140,10 +144,10 @@ final schema =
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('status', Column.varchar),
     SchemaColumn('transaction_type', Column.varchar),
-    SchemaColumn('sub_total', Column.Double),
+    SchemaColumn('sub_total', Column.integer),
     SchemaColumn('payment_type', Column.varchar),
-    SchemaColumn('cash_received', Column.Double),
-    SchemaColumn('customer_change_due', Column.Double),
+    SchemaColumn('cash_received', Column.integer),
+    SchemaColumn('customer_change_due', Column.integer),
     SchemaColumn('created_at', Column.varchar),
     SchemaColumn('receipt_type', Column.varchar),
     SchemaColumn('updated_at', Column.varchar),

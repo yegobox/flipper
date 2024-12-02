@@ -86,7 +86,7 @@ class _AdminControlState extends State<AdminControl> {
     try {
       List<Variant> variants = ProxyService.local
           .variants(branchId: ProxyService.box.getBranchId()!);
-      talker.warning("I Expect ${variants.length} When seeding");
+      talker.warning("I Expect ${variants.length} variants When seeding");
       for (Variant variant in variants) {
         final vv = models.Variant(
           id: variant.id!,
@@ -164,6 +164,45 @@ class _AdminControlState extends State<AdminControl> {
         // addedV.stock = stock;
         addedV.stockId = stock.id;
         await repository.upsert<models.Variant>(addedV);
+      }
+      // deal with iTransactions now
+      List<ITransaction> transactions = ProxyService.local
+          .transactions(branchId: ProxyService.box.getBranchId());
+      talker
+          .warning("I Expect ${transactions.length} transactions When seeding");
+      for (ITransaction transaction in transactions) {
+        final transItem = models.ITransaction(
+            id: transaction.id!,
+            branchId: transaction.branchId,
+            status: transaction.status,
+            transactionType: transaction.transactionType,
+            subTotal: transaction.subTotal.toInt(),
+            paymentType: transaction.paymentType,
+            cashReceived: transaction.cashReceived.toInt(),
+            customerChangeDue: transaction.customerChangeDue.toInt(),
+            createdAt: transaction.createdAt,
+            updatedAt: transaction.updatedAt,
+            isIncome: transaction.isIncome,
+            isExpense: transaction.isExpense,
+            ticketName: transaction.ticketName,
+            categoryId: transaction.categoryId,
+            reference: transaction.reference,
+            transactionNumber: transaction.transactionNumber,
+            receiptNumber: transaction.receiptNumber,
+            receiptType: transaction.receiptType,
+            isRefunded: transaction.isRefunded,
+            customerId: transaction.customerId,
+            invoiceNumber: transaction.invoiceNumber,
+            sarTyCd: transaction.sarTyCd,
+            customerBhfId: transaction.customerBhfId,
+            remark: transaction.remark,
+            ebmSynced: transaction.ebmSynced,
+            customerName: transaction.customerName,
+            supplierId: transaction.supplierId,
+            lastTouched: transaction.lastTouched,
+            customerTin: transaction.customerTin,
+            note: transaction.note);
+        await repository.upsert<models.ITransaction>(transItem);
       }
     } catch (e, s) {
       talker.warning(e);

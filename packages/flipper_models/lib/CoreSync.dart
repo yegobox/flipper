@@ -2093,7 +2093,7 @@ class CoreSync with Booting implements CoreDataInterface {
           subTotal: 0,
           cashReceived: 0,
           updatedAt: DateTime.now().toIso8601String(),
-          customerChangeDue: 0.0,
+          customerChangeDue: 0,
           paymentType: ProxyService.box.paymentType() ?? "Cash",
           branchId: branchId,
           createdAt: DateTime.now().toIso8601String());

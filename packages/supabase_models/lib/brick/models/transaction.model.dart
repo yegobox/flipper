@@ -7,6 +7,7 @@ import 'package:brick_supabase/brick_supabase.dart';
   supabaseConfig: SupabaseSerializable(tableName: 'transactions'),
 )
 class ITransaction extends OfflineFirstWithSupabaseModel {
+  @Supabase(unique: true)
   @Sqlite(unique: true)
   final int id;
 
@@ -19,10 +20,13 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   String? status;
 
   String? transactionType;
-  double subTotal = 0.0;
+  @Supabase(defaultValue: "0")
+  int? subTotal;
   String? paymentType;
-  double cashReceived = 0.0;
-  double customerChangeDue = 0.0;
+  @Supabase(defaultValue: "0")
+  int? cashReceived;
+  @Supabase(defaultValue: "0")
+  int? customerChangeDue;
 
   String? createdAt;
   // add receipt type offerered on this transaction
@@ -48,13 +52,16 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   /// and this operation might fail at time of us making the call and our software can work offline
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
-  bool? ebmSynced = false;
+  @Supabase(defaultValue: "false")
+  bool? ebmSynced;
 
   // Add methods to check type
-  bool isIncome = false;
-
-  bool isExpense = false;
-  bool? isRefunded = false;
+  @Supabase(defaultValue: "true")
+  bool? isIncome;
+  @Supabase(defaultValue: "false")
+  bool? isExpense;
+  @Supabase(defaultValue: "false")
+  bool? isRefunded;
   String? customerName;
   String? customerTin;
   String? remark;
