@@ -25,6 +25,8 @@ Future<void> main() async {
       ..dsn = kDebugMode ? AppSecrets.sentryKeyDev : AppSecrets.sentryKey
       ..release = 'flipper@1.170.4252223232243+1723059742'
       ..environment = 'production'
+      ..experimental.replay.sessionSampleRate = 1.0
+      ..experimental.replay.onErrorSampleRate = 1.0
       ..tracesSampleRate = 1.0
       ..attachScreenshot = true,
     appRunner: () => runApp(
