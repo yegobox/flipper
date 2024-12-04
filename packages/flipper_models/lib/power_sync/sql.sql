@@ -286,6 +286,43 @@ CREATE TABLE public.products (
   -- constraint products_owner_id_fkey foreign key (owner_id) references auth.users (id) on delete cascade
 );
 -- Counter Table
+-- Drop existing trigger and function if they exist
+-- Drop existing trigger and function
+-- Drop existing trigger and function
+-- Drop the existing trigger and function if they exist
+DROP TRIGGER IF EXISTS update_all_invc_no_trigger ON counters;
+DROP FUNCTION IF EXISTS update_all_invc_no();
+
+-- Create improved function with recursive check
+CREATE OR REPLACE FUNCTION update_all_invc_no()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Check if we're in a recursive update
+    IF tg_op = 'UPDATE' AND pg_trigger_depth() > 1 THEN
+        RETURN NEW;
+    END IF;
+
+    -- Update other rows with matching branch_id, excluding the current row
+    UPDATE counters
+    SET 
+        invc_no = NEW.invc_no,
+        tot_rcpt_no = NEW.tot_rcpt_no,
+        cur_rcpt_no = NEW.cur_rcpt_no
+    WHERE branch_id = NEW.branch_id
+    AND id != NEW.id;  -- Exclude the current row being updated
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger
+CREATE TRIGGER update_all_invc_no_trigger
+AFTER UPDATE OF invc_no, tot_rcpt_no, cur_rcpt_no
+ON counters
+FOR EACH ROW
+EXECUTE FUNCTION update_all_invc_no();
+
+
 
 ALTER PUBLICATION powersync ADD TABLE counters;
 CREATE TABLE public.counters (

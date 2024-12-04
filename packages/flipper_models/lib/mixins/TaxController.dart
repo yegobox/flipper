@@ -286,28 +286,14 @@ class TaxController<OBJ> {
   }) async {
     try {
       int branchId = ProxyService.box.getBranchId()!;
-
+      List<brick.Counter> counters = await ProxyService.strategy
+          .getCounters(branchId: ProxyService.box.getBranchId()!);
       brick.Counter? counter = await ProxyService.strategy
           .getCounter(branchId: branchId, receiptType: receiptType);
       if (counter == null) {
         throw Exception(
             "Counter have not been initialized, call +250783054874");
       }
-
-      ProxyService.capela.capella!.database?.writeN(
-          writeCallback: () {
-            // final doc =
-            //     MutableDocument.withId(counter.id.toString(), counter.toJson());
-            // return doc;
-          },
-          tableName: countersTable,
-          onAdd: (counter) async {
-            // AsyncCollection countersCollection =
-            //     await ProxyService.capela.getCountersCollection();
-
-            // countersCollection.saveDocument(counter);
-            // ProxyService.backUp.replicateData(countersTable, counter);
-          });
 
       /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
 
@@ -330,8 +316,6 @@ class TaxController<OBJ> {
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
         String qrCode = generateQRCode(now.toYYYMMdd(), receiptSignature);
-        List<brick.Counter> counters = await ProxyService.strategy
-            .getCounters(branchId: ProxyService.box.getBranchId()!);
 
         /// update transaction with receipt number and total receipt number
         ProxyService.local.realm!.write(() {

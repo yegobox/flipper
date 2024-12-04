@@ -2726,14 +2726,14 @@ class CoreSync with Booting implements CoreDataInterface {
         lastTouched: DateTime.now(),
         id: counter.id,
         branchId: counter.branchId,
-        curRcptNo: counter.curRcptNo,
-        totRcptNo: counter.totRcptNo,
+        curRcptNo: receiptSignature!.data?.rcptNo ?? 0,
+        totRcptNo: receiptSignature.data?.totRcptNo ?? 0,
         invcNo: counter.invcNo! + 1,
         businessId: counter.businessId,
         receiptType: counter.receiptType,
       );
-      repository.upsert(upCounter);
       counter.invcNo = counter.invcNo! + 1;
+      repository.upsert(upCounter);
     }
   }
 

@@ -4920,6 +4920,7 @@ class LocalRealmApi
         r'transactionId == $0', [transactionId]).toList();
   }
 
+  @override
   void updateCounters({
     required List<Counter> counters,
     required RwApiResponse receiptSignature,
@@ -4935,11 +4936,7 @@ class LocalRealmApi
         }
         return counters;
       },
-      onAdd: (data) {
-        for (Counter counter in data) {
-          // ProxyService.backUp.replicateData(countersTable, counter);
-        }
-      },
+      onAdd: (data) {},
     );
   }
 

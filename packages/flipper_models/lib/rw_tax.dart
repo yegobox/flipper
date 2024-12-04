@@ -416,6 +416,8 @@ class RWTax with NetworkHelper implements TaxApi {
     // Calculate total after discount
     final totalAfterDiscount = baseTotal - totalDiscountAmount;
 
+    talker.warning("DISCOUNT${totalAfterDiscount}");
+
     // Get tax percentage and calculate tax
     final taxPercentage = taxConfig.taxPercentage ?? 0.0;
     double taxAmount =
