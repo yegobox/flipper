@@ -9,7 +9,17 @@ const String PAYMENT_REACTIVATION_REQUIRED =
     "Payment failed. Please re-activate your payment method";
 
 // Enums
-enum FilterType { CUSTOMER, TRANSACTION, NS, CS, NR, TS, PS }
+enum FilterType { CUSTOMER, TRANSACTION, NS, CS, NR, TS, PS, CR, CP, PR, TR }
+
+class TransactionReceptType {
+  static const NS = "NS";
+  static const NR = "NR";
+  static const CS = "CS";
+  static const TS = "TS";
+  static const PS = "PS";
+  static const CR = "CR";
+  static const TR = "TR";
+}
 
 // Classes
 class RequestStatus {
@@ -59,18 +69,12 @@ class AppActions {
   static const String remote = "remote";
 }
 
-class TransactionReceptType {
-  static const NS = "NS";
-  static const NR = "NR";
-  static const CS = "CS";
-  static const TS = "TS";
-  static const PS = "PS";
-}
-
 class TransactionType {
   static const String cashIn = 'Cash In';
   static const String cashOut = 'Cash Out';
   static const String sale = 'Sale';
+  static const String purchase = 'Purchase';
+  static const String importation = 'Import';
   static const String salary = 'Salary';
   static const String transport = 'Transport';
   static const String airtime = 'Airtime';

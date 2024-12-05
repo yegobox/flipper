@@ -7,7 +7,6 @@ part 'transaction_payment_record.g.dart'; // Needed for JSON serialization
 class TransactionPaymentRecord with _$TransactionPaymentRecord {
   factory TransactionPaymentRecord({
     int? id,
-
     int? transactionId,
     @Default(0.0) double? amount,
     String? paymentMethod,
@@ -15,5 +14,6 @@ class TransactionPaymentRecord with _$TransactionPaymentRecord {
   }) = _TransactionPaymentRecord;
 
   // Optional: factory constructor for creating the object from JSON
-  factory TransactionPaymentRecord.fromJson(Map<String, dynamic> json) => _$TransactionPaymentRecordFromJson(json);
+  factory TransactionPaymentRecord.fromJson(Map<String, dynamic> json) =>
+      _$TransactionPaymentRecordFromJson(json);
 }

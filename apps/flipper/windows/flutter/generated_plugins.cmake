@@ -20,6 +20,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   printing
   realm
   screen_retriever_windows
+  sentry_flutter
   share_plus
   smart_auth
   tray_manager
@@ -28,7 +29,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
-  sentry_flutter
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

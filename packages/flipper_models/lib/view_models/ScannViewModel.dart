@@ -10,25 +10,24 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:flutter/material.dart';
 
-import 'mixins/_product.dart';
-
-class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
+class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   List<Variant> scannedVariants = [];
   double retailPrice = 0.0;
   double supplyPrice = 0.0;
   bool EBMenabled = false;
   List<String> pkgUnits = [];
 
-  void initialize() {
+  Future<void> initialize() async {
     setProductName(name: null);
     pkgUnits = RRADEFAULTS.packagingUnits;
     log(ProxyService.box.tin().toString(), name: "ScannViewModel");
     log(ProxyService.box.bhfId().toString(), name: "ScannViewModel");
 
     /// when ebm enabled,additional feature will start to appear on UI e.g when adding new product on desktop
-    EBMenabled =
-        ProxyService.box.tin() != -1 && ProxyService.box.bhfId()!.isNotEmpty;
+    EBMenabled = ProxyService.box.tin() != -1 &&
+        (await ProxyService.box.bhfId())!.isNotEmpty;
     log(EBMenabled.toString(), name: "ScannViewModel");
     notifyListeners();
   }
@@ -39,10 +38,13 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   }
 
   final talker = TalkerFlutter.init();
+
   void onAddVariant(
       {required String barCode,
       required bool isTaxExempted,
       required Product product,
+      required double retailPrice,
+      required double supplyPrice,
       required bool editmode}) {
     int branchId = ProxyService.box.getBranchId()!;
 
@@ -81,7 +83,6 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
         branchId: branchId,
         isTaxExempted: isTaxExempted,
         lastTouched: DateTime.now(),
-        qty: 1,
       ),
     );
 
@@ -93,7 +94,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     int branchId = ProxyService.box.getBranchId()!;
     return await ProxyService.local.createProduct(
       tinNumber: ProxyService.box.tin(),
-      bhFId: ProxyService.box.bhfId() ?? "00",
+      bhFId: await ProxyService.box.bhfId() ?? "00",
       businessId: ProxyService.box.getBusinessId()!,
       branchId: ProxyService.box.getBranchId()!,
       product: Product(
@@ -148,17 +149,17 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
           scannedVariants.firstWhere((variant) => variant.id == id);
 
       // If the variant is found, update its quantity
-      ProxyService.local.realm!.writeN(
-        tableName: variantTable,
-        writeCallback: () {
-          variant.qty = newQuantity;
-          variant.ebmSynced = false;
-          return variant;
-        },
-        onAdd: (data) {
-          ProxyService.backUp.now(variantTable, data);
-        },
-      );
+      // ProxyService.local.realm!.writeN(
+      //   tableName: variantTable,
+      //   writeCallback: () {
+      //     variant.qty = newQuantity;
+      //     variant.ebmSynced = false;
+      //     return variant;
+      //   },
+      //   onAdd: (data) {
+      //     ProxyService.backUp.replicateData(variantTable, data);
+      //   },
+      // );
 
       Stock? stock = ProxyService.local.stockByVariantId(
           variantId: variant.id!, branchId: ProxyService.box.getBranchId()!);
@@ -172,7 +173,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
           return stock;
         },
         onAdd: (data) {
-          ProxyService.backUp.now(stocksTable, data);
+          // ProxyService.backUp.replicateData(stocksTable, data);
         },
       );
       notifyListeners();
@@ -215,30 +216,25 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   }
 
   Future<void> bulkUpdateVariants(bool editmode,
-      {required String color}) async {
+      {required String color,
+      required String selectedProductType,
+      Map<int, TextEditingController>? rates,
+      required double newRetailPrice,
+      Map<int, TextEditingController>? dates}) async {
     if (editmode) {
-      final variantsLength = scannedVariants.length;
-
-      // loop through all variants and update all with retailPrice and supplyPrice
-      ProxyService.local.realm!.write(() {
-        for (var i = 0; i < variantsLength; i++) {
-          scannedVariants[i].color = color;
-          scannedVariants[i].itemNm = scannedVariants[i].name;
-          scannedVariants[i].ebmSynced = false;
-          // If found, update it
-          if (retailPrice != 0) {
-            scannedVariants[i].retailPrice = retailPrice;
-          }
-
-          if (supplyPrice != 0) {
-            scannedVariants[i].supplyPrice = supplyPrice;
-          }
-
-          scannedVariants[i].qty = (scannedVariants[i].qty);
-          scannedVariants[i].lastTouched = DateTime.now().toLocal();
-          notifyListeners();
-        }
-      });
+      try {
+        ProxyService.local.updateVariant(
+          updatables: scannedVariants,
+          newRetailPrice: newRetailPrice,
+          rates: rates?.map((key, value) => MapEntry(key, value.text)),
+          dates: dates?.map((key, value) => MapEntry(key, value.text)),
+          supplyPrice: supplyPrice != 0 ? supplyPrice : null,
+          retailPrice: retailPrice != 0 ? retailPrice : null,
+        );
+      } catch (e) {
+        talker.error(e);
+        rethrow;
+      }
     }
   }
 }

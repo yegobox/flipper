@@ -1,19 +1,19 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 import 'package:cbl/cbl.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-
+import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/CoreSync.dart';
 import 'package:flipper_models/DownloadQueue.dart';
-import 'package:flipper_models/FlipperInterfaceCapella.dart';
+import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/power_sync/schema.dart';
-import 'package:firestore_models/firestore_models.dart' as odm;
 import 'package:flipper_models/Booting.dart';
 import 'package:flipper_models/DATA.dart' as defaultData;
 import 'package:flipper_models/flipper_http_client.dart';
@@ -25,6 +25,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/AppInitializer.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:path/path.dart' as p;
 import 'package:flipper_models/realmModels.dart';
@@ -32,6 +33,8 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:supabase_models/brick/repository.dart';
+import 'package:supabase_models/brick/repository.dart' as brick;
 // ignore: unused_import
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -39,7 +42,7 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 
-import 'package:flipper_models/FlipperInterface.dart';
+import 'package:flipper_models/RealmInterface.dart';
 // ignore: unused_import
 import 'dart:async';
 import 'dart:typed_data';
@@ -60,12 +63,15 @@ import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
 import 'SessionManager.dart';
 import 'package:path/path.dart' as path;
-
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as brick;
 
 //
-class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
+class LocalRealmApi
+    with Booting, CoreMiscellaneous, defaultData.Data
+    implements RealmInterface {
   bool offlineLogin = false;
   @override
   Realm? realm;
@@ -73,11 +79,51 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   late String commApi;
   void _setApiEndpoints() {
     if (foundation.kDebugMode) {
-      apihub = AppSecrets.apihubUat;
+      apihub = AppSecrets.coreApi;
       commApi = AppSecrets.commApi;
     } else {
       apihub = AppSecrets.apihubProd;
       commApi = AppSecrets.commApi;
+    }
+  }
+
+  @override
+  Future<models.Ebm?> ebm({required int branchId}) async {
+    final repository = Repository();
+    final query =
+        brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
+    final result = await repository.get<models.Ebm>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    return result.firstOrNull;
+  }
+
+  @override
+  Future<void> saveEbm(
+      {required int branchId,
+      required String severUrl,
+      required String bhFId}) async {
+    Business business = getBusiness();
+    final repository = Repository();
+    final query =
+        brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
+    final ebm = await repository.get<models.Ebm>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    if (ebm.firstOrNull == null) {
+      final ebm = models.Ebm(
+        id: randomNumber(),
+        bhfId: bhFId,
+        tinNumber: business.tinNumber!,
+        dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
+        userId: ProxyService.box.getUserId()!,
+        taxServerUrl: severUrl,
+        businessId: business.serverId!,
+        branchId: branchId,
+      );
+      repository.upsert(ebm);
+    } else {
+      final ebms = ebm.firstOrNull;
+      ebms!.taxServerUrl = severUrl;
+      repository.upsert(ebms);
     }
   }
 
@@ -178,7 +224,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  Future<FlipperInterface> configureLocal(
+  Future<RealmInterface> configureLocal(
       {required bool useInMemory, required LocalStorage box}) async {
     _setApiEndpoints();
 
@@ -187,7 +233,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
 
     // Set API keys based on the environment
     if (foundation.kDebugMode) {
-      apihub = AppSecrets.apihubUat;
+      apihub = AppSecrets.coreApi;
       commApi = AppSecrets.commApi;
     } else {
       apihub = AppSecrets.apihubProd;
@@ -301,7 +347,20 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       await setDefaultApp(user);
     }
     ProxyService.box.writeBool(key: 'pinLogin', value: false);
+
+    /// check user subs
+    try {
+      _hasActiveSubscription();
+    } catch (e) {
+      rethrow;
+    }
     return user;
+  }
+
+  Future<void> _hasActiveSubscription() async {
+    await hasActiveSubscription(
+        businessId: ProxyService.box.getBusinessId()!,
+        flipperHttpClient: ProxyService.http);
   }
 
   String _formatPhoneNumber(String userPhone) {
@@ -494,14 +553,11 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       IPin? pin = await ProxyService.local.getPin(
           pinString: ProxyService.box.getUserId().toString(),
           flipperHttpClient: ProxyService.http);
-      if (pin == null) {
-        throw PinError(term: "Not found");
-      }
 
       ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
       Pin? savedPin = await savePin(
           pin: Pin(ObjectId(),
-              userId: int.parse(pin.userId),
+              userId: int.parse(pin!.userId),
               id: int.parse(pin.userId),
               branchId: pin.branchId,
               businessId: pin.businessId,
@@ -1205,27 +1261,27 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         if (stock == null) {
           final newStock = Stock(ObjectId(),
               id: stockId,
-              variant: variation,
               lastTouched: DateTime.now(),
               branchId: branchId,
               variantId: variation.id!,
-              retailPrice: variation.retailPrice,
-              supplyPrice: variation.supplyPrice,
-              currentStock: variation.qty,
-              rsdQty: variation.qty,
-              value: (variation.qty * (variation.retailPrice)).toDouble(),
+              currentStock: stock?.rsdQty ?? 0,
+              rsdQty: stock?.rsdQty ?? 0,
+              value: (variation.stock?.rsdQty ?? 0 * (variation.retailPrice))
+                  .toDouble(),
               productId: variation.productId,
               active: false);
           realm!.put<Stock>(newStock, tableName: 'stocks');
         }
 
-        stock!.currentStock = stock.currentStock + variation.qty;
-        stock.rsdQty = stock.currentStock + variation.qty;
+        stock!.currentStock =
+            stock.currentStock + (variation.stock?.rsdQty ?? 0);
+        stock.rsdQty = stock.currentStock + (stock.rsdQty);
         stock.lastTouched = DateTime.now().toLocal();
-        stock.value = (variation.qty * (variation.retailPrice)).toDouble();
+        stock.value =
+            (variation.stock?.rsdQty ?? 0 * (variation.retailPrice)).toDouble();
         realm!.put<Stock>(stock, tableName: 'stocks');
 
-        variant.qty = variation.qty;
+        variant.stock?.rsdQty = variation.stock?.rsdQty ?? 0;
         variant.retailPrice = variation.retailPrice;
         variant.supplyPrice = variation.supplyPrice;
         variant.lastTouched = DateTime.now().toLocal();
@@ -1241,12 +1297,10 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
             id: stockId,
             lastTouched: DateTime.now(),
             branchId: branchId,
-            variant: variation,
             variantId: variation.id,
-            retailPrice: variation.retailPrice,
-            supplyPrice: variation.supplyPrice,
-            currentStock: variation.qty,
-            value: (variation.qty * (variation.retailPrice)).toDouble(),
+            currentStock: variation.stock?.rsdQty ?? 0,
+            value: (variation.stock?.rsdQty ?? 0 * (variation.retailPrice))
+                .toDouble(),
             productId: variation.productId)
           ..active = true;
 
@@ -1324,7 +1378,6 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         modrId: number,
         pkgUnitCd: "BJ",
         regrId: randomNumber().toString().substring(0, 5),
-        rsdQty: qty,
         itemTyCd: "2", // this is a finished product
         /// available type for itemTyCd are 1 for raw material and 3 for service
         /// is insurance applicable default is not applicable
@@ -1386,7 +1439,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
             supplyPrice: 0.0,
             retailPrice: 0.0,
             itemNm: product.name,
-            bhfId: ProxyService.box.bhfId() ?? '00',
+            bhfId: await ProxyService.box.bhfId() ?? '00',
             isTaxExempted: false,
             // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
             itemClsCd: "5020230602",
@@ -1395,7 +1448,6 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
             modrId: number,
             pkgUnitCd: "BJ",
             regrId: randomNumber().toString().substring(0, 5),
-            rsdQty: 1,
             itemTyCd: "2", // this is a finished product
             /// available type for itemTyCd are 1 for raw material and 3 for service
             /// is insurance applicable default is not applicable
@@ -1438,8 +1490,6 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           ..currentStock = 0.0
           ..branchId = branchId
           ..variantId = variantId
-          ..supplyPrice = 0.0
-          ..retailPrice = 0.0
           ..lowStock = 10.0 // default static
           ..canTrackingStock = true
           ..showLowStockAlert = true
@@ -1550,6 +1600,32 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
+  Stream<double> initialStock({required branchId}) async* {
+    // Get the list of Stock objects for the given branchId where there is available stock
+    final List<Stock> stocks = realm!.query<Stock>(
+        r'currentStock > $0 AND branchId == $1', [0, branchId]).toList();
+
+    // Get the list of TransactionItem objects for the given branchId
+
+    double totalSoldValue = 0;
+
+    for (var stock in stocks) {
+      // Find corresponding transactions for this stock
+      // get variant
+      Variant? variant = await getVariantById(id: stock.variantId!);
+      // Assuming retailPrice is the price for each unit sold, and sold stock is based on the difference
+      double stockSoldValue =
+          (stock.initialStock!) * (variant?.retailPrice ?? 0);
+
+      // Add to the total sold value
+      totalSoldValue += stockSoldValue;
+    }
+
+    // Yield the total sold stock value
+    yield totalSoldValue;
+  }
+
+  @override
   Stream<double> soldStockValue({required branchId}) async* {
     // Get the list of Stock objects for the given branchId where there is available stock
     final List<Stock> stocks = realm!.query<Stock>(
@@ -1561,10 +1637,10 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
 
     for (var stock in stocks) {
       // Find corresponding transactions for this stock
-
+      Variant? variant = await getVariantById(id: stock.variantId!);
       // Assuming retailPrice is the price for each unit sold, and sold stock is based on the difference
-      double stockSoldValue =
-          (stock.initialStock! - stock.currentStock) * stock.retailPrice;
+      double stockSoldValue = (stock.initialStock! - stock.currentStock) *
+          (variant?.retailPrice ?? 0);
 
       // Add to the total sold value
       totalSoldValue += stockSoldValue;
@@ -1579,8 +1655,8 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         r'currentStock > $0 AND branchId == $1', [0, branchId]).toList();
 
     // Calculate the total stock value
-    double totalStockValue = stocks.fold(
-        0, (sum, stock) => sum + (stock.currentStock * stock.retailPrice));
+    double totalStockValue =
+        stocks.fold(0, (sum, stock) => sum + (stock.value));
 
     // Yield the total stock value
     yield totalStockValue;
@@ -1660,12 +1736,14 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
 
   @override
   Future<RwApiResponse> selectImportItems(
-      {required int tin, required String bhfId, required String lastReqDt}) {
+      {required int tin,
+      required String bhfId,
+      required String lastReqDt}) async {
     return ProxyService.tax.selectImportItems(
       tin: tin,
       bhfId: bhfId,
       lastReqDt: lastReqDt,
-      URI: ProxyService.box.getServerUrl()!,
+      URI: await ProxyService.box.getServerUrl() ?? "",
     );
   }
 
@@ -1794,13 +1872,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       {required int branchId,
       required String assetName,
       required String subPath}) async {
-    Directory directoryPath;
-    if (Platform.isAndroid) {
-      // Try to get external storage, fall back to internal if not available
-      directoryPath = await getApplicationCacheDirectory();
-    } else {
-      directoryPath = await getApplicationSupportDirectory();
-    }
+    Directory directoryPath = await getSupportDir();
 
     final filePath = path.join(directoryPath.path, assetName);
 
@@ -2051,7 +2123,6 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       final Stock stock = Stock(ObjectId(),
           lastTouched: DateTime.now(),
           id: randomNumber(),
-          variant: newVariant,
           branchId: branchId,
           variantId: newVariant.id!,
           currentStock: qty,
@@ -2079,10 +2150,10 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  Composite composite({required int variantId}) {
+  Composite? composite({required int variantId}) {
     final queryBuilder =
         realm!.query<Composite>(r'variantId == $0', [variantId]);
-    return queryBuilder.first;
+    return queryBuilder.firstOrNull;
   }
 
   @override
@@ -2185,7 +2256,10 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
     // Iterate over all stock items and calculate gross and net profit
     for (var stock in query) {
       final grossProfit =
-          (stock.retailPrice - stock.supplyPrice) * stock.currentStock;
+          (((await getVariantById(id: stock.variantId!))?.retailPrice ?? 0) -
+                  ((await getVariantById(id: stock.variantId!))?.supplyPrice ??
+                      0)) *
+              stock.currentStock;
       totalGrossProfit += grossProfit;
 
       // If net profit needs other expenses deducted, adjust accordingly
@@ -2355,10 +2429,15 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   Future<bool> hasActiveSubscription(
       {required int businessId,
       required HttpClientInterface flipperHttpClient}) async {
-    PaymentPlan? plan = getPaymentPlan(businessId: businessId);
+    models.Plan? plan = await getPaymentPlan(businessId: businessId);
+
+    if (plan == null) {
+      throw NoPaymentPlanFound(
+          "No payment plan found for businessId: $businessId");
+    }
 
     // If paymentCompletedByUser is false, sync again and check
-    if (!(plan?.paymentCompletedByUser ?? false)) {
+    if (!(plan.paymentCompletedByUser ?? false)) {
       final isPaymentComplete = await ProxyService.realmHttp.isPaymentComplete(
           flipperHttpClient: flipperHttpClient, businessId: businessId);
 
@@ -2429,9 +2508,10 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  PaymentPlan? getPaymentPlan({required int businessId}) {
-    return realm!
-        .query<PaymentPlan>(r'businessId == $0', [businessId]).firstOrNull;
+  Future<models.Plan?> getPaymentPlan({required int businessId}) async {
+    final result =
+        await ProxyService.backUp.getPaymentPlan(businessId: businessId);
+    return result;
   }
 
   @override
@@ -2487,29 +2567,29 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   /// then this means item is on cart
   @override
   List<TransactionItem> transactionItems(
-      {required int transactionId,
-      required bool doneWithTransaction,
+      {int? transactionId,
+      bool? doneWithTransaction,
       required int branchId,
-      required bool active}) {
+      bool? active}) {
     String queryString = "";
 
-    /// fint all and delete
-    // List<TransactionItem> itemss = realm!.query<TransactionItem>(
-    //     r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3',
-    //     [transactionId, doneWithTransaction, branchId, active]).toList();
-
-    // for (TransactionItem item in itemss) {
-    //   realm!.write(() {
-    //     realm!.delete(item);
-    //   });
-    // }
-    queryString =
-        r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3';
-
-    final items = realm!.query<TransactionItem>(queryString,
-        [transactionId, doneWithTransaction, branchId, active]).toList();
-
-    return items;
+    if (transactionId == null) {
+      queryString = r'branchId == $0';
+      final items =
+          realm!.query<TransactionItem>(queryString, [branchId]).toList();
+      return items;
+    } else if (doneWithTransaction == null || active == null) {
+      queryString = r'transactionId == $0  && branchId ==$1';
+      final items = realm!.query<TransactionItem>(
+          queryString, [transactionId, branchId]).toList();
+      return items;
+    } else {
+      queryString =
+          r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3';
+      final items = realm!.query<TransactionItem>(queryString,
+          [transactionId, doneWithTransaction, branchId, active]).toList();
+      return items;
+    }
   }
 
   @override
@@ -2586,10 +2666,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         id: randomNumber(),
         lastTouched: DateTime.now(),
         branchId: subBranchId,
-        variant: variant,
         variantId: variant.id!,
-        retailPrice: variant.retailPrice,
-        supplyPrice: variant.supplyPrice,
         currentStock: item.quantityRequested!.toDouble(),
         rsdQty: item.quantityRequested!.toDouble(),
         value: (item.quantityRequested! * variant.retailPrice).toDouble(),
@@ -2686,7 +2763,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           return item;
         },
         onAdd: (data) {
-          ProxyService.backUp.now(transactionItemsTable, data);
+          // ProxyService.backUp.replicateData(transactionItemsTable, data);
         },
       );
     }
@@ -2709,7 +2786,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         return stockRequest;
       },
       onAdd: (data) {
-        ProxyService.backUp.now(stockRequestsTable, data);
+        // ProxyService.backUp.replicateData(stockRequestsTable, data);
       },
     );
     return orderId;
@@ -2734,7 +2811,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           return stock;
         },
         onAdd: (data) {
-          ProxyService.backUp.now(stocksTable, data);
+          // ProxyService.backUp.replicateData(stocksTable, data);
         },
       );
     }
@@ -2865,10 +2942,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   @override
   Future<Stock?> addStockToVariant({required Variant variant}) async {
     Stock stock = Stock(ObjectId(),
-        retailPrice: variant.retailPrice,
-        supplyPrice: variant.supplyPrice,
         id: randomNumber(),
-        variant: variant,
         productId: variant.productId,
         variantId: variant.id,
         branchId: variant.branchId);
@@ -3092,7 +3166,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  ITransaction collectPayment(
+  Future<ITransaction> collectPayment(
       {required double cashReceived,
       required ITransaction transaction,
       required String paymentType,
@@ -3104,13 +3178,10 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       required bool isProformaMode,
       required bool isTrainingMode,
       required String transactionType,
-      bool directlyHandleReceipt = true}) {
+      bool directlyHandleReceipt = true}) async {
     try {
-      List<TransactionItem> items = transactionItems(
-          branchId: branchId,
-          transactionId: transaction.id!,
-          doneWithTransaction: false,
-          active: true);
+      List<TransactionItem> items =
+          transactionItems(branchId: branchId, transactionId: transaction.id!);
 
       realm!.writeN(
         tableName: transactionTable,
@@ -3169,23 +3240,31 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           Stock? stock =
               stockByVariantId(variantId: item.variantId!, branchId: branchId);
           final finalStock = (stock!.currentStock - item.qty);
-
-          realm!.writeN(
-            tableName: stocksTable,
-            writeCallback: () {
-              stock.rsdQty = finalStock;
-              stock.currentStock = finalStock;
-              // stock value after item deduct
-              stock.value = finalStock * (stock.retailPrice);
-              stock.ebmSynced = false;
-              stock.bhfId = stock.bhfId ?? ProxyService.box.bhfId();
-              stock.tin = stock.tin ?? ProxyService.box.tin();
-              return stock;
-            },
-            onAdd: (data) {
-              ProxyService.backUp.now(stocksTable, data);
-            },
-          );
+          final bhfId = await ProxyService.box.bhfId();
+          try {
+            final s = finalStock *
+                ((await getVariantById(id: stock.variantId!))?.retailPrice ??
+                    0);
+            realm!.writeN(
+              tableName: stocksTable,
+              writeCallback: () {
+                stock.rsdQty = finalStock;
+                stock.currentStock = finalStock;
+                // stock value after item deduct
+                stock.value = s;
+                stock.ebmSynced = false;
+                stock.bhfId = stock.bhfId ?? bhfId;
+                stock.tin = stock.tin ?? ProxyService.box.tin();
+                return stock;
+              },
+              onAdd: (data) {
+                // ProxyService.backUp.replicateData(stocksTable, data);
+              },
+            );
+          } catch (e, s) {
+            talker.warning(e);
+            talker.warning(s);
+          }
           realm!.writeN(
             tableName: transactionItemsTable,
             writeCallback: () {
@@ -3195,23 +3274,22 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
               return item;
             },
             onAdd: (data) {
-              ProxyService.backUp.now(transactionItemsTable, data);
+              // ProxyService.backUp.replicateData(transactionItemsTable, data);
             },
           );
 
           /// search the related product and touch them to make them as most used
           /// hence why we are adding time to it
-          Variant? variant = getVariantById(id: item.variantId!);
+          Variant? variant = await getVariantById(id: item.variantId!);
           Product? product = getProduct(id: variant!.productId!);
           if (product != null) {
             realm!.writeN(
               tableName: variantTable,
               writeCallback: () {
-                variant.qty = finalStock;
                 return variant;
               },
               onAdd: (data) {
-                ProxyService.backUp.now(variantTable, data);
+                // ProxyService.backUp.replicateData(variantTable, data);
               },
             );
           }
@@ -3222,7 +3300,8 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
 
       //NOTE: trigger EBM, now
       if (directlyHandleReceipt) {
-        TaxController(object: transaction).handleReceipt();
+        TaxController(object: transaction)
+            .handleReceipt(filterType: FilterType.NS);
       }
       return transaction;
     } catch (e, s) {
@@ -3363,7 +3442,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       required int invoiceNumber,
       required DateTime whenCreated,
       required String receiptType,
-      required odm.Counter counter}) async {
+      required brick.Counter counter}) async {
     int branchId = ProxyService.box.getBranchId()!;
 
     Receipt receipt = Receipt(ObjectId(),
@@ -3420,7 +3499,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           }
         },
         onAdd: (data) {
-          ProxyService.backUp.now(receiptsTable, data);
+          // ProxyService.backUp.replicateData(receiptsTable, data);
         },
       );
 
@@ -3773,41 +3852,6 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  EBM? ebm({required int branchId}) {
-    return realm!.query<EBM>(r'branchId == $0', [branchId]).firstOrNull;
-  }
-
-  void saveEbm(
-      {required int branchId,
-      required String severUrl,
-      required String bhFId}) {
-    Business business = getBusiness();
-    final ebm = realm!.query<EBM>(
-        r'branchId == $0', [ProxyService.box.getBranchId()!]).firstOrNull;
-    if (ebm == null) {
-      realm!.write(() {
-        final ebm = EBM(
-            ObjectId(),
-            bhFId,
-            business.tinNumber!,
-            business.dvcSrlNo ?? "vsdcyegoboxltd",
-            ProxyService.box.getUserId()!, // Convert ObjectId to int
-            business.serverId!,
-            branchId,
-            'created',
-            id: randomNumber(),
-            taxServerUrl: severUrl,
-            lastTouched: DateTime.now());
-        realm!.add<EBM>(ebm);
-      });
-    } else {
-      realm!.write(() {
-        ebm.taxServerUrl = severUrl;
-      });
-    }
-  }
-
-  @override
   Future<Favorite?> getFavoriteById({required int favId}) async {
     // Get a favorite
     return realm!
@@ -4020,7 +4064,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  Variant? getVariantById({required int id}) {
+  Future<Variant?> getVariantById({required int id}) async {
     return realm!.query<Variant>(r'id == $0', [id]).firstOrNull;
   }
 
@@ -4056,8 +4100,8 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  bool isTaxEnabled({required Business business}) {
-    return business.tinNumber != null;
+  bool isTaxEnabled({required int businessId}) {
+    return getBusiness().tinNumber != null;
   }
 
   @override
@@ -4085,8 +4129,11 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       {required String transactionType,
       required bool isExpense,
       required int branchId}) async {
-    ITransaction? existTransaction =
-        await _pendingTransaction(branchId: branchId, isExpense: isExpense);
+    ITransaction? existTransaction = await _pendingTransaction(
+      branchId: branchId,
+      isExpense: isExpense,
+      transactionType: transactionType,
+    );
 
     int businessId = ProxyService.box.getBusinessId()!;
     if (existTransaction == null) {
@@ -4127,6 +4174,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
     final ITransaction? existTransaction = await _pendingTransaction(
         branchId: branchId,
         isExpense: isExpense,
+        transactionType: transactionType,
         includeSubTotalCheck: includeSubTotalCheck!);
 
     if (existTransaction == null) {
@@ -4174,6 +4222,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
     ITransaction? existTransaction = _pendingTransaction(
         branchId: branchId,
         isExpense: isExpense,
+        transactionType: transactionType,
         includeSubTotalCheck: includeSubTotalCheck!);
     if (existTransaction == null) {
       final int id = randomNumber();
@@ -4243,12 +4292,13 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   /// we should first return any transaction that has item first.
   ITransaction? _pendingTransaction({
     required int branchId,
+    required String transactionType,
     required bool isExpense,
     bool includeSubTotalCheck = true,
   }) {
     String query =
-        r'branchId == $0 AND isExpense == $1 AND status == $2 SORT(createdAt DESC)';
-    List<dynamic> parameters = [branchId, isExpense, PENDING];
+        r'branchId == $0 AND isExpense == $1 AND status == $2 AND transactionType == $3 SORT(createdAt DESC)';
+    List<dynamic> parameters = [branchId, isExpense, PENDING, transactionType];
 
     if (includeSubTotalCheck) {
       query += ' AND subTotal > 0';
@@ -4567,6 +4617,15 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
       queryString += ' && status != "PENDING" ';
     }
 
+    // If no dates are provided, remove date conditions from the query string
+    if (startDate == null && endDate == null) {
+      queryString = r'''
+  status == $0
+  && branchId == $1
+  ''';
+      parameters = [status ?? COMPLETE, branchId ?? 0];
+    }
+
     // Ensure realm is not null
     if (realm == null) {
       throw Exception("Realm instance is not initialized.");
@@ -4817,25 +4876,23 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  FlipperInterface instance() {
+  RealmInterface instance() {
     // TODO: implement instance
     throw UnimplementedError();
   }
 
-  void saveStock({required Variant variant}) {
+  @override
+  void saveStock({required Variant variant, required double rsdQty}) {
     realm!.write(() {
       final stock = Stock(
         ObjectId(),
         id: randomNumber(),
         lastTouched: DateTime.now(),
         branchId: variant.branchId,
-        variant: variant,
         variantId: variant.id!,
-        retailPrice: variant.retailPrice,
-        supplyPrice: variant.supplyPrice,
-        currentStock: variant.qty,
-        rsdQty: variant.rsdQty,
-        value: (variant.qty * variant.retailPrice).toDouble(),
+        currentStock: variant.stock?.rsdQty ?? 0,
+        rsdQty: rsdQty,
+        value: (variant.stock?.rsdQty ?? 0 * variant.retailPrice).toDouble(),
         productId: variant.productId,
       );
       realm!.add<Stock>(stock);
@@ -4863,6 +4920,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         r'transactionId == $0', [transactionId]).toList();
   }
 
+  @override
   void updateCounters({
     required List<Counter> counters,
     required RwApiResponse receiptSignature,
@@ -4878,11 +4936,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         }
         return counters;
       },
-      onAdd: (data) {
-        for (Counter counter in data) {
-          ProxyService.backUp.now(countersTable, counter);
-        }
-      },
+      onAdd: (data) {},
     );
   }
 
@@ -4914,7 +4968,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           return savedPin!;
         },
         onAdd: (data) {
-          ProxyService.backUp.now(pinsTable, data);
+          // ProxyService.backUp.replicateData(pinsTable, data);
         },
       );
       return savedPin!;
@@ -4958,23 +5012,23 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
     try {
       clearVariants();
       final firestore = FirebaseFirestore.instance;
-      CloudSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: productsTable);
-      CloudSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: variantTable);
-      CloudSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: stocksTable);
-      CloudSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: transactionItemsTable);
-      CloudSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: stockRequestsTable);
-      CloudSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: accessesTable);
-      CloudSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: transactionItemsTable);
-      CloudSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: assetsTable);
-      CloudSync(firestore, realm: realm!)
+      CoreSync(firestore, realm: realm!)
           .deleteDuplicate(tableName: categoriesTable);
 
       /// get all Products
@@ -4988,11 +5042,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         }
 
         ProxyService.backUp.updateRecord(
-            tableName: productsTable,
-            idField: "${productsTable.singularize()}_id",
-            map: product.toEJson().toFlipperJson(),
-            id: product.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: productsTable,
+          idField: "${productsTable.singularize()}_id",
+          map: product.toEJson().toFlipperJson(),
+          id: product.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
       List<Assets> assets = realm!.all<Assets>().toList();
       for (Assets asset in assets) {
@@ -5003,11 +5058,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           continue;
         }
         ProxyService.backUp.updateRecord(
-            tableName: assetsTable,
-            idField: "${assetsTable.singularize()}_id",
-            map: asset.toEJson().toFlipperJson(),
-            id: asset.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: assetsTable,
+          idField: "${assetsTable.singularize()}_id",
+          map: asset.toEJson().toFlipperJson(),
+          id: asset.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
 
       List<Variant> variants = realm!.all<Variant>().toList();
@@ -5020,11 +5076,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         }
         ;
         ProxyService.backUp.updateRecord(
-            tableName: variantTable,
-            idField: "${variantTable.singularize()}_id",
-            map: variant.toEJson().toFlipperJson(),
-            id: variant.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: variantTable,
+          idField: "${variantTable.singularize()}_id",
+          map: variant.toEJson().toFlipperJson(),
+          id: variant.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
 
       List<Stock> stocks = realm!.all<Stock>().toList();
@@ -5037,11 +5094,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         }
 
         ProxyService.backUp.updateRecord(
-            tableName: stocksTable,
-            idField: "${stocksTable.singularize()}_id",
-            map: stock.toEJson(includeVariant: true).toFlipperJson(),
-            id: stock.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: stocksTable,
+          idField: "${stocksTable.singularize()}_id",
+          map: stock.toEJson().toFlipperJson(),
+          id: stock.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
 
       List<TransactionItem> items = realm!.all<TransactionItem>().toList();
@@ -5054,11 +5112,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
         }
 
         ProxyService.backUp.updateRecord(
-            tableName: transactionItemsTable,
-            idField: "${transactionItemsTable.singularize()}_id",
-            map: item.toEJson().toFlipperJson(),
-            id: item.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: transactionItemsTable,
+          idField: "${transactionItemsTable.singularize()}_id",
+          map: item.toEJson().toFlipperJson(),
+          id: item.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
 
       List<Access> accesses = realm!.all<Access>().toList();
@@ -5070,11 +5129,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           continue;
         }
         ProxyService.backUp.updateRecord(
-            tableName: accessesTable,
-            idField: "${accessesTable.singularize()}_id",
-            map: access.toEJson().toFlipperJson(),
-            id: access.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: accessesTable,
+          idField: "${accessesTable.singularize()}_id",
+          map: access.toEJson().toFlipperJson(),
+          id: access.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
       List<StockRequest> requests = realm!.all<StockRequest>().toList();
       for (StockRequest request in requests) {
@@ -5085,11 +5145,12 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           continue;
         }
         ProxyService.backUp.updateRecord(
-            tableName: stockRequestsTable,
-            idField: "${stockRequestsTable.singularize()}_id",
-            map: request.toEJson().toFlipperJson(),
-            id: request.id!,
-            syncProvider: SyncProvider.FIRESTORE);
+          tableName: stockRequestsTable,
+          idField: "${stockRequestsTable.singularize()}_id",
+          map: request.toEJson().toFlipperJson(),
+          id: request.id!,
+          syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
+        );
       }
 
       /// done upserting
@@ -5115,7 +5176,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
     sendPort!.send({
       'task': 'sync',
       'branchId': ProxyService.box.getBranchId()!,
-      "URI": ProxyService.box.getServerUrl(),
+      "URI": await ProxyService.box.getServerUrl(),
       "userId": ProxyService.box.getUserId()!,
       "businessId": ProxyService.box.getBusinessId()!,
       'encryptionKey': ProxyService.box.encryptionKey(),
@@ -5127,8 +5188,8 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
     sendPort!.send({
       'task': 'taxService',
       'branchId': ProxyService.box.getBranchId()!,
-      "URI": ProxyService.box.getServerUrl(),
-      "bhfId": ProxyService.box.bhfId(),
+      "URI": await ProxyService.box.getServerUrl(),
+      "bhfId": await ProxyService.box.bhfId(),
       'tinNumber': business.tinNumber,
       'encryptionKey': ProxyService.box.encryptionKey(),
       'dbPath': await ProxyService.local.dbPath(
@@ -5143,7 +5204,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
     try {
       if (realm == null) return;
 
-      if (isTaxEnabled(business: ProxyService.local.getBusiness())) {
+      if (isTaxEnabled(businessId: ProxyService.box.getBusinessId()!)) {
         // 1. Create the ReceivePort to receive messages from the isolate
         receivePort = ReceivePort();
 
@@ -5189,7 +5250,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                       return variant;
                     },
                     onAdd: (data) {
-                      ProxyService.backUp.now(variantTable, data);
+                      // ProxyService.backUp.replicateData(variantTable, data);
                     },
                   );
                 }
@@ -5207,7 +5268,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                       return stock;
                     },
                     onAdd: (data) {
-                      ProxyService.backUp.now(stocksTable, data);
+                      // ProxyService.backUp.replicateData(stocksTable, data);
                     },
                   );
                 }
@@ -5225,7 +5286,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                       return customer;
                     },
                     onAdd: (data) {
-                      ProxyService.backUp.now(customersTable, data);
+                      // ProxyService.backUp.replicateData(customersTable, data);
                     },
                   );
                 }
@@ -5244,7 +5305,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
                       return transaction;
                     },
                     onAdd: (data) {
-                      ProxyService.backUp.now(transactionTable, data);
+                      // ProxyService.backUp.replicateData(transactionTable, data);
                     },
                   );
                 }
@@ -5318,7 +5379,7 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
   }
 
   @override
-  Future<FlipperInterface> configureCapella(
+  Future<RealmInterface> configureCapella(
       {required bool useInMemory, required LocalStorage box}) {
     // TODO: implement configureCapella
     talker.warning("This should not be called");
@@ -5371,7 +5432,237 @@ class LocalRealmApi with Booting, defaultData.Data implements FlipperInterface {
           return transaction;
         },
         onAdd: (data) {
-          ProxyService.backUp.now(transactionTable, data);
+          // ProxyService.backUp.replicateData(transactionTable, data);
         });
+  }
+
+  @override
+  Future<List<Configurations>> taxes({required int branchId}) async {
+    return realm!.query<Configurations>(r'branchId == $0', [branchId]).toList();
+  }
+
+  @override
+  Future<Configurations> saveTax(
+      {required int configId, required double taxPercentage}) async {
+    Configurations tax =
+        realm!.query<Configurations>(r'id == $0', [configId]).first;
+    realm!.write(() {
+      tax.taxPercentage = taxPercentage;
+    });
+    return tax;
+  }
+
+  @override
+  Future<void> updateVariant({
+    required List<Variant> updatables,
+    String? color,
+    double? newRetailPrice,
+    double? retailPrice,
+    double? supplyPrice,
+    Map<int, String>? dates,
+    Map<int, String>? rates,
+    String? selectedProductType,
+  }) async {
+    final variantsLength = updatables.length;
+    // loop through all variants and update all with retailPrice and supplyPrice
+    ProxyService.local.realm!.write(() {
+      for (var i = 0; i < variantsLength; i++) {
+        // get product
+        Product? product = getProduct(id: updatables[i].productId!);
+        product?.name = updatables[i].name;
+        updatables[i].productName = updatables[i].name;
+        double rate = rates?[updatables[i].id] == null
+            ? 0
+            : double.parse(rates![updatables[i].id]!);
+        updatables[i].color = color;
+        updatables[i].itemNm = updatables[i].name;
+        updatables[i].ebmSynced = false;
+        updatables[i].retailPrice =
+            newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
+        updatables[i].itemTyCd = selectedProductType;
+        updatables[i].dcRt = rate;
+        updatables[i].expirationDate = dates?[updatables[i].id] == null
+            ? null
+            : DateTime.tryParse(dates![updatables[i].id]!);
+        // If found, update it
+        if (retailPrice != 0) {
+          updatables[i].retailPrice = retailPrice ?? 0;
+        }
+        if (retailPrice != 0) {
+          updatables[i].retailPrice = retailPrice ?? 0;
+        }
+
+        updatables[i].stock?.rsdQty = (updatables[i].stock?.rsdQty ?? 0);
+        updatables[i].lastTouched = DateTime.now().toLocal();
+      }
+    });
+  }
+
+  @override
+  Future<void> processItem({
+    required brick.Item item,
+    required Map<String, String> quantitis,
+    required Map<String, String> taxTypes,
+    required Map<String, String> itemClasses,
+    required Map<String, String> itemTypes,
+  }) async {
+    // Create a new product
+    Product product = Product(
+      ObjectId(),
+      id: randomNumber(),
+      name: item.name,
+      barCode: item.barCode,
+    );
+
+    // Get tax type configuration
+    brick.Configurations? taxType = await ProxyService.strategy
+        .getByTaxType(taxtype: taxTypes[product.barCode] ?? "B");
+
+    talker.warning("ItemClass${itemClasses[product.barCode] ?? "5020230602"}");
+
+    // Add the product to the Realm
+    ProxyService.local.realm!.writeN(
+      tableName: productsTable,
+      writeCallback: () => ProxyService.local.realm!.add<Product>(product),
+      onAdd: (data) {
+        // ProxyService.backUp.replicateData(productsTable, data);
+      },
+    );
+
+    final branchId = await ProxyService.box.getBranchId()!;
+    final bhfId = await ProxyService.box.bhfId();
+    final int variantId = randomNumber();
+
+    // Create stock for the variant
+    Stock stock = _createStock(
+        product: product,
+        branchId: branchId,
+        bhfId: bhfId,
+        quantitis: quantitis);
+
+    // Create variant for the product
+    Variant variant = await _createVariant(
+        item: item,
+        product: product,
+        stock: stock,
+        taxType: taxType,
+        branchId: branchId,
+        variantId: variantId,
+        taxTypes: taxTypes,
+        itemClasses: itemClasses,
+        itemTypes: itemTypes);
+
+    // Add the variant to the Realm
+    ProxyService.local.realm!.writeN(
+      tableName: variantTable,
+      writeCallback: () => ProxyService.local.realm!.add<Variant>(variant),
+      onAdd: (data) {
+        // ProxyService.backUp.replicateData(variantTable, data);
+      },
+    );
+
+    // Update variant with stock
+    ProxyService.local.realm!.writeN(
+      tableName: variantTable,
+      writeCallback: () {
+        variant.stock = stock;
+        return variant;
+      },
+      onAdd: (data) {
+        // ProxyService.backUp.replicateData(variantTable, data);
+      },
+    );
+
+    // Add the stock to the Realm
+    ProxyService.local.realm!.writeN(
+      tableName: stocksTable,
+      writeCallback: () => ProxyService.local.realm!.add<Stock>(stock),
+      onAdd: (data) {
+        // ProxyService.backUp.replicateData(stocksTable, data);
+      },
+    );
+  }
+
+  Stock _createStock({
+    required Product product,
+    required int branchId,
+    required String? bhfId,
+    required Map<String, String> quantitis,
+  }) {
+    return Stock(
+      ObjectId(),
+      id: randomNumber(),
+      variantId: randomNumber(),
+      currentStock: double.parse(quantitis[product.barCode] ?? "1"),
+      lowStock: 0,
+      canTrackingStock: false,
+      showLowStockAlert: true,
+      productId: product.id!,
+      bhfId: bhfId,
+      active: true,
+      value: double.parse(quantitis[product.barCode] ?? "1"),
+      rsdQty: double.parse(quantitis[product.barCode] ?? "1"),
+      lastTouched: DateTime.now(),
+      branchId: branchId,
+      ebmSynced: false,
+    );
+  }
+
+  Future<Variant> _createVariant({
+    required brick.Item item,
+    required Product product,
+    required Stock stock,
+    required brick.Configurations? taxType,
+    required int branchId,
+    required int variantId,
+    required Map<String, String> taxTypes,
+    required Map<String, String> itemClasses,
+    required Map<String, String> itemTypes,
+  }) async {
+    return Variant(
+      ObjectId(),
+      id: variantId,
+      branchIds: [branchId],
+      productId: product.id!,
+      sku: product.barCode,
+      name: product.barCode,
+      productName: product.name,
+      stock: stock,
+      retailPrice: double.parse(item.price),
+      supplyPrice: double.parse(item.price),
+      color: randomizeColor(),
+      itemSeq: 1,
+      pkg: "1",
+      taxTyCd: taxTypes[product.barCode] ?? "B",
+      itemClsCd: itemClasses[product.barCode] ?? "5020230602",
+      spplrItemCd: "",
+      spplrItemClsCd: "",
+      bcd: randomNumber().toString(),
+      qtyUnitCd: "U",
+      regrNm: item.name,
+      tin: ProxyService.box.tin(),
+      bhfId: await ProxyService.box.bhfId() ?? "00",
+      isTaxExempted: false,
+      itemNm: product.name,
+      ebmSynced: false,
+      itemStdNm: product.name,
+      orgnNatCd: "RW",
+      prc: double.parse(item.price),
+      splyAmt: double.parse(item.price),
+      itemCd: DateTime.now().generateFlipperClip(),
+      modrNm: product.name,
+      modrId: product.barCode,
+      pkgUnitCd: "BJ",
+      regrId: product.barCode,
+      useYn: "N",
+      itemTyCd: itemTypes[product.barCode] ?? "1",
+      lastTouched: DateTime.now(),
+      branchId: branchId,
+      taxPercentage: taxType?.taxPercentage ?? 18,
+    );
+  }
+
+  String randomizeColor() {
+    return '#${(Random().nextInt(0x1000000) | 0x800000).toRadixString(16).padLeft(6, '0').toUpperCase()}';
   }
 }

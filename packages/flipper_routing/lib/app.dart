@@ -5,8 +5,6 @@ import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'all_routes.dart';
 
-/// TODO: adapt to some change in this flutter release https://medium.com/flutter/whats-new-in-flutter-3-19-58b1aae242d2
-/// https://dart.dev/language/pattern-types#parenthesized (Know the dart)
 @StackedApp(
   routes: [
     CustomRoute(page: StartUpView, initial: true),
@@ -92,6 +90,7 @@ class App {}
 // TODO: before adding a package see from the bellow list if we don't
 // modal_bottom_sheet: ^3.0.0-pre
 // `dart run build_runner build --delete-conflicting-outputs`
+// dart run build_runner watch
 // `dart run realm generate --watch`
 // dart pub cache clean
 //  dart pub global run melos bootstrap
@@ -136,10 +135,10 @@ class App {}
 // git config submodule.recurse false
 // git pull https://github.com/joelhigi/flipper.git stable
 // flutterfire configure
-// git submodule deinit -f open-sources/qr_code_scanner
+// git submodule deinit -f open-sources/dart_pdf
 // STEPS to remove submodule
-///git submodule deinit -f open-sources/qr_code_scanner
-///git rm -rf open-sources/qr_code_scanner
+///git submodule deinit -f open-sources/dart_pdf
+///git rm -rf open-sources/dart_pdf
 ///rm -rf open-sources/qr_code_scanner
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 ///rm -rf path/to/submodule
@@ -605,16 +604,13 @@ class App {}
 // Download ios Simulator
 // https://developer.apple.com/download/all/?q=Simulator%20Runtime
 
-
 // Power sync isolate example TODO: when https://github.com/aws-amplify/amplify-flutter/issues/5477 is closed.
 // https://github.com/powersync-ja/powersync.dart/discussions/178
 // https://gist.github.com/rkistner/e1067e51ad340f9447c4e55bc7bc96e1
 
-
 // import 'package:flipper_models/realmExtension.dart';
 // import 'package:flipper_models/power_sync/schema.dart';
 // https://github.com/firebase/flutterfire/blob/master/.github/workflows/scripts/start-firebase-emulator.sh
-
 
 // firebase deploy --only firestore:rules
 // firebase emulators:start --only firestore,auth
@@ -622,6 +618,7 @@ class App {}
 // firebase crashlytics:symbols:upload --app=yegobox-2ee43 PATH/TO/symbols
 // https://firebase.google.com/docs/crashlytics/get-started?platform=flutter
 // https://github.com/firebase/flutterfire/issues/11547
+// https://github.com/firebase/flutterfire/issues/16536 (Can't use latest firebase_auth)
 //https://firebase.google.com/docs/crashlytics/get-started?platform=flutter
 // https://stackoverflow.com/questions/48390821/unable-to-upload-crashlytics-dsym-file-during-build-phase-due-to-script-error
 
@@ -637,7 +634,7 @@ class App {}
 // https://medium.com/blocship/integrate-apple-sign-in-on-android-using-flutter-bf5d61c85332
 
 //  Map<String, dynamic> map = {"id": 15};
-//       final db = ProxyService.capela.capella!.flipperDatabase!;
+//       final db = ProxyService.capela.capella!.database!;
 
 // // Use the writeN method to write the document
 // await db.writeN(
@@ -658,7 +655,7 @@ class App {}
 //   // Optionally, you can log or perform further operations here
 //   print("Document saved: ${doc.id}");
 // });
-//  await capella!.flipperDatabase!.writeN(
+//  await capella!.database!.writeN(
 //           tableName: countersTable,
 //           writeCallback: () {
 //             Counter counter = Counter(id: randomNumber(), curRcptNo: 1111);
@@ -671,5 +668,56 @@ class App {}
 //           });
 
 // https://cbl-dart.dev/queries/query-builder/
+<<<<<<< HEAD
 //  start ms-settings:developers
 // set DART_VM_OPTIONS="--root-certificate-path=C:\Users\HP\Documents\flipper\apps\flipper\assets\ca\lets-encrypt-r3.pem"
+=======
+
+//  archive: ^3.3.5
+//   bloc: ^8.1.0
+//  cbl_flutter_ce: ^3.1.3
+//   cbl_flutter: ^3.1.3
+//
+//   collection: ^1.16.0
+//   cupertino_icons: ^1.0.5
+//   equatable: ^2.0.5
+
+// curl -X PUT http://127.0.0.1:4985/flipper/ \
+//  -H "Content-Type: application/json" \
+//  -u admin:umwana789 \
+//  -d '{
+//    "bucket": "flipper",
+//    "enable_shared_bucket_access": true,
+//    "import_docs": true
+
+//  }'
+
+//
+
+// https://cloudapi.cloud.couchbase.com/v4/organizations/{organizationId}/projects/{projectId}/clusters/{clusterId}/buckets/{bucketId}/scopes
+
+// Couchbase
+// https://www.youtube.com/watch?v=j2Zs1mzwdME
+// https://www.youtube.com/watch?v=X0hL1Z32ck0
+// CREATE PRIMARY INDEX ON `flipper`.`user_data`.`counters`;
+// https://docs.couchbase.com/couchbase-lite/current/java/gs-build.html
+// https://docs.couchbase.com/cloud/app-services/user-management/create-app-role.html
+// https://docs.couchbase.com/cloud/app-services/deployment/access-control-data-validation.html
+
+// TESTING:
+// https://github.com/nektos/act
+// {
+//     "resultCd": "000",
+//     "resultMsg": "It is succeeded",
+//     "resultDt": "20241123193851",
+//     "data": {
+//         "rcptNo": 1029,
+//         "intrlData": "ZB2QJS3QLLULGJRSCRVGWNHCKU",
+//         "rcptSign": "GHTWTMU66UNYGXZQ",
+//         "totRcptNo": 1379,
+//         "vsdcRcptPbctDate": "20241123193851",
+//         "sdcId": "SDC010000052",
+//         "mrcNo": "WIS00000052"
+//     }
+// }
+>>>>>>> 221a531924817e33fe7753a2def00ad8ff5766d1

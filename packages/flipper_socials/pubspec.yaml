@@ -11,14 +11,14 @@ environment:
 dependencies:
   cupertino_icons: ^1.0.2
   stacked: ^3.4.2
-  stacked_services: ^1.0.4
+  stacked_services: ^1.6.0
   url_strategy: ^0.2.0
   responsive_builder: ^0.7.0
   flutter_animate: ^4.1.0
 
   google_fonts: ^6.1.0
-  flipper_services: ^1.0.0-dev
-  flipper_models: ^0.0.1-dev.7
+  flipper_services: any
+  flipper_models: any
   flipper_routing: ^0.0.1-dev.3
 
   fluentui_system_icons: ^1.1.252
@@ -32,16 +32,14 @@ dependencies:
   #TODO: added flipper_dashboard here only becase we need customAppBar
   # may be it is time to create utils package and move everything shareble
   # in all packages or use flipper_ui package
-  flipper_dashboard: ^0.0.1-dev.5
+  flipper_dashboard: any
   url_launcher: ^6.3.0
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.12.0
-  
-  
   web: ^1.0.0
-  
   json_annotation: ^4.9.0
+  sqlite3: ^2.4.7
   
 dev_dependencies:
   flutter_test:

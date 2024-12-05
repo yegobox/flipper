@@ -16,7 +16,7 @@ dependencies:
   overlay_support: ^2.1.0
   # adding this because I need constants from it,
   # maybe it is time to move all constants to its own package
-  flipper_services: ^1.0.0-dev
+  flipper_services: any
   easy_localization: ^3.0.7
   flipper_infra: any
   flowy_svg: any
@@ -28,9 +28,7 @@ dependencies:
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.12.0
-  
-  
   web: ^1.0.0
-  
   json_annotation: ^4.9.0
+  sqlite3: ^2.4.7
   

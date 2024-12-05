@@ -26,7 +26,7 @@ class Counter {
   final String? receiptType;
   final int? totRcptNo;
   final int? curRcptNo;
-  final int? invcNo;
+  int? invcNo;
 
   @TimestampConverter()
   final DateTime? lastTouched;

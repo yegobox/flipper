@@ -13,8 +13,8 @@ dependencies:
   firebase_ui_auth: ^1.16.0
   flutter_form_bloc: 0.31.0-dev
   firebase_core: ^3.6.0
-  flipper_services: ^1.0.0-dev
-  flipper_dashboard: ^0.0.1-dev.5
+  flipper_services: any
+  flipper_dashboard: any
   universal_platform: ^1.0.0+1
   flutter_carousel_slider: ^1.0.9
   country_code_picker: ^3.0.0
@@ -22,7 +22,7 @@ dependencies:
   flutter_settings_ui: ^3.0.1
   stacked: ^3.4.2
   google_fonts: ^6.1.0
-  firebase_auth: ^5.3.1
+  firebase_auth: ^5.3.3
   flipper_routing: ^0.0.1-dev.3
   connectivity_plus: ^6.0.5
   firebase_ui_localizations: ^1.9.0
@@ -40,7 +40,7 @@ dependencies:
   hooks_riverpod: ^2.0.0
   loading_animation_widget: ^1.2.0+4
   sentry: ^8.6.0
-  sentry_flutter: ^8.9.0
+  sentry_flutter: ^8.10.1
   flipper_models: any
   realm: ^20.0.0
   google_sign_in: ^6.2.1
@@ -50,11 +50,9 @@ dependencies:
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.11.0
-  
-  
   web: ^1.0.0
-  
   json_annotation: ^4.9.0
+  sqlite3: ^2.4.7
   
   
 flutter:

@@ -82,7 +82,6 @@ class CreateMockdata {
             variantId: variant.id,
             currentStock: 100,
             branchId: 1,
-            variant: variant,
             rsdQty: 100,
           );
           realm.add(stock);

@@ -1,6 +1,6 @@
 name: firestore_models
 description: "A new Flutter package project."
-version: 0.0.1
+version: 1.0.0
 # homepage:
 
 environment:
@@ -24,19 +24,17 @@ dependencies:
   flipper_models: any
   freezed: ^2.5.7
   freezed_annotation: ^2.4.4
+  
+  
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.12.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-
+  sqlite3: ^2.4.7
+  stacked_services: ^1.6.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
-# flutter:

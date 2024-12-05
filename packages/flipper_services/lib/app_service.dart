@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'proxy.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
 
 const socialApp = "socials";
 

@@ -32,24 +32,28 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
   // ignore: unused_field
   String _supportLine = "";
 
+  Future<void> _loadData() async {
+    // Your async operations here
+    final ebm =
+        await ProxyService.local.ebm(branchId: ProxyService.box.getBranchId()!);
+    final serverUrl =
+        await ebm?.taxServerUrl ?? await ProxyService.box.getServerUrl();
+
+    _serverUrlController.text = serverUrl!;
+
+    final bhFId = ebm?.bhfId ?? await ProxyService.box.bhfId() ?? "";
+    _branchController.text = bhFId;
+    String? mrc = ProxyService.box.mrc();
+    _mrcController.text = (mrc == null || mrc.isEmpty) ? "" : mrc;
+  }
+
   @override
   void initState() {
     super.initState();
     setState(() {
       _supportLine = ProxyService.remoteConfig.supportLine();
     });
-
-    final ebm =
-        ProxyService.local.ebm(branchId: ProxyService.box.getBranchId()!);
-    final serverUrl =
-        ebm?.taxServerUrl ?? ProxyService.box.getServerUrl() ?? "";
-
-    _serverUrlController.text = serverUrl;
-
-    final bhFId = ebm?.bhfId ?? ProxyService.box.bhfId() ?? "";
-    _branchController.text = bhFId;
-    String? mrc = ProxyService.box.mrc();
-    _mrcController.text = (mrc == null || mrc.isEmpty) ? "" : mrc;
+    _loadData();
   }
 
   @override
@@ -67,7 +71,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
       onViewModelReady: (model) async {
         try {
           final isTaxEnabledForBusiness = await ProxyService.local
-              .isTaxEnabled(business: ProxyService.local.getBusiness());
+              .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
           if (isTaxEnabledForBusiness) {
             setState(() {
               isTaxEnabled = true;
@@ -75,7 +79,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
           }
           Business? business = await ProxyService.local.getBusiness();
           model.isEbmActive = business.tinNumber != null &&
-              ProxyService.box.bhfId() != null &&
+              await ProxyService.box.bhfId() != null &&
               business.dvcSrlNo != null &&
               business.taxEnabled == true;
         } catch (e, s) {
@@ -126,6 +130,24 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
                       onChanged: (value) {
                         setState(() {
                           model.isProformaModeEnabled = value;
+                        });
+                      },
+                    ),
+                    _buildSwitchTile(
+                      title: 'Print A4',
+                      value: model.printA4,
+                      onChanged: (value) {
+                        setState(() {
+                          model.printA4 = value;
+                        });
+                      },
+                    ),
+                    _buildSwitchTile(
+                      title: 'Export as PDF',
+                      value: model.exportAsPdf,
+                      onChanged: (value) {
+                        setState(() {
+                          model.exportAsPdf = value;
                         });
                       },
                     ),

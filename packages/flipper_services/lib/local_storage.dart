@@ -60,7 +60,13 @@ class SharedPreferenceStorage implements LocalStorage {
         'customerName',
         'stopTaxService',
         'enableDebug',
-        'switchToCloudSync'
+        'switchToCloudSync',
+        'useInHouseSyncGateway',
+        'customPhoneNumberForPayment',
+        'purchaseCode',
+        'A4',
+        'numberOfPayments',
+        'exportAsPdf'
       },
     ));
     return this;
@@ -121,8 +127,8 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  String? getServerUrl() {
-    final ebm = ProxyService.local.ebm(branchId: getBranchId()!);
+  Future<String?> getServerUrl() async {
+    final ebm = await ProxyService.local.ebm(branchId: getBranchId()!);
     if (ebm != null) {
       return ebm.taxServerUrl;
     }
@@ -240,8 +246,8 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  String? bhfId() {
-    final ebm = ProxyService.local.ebm(branchId: getBranchId()!);
+  Future<String?> bhfId() async {
+    final ebm = await ProxyService.local.ebm(branchId: getBranchId()!);
     if (ebm != null) {
       return ebm.bhfId;
     }
@@ -348,9 +354,39 @@ class SharedPreferenceStorage implements LocalStorage {
   bool? enableDebug() {
     return prefs.getBool('enableDebug') ?? false;
   }
-  
+
   @override
   bool? switchToCloudSync() {
     return prefs.getBool('switchToCloudSync') ?? false;
+  }
+
+  @override
+  bool? useInHouseSyncGateway() {
+    return prefs.getBool('useInHouseSyncGateway') ?? false;
+  }
+
+  @override
+  String? customPhoneNumberForPayment() {
+    return prefs.getString('customPhoneNumberForPayment');
+  }
+
+  @override
+  String? purchaseCode() {
+    return prefs.getString('purchaseCode');
+  }
+
+  @override
+  bool A4() {
+    return prefs.getBool('A4') ?? false;
+  }
+
+  @override
+  int? numberOfPayments() {
+    return prefs.getInt('numberOfPayments');
+  }
+
+  @override
+  bool exportAsPdf() {
+    return prefs.getBool('exportAsPdf') ?? false;
   }
 }

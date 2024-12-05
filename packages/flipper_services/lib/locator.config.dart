@@ -11,8 +11,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart' as _i974;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart' as _i141;
 import 'package:flipper_models/flipper_http_client.dart' as _i843;
-import 'package:flipper_models/FlipperInterface.dart' as _i445;
-import 'package:flipper_models/FlipperInterfaceCapella.dart' as _i489;
+import 'package:flipper_models/RealmInterface.dart' as _i445;
+import 'package:flipper_models/CoreDataInterface.dart' as _i489;
 import 'package:flipper_models/Supabase.dart' as _i163;
 import 'package:flipper_models/sync_service.dart' as _i211;
 import 'package:flipper_models/SyncStrategy.dart' as _i500;
@@ -108,23 +108,23 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i798.ForceDataEntryService>(
         () => servicesModule.forcedataEntry());
     gh.lazySingleton<_i36.BillingService>(() => servicesModule.billing());
-    gh.lazySingleton<_i489.FlipperInterfaceCapella>(
+    gh.lazySingleton<_i489.CoreDataInterface>(
       () => servicesModule.provideSyncInterface(gh<_i974.FirebaseFirestore>()),
       instanceName: 'backup',
     );
-    await gh.lazySingletonAsync<_i445.FlipperInterface>(
+    await gh.lazySingletonAsync<_i445.RealmInterface>(
       () => servicesModule.localRealm(gh<_i740.LocalStorage>()),
       preResolve: true,
     );
-    await gh.lazySingletonAsync<_i489.FlipperInterfaceCapella>(
+    await gh.lazySingletonAsync<_i489.CoreDataInterface>(
       () => servicesModule.capella(gh<_i740.LocalStorage>()),
       instanceName: 'capella',
       preResolve: true,
     );
     gh.lazySingleton<_i500.SyncStrategy>(
       () => servicesModule.provideStrategy(
-        gh<_i489.FlipperInterfaceCapella>(instanceName: 'capella'),
-        gh<_i489.FlipperInterfaceCapella>(instanceName: 'backup'),
+        gh<_i489.CoreDataInterface>(instanceName: 'capella'),
+        gh<_i489.CoreDataInterface>(instanceName: 'backup'),
       ),
       instanceName: 'strategy',
     );

@@ -8,7 +8,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class CircleAvatarWidget extends StatelessWidget {
   final String text;
@@ -52,6 +51,22 @@ class TenantWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tenant = ref.watch(tenantProvider);
+    final connectivityStatus = ref.watch(connectivityStreamProvider);
+
+    // fake firebase login for now.
+    final isUserLoggedIn = true;
+
+    // Use AsyncValue pattern matching to handle all states
+    final backgroundColor = connectivityStatus.when(
+      data: (isReachable) {
+        // print('Connection status changed: $isReachable');
+        return (!isUserLoggedIn || !isReachable) ? Colors.red : Colors.green;
+      },
+      loading: () => Colors.blue,
+      error: (_, __) => Colors.red,
+    );
+
+    // print('Background color updated: $backgroundColor');
 
     return Column(
       children: [
@@ -65,8 +80,9 @@ class TenantWidget extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         if (ProxyService.local.isAdmin(
-            userId: ProxyService.box.getUserId() ?? 0,
-            appFeature: AppFeature.Settings))
+          userId: ProxyService.box.getUserId() ?? 0,
+          appFeature: AppFeature.Settings,
+        ))
           Padding(
             padding: const EdgeInsets.only(right: 12.0),
             child: SizedBox(
@@ -75,7 +91,7 @@ class TenantWidget extends ConsumerWidget {
               child: IconButton(
                 icon: const Icon(
                   Icons.settings,
-                  color: Colors.black,
+                  color: Colors.white,
                 ),
                 onPressed: () {
                   locator<RouterService>().navigateTo(AdminControlRoute());
@@ -83,14 +99,12 @@ class TenantWidget extends ConsumerWidget {
                 style: IconButton.styleFrom(
                   shape: CircleBorder(
                     side: BorderSide(
-                      color: FirebaseAuth.instance.currentUser != null
-                          ? Colors.green
-                          : Colors.red,
+                      color: backgroundColor,
                       width: 3,
                     ),
                   ),
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.white,
+                  backgroundColor: backgroundColor,
+                  foregroundColor: backgroundColor,
                 ),
               ),
             ),

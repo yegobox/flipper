@@ -17,14 +17,17 @@ import 'package:sizer/sizer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 
-//
+//1.1.0
 Future<void> main() async {
   await initializeDependencies();
   await SentryFlutter.init(
     (options) => options
       ..dsn = kDebugMode ? AppSecrets.sentryKeyDev : AppSecrets.sentryKey
       ..release = 'flipper@1.170.4252223232243+1723059742'
-      ..environment = 'production'v 
+
+      ..environment = 'production'
+      ..experimental.replay.sessionSampleRate = 1.0
+      ..experimental.replay.onErrorSampleRate = 1.0
       ..tracesSampleRate = 1.0
       ..attachScreenshot = true,
     appRunner: () => runApp(
@@ -33,7 +36,7 @@ Future<void> main() async {
         child: OverlaySupport.global(
           child: Sizer(builder: (context, orientation, deviceType) {
             return MaterialApp.router(
-              debugShowCheckedModeBanner: true,
+              debugShowCheckedModeBanner: false,
               title: 'flipper',
               theme: ThemeData(
                 textTheme: GoogleFonts.poppinsTextTheme(),

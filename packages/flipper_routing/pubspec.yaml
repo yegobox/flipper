@@ -10,10 +10,10 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flipper_dashboard: ^0.0.1-dev.5
+  flipper_dashboard: any
   flipper_login: ^0.0.1-dev.5
-  flipper_models: ^0.0.1-dev.7
-  stacked_services: ^1.0.4
+  flipper_models: any
+  stacked_services: ^1.6.0
   stacked: ^3.4.2
   url_strategy: ^0.2.0
   logger: ^1.1.0
@@ -22,11 +22,10 @@ dependencies:
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.12.0
-  
-  
   web: ^1.0.0
-  
   json_annotation: ^4.9.0
+  sqlite3: ^2.4.7
+  stacked: ^3.4.2
   
 dev_dependencies:
   flutter_test:

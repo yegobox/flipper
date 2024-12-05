@@ -18,19 +18,18 @@ class CustomSignInPhoneWidget extends StatelessWidget {
               return startUpPage;
             } else {
               return phone.PhoneInputScreen(
-
-                  countryCode: 'BU',
-                  // headerBuilder: (context, constraints, shrinkOffset) {
-                  //   return Padding(
-                  //     padding: const EdgeInsets.all(20).copyWith(top: 40),
-                  //     child: Icon(
-                  //       Icons.phone,
-                  //       color: Colors.blue,
-                  //       size: constraints.maxWidth / 4 * (1 - shrinkOffset),
-                  //     ),
-                  //   );
-                  // },
-                  );
+                countryCode: 'BU',
+                // headerBuilder: (context, constraints, shrinkOffset) {
+                //   return Padding(
+                //     padding: const EdgeInsets.all(20).copyWith(top: 40),
+                //     child: Icon(
+                //       Icons.phone,
+                //       color: Colors.blue,
+                //       size: constraints.maxWidth / 4 * (1 - shrinkOffset),
+                //     ),
+                //   );
+                // },
+              );
             }
           }),
     );

@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:flipper_models/CloudSync.dart';
-import 'package:flipper_models/FlipperInterfaceCapella.dart';
+import 'package:flipper_models/CoreSync.dart';
+import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:firestore_models/all.dart' as odm;
 import 'package:flipper_models/helperModels/talker.dart';
@@ -13,7 +13,7 @@ import 'package:realm/realm.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PullChange {
-  CloudSync? cloudSync;
+  CoreSync? cloudSync;
   int? branchId;
   int? businessId;
   int? userId;
@@ -26,7 +26,7 @@ class PullChange {
     required int muserId,
     String? tableName,
   }) async {
-    cloudSync = CloudSync(firestore, realm: localRealm);
+    cloudSync = CoreSync(firestore, realm: localRealm);
     branchId = mbranchId;
     businessId = mbusinessId;
     userId = muserId;
@@ -49,7 +49,7 @@ class PullChange {
     required int muserId,
     String? tableName,
   }) async {
-    cloudSync = CloudSync(firestore, realm: localRealm);
+    cloudSync = CoreSync(firestore, realm: localRealm);
     branchId = mbranchId;
     businessId = mbusinessId;
     userId = muserId;
@@ -183,14 +183,6 @@ class PullChange {
           rsdQty: data['rsd_qty'] is int || data['rsd_qty'] is double
               ? data['rsd_qty'].toDouble()
               : double.tryParse(data['rsd_qty']) ?? 0.0,
-          supplyPrice:
-              data['supply_price'] is int || data['supply_price'] is double
-                  ? data['supply_price'].toDouble()
-                  : double.tryParse(data['supplyPrice']) ?? 0.0,
-          retailPrice: data['retail_price'] is int ||
-                  data['retail_price'] is double && data['retail_price'] != null
-              ? data['retail_price'].toDouble()
-              : double.tryParse(data['retail_price']) ?? 0.0,
           lastTouched: data['last_touched'] is DateTime
               ? data['last_touched']
               : DateTime.tryParse(data['last_touched']) ?? DateTime.now(),
@@ -244,8 +236,6 @@ class PullChange {
           active: data['active'] ?? false,
           value: data['value'].toDouble(),
           rsdQty: data['rsd_qty'].toDouble(),
-          supplyPrice: data['supply_price'].toDouble(),
-          retailPrice: data['retail_price'].toDouble(),
           lastTouched: data['last_touched'] == null
               ? DateTime.now()
               : DateTime.tryParse(data['last_touched']),
@@ -951,7 +941,6 @@ class PullChange {
           pkgUnitCd: data['pkg_unit_cd'] == null ? "" : data['pkg_unit_cd'],
           qtyUnitCd: data['qty_unit_cd'] == null ? "" : data['qty_unit_cd'],
           itemNm: data['item_nm'],
-          qty: data['qty'] == null ? 0.0 : data['qty'],
           prc: data['prc'] == null ? 0.0 : data['prc'],
           splyAmt: data['sply_amt'] == null ? 0.0 : data['sply_amt'],
           tin: data['tin'] == null ? 0 : data['tin'],
@@ -965,7 +954,6 @@ class PullChange {
           regrNm: data['regr_nm'] == null ? "" : data['regr_nm'],
           modrId: data['modr_id'] == null ? "" : data['modr_id'],
           modrNm: data['modr_nm'] == null ? "" : data['modr_nm'],
-          rsdQty: data['rsd_qty'] == null ? 0.0 : data['rsd_qty'],
           supplyPrice:
               data['supply_price'] == null ? 0.0 : data['supply_price'],
           retailPrice:
@@ -1032,9 +1020,7 @@ class PullChange {
             variant.pkgUnitCd = data['pkg_unit_cd'] ?? variant.pkgUnitCd;
             variant.qtyUnitCd = data['qty_unit_cd'] ?? variant.qtyUnitCd;
             variant.itemNm = data['item_nm'] ?? variant.itemNm;
-            variant.qty = data['qty'] is double
-                ? data['qty']
-                : double.tryParse(data['qty']) ?? variant.qty;
+
             variant.prc = data['prc'] is double
                 ? data['prc']
                 : double.tryParse(data['prc']) ?? variant.prc;
@@ -1051,9 +1037,7 @@ class PullChange {
             variant.regrNm = data['regr_nm'] ?? variant.regrNm;
             variant.modrId = data['modr_id'] ?? variant.modrId;
             variant.modrNm = data['modr_nm'] ?? variant.modrNm;
-            variant.rsdQty = data['rsd_qty'] is double
-                ? data['rsd_qty']
-                : double.tryParse(data['rsd_qty']) ?? variant.rsdQty;
+
             variant.supplyPrice = data['supply_price'] is double
                 ? data['supply_price']
                 : double.tryParse(data['supply_price']) ?? variant.supplyPrice;
@@ -1152,7 +1136,7 @@ class PullChange {
             product.deletedAt = data['deleted_at'] == null
                 ? DateTime.now()
                 : DateTime.parse(data['deleted_at']);
-            product.searchMatch = data['search_match'] ?? product.searchMatch;
+            
             product.spplrNm = data['spplr_nm'] ?? product.spplrNm;
             product.isComposite = data['is_composite'] ?? product.isComposite;
           });

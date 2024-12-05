@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_dashboard/RefundReasonForm.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
@@ -8,10 +7,11 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
-class Refund extends StatefulWidget {
+class Refund extends StatefulHookConsumerWidget {
   const Refund(
       {super.key,
       required this.refundAmount,
@@ -27,7 +27,7 @@ class Refund extends StatefulWidget {
   _RefundState createState() => _RefundState();
 }
 
-class _RefundState extends State<Refund> {
+class _RefundState extends ConsumerState<Refund> {
   bool isRefundProcessing = false;
   bool isPrintingCopy = false;
   final talker = TalkerFlutter.init();
@@ -69,81 +69,37 @@ class _RefundState extends State<Refund> {
                       return;
                     }
 
-                    await handleReceipt(filterType: FilterType.NR);
-
-                    talker.error(
-                        "RefundableTransactionId: ${int.parse(widget.transactionId)}");
-                    talker
-                        .error("RefundableBranchId: ${widget.transaction?.id}");
-
-                    /// add stock back to same item refunded
-                    try {
-                      List<TransactionItem> items = ProxyService.local
-                          .transactionItems(
-                              transactionId: int.parse(widget.transactionId),
-                              doneWithTransaction: true,
-                              branchId: widget.transaction!.branchId!,
-                              active: true);
-                      talker.error("Items to Refunds: ${items.length}");
-                      // widget.transaction.isRefunded
-
-                      /// get quantity sold to the same item
-                      for (TransactionItem item in items) {
-                        /// get variant
-                        Variant? variant = ProxyService.local
-                            .variant(variantId: item.variantId);
-                        if (variant != null) {
-                          talker.info(
-                              "Refund Variant to refund ${variant.toEJson()}");
-
-                          /// get the stock
-                          Stock? stock = ProxyService.local.stockByVariantId(
-                              variantId: variant.id!,
-                              branchId: variant.branchId!);
-
-                          /// add same stock sold back to the stock
-                          if (stock != null) {
-                            talker.info(
-                                "Refund Stock to refund ${stock.toEJson()}");
-                            ProxyService.local.realm!.writeN(
-                              tableName: stocksTable,
-                              writeCallback: () {
-                                stock.ebmSynced = false;
-                                stock.currentStock =
-                                    stock.currentStock + item.qty;
-                                return stock;
-                              },
-                              onAdd: (data) {
-                                ProxyService.backUp.now(stocksTable, data);
-                              },
-                            );
-
-                            ProxyService.local.realm!.writeN(
-                              tableName: variantTable,
-                              writeCallback: () {
-                                variant.ebmSynced = false;
-                                return variant;
-                              },
-                              onAdd: (data) {
-                                ProxyService.backUp.now(variantTable, data);
-                              },
-                            );
-
-                            ProxyService.local.realm!.writeN(
-                              tableName: transactionTable,
-                              writeCallback: () {
-                                widget.transaction!.isRefunded = true;
-                                return widget.transaction;
-                              },
-                              onAdd: (data) {
-                                ProxyService.backUp.now(transactionTable, data);
-                              },
-                            );
-                          }
+                    if (widget.transaction!.customerId != null &&
+                        widget.transaction!.customerId != 0) {
+                      // Show modal to request purchase code
+                      bool purchaseCodeReceived = await showPurchaseCodeModal();
+                      if (purchaseCodeReceived) {
+                        // Proceed with refund
+                        if (widget.transaction!.receiptType == "TS") {
+                          await proceed(receiptType: "TR");
+                        }
+                        if (widget.transaction!.receiptType == "PS") {
+                          toast("Can not refund a proforma");
+                          return;
+                        } else if ((widget.transaction!.receiptType == "NS")) {
+                          await proceed(receiptType: "NR");
+                        } else if ((widget.transaction!.receiptType == "CS")) {
+                          await proceed(receiptType: "CR");
                         }
                       }
-                    } catch (e) {
-                      talker.error(e);
+                    } else {
+                      if (widget.transaction!.receiptType == "TS") {
+                        await proceed(receiptType: "TR");
+                      } else if (widget.transaction!.receiptType! == "CS") {
+                        await proceed(receiptType: "CR");
+                      } else if (widget.transaction!.receiptType == "TS") {
+                        await proceed(receiptType: "TS");
+                      } else if (widget.transaction!.receiptType == "PS") {
+                        toast("Can not refund a proforma");
+                        return;
+                      } else if (widget.transaction!.receiptType == "NS") {
+                        await proceed(receiptType: "NR");
+                      }
                     }
                   },
                   busy: isRefundProcessing,
@@ -154,7 +110,44 @@ class _RefundState extends State<Refund> {
                   busy: isPrintingCopy,
                   title: "Print Copy Receipt",
                   onTap: () async {
-                    await handleReceipt(filterType: FilterType.CS);
+                    if (widget.transaction!.receiptType == "TS" ||
+                        widget.transaction!.receiptType == "PS") {
+                      toast("This receipt does not have a copy to print");
+                      return;
+                    }
+                    if (widget.transaction!.customerId != null &&
+                        widget.transaction!.customerId != 0) {
+                      bool purchaseCodeReceived = await showPurchaseCodeModal();
+                      if (purchaseCodeReceived) {
+                        if (widget.transaction!.receiptType == "PS") {
+                          if (widget.transaction!.isRefunded) {
+                            await handleReceipt(filterType: FilterType.CP);
+                          } else {
+                            await handleReceipt(filterType: FilterType.CP);
+                          }
+                        } else {
+                          if (widget.transaction!.isRefunded) {
+                            await handleReceipt(filterType: FilterType.PR);
+                          } else {
+                            await handleReceipt(filterType: FilterType.CS);
+                          }
+                        }
+                      }
+                    } else {
+                      if (widget.transaction!.receiptType == "PS") {
+                        if (widget.transaction!.isRefunded) {
+                          await handleReceipt(filterType: FilterType.PR);
+                        } else {
+                          await handleReceipt(filterType: FilterType.CP);
+                        }
+                      } else {
+                        if (widget.transaction!.isRefunded) {
+                          await handleReceipt(filterType: FilterType.CR);
+                        } else {
+                          await handleReceipt(filterType: FilterType.CS);
+                        }
+                      }
+                    }
                   },
                 ),
               ],
@@ -163,6 +156,167 @@ class _RefundState extends State<Refund> {
         ),
       ),
     );
+  }
+
+  String getStringReceiptType(FilterType filterType) {
+    switch (filterType) {
+      case FilterType.CS:
+        return 'CS';
+      case FilterType.NR:
+        return 'NR';
+      case FilterType.CR:
+        return 'CR';
+      case FilterType.PS:
+        return 'PS';
+      case FilterType.TS:
+        return 'TS';
+      case FilterType.NS:
+        return 'NS';
+      default:
+        return 'CS';
+    }
+  }
+
+  Future<bool> showPurchaseCodeModal() async {
+    bool purchaseCodeReceived = false;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String purchaseCode = '';
+
+        return AlertDialog(
+          title: Text('Enter Purchase Code'),
+          content: TextField(
+            onChanged: (value) {
+              purchaseCode = value;
+            },
+            decoration: InputDecoration(
+              hintText: 'Enter purchase code',
+              hintStyle: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 16,
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 16,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: Colors.grey[300]!,
+                  width: 1.0,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: Theme.of(context).primaryColor,
+                  width: 2.0,
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Close the dialog without saving
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Save the purchase code and mark as received
+                ProxyService.box
+                    .writeString(key: 'purchaseCode', value: purchaseCode);
+                purchaseCodeReceived = true;
+                Navigator.of(context).pop();
+              },
+              child: Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return purchaseCodeReceived;
+  }
+
+// Common refund logic
+  Future<void> proceed({required String receiptType}) async {
+    if (receiptType == "CR") {
+      await handleReceipt(filterType: FilterType.CR);
+    } else if (receiptType == "CS") {
+      await handleReceipt(filterType: FilterType.CS);
+    } else if (receiptType == "TR") {
+      await handleReceipt(filterType: FilterType.TR);
+    } else if (receiptType == "NR") {
+      await handleReceipt(filterType: FilterType.NR);
+    }
+
+    talker.error("RefundableTransactionId: ${int.parse(widget.transactionId)}");
+    talker.error("RefundableBranchId: ${widget.transaction?.id}");
+
+    // Add stock back to same item refunded
+    try {
+      List<TransactionItem> items = ProxyService.local.transactionItems(
+          transactionId: int.parse(widget.transactionId),
+          doneWithTransaction: true,
+          branchId: widget.transaction!.branchId!,
+          active: true);
+      talker.error("Items to Refund: ${items.length}");
+
+      for (TransactionItem item in items) {
+        Variant? variant =
+            ProxyService.local.variant(variantId: item.variantId);
+        if (variant != null) {
+          talker.info("Refund Variant to refund ${variant.toEJson()}");
+
+          Stock? stock = ProxyService.local.stockByVariantId(
+              variantId: variant.id!, branchId: variant.branchId!);
+
+          if (stock != null) {
+            talker.info("Refund Stock to refund ${stock.toEJson()}");
+            ProxyService.local.realm!.writeN(
+              tableName: stocksTable,
+              writeCallback: () {
+                stock.ebmSynced = false;
+                stock.currentStock = stock.currentStock + item.qty;
+                return stock;
+              },
+              onAdd: (data) {
+                // ProxyService.backUp.replicateData(stocksTable, data);
+              },
+            );
+
+            ProxyService.local.realm!.writeN(
+              tableName: variantTable,
+              writeCallback: () {
+                variant.ebmSynced = false;
+                return variant;
+              },
+              onAdd: (data) {
+                // ProxyService.backUp.replicateData(variantTable, data);
+              },
+            );
+
+            ProxyService.local.realm!.writeN(
+              tableName: transactionTable,
+              writeCallback: () {
+                widget.transaction!.isRefunded = true;
+                return widget.transaction;
+              },
+              onAdd: (data) {
+                // ProxyService.backUp.replicateData(transactionTable, data);
+              },
+            );
+          }
+        }
+      }
+    } catch (e) {
+      talker.error(e);
+    }
   }
 
   Future<void> handleReceipt({required FilterType filterType}) async {
@@ -175,13 +329,8 @@ class _RefundState extends State<Refund> {
         }
       });
 
-      ProxyService.local.realm!.write(() {
-        widget.transaction?.receiptType = filterType == FilterType.NR
-            ? TransactionReceptType.NR
-            : TransactionReceptType.CS;
-      });
-
-      await TaxController(object: widget.transaction).handleReceipt();
+      await TaxController(object: widget.transaction)
+          .handleReceipt(filterType: filterType);
 
       setState(() {
         if (filterType == FilterType.CS) {

@@ -49,7 +49,7 @@
 #           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
 #           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 #       - run: |
-#           dart pub global activate melos
+#           dart pub global activate melos 6.2.0
 #           melos bootstrap
 #       # Setup Ruby, Bundler, and Gemfile dependencies
 #       - name: Setup Fastlane

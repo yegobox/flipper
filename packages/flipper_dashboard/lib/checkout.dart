@@ -3,7 +3,6 @@
 import 'dart:io';
 
 import 'package:flipper_dashboard/IncomingOrders.dart';
-import 'package:flipper_dashboard/PreviewSaleButton.dart' as state;
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/bottomSheet.dart';
 import 'package:flipper_dashboard/payable_view.dart';
@@ -390,6 +389,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                                   transactionId: transaction.id,
                                   onCharge: (transactionId, total) {
                                     try {
+                                      /// if the business is set with
                                       startCompleteTransactionFlow(
                                           completeTransaction: () {
                                             ref

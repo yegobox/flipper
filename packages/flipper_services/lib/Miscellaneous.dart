@@ -5,8 +5,27 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 mixin CoreMiscellaneous {
+  Future<bool> isServerUp() async {
+    final url = await ProxyService.box.getServerUrl() ?? "https://example.com";
+    final response = await http.get(Uri.parse(url));
+    return response.statusCode == 404;
+  }
+
+  Future<Directory> getSupportDir() async {
+    Directory appSupportDir;
+    if (Platform.isAndroid) {
+      // Try to get external storage, fall back to internal if not available
+      appSupportDir = await getApplicationCacheDirectory();
+    } else {
+      appSupportDir = await getApplicationSupportDirectory();
+    }
+    return appSupportDir;
+  }
+
   Future<bool> logOut() async {
     try {
       ProxyService.box.remove(key: 'authComplete');

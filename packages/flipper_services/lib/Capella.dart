@@ -2,19 +2,16 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'dart:typed_data';
-import 'package:flipper_models/CloudSync.dart';
-import 'package:flipper_models/FlipperInterfaceCapella.dart';
-import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:flipper_models/power_sync/schema.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:realm_dart/src/realm_object.dart';
 import 'package:realm_dart/src/results.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
-import 'package:firestore_models/firestore_models.dart';
-import 'package:firestore_models/transaction.dart';
+import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/Booting.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -32,10 +29,11 @@ import 'package:cbl/cbl.dart'
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'DatabaseProvider.dart';
 
+// ignore: unused_import
 import 'package:flipper_services/replicator_provider.dart'
     if (dart.library.html) 'DatabaseProvider.dart';
 
-class Capella with Booting implements FlipperInterfaceCapella {
+class Capella with Booting implements CoreDataInterface {
   @override
   DatabaseProvider? capella;
   bool offlineLogin = false;
@@ -57,9 +55,27 @@ class Capella with Booting implements FlipperInterfaceCapella {
   AsyncCollection? permissionCollection;
   late String apihub;
   late String commApi;
+
+  // TODO: implement countersCollection
+  Future<AsyncCollection> getCountersCollection() async {
+    final database = capella!.database!;
+    final collection = await database.collection(countersTable, scope);
+
+    return collection ?? await database.createCollection(countersTable, scope);
+  }
+
+  // get configurations collection
+  Future<AsyncCollection> getConfigurationsCollection() async {
+    final database = capella!.database!;
+    final collection = await database.collection(configurationsTable, scope);
+
+    return collection ??
+        await database.createCollection(configurationsTable, scope);
+  }
+
   void _setApiEndpoints() {
     if (foundation.kDebugMode) {
-      apihub = AppSecrets.apihubUat;
+      apihub = AppSecrets.coreApi;
       commApi = AppSecrets.commApi;
     } else {
       apihub = AppSecrets.apihubProd;
@@ -72,33 +88,33 @@ class Capella with Booting implements FlipperInterfaceCapella {
     _setApiEndpoints();
 
     /// create databse indexes
-    final collection = await capella?.flipperDatabase?.defaultCollection;
-
+    // final collection = await capella?.database!.defaultCollection;
     /// end of creation of indexes
-    final config = ValueIndexConfiguration(['branchId', 'receiptType']);
-    await collection!.createIndex('branchIdReceiptType', config);
+    // final config = ValueIndexConfiguration(['branchId', 'receiptType']);
+    // await collection!.createIndex('branchIdReceiptType', config);
     branchCollection =
-        await capella?.flipperDatabase?.createCollection('branches');
+        await capella?.database!.createCollection(branchesTable, scope);
 
     businessCollection =
-        await capella?.flipperDatabase?.createCollection('businesses');
+        await capella?.database?.createCollection(businessesTable, scope);
 
     accessCollection =
-        await capella?.flipperDatabase?.createCollection('accesses');
+        await capella?.database!.createCollection(accessesTable, scope);
+
+    await capella?.database!.createCollection(countersTable, scope);
 
     // init replicator
   }
 
   @override
-  Future<FlipperInterfaceCapella> configureCapella(
+  Future<CoreDataInterface> configureCapella(
       {required bool useInMemory, required LocalStorage box}) async {
     talker.warning("The real implementation of capella called");
 
     capella = await (await DatabaseProvider(
-                ProxyService.box.encryptionKey().toStringList())
-            .initialize())
-        .initDatabases();
-    talker.warning("CapelaDB ${capella?.flipperDatabase}");
+            encryptionKey: ProxyService.box.encryptionKey().toStringList())
+        .initialize());
+    talker.warning("CapelaDB ${capella?.database}");
     await initCollections();
     // init replicator for now here, it will be moved into settings later
     // await startReplicator();
@@ -107,18 +123,13 @@ class Capella with Booting implements FlipperInterfaceCapella {
 
   @override
   Future<void> startReplicator() async {
-    final replicatorProvider = ReplicatorProvider(databaseProvider: capella!);
-    await replicatorProvider.init();
-    await replicatorProvider.startReplicator();
+    // final replicatorProvider = ReplicatorProvider(databaseProvider: capella!);
+    // await replicatorProvider.init();
+    // await replicatorProvider.startReplicator();
   }
 
   @override
-  Branch? branch({required int serverId}) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<FlipperInterfaceCapella> configureLocal(
+  Future<CoreDataInterface> configureLocal(
       {required bool useInMemory, required LocalStorage box}) {
     throw UnimplementedError();
   }
@@ -165,97 +176,121 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<Voucher?> consumeVoucher({required int voucherCode}) {
-    // TODO: implement consumeVoucher
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<Counter>> getCounters({required int branchId}) async {
-    try {
-      AsyncCollection? collection =
-          await capella!.flipperDatabase!.collection(countersTable, scope);
-      if (collection == null) {
-        collection = await capella!.flipperDatabase!
-            .createCollection(countersTable, scope);
-      }
+    throw UnimplementedError();
+    // try {
+    //   AsyncCollection? collection =
+    //       await capella!.database!.collection(countersTable, scope);
+    //   if (collection == null) {
+    //     collection =
+    //         await capella!.database!.createCollection(countersTable, scope);
+    //   }
 
-      final query = QueryBuilder()
-          .select(SelectResult.all())
-          .from(DataSource.collection(collection))
-          .where(Expression.property('branchId')
-              .equalTo(Expression.integer(branchId)));
+    //   final query = QueryBuilder()
+    //       .select(SelectResult.all())
+    //       .from(DataSource.collection(collection))
+    //       .where(Expression.property('branchId')
+    //           .equalTo(Expression.integer(branchId)));
 
-      final result = await query.execute();
-      final results = await result.allResults();
+    //   final result = await query.execute();
+    //   final results = await result.allResults();
 
-      List<Counter> counters = [];
+    //   List<Counter> counters = [];
 
-      for (var item in results) {
-        final Map<String, dynamic> json = item.toPlainMap();
-        talker.warning("Query result: $json");
+    //   for (var item in results) {
+    //     final Map<String, dynamic> json = item.toPlainMap();
+    //     talker.warning("Query result: $json");
 
-        // Handle both nested and flat JSON structures
-        final Map<String, dynamic> counterData =
-            json.containsKey(countersTable) ? json[countersTable] : json;
+    //     // Handle both nested and flat JSON structures
+    //     final Map<String, dynamic> counterData =
+    //         json.containsKey(countersTable) ? json[countersTable] : json;
 
-        try {
-          final counter = Counter.fromJson(counterData);
-          counters.add(counter);
-        } catch (e) {
-          talker.error('Error parsing counter: $e');
-          // Continue processing other items even if one fails
-          continue;
-        }
-      }
+    //     try {
+    //       final counter = Counter.fromJson(counterData);
+    //       counters.add(counter);
+    //     } catch (e) {
+    //       talker.error('Error parsing counter: $e');
+    //       // Continue processing other items even if one fails
+    //       continue;
+    //     }
+    //   }
 
-      return counters;
-    } catch (e) {
-      talker.error('Error getting counters: $e');
-      return [];
-    }
+    //   return counters;
+    // } catch (e) {
+    //   talker.error('Error getting counters: $e');
+    //   return [];
+    // }
   }
 
-  String get scope => "user_data";
+  String get scope => "_default";
   @override
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {
     talker.warning("Using capella");
-    try {
-      AsyncCollection? collection =
-          await capella!.flipperDatabase!.collection(countersTable, scope);
-      if (collection == null) {
-        collection = await capella!.flipperDatabase!
-            .createCollection(countersTable, scope);
-      }
+    throw UnimplementedError();
+    // try {
+    //   AsyncCollection? collection =
+    //       await capella!.database!.collection(countersTable, scope);
+    //   if (collection == null) {
+    //     collection =
+    //         await capella!.database!.createCollection(countersTable, scope);
+    //   }
 
-      final query = QueryBuilder()
-          .select(SelectResult.all())
-          .from(DataSource.collection(collection))
-          .where(Expression.property('receiptType')
-              .equalTo(Expression.string(receiptType))
-              .and(Expression.property('branchId')
-                  .equalTo(Expression.integer(branchId))))
-          .limit(Expression.integer(1));
+    //   final query = QueryBuilder()
+    //       .select(SelectResult.all())
+    //       .from(DataSource.collection(collection))
+    //       .where(Expression.property('receiptType')
+    //           .equalTo(Expression.string(receiptType))
+    //           .and(Expression.property('branchId')
+    //               .equalTo(Expression.integer(branchId))))
+    //       .limit(Expression.integer(1));
 
-      final result = await query.execute();
-      final results = await result.allResults();
+    //   final result = await query.execute();
+    //   final results = await result.allResults();
 
-      if (results.isEmpty) {
-        return null;
-      }
+    //   if (results.isEmpty) {
+    //     return null;
+    //   }
 
-      final Map<String, dynamic> json = results.first.toPlainMap();
-      talker.warning("Query result: $json");
+    //   final Map<String, dynamic> json = results.first.toPlainMap();
+    //   talker.warning("Query result: $json");
 
-      final Map<String, dynamic> counterData =
-          json.containsKey(countersTable) ? json[countersTable] : json;
+    //   final Map<String, dynamic> counterData =
+    //       json.containsKey(countersTable) ? json[countersTable] : json;
 
-      return Counter.fromJson(counterData);
-    } catch (e) {
-      talker.error('Error getting counter: $e');
-      return null;
-    }
+    //   return Counter.fromJson(counterData);
+    // } catch (e) {
+    //   talker.error('Error getting counter: $e');
+    //   return null;
+    // }
+  }
+
+  @override
+  Future<Configurations?> getByTaxType({required String taxtype}) async {
+    throw UnimplementedError();
+    // try {
+    //   AsyncCollection? collection = await getConfigurationsCollection();
+    //   final query = QueryBuilder()
+    //       .select(SelectResult.all())
+    //       .from(DataSource.collection(collection))
+    //       .where(Expression.property('taxType')
+    //           .equalTo(Expression.string(taxtype))
+    //           .and(Expression.property('branchId').equalTo(
+    //               Expression.integer(ProxyService.box.getBranchId()!))))
+    //       .limit(Expression.integer(1));
+
+    //   final result = await query.execute();
+    //   final results = await result.allResults();
+
+    //   if (results.isNotEmpty) {
+    //     final Map<String, dynamic> json = results.first.toPlainMap();
+    //     talker.warning("Query result: $json");
+    //     return Configurations.fromJson(json);
+    //   }
+    //   return null;
+    // } catch (e) {
+    //   rethrow;
+    // }
   }
 
   @override
@@ -321,7 +356,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  List<Accesses> access({required int userId}) {
+  List<Access> access({required int userId}) {
     // TODO: implement access
     throw UnimplementedError();
   }
@@ -341,12 +376,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
   @override
   Category? activeCategory({required int branchId}) {
     // TODO: implement activeCategory
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Activity>> activities({required int userId}) {
-    // TODO: implement activities
     throw UnimplementedError();
   }
 
@@ -378,14 +407,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
   Future<Stock?> addStockToVariant({required Variant variant}) {
     // TODO: implement addStockToVariant
     throw UnimplementedError();
-  }
-
-  @override
-  void addTransactionItem(
-      {required Transaction transaction,
-      required TransactionItem item,
-      required bool partOfComposite}) {
-    // TODO: implement addTransactionItem
   }
 
   @override
@@ -473,49 +494,14 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  void clearVariants() {
-    // TODO: implement clearVariants
-  }
-
-  @override
-  void close() {
-    // TODO: implement close
-  }
-
-  @override
   Drawers? closeDrawer({required Drawers drawer, required double eod}) {
     // TODO: implement closeDrawer
     throw UnimplementedError();
   }
 
   @override
-  Future<Transaction> collectPayment(
-      {required double cashReceived,
-      required Transaction transaction,
-      required String paymentType,
-      required double discount,
-      required int branchId,
-      required String bhfId,
-      required bool isProformaMode,
-      required bool isTrainingMode,
-      required String transactionType,
-      String? categoryId,
-      bool directlyHandleReceipt = false,
-      required bool isIncome}) {
-    // TODO: implement collectPayment
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<PColor>> colors({required int branchId}) {
     // TODO: implement colors
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Transaction>> completedTransactions(
-      {required int branchId, String? status = COMPLETE}) {
-    // TODO: implement completedTransactions
     throw UnimplementedError();
   }
 
@@ -571,19 +557,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
       int itemSeq = 1,
       bool ebmSynced = false}) {
     // TODO: implement createProduct
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Receipt?> createReceipt(
-      {required RwApiResponse signature,
-      required DateTime whenCreated,
-      required Transaction transaction,
-      required String qrCode,
-      required String receiptType,
-      required Counter counter,
-      required int invoiceNumber}) {
-    // TODO: implement createReceipt
     throw UnimplementedError();
   }
 
@@ -693,24 +666,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  EBM? ebm({required int branchId}) {
-    // TODO: implement ebm
-    throw UnimplementedError();
-  }
-
-  @override
-  void emptySentMessageQueue() {
-    // TODO: implement emptySentMessageQueue
-  }
-
-  @override
-  Future<bool> enableAttendance(
-      {required int businessId, required String email}) {
-    // TODO: implement enableAttendance
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Product?> findProductByTenantId({required int tenantId}) {
     // TODO: implement findProductByTenantId
     throw UnimplementedError();
@@ -723,24 +678,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  Assets? getAsset({String? assetName, int? productId}) {
-    // TODO: implement getAsset
-    throw UnimplementedError();
-  }
-
-  @override
-  Business getBusiness({int? businessId}) {
-    // TODO: implement getBusiness
-    throw UnimplementedError();
-  }
-
-  @override
-  Business? getBusinessById({required int businessId}) {
-    // TODO: implement getBusinessById
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Business?> getBusinessFromOnlineGivenId(
       {required int id, required HttpClientInterface flipperHttpClient}) {
     // TODO: implement getBusinessFromOnlineGivenId
@@ -748,26 +685,8 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<Business> getBusinessFuture({int? businessId}) {
-    // TODO: implement getBusinessFuture
-    throw UnimplementedError();
-  }
-
-  @override
-  Configurations getByTaxType({required String taxtype}) {
-    // TODO: implement getByTaxType
-    throw UnimplementedError();
-  }
-
-  @override
   Future<PColor?> getColor({required int id}) {
     // TODO: implement getColor
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Business>> getContacts() {
-    // TODO: implement getContacts
     throw UnimplementedError();
   }
 
@@ -784,18 +703,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
   @override
   Future<Customer?> getCustomer({String? key, int? id}) {
     // TODO: implement getCustomer
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Customer?> getCustomerFuture({String? key, int? id}) {
-    // TODO: implement getCustomerFuture
-    throw UnimplementedError();
-  }
-
-  @override
-  List<Customer> getCustomers({String? key, int? id}) {
-    // TODO: implement getCustomers
     throw UnimplementedError();
   }
 
@@ -867,20 +774,8 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  FlipperSaleCompaign? getLatestCompaign() {
-    // TODO: implement getLatestCompaign
-    throw UnimplementedError();
-  }
-
-  @override
-  PaymentPlan? getPaymentPlan({required int businessId}) {
+  Future<models.Plan?> getPaymentPlan({required int businessId}) {
     // TODO: implement getPaymentPlan
-    throw UnimplementedError();
-  }
-
-  @override
-  List<TransactionPaymentRecord> getPaymentType({required int transactionId}) {
-    // TODO: implement getPaymentType
     throw UnimplementedError();
   }
 
@@ -1005,12 +900,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<Transaction?> getTransactionById({required int id}) {
-    // TODO: implement getTransactionById
-    throw UnimplementedError();
-  }
-
-  @override
   Future<TransactionItem?> getTransactionItemById({required int id}) {
     // TODO: implement getTransactionItemById
     throw UnimplementedError();
@@ -1034,21 +923,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
   Future<({double expense, double income})> getTransactionsAmountsSum(
       {required String period}) {
     // TODO: implement getTransactionsAmountsSum
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<
-      ({
-        List<Device> devices,
-        List<Favorite> favorites,
-        List<Product> products,
-        List<Stock> stocks,
-        List<TransactionItem> transactionItems,
-        List<Transaction> transactions,
-        List<Variant> variants
-      })> getUnSyncedData() {
-    // TODO: implement getUnSyncedData
     throw UnimplementedError();
   }
 
@@ -1085,7 +959,7 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  FlipperInterfaceCapella instance() {
+  CoreDataInterface instance() {
     // TODO: implement instance
     throw UnimplementedError();
   }
@@ -1153,42 +1027,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<extensions.SocialToken?> loginOnSocial(
-      {String? phoneNumberOrEmail, String? password}) {
-    // TODO: implement loginOnSocial
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Transaction> manageCashInOutTransaction(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId}) {
-    // TODO: implement manageCashInOutTransaction
-    throw UnimplementedError();
-  }
-
-  @override
-  Transaction manageTransaction(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId,
-      bool? includeSubTotalCheck = false}) {
-    // TODO: implement manageTransaction
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<Transaction> manageTransactionStream(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId,
-      bool? includeSubTotalCheck = false}) {
-    // TODO: implement manageTransactionStream
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> markModelForEbmUpdate<T>(
       {required T model, bool updated = true}) {
     // TODO: implement markModelForEbmUpdate
@@ -1196,31 +1034,8 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  AppNotification notification({required int id}) {
-    // TODO: implement notification
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<AppNotification>> notificationStream({required int identifier}) {
-    // TODO: implement notificationStream
-    throw UnimplementedError();
-  }
-
-  @override
-  void notify({required AppNotification notification}) {
-    // TODO: implement notify
-  }
-
-  @override
   Drawers? openDrawer({required Drawers drawer}) {
     // TODO: implement openDrawer
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Transaction>> orders({required int branchId}) {
-    // TODO: implement orders
     throw UnimplementedError();
   }
 
@@ -1231,20 +1046,8 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  Stream<PaymentPlan?> paymentPlanStream({required int businessId}) {
+  Stream<Plan?> paymentPlanStream({required int businessId}) {
     // TODO: implement paymentPlanStream
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<LPermission?> permission({required int userId}) {
-    // TODO: implement permission
-    throw UnimplementedError();
-  }
-
-  @override
-  List<LPermission> permissions({required int userId}) {
-    // TODO: implement permissions
     throw UnimplementedError();
   }
 
@@ -1294,11 +1097,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
   Future<int> registerOnSocial({String? phoneNumberOrEmail, String? password}) {
     // TODO: implement registerOnSocial
     throw UnimplementedError();
-  }
-
-  @override
-  void removeCustomerFromTransaction({required Transaction transaction}) {
-    // TODO: implement removeCustomerFromTransaction
   }
 
   @override
@@ -1353,15 +1151,18 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<PaymentPlan> saveOrUpdatePaymentPlan(
+  Future<Plan> saveOrUpdatePaymentPlan(
       {required int businessId,
+      int numberOfPayments = 1,
       required String selectedPlan,
+      List<String>? addons,
       required int additionalDevices,
       required bool isYearlyPlan,
       required double totalPrice,
       required int payStackUserId,
       required String paymentMethod,
       String? customerCode,
+      models.Plan? plan,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement saveOrUpdatePaymentPlan
     throw UnimplementedError();
@@ -1486,18 +1287,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  Future<List<Transaction>> tickets() {
-    // TODO: implement tickets
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Transaction>> ticketsStreams() {
-    // TODO: implement ticketsStreams
-    throw UnimplementedError();
-  }
-
-  @override
   Future<double> totalStock({int? productId, int? variantId}) {
     // TODO: implement totalStock
     throw UnimplementedError();
@@ -1540,52 +1329,13 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  Stream<List<Transaction>> transactionList(
-      {DateTime? startDate, DateTime? endDate}) {
-    // TODO: implement transactionList
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Transaction>> transactionStreamById(
-      {required int id, required FilterType filterType}) {
-    // TODO: implement transactionStreamById
-    throw UnimplementedError();
-  }
-
-  @override
-  List<Transaction> transactions(
-      {DateTime? startDate,
-      DateTime? endDate,
-      String? status,
-      String? transactionType,
-      int? branchId,
-      bool isExpense = false,
-      bool includePending = false}) {
-    // TODO: implement transactions
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Transaction>> transactionsStream(
-      {String? status,
-      String? transactionType,
-      int? branchId,
-      bool isCashOut = false,
-      bool includePending = false}) {
-    // TODO: implement transactionsStream
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<IUnit>> units({required int branchId}) {
     // TODO: implement units
     throw UnimplementedError();
   }
 
   @override
-  Future<List<UniversalProduct>> universalProductNames(
-      {required int branchId}) {
+  Future<List<UnversalProduct>> universalProductNames({required int branchId}) {
     // TODO: implement universalProductNames
     throw UnimplementedError();
   }
@@ -1609,91 +1359,119 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
+  Future<void> updateRecord(
+      {required String tableName,
+      required String idField,
+      required Map<String, dynamic> map,
+      required int id,
+      required List<SyncProvider> syncProviders}) async {
+    try {
+      final doc = MutableDocument.withId(map['id'].toString());
+
+      if (tableName == countersTable) {
+        final collection = await getCountersCollection();
+
+        /// remove illegal fields, the _id comes from realm maybe?
+        map.remove("_id");
+        map.remove("lastTouched");
+        map["channels"] = [
+          ProxyService.box.getBranchId()?.toString(),
+        ];
+        doc.setData(map);
+        await collection.saveDocument(doc);
+
+        talker.warning("Document saved successfully: ${doc.id}:${tableName}");
+      }
+    } catch (e) {
+      talker.warning('Error updating record: $e');
+    }
+  }
+
+  @override
   Future<void> updateCounters({
     required List<Counter> counters,
     RwApiResponse? receiptSignature,
   }) async {
     final collection = await getCountersCollection();
+    throw UnimplementedError();
+    // await capella!.database!.writeN(
+    //   tableName: countersTable,
+    //   writeCallback: () {
+    //     List<MutableDocument> documents = [];
 
-    await capella!.flipperDatabase!.writeN(
-      tableName: countersTable,
-      writeCallback: () {
-        List<MutableDocument> documents = [];
+    //     for (Counter counter in counters) {
+    //       try {
+    //         talker.warning("JSONN${counter.toJson()}");
+    //         // Ensure document ID is string
+    //         String documentId = counter.id.toString();
 
-        for (Counter counter in counters) {
-          try {
-            talker.warning("JSONN${counter.toJson()}");
-            // Ensure document ID is string
-            String documentId = counter.id.toString();
+    //         // Create updated counter
+    //         Counter updatedCounter = counter.copyWith(
+    //           totRcptNo: receiptSignature?.data?.totRcptNo,
+    //           curRcptNo: receiptSignature?.data?.rcptNo,
+    //           invcNo: (counter.invcNo != null) ? counter.invcNo! + 1 : 1,
+    //         );
 
-            // Create updated counter
-            Counter updatedCounter = counter.copyWith(
-              totRcptNo: receiptSignature?.data?.totRcptNo,
-              curRcptNo: (receiptSignature?.data?.rcptNo)! + 1,
-              invcNo: (counter.invcNo != null) ? counter.invcNo! + 1 : 1,
-            );
+    //         // Create document and set data
+    //         final doc = MutableDocument.withId(documentId);
 
-            // Create document and set data
-            final doc = MutableDocument.withId(documentId);
+    //         // Convert updatedCounter to a map once
+    //         var updatedCounterMap = updatedCounter.toJson();
 
-            // Convert updatedCounter to a map once
-            var updatedCounterMap = updatedCounter.toJson();
+    //         // Remove the "lastTouched" key if it exists
+    //         updatedCounterMap.remove("lastTouched");
 
-            // Remove the "lastTouched" key if it exists
-            updatedCounterMap.remove("lastTouched");
+    //         // Set "lastTouched" to the current time
+    //         updatedCounterMap["lastTouched"] = DateTime.now().toIso8601String();
 
-            // Set "lastTouched" to the current time
-            updatedCounterMap["lastTouched"] = DateTime.now().toIso8601String();
+    //         updatedCounterMap["channels"] = [
+    //           ProxyService.box.getBranchId()?.toString(),
+    //         ];
 
-            // Write the modified map to the document
-            doc.setData(updatedCounterMap);
+    //         // Write the modified map to the document
+    //         doc.setData(updatedCounterMap);
 
-            documents.add(doc);
-          } catch (e, s) {
-            talker.warning(s);
-          }
-        }
+    //         documents.add(doc);
+    //       } catch (e, s) {
+    //         talker.warning(s);
+    //       }
+    //     }
 
-        return documents;
-      },
-      onAdd: (docs) async {
-        try {
-          talker.warning("LENGHT:${docs.length}");
+    //     return documents;
+    //   },
+    //   onAdd: (docs) async {
+    //     try {
+    //       talker.warning("LENGHT:${docs.length}");
 
-          for (var doc in docs) {
-            // Get existing document if it exists
-            final existingDoc = await collection.document(doc.id);
+    //       for (var doc in docs) {
+    //         // Get existing document if it exists
+    //         final existingDoc = await collection.document(doc.id);
 
-            // If document exists, update it with new data
-            if (existingDoc != null) {
-              final mutableExisting = existingDoc.toMutable();
-              talker.warning("Data to save: ${doc.toPlainMap()}");
-              mutableExisting.setData(doc.toPlainMap());
-              await collection.saveDocument(mutableExisting);
-            } else {
-              // Save new document
-              await collection.saveDocument(doc);
-            }
-            // update firestore
-            ProxyService.backUp.now(
-              countersTable,
-              Counter.fromJson(doc.toPlainMap()),
-              useNewImplementation: true,
-            );
-            talker.warning("Document saved successfully: ${doc.id}");
-          }
-        } catch (e, s) {
-          talker.warning("Error saving document: $e");
-          talker.error("Error saving document: $s");
-          rethrow;
-        }
-      },
-    );
-  }
-
-  @override
-  void updateTransactionStatus(Transaction transaction, String receiptType) {
-    // TODO: implement updateTransactionStatus
+    //         // If document exists, update it with new data
+    //         if (existingDoc != null) {
+    //           final mutableExisting = existingDoc.toMutable();
+    //           talker.warning("Data to save: ${doc.toPlainMap()}");
+    //           mutableExisting.setData(doc.toPlainMap());
+    //           await collection.saveDocument(mutableExisting);
+    //         } else {
+    //           // Save new document
+    //           await collection.saveDocument(doc);
+    //         }
+    //         // update firestore
+    //         ProxyService.backUp.replicateData(
+    //           countersTable,
+    //           Counter.fromJson(doc.toPlainMap()),
+    //           useNewImplementation: true,
+    //         );
+    //         talker.warning("Document saved successfully: ${doc.id}");
+    //       }
+    //     } catch (e, s) {
+    //       talker.warning("Error saving document: $e");
+    //       talker.error("Error saving document: $s");
+    //       rethrow;
+    //     }
+    //   },
+    // );
   }
 
   @override
@@ -1707,16 +1485,6 @@ class Capella with Booting implements FlipperInterfaceCapella {
       {required int branchId, int? productId, int? page, int? itemsPerPage}) {
     // TODO: implement variants
     throw UnimplementedError();
-  }
-
-  @override
-  // TODO: implement countersCollection
-  Future<AsyncCollection> getCountersCollection() async {
-    final database = capella!.flipperDatabase!;
-    final collection = await database.collection(countersTable, 'user_data');
-
-    return collection ??
-        await database.createCollection(countersTable, 'user_data');
   }
 
   @override
@@ -1784,24 +1552,8 @@ class Capella with Booting implements FlipperInterfaceCapella {
   }
 
   @override
-  void now<T>(String tableName, T data, {bool? useNewImplementation = false}) {
-    // TODO: implement now
-  }
-
-  @override
   Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch) {
     // TODO: implement processbatchBackUp
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> updateRecord(
-      {required String tableName,
-      required String idField,
-      required Map<String, dynamic> map,
-      required int id,
-      required SyncProvider syncProvider}) {
-    // TODO: implement updateRecord
     throw UnimplementedError();
   }
 
@@ -1835,5 +1587,214 @@ class Capella with Booting implements FlipperInterfaceCapella {
   void whoAmI() {
     // TODO: implement whoAmI
     talker.warning("I am capella");
+  }
+
+  @override
+  Future<Configurations> saveTax(
+      {required int configId, required double taxPercentage}) {
+    // TODO: implement saveTax
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Configurations> taxes({required int branchId}) {
+    // TODO: implement taxes
+    throw UnimplementedError();
+  }
+
+  @override
+  void addTransactionItem(
+      {required ITransaction transaction,
+      required TransactionItem item,
+      required bool partOfComposite}) {
+    // TODO: implement addTransactionItem
+  }
+
+  @override
+  Future<Branch?> branch({required int serverId}) {
+    // TODO: implement branch
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ITransaction> collectPayment(
+      {required double cashReceived,
+      required ITransaction transaction,
+      required String paymentType,
+      required double discount,
+      required int branchId,
+      required String bhfId,
+      required bool isProformaMode,
+      required bool isTrainingMode,
+      required String transactionType,
+      String? categoryId,
+      bool directlyHandleReceipt = false,
+      required bool isIncome}) {
+    // TODO: implement collectPayment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<ITransaction>> completedTransactions(
+      {required int branchId, String? status = COMPLETE}) {
+    // TODO: implement completedTransactions
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Receipt?> createReceipt(
+      {required RwApiResponse signature,
+      required DateTime whenCreated,
+      required ITransaction transaction,
+      required String qrCode,
+      required String receiptType,
+      required Counter counter,
+      required int invoiceNumber}) {
+    // TODO: implement createReceipt
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Ebm?> ebm({required int branchId}) {
+    // TODO: implement ebm
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Assets?> getAsset({String? assetName, int? productId}) {
+    // TODO: implement getAsset
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Business> getBusiness({int? businessId}) {
+    // TODO: implement getBusiness
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Business?> getBusinessById({required int businessId}) {
+    // TODO: implement getBusinessById
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Customer>> getCustomers({String? key, int? id}) {
+    // TODO: implement getCustomers
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<FlipperSaleCompaign?> getLatestCompaign() {
+    // TODO: implement getLatestCompaign
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<TransactionPaymentRecord>> getPaymentType(
+      {required int transactionId}) {
+    // TODO: implement getPaymentType
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ITransaction?> getTransactionById({required int id}) {
+    // TODO: implement getTransactionById
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ITransaction> manageCashInOutTransaction(
+      {required String transactionType,
+      required bool isExpense,
+      required int branchId}) {
+    // TODO: implement manageCashInOutTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ITransaction> manageTransaction(
+      {required String transactionType,
+      required bool isExpense,
+      required int branchId,
+      bool? includeSubTotalCheck = false}) {
+    // TODO: implement manageTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<ITransaction> manageTransactionStream(
+      {required String transactionType,
+      required bool isExpense,
+      required int branchId,
+      bool? includeSubTotalCheck = false}) {
+    // TODO: implement manageTransactionStream
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<ITransaction>> orders({required int branchId}) {
+    // TODO: implement orders
+    throw UnimplementedError();
+  }
+
+  @override
+  void removeCustomerFromTransaction({required ITransaction transaction}) {
+    // TODO: implement removeCustomerFromTransaction
+  }
+
+  @override
+  Future<List<ITransaction>> tickets() {
+    // TODO: implement tickets
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<ITransaction>> ticketsStreams() {
+    // TODO: implement ticketsStreams
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<ITransaction>> transactionList(
+      {DateTime? startDate, DateTime? endDate}) {
+    // TODO: implement transactionList
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<ITransaction>> transactionStreamById(
+      {required int id, required FilterType filterType}) {
+    // TODO: implement transactionStreamById
+    throw UnimplementedError();
+  }
+
+  @override
+  List<ITransaction> transactions(
+      {DateTime? startDate,
+      DateTime? endDate,
+      String? status,
+      String? transactionType,
+      int? branchId,
+      bool isExpense = false,
+      bool includePending = false}) {
+    // TODO: implement transactions
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<ITransaction>> transactionsStream(
+      {String? status,
+      String? transactionType,
+      int? branchId,
+      bool isCashOut = false,
+      bool includePending = false}) {
+    // TODO: implement transactionsStream
+    throw UnimplementedError();
+  }
+
+  @override
+  void updateTransactionStatus(ITransaction transaction, String receiptType) {
+    // TODO: implement updateTransactionStatus
   }
 }

@@ -9,10 +9,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:flutter/material.dart';
 import '_transaction.dart';
+import 'package:http/http.dart' as http;
 
 final unsavedProductProvider =
     StateNotifierProvider<ProductNotifier, Product?>((ref) {
   return ProductNotifier();
+});
+
+final connectivityStreamProvider = StreamProvider<bool>((ref) {
+  return Stream.periodic(const Duration(seconds: 5)).asyncMap((_) async {
+    try {
+      final url =
+          await ProxyService.box.getServerUrl() ?? "https://example.com";
+      final response = await http.get(Uri.parse(url));
+
+      print('Connectivity check!: ${response.statusCode == 200}');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Connectivity check failed: $e');
+      return false;
+    }
+  });
 });
 
 class ProductNotifier extends StateNotifier<Product?> {
@@ -83,7 +100,10 @@ final soldStockValueProvider =
     StreamProvider.autoDispose.family<double, int>((ref, branchId) {
   return ProxyService.local.soldStockValue(branchId: branchId);
 });
-
+final initialStockProvider =
+    StreamProvider.autoDispose.family<double, int>((ref, branchId) {
+  return ProxyService.local.soldStockValue(branchId: branchId);
+});
 final transactionItemsStreamProvider = StreamProvider.autoDispose
     .family<List<TransactionItem>, int?>((ref, transactionId) {
   return ProxyService.local.transactionItemsStreams(
@@ -489,7 +509,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
         state = AsyncData(products);
       }
     } catch (error) {
-      state = AsyncError(error, StackTrace.current);
+      if (mounted) state = AsyncError(error, StackTrace.current);
     }
   }
 
@@ -749,7 +769,7 @@ final selectImportItemsProvider = FutureProvider.autoDispose
   // Fetch the list of variants from a remote service.
   final response = await ProxyService.local.selectImportItems(
       tin: 999909695,
-      bhfId: ProxyService.box.bhfId() ?? "00",
+      bhfId: await ProxyService.box.bhfId() ?? "00",
       lastReqDt: "20210331000000");
 
   return response;
@@ -1071,6 +1091,18 @@ class BranchSelectionState {
     );
   }
 }
+
+final statusTextProvider = StreamProvider<String?>((ref) {
+  return Stream.periodic(const Duration(milliseconds: 100), (_) {
+    return ProxyService.status.statusText.value;
+  }).distinct();
+});
+
+final statusColorProvider = StreamProvider<Color?>((ref) {
+  return Stream.periodic(const Duration(milliseconds: 100), (_) {
+    return ProxyService.status.statusColor.value;
+  }).distinct();
+});
 
 class BranchSelectionNotifier extends StateNotifier<BranchSelectionState> {
   BranchSelectionNotifier() : super(BranchSelectionState(isLoading: false));

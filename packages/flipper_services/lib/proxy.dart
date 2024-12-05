@@ -1,15 +1,13 @@
-import 'package:flipper_models/FlipperInterfaceCapella.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_models/FlipperInterface.dart';
-import 'package:flipper_models/CloudSync.dart';
+import 'package:flipper_models/RealmInterface.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
-import 'package:flipper_services/Capella.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
-import 'package:flipper_services/PayStackService.dart';
 import 'package:flipper_services/HttpApi.dart';
+import 'package:flipper_services/PayStackService.dart';
+import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/abstractions/remote.dart';
@@ -75,38 +73,37 @@ final Device _device = getIt<Device>();
 
 final PayStackServiceInterface _payStack = getIt<PayStackServiceInterface>();
 final HttpClientInterface _http = getIt<HttpClientInterface>();
+final RealmViaHttp _ht = getIt<RealmViaHttp>();
 final RealmViaHttp _realmHttp = getIt<RealmViaHttp>();
 
 final SupabaseInterface _supa = getIt<SupabaseInterface>();
 final Crash _crash = getIt<Crash>();
 
-final FlipperInterface _localRealm = getIt<FlipperInterface>();
+final RealmInterface _localRealm = getIt<RealmInterface>();
 
 abstract class ProxyService {
-  static final FlipperInterfaceCapella _capela =
-      getIt<FlipperInterfaceCapella>(instanceName: 'capella');
-  static final FlipperInterfaceCapella _synchronize =
-      getIt<FlipperInterfaceCapella>(instanceName: 'backup');
+  static final CoreDataInterface _capela =
+      getIt<CoreDataInterface>(instanceName: 'capella');
+
+  static final CoreDataInterface _synchronize =
+      getIt<CoreDataInterface>(instanceName: 'backup');
+
   static final SyncStrategy _strategy =
       getIt<SyncStrategy>(instanceName: 'strategy');
 
-  static FlipperInterfaceCapella get backUp => _synchronize;
-  static FlipperInterfaceCapella get capela => _capela;
-  static FlipperInterface get local => _localRealm;
+  static CoreDataInterface get backUp => _synchronize;
+  static CoreDataInterface get capela => _capela;
+  static RealmInterface get local => _localRealm;
 
-  static FlipperInterfaceCapella get strategy => _strategy.current;
+  static CoreDataInterface get strategy => _strategy.current;
   static void setStrategy(Strategy strategy) => _strategy.setStrategy(strategy);
-
-  // // Single getter for current implementation
-  // static FlipperInterfaceCapella get current => _strategy.current;
-
-  // static void setStrategy(Strategy strategy) => _strategy.setStrategy(strategy);
 
   static Crash get crash => _crash;
   static SupabaseInterface get supa => _supa;
 
   static LocalStorage get box => _box;
   static HttpClientInterface get http => _http;
+  static RealmViaHttp get ht => _ht;
   static Api get api => _apiService;
   static TaxApi get tax => _tax;
 

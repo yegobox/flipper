@@ -1,5 +1,3 @@
-
-
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/proxy.dart';
@@ -35,6 +33,3 @@ class ProfileFutureWidget extends StatelessWidget {
     );
   }
 }
-
-
-

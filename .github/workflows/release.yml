@@ -40,7 +40,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.24.3"
+          flutter-version: "3.24.5"
           channel: "stable"
 
       - run: git submodule update --init
@@ -65,7 +65,7 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 6.2.0
           melos clean
           melos bootstrap
           cd apps/flipper
@@ -97,7 +97,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.24.3"
+          flutter-version: "3.24.5"
           channel: stable
       - run: flutter doctor -v
 
@@ -126,7 +126,7 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}  
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 6.2.0
           melos bootstrap
           cd apps/flipper
           dart run realm install
@@ -151,7 +151,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.24.3"
+          flutter-version: "3.24.5"
           channel: stable
       - run: flutter doctor -v
 
@@ -174,8 +174,28 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+      # Replace Visual Studio 17.12 with 17.10 to workaround Firebase issue
+      # https://github.com/firebase/flutterfire/issues/16536
+      # TODO: remove this visual studio change when https://github.com/firebase/flutterfire/issues/16536 is resolved.
+      - name: Cleanup Visual Studio Installer
+        continue-on-error: true
+        run: |
+          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\InstallCleanup.exe"
+        shell: pwsh
+
+      # Replace Visual Studio 17.12 with 17.10 to workaround Firebase issue
+      # https://github.com/firebase/flutterfire/issues/16536
+      - name: Install Visual Studio 2022 Enterprise
+        run: |
+          Invoke-WebRequest -Uri https://aka.ms/vs/17/release.ltsc.17.10/vs_enterprise.exe -OutFile vs_enterprise.exe
+          $process = Start-Process -FilePath '.\vs_enterprise.exe' -ArgumentList "--add", "Microsoft.VisualStudio.Workload.Azure", "--quiet", "--norestart", "--wait", "--includeRecommended" -Wait -PassThru
+          Write-Output $process.ExitCode
+          $process = Start-Process -FilePath '.\vs_enterprise.exe' -ArgumentList "--add", "Microsoft.VisualStudio.Workload.NativeDesktop", "--quiet", "--norestart", "--wait", "--includeRecommended" -Wait -PassThru
+          Write-Output $process.ExitCode
+        shell: pwsh
+        # End of issue
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 6.2.0
           melos bootstrap
           cd apps/flipper
           dart run msix:create -v --install-certificate false
@@ -186,7 +206,7 @@ jobs:
           echo "## Release Notes" >> release_notes.txt
           echo " - New features..." >> release_notes.txt
           echo " - Bug fixes..." >> release_notes.txt
-
+     
       - name: Extract msix_version
         id: get_version
         shell: powershell
@@ -221,7 +241,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.24.3"
+          flutter-version: "3.24.5"
           channel: stable
       - run: flutter doctor -v
 
@@ -245,7 +265,7 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 6.2.0
           melos bootstrap
           cd apps/flipper
           dart run msix:create 	--store
@@ -291,7 +311,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.24.3"
+          flutter-version: "3.24.5"
           channel: stable
       - name: Configure Git with PAT
         env:
@@ -336,7 +356,7 @@ jobs:
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
         working-directory: apps/flipper/android
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 6.2.0
           melos bootstrap
       - name: Install Android SDK
         uses: malinskiy/action-android/install-sdk@release/0.1.7
@@ -365,7 +385,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.24.3" #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: "3.24.5" #firebase_auth_desktop is broken with  3.10.6
           channel: stable
       - run: flutter doctor -v
 
@@ -405,7 +425,7 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 6.2.0
           melos bootstrap
       # Setup Ruby, Bundler, and Gemfile dependencies
       - name: Setup Fastlane

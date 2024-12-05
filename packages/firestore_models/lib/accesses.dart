@@ -18,5 +18,6 @@ class Accesses with _$Accesses {
     String? status,
   }) = _Accesses;
 
-  factory Accesses.fromJson(Map<String, dynamic> json) => _$AccessesFromJson(json);
+  factory Accesses.fromJson(Map<String, dynamic> json) =>
+      _$AccessesFromJson(json);
 }

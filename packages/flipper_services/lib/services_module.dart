@@ -1,6 +1,6 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flipper_models/CloudSync.dart';
-import 'package:flipper_models/FlipperInterfaceCapella.dart';
+import 'package:flipper_models/CoreSync.dart';
+import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -8,14 +8,15 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/MockHttpClient.dart';
-import 'package:flipper_models/FlipperInterface.dart';
+import 'package:flipper_models/RealmInterface.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/Capella.dart';
-import 'package:flipper_services/PayStackService.dart';
 import 'package:flipper_services/HttpApi.dart';
+import 'package:flipper_services/PayStackService.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as httP;
@@ -67,14 +68,14 @@ import 'package:flipper_services/DeviceIdService.dart' as dev;
 abstract class ServicesModule {
   @LazySingleton()
   @Named('backup')
-  FlipperInterfaceCapella provideSyncInterface(FirebaseFirestore firestore) {
-    return CloudSync(firestore);
+  CoreDataInterface provideSyncInterface(FirebaseFirestore firestore) {
+    return CoreSync(firestore);
   }
 
   @preResolve
   @Named('capella')
   @LazySingleton()
-  Future<FlipperInterfaceCapella> capella(
+  Future<CoreDataInterface> capella(
     LocalStorage box,
   ) async {
     if (!kIsWeb) {
@@ -83,7 +84,7 @@ abstract class ServicesModule {
         useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
       );
     } else {
-      return CloudSync(firestore);
+      return CoreSync(firestore);
     }
   }
 
@@ -91,18 +92,18 @@ abstract class ServicesModule {
   @lazySingleton
   @Named('strategy')
   SyncStrategy provideStrategy(
-    @Named('capella') FlipperInterfaceCapella capella,
-    @Named('backup') FlipperInterfaceCapella backup,
+    @Named('capella') CoreDataInterface capella,
+    @Named('backup') CoreDataInterface backup,
   ) {
     return SyncStrategy(
       capella: capella as Capella,
-      cloudSync: backup as CloudSync,
+      cloudSync: backup as CoreSync,
     );
   }
 
   @preResolve
   @LazySingleton()
-  Future<FlipperInterface> localRealm(
+  Future<RealmInterface> localRealm(
     LocalStorage box,
   ) async {
     if (!kIsWeb) {
@@ -110,9 +111,8 @@ abstract class ServicesModule {
         box: box,
         useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
       );
-    } else {
-      return HttpApi();
     }
+    throw Exception("This is not supported on web");
   }
 
   @singleton

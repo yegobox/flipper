@@ -1,12 +1,12 @@
-import 'package:flipper_models/CloudSync.dart';
-import 'package:flipper_models/FlipperInterfaceCapella.dart';
+import 'package:flipper_models/CoreSync.dart';
+import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:flipper_services/Capella.dart';
 
-enum Strategy { capella, cloudSync }
+enum Strategy { capella, cloudSync, bricks }
 
 class SyncStrategy {
   final Capella capella;
-  final CloudSync cloudSync;
+  final CoreSync cloudSync;
   Strategy _currentStrategy = Strategy.capella;
 
   SyncStrategy({
@@ -14,8 +14,8 @@ class SyncStrategy {
     required this.cloudSync,
   });
 
-  FlipperInterfaceCapella get current =>
-      _currentStrategy == Strategy.capella ? capella : cloudSync;
+  CoreDataInterface get current =>
+      _currentStrategy == Strategy.capella ? capella as CoreDataInterface : cloudSync;
 
   void setStrategy(Strategy strategy) {
     _currentStrategy = strategy;

@@ -4,10 +4,11 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   amplify_db_common
+  cbl_flutter_ce
   desktop_webview_auth
-  device_type
   file_selector_linux
-  flutter_window_close
+  flutter_localization
+  gtk
   local_notifier
   printing
   realm
@@ -17,7 +18,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   tray_manager
   url_launcher_linux
   window_manager
-  window_size
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

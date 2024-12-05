@@ -1288,8 +1288,7 @@ class _EffectiveMouseCursor extends WidgetStateMouseCursor {
 
   @override
   MouseCursor resolve(Set<WidgetState> states) {
-    return WidgetStateProperty.resolveAs<MouseCursor?>(
-            widgetCursor, states) ??
+    return WidgetStateProperty.resolveAs<MouseCursor?>(widgetCursor, states) ??
         themeCursor?.resolve(states) ??
         WidgetStateMouseCursor.clickable.resolve(states);
   }

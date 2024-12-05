@@ -7,7 +7,7 @@ mixin TextEditingControllersMixin {
   final GlobalKey<FormState> purchaseCodeFormkey = GlobalKey<FormState>();
   final TextEditingController discountController = TextEditingController();
   final TextEditingController deliveryNoteCotroller = TextEditingController();
-  
+
   final TextEditingController receivedAmountController =
       TextEditingController();
   final TextEditingController customerPhoneNumberController =

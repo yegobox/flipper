@@ -1,6 +1,5 @@
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:realm/realm.dart';
@@ -269,8 +268,6 @@ final stockMock = Stock(
   ..variantId = 1
   ..lowStock = 0.0
   ..currentStock = 0.0
-  ..supplyPrice = 0.0
-  ..retailPrice = 0.0
   ..canTrackingStock = false
   ..showLowStockAlert = false
   ..productId = 2

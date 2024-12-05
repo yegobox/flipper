@@ -254,7 +254,7 @@ mixin Booting {
           lastDbBackup: business.lastDbBackup,
           fullName: business.fullName,
           tinNumber: business.tinNumber,
-          bhfId: ProxyService.box.bhfId() ?? "00",
+          bhfId: "00",
           dvcSrlNo: business.dvcSrlNo,
           adrs: business.adrs,
           taxEnabled: business.taxEnabled,

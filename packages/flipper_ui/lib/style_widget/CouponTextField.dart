@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CouponTextField extends StatefulWidget {
-  final TextEditingController couponController;
-  final AsyncValue<bool?> couponValidationState;
+class CustomizableTextField extends StatefulWidget {
+  final TextEditingController controller;
+  final AsyncValue<bool?> validateState;
   final void Function(String) onCouponChanged;
+  final String? wording;
 
-  const CouponTextField({
+  const CustomizableTextField({
     Key? key,
-    required this.couponController,
-    required this.couponValidationState,
+    required this.controller,
+    required this.validateState,
     required this.onCouponChanged,
+    this.wording = 'Enter Coupon Code',
   }) : super(key: key);
 
   @override
-  _CouponTextFieldState createState() => _CouponTextFieldState();
+  _CustomizableTextFieldState createState() => _CustomizableTextFieldState();
 }
 
-class _CouponTextFieldState extends State<CouponTextField> {
+class _CustomizableTextFieldState extends State<CustomizableTextField> {
   late OutlineInputBorder _border;
 
   @override
@@ -27,9 +29,9 @@ class _CouponTextFieldState extends State<CouponTextField> {
   }
 
   @override
-  void didUpdateWidget(CouponTextField oldWidget) {
+  void didUpdateWidget(CustomizableTextField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.couponValidationState != widget.couponValidationState) {
+    if (oldWidget.validateState != widget.validateState) {
       _updateBorder();
     }
   }
@@ -39,7 +41,7 @@ class _CouponTextFieldState extends State<CouponTextField> {
       _border = OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.0),
         borderSide: BorderSide(
-          color: widget.couponValidationState.when(
+          color: widget.validateState.when(
             data: (isValid) {
               if (isValid == null) return Colors.grey;
               return isValid ? Colors.green : Colors.red;
@@ -57,9 +59,9 @@ class _CouponTextFieldState extends State<CouponTextField> {
     return Padding(
       padding: const EdgeInsets.only(top: 8.0),
       child: TextField(
-        controller: widget.couponController,
+        controller: widget.controller,
         decoration: InputDecoration(
-          labelText: 'Enter Coupon Code',
+          labelText: widget.wording,
           border: _border,
           enabledBorder: _border,
           focusedBorder: _border,

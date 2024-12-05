@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:firestore_models/firestore_models.dart' as odm;
+import 'package:supabase_models/brick/models/all_models.dart' as odm;
 import 'package:dio/dio.dart';
 import 'package:flipper_models/NetworkHelper.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
@@ -13,6 +13,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/tax_api.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as models;
 // ignore: unused_import
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -65,11 +66,11 @@ class RWTax with NetworkHelper implements TaxApi {
       required String dvcSrlNo,
       required String URI}) async {
     String? token = ProxyService.box.readString(key: 'bearerToken');
-    EBM? ebm =
+    models.Ebm? ebm =
         await ProxyService.local.ebm(branchId: ProxyService.box.getBranchId()!);
     var headers = {'Authorization': token!, 'Content-Type': 'application/json'};
     var request = http.Request(
-        'POST', Uri.parse(ebm!.taxServerUrl! + 'initializer/selectInitInfo'));
+        'POST', Uri.parse(ebm!.taxServerUrl + 'initializer/selectInitInfo'));
     request.body =
         json.encode({"tin": tinNumber, "bhfId": bhfId, "dvcSrlNo": dvcSrlNo});
     request.headers.addAll(headers);
@@ -112,8 +113,10 @@ class RWTax with NetworkHelper implements TaxApi {
 
       List<TransactionItem> items = realm.query<TransactionItem>(
           r'transactionId == $0', [transaction.id]).toList();
-      List<Map<String, dynamic>> itemsList =
-          items.map((item) => mapItemToJson(item, realm)).toList();
+
+      List<Map<String, dynamic>> itemsList = items
+          .map((item) => mapItemToJson(item, realm, bhfId: bhFId))
+          .toList();
       if (itemsList.isEmpty) throw Exception("No items to save");
 
       /// add totDcAmt: "0"
@@ -279,7 +282,7 @@ class RWTax with NetworkHelper implements TaxApi {
     required String URI,
     String lastReqDt = "20210523000000",
   }) async {
-    EBM? ebm =
+    models.Ebm? ebm =
         await ProxyService.local.ebm(branchId: ProxyService.box.getBranchId()!);
     if (ebm == null) {
       return false;
@@ -317,30 +320,35 @@ class RWTax with NetworkHelper implements TaxApi {
   }) async {
     // Get business details
     Business? business = await ProxyService.local.getBusiness();
-    List<TransactionItem> items =
-        await ProxyService.local.getTransactionItemsByTransactionId(
-      transactionId: transaction.id,
-    );
+    List<TransactionItem> items = await ProxyService.local
+        .getTransactionItemsByTransactionId(transactionId: transaction.id);
 
     // Get the current date and time in the required format yyyyMMddHHmmss
     String date = timeToUser
         .toIso8601String()
         .replaceAll(RegExp(r'[:-\sT]'), '')
         .substring(0, 14);
-
+    final bhfId = await ProxyService.box.bhfId() ?? "00";
     // Build item list
     List<Map<String, dynamic>> itemsList = items
-        .map((item) => mapItemToJson(item, ProxyService.local.realm!))
+        .map((item) =>
+            mapItemToJson(item, ProxyService.local.realm!, bhfId: bhfId))
         .toList();
 
     // Calculate total for non-tax-exempt items
-    double totalTaxable = items
-        .where((item) => !item.isTaxExempted)
-        .fold(0, (sum, item) => sum + (item.price * item.qty));
+    double totalTaxable =
+        items.where((item) => !item.isTaxExempted).fold(0, (sum, item) {
+      double discountedPrice = item.dcRt != 0
+          ? item.price *
+              item.qty *
+              (1 - (item.dcRt / 100)) // Fixed: Discount calculation
+          : item.price * item.qty;
+      return sum + discountedPrice; // Fixed: Add to sum
+    });
 
     // Get sales and receipt type codes
     Map<String, String> receiptCodes = getReceiptCodes(receiptType);
-    Map<String, double> taxTotals = calculateTaxTotals(items);
+    Map<String, double> taxTotals = calculateTaxTotals(itemsList);
 
     // Retrieve customer information
     Customer? customer =
@@ -350,6 +358,7 @@ class RWTax with NetworkHelper implements TaxApi {
     Map<String, dynamic> requestData = buildRequestData(
         business: business,
         counter: counter,
+        bhFId: bhfId,
         transaction: transaction,
         date: date,
         totalTaxable: totalTaxable,
@@ -390,31 +399,51 @@ class RWTax with NetworkHelper implements TaxApi {
   }
 
 // Helper function to map TransactionItem to JSON
-  Map<String, dynamic> mapItemToJson(TransactionItem item, Realm realm) {
+  Map<String, dynamic> mapItemToJson(TransactionItem item, Realm realm,
+      {required String bhfId}) {
     Configurations taxConfig =
-        // ProxyService.local.getByTaxType(taxtype: item.taxTyCd!);
         realm.query<Configurations>(r'taxType == $0', [item.taxTyCd!]).first;
-    double taxAmount = (((item.price * item.qty) * taxConfig.taxPercentage!) /
-        (100 + taxConfig.taxPercentage!));
+
+    // Base calculations
+    final unitPrice = item.price;
+    final quantity = item.qty;
+    final baseTotal = unitPrice * quantity;
+
+    // Calculate discount amount correctly for the total
+    final discountRate = item.dcRt;
+    final totalDiscountAmount = (baseTotal * discountRate) / 100;
+
+    // Calculate total after discount
+    final totalAfterDiscount = baseTotal - totalDiscountAmount;
+
+    talker.warning("DISCOUNT${totalAfterDiscount}");
+
+    // Get tax percentage and calculate tax
+    final taxPercentage = taxConfig.taxPercentage ?? 0.0;
+    double taxAmount =
+        (totalAfterDiscount * taxPercentage) / (100 + taxPercentage);
+    taxAmount = (taxAmount * 100).round() / 100;
+
     final itemJson = ITransactionItem(
       id: item.id,
-      qty: item.qty,
+      qty: quantity,
       discount: item.discount,
       remainingStock: item.remainingStock,
       itemCd: item.itemCd,
       variantId: item.id,
       qtyUnitCd: "U",
-      prc: item.price,
       regrNm: item.regrNm ?? "Registrar",
-      dcRt: item.dcRt,
-      dcAmt: item.dcAmt,
-      pkg: item.qty.toInt(),
 
-      taxblAmt: (item.price * item.qty),
-      taxAmt: ((taxAmount) * 100).round() / 100,
+      // Fixed calculations
+      dcRt: discountRate,
+      dcAmt: totalDiscountAmount,
+      totAmt: totalAfterDiscount,
+
+      pkg: quantity.toInt(),
+      taxblAmt: totalAfterDiscount,
+      taxAmt: taxAmount,
       itemClsCd: item.itemClsCd,
       itemNm: item.name,
-      totAmt: item.price * item.qty,
       itemSeq: item.itemSeq,
       isrccCd: "",
       isrccNm: "",
@@ -427,29 +456,67 @@ class RWTax with NetworkHelper implements TaxApi {
       orgnNatCd: "RW",
       pkgUnitCd: "NT",
       splyAmt: item.price * item.qty,
-      bhfId: item.bhfId ?? ProxyService.box.bhfId(),
-      dftPrc: item.price,
+      price: item.price,
+      bhfId: item.bhfId ?? bhfId,
+      dftPrc: baseTotal,
       addInfo: "",
       isrcAplcbYn: "N",
+      prc: item.price,
       useYn: "Y",
       regrId:
           item.regrId?.toString() ?? randomNumber().toString().substring(0, 20),
       modrId: item.modrId ?? "ModifierID",
-      modrNm: item.modrNm ?? "Modifier", // Ensure modrNm is not null
+      modrNm: item.modrNm ?? "Modifier",
       name: item.name,
     ).toJson();
 
     return itemJson;
   }
 
-// Helper function to calculate tax totals
-  Map<String, double> calculateTaxTotals(List<TransactionItem> items) {
-    Map<String, double> taxTotals = {'A': 0.0, 'B': 0.0, 'C': 0.0, 'D': 0.0};
+  Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
+    // Initialize tax totals with zero values
+    Map<String, double> taxTotals = {
+      'A': 0.0,
+      'B': 0.0,
+      'C': 0.0,
+      'D': 0.0,
+    };
+
     for (var item in items) {
-      String taxType = item.taxTyCd ?? 'B';
-      double taxAmount = item.price * item.qty;
-      taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
+      try {
+        // Validate and fetch data with default fallback
+        String taxType = (item['taxTyCd'] as String?) ?? 'B';
+
+        // Ensure taxType is one of the valid types
+        if (!taxTotals.containsKey(taxType)) {
+          print(
+              'Warning: Invalid tax type $taxType found. Using default type B');
+          taxType = 'B';
+        }
+
+        final unitPrice = item['price'];
+        final quantity = (item['qty'] as num?)?.toDouble() ?? 0.0;
+        final discountRate = item['dcRt'];
+
+        // Calculate unit discount and taxable amount
+        double unitDiscount = (unitPrice * discountRate) / 100;
+        double unitTaxableAmount = unitPrice - unitDiscount;
+
+        // Multiply by quantity
+        double totalTaxableAmount = unitTaxableAmount * quantity;
+
+        // Add to the appropriate tax type total using direct addition
+        taxTotals[taxType] = taxTotals[taxType]! + totalTaxableAmount;
+
+        // Optional: Add debug print to verify calculations
+        print(
+            'Processing item - Tax Type: $taxType, Amount: $totalTaxableAmount, New Total: ${taxTotals[taxType]}');
+      } catch (e) {
+        print('Error processing item: $item');
+        print('Error details: $e');
+      }
     }
+
     return taxTotals;
   }
 
@@ -458,6 +525,8 @@ class RWTax with NetworkHelper implements TaxApi {
     switch (receiptType) {
       case 'NR':
         return {'salesTyCd': 'N', 'rcptTyCd': 'R'};
+      case 'CR':
+        return {'salesTyCd': 'C', 'rcptTyCd': 'R'};
       case 'NS':
         return {'salesTyCd': 'N', 'rcptTyCd': 'S'};
       case 'CS':
@@ -466,8 +535,10 @@ class RWTax with NetworkHelper implements TaxApi {
         return {'salesTyCd': 'T', 'rcptTyCd': 'S'};
       case 'PS':
         return {'salesTyCd': 'P', 'rcptTyCd': 'S'};
+      case 'TR':
+        return {'salesTyCd': 'T', 'rcptTyCd': 'R'};
       default:
-        return {'salesTyCd': 'N', 'rcptTyCd': 'S'};
+        return {'salesTyCd': 'N', 'rcptTyCd': 'R'};
     }
   }
 
@@ -485,6 +556,7 @@ class RWTax with NetworkHelper implements TaxApi {
     String? purchaseCode,
     required String receiptType,
     required DateTime timeToUse,
+    required String bhFId,
   }) {
     Configurations taxConfigTaxB =
         ProxyService.local.getByTaxType(taxtype: "B");
@@ -494,6 +566,14 @@ class RWTax with NetworkHelper implements TaxApi {
         ProxyService.local.getByTaxType(taxtype: "C");
     Configurations taxConfigTaxD =
         ProxyService.local.getByTaxType(taxtype: "D");
+    if (transaction.customerId != null) {
+      //  it mighbe a copy re-assign a customer
+      talker.warning("Overriding customer");
+      Customer? cus =
+          ProxyService.local.getCustomer(id: transaction.customerId!);
+      customer = cus;
+      talker.warning(customer);
+    }
 
     /// TODO: for totalTax we are not accounting other taxes only B
     /// so need to account them in future
@@ -508,8 +588,7 @@ class RWTax with NetworkHelper implements TaxApi {
 
     Map<String, dynamic> json = {
       "tin": business?.tinNumber.toString() ?? "999909695",
-      // "custTin": customer?.custTin ?? "",
-      "bhfId": ProxyService.box.bhfId() ?? "00",
+      "bhfId": bhFId,
       "invcNo": counter.invcNo,
       "orgInvcNo": 0,
       "salesTyCd": receiptCodes['salesTyCd'],
@@ -523,7 +602,7 @@ class RWTax with NetworkHelper implements TaxApi {
 
       // Ensure tax amounts and taxable amounts are set to 0 if null
       "taxblAmtA": taxTotals['A'] ?? 0.0,
-      "taxblAmtB": taxTotals['B'] ?? 0.0,
+      "taxblAmtB": (taxTotals['B'] ?? 0.0),
       "taxblAmtC": taxTotals['C'] ?? 0.0,
       "taxblAmtD": taxTotals['D'] ?? 0.0,
 
@@ -556,8 +635,6 @@ class RWTax with NetworkHelper implements TaxApi {
       "regrNm": transaction.id,
       "modrId": transaction.id,
       "modrNm": transaction.id,
-      "rfdRsnCd": ProxyService.box.getRefundReason(),
-
       "custNm": customer?.custNm ?? ProxyService.box.customerName() ?? "N/A",
       "remark": "",
       "prchrAcptcYn": "Y",
@@ -573,18 +650,27 @@ class RWTax with NetworkHelper implements TaxApi {
       },
       "itemList": itemsList,
     };
-    if (receiptType == "NR") {
+    if (receiptType == "NR" || receiptType == "CR") {
+      json['rfdRsnCd'] = ProxyService.box.getRefundReason() ?? "05";
+    }
+    if (receiptType == "NR" || receiptType == "CR" || receiptType == "TR") {
       /// this is normal refund add rfdDt refunded date
       /// ATTENTION: rfdDt was added later and it might cause trouble we need to watch out.
-      json['rfdDt'] = timeToUse.toYYYMMdd();
-      json['orgInvcNo'] = counter.invcNo! - 1;
+      /// 'rfdDt': Must be a valid date in yyyyMMddHHmmss format. rejected value: '20241107'
+      json['rfdDt'] = timeToUse.toYYYMMddHHmmss();
+
+      // get a transaction being refunded
+      // final trans = ProxyService.local.getTransactionById(
+      //     id: transaction.id!);
+      json['orgInvcNo'] = transaction.invoiceNumber;
+      // json['orgInvcNo'] = counter.invcNo! - 1;
     }
     if (customer != null) {
       json = addFieldIfCondition(
           customer: customer,
           json: json,
           transaction: transaction,
-          purchaseCode: purchaseCode);
+          purchaseCode: purchaseCode ?? ProxyService.box.purchaseCode());
     }
     // print(json);
     return json;
@@ -620,19 +706,17 @@ class RWTax with NetworkHelper implements TaxApi {
   String custNmKey = "custNm";
   String prcOrdCd = "prcOrdCd";
 
-  Map<String, dynamic> addFieldIfCondition({
-    required Map<String, dynamic> json,
-    required ITransaction transaction,
-    required Customer customer,
-    String? purchaseCode,
-  }) {
+  Map<String, dynamic> addFieldIfCondition(
+      {required Map<String, dynamic> json,
+      required ITransaction transaction,
+      required Customer customer,
+      String? purchaseCode}) {
     if (transaction.customerId != null && purchaseCode != null) {
       json[custTinKey] = customer.custTin;
       json[custNmKey] = customer.custNm;
       json[prcOrdCd] = purchaseCode;
       json['receipt'][custTinKey] = customer.custTin;
     }
-
     return json;
   }
 
@@ -681,6 +765,7 @@ class RWTax with NetworkHelper implements TaxApi {
       {required SaleList item,
       required String URI,
       String rcptTyCd = "S",
+      required String bhfId,
       required Realm realm}) async {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'trnsPurchase/savePurchases')
@@ -689,7 +774,7 @@ class RWTax with NetworkHelper implements TaxApi {
         realm.query<Business>(r'isDefault == $0', [true]).firstOrNull;
     Map<String, dynamic> data = item.toJson();
     data['tin'] = business?.tinNumber ?? 999909695;
-    data['bhfId'] = ProxyService.box.bhfId() ?? "00";
+    data['bhfId'] = bhfId;
     data['pchsDt'] = convertDateToString(DateTime.now()).substring(0, 8);
     data['invcNo'] = item.spplrInvcNo;
     data['regrId'] = randomNumber().toString();
@@ -820,7 +905,7 @@ class RWTax with NetworkHelper implements TaxApi {
         /// that way we will be updating the product's variant with no question
         /// otherwise then create a complete new product.
         ProxyService.local.createProduct(
-          bhFId: ProxyService.box.bhfId() ?? "00",
+          bhFId: await ProxyService.box.bhfId() ?? "00",
           tinNumber: ProxyService.box.tin(),
           businessId: ProxyService.box.getBusinessId()!,
           branchId: ProxyService.box.getBranchId()!,

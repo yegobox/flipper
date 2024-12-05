@@ -48,7 +48,8 @@ class _AddVariationState extends State<AddVariation> {
                 ElevatedButton(
                   onPressed: () async {
                     if (AddVariation._formKey.currentState!.validate()) {
-                      await _saveVariation(model);
+                      /// TODO: change this hard coded on mobile later.
+                      await _saveVariation(model, selectedProductType: "1");
                       _routerService.pop();
                     }
                   },
@@ -160,7 +161,12 @@ class _AddVariationState extends State<AddVariation> {
         viewModelBuilder: () => ProductViewModel());
   }
 
-  Future<void> _saveVariation(ProductViewModel model) async {
+  Future<void> _saveVariation(
+    ProductViewModel model, {
+    required String selectedProductType,
+    Map<int, TextEditingController>? rates,
+    Map<int, TextEditingController>? dates,
+  }) async {
     Business business = await ProxyService.local.getBusiness();
     String itemPrefix = "flip-";
     String clip = itemPrefix +
@@ -196,7 +202,7 @@ class _AddVariationState extends State<AddVariation> {
       ..branchId = ProxyService.box.getBranchId()!
       ..taxPercentage = 0.0
       // RRA fields
-      ..bhfId = ProxyService.box.bhfId() ?? "00"
+      ..bhfId = await ProxyService.box.bhfId() ?? "00"
       ..tin = business.tinNumber
       ..itemCd = clip
       ..itemStdNm = "Regular"
@@ -211,7 +217,10 @@ class _AddVariationState extends State<AddVariation> {
     variations.add(data);
 
     await model.addVariant(
+      selectedProductType: selectedProductType,
       packagingUnit: "BJ",
+      rates: rates,
+      dates: dates,
       variations: variations,
     );
   }

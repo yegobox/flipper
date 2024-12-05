@@ -94,14 +94,16 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                   if (_formKey.currentState?.validate() ?? false) {
                     setState(() => _busy = true);
                     _formKey.currentState?.save();
-                    await handleReceiptGeneration(_controller.text);
+                    await handleReceiptGeneration(
+                        purchaseCode: _controller.text,
+                        filterType: FilterType.NS);
                   }
                 },
               ),
               TextButton(
                 child: Text('Cancel'),
                 onPressed: () async {
-                  await handleReceiptGeneration();
+                  await handleReceiptGeneration(filterType: FilterType.NS);
                 },
               ),
             ],
@@ -111,9 +113,11 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
     }
   }
 
-  Future<void> handleReceiptGeneration([String? purchaseCode]) async {
+  Future<void> handleReceiptGeneration(
+      {String? purchaseCode, required FilterType filterType}) async {
     try {
-      await TaxController(object: widget.transaction).handleReceipt();
+      await TaxController(object: widget.transaction)
+          .handleReceipt(filterType: filterType);
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _busy = false);
@@ -185,6 +189,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 if (transaction?.ebmSynced ?? false) {
                   await TaxController(object: transaction).handleReceipt(
                     skiGenerateRRAReceiptSignature: true,
+                    filterType: FilterType.NS,
                   );
                 } else {
                   toast("Please wait we are generating the receipt");

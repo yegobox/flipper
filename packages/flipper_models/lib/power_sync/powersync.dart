@@ -184,12 +184,7 @@
 //     schema: schema,
 //     logger: attachedLogger,
 //   );
-//   // Open the local database
-//   // db = PowerSyncDatabase(
-//   //   schema: schema,
-//   //   path: await getDatabasePath(),
-//   //   logger: attachedLogger,
-//   // );
+
 //   await db.initialize();
 
 //   await loadSupabase();
@@ -223,7 +218,7 @@
 
 //   // Demo using SQLite Full-Text Search with PowerSync.
 //   // See https://docs.powersync.com/usage-examples/full-text-search for more details
-//   await configureFts(db);
+//   // await configureFts(db);
 // }
 
 // /// Explicit sign out - clear database and log out.

@@ -78,7 +78,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
-  String? getServerUrl() {
+  Future<String?> getServerUrl() async {
     return "https://example.com"; // Sample server URL
   }
 
@@ -189,7 +189,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
-  String bhfId() {
+  Future<String> bhfId() async {
     return "sample_bhf_id"; // Sample BHF ID
   }
 
@@ -274,5 +274,36 @@ class SharedPreferenceStorageMock implements LocalStorage {
   bool? switchToCloudSync() {
     // TODO: implement switchToCloudSync
     return true;
+  }
+
+  @override
+  bool? useInHouseSyncGateway() {
+    return true;
+  }
+
+  @override
+  String customPhoneNumberForPayment() {
+    return "";
+  }
+
+  @override
+  String? purchaseCode() {
+    return "";
+  }
+
+  @override
+  bool A4() {
+    // TODO: implement A4
+    return false;
+  }
+
+  @override
+  int? numberOfPayments() {
+    return 1;
+  }
+
+  @override
+  bool exportAsPdf() {
+    return false;
   }
 }

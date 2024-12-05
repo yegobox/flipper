@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   get: ^4.6.1
-  flipper_models: ^0.0.1-dev.7
+  flipper_models: any
 
   flipper_routing: ^0.0.1-dev.3
 
@@ -42,7 +42,7 @@ dependencies:
   number_display: ^3.0.0
   firebase_core: ^3.6.0
   cupertino_icons: ^1.0.4
-  flipper_services: ^1.0.0-dev
+  flipper_services: any
 
   flipper_login: ^0.0.1-dev.5
   intl: ^0.19.0
@@ -105,9 +105,9 @@ dependencies:
   sizer: ^2.0.15
   talker_flutter: ^4.1.5
   collection: ^1.18.0
-  amplify_api: ^2.4.1
-  amplify_flutter: ^2.0.0
-  amplify_auth_cognito: ^2.4.1
+  amplify_api: ^2.5.0
+  amplify_flutter: ^2.5.0
+  amplify_auth_cognito: ^2.5.0
   flutter_side_menu: ^0.5.3
   
   phone_numbers_parser: ^8.3.0
@@ -117,15 +117,15 @@ dependencies:
   flipper_rw:
   flipper_mocks: any
   excel: ^4.0.6
+  supabase_models: any
+  supabase_flutter: ^2.8.0
 
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.12.0
-  
-  
   web: ^1.0.0
-  
   json_annotation: ^4.9.0
+  sqlite3: ^2.4.7
 
 flutter:
   # The following line ensures that the Material Icons font is

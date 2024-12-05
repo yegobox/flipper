@@ -10,7 +10,7 @@ class IUnit with _$IUnit {
     int? branchId,
     String? name,
     String? value,
-    bool? active ,
+    bool? active,
     DateTime? lastTouched,
     String? createdAt,
     DateTime? deletedAt,

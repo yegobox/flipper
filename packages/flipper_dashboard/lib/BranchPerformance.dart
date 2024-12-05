@@ -299,10 +299,25 @@ class ItemDetailCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item.variant?.productName ??
-                          (item.variant?.id ?? "-").toString(),
-                      style: Theme.of(context).textTheme.titleMedium,
+                    FutureBuilder<Variant?>(
+                      future: ProxyService.local
+                          .getVariantById(id: item.variantId!),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (snapshot.hasData) {
+                          final variant = snapshot.data as Variant;
+                          return Text(
+                            variant.productName ?? "-",
+                            style: Theme.of(context).textTheme.titleMedium,
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
                     ),
                     SizedBox(height: 8),
                     Text('Sold: ${item.initialStock ?? 0 - item.currentStock}',
@@ -361,12 +376,28 @@ class BestSellingItemCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      bestSeller.variant!.productName!,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                    FutureBuilder(
+                      future: ProxyService.local
+                          .getVariantById(id: bestSeller.variantId!),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (snapshot.hasData) {
+                          final variant = snapshot.data as Variant;
+                          return Text(
+                            variant.productName!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          );
+                        } else {
+                          return Text('No data');
+                        }
+                      },
                     ),
                     Text(
                       'Sold: $itemsSold',

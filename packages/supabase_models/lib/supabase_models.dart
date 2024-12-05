@@ -1,0 +1,1 @@
+library supabase_models;

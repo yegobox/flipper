@@ -195,9 +195,23 @@ class SettingViewModel extends CoreViewModel {
   }
 
   bool get isProformaModeEnabled => ProxyService.box.isProformaMode();
+  bool get printA4 => ProxyService.box.A4();
+  bool get exportAsPdf => ProxyService.box.exportAsPdf();
   set isProformaModeEnabled(bool value) {
     if (!ProxyService.box.isTrainingMode()) {
       ProxyService.box.writeBool(key: 'isProformaMode', value: value);
+      notifyListeners();
+    }
+  }
+
+  set exportAsPdf(bool value) {
+    ProxyService.box.writeBool(key: 'exportAsPdf', value: value);
+    notifyListeners();
+  }
+
+  set printA4(bool value) {
+    if (!ProxyService.box.isTrainingMode()) {
+      ProxyService.box.writeBool(key: 'A4', value: value);
       notifyListeners();
     }
   }

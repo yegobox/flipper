@@ -4,6 +4,7 @@ import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
@@ -34,18 +35,20 @@ mixin TransactionMixin {
       required Function onComplete,
       required double discount}) async {
     try {
+      final bhfId = await ProxyService.box.bhfId() ?? "00";
       final taxExanbled = ProxyService.local
-          .isTaxEnabled(business: ProxyService.local.getBusiness());
+          .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
       RwApiResponse? response;
-      final hasServerUrl = ProxyService.box.getServerUrl() != null;
-      final hasUser = ProxyService.box.bhfId() != null;
+      final hasServerUrl = await ProxyService.box.getServerUrl() != null;
+      final hasUser = await ProxyService.box.bhfId() != null;
+      final isTaxServiceStoped = ProxyService.box.stopTaxService();
 
       /// update transaction type
       ProxyService.local.updateTransactionType(
           transaction: transaction,
           isProformaMode: ProxyService.box.isProformaMode(),
           isTrainingMode: ProxyService.box.isTrainingMode());
-      if (taxExanbled && hasServerUrl && hasUser) {
+      if (taxExanbled && hasServerUrl && hasUser && !isTaxServiceStoped!) {
         response = await handleReceiptGeneration(
             formKey: formKey,
             context: context,
@@ -56,6 +59,7 @@ mixin TransactionMixin {
         } else {
           updateCustomerTransaction(
               transaction,
+              bhfId: bhfId,
               customerNameController.text,
               customerNameController,
               amount,
@@ -68,10 +72,11 @@ mixin TransactionMixin {
       } else {
         updateCustomerTransaction(
             transaction,
+            bhfId: bhfId,
             customerNameController.text,
             customerNameController,
             amount,
-            categoryId!,
+            categoryId ?? "0",
             transactionType,
             paymentType,
             onComplete: onComplete,
@@ -95,12 +100,13 @@ mixin TransactionMixin {
       String transactionType,
       String paymentType,
       double discount,
-      {required Function onComplete}) {
+      {required Function onComplete,
+      required String bhfId}) {
     ProxyService.local.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
-      bhfId: ProxyService.box.bhfId() ?? "00",
+      bhfId: bhfId,
       cashReceived: amount,
       transaction: transaction,
       categoryId: categoryId,
@@ -147,17 +153,28 @@ mixin TransactionMixin {
     }
   }
 
+  FilterType getFilterType({required String transactionType}) {
+    if (transactionType == "NS") {
+      return FilterType.NS;
+    } else if (transactionType == "PS") {
+      return FilterType.PS;
+    } else if (transactionType == "TS") {
+      return FilterType.TS;
+    } else {
+      return FilterType.NS;
+    }
+  }
+
   Future<RwApiResponse> handleReceiptGeneration(
       {String? purchaseCode,
       ITransaction? transaction,
       required GlobalKey<FormState> formKey,
       required BuildContext context}) async {
     try {
-      ITransaction? trans =
-          await ProxyService.local.getTransactionById(id: transaction!.id!);
-
-      final responseFrom = await TaxController(object: trans).handleReceipt(
+      final responseFrom =
+          await TaxController(object: transaction!).handleReceipt(
         purchaseCode: purchaseCode,
+        filterType: getFilterType(transactionType: transaction.receiptType!),
       );
       final (:response, :bytes) = responseFrom;
 
@@ -181,9 +198,7 @@ mixin TransactionMixin {
       required double currentStock,
       required bool partOfComposite}) async {
     try {
-      String name = variation.productName != 'Custom Amount'
-          ? '${variation.productName}(${variation.name})'
-          : variation.productName!;
+      String name = variation.productName ?? "N/A";
 
       TransactionItem? existTransactionItem = ProxyService.local
           .getTransactionItemByVariantId(
@@ -243,9 +258,9 @@ mixin TransactionMixin {
         // Add new item (for both custom and new non-custom items)
         double computedQty = isCustom ? 1.0 : quantity;
         if (partOfComposite) {
-          Composite composite =
+          Composite? composite =
               ProxyService.local.composite(variantId: variation.id!);
-          computedQty = composite.qty ?? 0.0;
+          computedQty = composite?.qty ?? 0.0;
         }
 
         TransactionItem newItem = TransactionItem(
@@ -301,6 +316,8 @@ mixin TransactionMixin {
           modrId: variation.modrId,
           modrNm: variation.modrNm,
           partOfComposite: partOfComposite,
+          dcRt: variation.dcRt,
+          dcAmt: (variation.retailPrice * variation.qty) * variation.dcRt,
         );
 // 428129618288376
         ProxyService.local.addTransactionItem(

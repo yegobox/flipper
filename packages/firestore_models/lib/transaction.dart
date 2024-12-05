@@ -10,17 +10,17 @@ class Transaction with _$Transaction {
     String? reference,
     String? categoryId,
     String? transactionNumber,
-    @Default(null)  int? branchId,
-    @Default(null)  String? status,
-    @Default(null)  String? transactionType,
+    @Default(null) int? branchId,
+    @Default(null) String? status,
+    @Default(null) String? transactionType,
     @Default(0.0) double subTotal,
     String? paymentType,
     @Default(0.0) double cashReceived,
     @Default(0.0) double customerChangeDue,
-    @Default(null)  String? createdAt,
+    @Default(null) String? createdAt,
     String? receiptType,
     String? updatedAt,
-    @Default(null)  int? customerId,
+    @Default(null) int? customerId,
     String? customerType,
     String? note,
     DateTime? lastTouched,
@@ -41,7 +41,6 @@ class Transaction with _$Transaction {
     int? invoiceNumber,
   }) = _Transaction;
 
-
-  factory Transaction.fromJson(Map<String, dynamic> json) => 
+  factory Transaction.fromJson(Map<String, dynamic> json) =>
       _$TransactionFromJson(json);
 }

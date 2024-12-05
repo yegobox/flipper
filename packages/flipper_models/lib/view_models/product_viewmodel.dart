@@ -111,7 +111,7 @@ class ProductViewModel extends FlipperBaseModel
       /// create a temp product or return it if it exists
       Product? product = await ProxyService.local.createProduct(
         tinNumber: ProxyService.box.tin(),
-        bhFId: ProxyService.box.bhfId() ?? "00",
+        bhFId: await ProxyService.box.bhfId() ?? "00",
         businessId: ProxyService.box.getBusinessId()!,
         branchId: ProxyService.box.getBranchId()!,
         product: Product(
@@ -310,11 +310,6 @@ class ProductViewModel extends FlipperBaseModel
             variation.productName = product!.name;
 
             variation.productId = variation.productId;
-            Stock? stock = await ProxyService.local.stockByVariantId(
-                variantId: variation.id!,
-                branchId: ProxyService.box.getBranchId()!);
-
-            stock!.supplyPrice = supplyPrice;
           }
         }
       }
@@ -327,11 +322,6 @@ class ProductViewModel extends FlipperBaseModel
             variation.prc = retailPrice;
 
             variation.productName = product!.name;
-            Stock? stock = await ProxyService.local.stockByVariantId(
-                variantId: variation.id!,
-                branchId: ProxyService.box.getBranchId()!);
-
-            stock!.retailPrice = retailPrice;
           }
         }
       }

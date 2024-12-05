@@ -466,9 +466,6 @@ class _Stock {
   // RRA fields
   double rsdQty = 0.0;
 
-  double supplyPrice = 0.0;
-  double retailPrice = 0.0;
-
   DateTime? lastTouched;
 
   DateTime? deletedAt;
@@ -561,9 +558,6 @@ class _Variant {
   String? modrId;
   String? modrNm;
 
-  /// property for stock but presented here for easy
-  double rsdQty = 0.0;
-
   DateTime? lastTouched;
 
   double supplyPrice = 0.0;
@@ -591,6 +585,9 @@ class _Variant {
   /// we want to assign this variant to multiple branch
   late List<int> branchIds;
   late _Stock? stock;
+
+  double dcRt = 0.0;
+  DateTime? expirationDate;
 }
 
 @RealmModel()

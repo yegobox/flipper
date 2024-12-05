@@ -51,7 +51,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       });
       final data = await ProxyService.local.selectImportItems(
         tin: ProxyService.box.tin(),
-        bhfId: ProxyService.box.bhfId() ?? "00",
+        bhfId: await ProxyService.box.bhfId() ?? "00",
         lastReqDt: convertedDate,
       );
       setState(() {
@@ -64,10 +64,11 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       setState(() {
         isLoading = true;
       });
+      final url = await ProxyService.box.getServerUrl();
       final rwResponse = await ProxyService.tax.selectTrnsPurchaseSales(
-        URI: ProxyService.box.getServerUrl()!,
+        URI: url!,
         tin: ProxyService.box.tin(),
-        bhfId: ProxyService.box.bhfId() ?? "00",
+        bhfId: await ProxyService.box.bhfId() ?? "00",
         lastReqDt: convertedDate,
       );
       setState(() {
@@ -179,7 +180,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       setState(() {
         isLoading = true;
       });
-      talker.warning("salesListLrnghts" + salesList.length.toString());
+      talker.warning("salesListLenghts" + salesList.length.toString());
+      final ref = randomNumber();
       for (SaleList supplier in salesList) {
         for (ItemList item in supplier.itemList!) {
           item.retailPrice ??= item.prc;
@@ -189,7 +191,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
             businessId: ProxyService.box.getBusinessId()!,
             branchId: ProxyService.box.getBranchId()!,
             tinNumber: ProxyService.box.tin(),
-            bhFId: ProxyService.box.bhfId() ?? "00",
+            bhFId: await ProxyService.box.bhfId() ?? "00",
             product: Product(
               id: randomNumber(),
               ObjectId(),
@@ -200,8 +202,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               createdAt: DateTime.now().toIso8601String(),
               spplrNm: supplier.spplrNm,
             ),
-            supplyPrice: item.prc,
-            retailPrice: item.prc,
+            supplyPrice: item.splyAmt,
+            retailPrice: item.retailPrice ?? item.prc,
             itemSeq: item.itemSeq,
             ebmSynced: false,
           );
@@ -214,8 +216,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               .getVariantByProductId(productId: product.id!);
           talker.warning("Variant ${variant?.id}");
           pendingTransaction = ProxyService.local.manageTransaction(
-            transactionType: TransactionType.sale,
-            isExpense: false,
+            transactionType: TransactionType.purchase,
+            isExpense: true,
             branchId: ProxyService.box.getBranchId()!,
           );
           if (variant != null) {
@@ -226,30 +228,40 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               customItem: false,
               currentStock: variant.stock!.currentStock,
               pendingTransaction: pendingTransaction,
-              partOfComposite: true,
+              partOfComposite: false,
               compositePrice: 0,
             );
+            final bhfId = await ProxyService.box.bhfId() ?? "00";
+
             // mark the transaction as parked until completed
             ProxyService.local.realm!.write(() {
               /// when sarTyCd == 6 it is incoming adjustment
               pendingTransaction!.sarTyCd = "6";
+              pendingTransaction.subTotal =
+                  pendingTransaction.subTotal + item.splyAmt;
+              pendingTransaction.cashReceived =
+                  -(pendingTransaction.subTotal + item.splyAmt);
               pendingTransaction.customerName =
                   ProxyService.local.getBusiness().name;
+              pendingTransaction.receiptNumber = ref;
+              pendingTransaction.reference = ref.toString();
+              pendingTransaction.invoiceNumber = ref;
+              pendingTransaction.receiptType = TransactionType.purchase;
               pendingTransaction.customerTin =
                   ProxyService.box.tin().toString();
-              pendingTransaction.customerBhfId =
-                  ProxyService.box.bhfId() ?? "00";
+              pendingTransaction.customerBhfId = bhfId;
               pendingTransaction.status = PARKED;
             });
           }
 
           /// save purchased item
-          ProxyService.tax.savePurchases(
+          await ProxyService.tax.savePurchases(
               item: supplier,
+              bhfId: await ProxyService.box.bhfId() ?? "00",
               realm: ProxyService.local.realm!,
               // P is Purchase, it has sort order of 1
               rcptTyCd: "P",
-              URI: ProxyService.box.getServerUrl()!);
+              URI: await ProxyService.box.getServerUrl() ?? "");
         }
 
         /// mark transaction as completed from parked
@@ -282,7 +294,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       });
       for (Item item in finalItemList) {
         await ProxyService.tax.updateImportItems(
-            item: item, URI: ProxyService.box.getServerUrl()!);
+            item: item, URI: await ProxyService.box.getServerUrl() ?? "");
       }
       setState(() {
         isLoading = false;

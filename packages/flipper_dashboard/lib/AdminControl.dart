@@ -1,15 +1,16 @@
+import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
-import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realmExtension.dart';
+// import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 // import 'package:flipper_services/DatabaseProvider.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:cbl/cbl.dart'
-    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+import 'package:supabase_models/brick/repository.dart';
 
 class AdminControl extends StatefulWidget {
   const AdminControl({super.key});
@@ -51,39 +52,236 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   Future<void> toggleForceUPSERT(bool value) async {
-    // ProxyService.capela.startReplicator();
+    /// get product attempt to save'em in sqlite.
+    final repository = Repository();
+    List<Product> products = await ProxyService.local
+        .products(branchId: ProxyService.box.getBranchId()!);
+    for (Product product in products) {
+      await repository.upsert(models.Product(
+        id: product.id!,
+        name: product.name!,
+        taxId: product.taxId,
+        description: product.description,
+        color: product.color,
+        businessId: product.businessId!,
+        branchId: product.branchId!,
+        supplierId: product.supplierId,
+        categoryId: product.categoryId,
+        // taxId: product.taxId,
+        unit: product.unit,
+        imageUrl: product.imageUrl,
+        expiryDate: product.expiryDate,
+        barCode: product.barCode,
+        nfcEnabled: product.nfcEnabled,
+        bindedToTenantId: product.bindedToTenantId,
+        isFavorite: product.isFavorite,
+        lastTouched: product.lastTouched,
+        deletedAt: product.deletedAt,
 
+        spplrNm: product.spplrNm,
+        isComposite: product.isComposite,
+        composites: [],
+      ));
+    }
     try {
-      // Switch implementation
+      // deal with items
 
-      // Map<String, dynamic> map = {"id": 1521};
-      // final db = ProxyService.capela.capella!.flipperDatabase!;
-      // Use the writeN method to write the document
-      // await db.writeN(
-      //     tableName: "your_table_name",
-      //     writeCallback: () {
-      //       // Create a document with the given ID and map data
-      //       final document = MutableDocument.withId("1521", map);
+      List<Variant> variants = ProxyService.local
+          .variants(branchId: ProxyService.box.getBranchId()!);
+      talker.warning("I Expect ${variants.length} variants When seeding");
+      for (Variant variant in variants) {
+        final vv = models.Variant(
+          id: variant.id!,
+          // branchIds: [ProxyService.box.getBranchId()!],
+          deletedAt: variant.deletedAt,
+          name: variant.name ?? "", // Use empty string if name is null
+          color: variant.color,
+          sku: variant.sku,
 
-      //       // Return the created document (of type T, in this case a MutableDocument)
-      //       return document;
-      //     },
-      //     onAdd: (doc) async {
-      //       // After the write operation, save the document to the collection
-      //       final collection =
-      //           await ProxyService.capela.getCountersCollection();
+          productId: variant.productId,
+          unit: variant.unit,
+          productName: variant.productName ?? "",
+          branchId: variant.branchId, // Assuming this is optional
+          taxName: variant.taxName ?? "",
+          taxPercentage: variant.taxPercentage.toInt(),
+          itemSeq: variant.itemSeq,
+          isrccCd: variant.isrccCd ?? "",
+          isrccNm: variant.isrccNm ?? "",
+          isrcRt: variant.isrcRt ?? 0,
+          isrcAmt: variant.isrcAmt ?? 0,
+          taxTyCd: variant.taxTyCd ?? "B", // Default to "B" if null
+          bcd: variant.bcd ?? "",
+          itemClsCd: variant.itemClsCd,
+          itemTyCd: variant.itemTyCd,
+          itemStdNm: variant.itemStdNm ?? "",
+          orgnNatCd: variant.orgnNatCd ?? "",
+          pkg: variant.pkg ?? "1", // Default to "1" if null
+          itemCd: variant.itemCd ?? "",
+          pkgUnitCd: variant.pkgUnitCd ?? "CT", // Default to "CT" if null
+          qtyUnitCd: variant.qtyUnitCd ?? "BX", // Default to "BX" if null
+          itemNm: variant.itemNm,
+          prc: variant.retailPrice.toInt(),
+          splyAmt: variant.splyAmt.toInt(),
+          tin: variant.tin,
+          bhfId: variant.bhfId,
+          dftPrc: variant.dftPrc?.toInt() ?? 0,
+          addInfo: variant.addInfo ?? "",
+          isrcAplcbYn: variant.isrcAplcbYn ?? "",
+          useYn: variant.useYn ?? "",
+          regrId: variant.regrId,
+          regrNm: variant.regrNm,
+          modrId: variant.modrId,
+          modrNm: variant.modrNm,
+          lastTouched: variant.lastTouched,
+          supplyPrice: variant.supplyPrice.toInt(),
+          retailPrice: variant.retailPrice.toInt(),
+          spplrItemClsCd: variant.spplrItemClsCd,
+          spplrItemCd: variant.spplrItemCd,
+          spplrItemNm: variant.spplrItemNm,
+          ebmSynced: variant.ebmSynced,
+          dcRt: variant.dcRt.toInt(),
+          expirationDate: variant.expirationDate,
+        );
+        final addedV = await repository.upsert<models.Variant>(vv);
+        // upsert stock first
+        final stock = await repository.upsert<models.Stock>(models.Stock(
+          variant: addedV,
+          id: variant.stock!.id!,
+          tin: variant.stock!.tin,
+          bhfId: variant.stock!.bhfId,
+          branchId: variant.stock!.branchId,
+          currentStock: variant.stock!.currentStock.toInt(),
+          lowStock: variant.stock!.lowStock.toInt(),
+          canTrackingStock: variant.stock!.canTrackingStock,
+          showLowStockAlert: variant.stock!.showLowStockAlert,
+          productId: variant.stock!.productId,
+          active: variant.stock!.active,
+          value: variant.stock!.value.toInt(),
+          rsdQty: variant.stock!.rsdQty.toInt(),
+          lastTouched: variant.stock!.lastTouched,
+          ebmSynced: variant.stock!.ebmSynced,
+          variantId: addedV.id,
+        ));
+        // re-assign variant with the stock
+        // addedV.stock = stock;
+        addedV.stockId = stock.id;
+        await repository.upsert<models.Variant>(addedV);
+      }
+      // deal with iTransactions now
+      List<ITransaction> transactions = ProxyService.local
+          .transactions(branchId: ProxyService.box.getBranchId());
+      talker
+          .warning("I Expect ${transactions.length} transactions When seeding");
+      for (ITransaction transaction in transactions) {
+        final transItem = models.ITransaction(
+            id: transaction.id!,
+            branchId: transaction.branchId,
+            status: transaction.status,
+            transactionType: transaction.transactionType,
+            subTotal: transaction.subTotal.toInt(),
+            paymentType: transaction.paymentType,
+            cashReceived: transaction.cashReceived.toInt(),
+            customerChangeDue: transaction.customerChangeDue.toInt(),
+            createdAt: transaction.createdAt,
+            updatedAt: transaction.updatedAt,
+            isIncome: transaction.isIncome,
+            isExpense: transaction.isExpense,
+            ticketName: transaction.ticketName,
+            categoryId: transaction.categoryId,
+            reference: transaction.reference,
+            transactionNumber: transaction.transactionNumber,
+            receiptNumber: transaction.receiptNumber,
+            receiptType: transaction.receiptType,
+            isRefunded: transaction.isRefunded,
+            customerId: transaction.customerId,
+            invoiceNumber: transaction.invoiceNumber,
+            sarTyCd: transaction.sarTyCd,
+            customerBhfId: transaction.customerBhfId,
+            remark: transaction.remark,
+            ebmSynced: transaction.ebmSynced,
+            customerName: transaction.customerName,
+            supplierId: transaction.supplierId,
+            lastTouched: transaction.lastTouched,
+            customerTin: transaction.customerTin,
+            note: transaction.note);
+        // await repository.upsert<models.ITransaction>(transItem);
 
-      //       // add name to doc
-      //       doc.setString("Murag Richard", key: "name");
-      //       await collection.saveDocument(doc);
-
-      //       // Optionally, you can log or perform further operations here
-      //       print("Document saved: ${doc.id}");
-      //     });
+        List<TransactionItem> items = ProxyService.local
+            .transactionItems(branchId: ProxyService.box.getBranchId()!);
+        talker
+            .warning("I Expect ${items.length} transactions Item When seeding");
+        for (TransactionItem item in items) {
+          final ite = models.TransactionItem(
+            id: item.id!,
+            splyAmt: item.splyAmt,
+            prc: item.prc,
+            name: (item.name ?? item.itemNm)!,
+            itemNm: (item.name ?? item.itemNm)!,
+            quantityRequested: item.quantityRequested,
+            quantityApproved: item.quantityApproved,
+            quantityShipped: item.quantityShipped,
+            transactionId: item.transactionId,
+            variantId: item.variantId,
+            qty: item.qty,
+            price: item.price,
+            discount: item.discount,
+            type: item.type,
+            remainingStock: item.remainingStock,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+            isTaxExempted: item.isTaxExempted,
+            isRefunded: item.isRefunded,
+            doneWithTransaction: item.doneWithTransaction,
+            active: item.active,
+            dcRt: item.dcRt,
+            dcAmt: item.dcAmt,
+            taxblAmt: item.taxblAmt,
+            taxAmt: item.taxAmt,
+            totAmt: item.totAmt,
+            itemSeq: item.itemSeq,
+            isrccCd: item.isrccCd,
+            isrccNm: item.isrccNm,
+            isrcRt: 0,
+            isrcAmt: 0,
+            taxTyCd: item.taxTyCd,
+            bcd: item.bcd,
+            itemClsCd: item.itemClsCd,
+            itemTyCd: item.itemTyCd,
+            itemStdNm: item.itemStdNm,
+            orgnNatCd: item.orgnNatCd,
+            pkg: item.pkg,
+            itemCd: item.itemCd,
+            pkgUnitCd: item.pkgUnitCd,
+            qtyUnitCd: item.qtyUnitCd,
+            // itemNm already handled above
+            // prc already handled above
+            tin: item.tin,
+            bhfId: item.bhfId,
+            dftPrc: item.dftPrc,
+            addInfo: item.addInfo,
+            isrcAplcbYn: item.isrcAplcbYn,
+            useYn: item.useYn,
+            regrId: item.regrId,
+            regrNm: item.regrNm,
+            modrId: item.modrId,
+            modrNm: item.modrNm,
+            lastTouched: item.lastTouched,
+            deletedAt: item.deletedAt,
+            branchId: item.branchId,
+            ebmSynced: item.ebmSynced,
+            partOfComposite: item.partOfComposite,
+            compositePrice: item.compositePrice,
+          );
+          await repository.upsert<models.TransactionItem>(ite);
+        }
+      }
+    } catch (e, s) {
+      talker.warning(e);
+      talker.error(s);
+    }
+    try {
       await ProxyService.box.writeBool(
           key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
-
-      // await ProxyService.capela.startReplicator();
 
       setState(() {
         forceUPSERT = ProxyService.box.forceUPSERT();
@@ -228,18 +426,22 @@ class _AdminControlState extends State<AdminControl> {
                       children: [
                         SettingsCard(
                           title: 'Tax Control',
-                          subtitle: 'Manage tax settings and reports',
+                          subtitle: 'Manage tax settings',
                           icon: Icons.attach_money,
-                          onTap: () {},
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => TaxSettingsModal(
+                                  branchId: ProxyService.box.getBranchId()!),
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
                         SettingsCard(
                           title: 'Payment Methods',
                           subtitle: 'Manage your payment options',
                           icon: Icons.credit_card,
-                          onTap: () {
-                            // Navigate to Payment Methods page
-                          },
+                          onTap: () {},
                         ),
                       ],
                     ),

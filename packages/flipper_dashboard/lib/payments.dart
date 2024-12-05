@@ -507,7 +507,8 @@ class PaymentsState extends ConsumerState<Payments> {
 
   Future<void> handleReceiptGeneration([String? purchaseCode]) async {
     try {
-      await TaxController(object: widget.transaction).handleReceipt();
+      await TaxController(object: widget.transaction)
+          .handleReceipt(filterType: FilterType.NS);
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _busy = false);
@@ -533,7 +534,7 @@ class PaymentsState extends ConsumerState<Payments> {
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
-      bhfId: ProxyService.box.bhfId() ?? "00",
+      bhfId: await ProxyService.box.bhfId() ?? "00",
       cashReceived: amount,
       transaction: widget.transaction,
       categoryId: categoryId,
@@ -625,7 +626,7 @@ class PaymentsState extends ConsumerState<Payments> {
                   /// still print the purchase code without the customer information!
                   /// this is standard for non customer attached receipt
                   await TaxController(object: widget.transaction)
-                      .handleReceipt();
+                      .handleReceipt(filterType: FilterType.NS);
                   // Handle when the user doesn't need a digital receipt
                   Navigator.of(context).pop();
                 },

@@ -32,6 +32,74 @@ extension StringToIntList on String {
   }
 }
 
+extension DateTimeFormatting on DateTime {
+  /// Convert DateTime to local time if it's in UTC
+  DateTime get _localDateTime => isUtc ? toLocal() : this;
+
+  /// Returns date in format: January 1, 2024
+  String get fullDate => DateFormat('MMMM d, y').format(_localDateTime);
+
+  /// Returns date in format: Jan 1, 2024
+  String get shortDate => DateFormat('MMM d, y').format(_localDateTime);
+
+  /// Returns time in format: 2:30 PM
+  String get time12Hour => DateFormat('h:mm a').format(_localDateTime);
+
+  /// Returns time in format: 14:30
+  String get time24Hour => DateFormat('HH:mm').format(_localDateTime);
+
+  /// Returns full date and time in format: January 1, 2024 2:30:45 PM
+  String get fullDateTime =>
+      DateFormat('MMMM d, y h:mm:ss a').format(_localDateTime);
+
+  /// Returns short date and time in format: Jan 1, 2024 2:30:45 PM
+  String get shortDateTime =>
+      DateFormat('MMM d, y h:mm:ss a').format(_localDateTime);
+
+  /// Returns ISO format with local timezone: 2024-01-01 14:30:45
+  String get isoDateTime =>
+      DateFormat('yyyy-MM-dd HH:mm:ss').format(_localDateTime);
+
+  /// Returns ISO format with timezone offset: 2024-01-01 14:30:45 +0200
+  String get isoDateTimeWithOffset =>
+      DateFormat('yyyy-MM-dd HH:mm:ss Z').format(_localDateTime);
+
+  /// Returns relative time like "2 minutes ago", "1 hour ago", etc.
+  String get timeAgo {
+    final now = DateTime.now();
+    final difference = now.difference(_localDateTime);
+
+    if (difference.inDays > 365) {
+      return '${(difference.inDays / 365).floor()} years ago';
+    } else if (difference.inDays > 30) {
+      return '${(difference.inDays / 30).floor()} months ago';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hours ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minutes ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
+  /// Returns weekday name: Monday, Tuesday, etc.
+  String get weekday => DateFormat('EEEE').format(_localDateTime);
+
+  /// Returns short weekday name: Mon, Tue, etc.
+  String get shortWeekday => DateFormat('EEE').format(_localDateTime);
+
+  /// Returns month name: January, February, etc.
+  String get month => DateFormat('MMMM').format(_localDateTime);
+
+  /// Returns short month name: Jan, Feb, etc.
+  String get shortMonth => DateFormat('MMM').format(_localDateTime);
+
+  /// Custom format using DateFormat pattern
+  String format(String pattern) => DateFormat(pattern).format(_localDateTime);
+}
+
 extension StringExtensions on String {
   /// Extracts the part of the string before the first '(' and the number after the first '(' and before the first ')'.
   ///
@@ -66,6 +134,80 @@ extension CurrencyFormatExtension on num {
     }
 
     return numberFormat.format(this);
+  }
+
+  String toNoCurrencyFormatted({String? symbol}) {
+    // Convert `num` to `String` and clean the input
+    String cleanedInput = toString().replaceAll(',', '');
+
+    // Parse the cleaned string to a double
+    final double? parsedNumber = double.tryParse(cleanedInput);
+
+    // Handle cases where parsing fails
+    if (parsedNumber == null) {
+      throw FormatException('Invalid double value: $this');
+    }
+
+    // Use the intl package's NumberFormat to format the number correctly
+    final numberFormat = NumberFormat.currency(
+      locale: 'en',
+      symbol: symbol ?? '',
+      decimalDigits: 2,
+    );
+
+    // Check if the number is 0
+    if (parsedNumber == 0.0) {
+      return symbol ?? '';
+    }
+
+    return numberFormat.format(parsedNumber);
+  }
+
+  String toNoCurrency({String? symbol}) {
+    // Use the intl package's NumberFormat to format the number correctly
+    final numberFormat = NumberFormat.currency(
+      locale: 'en',
+      symbol: symbol ?? '',
+      decimalDigits: 2,
+    );
+
+    // Check if the number is 0 or 0.0
+    if (this == 0 || this == 0.0) {
+      return symbol ??
+          '0.00'; // Return 0.00 instead of empty string for zero values
+    }
+
+    // Function to abbreviate large numbers
+    String abbreviateNumber(num number) {
+      final isNegative = number < 0;
+      final absNumber = number.abs();
+      String result;
+
+      if (absNumber >= 1e9) {
+        // Billions
+        result = '${(absNumber / 1e9).toStringAsFixed(2)}B';
+      } else if (absNumber >= 1e6) {
+        // Millions
+        result = '${(absNumber / 1e6).toStringAsFixed(2)}M';
+      } else if (absNumber >= 1e3) {
+        // Thousands
+        result = '${(absNumber / 1e3).toStringAsFixed(2)}K';
+      } else {
+        // If the number is less than 1,000, format it with the numberFormat
+        return numberFormat.format(number).trim();
+      }
+
+      // Add the symbol and negative sign if necessary
+      return '${symbol ?? ''}${isNegative ? '-' : ''}$result';
+    }
+
+    // Check if the number should be abbreviated (now handling 1000 and above)
+    if (this.abs() >= 1e3) {
+      return abbreviateNumber(this);
+    } else {
+      // If the number is smaller than 1000, format it normally
+      return numberFormat.format(this).trim();
+    }
   }
 }
 
@@ -309,6 +451,12 @@ extension DateTimeToYYYMMdd on DateTime {
   String toYYYMMdd() {
     final localDateTime = this.toLocal();
     final dateFormat = DateFormat('yyyyMMdd');
+    return dateFormat.format(localDateTime);
+  }
+
+  String toYYYMMddHHmmss() {
+    final localDateTime = this.toLocal();
+    final dateFormat = DateFormat('yyyyMMddHHmmss');
     return dateFormat.format(localDateTime);
   }
 }

@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:stacked_services/stacked_services.dart';
-// Test..(1)
 
 class PaymentPlanUI extends StatefulWidget {
   @override
@@ -20,6 +20,13 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   int _additionalDevices = 0;
   bool _isYearlyPlan = false;
   double _totalPrice = 5000;
+  List<String> _additionalServices = [];
+
+  // Add toggles for additional services
+  bool _extraSupport = false;
+  bool _taxReporting = false;
+  bool _unlimitedBranches = false;
+  final paymentController = TextEditingController();
 
   void _calculatePrice() {
     setState(() {
@@ -27,15 +34,20 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
       switch (_selectedPlan) {
         case 'Mobile':
           basePrice = 5000;
+          if (_taxReporting) basePrice += 30000;
           break;
         case 'Mobile + Desktop':
-          basePrice = 30000;
-          break;
-        case '3 Devices':
           basePrice = 120000;
+          if (_taxReporting) basePrice += 30000;
           break;
-        case 'More than 3 Devices':
-          basePrice = 120000 + (_additionalDevices * 15000);
+
+        case 'Entreprise':
+          basePrice = 1500000;
+          // Add costs for premium additional services
+          if (_extraSupport) basePrice += 800000;
+          if (_taxReporting)
+            basePrice += 400000; // Premium tax consulting for enterprise
+          if (_unlimitedBranches) basePrice += 600000;
           break;
         default:
           basePrice = 5000;
@@ -47,46 +59,6 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         _totalPrice = basePrice;
       }
     });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text('Payment Plan'),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Select the plan that works for you',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 16),
-              _buildDurationToggle(),
-              SizedBox(height: 16),
-              _buildPlanCards(),
-              SizedBox(height: 16),
-              if (_selectedPlan == 'More than 3 Devices')
-                _buildAdditionalDevicesInput(),
-              SizedBox(height: 16),
-              _buildPriceSummary(),
-              SizedBox(height: 16),
-              CouponToggle(),
-              SizedBox(height: 16),
-              _buildProceedButton(),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildDurationToggle() {
@@ -164,19 +136,13 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         _buildPlanCard(
             'Mobile + Desktop',
             'Mobile + Desktop',
-            _isYearlyPlan ? '288,000 RWF/year' : '30,000 RWF/month',
+            _isYearlyPlan ? '1,152000 RWF/year' : '120,000 RWF/month',
             Icons.devices),
         SizedBox(height: 8),
         _buildPlanCard(
-            '3 Devices',
-            '3 Devices',
-            _isYearlyPlan ? '1,152,000 RWF/year' : '120,000 RWF/month',
-            Icons.device_hub),
-        SizedBox(height: 8),
-        _buildPlanCard(
-            'More than 3 Devices',
-            'Custom',
-            _isYearlyPlan ? '1,152,000+ RWF/year' : '120,000+ RWF/month',
+            'Entreprise',
+            'Entreprise',
+            _isYearlyPlan ? '14,400,000+ RWF/year' : '1,500,000+ RWF/month',
             Icons.devices),
       ],
     );
@@ -190,6 +156,10 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         setState(() {
           _selectedPlan = value;
           _additionalDevices = 0;
+          // Reset additional services when changing plans
+          _extraSupport = false;
+          _taxReporting = false;
+          _unlimitedBranches = false;
           _calculatePrice();
         });
       },
@@ -287,6 +257,134 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
     );
   }
 
+  Widget _buildAdditionalServices() {
+    if (_selectedPlan == 'Entreprise') {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Enterprise Services',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          _buildServiceToggle(
+            'Extra Support',
+            '800,000 RWF${_isYearlyPlan ? '/year' : '/month'}',
+            _extraSupport,
+            (value) {
+              if (value && !_additionalServices.contains("Extra Support")) {
+                _additionalServices.add("Extra Support");
+              }
+
+              setState(() {
+                _extraSupport = value;
+                _calculatePrice();
+              });
+            },
+          ),
+          SizedBox(height: 8),
+          _buildServiceToggle(
+            'Premium Tax Reporting Consulting',
+            '400,000 RWF${_isYearlyPlan ? '/year' : '/month'}',
+            _taxReporting,
+            (value) {
+              if (value &&
+                  !_additionalServices
+                      .contains("Premium Tax Reporting Consulting")) {
+                _additionalServices.add("Premium Tax Reporting Consulting");
+              }
+              setState(() {
+                _taxReporting = value;
+                _calculatePrice();
+              });
+            },
+          ),
+          SizedBox(height: 8),
+          _buildServiceToggle(
+            'Unlimited Branches & Agents',
+            '600,000 RWF${_isYearlyPlan ? '/year' : '/month'}',
+            _unlimitedBranches,
+            (value) {
+              if (value &&
+                  !_additionalServices
+                      .contains("Unlimited Branches & Agents")) {
+                _additionalServices.add("Unlimited Branches & Agents");
+              }
+              setState(() {
+                _unlimitedBranches = value;
+                _calculatePrice();
+              });
+            },
+          ),
+        ],
+      );
+    } else {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Additional Services',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          _buildServiceToggle(
+            'Tax Reporting Consulting',
+            '30,000 RWF${_isYearlyPlan ? '/year' : '/month'}',
+            _taxReporting,
+            (value) {
+              setState(() {
+                _taxReporting = value;
+                _calculatePrice();
+              });
+            },
+          ),
+        ],
+      );
+    }
+  }
+
+  Widget _buildServiceToggle(
+      String title, String price, bool value, Function(bool) onChanged) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  price,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: Colors.black,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPriceSummary() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -300,7 +398,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           Text('Total Price',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           Text(
-            '${_totalPrice.toStringAsFixed(0)} RWF${_isYearlyPlan ? '/year' : '/month'}',
+            '${_totalPrice.toRwf()} ${_isYearlyPlan ? '/year' : '/month'}',
             style: TextStyle(
                 fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
           ),
@@ -327,16 +425,18 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
                   userIdentifier.toFlipperEmail(),
                   ProxyService.http);
 
-          ProxyService.local.saveOrUpdatePaymentPlan(
+          ProxyService.backUp.saveOrUpdatePaymentPlan(
               businessId: ProxyService.box.getBusinessId()!,
               selectedPlan: selectedPlan,
-              paymentMethod:
-                  "Card", // set card as preferred, can be changed on finalization stage
+              addons: _additionalServices,
+              paymentMethod: "Card",
+              numberOfPayments: int.tryParse(paymentController.text) ?? 1,
               flipperHttpClient: ProxyService.http,
               additionalDevices: additionalDevices,
               isYearlyPlan: isYearlyPlan,
               payStackUserId: customer.data.id,
-              totalPrice: totalPrice);
+              totalPrice:
+                  totalPrice * (int.tryParse(paymentController.text) ?? 1));
           locator<RouterService>().navigateTo(PaymentFinalizeRoute());
         } catch (e, s) {
           talker.warning(e);
@@ -353,6 +453,51 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: EdgeInsets.symmetric(vertical: 16),
         minimumSize: Size(double.infinity, 50),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Text('Payment Plan'),
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Select the plan that works for you',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 16),
+              _buildDurationToggle(),
+              SizedBox(height: 16),
+              _buildPlanCards(),
+              SizedBox(height: 16),
+              if (_selectedPlan == 'More than 3 Devices')
+                _buildAdditionalDevicesInput(),
+              SizedBox(height: 16),
+              _buildAdditionalServices(),
+              SizedBox(height: 16),
+              _buildPriceSummary(),
+              SizedBox(height: 16),
+              CouponToggle(),
+              NumberOfPaymentsToggle(
+                paymentController: paymentController,
+              ),
+              SizedBox(height: 16),
+              _buildProceedButton(),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -14,7 +14,6 @@ import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_services/constants.dart';
-
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';
 import 'dart:collection';
@@ -430,7 +429,6 @@ class IsolateHandler {
       // Write updated sold quantity to realm
       localRealm.write(() {
         if (variant != null) {
-          stock.variant = variant;
           print("Healed Stock: ${stock.id}");
         }
       });
@@ -487,12 +485,11 @@ class IsolateHandler {
             lastTouched: DateTime.now(),
             branchId: variant.branchId,
             variantId: variant.id!,
-            retailPrice: variant.retailPrice,
-            supplyPrice: variant.supplyPrice,
-            currentStock: variant.qty,
-            rsdQty: variant.qty,
+            currentStock: variant.stock?.rsdQty ?? 0,
+            rsdQty: variant.stock?.rsdQty ?? 0,
             ebmSynced: false,
-            value: (variant.qty * variant.retailPrice).toDouble(),
+            value:
+                (variant.stock?.rsdQty ?? 0 * variant.retailPrice).toDouble(),
             productId: variant.productId,
             active: false,
           );
@@ -580,15 +577,13 @@ class IsolateHandler {
               Stock(
                 ObjectId(),
                 id: id,
-                variant: variant,
                 lastTouched: DateTime.now(),
                 branchId: variant.branchId,
                 variantId: variant.id!,
-                retailPrice: variant.retailPrice,
-                supplyPrice: variant.supplyPrice,
-                currentStock: variant.qty,
-                rsdQty: variant.qty,
-                value: (variant.qty * (variant.retailPrice)).toDouble(),
+                currentStock: variant.stock?.rsdQty ?? 0,
+                rsdQty: variant.stock?.rsdQty ?? 0,
+                value: (variant.stock?.rsdQty ?? 0 * (variant.retailPrice))
+                    .toDouble(),
                 productId: variant.productId,
                 active: false,
               ),

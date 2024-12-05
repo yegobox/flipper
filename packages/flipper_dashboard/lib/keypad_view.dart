@@ -318,12 +318,12 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     ref.refresh(transactionItemsProvider((isExpense: false)));
   }
 
-  void HandleTransactionFromCashBook(
+  Future<void> HandleTransactionFromCashBook(
       {required String paymentType,
       required double cashReceived,
       required int discount,
       required bool isIncome,
-      required String transactionType}) {
+      required String transactionType}) async {
     widget.model.newTransactionPressed = false;
     final isExpense = (TransactionType.cashOut == widget.transactionType);
 
@@ -347,7 +347,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         ? ProxyService.local.collectPayment(
             cashReceived: cashReceived,
             branchId: ProxyService.box.getBranchId()!,
-            bhfId: ProxyService.box.bhfId() ?? "00",
+            bhfId: await ProxyService.box.bhfId() ?? "00",
             isProformaMode: ProxyService.box.isProformaMode(),
             isTrainingMode: ProxyService.box.isTrainingMode(),
             transaction: transaction,
@@ -358,7 +358,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             isIncome: isIncome)
         : ProxyService.local.collectPayment(
             branchId: ProxyService.box.getBranchId()!,
-            bhfId: ProxyService.box.bhfId() ?? "00",
+            bhfId: await ProxyService.box.bhfId() ?? "00",
             isProformaMode: ProxyService.box.isProformaMode(),
             isTrainingMode: ProxyService.box.isTrainingMode(),
             cashReceived: cashReceived,

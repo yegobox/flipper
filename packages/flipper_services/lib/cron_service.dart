@@ -31,6 +31,7 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
+    ProxyService.box.remove(key: "customPhoneNumberForPayment");
     List<ConnectivityResult> results = await Connectivity().checkConnectivity();
 
     await ProxyService.capela.configureCapella(
@@ -39,19 +40,21 @@ class CronService {
     );
     ProxyService.capela.startReplicator();
     if (Platform.isWindows) {
-      ProxyService.setStrategy(Strategy.cloudSync);
+      ProxyService.setStrategy(Strategy.bricks);
       ProxyService.strategy.whoAmI();
     } else {
-      ProxyService.setStrategy(Strategy.capella);
+      ProxyService.setStrategy(Strategy.bricks);
       ProxyService.strategy.whoAmI();
     }
+    final counter = await ProxyService.capela.getCounters(branchId: 1);
+    talker.warning("Counters HIGHHHHH: ${counter.length}");
 
     // AsyncCollection? collection = await ProxyService
     //     .capela.capella?.flipperDatabase!
     //     .collection(countersTable, 'user_data');
     // if (collection == null) {
     //   collection = await ProxyService.capela.capella?.flipperDatabase!
-    //       .createCollection(countersTable, "user_data");
+    //       .createCollection(countersTable, "default");
     // }
     // // counters
     // List<Counter> counters = ProxyService.local.realm!.all<Counter>().toList();
@@ -78,7 +81,8 @@ class CronService {
     //         print("Document saved: ${doc.id}");
     //       });
     // }
-
+    ProxyService.backUp
+        .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
     if (results.any((result) => result != ConnectivityResult.none)) {
       if (FirebaseAuth.instance.currentUser == null) {
         await ProxyService.backUp.firebaseLogin();
