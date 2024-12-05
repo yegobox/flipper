@@ -671,3 +671,5 @@ class App {}
 //           });
 
 // https://cbl-dart.dev/queries/query-builder/
+//  start ms-settings:developers
+// set DART_VM_OPTIONS="--root-certificate-path=C:\Users\HP\Documents\flipper\apps\flipper\assets\ca\lets-encrypt-r3.pem"
