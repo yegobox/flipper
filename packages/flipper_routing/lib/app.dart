@@ -668,10 +668,9 @@ class App {}
 //           });
 
 // https://cbl-dart.dev/queries/query-builder/
-<<<<<<< HEAD
+
 //  start ms-settings:developers
 // set DART_VM_OPTIONS="--root-certificate-path=C:\Users\HP\Documents\flipper\apps\flipper\assets\ca\lets-encrypt-r3.pem"
-=======
 
 //  archive: ^3.3.5
 //   bloc: ^8.1.0
@@ -720,4 +719,3 @@ class App {}
 //         "mrcNo": "WIS00000052"
 //     }
 // }
->>>>>>> 221a531924817e33fe7753a2def00ad8ff5766d1

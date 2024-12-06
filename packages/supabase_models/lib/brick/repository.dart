@@ -30,7 +30,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     required String supabaseAnonKey,
   }) async {
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
-      databaseFactory: databaseFactory,
+      databaseFactory: ( Platform.isWindows)
+          ? databaseFactoryFfi
+          : databaseFactory,
     );
 
     final supabase = await Supabase.initialize(
@@ -48,7 +50,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       supabaseProvider: provider,
       sqliteProvider: SqliteProvider(
         'flipper_v1.sqlite',
-        databaseFactory: (Platform.isLinux || Platform.isWindows)
+        databaseFactory: ( Platform.isWindows)
             ? databaseFactoryFfi
             : databaseFactory,
         // databaseFactory: databaseFactory,

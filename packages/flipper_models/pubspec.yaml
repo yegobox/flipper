@@ -53,7 +53,7 @@ dependencies:
   amplify_storage_s3: ^2.5.0
   async: ^2.11.0
   mime: ^1.0.6
-  firebase_core: ^3.6.0
+  firebase_core: ^3.8.1
   # powersync: ^1.9.0
   permission_handler: ^11.3.1
   cloud_firestore_odm: ^1.0.0-dev.88

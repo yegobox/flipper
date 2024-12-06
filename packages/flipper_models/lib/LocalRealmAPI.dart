@@ -1588,14 +1588,18 @@ class LocalRealmApi
       if (response.statusCode == 200) {
         return IPin.fromJson(json.decode(response.body));
       } else if (response.statusCode == 404) {
-        throw PinError(term: "Not found");
+        throw PinError(
+            term:
+                "The PIN entered could not be found. Please check if the PIN is correct and try again.");
       } else {
-        throw PinError(term: "Not found");
+        throw InternalServerException(
+            term:
+                "An internal server error occurred. Please try again later. If the issue persists, contact support.");
       }
     } catch (error, s) {
       talker.warning(error, s);
 
-      throw UnknownError(term: error.toString());
+      rethrow;
     }
   }
 
