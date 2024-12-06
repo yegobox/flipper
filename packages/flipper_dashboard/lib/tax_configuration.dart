@@ -11,6 +11,7 @@ import 'package:stacked/stacked.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:flipper_ui/style_widget/button.dart';
+import 'package:flipper_services/app_service.dart';
 
 class TaxConfiguration extends StatefulHookConsumerWidget {
   const TaxConfiguration({Key? key, required this.showheader})
@@ -234,85 +235,110 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'EBM URL',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+        child: Column(
+          children: [
+            Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'EBM URL',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _serverUrlController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter EBM URL',
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 16),
                     ),
+                    validator: _validateUrl,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _branchController,
+                    decoration: InputDecoration(
+                      hintText: 'Branch Code',
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 16),
+                    ),
+                    validator: _validaBhfid,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _mrcController,
+                    decoration: InputDecoration(
+                      hintText: 'Mrc ',
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  FlipperButton(
+                    width: double.infinity,
+                    textColor: Colors.black,
+                    onPressed: _saveForm,
+                    text: "Save",
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _serverUrlController,
-                decoration: InputDecoration(
-                  hintText: 'Enter EBM URL',
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                ),
-                validator: _validateUrl,
+            ),
+            Center(
+              child: FutureBuilder<String>(
+                future: AppService().version(), // Fetch version from AppService
+                builder: (context, snapshot) {
+                  // Check the state of the Future
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text("Error: ${snapshot.error}");
+                  } else if (snapshot.hasData) {
+                    return Text(
+                      "Version: ${snapshot.data}",
+                      style:
+                          TextStyle(fontSize: 10, fontWeight: FontWeight.normal),
+                    );
+                  } else {
+                    return Text("Version not available");
+                  }
+                },
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _branchController,
-                decoration: InputDecoration(
-                  hintText: 'Branch Code',
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                ),
-                validator: _validaBhfid,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _mrcController,
-                decoration: InputDecoration(
-                  hintText: 'Mrc ',
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                ),
-              ),
-              const SizedBox(height: 16),
-              FlipperButton(
-                width: double.infinity,
-                textColor: Colors.black,
-                onPressed: _saveForm,
-                text: "Save",
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

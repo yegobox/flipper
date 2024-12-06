@@ -7,6 +7,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'proxy.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 const socialApp = "socials";
 
@@ -15,8 +16,6 @@ class AppService with ListenableServiceMixin {
   int? get userid => ProxyService.box.getUserId();
   int? get businessId => ProxyService.box.getBusinessId();
   int? get branchId => ProxyService.box.getBranchId();
-
-  // TODO: make _business nullable when starting
 
   final _business = ReactiveValue<Business>(Business(
     ObjectId(),
@@ -27,6 +26,13 @@ class AppService with ListenableServiceMixin {
   Business get business => _business.value;
   setBusiness({required Business business}) {
     _business.value = business;
+  }
+
+  Future<String> version() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    print("ExpectedVersion${packageInfo.version}+${packageInfo.buildNumber}");
+
+    return "${packageInfo.version}+${packageInfo.buildNumber}";
   }
 
   final _branch = ReactiveValue<Branch?>(null);
