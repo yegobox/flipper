@@ -19,7 +19,6 @@ import 'create/category_selector.dart';
 import 'create/section_select_unit.dart';
 import 'create/supply_price_widget.dart';
 import 'create/variation_list.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:intl/intl.dart';
 
@@ -283,12 +282,18 @@ class AddProductViewState extends ConsumerState<AddProductView> {
   }
 
   void _showDatePicker(ProductViewModel model) {
-    DatePicker.showPicker(
-      context,
-      showTitleActions: true,
-      onConfirm: model.updateExpiryDate,
-      locale: LocaleType.en,
-    );
+    // Show the date picker
+    showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    ).then((selectedDate) {
+      if (selectedDate != null) {
+        // If a date is selected, update the expiry date in the model
+        model.updateExpiryDate(selectedDate);
+      }
+    });
   }
 
   Widget _buildVariationList(ProductViewModel model) {
