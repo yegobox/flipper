@@ -1,7 +1,9 @@
 #!/bin/bash
 
 
+# echo -e "\033[32mPulling in the latest changes...\033[0m"
 echo -e "\033[32mPulling in the latest changes...\033[0m"
+pv -q -B "Fetching..." -l 100
 
 cd ./open-sources && cd flutter.widgets && git checkout main && git pull origin main
 cd .. && cd qr.flutter && git checkout main && git pull origin main

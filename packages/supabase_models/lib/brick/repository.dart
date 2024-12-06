@@ -8,6 +8,8 @@ import 'package:sqflite/sqflite.dart' show databaseFactory;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/brick.g.dart';
 import 'db/schema.g.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
 export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare;
@@ -30,10 +32,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     required String supabaseAnonKey,
   }) async {
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
-      databaseFactory: ( Platform.isWindows)
-          ? databaseFactoryFfi
-          : databaseFactory,
+      databaseFactory:
+          (Platform.isWindows) ? databaseFactoryFfi : databaseFactory,
     );
+    final directory = Platform.isWindows
+        ? (await getApplicationSupportDirectory()).path
+        : await getDatabasesPath();
 
     final supabase = await Supabase.initialize(
       url: supabaseUrl,
@@ -49,10 +53,10 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _singleton = Repository._(
       supabaseProvider: provider,
       sqliteProvider: SqliteProvider(
-        'flipper_v1.sqlite',
-        databaseFactory: ( Platform.isWindows)
-            ? databaseFactoryFfi
-            : databaseFactory,
+        // 'flipper_v1.sqlite',
+        join(directory, "flipper_v1.sqlite"),
+        databaseFactory:
+            (Platform.isWindows) ? databaseFactoryFfi : databaseFactory,
         // databaseFactory: databaseFactory,
         modelDictionary: sqliteModelDictionary,
       ),
