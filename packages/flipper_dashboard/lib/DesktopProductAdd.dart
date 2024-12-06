@@ -772,7 +772,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
               ),
               if (product?.isValid ?? true && product?.imageUrl != null)
                 FutureBuilder(
-                  future: getImageFilePath(imageFileName: product!.imageUrl!),
+                  future:
+                      getImageFilePath(imageFileName: product!.imageUrl ?? ""),
                   builder: (context, snapshot) {
                     if (snapshot.hasData && snapshot.data != null) {
                       final imageFilePath = snapshot.data as String;
