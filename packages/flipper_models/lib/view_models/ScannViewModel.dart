@@ -148,19 +148,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       Variant variant =
           scannedVariants.firstWhere((variant) => variant.id == id);
 
-      // If the variant is found, update its quantity
-      // ProxyService.local.realm!.writeN(
-      //   tableName: variantTable,
-      //   writeCallback: () {
-      //     variant.qty = newQuantity;
-      //     variant.ebmSynced = false;
-      //     return variant;
-      //   },
-      //   onAdd: (data) {
-      //     ProxyService.backUp.replicateData(variantTable, data);
-      //   },
-      // );
-
       Stock? stock = ProxyService.local.stockByVariantId(
           variantId: variant.id!, branchId: ProxyService.box.getBranchId()!);
       ProxyService.local.realm!.writeN(

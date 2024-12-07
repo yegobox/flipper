@@ -136,11 +136,12 @@ class LocalRealmApi
         Directory appSupportDirectory;
 
         // Determine the appropriate directory based on the platform
-        if (Platform.isWindows) {
-          appSupportDirectory = await getApplicationSupportDirectory();
-        } else {
-          appSupportDirectory = await getApplicationDocumentsDirectory();
-        }
+        // if (Platform.isWindows) {
+        //   appSupportDirectory = await getApplicationSupportDirectory();
+        // } else {
+        //   appSupportDirectory = await getApplicationDocumentsDirectory();
+        // }
+        appSupportDirectory = await getApplicationDocumentsDirectory();
 
         // Construct the specific directory path
         /// the 1 appended is incremented everytime there is a breaking change on a client.
@@ -5489,11 +5490,11 @@ class LocalRealmApi
             ? null
             : DateTime.tryParse(dates![updatables[i].id]!);
         // If found, update it
-        if (retailPrice != 0) {
-          updatables[i].retailPrice = retailPrice ?? 0;
+        if (retailPrice != 0 && retailPrice != null) {
+          updatables[i].retailPrice = retailPrice;
         }
-        if (retailPrice != 0) {
-          updatables[i].retailPrice = retailPrice ?? 0;
+        if (supplyPrice != 0 && supplyPrice != null) {
+          updatables[i].supplyPrice = supplyPrice;
         }
 
         updatables[i].stock?.rsdQty = (updatables[i].stock?.rsdQty ?? 0);
