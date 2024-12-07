@@ -68,7 +68,8 @@ class MyHttpOverrides extends HttpOverrides {
 Future<void> initializeDependencies() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Add any other initialization code here
-
+  //FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  loadSupabase();
   GoogleFonts.config.allowRuntimeFetching = false;
   foundation.LicenseRegistry.addLicense(() async* {
     final license = await rootBundle.loadString('google_fonts/OFL.txt');
@@ -133,8 +134,6 @@ Future<void> initializeDependencies() async {
     );
   }
 
-  //FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  loadSupabase();
   await initDependencies();
   loc.setupLocator(
     stackedRouter: stackedRouter,

@@ -30,21 +30,47 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     required String supabaseUrl,
     required String supabaseAnonKey,
   }) async {
+    // Initialize FFI for Windows
+    if (Platform.isWindows) {
+      sqfliteFfiInit();
+    }
+
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
       databaseFactory:
-          (Platform.isWindows) ? databaseFactoryFfi : databaseFactory,
+          Platform.isWindows ? databaseFactoryFfi : databaseFactory,
     );
 
-    // Create directory if it doesn't exist
-    final directory = Platform.isWindows
-        ? (await getApplicationDocumentsDirectory()).path
-        : await getDatabasesPath();
+    // Get the appropriate directory path
+    final directory = await _getDatabaseDirectory();
 
     // Ensure the directory exists
     await Directory(directory).create(recursive: true);
 
     // Construct the full database path
     final dbPath = join(directory, "flipper_v1.db");
+
+    // Verify database file permissions and existence
+    try {
+      // Test if we can open/create the database
+      final db =
+          await (Platform.isWindows ? databaseFactoryFfi : databaseFactory)
+              .openDatabase(
+        dbPath,
+        options: OpenDatabaseOptions(
+          version: 1,
+          onCreate: (db, version) async {
+            // Initial database setup if needed
+          },
+        ),
+      );
+      await db.close();
+    } catch (e) {
+      print('Database initialization error: $e');
+      // If the file exists but can't be opened, try to delete it and recreate
+      if (await File(dbPath).exists()) {
+        await File(dbPath).delete();
+      }
+    }
 
     final supabase = await Supabase.initialize(
       url: supabaseUrl,
@@ -62,12 +88,29 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       sqliteProvider: SqliteProvider(
         dbPath,
         databaseFactory:
-            (Platform.isWindows) ? databaseFactoryFfi : databaseFactory,
+            Platform.isWindows ? databaseFactoryFfi : databaseFactory,
         modelDictionary: sqliteModelDictionary,
       ),
       migrations: migrations,
       offlineRequestQueue: queue,
       memoryCacheProvider: MemoryCacheProvider(),
     );
+  }
+
+  // Helper method to get the appropriate database directory
+  static Future<String> _getDatabaseDirectory() async {
+    if (Platform.isWindows) {
+      final appDir = await getApplicationDocumentsDirectory();
+      return join(appDir.path, 'databases');
+    } else if (Platform.isAndroid) {
+      return await getDatabasesPath();
+    } else if (Platform.isIOS) {
+      final documents = await getApplicationDocumentsDirectory();
+      return documents.path;
+    } else {
+      // For other platforms, use application documents directory
+      final appDir = await getApplicationDocumentsDirectory();
+      return join(appDir.path, 'databases');
+    }
   }
 }
