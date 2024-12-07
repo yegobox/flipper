@@ -2804,6 +2804,7 @@ class LocalRealmApi
 
   @override
   List<Stock> stocks({required int branchId}) {
+    // Variant on stock to not be null, this will have to be considered moving on to sql
     return realm!.query<Stock>(
         r'branchId == $0 AND variant.productName != $1 AND variant != null',
         [branchId, TEMP_PRODUCT]).toList();
@@ -5477,6 +5478,9 @@ class LocalRealmApi
 
     for (var i = 0; i < updatables.length; i++) {
       Product? product = getProduct(id: updatables[i].productId!);
+      if (updatables[i].stock == null) {
+        await addStockToVariant(variant: updatables[i]);
+      }
       realm!.write(() {
         product?.name = updatables[i].name;
         double rate = rates?[updatables[i].id] == null
@@ -5504,6 +5508,8 @@ class LocalRealmApi
         }
 
         updatables[i].stock?.rsdQty = (updatables[i].stock?.rsdQty ?? 0);
+        updatables[i].stock?.currentStock = (updatables[i].stock?.rsdQty ?? 0);
+        updatables[i].stock?.variant = updatables[i];
         updatables[i].lastTouched = DateTime.now().toLocal();
         realm!.add<Variant>(updatables[i]);
       });
