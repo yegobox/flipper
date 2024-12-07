@@ -4,7 +4,6 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
-import 'package:sqflite/sqflite.dart' show databaseFactory;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/brick.g.dart';
 import 'db/schema.g.dart';
@@ -35,9 +34,17 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       databaseFactory:
           (Platform.isWindows) ? databaseFactoryFfi : databaseFactory,
     );
+
+    // Create directory if it doesn't exist
     final directory = Platform.isWindows
         ? (await getApplicationSupportDirectory()).path
         : await getDatabasesPath();
+
+    // Ensure the directory exists
+    await Directory(directory).create(recursive: true);
+
+    // Construct the full database path
+    final dbPath = join(directory, "flipper_v1.sqlite");
 
     final supabase = await Supabase.initialize(
       url: supabaseUrl,
@@ -53,8 +60,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _singleton = Repository._(
       supabaseProvider: provider,
       sqliteProvider: SqliteProvider(
-        // 'flipper_v1.sqlite',
-        join(directory, "flipper_v1"),
+        dbPath,
         databaseFactory:
             (Platform.isWindows) ? databaseFactoryFfi : databaseFactory,
         modelDictionary: sqliteModelDictionary,
