@@ -769,7 +769,7 @@ final selectImportItemsProvider = FutureProvider.autoDispose
   // Fetch the list of variants from a remote service.
   final response = await ProxyService.local.selectImportItems(
       tin: 999909695,
-      bhfId: await ProxyService.box.bhfId() ?? "00",
+      bhfId: (await ProxyService.box.bhfId()) ?? "00",
       lastReqDt: "20210331000000");
 
   return response;
