@@ -68,7 +68,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   # flutter_vector_icons: ^2.0.0
-  flipper_login: ^0.0.1-dev.5
+  flipper_login: any
   connectivity_plus: ^6.0.5
   #google_mobile_ads: ^5.0.0
   # device_info_plus: ^10.1.0
