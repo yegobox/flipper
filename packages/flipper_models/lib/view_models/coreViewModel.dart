@@ -216,7 +216,7 @@ class CoreViewModel extends FlipperBaseModel
 
     Variant? variation = await ProxyService.local.getCustomVariant(
         tinNumber: ProxyService.box.tin(),
-        bhFId: await ProxyService.box.bhfId() ?? "00",
+        bhFId:( await ProxyService.box.bhfId() )?? "00",
         businessId: ProxyService.box.getBusinessId()!,
         branchId: ProxyService.box.getBranchId()!);
     if (variation == null) return;
@@ -262,7 +262,7 @@ class CoreViewModel extends FlipperBaseModel
     // double amount = double.parse(ProxyService.keypad.key);
     Variant? variation = await ProxyService.local.getCustomVariant(
         tinNumber: ProxyService.box.tin(),
-        bhFId: await ProxyService.box.bhfId() ?? "00",
+        bhFId: (await ProxyService.box.bhfId()) ?? "00",
         businessId: ProxyService.box.getBusinessId()!,
         branchId: ProxyService.box.getBranchId()!);
     if (variation == null) return;

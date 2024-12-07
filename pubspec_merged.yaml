@@ -19,7 +19,7 @@ dependencies:
     sdk: flutter
   get: ^4.6.1
   flipper_models: any
-  flipper_routing: any
+  flipper_routing: ^1.0.0
   timeago: ^3.4.0
   mime: ^1.0.5
   open_filex: ^4.5.0

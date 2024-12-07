@@ -275,7 +275,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   Future<void> _updateBusinessPreferences(Business business) async {
     ProxyService.box
       ..writeInt(key: 'businessId', value: business.serverId!)
-      ..writeString(key: 'bhfId', value: await ProxyService.box.bhfId() ?? "00")
+      ..writeString(
+          key: 'bhfId', value: (await ProxyService.box.bhfId()) ?? "00")
       ..writeInt(key: 'tin', value: business.tinNumber ?? 0)
       ..writeString(key: 'encryptionKey', value: business.encryptionKey!);
   }

@@ -347,7 +347,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         ? ProxyService.local.collectPayment(
             cashReceived: cashReceived,
             branchId: ProxyService.box.getBranchId()!,
-            bhfId: await ProxyService.box.bhfId() ?? "00",
+            bhfId: (await ProxyService.box.bhfId() )?? "00",
             isProformaMode: ProxyService.box.isProformaMode(),
             isTrainingMode: ProxyService.box.isTrainingMode(),
             transaction: transaction,
@@ -358,7 +358,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             isIncome: isIncome)
         : ProxyService.local.collectPayment(
             branchId: ProxyService.box.getBranchId()!,
-            bhfId: await ProxyService.box.bhfId() ?? "00",
+            bhfId:( await ProxyService.box.bhfId() )?? "00",
             isProformaMode: ProxyService.box.isProformaMode(),
             isTrainingMode: ProxyService.box.isTrainingMode(),
             cashReceived: cashReceived,

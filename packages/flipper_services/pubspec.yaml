@@ -54,7 +54,7 @@ dependencies:
   
   get_it: ^7.7.0
   injectable: ^2.5.0
-  flipper_routing: any
+  flipper_routing: ^1.0.0
   flipper_models: any
 
   google_fonts: ^6.1.0

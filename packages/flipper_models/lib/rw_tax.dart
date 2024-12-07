@@ -328,7 +328,7 @@ class RWTax with NetworkHelper implements TaxApi {
         .toIso8601String()
         .replaceAll(RegExp(r'[:-\sT]'), '')
         .substring(0, 14);
-    final bhfId = await ProxyService.box.bhfId() ?? "00";
+    final bhfId = (await ProxyService.box.bhfId()) ?? "00";
     // Build item list
     List<Map<String, dynamic>> itemsList = items
         .map((item) =>
@@ -905,7 +905,7 @@ class RWTax with NetworkHelper implements TaxApi {
         /// that way we will be updating the product's variant with no question
         /// otherwise then create a complete new product.
         ProxyService.local.createProduct(
-          bhFId: await ProxyService.box.bhfId() ?? "00",
+          bhFId: (await ProxyService.box.bhfId()) ?? "00",
           tinNumber: ProxyService.box.tin(),
           businessId: ProxyService.box.getBusinessId()!,
           branchId: ProxyService.box.getBranchId()!,
