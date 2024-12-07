@@ -23,7 +23,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     setProductName(name: null);
     pkgUnits = RRADEFAULTS.packagingUnits;
     log(ProxyService.box.tin().toString(), name: "ScannViewModel");
-    log(ProxyService.box.bhfId().toString(), name: "ScannViewModel");
 
     /// when ebm enabled,additional feature will start to appear on UI e.g when adding new product on desktop
     EBMenabled = ProxyService.box.tin() != -1 &&
