@@ -37,7 +37,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
     // Create directory if it doesn't exist
     final directory = Platform.isWindows
-        ? (await getApplicationDocumentsDirectory()).path
+        ? (await getApplicationSupportDirectory()).path
         : await getDatabasesPath();
 
     // Ensure the directory exists

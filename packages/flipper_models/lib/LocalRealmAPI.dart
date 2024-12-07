@@ -127,44 +127,72 @@ class LocalRealmApi
     }
   }
 
-  @override
   Future<String> dbPath({required String path, int? folder}) async {
     const isTest =
         const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
+
     if (!isTest) {
       try {
         Directory appSupportDirectory;
+        Directory appDocumentsDirectory =
+            await getApplicationDocumentsDirectory();
 
-        // Determine the appropriate directory based on the platform
-        // if (Platform.isWindows) {
-        //   appSupportDirectory = await getApplicationSupportDirectory();
-        // } else {
-        //   appSupportDirectory = await getApplicationDocumentsDirectory();
-        // }
-        appSupportDirectory = await getApplicationDocumentsDirectory();
+        // Determine the appropriate source directory based on the platform
+        if (Platform.isWindows) {
+          appSupportDirectory = await getApplicationSupportDirectory();
+        } else {
+          appSupportDirectory = await getApplicationDocumentsDirectory();
+        }
 
-        // Construct the specific directory path
-        /// the 1 appended is incremented everytime there is a breaking change on a client.
+        // Construct the source directory path
         final realmDirectory =
             p.join(appSupportDirectory.path, '${folder ?? ""}4');
 
-        // Create the directory if it doesn't exist
-        final directory = Directory(realmDirectory);
-        if (!await directory.exists()) {
-          await directory.create(recursive: true);
+        // Create the source directory if it doesn't exist
+        final sourceDirectory = Directory(realmDirectory);
+        if (!await sourceDirectory.exists()) {
+          await sourceDirectory.create(recursive: true);
         }
 
-        // Construct the full path to the database file
-        final String fileName = '$path.realm';
+        // Create backup in documents directory
+        final backupDirectory =
+            p.join(appDocumentsDirectory.path, '${folder ?? ""}4_backup');
+        final destDir = Directory(backupDirectory);
+        if (!await destDir.exists()) {
+          await destDir.create(recursive: true);
+        }
 
+        // Create backup copy
+        await copyDirectory(sourceDirectory, destDir);
+
+        // Return the original path as before
+        final String fileName = '$path.realm';
         return p.join(realmDirectory, fileName);
       } catch (e) {
-        // Handle any exceptions that might occur
         print('Error creating db path: $e');
         rethrow;
       }
     } else {
       return "";
+    }
+  }
+
+  Future<void> copyDirectory(Directory source, Directory destination) async {
+    try {
+      await for (var entity in source.list(recursive: false)) {
+        if (entity is Directory) {
+          var newDirectory =
+              Directory(p.join(destination.path, p.basename(entity.path)));
+          await newDirectory.create();
+          await copyDirectory(entity, newDirectory);
+        } else if (entity is File) {
+          var newPath = p.join(destination.path, p.basename(entity.path));
+          await entity.copy(newPath);
+        }
+      }
+    } catch (e) {
+      print('Error during backup: $e');
+      rethrow;
     }
   }
 
