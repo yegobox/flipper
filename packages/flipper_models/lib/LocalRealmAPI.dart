@@ -126,7 +126,7 @@ class LocalRealmApi
       repository.upsert(ebms);
     }
   }
-
+  @override
   Future<String> dbPath({required String path, int? folder}) async {
     const isTest =
         const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
