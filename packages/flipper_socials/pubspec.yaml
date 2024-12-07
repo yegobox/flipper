@@ -19,7 +19,7 @@ dependencies:
   google_fonts: ^6.1.0
   flipper_services: any
   flipper_models: any
-  flipper_routing: any
+  flipper_routing: ^1.0.0
 
   fluentui_system_icons: ^1.1.252
   animated_icon_button: ^1.0.2
