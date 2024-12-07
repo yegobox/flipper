@@ -51,7 +51,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       });
       final data = await ProxyService.local.selectImportItems(
         tin: ProxyService.box.tin(),
-        bhfId: await ProxyService.box.bhfId() ?? "00",
+        bhfId: (await ProxyService.box.bhfId()) ?? "00",
         lastReqDt: convertedDate,
       );
       setState(() {
@@ -68,7 +68,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       final rwResponse = await ProxyService.tax.selectTrnsPurchaseSales(
         URI: url!,
         tin: ProxyService.box.tin(),
-        bhfId: await ProxyService.box.bhfId() ?? "00",
+        bhfId: (await ProxyService.box.bhfId()) ?? "00",
         lastReqDt: convertedDate,
       );
       setState(() {
@@ -191,7 +191,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
             businessId: ProxyService.box.getBusinessId()!,
             branchId: ProxyService.box.getBranchId()!,
             tinNumber: ProxyService.box.tin(),
-            bhFId: await ProxyService.box.bhfId() ?? "00",
+            bhFId: (await ProxyService.box.bhfId()) ?? "00",
             product: Product(
               id: randomNumber(),
               ObjectId(),
@@ -257,7 +257,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           /// save purchased item
           await ProxyService.tax.savePurchases(
               item: supplier,
-              bhfId: await ProxyService.box.bhfId() ?? "00",
+              bhfId: (await ProxyService.box.bhfId()) ?? "00",
               realm: ProxyService.local.realm!,
               // P is Purchase, it has sort order of 1
               rcptTyCd: "P",

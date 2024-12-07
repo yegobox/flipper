@@ -1239,7 +1239,7 @@ class CoreSync with Booting implements CoreDataInterface {
             supplyPrice: 0,
             retailPrice: 0,
             itemNm: product.name,
-            bhfId: await ProxyService.box.bhfId() ?? '00',
+            bhfId: (await ProxyService.box.bhfId() )?? '00',
             // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
             itemClsCd: "5020230602",
             itemCd: randomNumber().toString().substring(0, 5),

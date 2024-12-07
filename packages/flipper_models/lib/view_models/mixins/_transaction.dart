@@ -35,12 +35,12 @@ mixin TransactionMixin {
       required Function onComplete,
       required double discount}) async {
     try {
-      final bhfId = await ProxyService.box.bhfId() ?? "00";
+      final bhfId = (await ProxyService.box.bhfId()) ?? "00";
       final taxExanbled = ProxyService.local
           .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
       RwApiResponse? response;
       final hasServerUrl = await ProxyService.box.getServerUrl() != null;
-      final hasUser = await ProxyService.box.bhfId() != null;
+      final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService();
 
       /// update transaction type

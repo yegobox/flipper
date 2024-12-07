@@ -42,7 +42,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
 
     _serverUrlController.text = serverUrl!;
 
-    final bhFId = ebm?.bhfId ?? await ProxyService.box.bhfId() ?? "";
+    final bhFId = ebm?.bhfId ?? (await ProxyService.box.bhfId()) ?? "";
     _branchController.text = bhFId;
     String? mrc = ProxyService.box.mrc();
     _mrcController.text = (mrc == null || mrc.isEmpty) ? "" : mrc;
@@ -80,7 +80,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
           }
           Business? business = await ProxyService.local.getBusiness();
           model.isEbmActive = business.tinNumber != null &&
-              await ProxyService.box.bhfId() != null &&
+              (await ProxyService.box.bhfId()) != null &&
               business.dvcSrlNo != null &&
               business.taxEnabled == true;
         } catch (e, s) {
