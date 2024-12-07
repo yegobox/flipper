@@ -44,7 +44,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     await Directory(directory).create(recursive: true);
 
     // Construct the full database path
-    final dbPath = join(directory, "flipper_v1.sqlite");
+    final dbPath = join(directory, "flipper_v1.db");
 
     final supabase = await Supabase.initialize(
       url: supabaseUrl,
