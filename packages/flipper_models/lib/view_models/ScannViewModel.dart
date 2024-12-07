@@ -92,7 +92,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   Future<Product?> createProduct({required String name}) async {
     int businessId = ProxyService.box.getBusinessId()!;
     int branchId = ProxyService.box.getBranchId()!;
-    String bhfid = await ProxyService.box.bhfId() ?? "00";
+    String bhfid = (await ProxyService.box.bhfId() )?? "00";
     return await ProxyService.local.createProduct(
       tinNumber: ProxyService.box.tin(),
       bhFId: bhfid,
