@@ -126,6 +126,7 @@ class LocalRealmApi
       repository.upsert(ebms);
     }
   }
+
   @override
   Future<String> dbPath({required String path, int? folder}) async {
     const isTest =
@@ -133,20 +134,14 @@ class LocalRealmApi
 
     if (!isTest) {
       try {
-        Directory appSupportDirectory;
         Directory appDocumentsDirectory =
             await getApplicationDocumentsDirectory();
 
         // Determine the appropriate source directory based on the platform
-        if (Platform.isWindows) {
-          appSupportDirectory = await getApplicationSupportDirectory();
-        } else {
-          appSupportDirectory = await getApplicationDocumentsDirectory();
-        }
 
         // Construct the source directory path
         final realmDirectory =
-            p.join(appSupportDirectory.path, '${folder ?? ""}4');
+            p.join(appDocumentsDirectory.path, '${folder ?? ""}');
 
         // Create the source directory if it doesn't exist
         final sourceDirectory = Directory(realmDirectory);
@@ -163,36 +158,18 @@ class LocalRealmApi
         }
 
         // Create backup copy
-        await copyDirectory(sourceDirectory, destDir);
 
         // Return the original path as before
         final String fileName = '$path.realm';
-        return p.join(realmDirectory, fileName);
+        String finalPath = p.join(realmDirectory, fileName);
+        talker.warning("DataPath: $finalPath");
+        return finalPath;
       } catch (e) {
         print('Error creating db path: $e');
         rethrow;
       }
     } else {
       return "";
-    }
-  }
-
-  Future<void> copyDirectory(Directory source, Directory destination) async {
-    try {
-      await for (var entity in source.list(recursive: false)) {
-        if (entity is Directory) {
-          var newDirectory =
-              Directory(p.join(destination.path, p.basename(entity.path)));
-          await newDirectory.create();
-          await copyDirectory(entity, newDirectory);
-        } else if (entity is File) {
-          var newPath = p.join(destination.path, p.basename(entity.path));
-          await entity.copy(newPath);
-        }
-      }
-    } catch (e) {
-      print('Error during backup: $e');
-      rethrow;
     }
   }
 
