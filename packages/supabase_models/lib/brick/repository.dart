@@ -54,7 +54,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       supabaseProvider: provider,
       sqliteProvider: SqliteProvider(
         // 'flipper_v1.sqlite',
-        join(directory, "flipper_v1.sqlite"),
+        join(directory, "flipper_v1"),
         databaseFactory:
             (Platform.isWindows) ? databaseFactoryFfi : databaseFactory,
         // databaseFactory: databaseFactory,
