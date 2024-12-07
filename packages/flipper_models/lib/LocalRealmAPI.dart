@@ -5473,18 +5473,19 @@ class LocalRealmApi
     Map<int, String>? rates,
     String? selectedProductType,
   }) async {
-    final variantsLength = updatables.length;
     // loop through all variants and update all with retailPrice and supplyPrice
-    ProxyService.local.realm!.write(() {
-      for (var i = 0; i < variantsLength; i++) {
-        // get product
-        Product? product = getProduct(id: updatables[i].productId!);
+
+    for (var i = 0; i < updatables.length; i++) {
+      Product? product = getProduct(id: updatables[i].productId!);
+      realm!.write(() {
         product?.name = updatables[i].name;
-        updatables[i].productName = updatables[i].name;
         double rate = rates?[updatables[i].id] == null
             ? 0
             : double.parse(rates![updatables[i].id]!);
-        updatables[i].color = color;
+        if (color != null) {
+          updatables[i].color = color;
+        }
+
         updatables[i].itemNm = updatables[i].name;
         updatables[i].ebmSynced = false;
         updatables[i].retailPrice =
@@ -5494,7 +5495,7 @@ class LocalRealmApi
         updatables[i].expirationDate = dates?[updatables[i].id] == null
             ? null
             : DateTime.tryParse(dates![updatables[i].id]!);
-        // If found, update it
+
         if (retailPrice != 0 && retailPrice != null) {
           updatables[i].retailPrice = retailPrice;
         }
@@ -5504,8 +5505,9 @@ class LocalRealmApi
 
         updatables[i].stock?.rsdQty = (updatables[i].stock?.rsdQty ?? 0);
         updatables[i].lastTouched = DateTime.now().toLocal();
-      }
-    });
+        realm!.add<Variant>(updatables[i]);
+      });
+    }
   }
 
   @override
