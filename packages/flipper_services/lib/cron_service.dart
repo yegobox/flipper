@@ -46,8 +46,8 @@ class CronService {
       ProxyService.setStrategy(Strategy.bricks);
       ProxyService.strategy.whoAmI();
     }
-    final counter = await ProxyService.capela.getCounters(branchId: 1);
-    talker.warning("Counters HIGHHHHH: ${counter.length}");
+    final counter = await ProxyService.strategy.getCounters(branchId: 1);
+    talker.warning("GET COUNTER FROM STRATEGY: ${counter.length}");
 
     // AsyncCollection? collection = await ProxyService
     //     .capela.capella?.flipperDatabase!

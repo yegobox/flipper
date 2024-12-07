@@ -19,7 +19,7 @@ dependencies:
     sdk: flutter
   get: ^4.6.1
   flipper_models: any
-  flipper_routing: ^0.0.1-dev.3
+  flipper_routing: any
   timeago: ^3.4.0
   mime: ^1.0.5
   open_filex: ^4.5.0
@@ -68,7 +68,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   # flutter_vector_icons: ^2.0.0
-  flipper_login: ^0.0.1-dev.5
+  flipper_login: any
   connectivity_plus: ^6.0.5
   #google_mobile_ads: ^5.0.0
   # device_info_plus: ^10.1.0

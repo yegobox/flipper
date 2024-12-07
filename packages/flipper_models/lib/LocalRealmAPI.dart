@@ -131,34 +131,40 @@ class LocalRealmApi
   Future<String> dbPath({required String path, int? folder}) async {
     const isTest =
         const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
+
     if (!isTest) {
       try {
-        Directory appSupportDirectory;
+        Directory appDocumentsDirectory =
+            await getApplicationDocumentsDirectory();
 
-        // Determine the appropriate directory based on the platform
-        if (Platform.isWindows) {
-          appSupportDirectory = await getApplicationSupportDirectory();
-        } else {
-          appSupportDirectory = await getApplicationDocumentsDirectory();
-        }
+        // Determine the appropriate source directory based on the platform
 
-        // Construct the specific directory path
-        /// the 1 appended is incremented everytime there is a breaking change on a client.
+        // Construct the source directory path
         final realmDirectory =
-            p.join(appSupportDirectory.path, '${folder ?? ""}4');
+            p.join(appDocumentsDirectory.path, '${folder ?? ""}');
 
-        // Create the directory if it doesn't exist
-        final directory = Directory(realmDirectory);
-        if (!await directory.exists()) {
-          await directory.create(recursive: true);
+        // Create the source directory if it doesn't exist
+        final sourceDirectory = Directory(realmDirectory);
+        if (!await sourceDirectory.exists()) {
+          await sourceDirectory.create(recursive: true);
         }
 
-        // Construct the full path to the database file
-        final String fileName = '$path.realm';
+        // Create backup in documents directory
+        final backupDirectory =
+            p.join(appDocumentsDirectory.path, '${folder ?? ""}4_backup');
+        final destDir = Directory(backupDirectory);
+        if (!await destDir.exists()) {
+          await destDir.create(recursive: true);
+        }
 
-        return p.join(realmDirectory, fileName);
+        // Create backup copy
+
+        // Return the original path as before
+        final String fileName = '$path.realm';
+        String finalPath = p.join(realmDirectory, fileName);
+        talker.warning("DataPath: $finalPath");
+        return finalPath;
       } catch (e) {
-        // Handle any exceptions that might occur
         print('Error creating db path: $e');
         rethrow;
       }
@@ -5489,11 +5495,11 @@ class LocalRealmApi
             ? null
             : DateTime.tryParse(dates![updatables[i].id]!);
         // If found, update it
-        if (retailPrice != 0) {
-          updatables[i].retailPrice = retailPrice ?? 0;
+        if (retailPrice != 0 && retailPrice != null) {
+          updatables[i].retailPrice = retailPrice;
         }
-        if (retailPrice != 0) {
-          updatables[i].retailPrice = retailPrice ?? 0;
+        if (supplyPrice != 0 && supplyPrice != null) {
+          updatables[i].supplyPrice = supplyPrice;
         }
 
         updatables[i].stock?.rsdQty = (updatables[i].stock?.rsdQty ?? 0);

@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
 
   flipper_dashboard: any
-  flipper_login: ^0.0.1-dev.5
+  flipper_login: any
   flipper_models: any
   stacked_services: ^1.6.0
   stacked: ^3.4.2
