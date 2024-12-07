@@ -1166,7 +1166,7 @@ PODS:
   - BoringSSL-GRPC/Interface (0.0.36)
   - cbl_flutter_ce (0.0.1):
     - FlutterMacOS
-  - cloud_firestore (5.5.0):
+  - cloud_firestore (5.5.1):
     - Firebase/CoreOnly (~> 11.4.0)
     - Firebase/Firestore (~> 11.4.0)
     - firebase_core
@@ -1203,11 +1203,11 @@ PODS:
   - Firebase/RemoteConfig (11.4.0):
     - Firebase/CoreOnly
     - FirebaseRemoteConfig (~> 11.4.0)
-  - firebase_analytics (11.3.5):
+  - firebase_analytics (11.3.6):
     - Firebase/Analytics (= 11.4.0)
     - firebase_core
     - FlutterMacOS
-  - firebase_auth (5.3.3):
+  - firebase_auth (5.3.4):
     - Firebase/Auth (~> 11.4.0)
     - Firebase/CoreOnly (~> 11.4.0)
     - firebase_core
@@ -1215,17 +1215,17 @@ PODS:
   - firebase_core (3.8.1):
     - Firebase/CoreOnly (~> 11.4.0)
     - FlutterMacOS
-  - firebase_crashlytics (4.1.5):
+  - firebase_crashlytics (4.2.0):
     - Firebase/CoreOnly (~> 11.4.0)
     - Firebase/Crashlytics (~> 11.4.0)
     - firebase_core
     - FlutterMacOS
-  - firebase_messaging (15.1.5):
+  - firebase_messaging (15.1.6):
     - Firebase/CoreOnly (~> 11.4.0)
     - Firebase/Messaging (~> 11.4.0)
     - firebase_core
     - FlutterMacOS
-  - firebase_remote_config (5.1.5):
+  - firebase_remote_config (5.2.0):
     - Firebase/CoreOnly (~> 11.4.0)
     - Firebase/RemoteConfig (~> 11.4.0)
     - firebase_core
@@ -1714,20 +1714,20 @@ SPEC CHECKSUMS:
   app_links: 10e0a0ab602ffaf34d142cd4862f29d34b303b2a
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   BoringSSL-GRPC: ca6a8e5d04812fce8ffd6437810c2d46f925eaeb
-  cbl_flutter_ce: 39d702a754b2dd00d42418106a56c1fab9a23f32
-  cloud_firestore: d85fe469d0b8d5238ea3eb7729e13bf34217a037
+  cbl_flutter_ce: 67164e085e11142a13fdb7e1831ea29e68cde3de
+  cloud_firestore: 9a20a45d1f46dda8d3486bc68866e8dca2d68548
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   connectivity_plus: 4c41c08fc6d7c91f63bc7aec70ffe3730b04f563
   desktop_webview_auth: 9bba53a29c9bc6a4ff621fd0ebfbb18856c4dada
   device_info_plus: ce1b7762849d3ec103d0e0517299f2db7ad60720
   file_selector_macos: cc3858c981fe6889f364731200d6232dac1d812d
   Firebase: cf1b19f21410b029b6786a54e9764a0cacad3c99
-  firebase_analytics: 0b7c895f240587bbc77ed28144c1a599dd4523ff
-  firebase_auth: 85ed6c80b24da60af13391f9cdc0e566440b1963
+  firebase_analytics: a80b3d6645f2f12d626fde928b61dae12e5ea2ef
+  firebase_auth: cda334a14540e3c1be90eb2cd82682f9409bea37
   firebase_core: e4a35c426636a2cce00a5163df7ba69bfd0cca57
-  firebase_crashlytics: 341c1dc63a96dbd0341196c10964669fff4874eb
-  firebase_messaging: 821b4f05a071d54d6ed826923a48c9101b93d443
-  firebase_remote_config: f9d02042a778ff60dafb906237b1bea7a424c275
+  firebase_crashlytics: 4bf853f7b18680fe9095aebde606be148de3d4a8
+  firebase_messaging: 61f678060b69a7ae1013e3a939ec8e1c56ef6fcf
+  firebase_remote_config: 559bbd2f3fec93598e725d35da1f94a3140a15ad
   FirebaseABTesting: aef1719704fade00b200827e7973f352efc4caee
   FirebaseAnalytics: 3feef9ae8733c567866342a1000691baaa7cad49
   FirebaseAppCheckInterop: d265d9f4484e7ec1c591086408840fdd383d1213
