@@ -345,35 +345,41 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   Future<void> deleteProduct({required int productId}) async {
-    //get variants->delete
-    int branchId = ProxyService.box.getBranchId()!;
-    List<Variant> variations = await ProxyService.local
-        .variants(branchId: branchId, productId: productId);
-    for (Variant variation in variations) {
-      //get stock->delete
-      Stock? stock = await ProxyService.local.stockByVariantId(
-          variantId: variation.id!, branchId: ProxyService.box.getBranchId()!);
+    try {
+      //get variants->delete
+      int branchId = ProxyService.box.getBranchId()!;
+      List<Variant> variations = await ProxyService.local
+          .variants(branchId: branchId, productId: productId);
+      for (Variant variation in variations) {
+        //get stock->delete
+        Stock? stock = await ProxyService.local.stockByVariantId(
+            variantId: variation.id!,
+            branchId: ProxyService.box.getBranchId()!);
 
-      await ProxyService.local.delete(
-          id: variation.id!,
-          endPoint: 'variant',
-          flipperHttpClient: ProxyService.http);
-      await ProxyService.local.delete(
-          id: stock!.id!,
-          endPoint: 'stock',
-          flipperHttpClient: ProxyService.http);
+        await ProxyService.local.delete(
+            id: variation.id!,
+            endPoint: 'variant',
+            flipperHttpClient: ProxyService.http);
+        await ProxyService.local.delete(
+            id: stock!.id!,
+            endPoint: 'stock',
+            flipperHttpClient: ProxyService.http);
 
-      Favorite? fav =
-          await ProxyService.local.getFavoriteByProdId(prodId: productId);
-      if (fav != null) {
-        await ProxyService.local.deleteFavoriteByIndex(favIndex: fav.id!);
+        Favorite? fav =
+            await ProxyService.local.getFavoriteByProdId(prodId: productId);
+        if (fav != null) {
+          await ProxyService.local.deleteFavoriteByIndex(favIndex: fav.id!);
+        }
       }
+      //then delete the product
+      await ProxyService.local.delete(
+          id: productId,
+          endPoint: 'product',
+          flipperHttpClient: ProxyService.http);
+    } catch (e, s) {
+      talker.warning(e);
+      talker.error(s);
     }
-    //then delete the product
-    await ProxyService.local.delete(
-        id: productId,
-        endPoint: 'product',
-        flipperHttpClient: ProxyService.http);
   }
 
   void updateExpiryDate(DateTime date) async {

@@ -5550,6 +5550,7 @@ class LocalRealmApi
         product: product,
         branchId: branchId,
         bhfId: bhfId,
+        itemQuantity: item.quantity,
         quantitis: quantitis);
 
     // Create variant for the product
@@ -5599,8 +5600,10 @@ class LocalRealmApi
     required Product product,
     required int branchId,
     required String? bhfId,
+    required String itemQuantity,
     required Map<String, String> quantitis,
   }) {
+    final itemQuantityIsNonZero = double.tryParse(itemQuantity);
     return Stock(
       ObjectId(),
       id: randomNumber(),
@@ -5612,8 +5615,10 @@ class LocalRealmApi
       productId: product.id!,
       bhfId: bhfId,
       active: true,
-      value: double.parse(quantitis[product.barCode] ?? "1"),
-      rsdQty: double.parse(quantitis[product.barCode] ?? "1"),
+      value: itemQuantityIsNonZero ??
+          double.parse(quantitis[product.barCode] ?? "1"),
+      rsdQty: itemQuantityIsNonZero ??
+          double.parse(quantitis[product.barCode] ?? "1"),
       lastTouched: DateTime.now(),
       branchId: branchId,
       ebmSynced: false,

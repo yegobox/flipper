@@ -68,7 +68,7 @@ extension RealmExtension on Realm {
   void deleteN<T extends RealmObjectBase>(
       {required String tableName, required T Function() deleteCallback}) {
     T object = deleteCallback();
-    _syncToFirestoreDelete(tableName, object);
+    // _syncToFirestoreDelete(tableName, object);
     delete(object);
   }
 

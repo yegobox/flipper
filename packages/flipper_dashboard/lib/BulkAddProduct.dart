@@ -93,7 +93,13 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
         }
 
         List<Map<String, dynamic>> data = [];
-        List<String> headers = ['BarCode', 'Name', 'Category', 'Price'];
+        List<String> headers = [
+          'BarCode',
+          'Name',
+          'Category',
+          'Price',
+          'Quantity'
+        ];
 
         // Find header row
         int headerRowIndex = sheet.rows.indexWhere(
@@ -116,14 +122,18 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
         // Parse data rows
         for (int i = headerRowIndex + 1; i < sheet.rows.length; i++) {
           Map<String, dynamic> rowData = {};
+          bool hasNonEmptyValue = false;
           for (String header in headers) {
             int? columnIndex = headerIndices[header];
             if (columnIndex != null) {
-              rowData[header] =
-                  sheet.rows[i][columnIndex]?.value?.toString() ?? '';
+              String? cellValue = sheet.rows[i][columnIndex]?.value?.toString();
+              if (cellValue != null && cellValue.isNotEmpty) {
+                hasNonEmptyValue = true;
+              }
+              rowData[header] = cellValue ?? '';
             }
           }
-          if (rowData.isNotEmpty) {
+          if (hasNonEmptyValue) {
             data.add(rowData);
           }
         }
@@ -156,6 +166,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
         name: product['Name'] ?? '',
         category: product['Category'] ?? '',
         price: product['Price'] ?? '',
+        quantity: product['Quantity'] ?? '',
       );
     }).toList();
 
@@ -211,9 +222,17 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
             FlipperButton(
               textColor: Colors.white,
               color: Colors.blue,
-              onPressed: () {
+              onPressed: () async {
                 if (_excelData != null) {
-                  _saveAll();
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context) {
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                  );
+                  await _saveAll();
+                  Navigator.of(context, rootNavigator: true).pop('dialog');
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
