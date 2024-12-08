@@ -47,7 +47,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     await Directory(directory).create(recursive: true);
 
     // Construct the full database path
-    final dbPath = join(directory, "flipper_v1.db");
+    final dbPath = join(directory, "flipper_v2.sqlite");
 
     // Verify database file permissions and existence
     try {
@@ -101,16 +101,16 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   static Future<String> _getDatabaseDirectory() async {
     if (Platform.isWindows) {
       final appDir = await getApplicationDocumentsDirectory();
-      return join(appDir.path, 'databases');
+      return join(appDir.path, '_db');
     } else if (Platform.isAndroid) {
       return await getDatabasesPath();
-    } else if (Platform.isIOS) {
+    } else if (Platform.isIOS || Platform.isMacOS) {
       final documents = await getApplicationDocumentsDirectory();
       return documents.path;
     } else {
       // For other platforms, use application documents directory
       final appDir = await getApplicationDocumentsDirectory();
-      return join(appDir.path, 'databases');
+      return join(appDir.path, '_db');
     }
   }
 }
