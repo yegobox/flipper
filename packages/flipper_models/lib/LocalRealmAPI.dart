@@ -134,35 +134,35 @@ class LocalRealmApi
 
     if (!isTest) {
       try {
+        // Get the app's documents directory
         Directory appDocumentsDirectory =
             await getApplicationDocumentsDirectory();
 
-        // Determine the appropriate source directory based on the platform
-
-        // Construct the source directory path
+        // Construct the '_db' directory path with the folder sub-directory (if any)
         final realmDirectory =
-            p.join('_db', appDocumentsDirectory.path, '${folder ?? ""}');
+            p.join(appDocumentsDirectory.path, '_db', '${folder ?? ""}');
 
-        // Create the source directory if it doesn't exist
+        // Ensure the '_db' directory and any sub-directories are created
         final sourceDirectory = Directory(realmDirectory);
         if (!await sourceDirectory.exists()) {
-          await sourceDirectory.create(recursive: true);
+          await sourceDirectory.create(
+              recursive: true); // Creates all necessary directories
         }
 
-        // Create backup in documents directory
-
-        // Create backup copy
-
-        // Return the original path as before
+        // Construct the final file path with .realm extension
         final String fileName = '$path.realm';
-        String finalPath = p.join('_db', realmDirectory, fileName);
-        talker.warning("DataPath: $finalPath");
+        String finalPath = p.join(realmDirectory, fileName);
+
+        // Log or print the final path (for debugging)
+        print("DataPath: $finalPath");
+
         return finalPath;
       } catch (e) {
         print('Error creating db path: $e');
         rethrow;
       }
     } else {
+      // Return an empty string if in test environment
       return "";
     }
   }
