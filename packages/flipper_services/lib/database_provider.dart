@@ -80,10 +80,10 @@ class DatabaseProvider {
     final appDir = await getApplicationDocumentsDirectory();
 
     _databaseDirectory =
-        await Directory('${appDir.path}/databases').create(recursive: true);
+        await Directory('${appDir.path}/_db').create(recursive: true);
 
     _logsDirectory =
-        await Directory('${appDir.path}/logs/cbl').create(recursive: true);
+        await Directory('${appDir.path}/_db/logs/cbl').create(recursive: true);
 
     if (!await _databaseDirectory.exists() || !await _logsDirectory.exists()) {
       throw DatabaseException('Failed to create required directories');

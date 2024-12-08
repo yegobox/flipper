@@ -150,18 +150,12 @@ class LocalRealmApi
         }
 
         // Create backup in documents directory
-        final backupDirectory =
-            p.join(appDocumentsDirectory.path, '${folder ?? ""}4_backup');
-        final destDir = Directory(backupDirectory);
-        if (!await destDir.exists()) {
-          await destDir.create(recursive: true);
-        }
 
         // Create backup copy
 
         // Return the original path as before
         final String fileName = '$path.realm';
-        String finalPath = p.join(realmDirectory, fileName);
+        String finalPath = p.join('_db', realmDirectory, fileName);
         talker.warning("DataPath: $finalPath");
         return finalPath;
       } catch (e) {
