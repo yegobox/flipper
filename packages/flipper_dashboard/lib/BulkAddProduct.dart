@@ -225,20 +225,25 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
               color: Colors.blue,
               onPressed: () async {
                 if (_excelData != null) {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (BuildContext context) {
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                  );
-                  await _saveAll();
-                  Navigator.of(context, rootNavigator: true).pop('dialog');
+                  try {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext context) {
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    );
+                    await _saveAll();
+                    Navigator.of(context, rootNavigator: true).pop('dialog');
+                  } catch (e) {
+                    Navigator.of(context, rootNavigator: true).pop('dialog');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error saving data: $e')),
+                    );
+                  }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('No data to save'),
-                    ),
+                    const SnackBar(content: Text('No data to save')),
                   );
                 }
               },
