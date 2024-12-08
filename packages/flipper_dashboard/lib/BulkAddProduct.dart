@@ -183,6 +183,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
         );
       } catch (e) {
         talker.error(e);
+        rethrow;
       }
     }
 

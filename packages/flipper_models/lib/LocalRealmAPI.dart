@@ -5518,82 +5518,68 @@ class LocalRealmApi
     required Map<String, String> itemClasses,
     required Map<String, String> itemTypes,
   }) async {
-    // Create a new product
-    Product product = Product(
-      ObjectId(),
-      id: randomNumber(),
-      name: item.name,
-      barCode: item.barCode,
-    );
-
-    // Get tax type configuration
-    brick.Configurations? taxType = await ProxyService.strategy
-        .getByTaxType(taxtype: taxTypes[product.barCode] ?? "B");
-
-    talker.warning("ItemClass${itemClasses[product.barCode] ?? "5020230602"}");
-
-    // Add the product to the Realm
-    ProxyService.local.realm!.writeN(
-      tableName: productsTable,
-      writeCallback: () => ProxyService.local.realm!.add<Product>(product),
-      onAdd: (data) {
-        // ProxyService.backUp.replicateData(productsTable, data);
-      },
-    );
-
-    final branchId = await ProxyService.box.getBranchId()!;
-    final bhfId = await ProxyService.box.bhfId();
-    final int variantId = randomNumber();
-
-    // Create stock for the variant
-    Stock stock = _createStock(
-        product: product,
+    try {
+      final branchId = await ProxyService.box.getBranchId()!;
+      final businessId = await ProxyService.box.getBusinessId()!;
+      final bhfId = await ProxyService.box.bhfId();
+      final int variantId = randomNumber();
+      // Create a new product
+      Product product = Product(
+        ObjectId(),
+        id: randomNumber(),
+        name: item.name,
+        barCode: item.barCode,
         branchId: branchId,
-        bhfId: bhfId,
-        itemQuantity: item.quantity,
-        quantitis: quantitis);
+        businessId: businessId,
+      );
 
-    // Create variant for the product
-    Variant variant = await _createVariant(
-        item: item,
-        product: product,
-        stock: stock,
-        taxType: taxType,
-        branchId: branchId,
-        variantId: variantId,
-        taxTypes: taxTypes,
-        itemClasses: itemClasses,
-        itemTypes: itemTypes);
+      // Get tax type configuration
+      brick.Configurations? taxType = await ProxyService.strategy
+          .getByTaxType(taxtype: taxTypes[product.barCode] ?? "B");
 
-    // Add the variant to the Realm
-    ProxyService.local.realm!.writeN(
-      tableName: variantTable,
-      writeCallback: () => ProxyService.local.realm!.add<Variant>(variant),
-      onAdd: (data) {
-        // ProxyService.backUp.replicateData(variantTable, data);
-      },
-    );
+      talker
+          .warning("ItemClass${itemClasses[product.barCode] ?? "5020230602"}");
 
-    // Update variant with stock
-    ProxyService.local.realm!.writeN(
-      tableName: variantTable,
-      writeCallback: () {
+      // Add the product to the Realm
+      realm!.write(() {
+        ProxyService.local.realm!.add<Product>(product);
+      });
+
+      // Create stock for the variant
+      Stock stock = _createStock(
+          product: product,
+          branchId: branchId,
+          bhfId: bhfId,
+          itemQuantity: item.quantity,
+          quantitis: quantitis);
+
+      // Create variant for the product
+      Variant variant = await _createVariant(
+          item: item,
+          product: product,
+          stock: stock,
+          taxType: taxType,
+          branchId: branchId,
+          variantId: variantId,
+          taxTypes: taxTypes,
+          itemClasses: itemClasses,
+          itemTypes: itemTypes);
+
+      // Add the variant to the Realm
+      realm!.write(() {
+        realm!.add<Variant>(variant);
+      });
+      // Add the stock to the Realm
+      realm!.write(() {
+        realm!.add<Stock>(stock);
+      });
+      // Update variant with stock
+      realm!.write(() {
         variant.stock = stock;
-        return variant;
-      },
-      onAdd: (data) {
-        // ProxyService.backUp.replicateData(variantTable, data);
-      },
-    );
-
-    // Add the stock to the Realm
-    ProxyService.local.realm!.writeN(
-      tableName: stocksTable,
-      writeCallback: () => ProxyService.local.realm!.add<Stock>(stock),
-      onAdd: (data) {
-        // ProxyService.backUp.replicateData(stocksTable, data);
-      },
-    );
+      });
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Stock _createStock({
