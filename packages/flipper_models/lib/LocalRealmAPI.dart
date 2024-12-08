@@ -5542,7 +5542,7 @@ class LocalRealmApi
 
       // Add the product to the Realm
       realm!.write(() {
-        ProxyService.local.realm!.add<Product>(product);
+        realm!.add<Product>(product);
       });
 
       // Create stock for the variant
