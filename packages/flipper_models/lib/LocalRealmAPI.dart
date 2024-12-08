@@ -141,7 +141,7 @@ class LocalRealmApi
 
         // Construct the source directory path
         final realmDirectory =
-            p.join(appDocumentsDirectory.path, '${folder ?? ""}');
+            p.join('_db', appDocumentsDirectory.path, '${folder ?? ""}');
 
         // Create the source directory if it doesn't exist
         final sourceDirectory = Directory(realmDirectory);

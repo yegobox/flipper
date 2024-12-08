@@ -20,7 +20,7 @@ import 'firebase_options.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
 import 'package:flutter/foundation.dart';
-
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:amplify_flutter/amplify_flutter.dart' as apmplify;
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
@@ -67,6 +67,12 @@ class MyHttpOverrides extends HttpOverrides {
 
 Future<void> initializeDependencies() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (Platform.isWindows) {
+    // Use the ffi on windows
+    sqfliteFfiInit();
+    databaseFactoryOrNull = databaseFactoryFfi;
+  }
   // Add any other initialization code here
   //FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   loadSupabase();
