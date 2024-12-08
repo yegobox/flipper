@@ -721,3 +721,8 @@ class App {}
 //     }
 // }
 // https://stackoverflow.com/questions/71090014/how-to-launch-other-appgo-service-when-flutter-windows-app-start/71123035#71123035
+
+// Sqlite ship with app:
+// https://github.com/alextekartik/flutter_app_example/blob/master/demo_sqflite/tool/windows/windows_release_info.md
+// Firestore testing
+// https://github.com/alextekartik/flutter_app_example/blob/master/demo_sqflite/tool/windows/windows_release_info.md
