@@ -5521,7 +5521,9 @@ class LocalRealmApi
     try {
       final branchId = await ProxyService.box.getBranchId()!;
       final businessId = await ProxyService.box.getBusinessId()!;
-      final bhfId = await ProxyService.box.bhfId();
+      // TODO: fix this when sql is fixed.
+      // final bhfId = await ProxyService.box.bhfId();
+      final bhfId = "00";
       final int variantId = randomNumber();
       // Create a new product
       Product product = Product(
@@ -5644,7 +5646,8 @@ class LocalRealmApi
       qtyUnitCd: "U",
       regrNm: item.name,
       tin: ProxyService.box.tin(),
-      bhfId: (await ProxyService.box.bhfId()) ?? "00",
+      bhfId: "00",
+      // bhfId: (await ProxyService.box.bhfId()) ?? "00",
       isTaxExempted: false,
       itemNm: product.name,
       ebmSynced: false,
