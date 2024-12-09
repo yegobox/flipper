@@ -35,11 +35,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       sqfliteFfiInit();
     }
 
-    final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
-      databaseFactory:
-          Platform.isWindows ? databaseFactoryFfi : databaseFactory,
-    );
-
     // Get the appropriate directory path
     final directory = await _getDatabaseDirectory();
 
@@ -48,6 +43,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
     // Construct the full database path
     final dbPath = join(directory, "flipper_v2.sqlite");
+    final queuePath = join(directory, "brick_offline_queue.sqlite");
 
     // Verify database file permissions and existence
     try {
@@ -71,6 +67,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         await File(dbPath).delete();
       }
     }
+
+    final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
+      databaseFactory:
+          Platform.isWindows ? databaseFactoryFfi : databaseFactory,
+      queuePath: queuePath,
+    );
 
     final supabase = await Supabase.initialize(
       url: supabaseUrl,
