@@ -5519,8 +5519,8 @@ class LocalRealmApi
     required Map<String, String> itemTypes,
   }) async {
     try {
-      final branchId = await ProxyService.box.getBranchId()!;
-      final businessId = await ProxyService.box.getBusinessId()!;
+      final branchId = ProxyService.box.getBranchId()!;
+      final businessId = ProxyService.box.getBusinessId()!;
       // TODO: fix this when sql is fixed.
       // final bhfId = await ProxyService.box.bhfId();
       final bhfId = "00";
@@ -5536,8 +5536,8 @@ class LocalRealmApi
       );
 
       // Get tax type configuration
-      brick.Configurations? taxType = await ProxyService.strategy
-          .getByTaxType(taxtype: taxTypes[product.barCode] ?? "B");
+      Configurations? taxType =
+          await getByTaxType(taxtype: taxTypes[product.barCode] ?? "B");
 
       talker
           .warning("ItemClass${itemClasses[product.barCode] ?? "5020230602"}");
@@ -5617,7 +5617,7 @@ class LocalRealmApi
     required brick.Item item,
     required Product product,
     required Stock stock,
-    required brick.Configurations? taxType,
+    required Configurations? taxType,
     required int branchId,
     required int variantId,
     required Map<String, String> taxTypes,
