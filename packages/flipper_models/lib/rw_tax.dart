@@ -458,7 +458,8 @@ class RWTax with NetworkHelper implements TaxApi {
       splyAmt: item.price * item.qty,
       price: item.price,
       bhfId: item.bhfId ?? bhfId,
-      dftPrc: baseTotal,
+      // removed this as in richard example it was not there.
+      // dftPrc: baseTotal,
       addInfo: "",
       isrcAplcbYn: "N",
       prc: item.price,
@@ -469,8 +470,36 @@ class RWTax with NetworkHelper implements TaxApi {
       modrNm: item.modrNm ?? "Modifier",
       name: item.name,
     ).toJson();
+    itemJson.removeWhere((key, value) =>
+        [
+          "active",
+          "doneWithTransaction",
+          "isRefunded",
+          "isTaxExempted",
+          "updatedAt",
+          "createdAt",
+          "remainingStock",
+          "discount",
+          "transactionId",
+          "bhfId",
+          "lastTouched",
+          "deletedAt",
+          "action",
+          "branchId"
+        ].contains(key) ||
+        value == null ||
+        value == "");
 
-    return itemJson;
+    if (itemJson["isrccCd"] == "" || itemJson["isrccNm"] == "") {
+      itemJson
+          .removeWhere((key, value) => key == "isrccCd" || key == "isrccNm");
+    }
+    // always make itemSeq be first in object
+
+    Map<String, dynamic> sortedItemJson = Map.from(itemJson);
+    final itemSeqValue = sortedItemJson.remove('itemSeq');
+    sortedItemJson.addAll({'itemSeq': itemSeqValue});
+    return sortedItemJson;
   }
 
   Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {

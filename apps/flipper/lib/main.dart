@@ -6,7 +6,6 @@ import 'package:flipper_rw/StateObserver.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
-
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
