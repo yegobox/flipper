@@ -98,7 +98,8 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           'Name',
           'Category',
           'Price',
-          'Quantity'
+          'Quantity',
+          'bcdU'
         ];
 
         // Find header row
@@ -162,6 +163,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
     // Convert each row from the table to an Item model
     List<brick.Item> items = _excelData!.map((product) {
       return brick.Item(
+        bcdU: product['bcdU'] ?? '',
         barCode: product['BarCode'] ?? '',
         name: product['Name'] ?? '',
         category: product['Category'] ?? '',
@@ -272,7 +274,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    columns: const [
+                    columns: [
                       DataColumn(
                         label: Text('BarCode',
                             style: TextStyle(fontWeight: FontWeight.bold)),
@@ -293,6 +295,13 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
                         label: Text('Quantity',
                             style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
+                      if (_excelData != null &&
+                          _excelData!.any(
+                              (product) => (product['bcdU'] ?? '').isNotEmpty))
+                        const DataColumn(
+                          label: Text('bcdU',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
                       DataColumn(
                         label: Text('Item Class',
                             style: TextStyle(fontWeight: FontWeight.bold)),
@@ -342,6 +351,22 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
                               ],
                             ),
                           ),
+                          if ((product['bcdU'] ?? '').isNotEmpty)
+                            DataCell(
+                              TextField(
+                                controller: TextEditingController(
+                                    text: product['bcdU']),
+                                onChanged: (value) {
+                                  setState(() {
+                                    final index = _excelData!.indexWhere((p) =>
+                                        p['BarCode'] == product['BarCode']);
+                                    if (index != -1) {
+                                      _excelData![index]['bcdU'] = value;
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
                           DataCell(
                             SizedBox(
                               width: 200,
