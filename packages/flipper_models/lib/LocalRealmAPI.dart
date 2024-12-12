@@ -5519,66 +5519,85 @@ class LocalRealmApi
     required Map<String, String> itemTypes,
   }) async {
     try {
-      final branchId = ProxyService.box.getBranchId()!;
-      final businessId = ProxyService.box.getBusinessId()!;
-      // TODO: fix this when sql is fixed.
-      // final bhfId = await ProxyService.box.bhfId();
-      final bhfId = "00";
-      final int variantId = randomNumber();
-      // Create a new product
-      Product product = Product(
-        ObjectId(),
-        id: randomNumber(),
-        name: item.name,
-        barCode: item.barCode,
-        branchId: branchId,
-        businessId: businessId,
-      );
-
-      // Get tax type configuration
-      Configurations? taxType =
-          await getByTaxType(taxtype: taxTypes[product.barCode] ?? "B");
-
-      talker
-          .warning("ItemClass${itemClasses[product.barCode] ?? "5020230602"}");
-
-      // Add the product to the Realm
-      realm!.write(() {
-        realm!.add<Product>(product);
-      });
-
-      // Create stock for the variant
-      Stock stock = _createStock(
-          product: product,
+      ///
+      if (item.bcdU.isNotEmpty) {
+        print('Searching for variant with modrId: ${item.barCode}');
+        Variant? variant =
+            realm!.query<Variant>(r'modrId == $0', [item.barCode]).firstOrNull;
+        print('Found variant: ${variant?.bcd}, ${variant?.name}');
+        if (variant != null) {
+          realm!.write(() {
+            variant.bcd = item.bcdU.endsWith('.0')
+                ? item.bcdU.substring(0, item.bcdU.length - 2)
+                : item.bcdU;
+            variant.name = item.name;
+          });
+          print('Updated variant bcd: ${variant.bcd}, name: ${variant.name}');
+        } else {
+          print('no variant found with modrId:${item.barCode}');
+        }
+      } else {
+        final branchId = await ProxyService.box.getBranchId()!;
+        final businessId = await ProxyService.box.getBusinessId()!;
+        // TO DO: fix this when sql is fixed.
+        // final bhfId = await ProxyService.box.bhfId();
+        final bhfId = "00";
+        final int variantId = randomNumber();
+        // Create a new product
+        Product product = Product(
+          ObjectId(),
+          id: randomNumber(),
+          name: item.name,
+          barCode: item.barCode,
           branchId: branchId,
-          bhfId: bhfId,
-          itemQuantity: item.quantity,
-          quantitis: quantitis);
+          businessId: businessId,
+        );
 
-      // Create variant for the product
-      Variant variant = await _createVariant(
-          item: item,
-          product: product,
-          stock: stock,
-          taxType: taxType,
-          branchId: branchId,
-          variantId: variantId,
-          taxTypes: taxTypes,
-          itemClasses: itemClasses,
-          itemTypes: itemTypes);
+        // Get tax type configuration
+        brick.Configurations? taxType = await ProxyService.strategy
+            .getByTaxType(taxtype: taxTypes[product.barCode] ?? "B");
 
-      // Add the variant to the Realm
-      realm!.write(() {
-        realm!.add<Variant>(variant);
-      });
-      // Add the stock to the Realm
-      realm!.write(() {
-        realm!.add<Stock>(stock);
-      });
-      // Update variant with stock
-      realm!.write(() {
-        variant.stock = stock;
-      });
+        talker.warning(
+            "ItemClass${itemClasses[product.barCode] ?? "5020230602"}");
+
+        // Add the product to the Realm
+        realm!.write(() {
+          realm!.add<Product>(product);
+        });
+
+        // Create stock for the variant
+        Stock stock = _createStock(
+            product: product,
+            branchId: branchId,
+            bhfId: bhfId,
+            itemQuantity: item.quantity,
+            quantitis: quantitis);
+
+        // Create variant for the product
+        Variant variant = await _createVariant(
+            item: item,
+            product: product,
+            stock: stock,
+            taxType: taxType,
+            branchId: branchId,
+            variantId: variantId,
+            taxTypes: taxTypes,
+            itemClasses: itemClasses,
+            itemTypes: itemTypes);
+
+        // Add the variant to the Realm
+        realm!.write(() {
+          realm!.add<Variant>(variant);
+        });
+        // Add the stock to the Realm
+        realm!.write(() {
+          realm!.add<Stock>(stock);
+        });
+        // Update variant with stock
+        realm!.write(() {
+          variant.stock = stock;
+        });
+      }
     } catch (e) {
       rethrow;
     }
@@ -5617,7 +5636,7 @@ class LocalRealmApi
     required brick.Item item,
     required Product product,
     required Stock stock,
-    required Configurations? taxType,
+    required brick.Configurations? taxType,
     required int branchId,
     required int variantId,
     required Map<String, String> taxTypes,
@@ -5630,7 +5649,7 @@ class LocalRealmApi
       branchIds: [branchId],
       productId: product.id!,
       sku: product.barCode,
-      name: product.barCode,
+      name: item.name,
       productName: product.name,
       stock: stock,
       retailPrice: double.parse(item.price),
@@ -5642,7 +5661,7 @@ class LocalRealmApi
       itemClsCd: itemClasses[product.barCode] ?? "5020230602",
       spplrItemCd: "",
       spplrItemClsCd: "",
-      bcd: randomNumber().toString(),
+      bcd: item.barCode,
       qtyUnitCd: "U",
       regrNm: item.name,
       tin: ProxyService.box.tin(),

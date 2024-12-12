@@ -71,7 +71,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
       databaseFactory:
           Platform.isWindows ? databaseFactoryFfi : databaseFactory,
-      queuePath: queuePath,
+      databasePath: queuePath,
     );
 
     final supabase = await Supabase.initialize(
