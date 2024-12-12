@@ -6,7 +6,6 @@ import 'package:flipper_rw/StateObserver.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
-
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,7 +16,7 @@ import 'package:sizer/sizer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 
-//1.1.8
+//1.1.10
 Future<void> main() async {
   await initializeDependencies();
   await SentryFlutter.init(

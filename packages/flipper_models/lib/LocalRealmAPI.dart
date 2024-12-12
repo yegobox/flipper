@@ -5521,6 +5521,7 @@ class LocalRealmApi
     try {
       ///
       if (item.bcdU.isNotEmpty) {
+<<<<<<< HEAD
         // if a user has given us the barcode updated i.e bcdU
         // then this means a user want to update exisiting data with new data given
         //1. search variant where variant.modrId == item.barCode
@@ -5534,13 +5535,31 @@ class LocalRealmApi
             variant.name = item.name;
             print('variant updated successfully');
           });
+=======
+        print('Searching for variant with modrId: ${item.barCode}');
+        Variant? variant =
+            realm!.query<Variant>(r'modrId == $0', [item.barCode]).firstOrNull;
+        print('Found variant: ${variant?.bcd}, ${variant?.name}');
+        if (variant != null) {
+          realm!.write(() {
+            variant.bcd = item.bcdU.endsWith('.0')
+                ? item.bcdU.substring(0, item.bcdU.length - 2)
+                : item.bcdU;
+            variant.name = item.name;
+          });
+          print('Updated variant bcd: ${variant.bcd}, name: ${variant.name}');
+>>>>>>> be65ea0b2aadeb4b49752c7e19e926cf751ae13f
         } else {
           print('no variant found with modrId:${item.barCode}');
         }
       } else {
         final branchId = await ProxyService.box.getBranchId()!;
         final businessId = await ProxyService.box.getBusinessId()!;
+<<<<<<< HEAD
         // TODO: fix this when sql is fixed.
+=======
+        // TO DO: fix this when sql is fixed.
+>>>>>>> be65ea0b2aadeb4b49752c7e19e926cf751ae13f
         // final bhfId = await ProxyService.box.bhfId();
         final bhfId = "00";
         final int variantId = randomNumber();

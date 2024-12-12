@@ -295,13 +295,6 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
                         label: Text('Quantity',
                             style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
-                      if (_excelData != null &&
-                          _excelData!.any(
-                              (product) => (product['bcdU'] ?? '').isNotEmpty))
-                        const DataColumn(
-                          label: Text('bcdU',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
                       DataColumn(
                         label: Text('Item Class',
                             style: TextStyle(fontWeight: FontWeight.bold)),
@@ -351,22 +344,6 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
                               ],
                             ),
                           ),
-                          if ((product['bcdU'] ?? '').isNotEmpty)
-                            DataCell(
-                              TextField(
-                                controller: TextEditingController(
-                                    text: product['bcdU']),
-                                onChanged: (value) {
-                                  setState(() {
-                                    final index = _excelData!.indexWhere((p) =>
-                                        p['BarCode'] == product['BarCode']);
-                                    if (index != -1) {
-                                      _excelData![index]['bcdU'] = value;
-                                    }
-                                  });
-                                },
-                              ),
-                            ),
                           DataCell(
                             SizedBox(
                               width: 200,
