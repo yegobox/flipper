@@ -9,7 +9,7 @@ cd .. && cd receipt &&  git checkout main  && git add .   && git commit -am "cle
 
 
 cd .. && cd flutter_slidable && git stash &&  git checkout dev  && git add .  && git commit -am "clean-up" && git push origin dev
-cd .. && cd flutter_datetime_picker &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
+# cd .. && cd flutter_datetime_picker &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
 # cd .. && cd flutter_luban && git stash   &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
 # cd .. && cd flipper-turbo  &&  git checkout uat  && git add .  && git commit -am "clean-up" && git push origin uat
 # cd .. && cd dart_pdf  &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
