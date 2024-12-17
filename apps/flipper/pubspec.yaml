@@ -222,7 +222,7 @@ msix_config:
   store: false
   enable_at_startup: true
   app_uri_handler_hosts: flipper.rw
-  capabilities: "internetClient,broadFileSystemAccess"
+  capabilities: "internetClient"
 flutter:
   uses-material-design: true
   assets:
