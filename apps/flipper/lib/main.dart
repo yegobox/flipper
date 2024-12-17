@@ -16,7 +16,7 @@ import 'package:sizer/sizer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 
-//1.1.11
+//1.1.12
 Future<void> main() async {
   await initializeDependencies();
   await SentryFlutter.init(
