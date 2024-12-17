@@ -142,7 +142,10 @@ jobs:
       - run: flutter doctor -v
 
       - name: submodule init
-        run: git submodule update --init
+        run: |
+          dart pub global activate melos 6.2.0
+          melos bootstrap
+          git submodule update --init
       # Replace Visual Studio 17.12 with 17.10 to workaround Firebase issue
       # https://github.com/firebase/flutterfire/issues/16536
       # TODO: remove this visual studio change when https://github.com/firebase/flutterfire/issues/16536 is resolved.
@@ -184,8 +187,6 @@ jobs:
           # --install-certificate false
           # https://github.com/YehudaKremer/msix/issues/126
       - run: |
-          dart pub global activate melos 6.2.0
-          melos bootstrap
           cd apps/flipper
           dart run msix:create -v --install-certificate false
       - name: Configure Release (optional)
