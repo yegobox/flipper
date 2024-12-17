@@ -61,11 +61,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       );
       await db.close();
     } catch (e) {
-      print('Database initialization error: $e');
-      // If the file exists but can't be opened, try to delete it and recreate
-      if (await File(dbPath).exists()) {
-        await File(dbPath).delete();
-      }
+      // log.info(e);
+      rethrow;
     }
 
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
