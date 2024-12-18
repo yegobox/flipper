@@ -39,8 +39,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     final directory = await _getDatabaseDirectory();
 
     // Ensure the directory exists
-    await Directory(directory).create(recursive: true);
-
+    if (!await Directory(directory).exists()) {
+      await Directory(directory).create(recursive: true);
+    }
     // Construct the full database path
     final dbPath = join(directory, "flipper_v2.sqlite");
     final queuePath = join(directory, "brick_offline_queue.sqlite");
