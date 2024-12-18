@@ -143,9 +143,11 @@ jobs:
 
       - name: submodule init
         run: |
+          git submodule update --init
+      - name: Load melos
+        run: |
           dart pub global activate melos 6.2.0
           melos bootstrap
-          git submodule update --init
       # Replace Visual Studio 17.12 with 17.10 to workaround Firebase issue
       # https://github.com/firebase/flutterfire/issues/16536
       # TODO: remove this visual studio change when https://github.com/firebase/flutterfire/issues/16536 is resolved.
