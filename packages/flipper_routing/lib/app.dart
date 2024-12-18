@@ -726,3 +726,5 @@ class App {}
 // https://github.com/alextekartik/flutter_app_example/blob/master/demo_sqflite/tool/windows/windows_release_info.md
 // Firestore testing
 // https://github.com/alextekartik/flutter_app_example/blob/master/demo_sqflite/tool/windows/windows_release_info.md
+
+// https://pub.dev/packages/app_links
