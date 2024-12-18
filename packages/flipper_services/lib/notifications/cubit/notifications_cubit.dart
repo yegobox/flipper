@@ -16,7 +16,6 @@ import 'package:window_manager/window_manager.dart';
 
 import 'package:flipper_ui/system_tray/system_tray_manager.dart';
 import '../notifications.dart';
-
 part 'notifications_state.dart';
 part 'notifications_cubit.freezed.dart';
 
@@ -44,16 +43,25 @@ class NotificationsCubit {
 
     const initSettingsAndroid = AndroidInitializationSettings('app_icon');
     const initSettingsDarwin = DarwinInitializationSettings();
+    const win = WindowsInitializationSettings(
+      appName: kPackageId,
+      appUserModelId: kPackageId,
+      guid: kPackageId,
+      // TODO: mae this work @afuwa
+      // iconPath: 'assets/icon.png',
+    );
     final initSettingsLinux = LinuxInitializationSettings(
       defaultActionName: 'Open notification',
       defaultIcon: AssetsLinuxIcon(AppIcons.linux),
     );
 
     final initSettings = InitializationSettings(
-        android: initSettingsAndroid,
-        iOS: initSettingsDarwin,
-        macOS: initSettingsDarwin,
-        linux: initSettingsLinux);
+      android: initSettingsAndroid,
+      iOS: initSettingsDarwin,
+      macOS: initSettingsDarwin,
+      windows: win,
+      linux: initSettingsLinux,
+    );
 
     await flutterLocalNotificationsPlugin.initialize(
       initSettings,
@@ -61,7 +69,6 @@ class NotificationsCubit {
           _notificationBackgroundCallback,
       onDidReceiveNotificationResponse: _notificationCallback,
     );
-
 
     return NotificationsCubit._(
       flutterLocalNotificationsPlugin,
@@ -259,8 +266,6 @@ class NotificationsCubit {
   /// This will create a timer that will show the notification when the timer
   /// expires.
   Future<void> _scheduleNotificationDesktop(Notification notification) async {
-   
-
     final task = IConversation.fromJson(jsonDecode(notification.payload!));
 
     // log.v('Scheduling notification for task: ${task.id}');
@@ -364,13 +369,9 @@ class NotificationsCubit {
       tz.TZDateTime.from(scheduledDate, tz.local),
       notificationDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       payload: payload,
     );
   }
-
-  
 
   /// Set the notification badges on Linux.
   Future<void> _setNotificationBadgeLinux(int count) async {
