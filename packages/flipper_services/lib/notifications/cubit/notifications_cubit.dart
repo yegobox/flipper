@@ -10,7 +10,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart'
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:intl/intl.dart';
 import 'package:launcher_entry/launcher_entry.dart';
-import 'package:local_notifier/local_notifier.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:window_manager/window_manager.dart';
@@ -63,9 +62,6 @@ class NotificationsCubit {
       onDidReceiveNotificationResponse: _notificationCallback,
     );
 
-    if (isWindows) {
-      await localNotifier.setup(appName: kPackageId);
-    }
 
     return NotificationsCubit._(
       flutterLocalNotificationsPlugin,
@@ -263,10 +259,7 @@ class NotificationsCubit {
   /// This will create a timer that will show the notification when the timer
   /// expires.
   Future<void> _scheduleNotificationDesktop(Notification notification) async {
-    if (isWindows) {
-      await _scheduleNotificationWindows(notification);
-      return;
-    }
+   
 
     final task = IConversation.fromJson(jsonDecode(notification.payload!));
 
@@ -377,57 +370,7 @@ class NotificationsCubit {
     );
   }
 
-  /// Schedule a notification on Windows.
-  ///
-  /// The `flutter_local_notifications` plugin does not support Windows yet.
-  /// See: https://github.com/MaikuB/flutter_local_notifications/issues/746
-  ///
-  /// When the plugin is updated, this method should be removed and
-  /// `_scheduleNotificationDesktop` should be used instead.
-  Future<void> _scheduleNotificationWindows(Notification notification) async {
-    final conversation =
-        IConversation.fromJson(jsonDecode(notification.payload!));
-    // log.v('Scheduling notification for task: ${task.id}');
-
-    final createdAt = conversation.createdAt;
-
-    if (createdAt == null) {
-      // log.v('Task has no due date. Not scheduling notification.');
-      return;
-    }
-
-    final localNotification = LocalNotification(
-      identifier: conversation.id.toString(),
-      title: conversation.body,
-      body: conversation.body,
-    );
-
-    localNotification.onClick = () {
-      _notificationCallback(NotificationResponse(
-        notificationResponseType: NotificationResponseType.selectedNotification,
-        id: conversation.id.toString().codeUnitAt(0),
-        payload: jsonEncode(conversation.toJson()),
-      ));
-    };
-
-    // If the task is already overdue, show the notification immediately.
-    if (DateTime.parse(createdAt).isBefore(DateTime.now())) {
-      // log.v('Task is already overdue. Showing notification immediately.');
-      localNotification.show();
-      return;
-    }
-
-    final timer = Timer(
-      DateTime.parse(createdAt).difference(DateTime.now()),
-      () async {
-        // log.v('Showing scheduled notification for task: ${task.id}');
-        localNotification.show();
-      },
-    );
-
-    _timers[conversation.id.toString()] = timer;
-    // log.v('Scheduled notification for task: ${task.id}');
-  }
+  
 
   /// Set the notification badges on Linux.
   Future<void> _setNotificationBadgeLinux(int count) async {
