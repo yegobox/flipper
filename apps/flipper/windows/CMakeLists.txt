@@ -8,7 +8,7 @@ set(BINARY_NAME "flipper")
 
 # set(USE_CUSTOM_SQLITE3 ON) 
 
-# install(FILES sqlite3.dll DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT Runtime)
+
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
@@ -109,3 +109,7 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
+
+install(FILES sqlite3.dll DESTINATION "${CMAKE_INSTALL_PREFIX}" 
+CONFIGURATIONS Profile;Release
+COMPONENT Runtime)
