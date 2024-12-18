@@ -45,26 +45,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     final dbPath = join(directory, "flipper_v2.sqlite");
     final queuePath = join(directory, "brick_offline_queue.sqlite");
 
-    // Verify database file permissions and existence
-    try {
-      // Test if we can open/create the database
-      final db =
-          await (Platform.isWindows ? databaseFactoryFfi : databaseFactory)
-              .openDatabase(
-        dbPath,
-        options: OpenDatabaseOptions(
-          version: 1,
-          onCreate: (db, version) async {
-            // Initial database setup if needed
-          },
-        ),
-      );
-      await db.close();
-    } catch (e) {
-      // log.info(e);
-      rethrow;
-    }
-
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
       databaseFactory:
           Platform.isWindows ? databaseFactoryFfi : databaseFactory,
