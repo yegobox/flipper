@@ -45,6 +45,8 @@ jobs:
 
       - run: |
           git submodule update --init
+      - name: Load melos
+        run: |
           dart pub global activate melos 6.2.0
           melos bootstrap
 
@@ -159,6 +161,8 @@ jobs:
       - name: submodule init
         run: |
           git submodule update --init
+      - name: Load melos
+        run: |
           dart pub global activate melos 6.2.0
           melos bootstrap
       - name: Configure Missing files
@@ -250,6 +254,8 @@ jobs:
       - name: submodule init
         run: |
           git submodule update --init
+      - name: Load melos
+        run: |
           dart pub global activate melos 6.2.0
           melos bootstrap
       - name: Configure Missing files
@@ -328,6 +334,8 @@ jobs:
       - name: submodule init
         run: |
           git submodule update --init
+      - name: Load melos
+        run: |
           dart pub global activate melos 6.2.0
           melos bootstrap
       - name: Configure Missing files
