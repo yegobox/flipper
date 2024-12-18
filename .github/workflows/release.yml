@@ -43,7 +43,10 @@ jobs:
           flutter-version: "3.27.0"
           channel: "stable"
 
-      - run: git submodule update --init
+      - run: |
+          git submodule update --init
+          dart pub global activate melos 6.2.0
+          melos bootstrap
 
       - name: Configure Missing files
         shell: bash
@@ -65,9 +68,6 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
       - run: |
-          dart pub global activate melos 6.2.0
-          melos clean
-          melos bootstrap
           cd apps/flipper
           dart run realm install
           cd ../..
@@ -107,7 +107,10 @@ jobs:
           java-version: "17"
 
       - name: submodule init
-        run: git submodule update --init
+        run: |
+          git submodule update --init
+          dart pub global activate melos 6.2.0
+          melos bootstrap
       - name: Configure Missing files
         shell: bash
         run: |
@@ -126,8 +129,6 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}  
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
-          dart pub global activate melos 6.2.0
-          melos bootstrap
           cd apps/flipper
           dart run realm install
           flutter test --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart
@@ -156,7 +157,10 @@ jobs:
       - run: flutter doctor -v
 
       - name: submodule init
-        run: git submodule update --init
+        run: |
+          git submodule update --init
+          dart pub global activate melos 6.2.0
+          melos bootstrap
       - name: Configure Missing files
         shell: bash
         run: |
@@ -195,8 +199,6 @@ jobs:
         shell: pwsh
         # End of issue
       - run: |
-          dart pub global activate melos 6.2.0
-          melos bootstrap
           cd apps/flipper
           dart run msix:create -v --install-certificate false
       - name: Configure Release (optional)
@@ -246,7 +248,10 @@ jobs:
       - run: flutter doctor -v
 
       - name: submodule init
-        run: git submodule update --init
+        run: |
+          git submodule update --init
+          dart pub global activate melos 6.2.0
+          melos bootstrap
       - name: Configure Missing files
         shell: bash
         run: |
@@ -265,8 +270,7 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
-          dart pub global activate melos 6.2.0
-          melos bootstrap
+          
           cd apps/flipper
           dart run msix:create 	--store
       - name: Configure Release (optional)
@@ -322,7 +326,10 @@ jobs:
           git config --global credential.helper store
           echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
       - name: submodule init
-        run: git submodule update --init
+        run: |
+          git submodule update --init
+          dart pub global activate melos 6.2.0
+          melos bootstrap
       - name: Configure Missing files
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
@@ -355,9 +362,7 @@ jobs:
           KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
         working-directory: apps/flipper/android
-      - run: |
-          dart pub global activate melos 6.2.0
-          melos bootstrap
+    
       - name: Install Android SDK
         uses: malinskiy/action-android/install-sdk@release/0.1.7
       - run: echo $ANDROID_HOME
