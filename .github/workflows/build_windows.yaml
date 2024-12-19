@@ -190,6 +190,7 @@ jobs:
           # https://github.com/YehudaKremer/msix/issues/126
       - run: |
           cd apps/flipper
+          flutter build windows --debug
           dart run msix:create -v --install-certificate false
       - name: Configure Release (optional)
         env:
