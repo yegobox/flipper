@@ -210,7 +210,8 @@ class TaxController<OBJ> {
 
           talker.error("totalB: ${totalB}");
           talker.error("taxB: ${calculateTotalTax(totalB, taxConfigTaxB)}");
-
+          final List<TransactionPaymentRecord> paymentTypes =
+              ProxyService.local.getPaymentType(transactionId: transaction.id!);
           await print.print(
             totalDiscount: totalDiscount,
             whenCreated: receipt!.whenCreated!,
@@ -232,7 +233,10 @@ class TaxController<OBJ> {
             items: items,
             cash: transaction.subTotal,
             received: transaction.cashReceived,
-            payMode: "Cash",
+            payMode: paymentTypes.isEmpty
+                ? "CASH".toPaymentType()
+                : paymentTypes.last.paymentMethod?.toPaymentType() ??
+                    "CASH".toPaymentType(),
             mrc: receipt.mrcNo ?? "",
             internalData: receipt.intrlData ?? "",
             receiptQrCode: receipt.qrCode ?? "",
@@ -298,6 +302,8 @@ class TaxController<OBJ> {
       // increment the counter before we pass it in
       // this is because if we don't then the EBM counter will give us the
 
+      Receipt? receipt =
+          await ProxyService.local.getReceipt(transactionId: transaction.id!);
       DateTime now = DateTime.now();
 
       RwApiResponse receiptSignature =
@@ -307,13 +313,17 @@ class TaxController<OBJ> {
         counter: counter,
         URI: await ProxyService.box.getServerUrl() ?? "",
         purchaseCode: purchaseCode,
-        timeToUser: now,
+        timeToUser: receipt?.whenCreated ?? now,
       );
 
       if (receiptSignature.resultCd == "000" && !transaction.isExpense) {
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
-        String qrCode = generateQRCode(now.toYYYMMdd(), receiptSignature);
+        String qrCode = generateQRCode(
+            receipt?.whenCreated?.toYYYMMdd() ?? now.toYYYMMdd(),
+            receiptSignature,
+            receiptType: receiptType,
+            whenCreated: receipt?.whenCreated ?? now);
 
         /// update transaction with receipt number and total receipt number
         ProxyService.local.realm!.write(() {
@@ -522,10 +532,10 @@ class TaxController<OBJ> {
     }
   }
 
-  String generateQRCode(String formattedDate, RwApiResponse receiptSignature) {
-    final now = DateTime.now();
+  String generateQRCode(String formattedDate, RwApiResponse receiptSignature,
+      {required String receiptType, required DateTime whenCreated}) {
     final timeFormatter = DateFormat('HH:mm:ss');
-    final currentTime = timeFormatter.format(now);
+    final currentTime = timeFormatter.format(whenCreated);
 
     final data = receiptSignature.data;
     if (data == null) {
@@ -536,7 +546,7 @@ class TaxController<OBJ> {
       formattedDate,
       currentTime,
       data.sdcId ?? 'N/A',
-      '${data.rcptNo ?? 'N/A'}/${data.totRcptNo ?? 'N/A'}',
+      '${data.rcptNo ?? 'N/A'}/${data.totRcptNo ?? 'N/A'}/$receiptType',
       data.intrlData ?? 'N/A',
       data.rcptSign ?? 'N/A',
     ];

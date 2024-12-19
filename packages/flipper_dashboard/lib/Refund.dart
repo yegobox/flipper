@@ -64,42 +64,49 @@ class _RefundState extends ConsumerState<Refund> {
                       ? "Refunded"
                       : "Refund",
                   onTap: () async {
-                    if (widget.transaction!.isRefunded) {
-                      toast("This is already refunded");
-                      return;
-                    }
+                    try {
+                      if (widget.transaction!.isRefunded) {
+                        toast("This is already refunded");
+                        return;
+                      }
 
-                    if (widget.transaction!.customerId != null &&
-                        widget.transaction!.customerId != 0) {
-                      // Show modal to request purchase code
-                      bool purchaseCodeReceived = await showPurchaseCodeModal();
-                      if (purchaseCodeReceived) {
-                        // Proceed with refund
+                      if (widget.transaction!.customerId != null &&
+                          widget.transaction!.customerId != 0) {
+                        // Show modal to request purchase code
+                        bool purchaseCodeReceived =
+                            await showPurchaseCodeModal();
+                        if (purchaseCodeReceived) {
+                          // Proceed with refund
+                          if (widget.transaction!.receiptType == "TS") {
+                            await proceed(receiptType: "TR");
+                          }
+                          if (widget.transaction!.receiptType == "PS") {
+                            toast("Can not refund a proforma");
+                            return;
+                          } else if ((widget.transaction!.receiptType ==
+                              "NS")) {
+                            await proceed(receiptType: "NR");
+                          } else if ((widget.transaction!.receiptType ==
+                              "CS")) {
+                            await proceed(receiptType: "CR");
+                          }
+                        }
+                      } else {
                         if (widget.transaction!.receiptType == "TS") {
                           await proceed(receiptType: "TR");
-                        }
-                        if (widget.transaction!.receiptType == "PS") {
+                        } else if (widget.transaction!.receiptType! == "CS") {
+                          await proceed(receiptType: "CR");
+                        } else if (widget.transaction!.receiptType == "TS") {
+                          await proceed(receiptType: "TS");
+                        } else if (widget.transaction!.receiptType == "PS") {
                           toast("Can not refund a proforma");
                           return;
-                        } else if ((widget.transaction!.receiptType == "NS")) {
+                        } else if (widget.transaction!.receiptType == "NS") {
                           await proceed(receiptType: "NR");
-                        } else if ((widget.transaction!.receiptType == "CS")) {
-                          await proceed(receiptType: "CR");
                         }
                       }
-                    } else {
-                      if (widget.transaction!.receiptType == "TS") {
-                        await proceed(receiptType: "TR");
-                      } else if (widget.transaction!.receiptType! == "CS") {
-                        await proceed(receiptType: "CR");
-                      } else if (widget.transaction!.receiptType == "TS") {
-                        await proceed(receiptType: "TS");
-                      } else if (widget.transaction!.receiptType == "PS") {
-                        toast("Can not refund a proforma");
-                        return;
-                      } else if (widget.transaction!.receiptType == "NS") {
-                        await proceed(receiptType: "NR");
-                      }
+                    } catch (e) {
+                      toast(e.toString());
                     }
                   },
                   busy: isRefundProcessing,
@@ -127,7 +134,8 @@ class _RefundState extends ConsumerState<Refund> {
                           }
                         } else {
                           if (widget.transaction!.isRefunded) {
-                            await handleReceipt(filterType: FilterType.PR);
+                            // I removed PR was await handleReceipt(filterType: FilterType.PR);
+                            await handleReceipt(filterType: FilterType.CR);
                           } else {
                             await handleReceipt(filterType: FilterType.CS);
                           }
@@ -245,21 +253,22 @@ class _RefundState extends ConsumerState<Refund> {
 
 // Common refund logic
   Future<void> proceed({required String receiptType}) async {
-    if (receiptType == "CR") {
-      await handleReceipt(filterType: FilterType.CR);
-    } else if (receiptType == "CS") {
-      await handleReceipt(filterType: FilterType.CS);
-    } else if (receiptType == "TR") {
-      await handleReceipt(filterType: FilterType.TR);
-    } else if (receiptType == "NR") {
-      await handleReceipt(filterType: FilterType.NR);
-    }
-
-    talker.error("RefundableTransactionId: ${int.parse(widget.transactionId)}");
-    talker.error("RefundableBranchId: ${widget.transaction?.id}");
-
     // Add stock back to same item refunded
     try {
+      if (receiptType == "CR") {
+        await handleReceipt(filterType: FilterType.CR);
+      } else if (receiptType == "CS") {
+        await handleReceipt(filterType: FilterType.CS);
+      } else if (receiptType == "TR") {
+        await handleReceipt(filterType: FilterType.TR);
+      } else if (receiptType == "NR") {
+        await handleReceipt(filterType: FilterType.NR);
+      }
+
+      talker
+          .error("RefundableTransactionId: ${int.parse(widget.transactionId)}");
+      talker.error("RefundableBranchId: ${widget.transaction?.id}");
+
       List<TransactionItem> items = ProxyService.local.transactionItems(
           transactionId: int.parse(widget.transactionId),
           doneWithTransaction: true,
@@ -316,6 +325,7 @@ class _RefundState extends ConsumerState<Refund> {
       }
     } catch (e) {
       talker.error(e);
+      rethrow;
     }
   }
 
@@ -348,6 +358,7 @@ class _RefundState extends ConsumerState<Refund> {
           isRefundProcessing = false;
         }
       });
+      rethrow;
     }
   }
 }

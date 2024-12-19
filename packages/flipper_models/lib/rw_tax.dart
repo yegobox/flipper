@@ -679,7 +679,7 @@ class RWTax with NetworkHelper implements TaxApi {
       },
       "itemList": itemsList,
     };
-    if (receiptType == "NR" || receiptType == "CR") {
+    if (receiptType == "NR" || receiptType == "CR" || receiptType == "TR") {
       json['rfdRsnCd'] = ProxyService.box.getRefundReason() ?? "05";
     }
     if (receiptType == "NR" || receiptType == "CR" || receiptType == "TR") {

@@ -368,6 +368,22 @@ extension AccessControlWidget on Widget {
   }
 }
 
+/// I need extension when given MTN MOMO to return M-PAY
+/// and when given CARD  tu return C-PAY
+/// and when given bannk to return B-PAY
+extension PaymentTypeExtension on String {
+  String toPaymentType() {
+    if (this.contains("M-PAY")) {
+      return "M-PAY";
+    } else if (this.contains("C-PAY")) {
+      return "C-PAY";
+    } else if (this.contains("B-PAY")) {
+      return "B-PAY";
+    }
+    return "CASH";
+  }
+}
+
 extension PercentageFormatter on double {
   String toFormattedPercentage() {
     final formatter = NumberFormat.percentPattern();
