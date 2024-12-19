@@ -6,7 +6,7 @@ project(flipper LANGUAGES CXX)
 # the on-disk name of your application.
 set(BINARY_NAME "flipper")
 
-set(USE_CUSTOM_SQLITE3 ON) 
+set(USE_CUSTOM_SQLITE3 OFF) 
 
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
