@@ -1,7 +1,6 @@
 name: Build Windows app
 
 on:
-  # Enable manual run
   workflow_dispatch:
     inputs:
       lane:
@@ -23,151 +22,37 @@ env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
 
 jobs:
-  # code-coverage:
-  #   uses: ./.github/workflows/reusable-code-coverage-check.yml
-  #   with:
-  #     flutter-channel: 'stable'
-  #     minimum-coverage: 45
-  #   secrets:
-  #     GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-#   integration-testing-windows:
-#     name: "Integration Testing Windows"
-#     if: github.event_name == 'push' && contains(github.event.head_commit.message, 'test')
-#     runs-on: windows-2022
-#     steps:
-#       - name: Export pub environment variable on Windows
-#         run: |
-#           if [ "$RUNNER_OS" == "Windows" ]; then
-#             echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
-#           fi
-#         shell: bash
-
-#       - run: git config --global core.autocrlf false
-
-#       - uses: actions/checkout@v4
-#         with:
-#           submodules: recursive
-#           token: ${{ secrets.ACCESS_TOKEN }}
-#           persist-credentials: true
-
-#       - name: Clone Flutter repository with stable channel
-#         uses: subosito/flutter-action@v2
-#         with:
-#           flutter-version: "3.24.3"
-#           channel: stable
-
-#       - run: flutter doctor -v
-
-#       - name: submodule init
-#         run: git submodule update --init
-
-#       - name: Configure Missing files
-#         shell: bash
-#         run: |
-#           echo "$INDEX" >> apps/flipper/web/index.html
-#           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-#           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-#           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
-#           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-#           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
-#           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
-#         env:
-#           INDEX: ${{ secrets.INDEX }}
-#           CONFIGDART: ${{ secrets.CONFIGDART }}
-#           SECRETS: ${{ secrets.SECRETS }}
-#           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-#           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}  
-#           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-#       - uses: actions/setup-java@v4
-#         with:
-#           distribution: "zulu"
-#           java-version: "17"
-
-#       - name: Cache Firebase Emulator
-#         uses: actions/cache@v3
-#         with:
-#           path: C:\Users\runneradmin\.cache\firebase\emulators
-#           key: firebase-emulator-${{ runner.os }}-${{ hashFiles('package.json') }}
-#           restore-keys: |
-#             firebase-emulator-${{ runner.os }}-
-
-#       - name: Install Firebase Emulator Suite
-#         run: npm install -g firebase-tools@13.20.2
-
-#       - name: Start Firestore Emulator
-#         env:
-#           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-#         run: |
-#           firebase emulators:start --only firestore --project yegobox-2ee43 &
-#           echo "Waiting for Firestore emulator to start..."
-#           Start-Sleep -Seconds 30
-#         shell: pwsh
-# # flutter test --dart-define=EMULATOR_ENABLED=true  integration_test/smoke_windows_test.dart
-#       - name: Run tests
-#         env:
-#           FIRESTORE_EMULATOR_HOST: localhost:8081
-#           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-#         run: |
-#           dart pub global activate melos 6.2.0
-#           melos bootstrap
-#           cd apps/flipper
-          
-#           flutter drive --dart-define=EMULATOR_ENABLED=true -d windows --target=./integration_test/smoke_windows_test.dart --profile
-
   build-and-release-windows:
     name: "Build windows app"
     if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'direct-build-windows')
     runs-on: windows-2022
-    # needs: [integration-testing-windows]
-    #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to buils!!
-    #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
     steps:
-      - name: Export pub environment variable on Windows
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
-          fi
-        shell: bash
-      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
-      - name: Clone Flutter repository with stable channel
+
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.27.1"
           channel: stable
-      - run: flutter doctor -v
+          cache: true
 
-      - name: submodule init
-        run: |
-          git submodule update --init
-      - name: Load melos
-        run: |
-          dart pub global activate melos 6.2.0
-          melos bootstrap
-      # Replace Visual Studio 17.12 with 17.10 to workaround Firebase issue
-      # https://github.com/firebase/flutterfire/issues/16536
-      # TODO: remove this visual studio change when https://github.com/firebase/flutterfire/issues/16536 is resolved.
-      - name: Cleanup Visual Studio Installer
-        continue-on-error: true
-        run: |
-          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\InstallCleanup.exe"
-        shell: pwsh
+      - name: Cache Pub Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.LOCALAPPDATA }}\Pub\Cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: ${{ runner.os }}-pub-
 
-      # Replace Visual Studio 17.12 with 17.10 to workaround Firebase issue
-      # https://github.com/firebase/flutterfire/issues/16536
       - name: Install Visual Studio 2022 Enterprise
         run: |
           Invoke-WebRequest -Uri https://aka.ms/vs/17/release.ltsc.17.10/vs_enterprise.exe -OutFile vs_enterprise.exe
-          $process = Start-Process -FilePath '.\vs_enterprise.exe' -ArgumentList "--add", "Microsoft.VisualStudio.Workload.Azure", "--quiet", "--norestart", "--wait", "--includeRecommended" -Wait -PassThru
-          Write-Output $process.ExitCode
-          $process = Start-Process -FilePath '.\vs_enterprise.exe' -ArgumentList "--add", "Microsoft.VisualStudio.Workload.NativeDesktop", "--quiet", "--norestart", "--wait", "--includeRecommended" -Wait -PassThru
-          Write-Output $process.ExitCode
+          Start-Process -FilePath '.\vs_enterprise.exe' -ArgumentList "--add", "Microsoft.VisualStudio.Workload.NativeDesktop", "--quiet", "--norestart", "--wait", "--includeRecommended" -Wait
         shell: pwsh
-        # End of issue
+
       - name: Configure Missing files
         shell: bash
         run: |
@@ -185,26 +70,21 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-          # --store
-          # --install-certificate false
-          # https://github.com/YehudaKremer/msix/issues/126
-      - run: |
+
+      - name: Build and Package
+        run: |
+          dart pub global activate melos 6.2.0
+          melos bootstrap
           cd apps/flipper
           flutter build windows --debug
           dart run msix:create -v --install-certificate false
-      - name: Configure Release (optional)
-        env:
-          VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
-        run: |
-          echo "## Release Notes" >> release_notes.txt
-          echo " - New features..." >> release_notes.txt
-          echo " - Bug fixes..." >> release_notes.txt
 
       - name: Extract msix_version
         id: get_version
         shell: powershell
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
+
       - name: Upload .msix to Release
         uses: actions/upload-artifact@v3
         env:
@@ -213,6 +93,3 @@ jobs:
           name: windows-build
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
           upload_release_asset: false
-
-
-  
