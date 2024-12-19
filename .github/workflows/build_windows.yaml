@@ -76,7 +76,7 @@ jobs:
           dart pub global activate melos 6.2.0
           melos bootstrap
           cd apps/flipper
-          flutter build windows --debug
+          flutter build windows --release
           dart run msix:create -v --install-certificate false
 
       - name: Extract msix_version
