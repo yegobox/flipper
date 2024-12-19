@@ -2,6 +2,34 @@
 cmake_minimum_required(VERSION 3.14)
 project(flipper LANGUAGES CXX)
 
+# Add SQLite configuration at the top
+if(NOT TARGET sqlite3)
+  include(FetchContent)
+  FetchContent_Declare(
+    sqlite3
+    URL https://www.sqlite.org/2024/sqlite-amalgamation-3450100.zip
+    URL_HASH SHA256=48460ba1f4667b3cc878c45904a00c566eab073fbf0c73a7089d1598aae05bc1
+  )
+  FetchContent_MakeAvailable(sqlite3)
+
+  # Only create the library if it doesn't exist
+  add_library(sqlite3 STATIC
+    "${sqlite3_SOURCE_DIR}/sqlite3.c"
+  )
+
+  # Only set compile definitions if we created the target
+  target_compile_definitions(sqlite3 PUBLIC
+    SQLITE_ENABLE_FTS5
+    SQLITE_ENABLE_RTREE
+    SQLITE_ENABLE_JSON1
+    SQLITE_THREADSAFE=1
+  )
+endif()
+
+# The target_link_libraries call can stay the same since it will use
+# whichever sqlite3 target exists
+target_link_libraries(${BINARY_NAME} PRIVATE flutter sqlite3)
+
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "flipper")
@@ -26,6 +54,7 @@ else()
       "Debug" "Profile" "Release")
   endif()
 endif()
+
 # Define settings for the Profile build mode.
 set(CMAKE_EXE_LINKER_FLAGS_PROFILE "${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
 set(CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}")
@@ -36,10 +65,6 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 add_definitions(-DUNICODE -D_UNICODE)
 
 # Compilation settings that should be applied to most targets.
-#
-# Be cautious about adding new options here, as plugins use this function by
-# default. In most cases, you should add new options to specific targets instead
-# of modifying this function.
 function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
   target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
