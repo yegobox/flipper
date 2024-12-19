@@ -40,7 +40,7 @@ dependencies:
   url_launcher: ^6.3.0
   google_fonts: ^6.1.0
   number_display: ^3.0.0
-  firebase_core: ^3.8.1
+  firebase_core: ^3.9.0
   cupertino_icons: ^1.0.4
   flipper_services: any
 
