@@ -82,6 +82,7 @@ dependency_overrides:
       ref: 9010ff4e2470e086d469af1ad1ecb61f9054e6b7
       path: packages/common/amplify_db_common
       fetch: 9010ff4e2470e086d469af1ad1ecb61f9054e6b7
+  sqlite3_flutter_libs: ^0.5.27
   
 dev_dependencies:
   build_runner: ^2.4.13

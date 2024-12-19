@@ -27,7 +27,7 @@ jobs:
     name: "Google Deploy"
     # needs: [unit-testing,android-integration-test, integration-testing-windows
     # 
-    if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'direct-build-android')
+    if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'test direct-build-android')
     # runs-on: ubuntu-22.04
     runs-on: macOS-12
     steps:
