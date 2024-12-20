@@ -257,7 +257,7 @@ abstract class RealmInterface {
 
   Future<List<Discount>> getDiscounts({required int branchId});
 
-  void addTransactionItem(
+  FutureOr<void> addTransactionItem(
       {required ITransaction transaction,
       required TransactionItem item,
       required bool partOfComposite});
@@ -653,6 +653,8 @@ abstract class RealmInterface {
     double? discount,
     bool? active,
     double? taxAmt,
+    bool? ebmSynced,
+    bool? isRefunded,
     double? price,
     double? prc,
   });
@@ -664,14 +666,33 @@ abstract class RealmInterface {
       String? note,
       String? status,
       int? customerId,
+      bool? ebmSynced,
+      bool? isRefunded,
       String? ticketName,
       String? updatedAt,
+      int? invoiceNumber,
+      int? receiptNumber,
+      int? totalReceiptNumber,
       bool? isProformaMode,
       bool? isTrainingMode});
 
   void updateCounters({
     required List<Counter> counters,
     required RwApiResponse receiptSignature,
+  });
+  FutureOr<void> updateDrawer({
+    required int drawerId,
+    int? cashierId,
+    int? nsSaleCount,
+    int? trSaleCount,
+    int? psSaleCount,
+    int? csSaleCount,
+    int? nrSaleCount,
+    int? incompleteSale,
+    double? totalCsSaleIncome,
+    double? totalNsSaleIncome,
+    String? openingDateTime,
+    bool? open,
   });
 
   FutureOr<void> updateVariant({

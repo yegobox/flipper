@@ -326,131 +326,135 @@ class TaxController<OBJ> {
             whenCreated: receipt?.whenCreated ?? now);
 
         /// update transaction with receipt number and total receipt number
-        ProxyService.local.realm!.write(() {
-          if (receiptType == "CR" ||
-              receiptType == "NR" ||
-              receiptType == "TR" ||
-              receiptType == "CS") {
-            final tran = ITransaction(
+
+        if (receiptType == "CR" ||
+            receiptType == "NR" ||
+            receiptType == "TR" ||
+            receiptType == "CS") {
+          final tran = ITransaction(
+            ObjectId(),
+            id: randomNumber(),
+            receiptNumber: receiptSignature.data?.rcptNo,
+            totalReceiptNumber: receiptSignature.data?.totRcptNo,
+            invoiceNumber: counter.invcNo,
+            paymentType: transaction.paymentType,
+            subTotal: transaction.subTotal,
+            // Adding other fields from transaction object
+            reference: transaction.reference,
+            categoryId: transaction.categoryId,
+            transactionNumber: transaction.transactionNumber,
+            branchId: transaction.branchId,
+            status: transaction.status,
+            transactionType: transaction.transactionType,
+            cashReceived: transaction.cashReceived,
+            customerChangeDue: transaction.customerChangeDue,
+            createdAt: transaction.createdAt,
+            receiptType: receiptType,
+            updatedAt: transaction.updatedAt,
+            customerId: transaction.customerId,
+            customerType: transaction.customerType,
+            note: transaction.note,
+            lastTouched: transaction.lastTouched,
+            ticketName: transaction.ticketName,
+            deletedAt: transaction.deletedAt,
+            supplierId: transaction.supplierId,
+            ebmSynced: transaction.ebmSynced,
+            isIncome: transaction.isIncome,
+            isExpense: transaction.isExpense,
+            isRefunded: transaction.isRefunded,
+            customerName: transaction.customerName,
+            customerTin: transaction.customerTin,
+            remark: transaction.remark,
+            customerBhfId: transaction.customerBhfId,
+            sarTyCd: transaction.sarTyCd,
+          );
+          //query item and re-assign
+          final List<TransactionItem> items =
+              ProxyService.local.transactionItems(
+            branchId: ProxyService.box.getBranchId()!,
+            transactionId: transaction.id!,
+          );
+          // copy TransactionItem
+          for (TransactionItem item in items) {
+            final copy = TransactionItem(
               ObjectId(),
-              id: randomNumber(),
-              receiptNumber: receiptSignature.data?.rcptNo,
-              totalReceiptNumber: receiptSignature.data?.totRcptNo,
-              invoiceNumber: counter.invcNo,
-              paymentType: transaction.paymentType,
-              subTotal: transaction.subTotal,
-              // Adding other fields from transaction object
-              reference: transaction.reference,
-              categoryId: transaction.categoryId,
-              transactionNumber: transaction.transactionNumber,
-              branchId: transaction.branchId,
-              status: transaction.status,
-              transactionType: transaction.transactionType,
-              cashReceived: transaction.cashReceived,
-              customerChangeDue: transaction.customerChangeDue,
-              createdAt: transaction.createdAt,
-              receiptType: receiptType,
-              updatedAt: transaction.updatedAt,
-              customerId: transaction.customerId,
-              customerType: transaction.customerType,
-              note: transaction.note,
-              lastTouched: transaction.lastTouched,
-              ticketName: transaction.ticketName,
-              deletedAt: transaction.deletedAt,
-              supplierId: transaction.supplierId,
-              ebmSynced: transaction.ebmSynced,
-              isIncome: transaction.isIncome,
-              isExpense: transaction.isExpense,
-              isRefunded: transaction.isRefunded,
-              customerName: transaction.customerName,
-              customerTin: transaction.customerTin,
-              remark: transaction.remark,
-              customerBhfId: transaction.customerBhfId,
-              sarTyCd: transaction.sarTyCd,
+              id: item.id,
+              qty: item.qty,
+              discount: item.discount,
+              remainingStock: item.remainingStock,
+              itemCd: item.itemCd,
+              transactionId: tran.id,
+              variantId: transaction.id,
+              qtyUnitCd: item.qtyUnitCd,
+              prc: item.prc,
+              regrId: item.regrId,
+              regrNm: item.regrNm,
+              modrId: item.modrId,
+              modrNm: item.modrNm,
+              name: item.name,
+              quantityRequested: item.quantityRequested,
+              quantityApproved: item.quantityApproved,
+              quantityShipped: item.quantityShipped,
+              price: item.price,
+              type: item.type,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt,
+              isTaxExempted: item.isTaxExempted,
+              isRefunded: item.isRefunded,
+              doneWithTransaction: item.doneWithTransaction,
+              active: item.active,
+              dcRt: item.dcRt,
+              dcAmt: item.dcAmt,
+              taxblAmt: item.taxblAmt,
+              taxAmt: item.taxAmt,
+              totAmt: item.totAmt,
+              itemSeq: item.itemSeq,
+              isrccCd: item.isrccCd,
+              isrccNm: item.isrccNm,
+              isrcRt: item.isrcRt,
+              isrcAmt: item.isrcAmt,
+              taxTyCd: item.taxTyCd,
+              bcd: item.bcd,
+              itemClsCd: item.itemClsCd,
+              itemTyCd: item.itemTyCd,
+              itemStdNm: item.itemStdNm,
+              orgnNatCd: item.orgnNatCd,
+              pkg: item.pkg,
+              pkgUnitCd: item.pkgUnitCd,
+              itemNm: item.itemNm,
+              splyAmt: item.splyAmt,
+              tin: item.tin,
+              bhfId: item.bhfId,
+              dftPrc: item.dftPrc,
+              addInfo: item.addInfo,
+              isrcAplcbYn: item.isrcAplcbYn,
+              useYn: item.useYn,
+              lastTouched: item.lastTouched,
+              deletedAt: item.deletedAt,
+              branchId: item.branchId,
+              ebmSynced: item.ebmSynced,
+              partOfComposite: item.partOfComposite,
+              compositePrice: item.compositePrice,
             );
-            //query item and re-assign
-            final List<TransactionItem> items =
-                ProxyService.local.transactionItems(
-              branchId: ProxyService.box.getBranchId()!,
-              transactionId: transaction.id!,
+
+            await ProxyService.local.addTransactionItem(
+              transaction: tran,
+              item: copy,
+              partOfComposite: item.partOfComposite,
             );
-            // copy TransactionItem
-            for (TransactionItem item in items) {
-              final copy = TransactionItem(
-                ObjectId(),
-                id: item.id,
-                qty: item.qty,
-                discount: item.discount,
-                remainingStock: item.remainingStock,
-                itemCd: item.itemCd,
-                transactionId: tran.id,
-                variantId: transaction.id,
-                qtyUnitCd: item.qtyUnitCd,
-                prc: item.prc,
-                regrId: item.regrId,
-                regrNm: item.regrNm,
-                modrId: item.modrId,
-                modrNm: item.modrNm,
-                name: item.name,
-                quantityRequested: item.quantityRequested,
-                quantityApproved: item.quantityApproved,
-                quantityShipped: item.quantityShipped,
-                price: item.price,
-                type: item.type,
-                createdAt: item.createdAt,
-                updatedAt: item.updatedAt,
-                isTaxExempted: item.isTaxExempted,
-                isRefunded: item.isRefunded,
-                doneWithTransaction: item.doneWithTransaction,
-                active: item.active,
-                dcRt: item.dcRt,
-                dcAmt: item.dcAmt,
-                taxblAmt: item.taxblAmt,
-                taxAmt: item.taxAmt,
-                totAmt: item.totAmt,
-                itemSeq: item.itemSeq,
-                isrccCd: item.isrccCd,
-                isrccNm: item.isrccNm,
-                isrcRt: item.isrcRt,
-                isrcAmt: item.isrcAmt,
-                taxTyCd: item.taxTyCd,
-                bcd: item.bcd,
-                itemClsCd: item.itemClsCd,
-                itemTyCd: item.itemTyCd,
-                itemStdNm: item.itemStdNm,
-                orgnNatCd: item.orgnNatCd,
-                pkg: item.pkg,
-                pkgUnitCd: item.pkgUnitCd,
-                itemNm: item.itemNm,
-                splyAmt: item.splyAmt,
-                tin: item.tin,
-                bhfId: item.bhfId,
-                dftPrc: item.dftPrc,
-                addInfo: item.addInfo,
-                isrcAplcbYn: item.isrcAplcbYn,
-                useYn: item.useYn,
-                lastTouched: item.lastTouched,
-                deletedAt: item.deletedAt,
-                branchId: item.branchId,
-                ebmSynced: item.ebmSynced,
-                partOfComposite: item.partOfComposite,
-                compositePrice: item.compositePrice,
-              );
-
-              ProxyService.local.realm!.add<TransactionItem>(copy);
-              // ProxyService.backUp.replicateData(transactionTable, copy);
-            }
-
-            ProxyService.local.realm!.add(tran);
-          } else if (receiptType == "NS" ||
-              receiptType == "TS" ||
-              receiptType == "PS") {
-            transaction.receiptNumber = receiptSignature.data?.rcptNo;
-            transaction.totalReceiptNumber = receiptSignature.data?.totRcptNo;
-            transaction.invoiceNumber = counter.invcNo;
-            // ProxyService.backUp.replicateData(transactionTable, transaction);
           }
-        });
+
+          ProxyService.local.realm!.add(tran);
+        } else if (receiptType == "NS" ||
+            receiptType == "TS" ||
+            receiptType == "PS") {
+          ProxyService.local.updateTransaction(
+            transaction: transaction,
+            receiptNumber: receiptSignature.data?.rcptNo,
+            totalReceiptNumber: receiptSignature.data?.totRcptNo,
+            invoiceNumber: counter.invcNo,
+          );
+        }
 
         await saveReceipt(
             receiptSignature, transaction, qrCode, counter, receiptNumber,
@@ -479,34 +483,34 @@ class TaxController<OBJ> {
     Drawers? drawer = await ProxyService.local
         .getDrawer(cashierId: ProxyService.box.getUserId()!);
 
-    ProxyService.local.realm!.write(() {
-      drawer!
-        ..cashierId = ProxyService.box.getBusinessId()!
-        ..nsSaleCount = receiptType == "NS"
-            ? drawer.nsSaleCount ?? 0 + 1
-            : drawer.nsSaleCount ?? 0
-        ..trSaleCount = receiptType == "TR"
-            ? drawer.trSaleCount ?? 0 + 1
-            : drawer.trSaleCount ?? 0
-        ..psSaleCount = receiptType == "PS"
-            ? drawer.psSaleCount ?? 0 + 1
-            : drawer.psSaleCount ?? 0
-        ..csSaleCount = receiptType == "CS"
-            ? drawer.csSaleCount ?? 0 + 1
-            : drawer.csSaleCount ?? 0
-        ..nrSaleCount = receiptType == "NR"
-            ? drawer.nrSaleCount ?? 0 + 1
-            : drawer.nrSaleCount ?? 0
-        ..incompleteSale = 0
-        ..totalCsSaleIncome = receiptType == "CS"
-            ? drawer.totalCsSaleIncome ?? 0 + transaction.subTotal
-            : drawer.totalCsSaleIncome ?? 0
-        ..totalNsSaleIncome = receiptType == "NS"
-            ? drawer.totalNsSaleIncome ?? 0 + transaction.subTotal
-            : drawer.totalNsSaleIncome ?? 0
-        ..openingDateTime = DateTime.now().toIso8601String()
-        ..open = true;
-    });
+    ProxyService.local.updateDrawer(
+      drawerId: drawer!.id!,
+      cashierId: ProxyService.box.getBusinessId()!,
+      nsSaleCount: receiptType == "NS"
+          ? drawer.nsSaleCount ?? 0 + 1
+          : drawer.nsSaleCount ?? 0,
+      trSaleCount: receiptType == "TR"
+          ? drawer.trSaleCount ?? 0 + 1
+          : drawer.trSaleCount ?? 0,
+      psSaleCount: receiptType == "PS"
+          ? drawer.psSaleCount ?? 0 + 1
+          : drawer.psSaleCount ?? 0,
+      csSaleCount: receiptType == "CS"
+          ? drawer.csSaleCount ?? 0 + 1
+          : drawer.csSaleCount ?? 0,
+      nrSaleCount: receiptType == "NR"
+          ? drawer.nrSaleCount ?? 0 + 1
+          : drawer.nrSaleCount ?? 0,
+      incompleteSale: 0,
+      totalCsSaleIncome: receiptType == "CS"
+          ? drawer.totalCsSaleIncome ?? 0 + transaction.subTotal
+          : drawer.totalCsSaleIncome ?? 0,
+      totalNsSaleIncome: receiptType == "NS"
+          ? drawer.totalNsSaleIncome ?? 0 + transaction.subTotal
+          : drawer.totalNsSaleIncome ?? 0,
+      openingDateTime: DateTime.now().toIso8601String(),
+      open: true,
+    );
   }
 
   Future<void> saveReceipt(

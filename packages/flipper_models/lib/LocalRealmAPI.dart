@@ -2849,6 +2849,8 @@ class LocalRealmApi
       double? discount,
       double? taxAmt,
       double? price,
+      bool? ebmSynced,
+      bool? isRefunded,
       double? prc,
       bool? active}) {
     TransactionItem? item = realm!
@@ -2861,6 +2863,8 @@ class LocalRealmApi
         item.price = price ?? item.price;
         item.prc = prc ?? item.prc;
         item.taxAmt = taxAmt ?? item.taxAmt;
+        item.isRefunded = isRefunded ?? item.isRefunded;
+        item.ebmSynced = ebmSynced ?? item.ebmSynced;
       });
     }
   }
@@ -2994,7 +2998,7 @@ class LocalRealmApi
   }
 
   @override
-  void addTransactionItem(
+  FutureOr<void> addTransactionItem(
       {required ITransaction transaction,
       required TransactionItem item,
       required bool partOfComposite}) {
@@ -3680,6 +3684,13 @@ class LocalRealmApi
         realm!.write(() {
           realm!
               .deleteN(tableName: accessesTable, deleteCallback: () => access);
+        });
+        break;
+      case 'composite':
+        Composite? composite =
+            realm!.query<Composite>(r'id == $0 ', [id]).first;
+        realm!.write(() {
+          realm!.delete(composite);
         });
         break;
       default:
@@ -4952,8 +4963,13 @@ class LocalRealmApi
       String? status,
       String? note,
       int? customerId,
+      bool? isRefunded,
+      bool? ebmSynced,
       String? ticketName,
       String? updatedAt,
+      int? invoiceNumber,
+      int? receiptNumber,
+      int? totalReceiptNumber,
       bool? isProformaMode,
       bool? isTrainingMode}) {
     if (receiptType != null) {
@@ -4978,6 +4994,12 @@ class LocalRealmApi
         transaction.ticketName = ticketName ?? transaction.ticketName;
         transaction.updatedAt = updatedAt ?? transaction.updatedAt;
         transaction.customerId = customerId;
+        transaction.isRefunded = isRefunded ?? transaction.isRefunded;
+        transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
+        transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
+        transaction.receiptNumber = receiptNumber ?? transaction.receiptNumber;
+        transaction.totalReceiptNumber =
+            totalReceiptNumber ?? transaction.totalReceiptNumber;
         return transaction;
       });
     }
@@ -5901,6 +5923,41 @@ class LocalRealmApi
         tenant.email = email ?? tenant.email;
         tenant.businessId = businessId ?? tenant.businessId;
         tenant.sessionActive = sessionActive ?? tenant.sessionActive;
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> updateDrawer(
+      {required int drawerId,
+      int? cashierId,
+      int? nsSaleCount,
+      int? trSaleCount,
+      int? psSaleCount,
+      int? csSaleCount,
+      int? nrSaleCount,
+      int? incompleteSale,
+      double? totalCsSaleIncome,
+      double? totalNsSaleIncome,
+      String? openingDateTime,
+      bool? open}) {
+    Drawers? drawer =
+        realm!.query<Drawers>(r'id == $0', [drawerId]).firstOrNull;
+    if (drawer != null) {
+      realm!.write(() {
+        drawer.cashierId = cashierId ?? drawer.cashierId;
+        drawer.nsSaleCount = nsSaleCount ?? drawer.nsSaleCount;
+        drawer.trSaleCount = trSaleCount ?? drawer.trSaleCount;
+        drawer.psSaleCount = psSaleCount ?? drawer.psSaleCount;
+        drawer.csSaleCount = csSaleCount ?? drawer.csSaleCount;
+        drawer.nrSaleCount = nrSaleCount ?? drawer.nrSaleCount;
+        drawer.incompleteSale = incompleteSale ?? drawer.incompleteSale;
+        drawer.totalCsSaleIncome =
+            totalCsSaleIncome ?? drawer.totalCsSaleIncome;
+        drawer.totalNsSaleIncome =
+            totalNsSaleIncome ?? drawer.totalNsSaleIncome;
+        drawer.openingDateTime = openingDateTime ?? drawer.openingDateTime;
+        drawer.open = open ?? drawer.open;
       });
     }
   }

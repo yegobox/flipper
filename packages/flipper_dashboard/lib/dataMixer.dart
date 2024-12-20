@@ -58,11 +58,13 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         /// search composite and delete them as well
         List<Composite> composites =
             ProxyService.local.composites(productId: productId);
-        ProxyService.local.realm!.write(() {
-          for (Composite composite in composites) {
-            ProxyService.local.realm!.delete(composite);
-          }
-        });
+
+        for (Composite composite in composites) {
+          ProxyService.local.delete(
+              id: composite.id!,
+              endPoint: 'composite',
+              flipperHttpClient: ProxyService.http);
+        }
       }
       if (product != null && product.imageUrl != null) {
         if (await ProxyService.local

@@ -705,7 +705,7 @@ class RWTax with NetworkHelper implements TaxApi {
     return json;
   }
 
-// Helper function to update transaction and item statuses
+  /// Helper function to update transaction and item statuses
   void updateTransactionAndItems(ITransaction transaction,
       List<TransactionItem> items, String? receiptType) {
     for (TransactionItem item in items) {
@@ -713,20 +713,21 @@ class RWTax with NetworkHelper implements TaxApi {
         variantId: item.variantId!,
         branchId: ProxyService.box.getBranchId()!,
       );
-
-      ProxyService.local.realm!.write(() {
-        item.ebmSynced = true;
-        stock?.ebmSynced = false;
-        if (receiptType == "R") {
-          item.isRefunded = true;
-        }
-      });
+      ProxyService.local.updateStock(
+        stockId: stock!.id!,
+        ebmSynced: false,
+      );
+      ProxyService.local.updateTransactionItem(
+        transactionItemId: item.id!,
+        isRefunded: receiptType == "R",
+        ebmSynced: false,
+      );
     }
-
-    ProxyService.local.realm!.write(() {
-      transaction.ebmSynced = true;
-      transaction.isRefunded = receiptType == "R";
-    });
+    ProxyService.local.updateTransaction(
+      transaction: transaction,
+      isRefunded: receiptType == "R",
+      ebmSynced: true,
+    );
   }
 
   // Define these constants at the top level of your file
