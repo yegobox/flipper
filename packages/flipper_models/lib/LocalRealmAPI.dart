@@ -4920,9 +4920,6 @@ class LocalRealmApi
       double amount = 0.0,
       String? paymentMethod}) {
     // find TransactionPaymentRecord with transactionId
-    final transactionPaymentRecord = realm!.query<TransactionPaymentRecord>(
-        r'transactionId == $0 && paymentMethod == $1',
-        [transactionId, paymentMethod]).firstOrNull;
 
     /// check if there is TransactionPaymentRecord with amount 0 delete it as we might not need it
     /// by default we add payment method with 0.0 amount if this method was not updated with real money they we need to delete it to avoid confusion.
@@ -4942,15 +4939,17 @@ class LocalRealmApi
     if (singlePaymentOnly) {
       final transactionPaymentRecords = realm!.query<TransactionPaymentRecord>(
           r'transactionId == $0', [transactionId]).toList();
-      if (transactionPaymentRecords.length > 1) {
-        realm!.write(() {
-          for (var i = 1; i < transactionPaymentRecords.length; i++) {
-            realm!
-                .delete<TransactionPaymentRecord>(transactionPaymentRecords[i]);
-          }
-        });
-      }
+      realm!.write(() {
+        for (TransactionPaymentRecord record in transactionPaymentRecords) {
+          realm!.delete<TransactionPaymentRecord>(record);
+        }
+      });
     }
+
+    final transactionPaymentRecord = realm!.query<TransactionPaymentRecord>(
+        r'transactionId == $0 && paymentMethod == $1',
+        [transactionId, paymentMethod]).firstOrNull;
+
     if (transactionPaymentRecord != null) {
       realm!.write(() {
         transactionPaymentRecord.paymentMethod = paymentMethod;

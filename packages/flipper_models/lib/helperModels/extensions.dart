@@ -375,10 +375,12 @@ extension PaymentTypeExtension on String {
   String toPaymentType() {
     if (this.contains("MTN")) {
       return "MOMO-PAY";
-    } else if (this.contains("CARD")) {
+    } else if (this.contains("Card")) {
       return "CARD-PAY";
     } else if (this.contains("Bank")) {
       return "BANK-PAY";
+    } else if (this.contains("Credit")) {
+      return "Credit-PAY";
     }
     return "CASH";
   }
