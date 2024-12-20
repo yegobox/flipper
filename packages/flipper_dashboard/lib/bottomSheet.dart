@@ -62,7 +62,7 @@ class BottomSheets {
                     onPressed: () {
                       if (double.tryParse(newQtyController.text) != null &&
                           double.tryParse(newQtyController.text) != 0) {
-                        ProxyService.local.updateTransactionItemQty(
+                        ProxyService.local.updateTransactionItem(
                             qty: double.tryParse(newQtyController.text),
                             transactionItemId: transactionItem.id!);
 
