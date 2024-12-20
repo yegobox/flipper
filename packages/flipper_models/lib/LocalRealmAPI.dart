@@ -4923,7 +4923,9 @@ class LocalRealmApi
     final transactionPaymentRecord = realm!.query<TransactionPaymentRecord>(
         r'transactionId == $0 && paymentMethod == $1',
         [transactionId, paymentMethod]).firstOrNull;
-    // check if there is TransactionPaymentRecord with amount 0 delete it as we might not need it
+
+    /// check if there is TransactionPaymentRecord with amount 0 delete it as we might not need it
+    /// by default we add payment method with 0.0 amount if this method was not updated with real money they we need to delete it to avoid confusion.
     final transactionPaymentRecordWithAmount0 = realm!
         .query<TransactionPaymentRecord>(r'transactionId == $0 && amount == $1',
             [transactionId, 0.0]).firstOrNull;
