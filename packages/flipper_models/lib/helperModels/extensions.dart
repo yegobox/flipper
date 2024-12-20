@@ -373,12 +373,12 @@ extension AccessControlWidget on Widget {
 /// and when given bannk to return B-PAY
 extension PaymentTypeExtension on String {
   String toPaymentType() {
-    if (this.contains("M-PAY")) {
-      return "M-PAY";
-    } else if (this.contains("C-PAY")) {
-      return "C-PAY";
-    } else if (this.contains("B-PAY")) {
-      return "B-PAY";
+    if (this.contains("MTN")) {
+      return "MOMO-PAY";
+    } else if (this.contains("CARD")) {
+      return "CARD-PAY";
+    } else if (this.contains("Bank")) {
+      return "BANK-PAY";
     }
     return "CASH";
   }

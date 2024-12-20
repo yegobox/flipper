@@ -1191,14 +1191,19 @@ class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
     } catch (e) {}
   }
 
-  void updatePaymentMethod(int index, Payment payment, {required int transactionId}) {
+  void updatePaymentMethod(int index, Payment payment,
+      {required int transactionId}) {
     final updatedList = List<Payment>.from(state);
     updatedList[index] = payment;
     state = updatedList;
-    // ProxyService.local.savePaymentType(
-    //     paymentRecord: TransactionPaymentRecord(
-    //     ),
-    //     transactionId: transactionId);
+
+    talker.warning("Payment Lenght:${state.length}");
+
+    ProxyService.local.savePaymentType(
+        amount: payment.amount,
+        singlePaymentOnly: state.length == 1,
+        paymentMethod: payment.method,
+        transactionId: transactionId);
   }
 
   // Method to remove a payment method

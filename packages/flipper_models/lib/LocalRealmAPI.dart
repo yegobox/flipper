@@ -4914,20 +4914,63 @@ class LocalRealmApi
 
   @override
   FutureOr<void> savePaymentType(
-      {required TransactionPaymentRecord paymentRecord, int? transactionId}) {
-    if (transactionId == null) {
-      // find TransactionPaymentRecord with transactionId
-      final transactionPaymentRecord = realm!.query<TransactionPaymentRecord>(
-          r'transactionId == $0', [transactionId]).firstOrNull;
-      if (transactionPaymentRecord != null) {
+      {TransactionPaymentRecord? paymentRecord,
+      required bool singlePaymentOnly,
+      int? transactionId,
+      double amount = 0.0,
+      String? paymentMethod}) {
+    // find TransactionPaymentRecord with transactionId
+    final transactionPaymentRecord = realm!.query<TransactionPaymentRecord>(
+        r'transactionId == $0 && paymentMethod == $1',
+        [transactionId, paymentMethod]).firstOrNull;
+    // check if there is TransactionPaymentRecord with amount 0 delete it as we might not need it
+    final transactionPaymentRecordWithAmount0 = realm!
+        .query<TransactionPaymentRecord>(r'transactionId == $0 && amount == $1',
+            [transactionId, 0.0]).firstOrNull;
+    if (transactionPaymentRecordWithAmount0 != null) {
+      realm!.write(() {
+        realm!.delete<TransactionPaymentRecord>(
+            transactionPaymentRecordWithAmount0);
+      });
+    }
+
+    /// if is single payment delete any other payments, this is to handle case where a user switched from one payment method to another
+    /// but he ended up one payment method choosen, in this case we delete other and save the one he is at.
+    /// if multiple payment is choosen this is not applied.
+    if (singlePaymentOnly) {
+      final transactionPaymentRecords = realm!.query<TransactionPaymentRecord>(
+          r'transactionId == $0', [transactionId]).toList();
+      if (transactionPaymentRecords.length > 1) {
         realm!.write(() {
-          transactionPaymentRecord.paymentMethod = paymentRecord.paymentMethod;
+          for (var i = 1; i < transactionPaymentRecords.length; i++) {
+            realm!
+                .delete<TransactionPaymentRecord>(transactionPaymentRecords[i]);
+          }
         });
       }
     }
-    realm!.write(() {
-      realm!.add<TransactionPaymentRecord>(paymentRecord);
-    });
+    if (transactionPaymentRecord != null) {
+      realm!.write(() {
+        transactionPaymentRecord.paymentMethod = paymentMethod;
+        transactionPaymentRecord.amount = amount;
+      });
+    } else if (transactionId != 0) {
+      final transactionPaymentRecord = TransactionPaymentRecord(
+        ObjectId(),
+        id: randomNumber(),
+        amount: amount,
+        transactionId: transactionId,
+        paymentMethod: paymentMethod,
+      );
+      realm!.write(() {
+        realm!.add<TransactionPaymentRecord>(transactionPaymentRecord);
+      });
+    }
+    if (paymentRecord != null) {
+      realm!.write(() {
+        realm!.add<TransactionPaymentRecord>(paymentRecord);
+      });
+    }
   }
 
   @override

@@ -93,7 +93,7 @@ class NavigationPurpose {
 }
 
 // Lists
-const List<String> paymentTypes = ['Cash', 'MOMO MTN', 'Card', 'Credit'];
+const List<String> paymentTypes = ['Cash', 'MOMO MTN', 'Card', 'Credit','Bank'];
 
 List<String> accessLevels = ['No Access', 'read', 'write', 'admin'];
 

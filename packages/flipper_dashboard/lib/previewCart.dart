@@ -187,12 +187,9 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       // Save payment methods
       for (var payment in paymentMethods) {
         ProxyService.local.savePaymentType(
-          paymentRecord: TransactionPaymentRecord(
-            ObjectId(),
-            amount: payment.amount,
-            transactionId: transactionId,
-            paymentMethod: payment.method,
-          ),
+          amount: payment.amount,
+          transactionId: transactionId,
+          paymentMethod: payment.method,
         );
       }
 

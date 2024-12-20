@@ -612,7 +612,10 @@ abstract class RealmInterface {
   void saveStock({required Variant variant, required double rsdQty});
   void updateTransactionStatus(ITransaction transaction, String receiptType);
   FutureOr<void> savePaymentType(
-      {required TransactionPaymentRecord paymentRecord, int? transactionId});
+      {TransactionPaymentRecord? paymentRecord,
+      int? transactionId,
+      double amount = 0.0,
+      String? paymentMethod, required bool singlePaymentOnly});
   List<TransactionPaymentRecord> getPaymentType({required int transactionId});
 
   void updateCounters({

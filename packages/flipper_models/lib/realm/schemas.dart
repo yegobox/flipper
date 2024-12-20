@@ -1084,7 +1084,7 @@ class _TransactionPaymentRecord {
   int? id;
   @PrimaryKey()
   @MapTo('_id')
-  ObjectId? realmId;
+  late ObjectId realmId;
   int? transactionId;
   double? amount = 0.0;
   String? paymentMethod;
