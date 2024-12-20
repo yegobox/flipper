@@ -1166,7 +1166,7 @@ PODS:
   - BoringSSL-GRPC/Interface (0.0.36)
   - cbl_flutter_ce (0.0.1):
     - FlutterMacOS
-  - cloud_firestore (5.5.1):
+  - cloud_firestore (5.6.0):
     - Firebase/CoreOnly (~> 11.4.0)
     - Firebase/Firestore (~> 11.4.0)
     - firebase_core
@@ -1212,7 +1212,7 @@ PODS:
     - Firebase/CoreOnly (~> 11.4.0)
     - firebase_core
     - FlutterMacOS
-  - firebase_core (3.8.1):
+  - firebase_core (3.9.0):
     - Firebase/CoreOnly (~> 11.4.0)
     - FlutterMacOS
   - firebase_crashlytics (4.2.0):
@@ -1556,7 +1556,7 @@ PODS:
   - sqlite3_flutter_libs (0.0.1):
     - Flutter
     - FlutterMacOS
-    - sqlite3 (~> 3.47.1)
+    - sqlite3 (~> 3.47.2)
     - sqlite3/dbstatvtab
     - sqlite3/fts5
     - sqlite3/perf-threadsafe
@@ -1733,7 +1733,7 @@ SPEC CHECKSUMS:
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   BoringSSL-GRPC: ca6a8e5d04812fce8ffd6437810c2d46f925eaeb
   cbl_flutter_ce: 67164e085e11142a13fdb7e1831ea29e68cde3de
-  cloud_firestore: 9a20a45d1f46dda8d3486bc68866e8dca2d68548
+  cloud_firestore: 0d1c982890702bf99ab2881743c35fddb66e295d
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   connectivity_plus: 4c41c08fc6d7c91f63bc7aec70ffe3730b04f563
   desktop_webview_auth: 9bba53a29c9bc6a4ff621fd0ebfbb18856c4dada
@@ -1742,7 +1742,7 @@ SPEC CHECKSUMS:
   Firebase: cf1b19f21410b029b6786a54e9764a0cacad3c99
   firebase_analytics: a80b3d6645f2f12d626fde928b61dae12e5ea2ef
   firebase_auth: cda334a14540e3c1be90eb2cd82682f9409bea37
-  firebase_core: e4a35c426636a2cce00a5163df7ba69bfd0cca57
+  firebase_core: 1dfe1f4d02ad78be0277e320aa3d8384cf46231f
   firebase_crashlytics: 4bf853f7b18680fe9095aebde606be148de3d4a8
   firebase_messaging: 61f678060b69a7ae1013e3a939ec8e1c56ef6fcf
   firebase_remote_config: 559bbd2f3fec93598e725d35da1f94a3140a15ad
@@ -1796,7 +1796,7 @@ SPEC CHECKSUMS:
   smart_auth: b38e3ab4bfe089eacb1e233aca1a2340f96c28e9
   sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
   sqlite3: 7559e33dae4c78538df563795af3a86fc887ee71
-  sqlite3_flutter_libs: 1b4e98da20ebd4e9b1240269b78cdcf492dbe9f3
+  sqlite3_flutter_libs: 58ae36c0dd086395d066b4fe4de9cdca83e717b3
   tray_manager: 9064e219c56d75c476e46b9a21182087930baf90
   url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404
   window_manager: 3a1844359a6295ab1e47659b1a777e36773cd6e8

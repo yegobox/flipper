@@ -1191,10 +1191,14 @@ class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
     } catch (e) {}
   }
 
-  void updatePaymentMethod(int index, Payment payment) {
+  void updatePaymentMethod(int index, Payment payment, {required int transactionId}) {
     final updatedList = List<Payment>.from(state);
     updatedList[index] = payment;
     state = updatedList;
+    // ProxyService.local.savePaymentType(
+    //     paymentRecord: TransactionPaymentRecord(
+    //     ),
+    //     transactionId: transactionId);
   }
 
   // Method to remove a payment method

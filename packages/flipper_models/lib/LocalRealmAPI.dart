@@ -4913,7 +4913,18 @@ class LocalRealmApi
   }
 
   @override
-  void savePaymentType({required TransactionPaymentRecord paymentRecord}) {
+  FutureOr<void> savePaymentType(
+      {required TransactionPaymentRecord paymentRecord, int? transactionId}) {
+    if (transactionId == null) {
+      // find TransactionPaymentRecord with transactionId
+      final transactionPaymentRecord = realm!.query<TransactionPaymentRecord>(
+          r'transactionId == $0', [transactionId]).firstOrNull;
+      if (transactionPaymentRecord != null) {
+        realm!.write(() {
+          transactionPaymentRecord.paymentMethod = paymentRecord.paymentMethod;
+        });
+      }
+    }
     realm!.write(() {
       realm!.add<TransactionPaymentRecord>(paymentRecord);
     });

@@ -194,7 +194,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           SizedBox(height: 20),
           _buildTotalRow(),
           SizedBox(height: 20),
-          _buildForm(isOrdering),
+          _buildForm(isOrdering,
+              transactionId: transactionAsyncValue.value?.id ?? 0),
           SizedBox(height: 20),
           _buildFooter(transactionAsyncValue),
         ],
@@ -214,7 +215,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildForm(bool isOrdering) {
+  Widget _buildForm(bool isOrdering, {required int transactionId}) {
     return Form(
       key: widget.formKey,
       child: Column(
@@ -256,7 +257,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             children: [
               if (!isOrdering) Expanded(child: _buildCustomerPhoneField()),
               SizedBox(width: 16.0),
-              Expanded(child: _buildPaymentMethodField()),
+              Expanded(
+                  child:
+                      _buildPaymentMethodField(transactionId: transactionId)),
             ],
           ),
         ],
@@ -469,11 +472,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildPaymentMethodField() {
+  Widget _buildPaymentMethodField({required int transactionId}) {
     return Column(
       children: [
         for (int i = 0; i < ref.read(paymentMethodsProvider).length; i++)
-          _buildPaymentMethodRow(i),
+          _buildPaymentMethodRow(i, transactionId: transactionId),
         SizedBox(height: 10),
         FlipperButton(
           height: 30,
@@ -485,7 +488,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildPaymentMethodRow(int index) {
+  Widget _buildPaymentMethodRow(int index, {required int transactionId}) {
     return Column(
       children: [
         Row(
@@ -515,12 +518,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                           ref
                               .read(paymentMethodsProvider.notifier)
                               .updatePaymentMethod(
-                                index,
-                                Payment(
-                                  amount: payment.amount,
-                                  method: newValue,
-                                ),
-                              );
+                                  index,
+                                  Payment(
+                                    amount: payment.amount,
+                                    method: newValue,
+                                  ),
+                                  transactionId: transactionId);
+                          // save the payment method.
                         });
                       }
                     },

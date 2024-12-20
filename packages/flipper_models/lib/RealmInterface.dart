@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -610,7 +611,8 @@ abstract class RealmInterface {
   Drawers? closeDrawer({required Drawers drawer, required double eod});
   void saveStock({required Variant variant, required double rsdQty});
   void updateTransactionStatus(ITransaction transaction, String receiptType);
-  void savePaymentType({required TransactionPaymentRecord paymentRecord});
+  FutureOr<void> savePaymentType(
+      {required TransactionPaymentRecord paymentRecord, int? transactionId});
   List<TransactionPaymentRecord> getPaymentType({required int transactionId});
 
   void updateCounters({
