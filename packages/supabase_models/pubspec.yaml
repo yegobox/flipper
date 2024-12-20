@@ -3,6 +3,7 @@ description: "A new Flutter package project."
 version: 0.0.1
 
 environment:
+  sdk: ^3.5.0
   flutter: ">=1.17.0"
 
 dependencies:
