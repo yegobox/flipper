@@ -322,10 +322,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       onChanged: (String? newValue) {
         if (newValue != null && newValue != variant.taxTyCd) {
           try {
-            // Ensure the Realm write happens correctly
-            ProxyService.local.realm!.write(() {
-              variant.taxTyCd = newValue;
-            });
+            ProxyService.local.updateVariant(
+                updatables: [variant],
+                variantId: variant.id,
+                taxTyCd: newValue);
 
             // Force the UI to rebuild if necessary
             model.notifyListeners();

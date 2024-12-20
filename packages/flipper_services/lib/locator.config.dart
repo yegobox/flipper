@@ -14,7 +14,6 @@ import 'package:flipper_models/flipper_http_client.dart' as _i843;
 import 'package:flipper_models/RealmInterface.dart' as _i445;
 import 'package:flipper_models/CoreDataInterface.dart' as _i489;
 import 'package:flipper_models/Supabase.dart' as _i163;
-import 'package:flipper_models/sync_service.dart' as _i211;
 import 'package:flipper_models/SyncStrategy.dart' as _i500;
 import 'package:flipper_models/tax_api.dart' as _i97;
 import 'package:flipper_models/view_models/NotificationStream.dart' as _i457;
@@ -103,8 +102,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i777.ProductService>(
         () => servicesModule.productService());
     gh.lazySingleton<_i1069.CronService>(() => servicesModule.cron());
-    gh.lazySingleton<_i445.SyncReaml<_i211.IJsonSerializable>>(
-        () => servicesModule.syncRealm());
+
     gh.lazySingleton<_i798.ForceDataEntryService>(
         () => servicesModule.forcedataEntry());
     gh.lazySingleton<_i36.BillingService>(() => servicesModule.billing());

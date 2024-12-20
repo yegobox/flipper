@@ -407,11 +407,6 @@ abstract class ServicesModule {
   }
 
   @LazySingleton()
-  SyncReaml syncRealm() {
-    return SyncReaml.create();
-  }
-
-  @LazySingleton()
   ForceDataEntryService forcedataEntry() {
     return ForceDataEntryService();
   }

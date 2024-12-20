@@ -3,7 +3,6 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flipper_models/CoreDataInterface.dart';
-import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/pin.dart';
@@ -29,8 +28,6 @@ import 'package:supabase_models/brick/models/all_models.dart' as brick;
 // enum ClearData { Business, Branch }
 
 abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
-  factory SyncReaml.create() => RealmAPI<M>();
-
   T? findObject<T extends RealmObject>(String query, List<dynamic> arguments);
 
   void close();
@@ -370,8 +367,6 @@ abstract class RealmInterface {
   Future<List<Device>> unpublishedDevices({required int businessId});
   Future<void> loadConversations(
       {required int businessId, int? pageSize = 10, String? pk, String? sk});
-  Future<bool> updateContact(
-      {required Map<String, dynamic> contact, required int businessId});
 
   // Future<List<Social>> activesocialAccounts({required int branchId});
 
@@ -538,14 +533,11 @@ abstract class RealmInterface {
       {required String deliveryNote,
       DateTime? deliveryDate,
       required int mainBranchId});
-  void updateStock({required int stockId, required double qty});
 
   Future<Stream<double>> downloadAsset(
       {required int branchId,
       required String assetName,
       required String subPath});
-
-  void updateTransactionItemQty({required qty, required int transactionItemId});
 
   // Future<String> dbPath({required String path});
   Future<IUser> login(
@@ -610,18 +602,15 @@ abstract class RealmInterface {
 
   Drawers? closeDrawer({required Drawers drawer, required double eod});
   void saveStock({required Variant variant, required double rsdQty});
-  void updateTransactionStatus(ITransaction transaction, String receiptType);
+
   FutureOr<void> savePaymentType(
       {TransactionPaymentRecord? paymentRecord,
       int? transactionId,
       double amount = 0.0,
-      String? paymentMethod, required bool singlePaymentOnly});
+      String? paymentMethod,
+      required bool singlePaymentOnly});
   List<TransactionPaymentRecord> getPaymentType({required int transactionId});
 
-  void updateCounters({
-    required List<Counter> counters,
-    required RwApiResponse receiptSignature,
-  });
   SendPort? sendPort;
   ReceivePort? receivePort;
   Future<String> getIdToken();
@@ -630,13 +619,37 @@ abstract class RealmInterface {
   Future<void> spawnIsolate(dynamic isolateHandler);
   void reDownloadAsset();
   void clearVariants();
-  void updateTransactionType(
+
+  /// update methods
+
+  Future<void> processItem({
+    required brick.Item item,
+    required Map<String, String> quantitis,
+    required Map<String, String> taxTypes,
+    required Map<String, String> itemClasses,
+    required Map<String, String> itemTypes,
+  });
+
+  void updateStock({required int stockId, required double qty});
+
+  void updateTransactionItemQty({required qty, required int transactionItemId});
+
+  void updateTransaction(
       {required ITransaction transaction,
-      required bool isProformaMode,
-      required bool isTrainingMode});
+      String? receiptType,
+      bool? isProformaMode,
+      bool? isTrainingMode});
+
+  void updateCounters({
+    required List<Counter> counters,
+    required RwApiResponse receiptSignature,
+  });
+
   Future<void> updateVariant({
     required List<Variant> updatables,
     String? color,
+    String? taxTyCd,
+    int? variantId,
     double? newRetailPrice,
     double? retailPrice,
     Map<int, String>? rates,
@@ -645,17 +658,8 @@ abstract class RealmInterface {
     String? selectedProductType,
   });
 
-  // Stock createStock({
-  //   required Product product,
-  //   required int branchId,
-  //   required String? bhfId,
-  //   required Map<String, String> quantitis,
-  // });
-  Future<void> processItem({
-    required brick.Item item,
-    required Map<String, String> quantitis,
-    required Map<String, String> taxTypes,
-    required Map<String, String> itemClasses,
-    required Map<String, String> itemTypes,
-  });
+  Future<bool> updateContact(
+      {required Map<String, dynamic> contact, required int businessId});
+
+  /// end of update methods
 }

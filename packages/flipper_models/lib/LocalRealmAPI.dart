@@ -4905,11 +4905,35 @@ class LocalRealmApi
   }
 
   @override
-  void updateTransactionStatus(ITransaction transaction, String receiptType) {
-    realm!.write(() {
-      transaction.ebmSynced = true;
-      transaction.isRefunded = receiptType == "R";
-    });
+  void updateTransaction(
+      {required ITransaction transaction,
+      String? receiptType,
+      bool? isProformaMode,
+      bool? isTrainingMode}) {
+    if (receiptType != null) {
+      realm!.write(() {
+        transaction.ebmSynced = true;
+        transaction.isRefunded = receiptType == "R";
+      });
+    }
+    if (isProformaMode != null && isTrainingMode != null) {
+      realm!.writeN(
+          tableName: transactionTable,
+          writeCallback: () {
+            String receiptType = TransactionReceptType.NS;
+            if (isProformaMode) {
+              receiptType = TransactionReceptType.PS;
+            }
+            if (isTrainingMode) {
+              receiptType = TransactionReceptType.TS;
+            }
+            transaction.receiptType = receiptType;
+            return transaction;
+          },
+          onAdd: (data) {
+            // ProxyService.backUp.replicateData(transactionTable, data);
+          });
+    }
   }
 
   @override
@@ -5474,29 +5498,6 @@ class LocalRealmApi
   }
 
   @override
-  void updateTransactionType(
-      {required ITransaction transaction,
-      required bool isProformaMode,
-      required bool isTrainingMode}) {
-    realm!.writeN(
-        tableName: transactionTable,
-        writeCallback: () {
-          String receiptType = TransactionReceptType.NS;
-          if (isProformaMode) {
-            receiptType = TransactionReceptType.PS;
-          }
-          if (isTrainingMode) {
-            receiptType = TransactionReceptType.TS;
-          }
-          transaction.receiptType = receiptType;
-          return transaction;
-        },
-        onAdd: (data) {
-          // ProxyService.backUp.replicateData(transactionTable, data);
-        });
-  }
-
-  @override
   Future<List<Configurations>> taxes({required int branchId}) async {
     return realm!.query<Configurations>(r'branchId == $0', [branchId]).toList();
   }
@@ -5522,7 +5523,18 @@ class LocalRealmApi
     Map<int, String>? dates,
     Map<int, String>? rates,
     String? selectedProductType,
+    String? taxTyCd,
+    int? variantId,
   }) async {
+    /// single update
+    if (variantId != null) {
+      Variant? variant = await getVariantById(id: variantId);
+      if (variant != null && taxTyCd != null) {
+        variant.taxTyCd = taxTyCd;
+      }
+      return;
+    }
+
     // loop through all variants and update all with retailPrice and supplyPrice
 
     for (var i = 0; i < updatables.length; i++) {
