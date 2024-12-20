@@ -370,7 +370,7 @@ abstract class RealmInterface {
 
   // Future<List<Social>> activesocialAccounts({required int branchId});
 
-  Future<Stock?> addStockToVariant({required Variant variant});
+  FutureOr<Stock?> addStockToVariant({required Variant variant, Stock? stock});
   Stream<List<Variant>> geVariantStreamByProductId({required int productId});
 
   Future<({double income, double expense})> getTransactionsAmountsSum(
@@ -601,7 +601,15 @@ abstract class RealmInterface {
   void clearData({required ClearData data});
 
   Drawers? closeDrawer({required Drawers drawer, required double eod});
-  void saveStock({required Variant variant, required double rsdQty});
+  FutureOr<void> saveStock({
+    required Variant variant,
+    required double rsdQty,
+    required int productId,
+    required int variantId,
+    required int branchId,
+    required double currentStock,
+    required double value,
+  });
 
   FutureOr<void> savePaymentType(
       {TransactionPaymentRecord? paymentRecord,
@@ -660,6 +668,9 @@ abstract class RealmInterface {
 
   Future<bool> updateContact(
       {required Map<String, dynamic> contact, required int businessId});
+
+  FutureOr<void> updateProduct(
+      {int? productId, String? name, bool? isComposite});
 
   /// end of update methods
 }

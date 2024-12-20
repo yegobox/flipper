@@ -2945,14 +2945,15 @@ class LocalRealmApi
   }
 
   @override
-  Future<Stock?> addStockToVariant({required Variant variant}) async {
-    Stock stock = Stock(ObjectId(),
-        id: randomNumber(),
-        productId: variant.productId,
-        variantId: variant.id,
-        branchId: variant.branchId);
+  FutureOr<Stock?> addStockToVariant({required Variant variant, Stock? stock}) {
+    Stock stockObj = stock ??
+        Stock(ObjectId(),
+            id: randomNumber(),
+            productId: variant.productId,
+            variantId: variant.id,
+            branchId: variant.branchId);
     try {
-      realm!.put<Stock>(stock, tableName: 'stocks');
+      realm!.add<Stock>(stockObj);
 
       return stock;
     } catch (e) {
@@ -4887,17 +4888,25 @@ class LocalRealmApi
   }
 
   @override
-  void saveStock({required Variant variant, required double rsdQty}) {
+  FutureOr<void> saveStock({
+    required Variant variant,
+    required double rsdQty,
+    required int productId,
+    required int variantId,
+    required int branchId,
+    required double currentStock,
+    required double value,
+  }) {
     realm!.write(() {
       final stock = Stock(
         ObjectId(),
         id: randomNumber(),
         lastTouched: DateTime.now(),
-        branchId: variant.branchId,
-        variantId: variant.id!,
-        currentStock: variant.stock?.rsdQty ?? 0,
+        branchId: branchId,
+        variantId: variantId,
+        currentStock: currentStock,
         rsdQty: rsdQty,
-        value: (variant.stock?.rsdQty ?? 0 * variant.retailPrice).toDouble(),
+        value: value,
         productId: variant.productId,
       );
       realm!.add<Stock>(stock);
@@ -5756,5 +5765,19 @@ class LocalRealmApi
 
   String randomizeColor() {
     return '#${(Random().nextInt(0x1000000) | 0x800000).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+  }
+
+  @override
+  FutureOr<void> updateProduct(
+      {int? productId, String? name, bool? isComposite}) {
+    if (productId != null) {
+      final product = getProduct(id: productId);
+      if (product != null) {
+        realm!.write(() {
+          product.name = name ?? product.name;
+          product.isComposite = isComposite ?? product.isComposite;
+        });
+      }
+    }
   }
 }

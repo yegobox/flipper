@@ -708,11 +708,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                 id: ref.read(unsavedProductProvider)!.id!);
 
                             /// update the product with propper name
-                            ProxyService.local.realm!.write(() {
-                              product?.name = productNameController.text;
-                              product?.color = model.currentColor;
-                              product?.isComposite = true;
-                            });
+
+                            ProxyService.local.updateProduct(
+                              productId: ref.read(unsavedProductProvider)!.id,
+                              name: productNameController.text,
+                              isComposite: true,
+                            );
 
                             /// create the default variant to represent this composite item, in flipper each product
                             /// has a default variant
@@ -1077,28 +1078,23 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ],
                   rows: model.scannedVariants.reversed.map((variant) {
                     if (variant.stock == null) {
-                      //
-                      ProxyService.local.realm!.write(() {
-                        final id = randomNumber();
-                        ProxyService.local.realm!.add(
-                          Stock(
-                            ObjectId(),
-                            id: id,
-                            lastTouched: DateTime.now(),
-                            branchId: variant.branchId,
-                            variantId: variant.id!,
-                            currentStock: variant.qty,
-                            rsdQty: variant.qty,
-                            value: (variant.qty * (variant.retailPrice))
-                                .toDouble(),
-                            productId: variant.productId,
-                            active: false,
-                          ),
-                        );
-                        final stock = ProxyService.local.realm!
-                            .query<Stock>(r'id == $0', [id]).firstOrNull;
-                        variant.stock = stock;
-                      });
+                      final id = randomNumber();
+                      ProxyService.local.saveStock(
+                        variant: variant,
+                        rsdQty: variant.qty,
+                        productId: variant.productId!,
+                        variantId: variant.id!,
+                        branchId: variant.branchId!,
+                        currentStock: variant.qty,
+                        value: (variant.qty * (variant.retailPrice)).toDouble(),
+                      );
+
+                      final stock = ProxyService.local.realm!
+                          .query<Stock>(r'id == $0', [id]).firstOrNull;
+                      variant.stock = stock;
+
+                      ProxyService.local
+                          .addStockToVariant(variant: variant, stock: stock);
                     }
                     bool isSelected = _selectedVariants[variant.id!] ?? false;
 
