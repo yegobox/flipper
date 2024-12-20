@@ -14,7 +14,7 @@ on:
           - production
   
   push:
-    branches: [main, dev, power-sync,firestore,capella]
+    branches: [main, dev, power-sync,firestore,capella,dual-db-2]
 
 env:
   URL: ${{ secrets.DB_URL }}
