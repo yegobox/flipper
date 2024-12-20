@@ -37,7 +37,7 @@ dependencies:
   universal_platform: ^1.0.0+1
   googleapis_auth: ^1.4.1
   flipper_nfc: ^1.2.0
-  timezone: ^0.10.0
+  timezone: ^0.9.0
   connectivity_plus: ^6.0.5
   flutter_statusbarcolor_ns: ^0.5.0-flipper
   

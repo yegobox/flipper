@@ -188,7 +188,7 @@ dependencies:
   googleapis: ^11.2.0
   googleapis_auth: ^1.4.1
   flipper_nfc: ^1.2.0
-  timezone: ^0.10.0
+  timezone: ^0.9.0
   flutter_statusbarcolor_ns: ^0.5.0-flipper
   # TODO: find out how to take advantage this
   
