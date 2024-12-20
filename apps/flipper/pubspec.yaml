@@ -47,7 +47,7 @@ dependencies:
   google_fonts: ^6.1.0
   
   number_display: ^3.0.0
-  firebase_core: ^3.9.0
+  firebase_core: ^3.4.0
   cupertino_icons: ^1.0.2
   connectivity_plus: ^6.0.5
   #google_mobile_ads: ^5.0.0
@@ -163,7 +163,7 @@ dependencies:
   amplify_storage_s3: ^2.5.0
   shared_preferences: ^2.3.2
   easy_localization: ^3.0.7 
-  cloud_firestore: ^5.6.0
+  cloud_firestore: ^5.4.3
   supabase_flutter: ^2.8.0
   sqflite_common_ffi: ^2.3.4+3
   # https://github.com/alextekartik/flutter_app_example/blob/master/demo_sqflite/tool/windows/windows_release_info.md

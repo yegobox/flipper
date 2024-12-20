@@ -2,39 +2,39 @@
 cmake_minimum_required(VERSION 3.14)
 project(flipper LANGUAGES CXX)
 
-# Add SQLite configuration at the top
-if(NOT TARGET sqlite3)
-  include(FetchContent)
-  FetchContent_Declare(
-    sqlite3
-    URL https://www.sqlite.org/2024/sqlite-amalgamation-3470200.zip
-    URL_HASH SHA256=0e4df2263ef8169f9396b9535d9654d8d64ae8eb1a339ba06c7b12a72e6fb020
-  )
-  FetchContent_MakeAvailable(sqlite3)
+# # Add SQLite configuration at the top
+# if(NOT TARGET sqlite3)
+#   include(FetchContent)
+#   FetchContent_Declare(
+#     sqlite3
+#     URL https://www.sqlite.org/2024/sqlite-amalgamation-3470200.zip
+#     URL_HASH SHA256=0e4df2263ef8169f9396b9535d9654d8d64ae8eb1a339ba06c7b12a72e6fb020
+#   )
+#   FetchContent_MakeAvailable(sqlite3)
 
-  # Only create the library if it doesn't exist
-  add_library(sqlite3 STATIC
-    "${sqlite3_SOURCE_DIR}/sqlite3.c"
-  )
+#   # Only create the library if it doesn't exist
+#   add_library(sqlite3 STATIC
+#     "${sqlite3_SOURCE_DIR}/sqlite3.c"
+#   )
 
-  # Only set compile definitions if we created the target
-  target_compile_definitions(sqlite3 PUBLIC
-    SQLITE_ENABLE_FTS5
-    SQLITE_ENABLE_RTREE
-    SQLITE_ENABLE_JSON1
-    SQLITE_THREADSAFE=1
-  )
-endif()
+#   # Only set compile definitions if we created the target
+#   target_compile_definitions(sqlite3 PUBLIC
+#     SQLITE_ENABLE_FTS5
+#     SQLITE_ENABLE_RTREE
+#     SQLITE_ENABLE_JSON1
+#     SQLITE_THREADSAFE=1
+#   )
+# endif()
 
-# The target_link_libraries call can stay the same since it will use
-# whichever sqlite3 target exists
-target_link_libraries(${BINARY_NAME} PRIVATE flutter sqlite3)
+# # The target_link_libraries call can stay the same since it will use
+# # whichever sqlite3 target exists
+# target_link_libraries(${BINARY_NAME} PRIVATE flutter sqlite3)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "flipper")
 
-# set(USE_CUSTOM_SQLITE3 ON) 
+set(USE_CUSTOM_SQLITE3 ON) 
 
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent

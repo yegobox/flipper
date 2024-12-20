@@ -12,7 +12,7 @@ environment:
 dependencies:
   firebase_ui_auth: ^1.16.0
   flutter_form_bloc: 0.31.0-dev
-  firebase_core: ^3.9.0
+  firebase_core: ^3.4.0
   flipper_services: any
   flipper_dashboard: any
   universal_platform: ^1.0.0+1
