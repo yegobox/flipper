@@ -2844,13 +2844,23 @@ class LocalRealmApi
 
   @override
   FutureOr<void> updateTransactionItem(
-      {double? qty, required int transactionItemId, double? discount}) {
+      {double? qty,
+      required int transactionItemId,
+      double? discount,
+      double? taxAmt,
+      double? price,
+      double? prc,
+      bool? active}) {
     TransactionItem? item = realm!
         .query<TransactionItem>(r'id == $0', [transactionItemId]).firstOrNull;
     if (item != null) {
       realm!.write(() {
         item.qty = qty ?? item.qty;
         item.discount = discount ?? item.discount;
+        item.active = active ?? item.active;
+        item.price = price ?? item.price;
+        item.prc = prc ?? item.prc;
+        item.taxAmt = taxAmt ?? item.taxAmt;
       });
     }
   }
@@ -4935,9 +4945,15 @@ class LocalRealmApi
   }
 
   @override
-  void updateTransaction(
+  FutureOr<void> updateTransaction(
       {required ITransaction transaction,
       String? receiptType,
+      double? subTotal,
+      String? status,
+      String? note,
+      int? customerId,
+      String? ticketName,
+      String? updatedAt,
       bool? isProformaMode,
       bool? isTrainingMode}) {
     if (receiptType != null) {
@@ -4947,22 +4963,23 @@ class LocalRealmApi
       });
     }
     if (isProformaMode != null && isTrainingMode != null) {
-      realm!.writeN(
-          tableName: transactionTable,
-          writeCallback: () {
-            String receiptType = TransactionReceptType.NS;
-            if (isProformaMode) {
-              receiptType = TransactionReceptType.PS;
-            }
-            if (isTrainingMode) {
-              receiptType = TransactionReceptType.TS;
-            }
-            transaction.receiptType = receiptType;
-            return transaction;
-          },
-          onAdd: (data) {
-            // ProxyService.backUp.replicateData(transactionTable, data);
-          });
+      realm!.write(() {
+        String receiptType = TransactionReceptType.NS;
+        if (isProformaMode) {
+          receiptType = TransactionReceptType.PS;
+        }
+        if (isTrainingMode) {
+          receiptType = TransactionReceptType.TS;
+        }
+        transaction.receiptType = receiptType;
+        transaction.subTotal = subTotal ?? transaction.subTotal;
+        transaction.note = note ?? transaction.note;
+        transaction.status = status ?? transaction.status;
+        transaction.ticketName = ticketName ?? transaction.ticketName;
+        transaction.updatedAt = updatedAt ?? transaction.updatedAt;
+        transaction.customerId = customerId;
+        return transaction;
+      });
     }
   }
 
@@ -5863,6 +5880,27 @@ class LocalRealmApi
       realm!.write(() {
         color.name = name ?? color.name;
         color.active = active ?? color.active;
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> updateTenant(
+      {required int tenantId,
+      String? name,
+      String? phoneNumber,
+      String? email,
+      int? businessId,
+      bool? sessionActive,
+      int? branchId}) {
+    final tenant = realm!.query<Tenant>(r'id == $0', [tenantId]).firstOrNull;
+    if (tenant != null) {
+      realm!.write(() {
+        tenant.name = name ?? tenant.name;
+        tenant.phoneNumber = phoneNumber ?? tenant.phoneNumber;
+        tenant.email = email ?? tenant.email;
+        tenant.businessId = businessId ?? tenant.businessId;
+        tenant.sessionActive = sessionActive ?? tenant.sessionActive;
       });
     }
   }

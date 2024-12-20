@@ -647,12 +647,25 @@ abstract class RealmInterface {
     double? currentStock,
   });
 
-  FutureOr<void> updateTransactionItem(
-      {double? qty, required int transactionItemId, double? discount});
+  FutureOr<void> updateTransactionItem({
+    double? qty,
+    required int transactionItemId,
+    double? discount,
+    bool? active,
+    double? taxAmt,
+    double? price,
+    double? prc,
+  });
 
-  void updateTransaction(
+  FutureOr<void> updateTransaction(
       {required ITransaction transaction,
       String? receiptType,
+      double? subTotal,
+      String? note,
+      String? status,
+      int? customerId,
+      String? ticketName,
+      String? updatedAt,
       bool? isProformaMode,
       bool? isTrainingMode});
 
@@ -675,6 +688,15 @@ abstract class RealmInterface {
     int? productId,
     String? productName,
     String? unit,
+  });
+  FutureOr<void> updateTenant({
+    required int tenantId,
+    String? name,
+    String? phoneNumber,
+    String? email,
+    int? businessId,
+    bool? sessionActive,
+    int? branchId,
   });
 
   FutureOr<void> updateCategory({
