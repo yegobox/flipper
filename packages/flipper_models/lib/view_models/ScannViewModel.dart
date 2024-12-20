@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/power_sync/schema.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
@@ -24,7 +22,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     pkgUnits = RRADEFAULTS.packagingUnits;
     log(ProxyService.box.tin().toString(), name: "ScannViewModel");
     log((await ProxyService.box.bhfId()).toString(), name: "ScannViewModel");
-
 
     /// when ebm enabled,additional feature will start to appear on UI e.g when adding new product on desktop
     EBMenabled = ProxyService.box.tin() != -1 &&
@@ -152,19 +149,13 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
       Stock? stock = ProxyService.local.stockByVariantId(
           variantId: variant.id!, branchId: ProxyService.box.getBranchId()!);
-      ProxyService.local.realm!.writeN(
-        tableName: stocksTable,
-        writeCallback: () {
-          stock!.rsdQty = newQuantity;
-          stock.initialStock = newQuantity;
-          stock.ebmSynced = false;
-          stock.currentStock = newQuantity;
-          return stock;
-        },
-        onAdd: (data) {
-          // ProxyService.backUp.replicateData(stocksTable, data);
-        },
-      );
+      ProxyService.local.updateStock(
+          stockId: stock!.id!,
+          currentStock: newQuantity,
+          rsdQty: newQuantity,
+          initialStock: newQuantity,
+          ebmSynced: false);
+
       notifyListeners();
     } catch (e) {
       // Handle the exception if the variant is not found
@@ -193,9 +184,11 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           scannedVariants.firstWhere((variant) => variant.id == id);
 
       // If the variant is found, update its unit
-      ProxyService.local.realm!.write(() {
-        variant.unit = selectedUnit ?? 'Per Item';
-      });
+
+      ProxyService.local.updateVariant(
+          updatables: [variant],
+          unit: selectedUnit ?? 'Per Item',
+          variantId: id);
       notifyListeners();
     } catch (e) {
       // Handle the exception if the variant is not found

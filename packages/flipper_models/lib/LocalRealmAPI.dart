@@ -2805,20 +2805,40 @@ class LocalRealmApi
   }
 
   @override
-  void updateStock({required int stockId, required double qty}) {
+  void updateStock({
+    required int stockId,
+    double? qty,
+    double? rsdQty,
+    double? initialStock,
+    bool? ebmSynced,
+    double? currentStock,
+  }) {
     Stock? stock = realm!.query<Stock>(r'id == $0', [stockId]).firstOrNull;
-    if (stock != null) {
-      realm!.writeN(
-        tableName: stocksTable,
-        writeCallback: () {
-          stock.currentStock = qty;
-          stock.initialStock = qty;
-          return stock;
-        },
-        onAdd: (data) {
-          // ProxyService.backUp.replicateData(stocksTable, data);
-        },
-      );
+    if (stock != null && qty != null) {
+      realm!.write(() {
+        stock.currentStock = qty;
+        stock.initialStock = qty;
+      });
+    }
+    if (stock != null && rsdQty != null) {
+      realm!.write(() {
+        stock.rsdQty = rsdQty;
+      });
+    }
+    if (stock != null && initialStock != null) {
+      realm!.write(() {
+        stock.initialStock = initialStock;
+      });
+    }
+    if (stock != null && ebmSynced != null) {
+      realm!.write(() {
+        stock.ebmSynced = ebmSynced;
+      });
+    }
+    if (stock != null && currentStock != null) {
+      realm!.write(() {
+        stock.currentStock = currentStock;
+      });
     }
   }
 
@@ -5523,7 +5543,7 @@ class LocalRealmApi
   }
 
   @override
-  Future<void> updateVariant({
+  FutureOr<void> updateVariant({
     required List<Variant> updatables,
     String? color,
     double? newRetailPrice,
@@ -5534,12 +5554,16 @@ class LocalRealmApi
     String? selectedProductType,
     String? taxTyCd,
     int? variantId,
+    String? unit,
   }) async {
     /// single update
     if (variantId != null) {
       Variant? variant = await getVariantById(id: variantId);
       if (variant != null && taxTyCd != null) {
         variant.taxTyCd = taxTyCd;
+      }
+      if (variant != null && unit != null) {
+        variant.unit = unit;
       }
       return;
     }
@@ -5769,15 +5793,60 @@ class LocalRealmApi
 
   @override
   FutureOr<void> updateProduct(
-      {int? productId, String? name, bool? isComposite}) {
+      {int? productId, String? name, bool? isComposite, String? unit}) {
     if (productId != null) {
       final product = getProduct(id: productId);
       if (product != null) {
         realm!.write(() {
           product.name = name ?? product.name;
           product.isComposite = isComposite ?? product.isComposite;
+          product.unit = unit ?? product.unit;
         });
       }
+    }
+  }
+
+  @override
+  FutureOr<void> updateCategory(
+      {required int categoryId,
+      String? name,
+      bool? active,
+      bool? focused,
+      int? branchId}) {
+    final category =
+        realm!.query<Category>(r'id = $0', [categoryId]).firstOrNull;
+    if (category != null) {
+      realm!.write(() {
+        category.name = name ?? category.name;
+        category.active = active ?? category.active;
+        category.focused = focused ?? category.focused;
+        category.branchId = branchId ?? category.branchId;
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> updateUnit(
+      {required int unitId, String? name, bool? active, int? branchId}) {
+    final unit = realm!.query<IUnit>(r'id == $0', [unitId]).firstOrNull;
+    if (unit != null) {
+      realm!.write(() {
+        unit.name = name ?? unit.name;
+        unit.active = active ?? unit.active;
+        unit.branchId = branchId ?? unit.branchId;
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> updateColor(
+      {required int colorId, String? name, bool? active}) {
+    final color = realm!.query<PColor>(r'id == $0', [colorId]).firstOrNull;
+    if (color != null) {
+      realm!.write(() {
+        color.name = name ?? color.name;
+        color.active = active ?? color.active;
+      });
     }
   }
 }

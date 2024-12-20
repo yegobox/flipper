@@ -3,7 +3,7 @@ import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screen_lock/flutter_screen_lock.dart';
+// import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -73,24 +73,24 @@ class SecurityState extends ConsumerState<Security> {
                                             ///check to see if on the existing
                                             if (value) {
                                               /// show the passcord to set it for the first time.!
-                                              screenLockCreate(
-                                                context: context,
-                                                onValidate: (value) async {
-                                                  if (value.length != 4) {
-                                                    return false;
-                                                  }
-                                                  return true;
-                                                },
-                                                onConfirmed: (value) async {
-                                                  final response = await model
-                                                      .updateUserWithPinCode(
-                                                          pin: value);
-                                                  if (response == 200) {
-                                                    Navigator.of(context)
-                                                        .maybePop();
-                                                  }
-                                                },
-                                              );
+                                              // screenLockCreate(
+                                              //   context: context,
+                                              //   onValidate: (value) async {
+                                              //     if (value.length != 4) {
+                                              //       return false;
+                                              //     }
+                                              //     return true;
+                                              //   },
+                                              //   onConfirmed: (value) async {
+                                              //     final response = await model
+                                              //         .updateUserWithPinCode(
+                                              //             pin: value);
+                                              //     if (response == 200) {
+                                              //       Navigator.of(context)
+                                              //           .maybePop();
+                                              //     }
+                                              //   },
+                                              // );
                                             }
                                           },
                                         ),

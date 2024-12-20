@@ -638,7 +638,14 @@ abstract class RealmInterface {
     required Map<String, String> itemTypes,
   });
 
-  void updateStock({required int stockId, required double qty});
+  void updateStock({
+    required int stockId,
+    double? qty,
+    double? rsdQty,
+    double? initialStock,
+    bool? ebmSynced,
+    double? currentStock,
+  });
 
   void updateTransactionItemQty({required qty, required int transactionItemId});
 
@@ -653,7 +660,7 @@ abstract class RealmInterface {
     required RwApiResponse receiptSignature,
   });
 
-  Future<void> updateVariant({
+  FutureOr<void> updateVariant({
     required List<Variant> updatables,
     String? color,
     String? taxTyCd,
@@ -664,13 +671,32 @@ abstract class RealmInterface {
     double? supplyPrice,
     Map<int, String>? dates,
     String? selectedProductType,
+    String? unit,
+  });
+
+  FutureOr<void> updateCategory({
+    required int categoryId,
+    String? name,
+    bool? active,
+    bool? focused,
+    int? branchId,
+  });
+
+  FutureOr<void> updateUnit({
+    required int unitId,
+    String? name,
+    bool? active,
+    int? branchId,
   });
 
   Future<bool> updateContact(
       {required Map<String, dynamic> contact, required int businessId});
 
   FutureOr<void> updateProduct(
-      {int? productId, String? name, bool? isComposite});
+      {int? productId, String? name, bool? isComposite, String? unit});
+
+  FutureOr<void> updateColor(
+      {required int colorId, String? name, bool? active});
 
   /// end of update methods
 }

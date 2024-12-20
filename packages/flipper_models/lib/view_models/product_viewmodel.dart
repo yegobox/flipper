@@ -175,17 +175,21 @@ class ProductViewModel extends FlipperBaseModel
       int branchId = ProxyService.box.getBranchId()!;
       for (Category category in categories) {
         if (category.focused) {
-          Category cat = category;
-          cat.focused = false;
-          cat.branchId = branchId;
-          cat.active = false;
+          ProxyService.local.updateCategory(
+              categoryId: category.id!,
+              name: category.name,
+              active: false,
+              focused: false,
+              branchId: branchId);
         }
       }
 
-      Category cat = category;
-      cat.focused = true;
-      cat.active = true;
-      cat.branchId = branchId;
+      ProxyService.local.updateCategory(
+          categoryId: category.id!,
+          name: category.name,
+          active: true,
+          focused: true,
+          branchId: branchId);
     });
     app.loadCategories();
   }
@@ -195,30 +199,30 @@ class ProductViewModel extends FlipperBaseModel
   void saveFocusedUnit(
       {required IUnit newUnit, String? id, required String type}) async {
     final int branchId = ProxyService.box.getBranchId()!;
-    ProxyService.local.realm!.write(() {
-      for (IUnit unit in units) {
-        if (unit.active) {
-          unit.active = false;
-          unit.branchId = branchId;
-        }
-      }
-      newUnit.active = true;
-      newUnit.branchId = branchId;
-      if (type == 'product') {
-        product?.unit = newUnit.name;
-        // get updated product
-        product = ProxyService.local.getProduct(id: product!.id!);
-      }
 
-      if (type == 'variant') {
-        // Update variants if needed
-        // final Map data = product.toJson();
-        // data['unit'] = unit.name;
-        // ProxyService.isar.update(data: data);
+    for (IUnit unit in units) {
+      if (unit.active) {
+        ProxyService.local.updateUnit(
+            unitId: unit.id!,
+            name: unit.name,
+            active: false,
+            branchId: branchId);
       }
-    });
+    }
+    ProxyService.local.updateUnit(
+        unitId: newUnit.id!,
+        name: newUnit.name,
+        active: true,
+        branchId: branchId);
+    if (type == 'product') {
+      ProxyService.local
+          .updateProduct(productId: product!.id!, unit: newUnit.name);
+      // get updated product
+      product = ProxyService.local.getProduct(id: product!.id!);
+    }
+
     loadUnits();
-    log('updating unit 4', name: 'saveFocusedUnit');
+
     notifyListeners();
   }
 
@@ -252,26 +256,22 @@ class ProductViewModel extends FlipperBaseModel
 
   Future<void> switchColor(
       {required PColor color, required WidgetRef widgetReference}) async {
-    int branchId = ProxyService.box.getBranchId()!;
     for (PColor c in colors) {
       if (c.active) {
         final PColor? _color = await ProxyService.local.getColor(id: c.id!);
-        ProxyService.local.realm!.write(() {
-          _color!.active = false;
-          _color.branchId = branchId;
-        });
+        ProxyService.local.updateColor(
+            colorId: _color!.id!, active: false, name: _color.name);
       }
     }
 
     final PColor? _color = await ProxyService.local.getColor(id: color.id!);
-    ProxyService.local.realm!.write(() {
-      _color!.active = true;
-      _color.branchId = branchId;
-      product!.color = color.name!;
-      widgetReference
-          .read(unsavedProductProvider.notifier)
-          .emitProduct(value: product!);
-    });
+
+    ProxyService.local
+        .updateColor(colorId: _color!.id!, active: true, name: _color.name);
+
+    widgetReference
+        .read(unsavedProductProvider.notifier)
+        .emitProduct(value: product!);
 
     setCurrentColor(color: color.name!);
 
