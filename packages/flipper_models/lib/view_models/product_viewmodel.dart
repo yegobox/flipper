@@ -171,26 +171,25 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   void updateCategory({required Category category}) async {
-    ProxyService.local.realm!.write(() {
-      int branchId = ProxyService.box.getBranchId()!;
-      for (Category category in categories) {
-        if (category.focused) {
-          ProxyService.local.updateCategory(
-              categoryId: category.id!,
-              name: category.name,
-              active: false,
-              focused: false,
-              branchId: branchId);
-        }
+    int branchId = ProxyService.box.getBranchId()!;
+    for (Category category in categories) {
+      if (category.focused) {
+        ProxyService.local.updateCategory(
+            categoryId: category.id!,
+            name: category.name,
+            active: false,
+            focused: false,
+            branchId: branchId);
       }
+    }
 
-      ProxyService.local.updateCategory(
-          categoryId: category.id!,
-          name: category.name,
-          active: true,
-          focused: true,
-          branchId: branchId);
-    });
+    ProxyService.local.updateCategory(
+        categoryId: category.id!,
+        name: category.name,
+        active: true,
+        focused: true,
+        branchId: branchId);
+
     app.loadCategories();
   }
 
@@ -230,9 +229,9 @@ class ProductViewModel extends FlipperBaseModel
     if (_stockValue != null) {
       Stock? stock = await ProxyService.local.stockByVariantId(
           variantId: variantId, branchId: ProxyService.box.getBranchId()!);
-      ProxyService.local.realm!.writeAsync(() async {
-        stock!.currentStock = _stockValue!;
-      });
+
+      ProxyService.local
+          .updateStock(stockId: stock!.id!, currentStock: _stockValue!);
     }
   }
 
@@ -302,30 +301,32 @@ class ProductViewModel extends FlipperBaseModel
     List<Variant> variants = await ProxyService.local.variants(
         branchId: ProxyService.box.getBranchId()!, productId: productId);
 
-    ProxyService.local.realm!.writeAsync(() async {
-      if (supplyPrice != null) {
-        for (Variant variation in variants) {
-          if (variation.name == "Regular") {
-            variation.supplyPrice = supplyPrice;
-            variation.productName = product!.name;
-
-            variation.productId = variation.productId;
-          }
+    if (supplyPrice != null) {
+      for (Variant variation in variants) {
+        if (variation.name == "Regular") {
+          ProxyService.local.updateVariant(
+              updatables: [variation],
+              variantId: variation.id!,
+              productName: product!.name,
+              productId: variation.productId!,
+              supplyPrice: supplyPrice,
+              retailPrice: retailPrice);
         }
       }
+    }
 
-      if (retailPrice != null) {
-        for (Variant variation in variants) {
-          if (variation.name == "Regular") {
-            variation.retailPrice = retailPrice;
-            variation.productId = variation.productId;
-            variation.prc = retailPrice;
-
-            variation.productName = product!.name;
-          }
+    if (retailPrice != null) {
+      for (Variant variation in variants) {
+        if (variation.name == "Regular") {
+          ProxyService.local.updateVariant(
+              updatables: [variation],
+              variantId: variation.id!,
+              productName: product!.name,
+              productId: variation.productId!,
+              retailPrice: retailPrice);
         }
       }
-    });
+    }
   }
 
   /// Add a product into the favorites
@@ -383,9 +384,8 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   void updateExpiryDate(DateTime date) async {
-    ProxyService.local.realm!.writeAsync(() async {
-      product!.expiryDate = date.toIso8601String();
-    });
+    ProxyService.local.updateProduct(
+        productId: product!.id!, expiryDate: date.toIso8601String());
     Product? cProduct = ProxyService.local.getProduct(id: product!.id!);
     setCurrentProduct(currentProduct: cProduct!);
     rebuildUi();
@@ -410,15 +410,19 @@ class ProductViewModel extends FlipperBaseModel
     if (transaction != null) {
       List<TransactionItem> transactionItems = await ProxyService.local
           .getTransactionItemsByTransactionId(transactionId: transaction.id);
-      ProxyService.local.realm!.write(() {
-        for (TransactionItem item in transactionItems) {
-          if (item.price.toInt() <= discount.amount!) {
-            item.discount = item.price;
-          } else {
-            item.discount = discount.amount!.toDouble();
-          }
+
+      for (TransactionItem item in transactionItems) {
+        if (item.price.toInt() <= discount.amount!) {
+          // item.discount = item.price;
+          ProxyService.local.updateTransactionItem(
+              transactionItemId: item.id!, discount: item.price);
+        } else {
+          ProxyService.local.updateTransactionItem(
+              transactionItemId: item.id!,
+              discount: discount.amount!.toDouble());
         }
-      });
+      }
+
       return true;
     }
     return false;

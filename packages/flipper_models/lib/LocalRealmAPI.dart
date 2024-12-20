@@ -2843,13 +2843,14 @@ class LocalRealmApi
   }
 
   @override
-  void updateTransactionItemQty(
-      {required qty, required int transactionItemId}) {
+  FutureOr<void> updateTransactionItem(
+      {double? qty, required int transactionItemId, double? discount}) {
     TransactionItem? item = realm!
         .query<TransactionItem>(r'id == $0', [transactionItemId]).firstOrNull;
     if (item != null) {
       realm!.write(() {
-        item.qty = qty;
+        item.qty = qty ?? item.qty;
+        item.discount = discount ?? item.discount;
       });
     }
   }
@@ -5553,18 +5554,28 @@ class LocalRealmApi
     Map<int, String>? rates,
     String? selectedProductType,
     String? taxTyCd,
+    String? productName,
     int? variantId,
+    int? productId,
     String? unit,
   }) async {
     /// single update
     if (variantId != null) {
       Variant? variant = await getVariantById(id: variantId);
-      if (variant != null && taxTyCd != null) {
-        variant.taxTyCd = taxTyCd;
-      }
-      if (variant != null && unit != null) {
-        variant.unit = unit;
-      }
+      realm!.write(() {
+        if (variant != null && taxTyCd != null) {
+          variant.taxTyCd = taxTyCd;
+        }
+        if (variant != null && unit != null) {
+          variant.unit = unit;
+        }
+        if (variant != null && productName != null) {
+          variant.productName = productName;
+        }
+        if (variant != null && productId != null) {
+          variant.productId = productId;
+        }
+      });
       return;
     }
 
@@ -5792,8 +5803,13 @@ class LocalRealmApi
   }
 
   @override
-  FutureOr<void> updateProduct(
-      {int? productId, String? name, bool? isComposite, String? unit}) {
+  FutureOr<void> updateProduct({
+    int? productId,
+    String? name,
+    bool? isComposite,
+    String? unit,
+    String? expiryDate,
+  }) {
     if (productId != null) {
       final product = getProduct(id: productId);
       if (product != null) {
@@ -5801,6 +5817,7 @@ class LocalRealmApi
           product.name = name ?? product.name;
           product.isComposite = isComposite ?? product.isComposite;
           product.unit = unit ?? product.unit;
+          product.expiryDate = expiryDate ?? product.expiryDate;
         });
       }
     }

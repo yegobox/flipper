@@ -647,7 +647,8 @@ abstract class RealmInterface {
     double? currentStock,
   });
 
-  void updateTransactionItemQty({required qty, required int transactionItemId});
+  FutureOr<void> updateTransactionItem(
+      {double? qty, required int transactionItemId, double? discount});
 
   void updateTransaction(
       {required ITransaction transaction,
@@ -671,6 +672,8 @@ abstract class RealmInterface {
     double? supplyPrice,
     Map<int, String>? dates,
     String? selectedProductType,
+    int? productId,
+    String? productName,
     String? unit,
   });
 
@@ -693,7 +696,11 @@ abstract class RealmInterface {
       {required Map<String, dynamic> contact, required int businessId});
 
   FutureOr<void> updateProduct(
-      {int? productId, String? name, bool? isComposite, String? unit});
+      {int? productId,
+      String? name,
+      bool? isComposite,
+      String? unit,
+      String? expiryDate});
 
   FutureOr<void> updateColor(
       {required int colorId, String? name, bool? active});
