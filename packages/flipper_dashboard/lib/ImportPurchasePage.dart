@@ -233,25 +233,22 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
             );
             final bhfId = await ProxyService.box.bhfId() ?? "00";
 
-            // mark the transaction as parked until completed
-            ProxyService.local.realm!.write(() {
-              /// when sarTyCd == 6 it is incoming adjustment
-              pendingTransaction!.sarTyCd = "6";
-              pendingTransaction.subTotal =
-                  pendingTransaction.subTotal + item.splyAmt;
-              pendingTransaction.cashReceived =
-                  -(pendingTransaction.subTotal + item.splyAmt);
-              pendingTransaction.customerName =
-                  ProxyService.local.getBusiness().name;
-              pendingTransaction.receiptNumber = ref;
-              pendingTransaction.reference = ref.toString();
-              pendingTransaction.invoiceNumber = ref;
-              pendingTransaction.receiptType = TransactionType.purchase;
-              pendingTransaction.customerTin =
-                  ProxyService.box.tin().toString();
-              pendingTransaction.customerBhfId = bhfId;
-              pendingTransaction.status = PARKED;
-            });
+            ProxyService.local.updateTransaction(
+              transaction: pendingTransaction,
+              status: PARKED,
+              //when sarTyCd == 6 it is incoming adjustment
+              sarTyCd: "6",
+              receiptNumber: ref,
+              reference: ref.toString(),
+              invoiceNumber: ref,
+              receiptType: TransactionType.purchase,
+              customerTin: ProxyService.box.tin().toString(),
+              customerBhfId: bhfId,
+              subTotal: pendingTransaction.subTotal + item.splyAmt,
+              cashReceived: -(pendingTransaction.subTotal + item.splyAmt),
+
+              customerName: ProxyService.local.getBusiness().name,
+            );
           }
 
           /// save purchased item
@@ -264,10 +261,10 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               URI: await ProxyService.box.getServerUrl() ?? "");
         }
 
-        /// mark transaction as completed from parked
-        ProxyService.local.realm!.write(() {
-          pendingTransaction!.status = COMPLETE;
-        });
+        ProxyService.local.updateTransaction(
+          transaction: pendingTransaction!,
+          status: COMPLETE,
+        );
         refreshTransactionItems(transactionId: pendingTransaction!.id!);
       }
       setState(() {

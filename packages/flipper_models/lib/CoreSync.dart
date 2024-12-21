@@ -583,9 +583,12 @@ class CoreSync with Booting implements CoreDataInterface {
       if (response.statusCode == 200 && response.body.isNotEmpty) {
         /// path the user pin, with
         final IUser user = IUser.fromJson(json.decode(response.body));
-        ProxyService.local.realm!.write(() {
-          pinLocal.tokenUid = user.uid;
-        });
+
+        ProxyService.local.updatePin(
+          userId: user.id!,
+          phoneNumber: pinLocal.phoneNumber,
+          tokenUid: user.uid,
+        );
       }
 
       return false;
@@ -1239,7 +1242,7 @@ class CoreSync with Booting implements CoreDataInterface {
             supplyPrice: 0,
             retailPrice: 0,
             itemNm: product.name,
-            bhfId: (await ProxyService.box.bhfId() )?? '00',
+            bhfId: (await ProxyService.box.bhfId()) ?? '00',
             // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
             itemClsCd: "5020230602",
             itemCd: randomNumber().toString().substring(0, 5),

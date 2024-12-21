@@ -102,12 +102,7 @@ class GoogleDrive {
   /// if is the first time it will call the authentication with normal prompt flow
   /// if the token is not expired it will return the http client
 
-  Future<void> updateBusiness(Business business) async {
-    ProxyService.local.realm!.write(() {
-      business.backUpEnabled = true;
-      business.lastDbBackup = DateTime.now().toIso8601String();
-    });
-  }
+  Future<void> updateBusiness(Business business) async {}
 
   /// Upload File to user's Google Drive appData folder
   /// https://developers.google.com/drive/api/v3/appdata

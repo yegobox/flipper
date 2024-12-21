@@ -54,10 +54,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               ITransaction? _transaction =
                   await ProxyService.local.getTransactionById(id: ticket.id!);
 
-              ProxyService.local.realm!.write(() {
-                _transaction!.status = PENDING;
-                _transaction.updatedAt = DateTime.now().toIso8601String();
-              });
+              await ProxyService.local.updateTransaction(
+                transaction: _transaction!,
+                status: PENDING,
+                updatedAt: DateTime.now().toIso8601String(),
+              );
 
               await Future.delayed(Duration(microseconds: 800));
 

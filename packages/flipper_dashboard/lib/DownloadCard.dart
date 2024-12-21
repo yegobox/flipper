@@ -68,9 +68,8 @@ class _DownloadCardState extends State<DownloadCard> {
         _filePath = filePath;
       });
 
-      ProxyService.local.realm!.write(() {
-        widget.report.downloaded = true;
-      });
+      await ProxyService.local
+          .updateReport(reportId: widget.report.id!, downloaded: true);
     } catch (e) {
       setState(() {
         _downloading = false;

@@ -100,7 +100,6 @@ Widget SettingLayout(
                       ),
                     ),
                     onPressed: (BuildContext context) async {
-                      log('here');
                       final data = await ProxyService.local
                           .getTransactionsAmountsSum(
                               period: TransactionPeriod.today);
@@ -108,9 +107,10 @@ Widget SettingLayout(
                         cashierId: ProxyService.box.getUserId()!,
                       );
                       if (drawer != null) {
-                        ProxyService.local.realm!.write(() {
-                          drawer.closingBalance = data.income;
-                        });
+                        ProxyService.local.updateDrawer(
+                            drawerId: drawer.id!,
+                            closingBalance: data.income,
+                            cashierId: ProxyService.box.getUserId()!);
                       }
                       _routerService.navigateTo(
                           DrawerScreenRoute(open: "close", drawer: drawer!));

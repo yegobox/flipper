@@ -196,29 +196,34 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   // Item manipulation methods
-  void _decrementQuantity(TransactionItem item, bool isOrdering) {
+  Future<void> _decrementQuantity(TransactionItem item, bool isOrdering) async {
     if (!item.partOfComposite && item.isValid) {
-      ProxyService.local.realm!.write(() {
-        if (item.qty > 0) {
-          item.qty--;
-          item.quantityRequested = item.qty.toInt();
-        }
-      });
+      if (item.qty > 0) {
+        item.qty--;
+        await ProxyService.local.updateTransactionItem(
+          transactionItemId: item.id!,
+          qty: item.qty,
+          quantityRequested: item.qty.toInt(),
+        );
+      }
       _refreshTransactionItems(isOrdering);
     }
   }
 
-  void _incrementQuantity(TransactionItem item, bool isOrdering) {
+  Future<void> _incrementQuantity(TransactionItem item, bool isOrdering) async {
     if (!item.partOfComposite && item.isValid) {
-      ProxyService.local.realm!.write(() {
-        item.qty++;
-        item.quantityRequested = item.qty.toInt();
-      });
+      await ProxyService.local.updateTransactionItem(
+        transactionItemId: item.id!,
+        qty: item.qty,
+        incrementQty: true,
+        quantityRequested: item.qty.toInt(),
+      );
       _refreshTransactionItems(isOrdering);
     }
   }
 
-  void _updateQuantity(TransactionItem item, String value, bool isOrdering) {
+  Future<void> _updateQuantity(
+      TransactionItem item, String value, bool isOrdering) async {
     if (!item.partOfComposite && item.isValid) {
       final trimmedValue = value.trim();
       final doubleValue = double.tryParse(trimmedValue) ??
@@ -226,10 +231,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       if (doubleValue != null) {
         final newQty = doubleValue.toInt();
         if (doubleValue == newQty.toDouble() && newQty >= 0) {
-          ProxyService.local.realm!.write(() {
-            item.qty = doubleValue;
-            item.quantityRequested = newQty;
-          });
+          await ProxyService.local.updateTransactionItem(
+            transactionItemId: item.id!,
+            qty: doubleValue,
+            incrementQty: false,
+            quantityRequested: newQty,
+          );
           _refreshTransactionItems(isOrdering);
         }
       }
@@ -248,10 +255,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   void _deleteSingleItem(TransactionItem item, bool isOrdering) {
     try {
-      ProxyService.local.realm!.write(() {
-        ProxyService.local.realm!.deleteN(
-            tableName: transactionItemsTable, deleteCallback: () => item);
-      });
+      ProxyService.local.delete(id: item.id!, endPoint: 'transactionItem');
       _refreshTransactionItems(isOrdering);
     } catch (e) {
       talker.error(e);
@@ -268,11 +272,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         final deletableItem = ProxyService.local
             .getTransactionItemByVariantId(variantId: composite.variantId!);
         if (deletableItem != null && deletableItem.isValid) {
-          ProxyService.local.realm!.write(() {
-            ProxyService.local.realm!.deleteN(
-                tableName: transactionItemsTable,
-                deleteCallback: () => deletableItem);
-          });
+          ProxyService.local
+              .delete(id: deletableItem.id!, endPoint: 'transactionItem');
         }
       }
     } catch (e) {}

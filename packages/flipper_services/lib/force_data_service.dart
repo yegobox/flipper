@@ -66,13 +66,11 @@ class ForceDataEntryService {
               flipperHttpClient: ProxyService.http, businessId: businessId!);
       String? ybPermission = ProxyService.box.yegoboxLoggedInUserPermission();
       if (!doesBusinessHavePermission && ybPermission == 'admin') {
-        ProxyService.local.realm!.write(() {
-          for (var feature in features) {
-            /// because having ticket is considered to be elevated permission you can't have both tickets and sales
-            /// so ticket endup having elevated permission which means it show only on the screen
-            addAccess(feature, userId, businessId, branchId!);
-          }
-        });
+        for (var feature in features) {
+          /// because having ticket is considered to be elevated permission you can't have both tickets and sales
+          /// so ticket endup having elevated permission which means it show only on the screen
+          addAccess(feature, userId, businessId, branchId!);
+        }
       }
     }
 
@@ -104,7 +102,8 @@ class ForceDataEntryService {
     }
   }
 
-  void addAccess(String feature, int userId, int businessId, int branchId) {
+  Future<void> addAccess(
+      String feature, int userId, int businessId, int branchId) async {
     final accessConfig = {
       AppFeature.Tickets: (AccessLevel.WRITE, 'inactive'),
       AppFeature.Settings: (AccessLevel.ADMIN, 'active'),
@@ -113,42 +112,37 @@ class ForceDataEntryService {
     final (accessLevel, status) =
         accessConfig[feature] ?? (AccessLevel.WRITE, 'active');
 
-    ProxyService.local.realm!.add<Access>(
-      Access(
-        ObjectId(),
-        id: randomNumber(),
-        featureName: feature,
-        userId: userId,
-        businessId: businessId,
-        branchId: branchId,
-        accessLevel: accessLevel,
-        status: status,
-        userType: AccessLevel.ADMIN,
-        createdAt: DateTime.now(),
-      ),
+    await ProxyService.local.addAccess(
+      branchId: branchId,
+      businessId: businessId,
+      userId: userId,
+      featureName: feature,
+      accessLevel: accessLevel,
+      status: status,
+      userType: AccessLevel.ADMIN,
+      createdAt: DateTime.now(),
     );
   }
 
   final talker = TalkerFlutter.init();
 
-  createCategory({required String name, required int branchId}) {
+  createCategory({required String name, required int branchId}) async {
     talker.info('App is started');
     Category? category;
     category = ProxyService.local.realm!
         .query<Category>(r'name ==$0', [name]).firstOrNull;
     if (category == null) {
       try {
-        ProxyService.local.realm!.put<Category>(
-            Category(
-              ObjectId(),
-              id: randomNumber(),
-              focused: false,
-              name: name,
-              active: false,
-              branchId: branchId,
-              lastTouched: DateTime.now(),
-            ),
-            tableName: 'categories');
+        await ProxyService.local.addCategory(
+          name: name,
+          branchId: branchId,
+          active: false,
+          focused: false,
+          lastTouched: DateTime.now(),
+          id: randomNumber(),
+          createdAt: DateTime.now(),
+          deletedAt: null,
+        );
       } catch (e) {
         talker.critical(e);
       }

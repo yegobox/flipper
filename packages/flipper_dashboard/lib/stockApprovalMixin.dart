@@ -47,14 +47,15 @@ mixin StockRequestApprovalLogic {
     return stock != null && stock.currentStock >= item.quantityRequested!;
   }
 
-  void _approveItem(
+  Future<void> _approveItem(
       {required TransactionItem item,
       required int subBranchId,
-      required BuildContext context}) {
+      required BuildContext context}) async {
     try {
-      ProxyService.local.realm!.write(() {
-        item.quantityApproved = item.quantityRequested;
-      });
+      await ProxyService.local.updateTransactionItem(
+        transactionItemId: item.id!,
+        quantityApproved: item.quantityRequested,
+      );
       _updateVariantBranch(
           variantId: item.variantId!, subBranchId: subBranchId);
       _updateOrCreateStock(item: item, subBranchId: subBranchId);
@@ -71,9 +72,9 @@ mixin StockRequestApprovalLogic {
     Variant? variant = await ProxyService.local.getVariantById(id: variantId);
     if (variant != null) {
       if (!variant.branchIds.contains(subBranchId)) {
-        ProxyService.local.realm!.write(() {
-          variant.branchIds.add(subBranchId);
-        });
+        // TODO: this logic will change in new version of flipper
+
+        //   variant.branchIds.add(subBranchId);
       }
     }
   }
@@ -97,17 +98,17 @@ mixin StockRequestApprovalLogic {
     }
   }
 
-  void _updateExistingStock(
+  Future<void> _updateExistingStock(
       {required Stock stock,
       required TransactionItem item,
-      required Variant variant}) {
-    ProxyService.local.realm!.write(() {
-      stock.lastTouched = DateTime.now();
-      stock.currentStock =
-          stock.currentStock + item.quantityRequested!.toDouble();
-      stock.rsdQty = stock.rsdQty + item.quantityRequested!.toDouble();
-      stock.value = (stock.currentStock * variant.retailPrice);
-    });
+      required Variant variant}) async {
+    await ProxyService.local.updateStock(
+      stockId: stock.id!,
+      currentStock: stock.currentStock + item.quantityRequested!.toDouble(),
+      rsdQty: stock.rsdQty + item.quantityRequested!.toDouble(),
+      value: (stock.currentStock * variant.retailPrice),
+      ebmSynced: false,
+    );
   }
 
   Future<bool> _handlePartialApproval(
@@ -127,16 +128,16 @@ mixin StockRequestApprovalLogic {
     return request.items.any((item) => (item.quantityApproved ?? 0) > 0);
   }
 
-  void _finalizeApproval(
+  Future<void> _finalizeApproval(
       {required StockRequest request,
       required bool isFullyApproved,
-      required BuildContext context}) {
-    ProxyService.local.realm!.write(() {
-      request.status = isFullyApproved
-          ? RequestStatus.approved
-          : RequestStatus.partiallyApproved;
-      request.updatedAt = DateTime.now();
-    });
+      required BuildContext context}) async {
+    await ProxyService.local.updateStockRequest(
+        stockRequestId: request.id!,
+        updatedAt: DateTime.now(),
+        status: isFullyApproved
+            ? RequestStatus.approved
+            : RequestStatus.partiallyApproved);
     _showSnackBar(
         message:
             'Request #${request.id} has been ${isFullyApproved ? "fully" : "partially"} approved',
@@ -291,22 +292,20 @@ mixin StockRequestApprovalLogic {
     }
   }
 
-  void _handleApproveButtonPress(
+  Future<void> _handleApproveButtonPress(
       {required List<TransactionItem> items,
       required List<int?> approvedQuantities,
       required StockRequest request,
-      required BuildContext context}) {
+      required BuildContext context}) async {
     if (approvedQuantities.any((qty) => qty != null && qty > 0)) {
-      ProxyService.local.realm!.write(() {
-        for (int i = 0; i < items.length; i++) {
-          if (approvedQuantities[i] != null) {
-            _processApprovedItem(
-                item: items[i],
-                approvedQuantity: approvedQuantities[i]!,
-                request: request);
-          }
+      for (int i = 0; i < items.length; i++) {
+        if (approvedQuantities[i] != null) {
+          await _processApprovedItem(
+              item: items[i],
+              approvedQuantity: approvedQuantities[i]!,
+              request: request);
         }
-      });
+      }
       Navigator.of(context).pop(true);
     } else {
       _showSnackBar(
@@ -314,11 +313,15 @@ mixin StockRequestApprovalLogic {
     }
   }
 
-  void _processApprovedItem(
+  Future<void> _processApprovedItem(
       {required TransactionItem item,
       required int approvedQuantity,
-      required StockRequest request}) {
-    item.quantityApproved = approvedQuantity;
+      required StockRequest request}) async {
+    // item.quantityApproved = approvedQuantity;
+    await ProxyService.local.updateTransactionItem(
+      transactionItemId: item.id!,
+      quantityApproved: approvedQuantity,
+    );
     _updateVariantBranch(
         variantId: item.variantId!, subBranchId: request.subBranchId!);
     _updateStockForApprovedItem(

@@ -903,8 +903,18 @@ class LocalRealmApi
   }
 
   @override
-  Future<Tenant?> saveTenant(String phoneNumber, String name,
+  Future<Tenant?> saveTenant(
       {required Business business,
+      required String phoneNumber,
+      String? name,
+      int? id,
+      String? email,
+      int? businessId,
+      bool? sessionActive,
+      int? branchId,
+      String? imageUrl,
+      int? pin,
+      bool? isDefault,
       required Branch branch,
       required HttpClientInterface flipperHttpClient,
       required String userType}) async {
@@ -925,8 +935,6 @@ class LocalRealmApi
         .post(Uri.parse("$apihub/v2/api/tenant"), body: data);
 
     if (response.statusCode == 200) {
-      /// add the userId into Pins
-
       try {
         ITenant jTenant = ITenant.fromRawJson(response.body);
         await _createPin(
@@ -938,17 +946,18 @@ class LocalRealmApi
           defaultApp: 1,
         );
         ITenant iTenant = ITenant(
-            businesses: jTenant.businesses,
-            branches: jTenant.branches,
-            isDefault: jTenant.isDefault,
-            id: randomNumber(),
-            permissions: jTenant.permissions,
-            name: jTenant.name,
-            businessId: jTenant.businessId,
-            email: jTenant.email,
-            userId: jTenant.userId,
-            nfcEnabled: jTenant.nfcEnabled,
-            phoneNumber: jTenant.phoneNumber);
+          businesses: jTenant.businesses,
+          branches: jTenant.branches,
+          isDefault: jTenant.isDefault,
+          id: randomNumber(),
+          permissions: jTenant.permissions,
+          name: jTenant.name,
+          businessId: jTenant.businessId,
+          email: jTenant.email,
+          userId: jTenant.userId,
+          nfcEnabled: jTenant.nfcEnabled,
+          phoneNumber: jTenant.phoneNumber,
+        );
         final branchToAdd = <Branch>[];
         final permissionToAdd = <LPermission>[];
         final businessToAdd = <Business>[];
@@ -957,68 +966,69 @@ class LocalRealmApi
           Business? existingBusiness = realm!
               .query<Business>(r'serverId == $0', [business.id]).firstOrNull;
           if (existingBusiness == null) {
-            businessToAdd.add(Business(ObjectId(),
-                serverId: business.id,
-                userId: business.userId,
-                name: business.name,
-                currency: business.currency,
-                categoryId: business.categoryId,
-                latitude: business.latitude,
-                longitude: business.longitude,
-                timeZone: business.timeZone,
-                country: business.country,
-                businessUrl: business.businessUrl,
-                hexColor: business.hexColor,
-                imageUrl: business.imageUrl,
-                type: business.type,
-                active: business.active,
-                chatUid: business.chatUid,
-                metadata: business.metadata,
-                role: business.role,
-                lastSeen: business.lastSeen,
-                firstName: business.firstName,
-                lastName: business.lastName,
-                createdAt: business.createdAt,
-                deviceToken: business.deviceToken,
-                backUpEnabled: business.backUpEnabled,
-                subscriptionPlan: business.subscriptionPlan,
-                nextBillingDate: business.nextBillingDate,
-                previousBillingDate: business.previousBillingDate,
-                isLastSubscriptionPaymentSucceeded:
-                    business.isLastSubscriptionPaymentSucceeded,
-                backupFileId: business.backupFileId,
-                email: business.email,
-                lastDbBackup: business.lastDbBackup,
-                fullName: business.fullName,
-                tinNumber: business.tinNumber,
-                bhfId: business.bhfId,
-                dvcSrlNo: business.dvcSrlNo,
-                adrs: business.adrs,
-                taxEnabled: business.taxEnabled,
-                taxServerUrl: business.taxServerUrl,
-                isDefault: business.isDefault,
-                businessTypeId: business.businessTypeId,
-                lastTouched: business.lastTouched,
-                deletedAt: business.deletedAt,
-                encryptionKey: business.encryptionKey));
+            businessToAdd.add(Business(
+              ObjectId(),
+              serverId: business.id,
+              userId: business.userId,
+              name: business.name,
+              currency: business.currency,
+              categoryId: business.categoryId,
+              latitude: business.latitude,
+              longitude: business.longitude,
+              timeZone: business.timeZone,
+              country: business.country,
+              businessUrl: business.businessUrl,
+              hexColor: business.hexColor,
+              imageUrl: business.imageUrl,
+              type: business.type,
+              active: business.active,
+              chatUid: business.chatUid,
+              metadata: business.metadata,
+              role: business.role,
+              lastSeen: business.lastSeen,
+              firstName: business.firstName,
+              lastName: business.lastName,
+              createdAt: business.createdAt,
+              deviceToken: business.deviceToken,
+              backUpEnabled: business.backUpEnabled,
+              subscriptionPlan: business.subscriptionPlan,
+              nextBillingDate: business.nextBillingDate,
+              previousBillingDate: business.previousBillingDate,
+              isLastSubscriptionPaymentSucceeded:
+                  business.isLastSubscriptionPaymentSucceeded,
+              backupFileId: business.backupFileId,
+              email: business.email,
+              lastDbBackup: business.lastDbBackup,
+              fullName: business.fullName,
+              tinNumber: business.tinNumber,
+              bhfId: business.bhfId,
+              dvcSrlNo: business.dvcSrlNo,
+              adrs: business.adrs,
+              taxEnabled: business.taxEnabled,
+              taxServerUrl: business.taxServerUrl,
+              isDefault: business.isDefault,
+              businessTypeId: business.businessTypeId,
+              lastTouched: business.lastTouched,
+              deletedAt: business.deletedAt,
+              encryptionKey: business.encryptionKey,
+            ));
           }
         }
 
         for (var branch in jTenant.branches) {
-          // Check if the branch with the same ID already exists
-          // var existingBranch =
-          //     await isar.iBranchs.filter().idEqualTo(branch.id).findFirst();
           final existingBranch =
               realm!.query<Branch>(r'serverId==$0', [branch.id]).firstOrNull;
           if (existingBranch == null) {
-            Branch br = Branch(ObjectId(),
-                serverId: branch.id,
-                name: branch.name,
-                businessId: branch.businessId,
-                active: branch.active,
-                lastTouched: branch.lastTouched,
-                latitude: branch.latitude,
-                longitude: branch.longitude);
+            Branch br = Branch(
+              ObjectId(),
+              serverId: branch.id,
+              name: branch.name,
+              businessId: branch.businessId,
+              active: branch.active,
+              lastTouched: branch.lastTouched,
+              latitude: branch.latitude,
+              longitude: branch.longitude,
+            );
             branchToAdd.add(br);
           }
         }
@@ -1027,11 +1037,12 @@ class LocalRealmApi
           LPermission? existingPermission = realm!
               .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
           if (existingPermission == null) {
-            // Permission doesn't exist, add it
-            permissionToAdd.add(LPermission(ObjectId(),
-                name: permission.name,
-                id: permission.id,
-                userId: permission.userId));
+            permissionToAdd.add(LPermission(
+              ObjectId(),
+              name: permission.name,
+              id: permission.id,
+              userId: permission.userId,
+            ));
           }
         }
 
@@ -1039,16 +1050,18 @@ class LocalRealmApi
         Tenant? tenant =
             realm!.query<Tenant>(r'userId==$0', [iTenant.userId]).firstOrNull;
         if (tenant == null) {
-          tenantToAdd = Tenant(ObjectId(),
-              name: jTenant.name,
-              phoneNumber: jTenant.phoneNumber,
-              email: jTenant.email,
-              nfcEnabled: jTenant.nfcEnabled,
-              businessId: jTenant.businessId,
-              userId: jTenant.userId,
-              id: randomNumber(),
-              isDefault: jTenant.isDefault,
-              pin: jTenant.pin);
+          tenantToAdd = Tenant(
+            ObjectId(),
+            name: jTenant.name,
+            phoneNumber: jTenant.phoneNumber,
+            email: jTenant.email,
+            nfcEnabled: jTenant.nfcEnabled,
+            businessId: jTenant.businessId,
+            userId: jTenant.userId,
+            id: randomNumber(),
+            isDefault: jTenant.isDefault,
+            pin: jTenant.pin,
+          );
           realm!.write(() {
             realm!.add<Tenant>(tenantToAdd!);
           });
@@ -2805,39 +2818,25 @@ class LocalRealmApi
   }
 
   @override
-  void updateStock({
+  FutureOr<void> updateStock({
     required int stockId,
     double? qty,
     double? rsdQty,
     double? initialStock,
     bool? ebmSynced,
     double? currentStock,
+    double? value,
+    DateTime? lastTouched,
   }) {
     Stock? stock = realm!.query<Stock>(r'id == $0', [stockId]).firstOrNull;
-    if (stock != null && qty != null) {
+    if (stock != null) {
       realm!.write(() {
-        stock.currentStock = qty;
-        stock.initialStock = qty;
-      });
-    }
-    if (stock != null && rsdQty != null) {
-      realm!.write(() {
-        stock.rsdQty = rsdQty;
-      });
-    }
-    if (stock != null && initialStock != null) {
-      realm!.write(() {
-        stock.initialStock = initialStock;
-      });
-    }
-    if (stock != null && ebmSynced != null) {
-      realm!.write(() {
-        stock.ebmSynced = ebmSynced;
-      });
-    }
-    if (stock != null && currentStock != null) {
-      realm!.write(() {
-        stock.currentStock = currentStock;
+        stock.currentStock = currentStock ?? qty ?? stock.currentStock;
+        stock.rsdQty = rsdQty ?? stock.rsdQty;
+        stock.initialStock = initialStock ?? qty ?? stock.initialStock;
+        stock.ebmSynced = ebmSynced ?? stock.ebmSynced;
+        stock.value = value ?? stock.value;
+        stock.lastTouched = lastTouched ?? stock.lastTouched;
       });
     }
   }
@@ -2848,16 +2847,24 @@ class LocalRealmApi
       required int transactionItemId,
       double? discount,
       double? taxAmt,
+      int? quantityApproved,
       double? price,
+      bool? incrementQty,
       bool? ebmSynced,
       bool? isRefunded,
+      int? quantityRequested,
       double? prc,
+      double? splyAmt,
+      bool? doneWithTransaction,
+      int? quantityShipped,
+      double? taxblAmt,
+      double? totAmt,
       bool? active}) {
     TransactionItem? item = realm!
         .query<TransactionItem>(r'id == $0', [transactionItemId]).firstOrNull;
     if (item != null) {
       realm!.write(() {
-        item.qty = qty ?? item.qty;
+        item.qty = incrementQty == true ? item.qty + 1 : qty ?? item.qty;
         item.discount = discount ?? item.discount;
         item.active = active ?? item.active;
         item.price = price ?? item.price;
@@ -2865,6 +2872,14 @@ class LocalRealmApi
         item.taxAmt = taxAmt ?? item.taxAmt;
         item.isRefunded = isRefunded ?? item.isRefunded;
         item.ebmSynced = ebmSynced ?? item.ebmSynced;
+        item.quantityApproved = quantityApproved ?? item.quantityApproved;
+        item.quantityRequested = quantityRequested ?? item.quantityRequested;
+        item.splyAmt = splyAmt ?? item.splyAmt;
+        item.quantityShipped = quantityShipped ?? item.quantityShipped;
+        item.taxblAmt = taxblAmt ?? item.taxblAmt;
+        item.totAmt = totAmt ?? item.totAmt;
+        item.doneWithTransaction =
+            doneWithTransaction ?? item.doneWithTransaction;
       });
     }
   }
@@ -3559,7 +3574,7 @@ class LocalRealmApi
   Future<bool> delete(
       {required int id,
       String? endPoint,
-      required HttpClientInterface flipperHttpClient}) async {
+      HttpClientInterface? flipperHttpClient}) async {
     switch (endPoint) {
       case 'color':
         PColor color = realm!.query<PColor>(r'id == $0 ', [id]).first;
@@ -3637,16 +3652,7 @@ class LocalRealmApi
               tableName: vouchersTable, deleteCallback: () => business!);
         });
         break;
-      case 'transactionItem':
-        TransactionItem? transactionItem =
-            realm!.query<TransactionItem>(r'id == $0 ', [id]).first;
 
-        realm!.write(() {
-          realm!.deleteN(
-              tableName: transactionItemsTable,
-              deleteCallback: () => transactionItem);
-        });
-        break;
       case 'customer':
         Customer? customer = realm!.query<Customer>(r'id == $0 ', [id]).first;
         realm!.write(() {
@@ -3655,7 +3661,7 @@ class LocalRealmApi
         });
         break;
       case 'tenant':
-        final response = await flipperHttpClient
+        final response = await flipperHttpClient!
             .delete(Uri.parse("$apihub/v2/api/tenant/${id}"));
         if (response.statusCode == 200) {
           Tenant? tenant = realm!.query<Tenant>(r'id == $0 ', [id]).firstOrNull;
@@ -3691,6 +3697,20 @@ class LocalRealmApi
             realm!.query<Composite>(r'id == $0 ', [id]).first;
         realm!.write(() {
           realm!.delete(composite);
+        });
+        break;
+      case 'stockRequest':
+        StockRequest? stockRequest =
+            realm!.query<StockRequest>(r'id == $0 ', [id]).first;
+        realm!.write(() {
+          realm!.delete(stockRequest);
+        });
+        break;
+      case 'transactionItem':
+        TransactionItem? transactionItem =
+            realm!.query<TransactionItem>(r'id == $0 ', [id]).first;
+        realm!.write(() {
+          realm!.delete(transactionItem);
         });
         break;
       default:
@@ -4967,6 +4987,13 @@ class LocalRealmApi
       bool? ebmSynced,
       String? ticketName,
       String? updatedAt,
+      String? sarTyCd,
+      DateTime? lastTouched,
+      String? reference,
+      String? customerTin,
+      String? customerBhfId,
+      double? cashReceived,
+      String? customerName,
       int? invoiceNumber,
       int? receiptNumber,
       int? totalReceiptNumber,
@@ -5000,6 +5027,13 @@ class LocalRealmApi
         transaction.receiptNumber = receiptNumber ?? transaction.receiptNumber;
         transaction.totalReceiptNumber =
             totalReceiptNumber ?? transaction.totalReceiptNumber;
+        transaction.sarTyCd = sarTyCd ?? transaction.sarTyCd;
+        transaction.reference = reference ?? transaction.reference;
+        transaction.customerTin = customerTin ?? transaction.customerTin;
+        transaction.customerBhfId = customerBhfId ?? transaction.customerBhfId;
+        transaction.cashReceived = cashReceived ?? transaction.cashReceived;
+        transaction.customerName = customerName ?? transaction.customerName;
+        transaction.lastTouched = lastTouched ?? transaction.lastTouched;
         return transaction;
       });
     }
@@ -5846,6 +5880,7 @@ class LocalRealmApi
     int? productId,
     String? name,
     bool? isComposite,
+    String? imageUrl,
     String? unit,
     String? expiryDate,
   }) {
@@ -5857,6 +5892,7 @@ class LocalRealmApi
           product.isComposite = isComposite ?? product.isComposite;
           product.unit = unit ?? product.unit;
           product.expiryDate = expiryDate ?? product.expiryDate;
+          product.imageUrl = imageUrl ?? product.imageUrl;
         });
       }
     }
@@ -5914,6 +5950,8 @@ class LocalRealmApi
       String? email,
       int? businessId,
       bool? sessionActive,
+      String? type,
+      int? pin,
       int? branchId}) {
     final tenant = realm!.query<Tenant>(r'id == $0', [tenantId]).firstOrNull;
     if (tenant != null) {
@@ -5923,6 +5961,8 @@ class LocalRealmApi
         tenant.email = email ?? tenant.email;
         tenant.businessId = businessId ?? tenant.businessId;
         tenant.sessionActive = sessionActive ?? tenant.sessionActive;
+        tenant.type = type ?? tenant.type;
+        tenant.pin = pin ?? tenant.pin;
       });
     }
   }
@@ -5936,6 +5976,7 @@ class LocalRealmApi
       int? psSaleCount,
       int? csSaleCount,
       int? nrSaleCount,
+      double? closingBalance,
       int? incompleteSale,
       double? totalCsSaleIncome,
       double? totalNsSaleIncome,
@@ -5958,6 +5999,223 @@ class LocalRealmApi
             totalNsSaleIncome ?? drawer.totalNsSaleIncome;
         drawer.openingDateTime = openingDateTime ?? drawer.openingDateTime;
         drawer.open = open ?? drawer.open;
+        drawer.closingBalance = closingBalance ?? drawer.closingBalance;
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> updateReport({required int reportId, bool? downloaded}) {
+    final report = realm!.query<Report>(r'id == $0', [reportId]).firstOrNull;
+    if (report != null) {
+      realm!.write(() {
+        report.downloaded = downloaded ?? report.downloaded;
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> updateBusiness(
+      {required int businessId, String? name, bool? active, bool? isDefault}) {
+    final business =
+        realm!.query<Business>(r'id == $0', [businessId]).firstOrNull;
+    if (business != null) {
+      realm!.write(() {
+        business.name = name ?? business.name;
+        business.active = active ?? business.active;
+        business.isDefault = isDefault ?? business.isDefault;
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> updateBranch(
+      {required int branchId, String? name, bool? active, bool? isDefault}) {
+    final branch = realm!.query<Branch>(r'id == $0', [branchId]).firstOrNull;
+    if (branch != null) {
+      realm!.write(() {
+        branch.name = name ?? branch.name;
+        branch.active = active ?? branch.active;
+        branch.isDefault = isDefault ?? branch.isDefault;
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> updateNotification(
+      {required int notificationId, bool? completed}) {
+    final notification = realm!
+        .query<AppNotification>(r'id == $0', [notificationId]).firstOrNull;
+    if (notification != null) {
+      realm!.write(() {
+        notification.completed = completed ?? notification.completed;
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> updateStockRequest(
+      {required int stockRequestId, DateTime? updatedAt, String? status}) {
+    final stockRequest =
+        realm!.query<StockRequest>(r'id == $0', [stockRequestId]).firstOrNull;
+    if (stockRequest != null) {
+      realm!.write(() {
+        stockRequest.updatedAt = updatedAt ?? stockRequest.updatedAt;
+        stockRequest.status = status ?? stockRequest.status;
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> updateAcess(
+      {required int userId,
+      String? featureName,
+      String? status,
+      String? accessLevel,
+      String? userType}) {
+    final access = realm!.query<Access>(r'userId == $0', [userId]).firstOrNull;
+    if (access != null) {
+      realm!.write(() {
+        access.featureName = featureName ?? access.featureName;
+        access.status = status ?? access.status;
+        access.accessLevel = accessLevel ?? access.accessLevel;
+        access.userType = userType ?? access.userType;
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> addAccess(
+      {required int userId,
+      required String featureName,
+      required String accessLevel,
+      required String status,
+      required int branchId,
+      DateTime? createdAt,
+      String? appFeature,
+      required int businessId,
+      required String userType}) {
+    final access = realm!.query<Access>(r'userId == $0', [userId]).firstOrNull;
+    if (access == null) {
+      realm!.write(() {
+        realm!.add<Access>(Access(
+          ObjectId(),
+          id: randomNumber(),
+          branchId: branchId,
+          businessId: businessId,
+          userType: userType,
+          accessLevel: accessLevel,
+          status: 'active',
+          userId: userId,
+          featureName: featureName,
+          createdAt: createdAt ?? DateTime.now(),
+        ));
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> deleteAll<T extends Object>({required String tableName}) {
+    if (tableName == productsTable) {
+      realm!.write(() {
+        realm!.deleteAll<Product>();
+      });
+    }
+    if (tableName == variantTable) {
+      realm!.write(() {
+        realm!.deleteAll<Variant>();
+      });
+    }
+    if (tableName == stocksTable) {
+      realm!.write(() {
+        realm!.deleteAll<Stock>();
+      });
+    }
+    if (tableName == transactionItemsTable) {
+      realm!.write(() {
+        realm!.deleteAll<TransactionItem>();
+      });
+    }
+    if (tableName == stockRequestsTable) {
+      realm!.write(() {
+        realm!.deleteAll<StockRequest>();
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> updateAsset({
+    required int assetId,
+    String? assetName,
+  }) {
+    final asset = realm!.query<Assets>(r'id == $0', [assetId]).firstOrNull;
+    if (asset != null) {
+      realm!.write(() {
+        asset.assetName = assetName ?? asset.assetName;
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> addAsset(
+      {required int productId,
+      required assetName,
+      required int branchId,
+      required int businessId}) {
+    final asset = realm!.query<Assets>(r'productId == $0 && assetName == $1',
+        [productId, assetName]).firstOrNull;
+    if (asset == null) {
+      realm!.write(() {
+        realm!.add<Assets>(
+          Assets(ObjectId(),
+              id: randomNumber(),
+              assetName: assetName,
+              productId: productId,
+              branchId: branchId,
+              businessId: businessId),
+        );
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> addCategory(
+      {required String name,
+      required int branchId,
+      required bool active,
+      required bool focused,
+      required DateTime lastTouched,
+      required int id,
+      required DateTime createdAt,
+      required deletedAt}) {
+    Category? category =
+        realm!.query<Category>(r'name ==$0', [name]).firstOrNull;
+    if (category == null) {
+      realm!.write(() {
+        realm!.add<Category>(
+          Category(
+            ObjectId(),
+            id: id,
+            focused: focused,
+            name: name,
+            active: active,
+            branchId: branchId,
+            lastTouched: lastTouched,
+            deletedAt: deletedAt,
+          ),
+        );
+      });
+    }
+  }
+
+  @override
+  FutureOr<void> updatePin(
+      {required int userId, String? phoneNumber, String? tokenUid}) {
+    final pin = realm!.query<Pin>(r'userId == $0', [userId]).firstOrNull;
+    if (pin != null) {
+      realm!.write(() {
+        pin.phoneNumber = phoneNumber;
+        pin.tokenUid = tokenUid;
       });
     }
   }

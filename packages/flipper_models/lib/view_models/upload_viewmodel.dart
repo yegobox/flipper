@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
@@ -89,20 +90,17 @@ class UploadViewModel extends ProductViewModel {
       Product? product = ProxyService.local.getProduct(id: id);
       try {
         Assets? asset = ProxyService.local.getAsset(productId: product!.id);
-        // 723194300042250.png
-        ProxyService.local.realm!.write(() {
-          asset!.assetName = uniqueFileName;
-        });
+
+        await ProxyService.local
+            .updateAsset(assetId: asset!.id!, assetName: uniqueFileName);
       } catch (e) {
         saveAsset(assetName: uniqueFileName, productId: id);
       }
       await ProxyService.local.downloadAssetSave(assetName: uniqueFileName);
       await Future.delayed(Duration(seconds: 10));
-      ProxyService.local.realm!.write(() {
-        if (product != null) {
-          product.imageUrl = uniqueFileName;
-        }
-      });
+
+      await ProxyService.local
+          .updateProduct(productId: id, imageUrl: uniqueFileName);
 
       // Log success
       talker.warning('File uploaded and database updated successfully.');
@@ -131,16 +129,12 @@ class UploadViewModel extends ProductViewModel {
     }
   }
 
-  void saveAsset({required int productId, required assetName}) async {
-    ProxyService.local.realm!.write(() {
-      ProxyService.local.realm!.add<Assets>(
-        Assets(ObjectId(),
-            assetName: assetName,
-            productId: productId,
-            id: randomNumber(),
-            branchId: ProxyService.box.getBranchId()!,
-            businessId: ProxyService.box.getBusinessId()!),
-      );
-    });
+  FutureOr<void> saveAsset({required int productId, required assetName}) async {
+    await ProxyService.local.addAsset(
+      productId: productId,
+      assetName: assetName,
+      branchId: ProxyService.box.getBranchId()!,
+      businessId: ProxyService.box.getBusinessId()!,
+    );
   }
 }

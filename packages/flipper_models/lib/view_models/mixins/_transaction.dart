@@ -240,20 +240,21 @@ mixin TransactionMixin {
     try {
       if (item != null && !isCustom) {
         // Update existing non-custom item
-        ProxyService.local.realm!.write(() {
-          item.qty = (item.qty) + quantity;
-          item.price = amountTotal / quantity;
-          item.taxblAmt = variation.retailPrice * quantity;
-          item.totAmt = variation.retailPrice * quantity;
-          item.splyAmt = variation.supplyPrice;
-          // item.doneWithTransaction = false;
-          item.active = true;
-          item.quantityRequested = ((item.qty) + quantity).toInt();
-          item.quantityApproved = 0;
-          item.quantityShipped = 0;
 
-          updatePendingTransactionTotals(pendingTransaction);
-        });
+        ProxyService.local.updateTransactionItem(
+          transactionItemId: item.id!,
+          qty: item.qty + quantity,
+          taxblAmt: variation.retailPrice * quantity,
+          price: amountTotal / quantity,
+          totAmt: variation.retailPrice * quantity,
+          prc: item.prc + variation.retailPrice * quantity,
+          splyAmt: variation.supplyPrice,
+          quantityApproved: 0,
+          active: true,
+          quantityRequested: ((item.qty) + quantity).toInt(),
+          quantityShipped: 0,
+        );
+        updatePendingTransactionTotals(pendingTransaction);
       } else {
         // Add new item (for both custom and new non-custom items)
         double computedQty = isCustom ? 1.0 : quantity;
@@ -319,7 +320,7 @@ mixin TransactionMixin {
           dcRt: variation.dcRt,
           dcAmt: (variation.retailPrice * variation.qty) * variation.dcRt,
         );
-// 428129618288376
+
         ProxyService.local.addTransactionItem(
             transaction: pendingTransaction,
             item: newItem,
@@ -343,23 +344,25 @@ mixin TransactionMixin {
     }
   }
 
-  void markItemAsDoneWithTransaction(
+  Future<void> markItemAsDoneWithTransaction(
       {required List<TransactionItem> inactiveItems,
       required ITransaction pendingTransaction,
-      bool isDoneWithTransaction = false}) {
+      bool isDoneWithTransaction = false}) async {
     if (inactiveItems.isNotEmpty) {
-      ProxyService.local.realm!.write(() {
-        for (TransactionItem inactiveItem in inactiveItems) {
-          inactiveItem.active = true;
-          if (isDoneWithTransaction) {
-            inactiveItem.doneWithTransaction = true;
-          }
+      for (TransactionItem inactiveItem in inactiveItems) {
+        inactiveItem.active = true;
+        if (isDoneWithTransaction) {
+          await ProxyService.local.updateTransactionItem(
+            transactionItemId: inactiveItem.id!,
+            doneWithTransaction: true,
+          );
         }
-      });
+      }
     }
   }
 
-  void updatePendingTransactionTotals(ITransaction pendingTransaction) {
+  Future<void> updatePendingTransactionTotals(
+      ITransaction pendingTransaction) async {
     List<TransactionItem> items = ProxyService.local.transactionItems(
       branchId: ProxyService.box.getBranchId()!,
       transactionId: pendingTransaction.id!,
@@ -379,12 +382,12 @@ mixin TransactionMixin {
       pendingTransaction.updatedAt = newUpdatedAt;
       pendingTransaction.lastTouched = newLastTouched;
     } else {
-      // If we're not in a transaction, start a new one
-      ProxyService.local.realm!.write(() {
-        pendingTransaction.subTotal = newSubTotal;
-        pendingTransaction.updatedAt = newUpdatedAt;
-        pendingTransaction.lastTouched = newLastTouched;
-      });
+      await ProxyService.local.updateTransaction(
+        transaction: pendingTransaction,
+        subTotal: newSubTotal,
+        updatedAt: newUpdatedAt,
+        lastTouched: newLastTouched,
+      );
     }
   }
 }

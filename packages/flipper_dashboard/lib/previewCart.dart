@@ -1,5 +1,7 @@
 // ignore_for_file: unused_result
 
+import 'dart:async';
+
 import 'package:flipper_dashboard/PurchaseCodeForm.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_models/power_sync/schema.dart';
@@ -79,12 +81,10 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  void _changeTransactionStatus({required ITransaction transaction}) {
-    ProxyService.local.realm!.write(() {
-      /// we mark the status so next time we query pending transaction we don't
-      /// accidently query this PENDING transaction and avoid mixxing things up
-      transaction.status = ORDERING;
-    });
+  FutureOr<void> _changeTransactionStatus(
+      {required ITransaction transaction}) async {
+    await ProxyService.local
+        .updateTransaction(transaction: transaction, status: ORDERING);
   }
 
   Future<void> _markItemsAsDone(

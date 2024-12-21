@@ -38,13 +38,13 @@ class SettingsService with ListenableServiceMixin {
       Map<String, dynamic> settingsMap =
           setting.toEJson() as Map<String, dynamic>;
       //replace a key in settings_map if the key match with the key from map
-      ProxyService.local.realm!.write(() {
-        settingsMap.forEach((key, value) {
-          if (map.containsKey(key)) {
-            settingsMap[key] = map[key];
-          }
-        });
+
+      settingsMap.forEach((key, value) {
+        if (map.containsKey(key)) {
+          settingsMap[key] = map[key];
+        }
       });
+
       return true;
     } else {
       Map kMap = map;
@@ -66,7 +66,7 @@ class SettingsService with ListenableServiceMixin {
         autoPrint: kMap['autoPrint'] ?? false,
         isAttendanceEnabled: kMap['isAttendanceEnabled'] ?? false,
       );
-      // await ProxyService.local.createSetting(setting: setting);
+
       return true;
     }
   }

@@ -373,13 +373,13 @@ class IncomingOrdersWidget extends HookConsumerWidget
             ),
             TextButton(
               child: Text('Void'),
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
-                ProxyService.local.realm!.write(() {
-                  ProxyService.local.realm!.deleteN<StockRequest>(
-                      tableName: stockRequestsTable,
-                      deleteCallback: () => request);
-                });
+
+                ProxyService.local.delete(
+                  id: request.id!,
+                  endPoint: 'stockRequest',
+                );
                 final stringValue = ref.watch(stringProvider);
                 ref.refresh(stockRequestsProvider((filter: stringValue)));
               },

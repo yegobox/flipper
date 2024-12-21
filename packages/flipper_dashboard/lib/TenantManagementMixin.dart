@@ -50,7 +50,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         Tenant? newTenant;
         if (!editMode) {
           newTenant = await ProxyService.local.saveTenant(
-              _phoneController.text, _nameController.text,
+              phoneNumber: _phoneController.text,
+              name: _nameController.text,
               branch: branch!,
               business: business!,
               userType: selectedUserType,
@@ -77,15 +78,11 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  void _updateTenant({Tenant? tenant, String? name, required String type}) {
+  Future<void> _updateTenant(
+      {Tenant? tenant, String? name, required String type}) async {
     try {
-      ProxyService.local.realm!.write(() {
-        if (name != null && !name.isEmpty) {
-          tenant!.name = name;
-          tenant.type = type;
-          tenant.pin = tenant.userId;
-        }
-      });
+      await ProxyService.local.updateTenant(
+          tenantId: tenant!.id!, name: name, type: type, pin: tenant.userId);
     } catch (e) {
       talker.error(e);
     }
@@ -101,37 +98,29 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
 
       talker.warning(featureName);
       if (existingAccess != null) {
-        // Update existing Access object
-        ProxyService.local.realm!.write(() {
-          existingAccess.accessLevel = accessLevel.toLowerCase();
-          existingAccess.status = activeFeatures[featureName] != null
-              ? activeFeatures[featureName]!
-                  ? 'active'
-                  : 'inactive'
-              : 'inactive';
-          existingAccess.userType = selectedUserType;
-        });
+        ProxyService.local.updateAcess(
+            userId: newTenant?.userId ?? userId!,
+            featureName: featureName,
+            accessLevel: accessLevel.toLowerCase(),
+            status: activeFeatures[featureName] != null
+                ? activeFeatures[featureName]!
+                    ? 'active'
+                    : 'inactive'
+                : 'inactive',
+            userType: selectedUserType);
       } else {
-        // Create new Access object if it doesn't exist
-        final access = Access(
-          ObjectId(),
-          id: randomNumber(),
-          branchId: branch!.serverId!,
-          businessId: business!.serverId,
-          createdAt: DateTime.now(),
-          userType: selectedUserType,
-          accessLevel: accessLevel.toLowerCase(),
-          status: activeFeatures[featureName] != null
-              ? activeFeatures[featureName]!
-                  ? 'active'
-                  : 'inactive'
-              : 'inactive',
-          userId: newTenant?.userId,
-          featureName: featureName,
-        );
-        ProxyService.local.realm!.write(() {
-          ProxyService.local.realm!.add<Access>(access);
-        });
+        ProxyService.local.addAccess(
+            branchId: branch!.serverId!,
+            businessId: business!.serverId!,
+            userId: newTenant?.userId ?? userId!,
+            featureName: featureName,
+            accessLevel: accessLevel.toLowerCase(),
+            status: activeFeatures[featureName] != null
+                ? activeFeatures[featureName]!
+                    ? 'active'
+                    : 'inactive'
+                : 'inactive',
+            userType: selectedUserType);
       }
     });
   }

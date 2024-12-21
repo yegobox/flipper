@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/IncomingOrders.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flipper_services/constants.dart';
@@ -27,13 +28,14 @@ void main() {
           .createAndSaveMockStockRequests(realm: ProxyService.local.realm!);
     });
     tearDownAll(() async {
-      ProxyService.local.realm!.write(() {
-        ProxyService.local.realm!.deleteAll<Product>();
-        ProxyService.local.realm!.deleteAll<SKU>();
-        ProxyService.local.realm!.deleteAll<Variant>();
-        ProxyService.local.realm!.deleteAll<Stock>();
-        ProxyService.local.realm!.deleteAll<StockRequest>();
-      });
+      ProxyService.local.deleteAll<Product>(tableName: productsTable);
+      ProxyService.local.deleteAll<Variant>(tableName: variantTable);
+      ProxyService.local.deleteAll<Stock>(tableName: stocksTable);
+      ProxyService.local.deleteAll<StockRequest>(tableName: stockRequestsTable);
+      ProxyService.local
+          .deleteAll<TransactionItem>(tableName: transactionItemsTable);
+      ProxyService.local.deleteAll<SKU>(tableName: skusTable);
+
       ProxyService.local.close();
     });
 

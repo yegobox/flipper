@@ -66,10 +66,8 @@ mixin Booting {
     Tenant? exist = ProxyService.local.realm!
         .query<Tenant>(r'id == $0', [iTenant.id]).firstOrNull;
     if (exist == null) {
-      ProxyService.local.realm!.write(() {
-        iTenant.sessionActive = (userId == iTenant.userId);
-        ProxyService.local.realm!.add<Tenant>(iTenant);
-      });
+      await ProxyService.local.updateTenant(
+          tenantId: iTenant.id!, sessionActive: (userId == iTenant.userId));
     }
   }
 
@@ -114,21 +112,15 @@ mixin Booting {
                       [permission.userId, featureName]).firstOrNull;
 
               if (existingAccess == null) {
-                final Access access = Access(
-                  ObjectId(),
-                  id: randomNumber(),
-                  createdAt: DateTime.now(),
-                  branchId: ProxyService.box.getBranchId(),
-                  businessId: ProxyService.box.getBusinessId(),
-                  userType: "Admin",
-                  accessLevel: 'Admin'.toLowerCase(),
-                  status: 'active',
+                ProxyService.local.addAccess(
+                  branchId: ProxyService.box.getBranchId()!,
+                  businessId: ProxyService.box.getBusinessId()!,
                   userId: permission.userId,
                   featureName: featureName,
+                  accessLevel: 'Admin'.toLowerCase(),
+                  status: 'active',
+                  userType: "Admin",
                 );
-                ProxyService.local.realm!.write(() {
-                  ProxyService.local.realm!.add<Access>(access);
-                });
               }
             } else {
               /// in new version use use capella
@@ -157,10 +149,6 @@ mixin Booting {
         }
       }
     }
-
-    ProxyService.local.realm!.write(() {
-      ProxyService.local.realm!.addAll<LPermission>(permissionToAdd);
-    });
   }
 
   Future<void> addOrUpdateBranches(List<IBranch> branches,

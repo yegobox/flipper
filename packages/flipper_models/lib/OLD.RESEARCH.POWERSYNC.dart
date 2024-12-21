@@ -695,9 +695,9 @@
 //       if (response.statusCode == 200 && response.body.isNotEmpty) {
 //         /// path the user pin, with
 //         final IUser user = IUser.fromJson(json.decode(response.body));
-//         ProxyService.local.realm!.write(() {
+//        
 //           pinLocal.tokenUid = user.uid;
-//         });
+//      
 //       }
 
 //       return false;

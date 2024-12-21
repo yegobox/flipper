@@ -112,7 +112,7 @@ abstract class RealmInterface {
   Future<bool> delete(
       {required int id,
       String? endPoint,
-      required HttpClientInterface flipperHttpClient});
+      HttpClientInterface? flipperHttpClient});
   Future<PColor?> getColor({required int id});
   Future<Stock?> getStock({required int branchId, required int variantId});
   List<Variant> variants({
@@ -123,12 +123,42 @@ abstract class RealmInterface {
   });
   Configurations getByTaxType({required String taxtype});
   Variant? variant({int? variantId, String? name});
+
+  /// CRUD methods
+  FutureOr<void> addAccess({
+    required int userId,
+    required String featureName,
+    required String accessLevel,
+    required String userType,
+    required String status,
+    required int branchId,
+    required int businessId,
+    DateTime? createdAt,
+  });
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 
   Future<int> addVariant(
       {required List<Variant> variations, required int branchId});
 
   Future<int> addFavorite({required Favorite data});
+
+  Future<Tenant?> saveTenant(
+      {required Business business,
+      required Branch branch,
+      required String phoneNumber,
+      String? name,
+      int? id,
+      String? email,
+      int? businessId,
+      bool? sessionActive,
+      int? branchId,
+      String? imageUrl,
+      int? pin,
+      bool? isDefault,
+      required HttpClientInterface flipperHttpClient,
+      required String userType});
+
+  // End of CRUD methods
   Future<List<Favorite>> getFavorites();
   Future<Favorite?> getFavoriteById({required int favId});
   Future<Favorite?> getFavoriteByProdId({required int prodId});
@@ -569,11 +599,7 @@ abstract class RealmInterface {
   Future<Business?> getBusinessFromOnlineGivenId(
       {required int id, required HttpClientInterface flipperHttpClient});
   Future<List<Business>> getContacts();
-  Future<Tenant?> saveTenant(String phoneNumber, String name,
-      {required Business business,
-      required Branch branch,
-      required HttpClientInterface flipperHttpClient,
-      required String userType});
+
   Future<List<UnversalProduct>> universalProductNames({required int branchId});
   Stream<List<AppNotification>> notificationStream({required int identifier});
   void notify({required AppNotification notification});
@@ -638,13 +664,15 @@ abstract class RealmInterface {
     required Map<String, String> itemTypes,
   });
 
-  void updateStock({
+  FutureOr<void> updateStock({
     required int stockId,
     double? qty,
     double? rsdQty,
     double? initialStock,
     bool? ebmSynced,
     double? currentStock,
+    double? value,
+    DateTime? lastTouched,
   });
 
   FutureOr<void> updateTransactionItem({
@@ -653,10 +681,18 @@ abstract class RealmInterface {
     double? discount,
     bool? active,
     double? taxAmt,
+    int? quantityApproved,
+    int? quantityRequested,
     bool? ebmSynced,
     bool? isRefunded,
+    bool? incrementQty,
     double? price,
     double? prc,
+    double? splyAmt,
+    bool? doneWithTransaction,
+    int? quantityShipped,
+    double? taxblAmt,
+    double? totAmt,
   });
 
   FutureOr<void> updateTransaction(
@@ -667,10 +703,17 @@ abstract class RealmInterface {
       String? status,
       int? customerId,
       bool? ebmSynced,
+      String? sarTyCd,
+      String? reference,
+      String? customerTin,
+      String? customerBhfId,
+      double? cashReceived,
       bool? isRefunded,
+      String? customerName,
       String? ticketName,
       String? updatedAt,
       int? invoiceNumber,
+      DateTime? lastTouched,
       int? receiptNumber,
       int? totalReceiptNumber,
       bool? isProformaMode,
@@ -692,6 +735,7 @@ abstract class RealmInterface {
     double? totalCsSaleIncome,
     double? totalNsSaleIncome,
     String? openingDateTime,
+    double? closingBalance,
     bool? open,
   });
 
@@ -716,6 +760,8 @@ abstract class RealmInterface {
     String? phoneNumber,
     String? email,
     int? businessId,
+    String? type,
+    int? pin,
     bool? sessionActive,
     int? branchId,
   });
@@ -743,10 +789,66 @@ abstract class RealmInterface {
       String? name,
       bool? isComposite,
       String? unit,
+      String? imageUrl,
       String? expiryDate});
 
   FutureOr<void> updateColor(
       {required int colorId, String? name, bool? active});
 
+  FutureOr<void> updateReport({required int reportId, bool? downloaded});
+
+  FutureOr<void> updateBusiness(
+      {required int businessId, String? name, bool? active, bool? isDefault});
+
+  FutureOr<void> updateBranch(
+      {required int branchId, String? name, bool? active, bool? isDefault});
+
+  FutureOr<void> updateNotification(
+      {required int notificationId, bool? completed});
+
+  FutureOr<void> updateStockRequest(
+      {required int stockRequestId, DateTime? updatedAt, String? status});
+
+  FutureOr<void> updateAcess({
+    required int userId,
+    String? featureName,
+    String? status,
+    String? accessLevel,
+    String? userType,
+  });
+  FutureOr<void> updateAsset({
+    required int assetId,
+    String? assetName,
+  });
+
+  FutureOr<void> updatePin({
+    required int userId,
+    String? phoneNumber,
+    String? tokenUid,
+  });
+
   /// end of update methods
+  ///
+  ///
+  /// delete all methods
+  FutureOr<void> deleteAll<T extends Object>({
+    required String tableName,
+  });
+
+  FutureOr<void> addAsset(
+      {required int productId,
+      required assetName,
+      required int branchId,
+      required int businessId});
+
+  FutureOr<void> addCategory({
+    required String name,
+    required int branchId,
+    required bool active,
+    required bool focused,
+    required DateTime lastTouched,
+    required int id,
+    required DateTime createdAt,
+    required deletedAt,
+  });
 }
