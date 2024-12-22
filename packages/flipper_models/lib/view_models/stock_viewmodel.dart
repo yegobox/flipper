@@ -8,7 +8,7 @@ class StockViewModel extends BaseViewModel {
   get stocks => _stocks;
 
   loadStockByProductId({required int productId}) async {
-    _stocks = await ProxyService.local.totalStock(productId: productId);
+    _stocks = await ProxyService.strategy.totalStock(productId: productId);
     notifyListeners();
   }
 }

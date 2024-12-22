@@ -96,10 +96,8 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildDataWidget(ITransaction transaction) {
-    if (!transaction.isValid) {
-      ref.refresh(pendingTransactionProvider(
-          (mode: TransactionType.sale, isExpense: false)));
-    }
+    ref.refresh(pendingTransactionProvider(
+        (mode: TransactionType.sale, isExpense: false)));
 
     return widget.isBigScreen
         ? _buildBigScreenLayout(transaction,
@@ -248,11 +246,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                 child: Column(
                   children: [
                     _buildIconRow(),
-                    transaction.isValid
-                        ? SearchInputWithDropdown(
-                            transaction:
-                                transaction.isValid ? transaction : null)
-                        : SizedBox.shrink()
+                    SearchInputWithDropdown(transaction: transaction)
                   ],
                 ),
               ),

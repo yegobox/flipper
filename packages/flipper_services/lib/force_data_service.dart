@@ -1,13 +1,12 @@
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_mocks/mocks.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:realm/realm.dart';
+
 import 'package:talker_flutter/talker_flutter.dart';
 
 /// there is a case we need to force some data to be added for a given user
@@ -40,21 +39,18 @@ class ForceDataEntryService {
     ];
 
     int branchid = ProxyService.box.getBranchId()!;
-    List<PColor> kColors = await ProxyService.local.colors(branchId: branchid);
+    List<PColor> kColors =
+        await ProxyService.strategy.colors(branchId: branchid);
     if (kColors.isEmpty) {
-      final PColor color = PColor(ObjectId(),
-          id: randomNumber(),
-          colors: colors,
-          branchId: branchId,
-          lastTouched: DateTime.now(),
-          name: "#d63031",
-          active: false);
-      await ProxyService.local.create<PColor>(data: color);
+      for (String colorName in colors) {
+        await ProxyService.strategy
+            .addColor(name: colorName, branchId: branchId);
+      }
     }
 
     /// bootstrap app permission for admin
-    List<Access> permissions =
-        ProxyService.local.access(userId: ProxyService.box.getUserId()!);
+    List<Access> permissions = await ProxyService.strategy
+        .access(userId: ProxyService.box.getUserId()!);
     if (permissions.isEmpty) {
       int? branchId = ProxyService.box.getBranchId();
       int? businessId = ProxyService.box.getBusinessId();
@@ -86,11 +82,11 @@ class ForceDataEntryService {
       createCategory(name: name, branchId: branchid);
     }
 
-    List<IUnit> kUnits = await ProxyService.local.units(branchId: branchid);
+    List<IUnit> kUnits = await ProxyService.strategy.units(branchId: branchid);
 
     if (kUnits.isEmpty) {
       try {
-        await ProxyService.local.addUnits(units: mockUnits);
+        await ProxyService.strategy.addUnits(units: mockUnits);
       } catch (e) {
         talker.critical(e);
       }
@@ -98,7 +94,7 @@ class ForceDataEntryService {
 
     /// bootstrap tax if not bootstraped
     for (String item in ["A", "B", "C", "D"]) {
-      ProxyService.local.getByTaxType(taxtype: item);
+      ProxyService.strategy.getByTaxType(taxtype: item);
     }
   }
 
@@ -112,7 +108,7 @@ class ForceDataEntryService {
     final (accessLevel, status) =
         accessConfig[feature] ?? (AccessLevel.WRITE, 'active');
 
-    await ProxyService.local.addAccess(
+    await ProxyService.strategy.addAccess(
       branchId: branchId,
       businessId: businessId,
       userId: userId,
@@ -127,25 +123,20 @@ class ForceDataEntryService {
   final talker = TalkerFlutter.init();
 
   createCategory({required String name, required int branchId}) async {
-    talker.info('App is started');
-    Category? category;
-    category = ProxyService.local.realm!
-        .query<Category>(r'name ==$0', [name]).firstOrNull;
-    if (category == null) {
-      try {
-        await ProxyService.local.addCategory(
-          name: name,
-          branchId: branchId,
-          active: false,
-          focused: false,
-          lastTouched: DateTime.now(),
-          id: randomNumber(),
-          createdAt: DateTime.now(),
-          deletedAt: null,
-        );
-      } catch (e) {
-        talker.critical(e);
-      }
+    List<Category> category =
+        await ProxyService.strategy.categories(branchId: branchId);
+    if (category.map((e) => e.name).contains(name)) {
+      return;
     }
+    ProxyService.strategy.addCategory(
+      name: name,
+      branchId: branchId,
+      active: false,
+      focused: false,
+      lastTouched: DateTime.now(),
+      id: randomNumber(),
+      createdAt: DateTime.now(),
+      deletedAt: null,
+    );
   }
 }

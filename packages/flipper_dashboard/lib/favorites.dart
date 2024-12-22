@@ -223,7 +223,7 @@ class _FavoritesState extends State<Favorites> {
   Widget _favoritePopulated(
       int favIndex, Product favProd, FavoriteViewModel model) {
     if (!favoriteProdIds.contains(favProd.id)) {
-      favoriteProdIds.add(favProd.id!);
+      favoriteProdIds.add(favProd.id);
     }
 
     return GestureDetector(
@@ -268,9 +268,9 @@ class _FavoritesState extends State<Favorites> {
                   child: Text(
                     favProd.imageUrl != null && !favProd.imageUrl!.isEmpty
                         ? ''
-                        : favProd.name!.length > 1
-                            ? favProd.name!.substring(0, 2)
-                            : favProd.name!.toUpperCase(),
+                        : favProd.name.length > 1
+                            ? favProd.name.substring(0, 2)
+                            : favProd.name.toUpperCase(),
                     style:
                         GoogleFonts.poppins(fontSize: 36, color: Colors.white),
                   ),
@@ -305,7 +305,7 @@ class _FavoritesState extends State<Favorites> {
             ),
           ),
           Center(
-            child: Text(favProd.name!),
+            child: Text(favProd.name),
           ),
         ],
       ),
@@ -316,8 +316,8 @@ class _FavoritesState extends State<Favorites> {
       BuildContext context, int adjustedIndex, FavoriteViewModel model) {
     return StreamBuilder<Favorite?>(
       initialData: null,
-      stream:
-          ProxyService.local.getFavoriteByIndexStream(favIndex: adjustedIndex),
+      stream: ProxyService.strategy
+          .getFavoriteByIndexStream(favIndex: adjustedIndex),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return _favoriteEmpty(adjustedIndex);
@@ -326,7 +326,7 @@ class _FavoritesState extends State<Favorites> {
           int prodId = favorite.productId!;
 
           return StreamBuilder<List<Product>>(
-            stream: ProxyService.local.productStreams(prodIndex: prodId),
+            stream: ProxyService.strategy.productStreams(prodIndex: prodId),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');

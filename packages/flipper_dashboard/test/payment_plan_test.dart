@@ -1,7 +1,6 @@
 import 'package:flipper_dashboard/payment/PaymentPlan.dart';
 import 'package:flipper_mocks/flipper_mocks.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -13,7 +12,7 @@ void main() {
     setUpAll(() async {
       // Initialize dependencies for test environment
       await initializeDependenciesForTest();
-      CreateMockdata().mockBusiness(local: ProxyService.local.realm!);
+      // CreateMockdata().mockBusiness(local: ProxyService.strategy.realm!);
       await CreateMockdata().ensureRealmInitialized();
     });
 

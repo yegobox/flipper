@@ -50,7 +50,7 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
     useEffect(() {
       Future<void> fetchPlan() async {
         try {
-          final fetchedPlan = await ProxyService.backUp
+          final fetchedPlan = await ProxyService.strategy
               .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
           plan.value = fetchedPlan;
         } catch (e) {

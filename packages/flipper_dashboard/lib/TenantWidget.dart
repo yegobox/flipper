@@ -73,13 +73,12 @@ class TenantWidget extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(right: 12.0),
           child: CircleAvatarWidget(
-            text:
-                tenant != null && tenant.isValid ? tenant.name ?? "N/A" : "N/A",
+            text: tenant?.name ?? "N/A",
             size: 40,
           ),
         ),
         const SizedBox(height: 16),
-        if (ProxyService.local.isAdmin(
+        if (ProxyService.strategy.isAdmin(
           userId: ProxyService.box.getUserId() ?? 0,
           appFeature: AppFeature.Settings,
         ))

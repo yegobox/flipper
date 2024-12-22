@@ -70,7 +70,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     // Add values to the third and fourth cells
     footerRow.cells[2].value = config.transactions
-        .fold<double>(0, (sum, trans) => sum + trans.subTotal)
+        .fold<double>(0, (sum, trans) => sum + trans.subTotal!)
         .toRwf();
     footerRow.cells[2].style = PdfGridCellStyle(
       borders: PdfBorders(
@@ -83,7 +83,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
 
     footerRow.cells[3].value = config.transactions
-        .fold<double>(0, (sum, trans) => sum + trans.cashReceived)
+        .fold<double>(0, (sum, trans) => sum + trans.cashReceived!)
         .toRwf();
     footerRow.cells[3].style = PdfGridCellStyle(
       borders: PdfBorders(
@@ -210,7 +210,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       String filePath;
 
       if (ProxyService.box.exportAsPdf()) {
-        final business = await ProxyService.local.getBusiness();
+        final business = await ProxyService.strategy.getBusiness();
         final PdfDocument document =
             workBookKey.currentState!.exportToPdfDocument(
           fitAllColumnsInOnePage: true,
@@ -218,7 +218,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           exportStackedHeaders: false,
           exportTableSummaries: true,
           headerFooterExport: (headerFooterExport) {
-            exportToPdf(headerFooterExport, business, config,
+            exportToPdf(headerFooterExport, business!, config,
                 headerTitle: headerTitle);
             addFooter(headerFooterExport, config: config);
           },
@@ -233,8 +233,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
 
         if (!isStockRecount) {
-          final business = await ProxyService.local.getBusiness();
-          final drawer = await ProxyService.local
+          final business = await ProxyService.strategy.getBusiness();
+          final drawer = await ProxyService.strategy
               .getDrawer(cashierId: ProxyService.box.getUserId()!);
           final ExcelStyler styler = ExcelStyler(workbook);
 
@@ -242,7 +242,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               reportSheet: reportSheet,
               styler: styler,
               config: config,
-              business: business,
+              business: business!,
               drawer: drawer,
               headerTitle: headerTitle);
 
@@ -380,8 +380,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return method.trim().toUpperCase();
   }
 
-  void _addPaymentMethodSheet(
-      excel.Workbook workbook, ExportConfig config, ExcelStyler styler) {
+  Future<void> _addPaymentMethodSheet(
+      excel.Workbook workbook, ExportConfig config, ExcelStyler styler) async {
     final paymentMethodSheet =
         workbook.worksheets.addWithName('Payment Methods');
     final headerStyle = styler.createStyle(
@@ -399,8 +399,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final paymentTypeTotals = SplayTreeMap<String, double>();
 
     for (var transaction in config.transactions) {
-      final List<TransactionPaymentRecord> paymentTypes =
-          ProxyService.local.getPaymentType(transactionId: transaction.id!);
+      final List<TransactionPaymentRecord> paymentTypes = await ProxyService
+          .strategy
+          .getPaymentType(transactionId: transaction.id);
 
       if (paymentTypes.isNotEmpty) {
         for (var paymentType in paymentTypes) {

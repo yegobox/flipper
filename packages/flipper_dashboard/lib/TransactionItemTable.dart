@@ -1,14 +1,11 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/helperModels/extensions.dart';
-import 'package:flipper_models/realmExtension.dart';
-import 'package:flipper_models/power_sync/schema.dart';
 
 mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
@@ -21,9 +18,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     int compositeCount = 0;
 
     for (final item in transactionItems) {
-      if (!item.isValid) continue;
       if (item.compositePrice != 0) {
-        compositeTotal = item.compositePrice;
+        compositeTotal = item.compositePrice!;
         compositeCount++;
       } else {
         total += item.price * item.qty;
@@ -75,17 +71,6 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   TableRow _buildTableRow(TransactionItem item, bool isOrdering) {
     // Check if the item is valid before accessing its properties
-    if (!item.isValid) {
-      return TableRow(
-        children: [
-          _buildTableCell("Invalid Item"),
-          _buildTableCell(""),
-          _buildTableCell(""),
-          _buildTableCell(""),
-          _buildDeleteButton(item, isOrdering),
-        ],
-      );
-    }
 
     // If the item is valid, proceed with building the row
     return TableRow(
@@ -101,26 +86,17 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
 // Helper function to safely get the item name
   String _getItemName(TransactionItem item) {
-    if (item.isValid && item.name != null) {
-      return item.name!.extractNameAndNumber();
-    }
-    return "";
+    return item.name.extractNameAndNumber();
   }
 
 // Helper function to safely get the item price
   String _getItemPrice(TransactionItem item) {
-    if (item.isValid) {
-      return item.price.toStringAsFixed(0);
-    }
-    return "";
+    return item.price.toStringAsFixed(0);
   }
 
 // Helper function to safely calculate the total price
   String _getItemTotal(TransactionItem item) {
-    if (item.isValid) {
-      return (item.price * item.qty).toStringAsFixed(0);
-    }
-    return "";
+    return (item.price * item.qty).toStringAsFixed(0);
   }
 
   Widget _buildTableCell(String text) {
@@ -197,11 +173,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   // Item manipulation methods
   Future<void> _decrementQuantity(TransactionItem item, bool isOrdering) async {
-    if (!item.partOfComposite && item.isValid) {
+    if (!item.partOfComposite!) {
       if (item.qty > 0) {
         item.qty--;
-        await ProxyService.local.updateTransactionItem(
-          transactionItemId: item.id!,
+        await ProxyService.strategy.updateTransactionItem(
+          transactionItemId: item.id,
           qty: item.qty,
           quantityRequested: item.qty.toInt(),
         );
@@ -211,9 +187,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _incrementQuantity(TransactionItem item, bool isOrdering) async {
-    if (!item.partOfComposite && item.isValid) {
-      await ProxyService.local.updateTransactionItem(
-        transactionItemId: item.id!,
+    if (!item.partOfComposite!) {
+      await ProxyService.strategy.updateTransactionItem(
+        transactionItemId: item.id,
         qty: item.qty,
         incrementQty: true,
         quantityRequested: item.qty.toInt(),
@@ -224,15 +200,15 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   Future<void> _updateQuantity(
       TransactionItem item, String value, bool isOrdering) async {
-    if (!item.partOfComposite && item.isValid) {
+    if (!item.partOfComposite!) {
       final trimmedValue = value.trim();
       final doubleValue = double.tryParse(trimmedValue) ??
           int.tryParse(trimmedValue)?.toDouble();
       if (doubleValue != null) {
         final newQty = doubleValue.toInt();
         if (doubleValue == newQty.toDouble() && newQty >= 0) {
-          await ProxyService.local.updateTransactionItem(
-            transactionItemId: item.id!,
+          await ProxyService.strategy.updateTransactionItem(
+            transactionItemId: item.id,
             qty: doubleValue,
             incrementQty: false,
             quantityRequested: newQty,
@@ -244,9 +220,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   void _deleteItem(TransactionItem item, bool isOrdering) {
-    if (!item.isValid) return;
-
-    if (!item.partOfComposite) {
+    if (!item.partOfComposite!) {
       _deleteSingleItem(item, isOrdering);
     } else {
       _deleteCompositeItems(item, isOrdering);
@@ -255,7 +229,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   void _deleteSingleItem(TransactionItem item, bool isOrdering) {
     try {
-      ProxyService.local.delete(id: item.id!, endPoint: 'transactionItem');
+      ProxyService.strategy.delete(id: item.id, endPoint: 'transactionItem');
       _refreshTransactionItems(isOrdering);
     } catch (e) {
       talker.error(e);
@@ -264,16 +238,17 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   void _deleteCompositeItems(TransactionItem item, bool isOrdering) {
     try {
-      Variant? variant = ProxyService.local.variant(variantId: item.variantId!);
+      Variant? variant =
+          ProxyService.strategy.variant(variantId: item.variantId!);
       final composites =
-          ProxyService.local.composites(productId: variant!.productId!);
+          ProxyService.strategy.composites(productId: variant!.productId!);
 
       for (final composite in composites) {
-        final deletableItem = ProxyService.local
+        final deletableItem = ProxyService.strategy
             .getTransactionItemByVariantId(variantId: composite.variantId!);
-        if (deletableItem != null && deletableItem.isValid) {
-          ProxyService.local
-              .delete(id: deletableItem.id!, endPoint: 'transactionItem');
+        if (deletableItem != null) {
+          ProxyService.strategy
+              .delete(id: deletableItem.id, endPoint: 'transactionItem');
         }
       }
     } catch (e) {}

@@ -1,5 +1,5 @@
 import 'package:flipper_dashboard/DynamicDataSource.dart';
-import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 
 class TransactionDataSource extends DynamicDataSource<ITransaction> {
   TransactionDataSource(

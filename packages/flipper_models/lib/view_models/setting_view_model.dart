@@ -17,7 +17,7 @@ class SettingViewModel extends CoreViewModel {
   Business? _business;
   Business? get business => _business;
   getBusiness() async {
-    _business = await ProxyService.local
+    _business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     notifyListeners();
   }
@@ -60,7 +60,7 @@ class SettingViewModel extends CoreViewModel {
 
   loadUserSettings() async {
     int businessId = ProxyService.box.getBusinessId()!;
-    _setting = await ProxyService.local.getSetting(businessId: businessId);
+    _setting = await ProxyService.strategy.getSetting(businessId: businessId);
     notifyListeners();
   }
 
@@ -77,7 +77,7 @@ class SettingViewModel extends CoreViewModel {
     } else if (ProxyService.box.getBusinessId().runtimeType is String) {
       businessId = ProxyService.box.getBusinessId()!;
     }
-    return ProxyService.local
+    return ProxyService.strategy
         .isSubscribed(feature: 'sync', businessId: businessId);
   }
 
@@ -96,13 +96,13 @@ class SettingViewModel extends CoreViewModel {
 
     /// do we have a subscription on the feature
 
-    isSubscribed = ProxyService.local
+    isSubscribed = ProxyService.strategy
         .isSubscribed(businessId: businessId, feature: feature);
     if (isSubscribed) {
       callback(isSubscribed);
     } else {
       /// subscribe to the feature
-      // isSubscribed = ProxyService.local.subscribe(
+      // isSubscribed = ProxyService.strategy.subscribe(
       //   businessId: businessId,
       //   feature: feature,
       //   agentCode: agentCode,
@@ -116,22 +116,6 @@ class SettingViewModel extends CoreViewModel {
   /// if for some reason the report is not shared to user's email but the report google sheet document has been created.
   /// a user can toggle the report on/off from the settings page. the report will be sent to the user's email.
   /// the backend is built in a way to reshare the report to the user's email.
-  void enableDailyReport(Function callback) async {
-    kSetting.toggleDailyReportSetting();
-    Setting? setting = await kSetting.settings();
-    if (setting != null && setting.email!.isNotEmpty) {
-      if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email!)) {
-        callback(1);
-      } else {
-        ProxyService.local.realm!.writeAsync(() async {
-          Business business = await ProxyService.local.getBusiness();
-          business.email = setting.email;
-        });
-      }
-    } else {
-      callback(2);
-    }
-  }
 
   Future<void> enableAttendance(Function callback) async {
     kSetting.toggleAttendanceSetting();
@@ -141,9 +125,9 @@ class SettingViewModel extends CoreViewModel {
         callback(1);
       } else {
         /// the
-        Business business = await ProxyService.local.getBusiness();
-        ProxyService.local.enableAttendance(
-            businessId: business.serverId!, email: setting.email!);
+        Business? business = await ProxyService.strategy.getBusiness();
+        ProxyService.strategy.enableAttendance(
+            businessId: business!.serverId, email: setting.email!);
       }
     } else {
       callback(2);
@@ -154,34 +138,6 @@ class SettingViewModel extends CoreViewModel {
   Future<void> createPin() async {
     // pin = await ProxyService.isar.createPin();
     notifyListeners();
-  }
-
-  /// if the callback return with 1 that is a failure
-  void activateFlipperPro(String text, Function success) async {
-    _isProceeding = true;
-    notifyListeners();
-    try {
-      int userId = ProxyService.box.readInt(key: 'userId')!;
-
-      Voucher? voucher = await ProxyService.billing
-          .useVoucher(voucher: int.parse(text), userId: userId);
-      if (voucher != null) {
-        // ProxyService.billing.addPoints(points: voucher.value, userId: userId);
-        // List<Feature> features = [];
-
-        _isProceeding = false;
-        notifyListeners();
-        success(0);
-      } else {
-        _isProceeding = false;
-        notifyListeners();
-        success(1);
-      }
-    } catch (e) {
-      _isProceeding = false;
-      notifyListeners();
-      success(1);
-    }
   }
 
   bool _isEbmActive = false;

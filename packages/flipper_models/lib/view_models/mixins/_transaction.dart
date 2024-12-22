@@ -1,15 +1,13 @@
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
-import 'package:flipper_models/power_sync/schema.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:realm/realm.dart';
+
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:printing/printing.dart';
 import 'package:flutter/foundation.dart';
@@ -36,7 +34,7 @@ mixin TransactionMixin {
       required double discount}) async {
     try {
       final bhfId = (await ProxyService.box.bhfId()) ?? "00";
-      final taxExanbled = ProxyService.local
+      final taxExanbled = ProxyService.strategy
           .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
       RwApiResponse? response;
       final hasServerUrl = await ProxyService.box.getServerUrl() != null;
@@ -44,7 +42,7 @@ mixin TransactionMixin {
       final isTaxServiceStoped = ProxyService.box.stopTaxService();
 
       /// update transaction type
-      ProxyService.local.updateTransaction(
+      ProxyService.strategy.updateTransaction(
           transaction: transaction,
           isProformaMode: ProxyService.box.isProformaMode(),
           isTrainingMode: ProxyService.box.isTrainingMode());
@@ -91,7 +89,7 @@ mixin TransactionMixin {
     }
   }
 
-  void updateCustomerTransaction(
+  Future<void> updateCustomerTransaction(
       ITransaction transaction,
       String customerName,
       TextEditingController customerNameController,
@@ -101,8 +99,8 @@ mixin TransactionMixin {
       String paymentType,
       double discount,
       {required Function onComplete,
-      required String bhfId}) {
-    ProxyService.local.collectPayment(
+      required String bhfId}) async {
+    ProxyService.strategy.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
@@ -117,24 +115,17 @@ mixin TransactionMixin {
       directlyHandleReceipt: false,
     );
     Customer? customer =
-        ProxyService.local.getCustomer(id: transaction.customerId);
+        await ProxyService.strategy.getCustomer(id: transaction.customerId);
 
-    ProxyService.local.realm!.writeN(
-      tableName: transactionTable,
-      writeCallback: () {
-        /// when we are at checkout we are doing sale so it is 11
-        transaction.sarTyCd = "11";
-        transaction.customerName = customer == null
-            ? ProxyService.box.customerName() ?? "N/A"
-            : customerNameController.text;
-        transaction.customerTin = customer == null
-            ? ProxyService.box.currentSaleCustomerPhoneNumber()
-            : customer.custTin;
-        return transaction;
-      },
-      onAdd: (data) {
-        onComplete.call();
-      },
+    ProxyService.strategy.updateTransaction(
+      transaction: transaction,
+      sarTyCd: "11",
+      customerName: customer == null
+          ? ProxyService.box.customerName() ?? "N/A"
+          : customerNameController.text,
+      customerTin: customer == null
+          ? ProxyService.box.currentSaleCustomerPhoneNumber()
+          : customer.custTin,
     );
   }
 
@@ -200,12 +191,12 @@ mixin TransactionMixin {
     try {
       String name = variation.productName ?? "N/A";
 
-      TransactionItem? existTransactionItem = ProxyService.local
+      TransactionItem? existTransactionItem = ProxyService.strategy
           .getTransactionItemByVariantId(
-              variantId: variation.id!, transactionId: pendingTransaction.id);
+              variantId: variation.id, transactionId: pendingTransaction.id);
 
       await addTransactionItems(
-        variationId: variation.id!,
+        variationId: variation.id,
         pendingTransaction: pendingTransaction,
         name: name,
         variation: variation,
@@ -241,13 +232,13 @@ mixin TransactionMixin {
       if (item != null && !isCustom) {
         // Update existing non-custom item
 
-        ProxyService.local.updateTransactionItem(
-          transactionItemId: item.id!,
+        ProxyService.strategy.updateTransactionItem(
+          transactionItemId: item.id,
           qty: item.qty + quantity,
-          taxblAmt: variation.retailPrice * quantity,
+          taxblAmt: variation.retailPrice! * quantity,
           price: amountTotal / quantity,
-          totAmt: variation.retailPrice * quantity,
-          prc: item.prc + variation.retailPrice * quantity,
+          totAmt: variation.retailPrice! * quantity,
+          prc: item.prc + variation.retailPrice! * quantity,
           splyAmt: variation.supplyPrice,
           quantityApproved: 0,
           active: true,
@@ -260,35 +251,33 @@ mixin TransactionMixin {
         double computedQty = isCustom ? 1.0 : quantity;
         if (partOfComposite) {
           Composite? composite =
-              ProxyService.local.composite(variantId: variation.id!);
+              ProxyService.strategy.composite(variantId: variation.id);
           computedQty = composite?.qty ?? 0.0;
         }
 
         TransactionItem newItem = TransactionItem(
-          ObjectId(),
           compositePrice: partOfComposite == true ? compositePrice! : 0.0,
           id: randomNumber(),
-          price: variation.retailPrice,
-          variantId: variation.id!,
+          price: variation.retailPrice!,
+          variantId: variation.id,
           name: name,
           quantityApproved: 0,
           quantityRequested: computedQty.toInt(),
           quantityShipped: 0,
           branchId: ProxyService.box.getBranchId(),
           discount: 0.0,
-          prc: variation.retailPrice,
+          prc: variation.retailPrice!,
           doneWithTransaction: false,
           active: true,
-          transactionId: pendingTransaction.id!,
+          transactionId: pendingTransaction.id,
           createdAt: DateTime.now().toString(),
           updatedAt: DateTime.now().toString(),
-          isTaxExempted: variation.isTaxExempted,
           remainingStock: currentStock - quantity,
           lastTouched: DateTime.now(),
           qty: computedQty,
-          taxblAmt: variation.retailPrice * quantity,
+          taxblAmt: variation.retailPrice! * quantity,
           taxAmt: double.parse((amountTotal * 18 / 118).toStringAsFixed(2)),
-          totAmt: variation.retailPrice * quantity,
+          totAmt: variation.retailPrice! * quantity,
           itemSeq: variation.itemSeq,
           isrccCd: variation.isrccCd,
           isrccNm: variation.isrccNm,
@@ -304,7 +293,7 @@ mixin TransactionMixin {
           itemCd: variation.itemCd,
           pkgUnitCd: variation.pkgUnitCd,
           qtyUnitCd: variation.qtyUnitCd,
-          itemNm: variation.itemNm,
+          itemNm: variation.itemNm!,
           splyAmt: variation.supplyPrice,
           tin: variation.tin,
           bhfId: variation.bhfId,
@@ -318,21 +307,22 @@ mixin TransactionMixin {
           modrNm: variation.modrNm,
           partOfComposite: partOfComposite,
           dcRt: variation.dcRt,
-          dcAmt: (variation.retailPrice * variation.qty) * variation.dcRt,
+          dcAmt: (variation.retailPrice! * variation.qty!) * variation.dcRt!,
         );
 
-        ProxyService.local.addTransactionItem(
+        ProxyService.strategy.addTransactionItem(
             transaction: pendingTransaction,
             item: newItem,
             partOfComposite: partOfComposite);
       }
 
       // Handle activation of inactive items
-      List<TransactionItem> inactiveItems = ProxyService.local.transactionItems(
-          branchId: ProxyService.box.getBranchId()!,
-          transactionId: pendingTransaction.id!,
-          doneWithTransaction: false,
-          active: false);
+      List<TransactionItem> inactiveItems = ProxyService.strategy
+          .transactionItems(
+              branchId: ProxyService.box.getBranchId()!,
+              transactionId: pendingTransaction.id,
+              doneWithTransaction: false,
+              active: false);
 
       markItemAsDoneWithTransaction(
           inactiveItems: inactiveItems, pendingTransaction: pendingTransaction);
@@ -352,8 +342,8 @@ mixin TransactionMixin {
       for (TransactionItem inactiveItem in inactiveItems) {
         inactiveItem.active = true;
         if (isDoneWithTransaction) {
-          await ProxyService.local.updateTransactionItem(
-            transactionItemId: inactiveItem.id!,
+          await ProxyService.strategy.updateTransactionItem(
+            transactionItemId: inactiveItem.id,
             doneWithTransaction: true,
           );
         }
@@ -363,9 +353,9 @@ mixin TransactionMixin {
 
   Future<void> updatePendingTransactionTotals(
       ITransaction pendingTransaction) async {
-    List<TransactionItem> items = ProxyService.local.transactionItems(
+    List<TransactionItem> items = ProxyService.strategy.transactionItems(
       branchId: ProxyService.box.getBranchId()!,
-      transactionId: pendingTransaction.id!,
+      transactionId: pendingTransaction.id,
       doneWithTransaction: false,
       active: true,
     );
@@ -376,18 +366,11 @@ mixin TransactionMixin {
     DateTime newLastTouched = DateTime.now();
 
     // Check if we're already in a write transaction
-    if (ProxyService.local.realm!.isInTransaction) {
-      // If we are, just update the values without starting a new transaction
-      pendingTransaction.subTotal = newSubTotal;
-      pendingTransaction.updatedAt = newUpdatedAt;
-      pendingTransaction.lastTouched = newLastTouched;
-    } else {
-      await ProxyService.local.updateTransaction(
-        transaction: pendingTransaction,
-        subTotal: newSubTotal,
-        updatedAt: newUpdatedAt,
-        lastTouched: newLastTouched,
-      );
-    }
+    await ProxyService.strategy.updateTransaction(
+      transaction: pendingTransaction,
+      subTotal: newSubTotal,
+      updatedAt: newUpdatedAt,
+      lastTouched: newLastTouched,
+    );
   }
 }

@@ -33,3 +33,8 @@ export 'transactionItem.model.dart';
 export 'stockRequest.model.dart';
 export 'transactionPaymentRecord.dart';
 export 'flipperSaleCompagin.dart';
+export 'discount.model.dart';
+export 'token.model.dart';
+export 'conversation.model.dart';
+export 'appNotification.model.dart';
+export 'permission.model.dart';

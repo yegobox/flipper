@@ -1,7 +1,5 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flipper_models/CoreSync.dart';
-import 'package:flipper_models/CoreDataInterface.dart';
-import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/flipper_http_client.dart';
@@ -66,38 +64,37 @@ import 'package:flipper_services/DeviceIdService.dart' as dev;
 
 @module
 abstract class ServicesModule {
+  @preResolve
   @LazySingleton()
-  @Named('backup')
-  CoreDataInterface provideSyncInterface(FirebaseFirestore firestore) {
-    return CoreSync(firestore);
+  @Named('coresync')
+  Future<RealmInterface> provideSyncInterface(LocalStorage box) async {
+    return await CoreSync().configureLocal(
+        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
+        box: box);
   }
 
   @preResolve
   @Named('capella')
   @LazySingleton()
-  Future<CoreDataInterface> capella(
+  Future<RealmInterface> capella(
     LocalStorage box,
   ) async {
-    if (!kIsWeb) {
-      return await Capella().configureCapella(
-        box: box,
-        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
-      );
-    } else {
-      return CoreSync(firestore);
-    }
+    return await Capella().configureCapella(
+      box: box,
+      useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
+    );
   }
 
   // Add strategy registration
   @lazySingleton
   @Named('strategy')
   SyncStrategy provideStrategy(
-    @Named('capella') CoreDataInterface capella,
-    @Named('backup') CoreDataInterface backup,
+    @Named('capella') RealmInterface capella,
+    @Named('coresync') RealmInterface coresync,
   ) {
     return SyncStrategy(
       capella: capella as Capella,
-      cloudSync: backup as CoreSync,
+      cloudSync: coresync as CoreSync,
     );
   }
 
@@ -107,7 +104,7 @@ abstract class ServicesModule {
     LocalStorage box,
   ) async {
     if (!kIsWeb) {
-      return await LocalRealmApi().configureLocal(
+      return await CoreSync().configureLocal(
         box: box,
         useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
       );

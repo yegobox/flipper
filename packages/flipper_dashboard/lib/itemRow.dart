@@ -193,7 +193,7 @@ class _RowItemState extends ConsumerState<RowItem>
       if (isOrdering) {
         /// update is ordering to true
         ProxyService.box.writeBool(key: 'isOrdering', value: true);
-        pendingTransaction = ProxyService.local.manageTransaction(
+        pendingTransaction = await ProxyService.strategy.manageTransaction(
           transactionType: TransactionType.sale,
           isExpense: true,
           branchId: branchId,
@@ -201,7 +201,7 @@ class _RowItemState extends ConsumerState<RowItem>
       } else {
         /// update is ordering to true
         ProxyService.box.writeBool(key: 'isOrdering', value: false);
-        pendingTransaction = ProxyService.local.manageTransaction(
+        pendingTransaction = await ProxyService.strategy.manageTransaction(
           transactionType: TransactionType.sale,
           isExpense: false,
           branchId: branchId,
@@ -210,27 +210,27 @@ class _RowItemState extends ConsumerState<RowItem>
 
       /// first check if this item is a composite
       Product? product =
-          ProxyService.local.getProduct(id: widget.variant!.productId!);
+          ProxyService.strategy.getProduct(id: widget.variant!.productId!);
       if (product != null &&
           product.isComposite != null &&
           product.isComposite!) {
         /// get items of this composite
         List<Composite> composites =
-            ProxyService.local.composites(productId: product.id!);
+            ProxyService.strategy.composites(productId: product.id);
         for (Composite composite in composites) {
           /// find a stock for a given variant
-          Variant? variant =
-              await ProxyService.local.getVariantById(id: composite.variantId!);
+          Variant? variant = await ProxyService.strategy
+              .getVariantById(id: composite.variantId!);
           model.saveTransaction(
             variation: variant!,
-            amountTotal: variant.retailPrice,
+            amountTotal: variant.retailPrice!,
             customItem: false,
-            currentStock: variant.stock!.currentStock,
+            currentStock: variant.stock!.currentStock!,
             pendingTransaction: pendingTransaction,
             partOfComposite: true,
             compositePrice: composite.actualPrice,
           );
-          refreshTransactionItems(transactionId: pendingTransaction.id!);
+          refreshTransactionItems(transactionId: pendingTransaction.id);
         }
 
         await Future.delayed(Duration(microseconds: 1000));
@@ -238,7 +238,7 @@ class _RowItemState extends ConsumerState<RowItem>
       } else {
         double stockQty = 0;
         if (!widget.isOrdering) {
-          Stock? stock = ProxyService.local.stockByVariantId(
+          Stock? stock = ProxyService.strategy.stockByVariantId(
               variantId: widget.variant?.id ?? 0,
               branchId: ProxyService.box.getBranchId()!);
           stockQty = stock?.currentStock ?? 0.0;
@@ -253,7 +253,7 @@ class _RowItemState extends ConsumerState<RowItem>
           partOfComposite: false,
         );
 
-        refreshTransactionItems(transactionId: pendingTransaction.id!);
+        refreshTransactionItems(transactionId: pendingTransaction.id);
       }
     } catch (e, s) {
       talker.warning("Error while clicking ${e}");
@@ -439,7 +439,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 onPressed: () => {
                   widget.model.addFavorite(
                     favIndex: widget.favIndex!,
-                    productId: widget.product!.id!,
+                    productId: widget.product!.id,
                   ),
                   widget.model.rebuildUi(),
                   Navigator.of(context).pop(),

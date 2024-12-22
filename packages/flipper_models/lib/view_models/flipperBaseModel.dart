@@ -1,7 +1,7 @@
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:realm/realm.dart';
+
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -14,7 +14,6 @@ import 'package:flutter/services.dart';
 class FlipperBaseModel extends ReactiveViewModel {
   void openDrawer() {
     Drawers drawer = Drawers(
-      ObjectId(),
       id: randomNumber(),
       openingBalance: 0.0,
       closingBalance: 0.0,
@@ -44,7 +43,7 @@ class FlipperBaseModel extends ReactiveViewModel {
   }
 
   Future<void> loadTenants() async {
-    List<Tenant> users = await ProxyService.local.tenants(
+    List<Tenant> users = await ProxyService.strategy.tenants(
         businessId: ProxyService.box.getBusinessId()!,
         excludeUserId: ProxyService.box.getUserId()!);
 
@@ -53,10 +52,10 @@ class FlipperBaseModel extends ReactiveViewModel {
 
     for (var user in users) {
       if (!uniqueUserIds.contains(user.id)) {
-        uniqueUserIds.add(user.id!);
+        uniqueUserIds.add(user.id);
         uniqueUsers.add(user);
       } else {
-        await ProxyService.local.delete(id: user.id!, endPoint: 'tenant');
+        await ProxyService.strategy.delete(id: user.id, endPoint: 'tenant');
       }
     }
 

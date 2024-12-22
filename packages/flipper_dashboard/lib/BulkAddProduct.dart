@@ -175,7 +175,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
     // Process each item
     for (var item in items) {
       try {
-        await ProxyService.local.processItem(
+        await ProxyService.strategy.processItem(
           item: item,
           quantitis: _quantityControllers
               .map((barCode, controller) => MapEntry(barCode, controller.text)),

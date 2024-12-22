@@ -13,8 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:stacked_services/stacked_services.dart';
-// import 'package:flipper_models/realmExtension.dart';
-// import 'package:flipper_models/power_sync/schema.dart';
 
 mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Widget buildVariantRow({
@@ -24,25 +22,31 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required bool isOrdering,
     required bool forceRemoteUrl,
   }) {
-    final stockStream = ref.watch(
-        stockByVariantIdProvider(variant.isValid ? (variant.id ?? 0) : 0));
+    final stockStream = ref.watch(stockByVariantIdProvider(variant.id));
 
     return stockStream.when(
       data: (double stock) {
-        return buildRowItem(
-            forceRemoteUrl: forceRemoteUrl,
-            context: context,
-            model: model,
-            variant: variant,
-
-            /// when we are ordering we have no way knowing the stock from supplier
-            /// nor we care in this case, we just place order and wait for supplier to fullfill it.
-            stock: isOrdering ? 0.0 : stock,
-            isOrdering: isOrdering);
+        return FutureBuilder<Widget>(
+          future: buildRowItem(
+              forceRemoteUrl: forceRemoteUrl,
+              context: context,
+              model: model,
+              variant: variant,
+              stock: isOrdering ? 0.0 : stock,
+              isOrdering: isOrdering),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return snapshot.data ?? SizedBox.shrink();
+            } else {
+              return SizedBox(
+                  width: 20, height: 20, child: CircularProgressIndicator());
+            }
+          },
+        );
       },
       error: (dynamic error, stackTrace) => SizedBox.shrink(),
-      loading: () =>
-          SizedBox(width: 20, height: 20, child: const SizedBox.shrink()),
+      loading: () => SizedBox(
+          width: 20, height: 20, child: const CircularProgressIndicator()),
     );
   }
 
@@ -53,29 +57,29 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> deleteFunc(int? productId, ProductViewModel model) async {
     try {
       /// first if there is image attached delete if first
-      Product? product = ProxyService.local.getProduct(id: productId!);
+      Product? product = ProxyService.strategy.getProduct(id: productId!);
       if (product?.isComposite ?? false) {
         /// search composite and delete them as well
         List<Composite> composites =
-            ProxyService.local.composites(productId: productId);
+            ProxyService.strategy.composites(productId: productId);
 
         for (Composite composite in composites) {
-          ProxyService.local.delete(
-              id: composite.id!,
+          ProxyService.strategy.delete(
+              id: composite.id,
               endPoint: 'composite',
               flipperHttpClient: ProxyService.http);
         }
       }
       if (product != null && product.imageUrl != null) {
-        if (await ProxyService.local
+        if (await ProxyService.strategy
             .removeS3File(fileName: product.imageUrl!)) {
           await model.deleteProduct(productId: productId);
           ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
 
           /// delete assets related to a product
-          Assets? asset =
-              ProxyService.local.getAsset(assetName: product.imageUrl!);
-          ProxyService.local
+          Assets? asset = await ProxyService.strategy
+              .getAsset(assetName: product.imageUrl!);
+          ProxyService.strategy
               .delete(id: asset?.id ?? 0, flipperHttpClient: ProxyService.http);
         }
       } else {
@@ -87,23 +91,20 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
-  Widget buildRowItem(
+  Future<Widget> buildRowItem(
       {required BuildContext context,
       required ProductViewModel model,
       required Variant variant,
       required double stock,
       required bool forceRemoteUrl,
-      required bool isOrdering}) {
+      required bool isOrdering}) async {
     Product? product;
     if (!isOrdering) {
-      product = ProxyService.local
-          .getProduct(id: variant.isValid ? (variant.productId ?? 0) : 0);
+      product = ProxyService.strategy.getProduct(id: variant.productId ?? 0);
     }
-    Assets? asset = ProxyService.local
-        .getAsset(productId: variant.isValid ? variant.productId : 0);
-    if (!variant.isValid) {
-      return SizedBox.shrink();
-    }
+    Assets? asset =
+        await ProxyService.strategy.getAsset(productId: variant.productId);
+
     return RowItem(
       forceRemoteUrl: forceRemoteUrl,
       isOrdering: isOrdering,
@@ -111,13 +112,11 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       stock: stock,
       model: model,
       variant: variant,
-      productName: (variant.isValid) ? variant.productName ?? "" : "",
+      productName: variant.productName ?? "",
       variantName: variant.name ?? "",
       imageUrl: asset?.assetName,
       isComposite: !isOrdering
-          ? (product != null && product.isValid
-              ? product.isComposite ?? false
-              : false)
+          ? (product != null ? product.isComposite ?? false : false)
           : false,
       edit: (productId, type) {
         talker.info("navigating to Edit!");

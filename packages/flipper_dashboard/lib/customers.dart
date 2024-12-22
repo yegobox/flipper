@@ -60,10 +60,11 @@ class CustomersState extends ConsumerState<Customers> {
             children: [
               _buildSearchBar(),
               Expanded(
-                child: _buildCustomerList(customersRef, model, transaction),
+                child:
+                    _buildCustomerList(customersRef, model, transaction.value!),
               ),
-              _buildAddButton(
-                  context, model, customersRef, searchKeyword, transaction.id!),
+              _buildAddButton(context, model, customersRef, searchKeyword,
+                  transaction.value!.id),
             ],
           ),
         );
@@ -142,7 +143,7 @@ class CustomersState extends ConsumerState<Customers> {
             SlidableAction(
               onPressed: (_) async {
                 await model.deleteCustomer(
-                    customer.id!, (message) => toast(message));
+                    customer.id, (message) => toast(message));
                 ref
                     .refresh(customersProvider.notifier)
                     .loadCustomers(searchString: '');
@@ -160,7 +161,7 @@ class CustomersState extends ConsumerState<Customers> {
             SlidableAction(
               onPressed: (_) {
                 model.assignToSale(
-                    customerId: customer.id!, transactionId: transaction.id!);
+                    customerId: customer.id, transactionId: transaction.id);
                 model.getTransactionById();
                 toast("Customer added to sale");
               },
@@ -212,7 +213,7 @@ class CustomersState extends ConsumerState<Customers> {
             ),
             onTap: () {
               model.assignToSale(
-                  customerId: customer.id!, transactionId: transaction.id!);
+                  customerId: customer.id, transactionId: transaction.id);
               model.getTransactionById();
               showAlert(context,
                   onPressedOk: () {}, title: "Customer added to sale!");
@@ -279,7 +280,7 @@ class CustomersState extends ConsumerState<Customers> {
       );
     } else {
       final customer = filteredCustomers.first;
-      model.assignToSale(customerId: customer.id!, transactionId: id);
+      model.assignToSale(customerId: customer.id, transactionId: id);
       showAlert(context, onPressedOk: () {}, title: "Customer added to sale!");
     }
   }

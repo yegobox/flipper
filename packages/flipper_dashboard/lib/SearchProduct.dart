@@ -49,7 +49,7 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                     return;
                   }
                   List<Variant> variants =
-                      ProxyService.local.getVariants(key: searchKey);
+                      ProxyService.strategy.getVariants(key: searchKey);
                   setState(() {
                     _searchResults = variants.isNotEmpty ? variants : [];
                   });
@@ -112,8 +112,8 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                                 variant: VVariant(
                               productName: _searchResults[index].productName!,
                               name: _searchResults[index].name!,
-                              retailPrice: _searchResults[index].retailPrice,
-                              id: _searchResults[index].id!,
+                              retailPrice: _searchResults[index].retailPrice!,
+                              id: _searchResults[index].id,
                               productId: _searchResults[index].productId!,
                             ));
                         talker.warning("click on item found");

@@ -50,7 +50,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   AsyncFieldValidationFormBloc(
       {required this.signupViewModel, required String country}) {
     countryName.updateInitialValue(country);
-    ProxyService.local.businessTypes().then((data) {
+    ProxyService.strategy.businessTypes().then((data) {
       // Update the items of the SelectFieldBloc
       log(data.toString(), name: 'AsyncFieldValidationFormBloc');
       // remove Flipper Connecta from data
@@ -85,7 +85,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       if (username == null) {
         return "Username/business name is required";
       }
-      int status = await ProxyService.local.userNameAvailable(
+      int status = await ProxyService.strategy.userNameAvailable(
           name: username, flipperHttpClient: ProxyService.http);
 
       if (status == 200) {

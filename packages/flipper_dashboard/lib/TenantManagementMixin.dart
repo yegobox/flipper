@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -11,7 +10,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 import 'package:flutter/material.dart';
-import 'package:realm/realm.dart';
+
 import 'package:stacked_services/stacked_services.dart';
 import 'package:email_validator_flutter/email_validator_flutter.dart';
 
@@ -42,25 +41,23 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     if (_formKey.currentState!.validate()) {
       setState(() => isAddingUser = true);
       try {
-        Business? business = await ProxyService.local.defaultBusiness();
+        Business? business = await ProxyService.strategy.defaultBusiness();
         Branch? branch = ref.read(selectedBranchProvider) ??
-            ProxyService.local.defaultBranch();
+            ProxyService.strategy.defaultBranch();
 
-        // Save tenant, is tenant is not already saved in the backend
         Tenant? newTenant;
         if (!editMode) {
-          newTenant = await ProxyService.local.saveTenant(
-              phoneNumber: _phoneController.text,
+          newTenant = await ProxyService.strategy.saveTenant(
               name: _nameController.text,
+              phoneNumber: _phoneController.text,
               branch: branch!,
               business: business!,
               userType: selectedUserType,
               flipperHttpClient: ProxyService.http);
         } else {
-          newTenant = ProxyService.local.getTenant(userId: userId!);
+          newTenant = await ProxyService.strategy.getTenant(userId: userId!);
         }
 
-        // Save access permissions
         await _savePermissions(newTenant, business, branch);
         _updateTenant(
             tenant: newTenant,
@@ -78,11 +75,16 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  Future<void> _updateTenant(
-      {Tenant? tenant, String? name, required String type}) async {
+  void _updateTenant({Tenant? tenant, String? name, required String type}) {
     try {
-      await ProxyService.local.updateTenant(
-          tenantId: tenant!.id!, name: name, type: type, pin: tenant.userId);
+      if (name != null && !name.isEmpty) {
+        ProxyService.strategy.updateTenant(
+          tenantId: tenant!.id,
+          name: name,
+          type: type,
+          pin: tenant.userId,
+        );
+      }
     } catch (e) {
       talker.error(e);
     }
@@ -90,28 +92,27 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
 
   Future<void> _savePermissions(
       Tenant? newTenant, Business? business, Branch? branch) async {
-    tenantAllowedFeatures.forEach((featureName, accessLevel) {
-      // Query for existing Access object
-      Access? existingAccess = ProxyService.local.realm!.query<Access>(
-          r'userId == $0 AND featureName == $1',
-          [newTenant?.userId ?? userId, featureName]).firstOrNull;
-
+    tenantAllowedFeatures.forEach((featureName, accessLevel) async {
+      List<Access> existingAccess = await ProxyService.strategy.access(
+          userId: newTenant?.userId ?? userId!, featureName: featureName);
       talker.warning(featureName);
-      if (existingAccess != null) {
-        ProxyService.local.updateAcess(
-            userId: newTenant?.userId ?? userId!,
-            featureName: featureName,
-            accessLevel: accessLevel.toLowerCase(),
-            status: activeFeatures[featureName] != null
-                ? activeFeatures[featureName]!
-                    ? 'active'
-                    : 'inactive'
-                : 'inactive',
-            userType: selectedUserType);
+      if (existingAccess.isNotEmpty) {
+        ProxyService.strategy.updateAccess(
+          accessId: existingAccess.first.id,
+          userId: newTenant?.userId ?? userId!,
+          featureName: featureName,
+          accessLevel: accessLevel.toLowerCase(),
+          status: activeFeatures[featureName] != null
+              ? activeFeatures[featureName]!
+                  ? 'active'
+                  : 'inactive'
+              : 'inactive',
+          userType: selectedUserType,
+        );
       } else {
-        ProxyService.local.addAccess(
+        ProxyService.strategy.addAccess(
             branchId: branch!.serverId!,
-            businessId: business!.serverId!,
+            businessId: business!.serverId,
             userId: newTenant?.userId ?? userId!,
             featureName: featureName,
             accessLevel: accessLevel.toLowerCase(),
@@ -130,12 +131,10 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       return "Please enter a phone number or email address";
     }
 
-    // Check if the value is a valid email
     if (EmailValidatorFlutter().validateEmail(value)) {
       return null;
     }
 
-    // Check if the value is a valid phone number with country code
     if (!value.startsWith("+")) {
       return "Phone number should contain country code with + sign";
     }
@@ -145,8 +144,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       return "Invalid Phone";
     }
 
-    final phoneExp = RegExp(
-        r'^\+\d{1,3}\d{7,15}$'); // Updated regex to support general country codes
+    final phoneExp = RegExp(r'^\+\d{1,3}\d{7,15}$');
     if (!phoneExp.hasMatch(value)) {
       return "Invalid phone number";
     }
@@ -159,12 +157,10 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       _nameController.text = tenant.name ?? '';
       _phoneController.text = tenant.phoneNumber ?? '';
 
-      // Reset permissions, activeFeatures, and userType
       tenantAllowedFeatures.clear();
       activeFeatures.clear();
       String? userType;
 
-      // Fill permissions based on tenantAccesses
       for (var access in tenantAccesses) {
         if (access.featureName != null && access.accessLevel != null) {
           String validAccessLevel = accessLevels.contains(access.accessLevel)
@@ -173,17 +169,14 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
           tenantAllowedFeatures[access.featureName!] = validAccessLevel;
           activeFeatures[access.featureName!] = access.status == 'active';
 
-          // Set userType if not already set
           if (userType == null && access.userType != null) {
             userType = access.userType;
           }
         }
       }
 
-      // Ensure selectedUserType is a valid option
       selectedUserType = features.contains(userType) ? userType! : 'Agent';
 
-      // Ensure all features have a valid permission set
       for (String feature in features) {
         if (!tenantAllowedFeatures.containsKey(feature)) {
           tenantAllowedFeatures[feature] = 'No Access';
@@ -194,7 +187,6 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       }
     });
 
-    // Scroll to the form
     Scrollable.ensureVisible(
       _formKey.currentContext!,
       duration: Duration(milliseconds: 300),
@@ -243,69 +235,108 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   }
 
   Widget _buildTenantCard(Tenant tenant, FlipperBaseModel model) {
-    List<Access> tenantAccesses =
-        ProxyService.local.access(userId: tenant.userId!);
-
-    return ExpansionTile(
-      onExpansionChanged: (expanded) {
-        if (expanded) {
-          setState(() {
-            editMode = true;
-            userId = tenant.userId!;
-          });
-          talker.warning(
-              "Permission Assigned: ${tenantAccesses.first.accessLevel}");
-          _updateTenantPermissions(tenantAccesses);
-          _fillFormWithTenantData(tenant, tenantAccesses);
+    return FutureBuilder<List<Access>>(
+      future:
+          Future.value(ProxyService.strategy.access(userId: tenant.userId!)),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Display a loading indicator while waiting for the data
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Theme.of(context).primaryColor,
+              child: Text(
+                tenant.name!.substring(0, 1).toUpperCase(),
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            title: Text(tenant.name!,
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text("Loading permissions..."),
+          );
+        } else if (snapshot.hasError) {
+          // Handle any errors that occur while fetching data
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Theme.of(context).primaryColor,
+              child: Text(
+                tenant.name!.substring(0, 1).toUpperCase(),
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            title: Text(tenant.name!,
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text("Error loading permissions"),
+          );
         } else {
-          setState(() {
-            editMode = false;
-          });
+          // Display the tenant card when data is successfully fetched
+          final List<Access> tenantAccesses = snapshot.data ?? [];
+          return ExpansionTile(
+            onExpansionChanged: (expanded) {
+              if (expanded) {
+                setState(() {
+                  editMode = true;
+                  userId = tenant.userId!;
+                });
+                talker.warning(
+                    "Permission Assigned: ${tenantAccesses.isNotEmpty ? tenantAccesses.first.accessLevel : 'No Access'}");
+                _updateTenantPermissions(tenantAccesses);
+                _fillFormWithTenantData(tenant, tenantAccesses);
+              } else {
+                setState(() {
+                  editMode = false;
+                });
+              }
+            },
+            leading: CircleAvatar(
+              backgroundColor: Theme.of(context).primaryColor,
+              child: Text(
+                tenant.name!.substring(0, 1).toUpperCase(),
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            title: Text(tenant.name!,
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(tenant.phoneNumber ?? "No phone number"),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    tenant.nfcEnabled == true ? Icons.nfc : Icons.nfc_outlined,
+                    color: tenant.nfcEnabled == true
+                        ? Theme.of(context).primaryColor
+                        : Colors.grey,
+                  ),
+                  onPressed: () => _toggleNFC(tenant, model),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () =>
+                      _showDeleteConfirmation(context, tenant, model),
+                ),
+              ],
+            ),
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Permissions:",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
+                    if (tenantAccesses.isEmpty)
+                      Text("No permissions assigned."),
+                    ...tenantAccesses
+                        .map((access) => _buildAccessItem(access))
+                        .toList(),
+                  ],
+                ),
+              ),
+            ],
+          );
         }
       },
-      leading: CircleAvatar(
-        backgroundColor: Theme.of(context).primaryColor,
-        child: Text(
-          tenant.name!.substring(0, 1).toUpperCase(),
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
-      title: Text(tenant.name!, style: TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(tenant.phoneNumber ?? "No phone number"),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: Icon(
-              tenant.nfcEnabled == true ? Icons.nfc : Icons.nfc_outlined,
-              color: tenant.nfcEnabled == true
-                  ? Theme.of(context).primaryColor
-                  : Colors.grey,
-            ),
-            onPressed: () => _toggleNFC(tenant, model),
-          ),
-          IconButton(
-            icon: Icon(Icons.delete, color: Colors.red),
-            onPressed: () => _showDeleteConfirmation(context, tenant, model),
-          ),
-        ],
-      ),
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Permissions:",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              SizedBox(height: 8),
-              ...tenantAccesses
-                  .map((access) => _buildAccessItem(access))
-                  .toList(),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -384,31 +415,31 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     );
   }
 
-  void _deleteTenant(Tenant tenant, FlipperBaseModel model) {
+  Future<void> _deleteTenant(Tenant tenant, FlipperBaseModel model) async {
     try {
       model.deleteTenant(tenant);
 
       showToast(context, 'Tenant deleted successfully');
       model.deleteTenant(tenant);
-      ProxyService.local.delete(
-          id: tenant.id!,
+      ProxyService.strategy.delete(
+          id: tenant.id,
           endPoint: 'tenant',
           flipperHttpClient: ProxyService.http);
 
-      /// also delete related permission & acess
       List<LPermission> permissions =
-          ProxyService.local.permissions(userId: tenant.userId!);
+          await ProxyService.strategy.permissions(userId: tenant.userId!);
       for (LPermission permission in permissions) {
-        ProxyService.local.delete(
-            id: permission.id!,
+        ProxyService.strategy.delete(
+            id: permission.id,
             endPoint: 'permission',
             flipperHttpClient: ProxyService.http);
       }
-      //
-      List<Access> accesses = ProxyService.local.access(userId: tenant.userId!);
+
+      List<Access> accesses =
+          await ProxyService.strategy.access(userId: tenant.userId!);
       for (Access access in accesses) {
-        ProxyService.local.delete(
-            id: access.id!,
+        ProxyService.strategy.delete(
+            id: access.id,
             endPoint: 'access',
             flipperHttpClient: ProxyService.http);
       }
@@ -532,8 +563,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   }
 
   Widget _buildBranchDropdown() {
-    final asyncBranches = ref
-        .watch(branchesProvider((includeSelf: false))); // Handle FutureProvider
+    final asyncBranches = ref.watch(branchesProvider((includeSelf: false)));
     final selectedBranch = ref.watch(selectedBranchProvider);
 
     return asyncBranches.when(
@@ -565,9 +595,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
           ),
         );
       },
-      loading: () =>
-          Center(child: CircularProgressIndicator()), // Show loading indicator
-      error: (error, stackTrace) => Text('Error: $error'), // Show error message
+      loading: () => Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Text('Error: $error'),
     );
   }
 

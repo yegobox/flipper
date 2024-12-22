@@ -1,7 +1,7 @@
 import 'package:flipper_dashboard/IncomingOrders.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/power_sync/schema.dart';
-import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -9,8 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
-import '../../flipper_mocks/lib/bootstrapTestData.dart';
 
 // flutter test test/incoming_order_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
@@ -21,22 +19,21 @@ void main() {
       await initializeDependenciesForTest();
 
       // init db
-      ProxyService.local
-          .configureLocal(useInMemory: true, box: ProxyService.box);
 
-      CreateMockdata()
-          .createAndSaveMockStockRequests(realm: ProxyService.local.realm!);
+      // CreateMockdata()
+      //     .createAndSaveMockStockRequests(realm: ProxyService.strategy.realm!);
     });
     tearDownAll(() async {
-      ProxyService.local.deleteAll<Product>(tableName: productsTable);
-      ProxyService.local.deleteAll<Variant>(tableName: variantTable);
-      ProxyService.local.deleteAll<Stock>(tableName: stocksTable);
-      ProxyService.local.deleteAll<StockRequest>(tableName: stockRequestsTable);
-      ProxyService.local
+      ProxyService.strategy.deleteAll<Product>(tableName: productsTable);
+      ProxyService.strategy.deleteAll<Variant>(tableName: variantTable);
+      ProxyService.strategy.deleteAll<Stock>(tableName: stocksTable);
+      ProxyService.strategy
+          .deleteAll<StockRequest>(tableName: stockRequestsTable);
+      ProxyService.strategy
           .deleteAll<TransactionItem>(tableName: transactionItemsTable);
-      ProxyService.local.deleteAll<SKU>(tableName: skusTable);
+      ProxyService.strategy.deleteAll<SKU>(tableName: skusTable);
 
-      ProxyService.local.close();
+      ProxyService.strategy.close();
     });
 
     testWidgets('Widget displays stock requests correctly',
@@ -52,7 +49,7 @@ void main() {
           ),
         ),
       );
-      List<StockRequest> requests = ProxyService.local.requests(branchId: 1);
+      List<StockRequest> requests = ProxyService.strategy.requests(branchId: 1);
       talker.warning("We have Stock Request generated ${requests.length}");
 
       // Allow the stream to emit values and the widget to rebuild
@@ -63,7 +60,7 @@ void main() {
       expect(find.byType(Card), findsNWidgets(2));
 
       // Check that the correct request ID text is displayed
-      final firstRequestId = await ProxyService.local
+      final firstRequestId = await ProxyService.strategy
           .requestsStream(branchId: 1, filter: RequestStatus.pending)
           .first
           .then((request) => request.first.id);

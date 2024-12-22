@@ -10,7 +10,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:realm/realm.dart';
+
 import 'package:stacked_services/stacked_services.dart';
 
 class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
@@ -28,7 +28,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       await appService.isLoggedIn();
 
       // Ensure realm is initialized before proceeding.
-      await ensureRealmInitialized();
+
       await _hasActiveSubscription();
       await _allRequirementsMeets();
       AppInitializer.initialize();
@@ -38,7 +38,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
       // Handle navigation based on user state and app settings.
       _routerService.navigateTo(FlipperAppRoute());
-      // if (ProxyService.local.isDrawerOpen(
+      // if (ProxyService.strategy.isDrawerOpen(
       //     cashierId: ProxyService.box.getUserId()!,
       //     branchId: ProxyService.box.getBranchId()!)) {
       //   // Drawer should be open - handle data bootstrapping and navigation.
@@ -100,8 +100,6 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       _routerService.navigateTo(PaymentPlanUIRoute());
     } else if (e is FailedPaymentException) {
       _routerService.navigateTo(FailedPaymentRoute());
-    } else if (e is RealmException) {
-      talker.warning("Realm Exception $e occurred");
     } else if (e is NoPaymentPlanFound) {
       _routerService.navigateTo(PaymentPlanUIRoute());
     } else {
@@ -120,15 +118,15 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   }
 
   Future<void> _hasActiveSubscription() async {
-    await ProxyService.backUp.hasActiveSubscription(
+    await ProxyService.strategy.hasActiveSubscription(
         businessId: ProxyService.box.getBusinessId()!,
         flipperHttpClient: ProxyService.http);
   }
 
   Future<void> _allRequirementsMeets() async {
-    List<Business> businesses = await ProxyService.local.businesses();
+    List<Business> businesses = await ProxyService.strategy.businesses();
 
-    List<Branch> branches = await ProxyService.local
+    List<Branch> branches = await ProxyService.strategy
         .branches(businessId: ProxyService.box.getBusinessId()!);
 
     if (businesses.isEmpty || branches.isEmpty) {

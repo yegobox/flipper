@@ -108,7 +108,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                             ref
                                 .read(isProcessingProvider.notifier)
                                 .startProcessing();
-                            await ProxyService.local.addBranch(
+                            await ProxyService.strategy.addBranch(
+                                isDefault: false,
+                                active: false,
                                 name: _nameController.text,
                                 businessId: ProxyService.box.getBusinessId()!,
                                 location: _locationController.text,
@@ -172,12 +174,12 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                                 Row(
                                   children: [
                                     Icon(Icons.star,
-                                        color: branch.isDefault
+                                        color: branch.isDefault!
                                             ? Colors.yellow
                                             : Colors.grey),
                                     SizedBox(width: 4),
                                     Text(
-                                        'Default: ${branch.isDefault ? 'Yes' : 'No'}'),
+                                        'Default: ${branch.isDefault! ? 'Yes' : 'No'}'),
                                   ],
                                 ),
                                 SizedBox(height: 4),
@@ -195,7 +197,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                               ],
                             ),
                             trailing: IconButton(
-                              onPressed: branch.isDefault
+                              onPressed: branch.isDefault!
                                   ? null // Disable delete for default branch
                                   : () async {
                                       if (await showDialog<bool>(
@@ -224,7 +226,8 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                                           ) ??
                                           false) {
                                         // If confirmed
-                                        await ProxyService.local.deleteBranch(
+                                        await ProxyService.strategy
+                                            .deleteBranch(
                                           branchId: branch.serverId!,
                                           flipperHttpClient: ProxyService.http,
                                         );
@@ -234,8 +237,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                                     },
                               icon: Icon(
                                 Icons.delete,
-                                color:
-                                    branch.isDefault ? Colors.grey : Colors.red,
+                                color: branch.isDefault!
+                                    ? Colors.grey
+                                    : Colors.red,
                               ),
                             ),
                           ),

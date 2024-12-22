@@ -101,12 +101,11 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
       itemBuilder: (context, index) {
         final business = businesses[index];
         return _buildSelectionTile(
-          title: business.isValid ? business.name! : "",
+          title: business.name!,
           isSelected: business == _selectedBusiness,
           onTap: () => _handleBusinessSelection(business),
           icon: Icons.business,
-          isLoading: _loadingItemId ==
-              (business.isValid ? business.serverId?.toString() : false),
+          isLoading: _loadingItemId == (business.serverId.toString()),
         );
       },
     );
@@ -120,7 +119,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
         final branch = branches[index];
         return _buildSelectionTile(
           title: branch.name!,
-          isSelected: branch.isDefault,
+          isSelected: branch.isDefault!,
           onTap: () => _handleBranchSelection(branch),
           icon: Icons.location_on,
           isLoading: _loadingItemId == branch.serverId?.toString(),
@@ -191,12 +190,12 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   void _handleBusinessSelection(Business business) async {
     setState(() {
       _selectedBusiness = business;
-      _loadingItemId = business.serverId?.toString();
+      _loadingItemId = business.serverId.toString();
     });
 
     try {
       await _setDefaultBusiness(business);
-      if (ProxyService.local.businesses().length == 1) {
+      if (ProxyService.strategy.businesses().length == 1) {
         _navigateToBranchSelection();
       }
     } finally {
@@ -256,10 +255,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   }
 
   void _updateAllBusinessesInactive() async {
-    final businesses = ProxyService.local.businesses();
+    final businesses = ProxyService.strategy.businesses();
     for (final business in businesses) {
-      await ProxyService.local.updateBusiness(
-        businessId: business.serverId!,
+      await ProxyService.strategy.updateBusiness(
+        businessId: business.serverId,
         active: false,
         isDefault: false,
       );
@@ -267,8 +266,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   }
 
   Future<void> _updateBusinessActive(Business business) async {
-    await ProxyService.local.updateBusiness(
-      businessId: business.serverId!,
+    await ProxyService.strategy.updateBusiness(
+      businessId: business.serverId,
       active: true,
       isDefault: true,
     );
@@ -276,7 +275,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
 
   Future<void> _updateBusinessPreferences(Business business) async {
     ProxyService.box
-      ..writeInt(key: 'businessId', value: business.serverId!)
+      ..writeInt(key: 'businessId', value: business.serverId)
       ..writeString(
           key: 'bhfId', value: (await ProxyService.box.bhfId()) ?? "00")
       ..writeInt(key: 'tin', value: business.tinNumber ?? 0)
@@ -284,16 +283,16 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   }
 
   Future<void> _updateAllBranchesInactive() async {
-    final branches = await ProxyService.local.branches(
+    final branches = await ProxyService.strategy.branches(
         businessId: ProxyService.box.getBusinessId()!, includeSelf: true);
     for (final branch in branches) {
-      ProxyService.local.updateBranch(
+      ProxyService.strategy.updateBranch(
           branchId: branch.serverId!, active: false, isDefault: false);
     }
   }
 
   Future<void> _updateBranchActive(Branch branch) async {
-    ProxyService.local.updateBranch(
+    ProxyService.strategy.updateBranch(
         branchId: branch.serverId!, active: true, isDefault: true);
   }
 
@@ -310,13 +309,13 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
 
   void _completeAuthenticationFlow() {
     _routerService.navigateTo(FlipperAppRoute());
-    // if (ProxyService.local.isDrawerOpen(
+    // if (ProxyService.strategy.isDrawerOpen(
     //     cashierId: ProxyService.box.getUserId()!,
     //     branchId: ProxyService.box.getBranchId()!)) {
     //   _routerService.navigateTo(FlipperAppRoute());
     // } else {
     //   Drawers drawer = Drawers(
-    //     ObjectId(),
+    //
     //     id: randomNumber(),
     //     openingBalance: 0.0,
     //     closingBalance: 0.0,

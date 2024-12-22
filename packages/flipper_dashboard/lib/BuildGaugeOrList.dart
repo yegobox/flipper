@@ -75,11 +75,11 @@ Widget BuildGaugeOrList({
             final sumCashIn = filteredTransactions
                 .where((transaction) =>
                     transaction.transactionType == TransactionType.cashIn)
-                .fold(0.0, (sum, transaction) => sum + transaction.subTotal);
+                .fold(0.0, (sum, transaction) => sum + transaction.subTotal!);
             final sumCashOut = filteredTransactions
                 .where((transaction) =>
                     transaction.transactionType == TransactionType.cashOut)
-                .fold(0.0, (sum, transaction) => sum + transaction.subTotal);
+                .fold(0.0, (sum, transaction) => sum + transaction.subTotal!);
 
             return SemiCircleGauge(
               dataOnGreenSide: sumCashIn,

@@ -226,7 +226,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   Widget _buildAppLayoutDrawer(
       BuildContext context, CoreViewModel model, WidgetRef ref) {
     return StreamBuilder<Tenant?>(
-      stream: ProxyService.local
+      stream: ProxyService.strategy
           .authState(branchId: ProxyService.box.getBranchId() ?? 0),
       builder: (context, snapshot) {
         return _buildAppLayoutDrawerInner(context, model, snapshot, ref);

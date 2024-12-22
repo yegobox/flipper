@@ -111,7 +111,7 @@ class GoogleDrive {
   /// and the second login will not prompt the user to login
   Future upload() async {
     // download files first before uploading
-    final dir = await ProxyService.local
+    final dir = await ProxyService.strategy
         .dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
     // ProxyService.isarApi
     File file = File(path.context.canonicalize(dir + '/mdbx.dat'));
@@ -136,10 +136,11 @@ class GoogleDrive {
     );
 
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
-    ProxyService.local.realm!.writeAsync(() async {
-      Business business = await ProxyService.local.getBusiness();
-      business.backupFileId = fileUploaded.id;
-    });
+
+    ProxyService.strategy.updateBusiness(
+      businessId: ProxyService.box.getBusinessId()!,
+      backupFileId: fileUploaded.id,
+    );
     ProxyService.box.writeString(key: 'gdID', value: fileUploaded.id);
   }
 
@@ -158,7 +159,7 @@ class GoogleDrive {
     ga.Media file = (await drive.files
         .get(gdID, downloadOptions: ga.DownloadOptions.fullMedia)) as ga.Media;
 
-    final dir = await ProxyService.local
+    final dir = await ProxyService.strategy
         .dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
 
     final saveFile = File(dir + '/$fName');

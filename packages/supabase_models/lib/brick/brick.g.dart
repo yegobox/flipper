@@ -31,12 +31,14 @@ import '../brick/models/stock.model.dart';
 import '../brick/models/counter.model.dart';
 import '../brick/models/category.model.dart';
 import '../brick/models/universalProduct.model.dart';
+import '../brick/models/conversation.model.dart';
 import '../brick/models/transaction.model.dart';
 import '../brick/models/configuration.model.dart';
 import '../brick/models/branch.model.dart';
 import '../brick/models/plan_addon.model.dart';
 import '../brick/models/color.model.dart';
 import '../brick/models/transactionItem.model.dart';
+import '../brick/models/permission.model.dart';
 import '../brick/models/variant.model.dart';
 import '../brick/models/device.model.dart';
 import '../brick/models/favorite.model.dart';
@@ -48,27 +50,32 @@ import '../brick/models/access.model.dart';
 import '../brick/models/customer.model.dart';
 import '../brick/models/report.model.dart';
 import '../brick/models/stockRequest.model.dart';
+import '../brick/models/discount.model.dart';
 import '../brick/models/business.model.dart';
 import '../brick/models/sku.model.dart';
 import '../brick/models/unit.model.dart';
 import '../brick/models/location.model.dart';
 import '../brick/models/receipt.model.dart';
+import '../brick/models/token.model.dart';
 import '../brick/models/ebm.model.dart';
 import '../brick/models/product.model.dart';
 import '../brick/models/asset.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/drawer.model.dart';
+import '../brick/models/appNotification.model.dart';
 
 part 'adapters/stock_adapter.g.dart';
 part 'adapters/counter_adapter.g.dart';
 part 'adapters/category_adapter.g.dart';
 part 'adapters/unversal_product_adapter.g.dart';
+part 'adapters/conversation_adapter.g.dart';
 part 'adapters/i_transaction_adapter.g.dart';
 part 'adapters/configurations_adapter.g.dart';
 part 'adapters/branch_adapter.g.dart';
 part 'adapters/plan_addon_adapter.g.dart';
 part 'adapters/p_color_adapter.g.dart';
 part 'adapters/transaction_item_adapter.g.dart';
+part 'adapters/l_permission_adapter.g.dart';
 part 'adapters/variant_adapter.g.dart';
 part 'adapters/device_adapter.g.dart';
 part 'adapters/favorite_adapter.g.dart';
@@ -80,16 +87,19 @@ part 'adapters/access_adapter.g.dart';
 part 'adapters/customer_adapter.g.dart';
 part 'adapters/report_adapter.g.dart';
 part 'adapters/stock_request_adapter.g.dart';
+part 'adapters/discount_adapter.g.dart';
 part 'adapters/business_adapter.g.dart';
 part 'adapters/s_k_u_adapter.g.dart';
 part 'adapters/i_unit_adapter.g.dart';
 part 'adapters/location_adapter.g.dart';
 part 'adapters/receipt_adapter.g.dart';
+part 'adapters/token_adapter.g.dart';
 part 'adapters/ebm_adapter.g.dart';
 part 'adapters/product_adapter.g.dart';
 part 'adapters/assets_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 part 'adapters/drawers_adapter.g.dart';
+part 'adapters/app_notification_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
@@ -97,12 +107,14 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Counter: CounterAdapter(),
   Category: CategoryAdapter(),
   UnversalProduct: UnversalProductAdapter(),
+  Conversation: ConversationAdapter(),
   ITransaction: ITransactionAdapter(),
   Configurations: ConfigurationsAdapter(),
   Branch: BranchAdapter(),
   PlanAddon: PlanAddonAdapter(),
   PColor: PColorAdapter(),
   TransactionItem: TransactionItemAdapter(),
+  LPermission: LPermissionAdapter(),
   Variant: VariantAdapter(),
   Device: DeviceAdapter(),
   Favorite: FavoriteAdapter(),
@@ -114,16 +126,19 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Customer: CustomerAdapter(),
   Report: ReportAdapter(),
   StockRequest: StockRequestAdapter(),
+  Discount: DiscountAdapter(),
   Business: BusinessAdapter(),
   SKU: SKUAdapter(),
   IUnit: IUnitAdapter(),
   Location: LocationAdapter(),
   Receipt: ReceiptAdapter(),
+  Token: TokenAdapter(),
   Ebm: EbmAdapter(),
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter()
+  Drawers: DrawersAdapter(),
+  AppNotification: AppNotificationAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -133,12 +148,14 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Counter: CounterAdapter(),
   Category: CategoryAdapter(),
   UnversalProduct: UnversalProductAdapter(),
+  Conversation: ConversationAdapter(),
   ITransaction: ITransactionAdapter(),
   Configurations: ConfigurationsAdapter(),
   Branch: BranchAdapter(),
   PlanAddon: PlanAddonAdapter(),
   PColor: PColorAdapter(),
   TransactionItem: TransactionItemAdapter(),
+  LPermission: LPermissionAdapter(),
   Variant: VariantAdapter(),
   Device: DeviceAdapter(),
   Favorite: FavoriteAdapter(),
@@ -150,15 +167,18 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Customer: CustomerAdapter(),
   Report: ReportAdapter(),
   StockRequest: StockRequestAdapter(),
+  Discount: DiscountAdapter(),
   Business: BusinessAdapter(),
   SKU: SKUAdapter(),
   IUnit: IUnitAdapter(),
   Location: LocationAdapter(),
   Receipt: ReceiptAdapter(),
+  Token: TokenAdapter(),
   Ebm: EbmAdapter(),
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter()
+  Drawers: DrawersAdapter(),
+  AppNotification: AppNotificationAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

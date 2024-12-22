@@ -1,5 +1,4 @@
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
@@ -35,53 +34,53 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     ]);
   }
 
-  DataGridRow _buildTransactionItemRow(TransactionItem item) {
-    var taxConfig = ProxyService.local
-        .getByTaxType(taxtype: item.isValid ? item.taxTyCd ?? "B" : "B");
-    double taxPercentage = taxConfig.taxPercentage ?? 0;
-    double adjustedTaxPercentage = taxPercentage == 0 ? 1 : taxPercentage;
-
-    String name = item.name!.split('(')[0];
-    String number = '';
-    if (item.name!.contains('(')) {
-      number = item.name!.split('(')[1].split(')')[0];
-    }
-    name = name.toUpperCase();
-
-    Configurations configurations =
-        ProxyService.local.getByTaxType(taxtype: item.taxTyCd ?? "B");
-
-    String formattedName = '$name-$number';
-    return DataGridRow(cells: [
-      DataGridCell<String>(
-          columnName: 'ItemCode', value: item.itemClsCd.toString()),
-      DataGridCell<String>(columnName: 'Name', value: formattedName),
-      DataGridCell<double>(columnName: 'Price', value: item.price),
-      DataGridCell<double>(
-          columnName: 'TaxRate', value: configurations.taxPercentage),
-      DataGridCell<double>(columnName: 'Qty', value: item.qty),
-      DataGridCell<double>(
-          columnName: 'TotalSales', value: (item.qty * item.price)),
-      DataGridCell<double>(
-          columnName: 'CurrentStock', value: item.remainingStock),
-
-      ///taxTyCd
-      DataGridCell<double>(
-        columnName: 'TaxPayable',
-        value: taxPercentage == 0
-            ? 0
-            : (((item.qty * item.price) - (item.qty * item.splyAmt)) *
-                    adjustedTaxPercentage /
-                    (100 + adjustedTaxPercentage))
-                .toPrecision(2),
-      ),
-      DataGridCell<double>(
+  DataGridRow _buildTransactionItemRow(TransactionItem transactionItem) {
+    return DataGridRow(
+      cells: [
+        DataGridCell<String>(
+          columnName: 'ItemCode',
+          value: transactionItem.itemClsCd.toString(),
+        ),
+        DataGridCell<String>(
+          columnName: 'Name',
+          value: (() {
+            final nameParts = transactionItem.name.split('(');
+            final name = nameParts[0].trim().toUpperCase();
+            final number =
+                nameParts.length > 1 ? nameParts[1].split(')')[0] : '';
+            return number.isEmpty ? name : '$name-$number';
+          })(),
+        ),
+        DataGridCell<double>(
+          columnName: 'Price',
+          value: transactionItem.price,
+        ),
+        DataGridCell<double>(
+          columnName: 'TaxRate',
+          value: 0.0,
+        ),
+        DataGridCell<double>(
+          columnName: 'Qty',
+          value: transactionItem.qty,
+        ),
+        DataGridCell<double>(
+          columnName: 'TotalSales',
+          value: transactionItem.qty * transactionItem.price,
+        ),
+        DataGridCell<double>(
+          columnName: 'CurrentStock',
+          value: transactionItem.remainingStock,
+        ),
+        DataGridCell<double>(
+          columnName: 'TaxPayable',
+          value: 0.0,
+        ),
+        DataGridCell<double>(
           columnName: 'GrossProfit',
-          value: ((((item.qty * item.price) - (item.qty * item.splyAmt)))
-                  .toPrecision(2)) -
-              (((item.qty * item.price) - (item.qty * item.splyAmt)) * 18 / 118)
-                  .toPrecision(2)),
-    ]);
+          value: 0.0,
+        ),
+      ],
+    );
   }
 
   DataGridRow _buildITransactionRow(ITransaction item) {
@@ -105,15 +104,5 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         );
       }).toList(),
     );
-  }
-
-  @override
-  Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
-    // Handle page change logic here
-    return true;
-  }
-
-  void buildPaginatedDataGridRows() {
-    // Build data grid rows for the current page
   }
 }

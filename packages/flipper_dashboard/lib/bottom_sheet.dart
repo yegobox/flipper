@@ -160,24 +160,24 @@ void preferences(
                       title: Text('Enable Report'),
                       initialValue: model.kSetting.sendDailReport,
                       onToggle: (bool value) {
-                        model.enableDailyReport((message) {
-                          if (message == 1) {
-                            showSimpleNotification(
-                              const Text('Added email is not gmail'),
-                              background: Colors.red,
-                              position: NotificationPosition.bottom,
-                            );
-                          }
-                          if (message == 2) {
-                            // You need to add email first
-                            bottomSheetBuilder(
-                              context: context,
-                              body: UpdateEmailSetting(),
-                              header:
-                                  header(title: 'Add Email', context: context),
-                            );
-                          }
-                        });
+                        // model.enableDailyReport((message) {
+                        //   if (message == 1) {
+                        //     showSimpleNotification(
+                        //       const Text('Added email is not gmail'),
+                        //       background: Colors.red,
+                        //       position: NotificationPosition.bottom,
+                        //     );
+                        //   }
+                        //   if (message == 2) {
+                        //     // You need to add email first
+                        //     bottomSheetBuilder(
+                        //       context: context,
+                        //       body: UpdateEmailSetting(),
+                        //       header:
+                        //           header(title: 'Add Email', context: context),
+                        //     );
+                        //   }
+                        // });
                       },
                     ),
                   ],

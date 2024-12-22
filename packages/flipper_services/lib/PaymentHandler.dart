@@ -16,7 +16,7 @@ mixin PaymentHandler {
     );
     // upsert plan with new payment method
 
-    ProxyService.backUp.saveOrUpdatePaymentPlan(
+    ProxyService.strategy.saveOrUpdatePaymentPlan(
       additionalDevices: plan!.additionalDevices!,
       businessId: ProxyService.box.getBusinessId()!,
       payStackUserId: plan.payStackCustomerId!,
@@ -49,15 +49,16 @@ mixin PaymentHandler {
   Future<void> cardPayment(
       int finalPrice, Plan paymentPlan, String selectedPaymentMethod,
       {required Plan plan}) async {
-    final (:url, :userId, :customerCode) = await ProxyService.local.subscribe(
+    final (:url, :userId, :customerCode) =
+        await ProxyService.strategy.subscribe(
       businessId: ProxyService.box.getBusinessId()!,
-      business: ProxyService.local.getBusiness(),
+      business: (await ProxyService.strategy.getBusiness())!,
       agentCode: 1,
       flipperHttpClient: ProxyService.http,
       amount: finalPrice,
     );
 
-    ProxyService.backUp.saveOrUpdatePaymentPlan(
+    ProxyService.strategy.saveOrUpdatePaymentPlan(
       additionalDevices: plan.additionalDevices!,
       businessId: ProxyService.box.getBusinessId()!,
       payStackUserId: plan.payStackCustomerId!,
@@ -69,7 +70,7 @@ mixin PaymentHandler {
       totalPrice: finalPrice.toDouble(),
     );
 
-    await ProxyService.local.saveOrUpdatePaymentPlan(
+    await ProxyService.strategy.saveOrUpdatePaymentPlan(
         businessId: paymentPlan.businessId!,
         selectedPlan: paymentPlan.selectedPlan!,
         paymentMethod: selectedPaymentMethod,
@@ -86,7 +87,7 @@ mixin PaymentHandler {
     do {
       /// force instant update from remote db
 
-      Plan? plan = await ProxyService.backUp
+      Plan? plan = await ProxyService.strategy
           .getPaymentPlan(businessId: paymentPlan.businessId!);
       if (plan != null && plan.paymentCompletedByUser!) {
         talker.warning("A user has Completed payment");

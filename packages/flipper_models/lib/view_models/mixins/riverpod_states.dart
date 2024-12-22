@@ -93,20 +93,20 @@ class SellingModeNotifier extends StateNotifier<SellingMode> {
 
 final stocValueProvider =
     StreamProvider.autoDispose.family<double, int>((ref, branchId) {
-  return ProxyService.local.stockValue(branchId: branchId);
+  return ProxyService.strategy.stockValue(branchId: branchId);
 });
 
 final soldStockValueProvider =
     StreamProvider.autoDispose.family<double, int>((ref, branchId) {
-  return ProxyService.local.soldStockValue(branchId: branchId);
+  return ProxyService.strategy.soldStockValue(branchId: branchId);
 });
 final initialStockProvider =
     StreamProvider.autoDispose.family<double, int>((ref, branchId) {
-  return ProxyService.local.soldStockValue(branchId: branchId);
+  return ProxyService.strategy.soldStockValue(branchId: branchId);
 });
 final transactionItemsStreamProvider = StreamProvider.autoDispose
     .family<List<TransactionItem>, int?>((ref, transactionId) {
-  return ProxyService.local.transactionItemsStreams(
+  return ProxyService.strategy.transactionItemsStreams(
     branchId: ProxyService.box.getBranchId()!,
     transactionId: transactionId ?? 0,
     doneWithTransaction: false,
@@ -119,7 +119,7 @@ final transactionItemProvider = Provider.autoDispose
         (ref, params) {
   final (:branchId, :transactionId) = params;
 
-  return ProxyService.local.transactionItemsFuture(
+  return ProxyService.strategy.transactionItemsFuture(
     transactionId: transactionId,
     doneWithTransaction: false,
     active: true,
@@ -129,7 +129,7 @@ final transactionItemProvider = Provider.autoDispose
 final stockByVariantIdProvider =
     StreamProvider.autoDispose.family<double, int>((ref, variantId) {
   int branchId = ProxyService.box.getBranchId()!;
-  return ProxyService.local
+  return ProxyService.strategy
       .getStockStream(variantId: variantId, branchId: branchId);
 });
 
@@ -188,28 +188,27 @@ class PaginatedVariantsNotifier
 
   Future<List<Variant>> fetchVariants(int productId) async {
     final branchId = ProxyService.box.getBranchId()!;
-    return await ProxyService.local
+    return await ProxyService.strategy
         .variants(branchId: branchId, productId: productId);
   }
 }
 
-final pendingTransactionProviderNonStream =
-    Provider.autoDispose.family<ITransaction, ({String mode, bool isExpense})>(
-  (ref, params) {
+final pendingTransactionProviderNonStream = FutureProvider.autoDispose
+    .family<ITransaction, ({String mode, bool isExpense})>(
+  (ref, params) async {
     final (:mode, :isExpense) = params;
 
     // Access ProxyService to get the branch ID
     final branchId = ProxyService.box.getBranchId()!;
 
     // Return the result of manageTransaction directly
-    return ProxyService.local.manageTransaction(
+    return await ProxyService.strategy.manageTransaction(
       transactionType: mode,
       isExpense: isExpense,
       branchId: branchId,
     );
   },
 );
-
 final pendingTransactionProvider = StreamProvider.autoDispose
     .family<ITransaction, ({String mode, bool isExpense})>(
   (ref, params) {
@@ -218,7 +217,7 @@ final pendingTransactionProvider = StreamProvider.autoDispose
     final branchId = ProxyService.box.getBranchId()!;
 
     // Return a stream from the manageTransaction method
-    return ProxyService.local.manageTransactionStream(
+    return ProxyService.strategy.manageTransactionStream(
       transactionType: mode,
       isExpense: isExpense,
       branchId: branchId,
@@ -249,7 +248,7 @@ final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
         : (mode: TransactionType.sale, isExpense: false))));
 
     return TransactionItemsNotifier(
-      transactionId: transaction.isValid ? transaction.id : 0,
+      transactionId: transaction.value?.id,
     );
   },
 );
@@ -273,7 +272,7 @@ class TransactionItemsNotifier
       talker.info("Loading transactionId $currentTransaction");
       state = const AsyncValue.loading();
 
-      final items = ProxyService.local.transactionItems(
+      final items = ProxyService.strategy.transactionItems(
           branchId: ProxyService.box.getBranchId()!,
           transactionId: currentTransaction,
           doneWithTransaction: false,
@@ -291,7 +290,7 @@ class TransactionItemsNotifier
   Future<void> updatePendingTransaction() async {
     try {
       final branchId = ProxyService.box.getBranchId()!;
-      final stream = ProxyService.local.manageTransactionStream(
+      final stream = ProxyService.strategy.manageTransactionStream(
         branchId: branchId,
         transactionType: TransactionType.sale,
         isExpense: false,
@@ -300,9 +299,11 @@ class TransactionItemsNotifier
       // Listen to the stream and process the transaction
       await for (final transaction in stream) {
         // Assuming realm.write is synchronous, process the transaction here
-        ProxyService.local.realm?.write(() {
-          transaction.subTotal = totalPayable;
-        });
+
+        ProxyService.strategy.updateTransaction(
+          transaction: transaction,
+          subTotal: totalPayable,
+        );
         // Optionally break the loop if only one transaction needs to be updated
         break;
       }
@@ -367,10 +368,10 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
 
       if (searchOnly) {
         // Fetch all variants for search purposes
-        variants = await ProxyService.local.variants(branchId: branchId);
+        variants = await ProxyService.strategy.variants(branchId: branchId);
       } else {
         // Fetch paginated variants
-        variants = await ProxyService.local.variants(
+        variants = await ProxyService.strategy.variants(
           branchId: branchId,
           page: _currentPage,
           itemsPerPage: _itemsPerPage,
@@ -455,7 +456,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
       data: (currentData) {
         final updatedProducts = currentData.map((p) {
           // Update the searchMatch property to true for the expanded product
-          if (p.id == product.id && !p.searchMatch) {
+          if (p.id == product.id && !p.searchMatch!) {
             p.searchMatch = true;
           } else {
             // Set searchMatch to false for other products
@@ -479,11 +480,11 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
   }) async {
     try {
       List<Product> products =
-          await ProxyService.local.productsFuture(branchId: branchId);
+          await ProxyService.strategy.productsFuture(branchId: branchId);
 
       // Fetch additional products beyond the initial 20 items
       if (searchString.isNotEmpty) {
-        List<Product?> additionalProducts = await ProxyService.local
+        List<Product?> additionalProducts = await ProxyService.strategy
             .getProductByName(
                 name: searchString, branchId: ProxyService.box.getBranchId()!);
 
@@ -496,7 +497,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
       // Apply search filter to the merged list
       List<Product> matchingProducts = products
           .where((product) =>
-              product.name!.toLowerCase().contains(searchString.toLowerCase()))
+              product.name.toLowerCase().contains(searchString.toLowerCase()))
           .toList();
 
       state = AsyncData(matchingProducts);
@@ -580,7 +581,7 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
     try {
       // await any ongoing database persistance
       List<Customer> customers =
-          ProxyService.local.customers(branchId: branchId);
+          ProxyService.strategy.customers(branchId: branchId);
 
       if (searchString.isNotEmpty) {
         customers = customers
@@ -630,14 +631,14 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 
 final variantsFutureProvider = FutureProvider.autoDispose
     .family<AsyncValue<List<Variant>>, int>((ref, productId) async {
-  final data = await ProxyService.local.variants(
+  final data = await ProxyService.strategy.variants(
       productId: productId, branchId: ProxyService.box.getBranchId()!);
   return AsyncData(data);
 });
 
 final categoryStreamProvider =
     StreamProvider.autoDispose<List<cat.Category>>((ref) {
-  final category = ProxyService.local.categoryStream();
+  final category = ProxyService.strategy.categoryStream();
 
   // Return the stream
   return category;
@@ -649,7 +650,7 @@ final unitsProvider =
     final branchId = ProxyService.box.getBranchId()!;
 
     // Check if units are already present in the database
-    final existingUnits = await ProxyService.local.units(branchId: branchId);
+    final existingUnits = await ProxyService.strategy.units(branchId: branchId);
 
     return AsyncData(existingUnits);
   } catch (error) {
@@ -704,7 +705,7 @@ final transactionItemListProvider =
     return Stream.value([]);
   }
 
-  return ProxyService.local
+  return ProxyService.strategy
       .transactionItemList(
     startDate: startDate,
     endDate: endDate,
@@ -732,7 +733,7 @@ final transactionListProvider =
   }
 
   try {
-    final stream = ProxyService.local.transactionList(
+    final stream = ProxyService.strategy.transactionList(
       startDate: startDate,
       endDate: endDate,
     );
@@ -757,7 +758,7 @@ final currentTransactionsByIdStream =
   // Retrieve the transaction status from the provider container, if needed
 
   // Use ProxyService to get the IsarStream of transactions
-  final transactionsStream = ProxyService.local
+  final transactionsStream = ProxyService.strategy
       .transactionStreamById(id: id, filterType: FilterType.TRANSACTION);
 
   // Return the stream
@@ -767,7 +768,7 @@ final currentTransactionsByIdStream =
 final selectImportItemsProvider = FutureProvider.autoDispose
     .family<RwApiResponse, int?>((ref, productId) async {
   // Fetch the list of variants from a remote service.
-  final response = await ProxyService.local.selectImportItems(
+  final response = await ProxyService.strategy.selectImportItems(
       tin: 999909695,
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
       lastReqDt: "20210331000000");
@@ -780,7 +781,7 @@ final transactionsStreamProvider =
   // Retrieve the transaction status from the provider container, if needed
 
   // Use ProxyService to get the IsarStream of transactions
-  final transactionsStream = ProxyService.local
+  final transactionsStream = ProxyService.strategy
       .transactionsStream(branchId: ProxyService.box.getBranchId());
 
   // Return the stream
@@ -790,11 +791,11 @@ final transactionsStreamProvider =
 final ordersStreamProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
   int branchId = ProxyService.box.getBranchId() ?? 0;
-  return ProxyService.local.orders(branchId: branchId);
+  return ProxyService.strategy.orders(branchId: branchId);
 });
 final variantStreamProvider =
     StreamProvider.autoDispose.family<List<Variant>, int>((ref, id) {
-  return ProxyService.local
+  return ProxyService.strategy
       .getVariantByProductIdStream(productId: id)
       .distinct((prev, next) =>
           prev.map((e) => e.retailPrice).join() ==
@@ -809,7 +810,7 @@ final universalProductsNames =
 
     // Check if units are already present in the database
     final existingUnits =
-        await ProxyService.local.universalProductNames(branchId: branchId);
+        await ProxyService.strategy.universalProductNames(branchId: branchId);
 
     return AsyncData(existingUnits);
   } catch (error) {
@@ -820,7 +821,7 @@ final universalProductsNames =
 
 final skuProvider =
     StreamProvider.autoDispose.family<SKU?, int>((ref, branchId) {
-  return ProxyService.local
+  return ProxyService.strategy
       .sku(branchId: branchId, businessId: ProxyService.box.getBusinessId()!);
 });
 
@@ -931,14 +932,14 @@ class CombinedNotifier {
   }
 }
 
-final notificationStreamProvider = StreamProvider<List<AppNotification>>((ref) {
-  return ProxyService.local
-      .notificationStream(identifier: ProxyService.box.getBranchId() ?? 0);
-});
+// final notificationStreamProvider = StreamProvider<List<AppNotification>>((ref) {
+//   return ProxyService.strategy
+//       .notificationStream(identifier: ProxyService.box.getBranchId() ?? 0);
+// });
 
 final reportsProvider =
     StreamProvider.autoDispose.family<List<Report>, int>((ref, branchId) {
-  return ProxyService.local.reports(branchId: branchId).map((reports) {
+  return ProxyService.strategy.reports(branchId: branchId).map((reports) {
     talker.warning(reports);
     return reports;
   });
@@ -985,19 +986,19 @@ final selectedItemIdProvider = StateProvider<int?>((ref) => NO_SELECTION);
 
 final tenantProvider = Provider<Tenant?>((ref) {
   final userId = ProxyService.box.getUserId();
-  return ProxyService.local.tenant(userId: userId);
+  return ProxyService.strategy.tenant(userId: userId);
 });
 
 /// check if a user has either, admin,read,write on a given feature
 // StateNotifierProvider
 // Provider to get the list of user accesses
-final userAccessesProvider = Provider<List<Access>>((ref) {
+final userAccessesProvider = FutureProvider<List<Access>>((ref) async {
   final userId = ProxyService.box.getUserId()!;
-  return ProxyService.local.access(userId: userId);
+  return await ProxyService.strategy.access(userId: userId);
 });
 
 final businessesProvider = Provider<List<Business>>((ref) {
-  return ProxyService.local.businesses();
+  return ProxyService.strategy.businesses();
 });
 
 // Define a provider for the selected branch
@@ -1008,18 +1009,18 @@ final featureAccessProvider = Provider.family<bool, String>((ref, featureName) {
   final now = DateTime.now();
 
   // Check if the elevated permission (e.g., "ticket") is active
-  final hasElevatedPermission = accesses.any((access) =>
+  final hasElevatedPermission = accesses.value?.any((access) =>
       access.featureName == AppFeature.Tickets &&
       access.status == 'active' &&
       (access.expiresAt == null || access.expiresAt!.isAfter(now)));
 
   // If the elevated permission is active, return false for other permissions
-  if (hasElevatedPermission && featureName != AppFeature.Tickets) {
+  if (hasElevatedPermission! && featureName != AppFeature.Tickets) {
     return false;
   }
 
   // Normal permission check for the requested feature
-  return accesses.any((access) =>
+  return accesses.value!.any((access) =>
       access.featureName == featureName &&
       access.status == 'active' &&
       (access.expiresAt == null || access.expiresAt!.isAfter(now)));
@@ -1030,7 +1031,7 @@ final featureAccessLevelProvider =
   final accesses = ref.watch(userAccessesProvider);
   final now = DateTime.now();
   // Normal permission check for the requested feature
-  return accesses.any((access) =>
+  return accesses.value!.any((access) =>
       access.accessLevel == accessLevel &&
       (access.expiresAt == null || access.expiresAt!.isAfter(now)));
 });
@@ -1128,14 +1129,15 @@ final stockRequestsProvider = StreamProvider.autoDispose
   if (branchId == null) {
     return Stream.empty();
   }
-  return ProxyService.local.requestsStream(branchId: branchId, filter: filter);
+  return ProxyService.strategy
+      .requestsStream(branchId: branchId, filter: filter);
 });
 
 final stocksProvider =
     Provider.autoDispose.family<List<Stock>, ({int branchId})>((ref, params) {
   final (:branchId) = params;
 
-  return ProxyService.local.stocks(branchId: branchId);
+  return ProxyService.strategy.stocks(branchId: branchId);
 });
 
 final branchesProvider = FutureProvider.autoDispose
@@ -1144,7 +1146,7 @@ final branchesProvider = FutureProvider.autoDispose
   final businessId = ProxyService.box.getBusinessId();
 
   // Awaiting the asynchronous call
-  final branches = await ProxyService.local
+  final branches = await ProxyService.strategy
       .branches(businessId: businessId!, includeSelf: includeSelf);
 
   return branches;
@@ -1199,7 +1201,7 @@ class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
 
     talker.warning("Payment Lenght:${state.length}");
 
-    ProxyService.local.savePaymentType(
+    ProxyService.strategy.savePaymentType(
         amount: payment.amount,
         singlePaymentOnly: state.length == 1,
         paymentMethod: payment.method,

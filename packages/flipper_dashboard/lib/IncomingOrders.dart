@@ -1,18 +1,16 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/NoOrderPlaceholder.dart';
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
-import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:intl/intl.dart';
-import 'package:flipper_models/realmExtension.dart';
-import 'package:flipper_models/power_sync/schema.dart';
 
 class IncomingOrdersWidget extends HookConsumerWidget
     with StockRequestApprovalLogic {
@@ -33,7 +31,6 @@ class IncomingOrdersWidget extends HookConsumerWidget
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: requests
-                .where((request) => request.isValid)
                 .map((request) => _buildRequestCard(context, ref, request))
                 .toList(),
           );
@@ -108,7 +105,8 @@ class IncomingOrdersWidget extends HookConsumerWidget
               },
             ),
             Text(
-              'Request From #${ProxyService.local.branch(serverId: request.subBranchId!)?.name ?? "Unknown"}',
+              // 'Request From #${( ProxyService.strategy.branch(serverId: request.subBranchId!))?.name ?? "Unknown"}',
+              'Request From #${"Unknown"}',
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -135,12 +133,12 @@ class IncomingOrdersWidget extends HookConsumerWidget
   }
 
   Widget _buildBranchInfo(StockRequest request) {
-    final mainBranch =
-        ProxyService.local.branch(serverId: request.mainBranchId!)?.name ??
-            'Unknown';
-    final subBranch =
-        ProxyService.local.branch(serverId: request.subBranchId!)?.name ??
-            'Unknown';
+    // final mainBranch =
+    //     (ProxyService.strategy.branch(serverId: request.mainBranchId!))?.name ??
+    //         'Unknown';
+    // final subBranch =
+    //     ProxyService.strategy.branch(serverId: request.subBranchId!)?.name ??
+    //         'Unknown';
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -162,13 +160,13 @@ class IncomingOrdersWidget extends HookConsumerWidget
                       text: 'From: ',
                       style: TextStyle(fontWeight: FontWeight.bold)),
                   TextSpan(
-                      text: mainBranch,
+                      text: "mainBranch",
                       style: TextStyle(color: Colors.green[700])),
                   TextSpan(
                       text: '\nTo: ',
                       style: TextStyle(fontWeight: FontWeight.bold)),
                   TextSpan(
-                      text: subBranch,
+                      text: "subBranch",
                       style: TextStyle(color: Colors.blue[700])),
                 ],
               ),
@@ -376,8 +374,8 @@ class IncomingOrdersWidget extends HookConsumerWidget
               onPressed: () async {
                 Navigator.of(context).pop();
 
-                ProxyService.local.delete(
-                  id: request.id!,
+                ProxyService.strategy.delete(
+                  id: request.id,
                   endPoint: 'stockRequest',
                 );
                 final stringValue = ref.watch(stringProvider);

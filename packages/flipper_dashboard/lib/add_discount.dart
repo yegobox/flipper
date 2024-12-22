@@ -25,7 +25,7 @@ class _AddDiscountState extends State<AddDiscount> {
   void initState() {
     // if we have a discount then start with inititializing the controllers
     if (widget.discount != null) {
-      nameController.text = widget.discount!.name;
+      nameController.text = widget.discount!.name!;
       amountController.text = widget.discount!.amount.toString();
     }
     super.initState();

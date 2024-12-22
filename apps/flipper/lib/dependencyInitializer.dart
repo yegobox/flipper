@@ -75,7 +75,7 @@ Future<void> initializeDependencies() async {
   }
   // Add any other initialization code here
   //FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  loadSupabase();
+  await loadSupabase();
   GoogleFonts.config.allowRuntimeFetching = false;
   foundation.LicenseRegistry.addLicense(() async* {
     final license = await rootBundle.loadString('google_fonts/OFL.txt');

@@ -9,7 +9,7 @@ import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:flipper_services/proxy.dart';
 import 'package:cbl/cbl.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-import 'package:realm/realm.dart';
+
 import 'package:receipt/print.dart';
 
 class TaxController<OBJ> {
@@ -146,13 +146,13 @@ class TaxController<OBJ> {
         );
 
         if (responses.resultCd == "000") {
-          Business? business = await ProxyService.local.getBusiness();
+          Business? business = await ProxyService.strategy.getBusiness();
           List<TransactionItem> items =
-              await ProxyService.local.getTransactionItemsByTransactionId(
+              await ProxyService.strategy.getTransactionItemsByTransactionId(
             transactionId: transaction.id,
           );
-          Receipt? receipt = await ProxyService.local
-              .getReceipt(transactionId: transaction.id!);
+          Receipt? receipt = await ProxyService.strategy
+              .getReceipt(transactionId: transaction.id);
 
           double totalB = 0;
           double totalC = 0;
@@ -165,7 +165,7 @@ class TaxController<OBJ> {
               // Calculate discounted price if discount rate exists and is not 0
               var discountedPrice = item.price;
               if (item.dcRt != 0) {
-                discountedPrice = item.price * (1 - item.dcRt / 100);
+                discountedPrice = item.price * (1 - item.dcRt! / 100);
                 // Calculate and add the discount amount for this item
                 var discountAmount = (item.price - discountedPrice) * item.qty;
                 totalDiscount += discountAmount;
@@ -194,24 +194,23 @@ class TaxController<OBJ> {
             rethrow;
           }
 
-          Configurations taxConfigTaxB =
-              ProxyService.local.getByTaxType(taxtype: "B");
-          Configurations taxConfigTaxA =
-              ProxyService.local.getByTaxType(taxtype: "A");
-          Configurations taxConfigTaxC =
-              ProxyService.local.getByTaxType(taxtype: "C");
-          Configurations taxConfigTaxD =
-              ProxyService.local.getByTaxType(taxtype: "D");
+          Configurations? taxConfigTaxB =
+              await ProxyService.strategy.getByTaxType(taxtype: "B");
+          Configurations? taxConfigTaxA =
+              await ProxyService.strategy.getByTaxType(taxtype: "A");
+          Configurations? taxConfigTaxC =
+              await ProxyService.strategy.getByTaxType(taxtype: "C");
+          Configurations? taxConfigTaxD =
+              await ProxyService.strategy.getByTaxType(taxtype: "D");
 
-          Customer? customer =
-              ProxyService.local.getCustomer(id: transaction.customerId ?? 0);
+          Customer? customer = await ProxyService.strategy
+              .getCustomer(id: transaction.customerId ?? 0);
 
           Print print = Print();
 
-          talker.error("totalB: ${totalB}");
-          talker.error("taxB: ${calculateTotalTax(totalB, taxConfigTaxB)}");
-          final List<TransactionPaymentRecord> paymentTypes =
-              ProxyService.local.getPaymentType(transactionId: transaction.id!);
+          final List<TransactionPaymentRecord> paymentTypes = await ProxyService
+              .strategy
+              .getPaymentType(transactionId: transaction.id);
           await print.print(
             totalDiscount: totalDiscount,
             whenCreated: receipt!.whenCreated!,
@@ -219,11 +218,11 @@ class TaxController<OBJ> {
             taxC: totalC,
             taxA: totalA,
             taxD: totalD,
-            grandTotal: transaction.subTotal,
-            totalTaxA: calculateTotalTax(totalA, taxConfigTaxA),
-            totalTaxB: calculateTotalTax(totalB, taxConfigTaxB),
-            totalTaxC: calculateTotalTax(totalC, taxConfigTaxC),
-            totalTaxD: calculateTotalTax(totalD, taxConfigTaxD),
+            grandTotal: transaction.subTotal!,
+            totalTaxA: calculateTotalTax(totalA, taxConfigTaxA!),
+            totalTaxB: calculateTotalTax(totalB, taxConfigTaxB!),
+            totalTaxC: calculateTotalTax(totalC, taxConfigTaxC!),
+            totalTaxD: calculateTotalTax(totalD, taxConfigTaxD!),
             currencySymbol: "RW",
             transaction: transaction,
 
@@ -231,8 +230,8 @@ class TaxController<OBJ> {
             /// so need to account them in future
             totalTax: (totalB * 18 / 118).toStringAsFixed(2),
             items: items,
-            cash: transaction.subTotal,
-            received: transaction.cashReceived,
+            cash: transaction.subTotal!,
+            received: transaction.cashReceived!,
             payMode: paymentTypes.isEmpty
                 ? "CASH".toPaymentType()
                 : paymentTypes.last.paymentMethod?.toPaymentType() ??
@@ -241,7 +240,7 @@ class TaxController<OBJ> {
             internalData: receipt.intrlData ?? "",
             receiptQrCode: receipt.qrCode ?? "",
             receiptSignature: receipt.rcptSign ?? "",
-            cashierName: business.name!,
+            cashierName: business!.name!,
             sdcId: receipt.sdcId ?? "",
             invoiceNum: receipt.invcNo!,
             rcptNo: receipt.rcptNo ?? 0,
@@ -303,7 +302,7 @@ class TaxController<OBJ> {
       // this is because if we don't then the EBM counter will give us the
 
       Receipt? receipt =
-          await ProxyService.local.getReceipt(transactionId: transaction.id!);
+          await ProxyService.strategy.getReceipt(transactionId: transaction.id);
       DateTime now = DateTime.now();
 
       RwApiResponse receiptSignature =
@@ -316,7 +315,7 @@ class TaxController<OBJ> {
         timeToUser: receipt?.whenCreated ?? now,
       );
 
-      if (receiptSignature.resultCd == "000" && !transaction.isExpense) {
+      if (receiptSignature.resultCd == "000" && !transaction.isExpense!) {
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
         String qrCode = generateQRCode(
@@ -332,7 +331,6 @@ class TaxController<OBJ> {
             receiptType == "TR" ||
             receiptType == "CS") {
           final tran = ITransaction(
-            ObjectId(),
             id: randomNumber(),
             receiptNumber: receiptSignature.data?.rcptNo,
             totalReceiptNumber: receiptSignature.data?.totRcptNo,
@@ -370,14 +368,13 @@ class TaxController<OBJ> {
           );
           //query item and re-assign
           final List<TransactionItem> items =
-              ProxyService.local.transactionItems(
+              ProxyService.strategy.transactionItems(
             branchId: ProxyService.box.getBranchId()!,
-            transactionId: transaction.id!,
+            transactionId: transaction.id,
           );
           // copy TransactionItem
           for (TransactionItem item in items) {
             final copy = TransactionItem(
-              ObjectId(),
               id: item.id,
               qty: item.qty,
               discount: item.discount,
@@ -399,7 +396,6 @@ class TaxController<OBJ> {
               type: item.type,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt,
-              isTaxExempted: item.isTaxExempted,
               isRefunded: item.isRefunded,
               doneWithTransaction: item.doneWithTransaction,
               active: item.active,
@@ -437,18 +433,18 @@ class TaxController<OBJ> {
               compositePrice: item.compositePrice,
             );
 
-            await ProxyService.local.addTransactionItem(
+            await ProxyService.strategy.addTransactionItem(
               transaction: tran,
               item: copy,
-              partOfComposite: item.partOfComposite,
+              partOfComposite: item.partOfComposite ?? false,
             );
           }
 
-          ProxyService.local.realm!.add(tran);
+          // ProxyService.strategy.realm!.add(tran);
         } else if (receiptType == "NS" ||
             receiptType == "TS" ||
             receiptType == "PS") {
-          ProxyService.local.updateTransaction(
+          ProxyService.strategy.updateTransaction(
             transaction: transaction,
             receiptNumber: receiptSignature.data?.rcptNo,
             totalReceiptNumber: receiptSignature.data?.totRcptNo,
@@ -480,11 +476,11 @@ class TaxController<OBJ> {
 
   Future<void> updateDrawer(
       String receiptType, ITransaction transaction) async {
-    Drawers? drawer = await ProxyService.local
+    Drawers? drawer = await ProxyService.strategy
         .getDrawer(cashierId: ProxyService.box.getUserId()!);
 
-    ProxyService.local.updateDrawer(
-      drawerId: drawer!.id!,
+    ProxyService.strategy.updateDrawer(
+      drawerId: drawer!.id,
       cashierId: ProxyService.box.getBusinessId()!,
       nsSaleCount: receiptType == "NS"
           ? drawer.nsSaleCount ?? 0 + 1
@@ -503,10 +499,10 @@ class TaxController<OBJ> {
           : drawer.nrSaleCount ?? 0,
       incompleteSale: 0,
       totalCsSaleIncome: receiptType == "CS"
-          ? drawer.totalCsSaleIncome ?? 0 + transaction.subTotal
+          ? drawer.totalCsSaleIncome ?? 0 + transaction.subTotal!
           : drawer.totalCsSaleIncome ?? 0,
       totalNsSaleIncome: receiptType == "NS"
-          ? drawer.totalNsSaleIncome ?? 0 + transaction.subTotal
+          ? drawer.totalNsSaleIncome ?? 0 + transaction.subTotal!
           : drawer.totalNsSaleIncome ?? 0,
       openingDateTime: DateTime.now().toIso8601String(),
       open: true,
@@ -522,7 +518,7 @@ class TaxController<OBJ> {
       {required DateTime whenCreated,
       required int invoiceNumber}) async {
     try {
-      await ProxyService.local.createReceipt(
+      await ProxyService.strategy.createReceipt(
         signature: receiptSignature,
         transaction: transaction,
         qrCode: qrCode,

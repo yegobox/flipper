@@ -112,7 +112,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
   }
 
   Future<void> _fillFormForExistingProduct(ProductViewModel model) async {
-    List<Variant> variants = await ProxyService.local.variants(
+    List<Variant> variants = await ProxyService.strategy.variants(
       productId: widget.productId!,
       branchId: ProxyService.box.getBranchId()!,
     );
@@ -123,8 +123,8 @@ class AddProductViewState extends ConsumerState<AddProductView> {
 
     productForm.productNameController.text = model.kProductName!;
     _setPrice(
-        regularVariant.retailPrice, productForm.retailPriceController, model);
-    _setPrice(regularVariant.supplyPrice, productForm.supplyPriceController);
+        regularVariant.retailPrice!, productForm.retailPriceController, model);
+    _setPrice(regularVariant.supplyPrice!, productForm.supplyPriceController);
   }
 
   void _setPrice(double price, TextEditingController controller,
@@ -299,7 +299,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
   Widget _buildVariationList(ProductViewModel model) {
     int? id = ref.read(unsavedProductProvider)?.id;
     return StreamBuilder<List<Variant>>(
-      stream: ProxyService.local.geVariantStreamByProductId(
+      stream: ProxyService.strategy.geVariantStreamByProductId(
         productId: id ?? 0,
       ),
       builder: (context, snapshot) {
@@ -331,7 +331,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
           text: 'Add Variation',
           onPressed: () => model.navigateAddVariation(
             context: context,
-            productId: ref.read(unsavedProductProvider)!.id!,
+            productId: ref.read(unsavedProductProvider)!.id,
           ),
         ),
       ),

@@ -34,7 +34,7 @@ OverlayEntry insertOverlay(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       FutureBuilder<Branch?>(
-                        future: ProxyService.local.activeBranch(),
+                        future: ProxyService.strategy.activeBranch(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                                   ConnectionState.waiting ||
@@ -48,7 +48,7 @@ OverlayEntry insertOverlay(
                             child: ProfileWidget(
                               branch: branch,
                               size: 25,
-                              sessionActive: branch.isDefault,
+                              sessionActive: branch.isDefault ?? false,
                               showIcon: false,
                             ),
                           );

@@ -1,7 +1,6 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
-// import 'package:sqflite/sqflite.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'transactions'),
@@ -20,13 +19,13 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   String? status;
 
   String? transactionType;
-  @Supabase(defaultValue: "0")
-  int? subTotal;
+  @Supabase(defaultValue: "0.0")
+  double? subTotal;
   String? paymentType;
-  @Supabase(defaultValue: "0")
-  int? cashReceived;
-  @Supabase(defaultValue: "0")
-  int? customerChangeDue;
+  @Supabase(defaultValue: "0.0")
+  double? cashReceived;
+  @Supabase(defaultValue: "0.0")
+  double? customerChangeDue;
 
   String? createdAt;
   // add receipt type offerered on this transaction

@@ -50,7 +50,7 @@ class LoginViewModel extends FlipperBaseModel
 
   Future<void> completeLogin(Pin thePin) async {
     try {
-      await ProxyService.local.savePin(pin: thePin);
+      await ProxyService.strategy.savePin(pin: thePin);
       await appService.appInit();
 
       // Attempt to sign in with the custom token

@@ -12,7 +12,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:realm/realm.dart';
+
 import 'package:stacked/stacked.dart';
 
 import 'mixins/all.dart';
@@ -20,8 +20,8 @@ import 'mixins/all.dart';
 class CoreViewModel extends FlipperBaseModel
     with Properties, SharebleMethods, TransactionMixin {
   bool handlingConfirm = false;
-  Stream<List<AppNotification>> get notificationStream => ProxyService.local
-      .notificationStream(identifier: ProxyService.box.getBranchId()!);
+  // Stream<List<AppNotification>> get notificationStream => ProxyService.strategy
+  //     .notificationStream(identifier: ProxyService.box.getBranchId()!);
 
   CoreViewModel() {}
 
@@ -95,19 +95,19 @@ class CoreViewModel extends FlipperBaseModel
     int branchId = ProxyService.box.getBranchId()!;
 
     try {
-      var allCategories = ProxyService.local.realm!
-          .all<Category>()
-          .where((cat) => cat.branchId == branchId);
+      List<Category> allCategories = await ProxyService.strategy.categories(
+        branchId: branchId,
+      );
       for (var cat in allCategories) {
-        ProxyService.local.updateCategory(
-            categoryId: cat.id!,
+        ProxyService.strategy.updateCategory(
+            categoryId: cat.id,
             focused: false,
             active: false,
             branchId: branchId);
       }
 
-      ProxyService.local.updateCategory(
-          categoryId: category.id!,
+      ProxyService.strategy.updateCategory(
+          categoryId: category.id,
           focused: true,
           active: true,
           branchId: branchId);
@@ -120,22 +120,23 @@ class CoreViewModel extends FlipperBaseModel
     }
   }
 
-  void keyboardKeyPressed(
+  Future<void> keyboardKeyPressed(
       {required String key,
       required Function reset,
       required bool isExpense,
-      String? transactionType = "Sale"}) {
-    ITransaction? pendingTransaction = ProxyService.local.manageTransaction(
-        branchId: ProxyService.box.getBranchId()!,
-        transactionType: transactionType!,
-        isExpense: isExpense);
+      String? transactionType = "Sale"}) async {
+    ITransaction? pendingTransaction = await ProxyService.strategy
+        .manageTransaction(
+            branchId: ProxyService.box.getBranchId()!,
+            transactionType: transactionType!,
+            isExpense: isExpense);
 
     /// query for an item that is not active so we can edit it
     /// if the item is not available it will be created, if we are done with working with item
     /// we then change status of active from false to true
-    List<TransactionItem> items = ProxyService.local.transactionItems(
+    List<TransactionItem> items = ProxyService.strategy.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
-        transactionId: pendingTransaction.id!,
+        transactionId: pendingTransaction.id,
         doneWithTransaction: false,
         active: false);
 
@@ -151,8 +152,8 @@ class CoreViewModel extends FlipperBaseModel
 
         for (TransactionItem item in items) {
           item.active = true;
-          ProxyService.local
-              .updateTransactionItem(transactionItemId: item.id!, active: true);
+          ProxyService.strategy
+              .updateTransactionItem(transactionItemId: item.id, active: true);
         }
 
         // ProxyService.keypad.reset();
@@ -185,24 +186,24 @@ class CoreViewModel extends FlipperBaseModel
       // ProxyService.keypad.reset();
       reset();
       TransactionItem itemToDelete = items.last;
-      await ProxyService.local.delete(
-          id: itemToDelete.id!,
+      await ProxyService.strategy.delete(
+          id: itemToDelete.id,
           endPoint: 'transactionItem',
           flipperHttpClient: ProxyService.http);
 
-      List<TransactionItem> updatedItems = await ProxyService.local
+      List<TransactionItem> updatedItems = await ProxyService.strategy
           .transactionItems(
               branchId: ProxyService.box.getBranchId()!,
-              transactionId: pendingTransaction.id!,
+              transactionId: pendingTransaction.id,
               doneWithTransaction: false,
               active: true);
 
-      ProxyService.local.updateTransaction(
+      ProxyService.strategy.updateTransaction(
         transaction: pendingTransaction,
         subTotal: updatedItems.fold(0, (a, b) => a! + (b.price * b.qty)),
       );
-      ITransaction? updatedTransaction = await ProxyService.local
-          .getTransactionById(id: pendingTransaction.id!);
+      ITransaction? updatedTransaction = await ProxyService.strategy
+          .getTransactionById(id: pendingTransaction.id);
       keypad.setTransaction(updatedTransaction);
     } catch (e, s) {
       talker.error(e);
@@ -216,15 +217,15 @@ class CoreViewModel extends FlipperBaseModel
 
     if (amount == 0) return;
 
-    Variant? variation = await ProxyService.local.getCustomVariant(
+    Variant? variation = await ProxyService.strategy.getCustomVariant(
         tinNumber: ProxyService.box.tin(),
         bhFId: (await ProxyService.box.bhfId()) ?? "00",
         businessId: ProxyService.box.getBusinessId()!,
         branchId: ProxyService.box.getBranchId()!);
     if (variation == null) return;
 
-    Stock? stock = await ProxyService.local.stockByVariantId(
-        variantId: variation.id!, branchId: ProxyService.box.getBranchId()!);
+    Stock? stock = await ProxyService.strategy.stockByVariantId(
+        variantId: variation.id, branchId: ProxyService.box.getBranchId()!);
 
     String name = variation.productName != 'Custom Amount'
         ? '${variation.productName}(${variation.name})'
@@ -232,25 +233,24 @@ class CoreViewModel extends FlipperBaseModel
 
     if (items.isEmpty) {
       TransactionItem newItem = TransactionItem(
-        ObjectId(),
         id: randomNumber(),
         qty: 1,
+        itemNm: name,
         price: amount,
-        variantId: variation.id!,
+        variantId: variation.id,
         name: name,
         branchId: ProxyService.box.getBranchId(),
         discount: 0.0,
         prc: amount,
         doneWithTransaction: false,
         active: false,
-        transactionId: pendingTransaction.id!,
+        transactionId: pendingTransaction.id,
         createdAt: DateTime.now().toString(),
         updatedAt: DateTime.now().toString(),
-        isTaxExempted: variation.isTaxExempted,
         remainingStock: stock?.currentStock ?? 0 - 1,
       );
 
-      ProxyService.local.addTransactionItem(
+      ProxyService.strategy.addTransactionItem(
         transaction: pendingTransaction,
         item: newItem,
         partOfComposite: false,
@@ -262,7 +262,7 @@ class CoreViewModel extends FlipperBaseModel
   void handleMultipleDigitKey(List<TransactionItem> items,
       ITransaction pendingTransaction, double amount) async {
     // double amount = double.parse(ProxyService.keypad.key);
-    Variant? variation = await ProxyService.local.getCustomVariant(
+    Variant? variation = await ProxyService.strategy.getCustomVariant(
         tinNumber: ProxyService.box.tin(),
         bhFId: (await ProxyService.box.bhfId()) ?? "00",
         businessId: ProxyService.box.getBusinessId()!,
@@ -270,84 +270,83 @@ class CoreViewModel extends FlipperBaseModel
     if (variation == null) return;
 
     if (items.isEmpty) {
-      Stock? stock = await ProxyService.local.stockByVariantId(
-          variantId: variation.id!, branchId: ProxyService.box.getBranchId()!);
+      Stock? stock = await ProxyService.strategy.stockByVariantId(
+          variantId: variation.id, branchId: ProxyService.box.getBranchId()!);
 
       String name = variation.productName != 'Custom Amount'
           ? '${variation.productName}(${variation.name})'
           : variation.productName!;
 
-      TransactionItem? existTransactionItem = await ProxyService.local
+      TransactionItem? existTransactionItem = await ProxyService.strategy
           .getTransactionItemByVariantId(
-              variantId: variation.id!, transactionId: pendingTransaction.id);
+              variantId: variation.id, transactionId: pendingTransaction.id);
 
-      List<TransactionItem> items = ProxyService.local.transactionItems(
+      List<TransactionItem> items = ProxyService.strategy.transactionItems(
           branchId: ProxyService.box.getBranchId()!,
-          transactionId: pendingTransaction.id!,
+          transactionId: pendingTransaction.id,
           doneWithTransaction: false,
           active: true);
 
       if (existTransactionItem != null) {
-        ProxyService.local.updateTransactionItem(
-          transactionItemId: existTransactionItem.id!,
+        ProxyService.strategy.updateTransactionItem(
+          transactionItemId: existTransactionItem.id,
           qty: existTransactionItem.qty + 1,
           price: amount,
           prc: amount,
         );
-        ProxyService.local.updateTransaction(
+        ProxyService.strategy.updateTransaction(
           transaction: pendingTransaction,
           subTotal: items.fold(0, (a, b) => a! + (b.price * b.qty) + amount),
         );
       } else {
         TransactionItem newItem = TransactionItem(
-          ObjectId(),
+          itemNm: name,
           id: randomNumber(),
           qty: 1,
           price: amount,
-          variantId: variation.id!,
+          variantId: variation.id,
           name: name,
           branchId: ProxyService.box.getBranchId(),
           discount: 0.0,
           prc: amount,
           doneWithTransaction: false,
           active: false,
-          transactionId: pendingTransaction.id!,
+          transactionId: pendingTransaction.id,
           createdAt: DateTime.now().toString(),
           updatedAt: DateTime.now().toString(),
-          isTaxExempted: variation.isTaxExempted,
           remainingStock: stock?.currentStock ?? 0 - 1,
         );
 
-        List<TransactionItem> items = ProxyService.local.transactionItems(
+        List<TransactionItem> items = ProxyService.strategy.transactionItems(
             branchId: ProxyService.box.getBranchId()!,
-            transactionId: pendingTransaction.id!,
+            transactionId: pendingTransaction.id,
             doneWithTransaction: false,
             active: true);
-        ProxyService.local.addTransactionItem(
+        ProxyService.strategy.addTransactionItem(
           transaction: pendingTransaction,
           item: newItem,
           partOfComposite: false,
         );
 
-        await ProxyService.local.updateTransaction(
+        await ProxyService.strategy.updateTransaction(
           transaction: pendingTransaction,
           subTotal: items.fold(0, (a, b) => a! + (b.price * b.qty) + amount),
         );
       }
     } else {
-      await ProxyService.local.updateTransactionItem(
-        transactionItemId: items.last.id!,
+      await ProxyService.strategy.updateTransactionItem(
+        transactionItemId: items.last.id,
         taxAmt: double.parse((amount * 18 / 118).toStringAsFixed(2)),
         price: amount,
         prc: double.parse((amount * 18 / 118).toStringAsFixed(2)),
       );
 
-      await ProxyService.local.updateTransaction(
+      await ProxyService.strategy.updateTransaction(
         transaction: pendingTransaction,
         subTotal: items.fold(0, (a, b) => a! + (b.price * b.qty)),
       );
-      ITransaction? updatedTransaction = await ProxyService.local
-          .getTransactionById(id: pendingTransaction.id!);
+      ITransaction? updatedTransaction = await ProxyService.strategy
+          .getTransactionById(id: pendingTransaction.id);
       keypad.setTransaction(updatedTransaction);
     }
   }
@@ -377,21 +376,21 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> createCategory() async {
     final int? branchId = ProxyService.box.getBranchId();
     if (categoryName == null) return;
-    final Category category = Category(ObjectId(),
+    final Category category = Category(
         name: categoryName!,
         active: true,
         focused: false,
         branchId: branchId!,
         id: randomNumber());
 
-    await ProxyService.local.create(data: category);
+    await ProxyService.strategy.create(data: category);
     app.loadCategories();
   }
 
   ///list products availabe for sell
   Future<List<Product>> products() async {
     int branchId = ProxyService.box.getBranchId()!;
-    return await ProxyService.local.productsFuture(branchId: branchId);
+    return await ProxyService.strategy.productsFuture(branchId: branchId);
   }
 
   Business get businesses => app.business;
@@ -408,7 +407,7 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> handleCustomQtySetBeforeSelectingVariation() async {
     ProxyService.keypad.decreaseQty();
-    Variant? variant = await ProxyService.local
+    Variant? variant = await ProxyService.strategy
         .getVariantById(id: _currentItemStock!.variantId!);
     if (_currentItemStock != null) {
       keypad.setAmount(amount: (variant?.retailPrice ?? 0) * quantity);
@@ -418,7 +417,7 @@ class CoreViewModel extends FlipperBaseModel
   /// setAmount is the amount shown on top of product when increasing the quantity
   Future<void> customQtyIncrease(double quantity) async {
     ProxyService.keypad.increaseQty(custom: true, qty: quantity);
-    Variant? variant = await ProxyService.local
+    Variant? variant = await ProxyService.strategy
         .getVariantById(id: _currentItemStock!.variantId!);
     if (_currentItemStock != null) {
       keypad.setAmount(amount: (variant?.retailPrice ?? 0) * quantity);
@@ -428,7 +427,7 @@ class CoreViewModel extends FlipperBaseModel
   /// We take _variantsStocks[0] because we know
   Future<void> decreaseQty(Function callback) async {
     ProxyService.keypad.decreaseQty();
-    Variant? variant = await ProxyService.local
+    Variant? variant = await ProxyService.strategy
         .getVariantById(id: _currentItemStock!.variantId!);
     if (_currentItemStock != null) {
       keypad.setAmount(amount: (variant?.retailPrice ?? 0) * quantity);
@@ -442,7 +441,7 @@ class CoreViewModel extends FlipperBaseModel
       {required Function callback, required bool custom}) async {
     ProxyService.keypad.increaseQty(custom: custom);
     ProxyService.keypad.decreaseQty();
-    Variant? variant = await ProxyService.local
+    Variant? variant = await ProxyService.strategy
         .getVariantById(id: _currentItemStock!.variantId!);
     if (_currentItemStock != null) {
       keypad.setAmount(amount: (variant?.retailPrice ?? 0) * quantity);
@@ -458,20 +457,20 @@ class CoreViewModel extends FlipperBaseModel
 
   void loadVariantStock({required int variantId}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    _currentItemStock = await ProxyService.local
+    _currentItemStock = await ProxyService.strategy
         .getStock(branchId: branchId, variantId: variantId);
   }
 
   Future<List<Variant>> getVariants({required int productId}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    _variants = await ProxyService.local
+    _variants = await ProxyService.strategy
         .variants(branchId: branchId, productId: productId);
     notifyListeners();
     return _variants;
   }
 
   Future<Variant?> getVariant({required int variantId}) async {
-    return await ProxyService.local.variant(variantId: variantId);
+    return await ProxyService.strategy.variant(variantId: variantId);
   }
 
   void toggleCheckbox({required int variantId}) {
@@ -488,12 +487,12 @@ class CoreViewModel extends FlipperBaseModel
       String? categoryId,
       required String transactionType,
       required double discount}) async {
-    final transaction = await ProxyService.local.manageTransaction(
+    final transaction = await ProxyService.strategy.manageTransaction(
         branchId: ProxyService.box.getBranchId()!,
         transactionType: TransactionType.sale,
         isExpense: false);
 
-    await ProxyService.local.collectPayment(
+    await ProxyService.strategy.collectPayment(
         branchId: ProxyService.box.getBranchId()!,
         isProformaMode: ProxyService.box.isProformaMode(),
         isTrainingMode: ProxyService.box.isTrainingMode(),
@@ -534,9 +533,8 @@ class CoreViewModel extends FlipperBaseModel
       required String customerType,
       required String tinNumber}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    ProxyService.local.addCustomer(
+    ProxyService.strategy.addCustomer(
         customer: Customer(
-          ObjectId(),
           custNm: name,
           id: randomNumber(),
           custTin: tinNumber,
@@ -559,14 +557,15 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void assignToSale({required int customerId, required int transactionId}) {
-    ProxyService.local.assignCustomerToTransaction(
+    ProxyService.strategy.assignCustomerToTransaction(
         customerId: customerId, transactionId: transactionId);
   }
 
   /// given a transactionId and a customer, remove the given customer from the
   /// given transaction
   Future<void> removeFromSale({required ITransaction transaction}) async {
-    ProxyService.local.removeCustomerFromTransaction(transaction: transaction);
+    ProxyService.strategy
+        .removeCustomerFromTransaction(transaction: transaction);
   }
 
   /// as of when one sale is complete trying to sell second product
@@ -578,14 +577,14 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void addNoteToSale({required String note, required Function callback}) async {
-    final currentTransaction = await ProxyService.local.manageTransaction(
+    final currentTransaction = await ProxyService.strategy.manageTransaction(
         branchId: ProxyService.box.getBranchId()!,
         transactionType: TransactionType.sale,
         isExpense: false);
-    ITransaction? transaction =
-        await ProxyService.local.getTransactionById(id: currentTransaction.id!);
+    ITransaction? transaction = await ProxyService.strategy
+        .getTransactionById(id: currentTransaction.id);
 
-    ProxyService.local.updateTransaction(
+    ProxyService.strategy.updateTransaction(
       transaction: transaction!,
       note: note,
     );
@@ -600,7 +599,7 @@ class CoreViewModel extends FlipperBaseModel
       {required String ticketName,
       required String ticketNote,
       required ITransaction transaction}) async {
-    await ProxyService.local.updateTransaction(
+    await ProxyService.strategy.updateTransaction(
       transaction: transaction,
       status: PARKED,
       note: ticketNote,
@@ -626,9 +625,9 @@ class CoreViewModel extends FlipperBaseModel
 
     if (keypad.transaction == null) return 0.0;
 
-    List<TransactionItem> items = ProxyService.local.transactionItems(
+    List<TransactionItem> items = ProxyService.strategy.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
-        transactionId: keypad.transaction!.id!,
+        transactionId: keypad.transaction!.id,
         doneWithTransaction: false,
         active: true);
 
@@ -653,7 +652,7 @@ class CoreViewModel extends FlipperBaseModel
   /// FIXMEsometime after deleteting transactionItems are not reflecting
   Future<bool> deleteTransactionItem(
       {required int id, required BuildContext context}) async {
-    await ProxyService.local.delete(
+    await ProxyService.strategy.delete(
         id: id,
         endPoint: 'transactionItem',
         flipperHttpClient: ProxyService.http);
@@ -669,9 +668,9 @@ class CoreViewModel extends FlipperBaseModel
   /// the UI can notify the user based on the return value
   void restoreBackUp(Function callback) async {
     if (ProxyService.remoteConfig.isBackupAvailable()) {
-      Business? business = await ProxyService.local.getBusiness();
+      Business? business = await ProxyService.strategy.getBusiness();
       final drive = GoogleDrive();
-      if (business.backupFileId != null) {
+      if (business!.backupFileId != null) {
         await drive.downloadGoogleDriveFile('data', business.backupFileId!);
         callback(1);
       } else {
@@ -693,10 +692,10 @@ class CoreViewModel extends FlipperBaseModel
   void loadReport() async {
     int branchId = ProxyService.box.getBranchId()!;
     List<ITransaction> completedTransactions =
-        await ProxyService.local.completedTransactions(branchId: branchId);
+        await ProxyService.strategy.completedTransactions(branchId: branchId);
     Set<TransactionItem> allItems = {};
     for (ITransaction completedTransaction in completedTransactions) {
-      List<TransactionItem> transactionItems = await ProxyService.local
+      List<TransactionItem> transactionItems = await ProxyService.strategy
           .getTransactionItemsByTransactionId(
               transactionId: completedTransaction.id);
       allItems.addAll(transactionItems.toSet());
@@ -736,19 +735,19 @@ class CoreViewModel extends FlipperBaseModel
   // check if the customer is attached to the transaction then can't be deleted
   // transaction need to be deleted or completed first.
   Future<void> deleteCustomer(int id, Function callback) async {
-    final transaction = await ProxyService.local.manageTransaction(
+    final transaction = await ProxyService.strategy.manageTransaction(
         branchId: ProxyService.box.getBranchId()!,
         transactionType: TransactionType.sale,
         isExpense: false);
     if (transaction.customerId == null) {
-      await ProxyService.local.delete(
+      await ProxyService.strategy.delete(
           id: id, endPoint: 'customer', flipperHttpClient: ProxyService.http);
       callback("customer deleted");
     } else {
       /// first detach the customer from trans
-      ProxyService.local
+      ProxyService.strategy
           .updateTransaction(transaction: transaction, customerId: null);
-      ProxyService.local.delete(
+      ProxyService.strategy.delete(
           id: id, endPoint: 'customer', flipperHttpClient: ProxyService.http);
 
       callback("customer deleted");
@@ -764,7 +763,7 @@ class CoreViewModel extends FlipperBaseModel
   /// Finally, the function sets the tenant on the `app` object.
 
   void defaultBranch() async {
-    final branch = await ProxyService.local.activeBranch();
+    final branch = await ProxyService.strategy.activeBranch();
 
     app.setActiveBranch(branch: branch);
   }
@@ -776,26 +775,26 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> sellWithCard(
       {required int tenantId, required ITransaction pendingTransaction}) async {
     Product? product =
-        await ProxyService.local.findProductByTenantId(tenantId: tenantId);
+        await ProxyService.strategy.findProductByTenantId(tenantId: tenantId);
 
     clearPreviousSaleCounts();
-    List<Variant> variants = await getVariants(productId: product!.id!);
-    loadVariantStock(variantId: variants.first.id!);
+    List<Variant> variants = await getVariants(productId: product!.id);
+    loadVariantStock(variantId: variants.first.id);
 
     handleCustomQtySetBeforeSelectingVariation();
 
-    keypad.setAmount(amount: variants.first.retailPrice * quantity);
-    toggleCheckbox(variantId: variants.first.id!);
+    keypad.setAmount(amount: variants.first.retailPrice! * quantity);
+    toggleCheckbox(variantId: variants.first.id);
     increaseQty(callback: (quantity) {}, custom: true);
-    Variant? variant = await ProxyService.local.getVariantById(id: checked);
-    Stock? stock = await ProxyService.local.stockByVariantId(
+    Variant? variant = await ProxyService.strategy.getVariantById(id: checked);
+    Stock? stock = await ProxyService.strategy.stockByVariantId(
         variantId: checked, branchId: ProxyService.box.getBranchId()!);
     await saveTransaction(
         partOfComposite: false,
         variation: variant!,
         amountTotal: amountTotal,
         customItem: false,
-        currentStock: stock!.currentStock,
+        currentStock: stock!.currentStock!,
         pendingTransaction: pendingTransaction);
   }
 
@@ -812,45 +811,46 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<int> deleteTransactionByIndex(int transactionIndex) async {
     ITransaction? target = await getTransactionByIndex(transactionIndex);
-    await ProxyService.local
+    await ProxyService.strategy
         .deleteTransactionByIndex(transactionIndex: transactionIndex);
     notifyListeners();
 
     if (target != null) {
-      return target.id!;
+      return target.id;
     }
     return 403;
   }
 
   Future<ITransaction?> getTransactionByIndex(int transactionIndex) async {
     ITransaction? res =
-        await ProxyService.local.getTransactionById(id: transactionIndex);
+        await ProxyService.strategy.getTransactionById(id: transactionIndex);
     return res;
   }
 
   weakUp({required String pin, required int userId}) async {
-    ProxyService.local.recordUserActivity(
+    ProxyService.strategy.recordUserActivity(
       userId: userId,
       activity: 'session',
     );
     ProxyService.box.writeInt(key: 'userId', value: userId);
-    Tenant? tenant = await ProxyService.local.getTenantBYUserId(userId: userId);
+    Tenant? tenant =
+        await ProxyService.strategy.getTenantBYUserId(userId: userId);
 
-    ProxyService.local.updateTenant(
-        tenantId: tenant!.id!,
+    ProxyService.strategy.updateTenant(
+        tenantId: tenant!.id,
         sessionActive: true,
         branchId: ProxyService.box.getBranchId()!);
   }
 
   Future<int> updateUserWithPinCode({required String pin}) async {
-    Business? business = await ProxyService.local
+    Business? business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId());
 
     /// set the pin for the current business default tenant
     // if (business != null) {
     /// get the default tenant
-    await ProxyService.local.getTenantBYUserId(
-      userId: business.userId!,
+    await ProxyService.strategy.getTenantBYUserId(
+      userId: business!.userId!,
     );
     // final response = await ProxyService.isar.update(
     //   data: User(
@@ -863,7 +863,7 @@ class CoreViewModel extends FlipperBaseModel
     //   tenant.pin = int.tryParse(pin);
     //   ProxyService.isar.update(data: tenant);
     //   ProxyService.notification.sendLocalNotification(
-    //       payload: Conversation(ObjectId(),
+    //       payload: Conversation(
     //           userName: tenant.name,
     //           body: 'Pin has been added to your account successfully',
     //           avatar: "",

@@ -38,9 +38,9 @@ class _DownloadCardState extends State<DownloadCard> {
     });
 
     try {
-      // Assuming `ProxyService.local.downloadAssetSave` returns a stream of download progress
+      // Assuming `ProxyService.strategy.downloadAssetSave` returns a stream of download progress
       Stream<double> progressStream =
-          await ProxyService.local.downloadAssetSave(
+          await ProxyService.strategy.downloadAssetSave(
         assetName: widget.filename,
         subPath: "reports",
       );
@@ -68,8 +68,8 @@ class _DownloadCardState extends State<DownloadCard> {
         _filePath = filePath;
       });
 
-      await ProxyService.local
-          .updateReport(reportId: widget.report.id!, downloaded: true);
+      await ProxyService.strategy
+          .updateReport(reportId: widget.report.id, downloaded: true);
     } catch (e) {
       setState(() {
         _downloading = false;

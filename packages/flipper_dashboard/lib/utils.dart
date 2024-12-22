@@ -14,8 +14,6 @@ class Utils {
         return 'lb.';
       case WeightUnits.Oz:
         return 'oz.';
-      default:
-        return 'lb.';
     }
   }
 

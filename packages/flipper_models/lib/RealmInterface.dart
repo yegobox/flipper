@@ -2,20 +2,16 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
-import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/sync.dart';
-import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
-import 'package:realm/realm.dart';
+
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:http/http.dart' as http;
@@ -25,32 +21,22 @@ import 'package:flipper_services/database_provider.dart'
 import 'package:cbl/src/database/collection.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
-// enum ClearData { Business, Branch }
 
-abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
-  T? findObject<T extends RealmObject>(String query, List<dynamic> arguments);
-
-  void close();
-}
+enum ClearData { Business, Branch }
 
 abstract class DataMigratorToLocal {
-  Realm? oldRealm;
-
   Future<DataMigratorToLocal> configure(
       {required bool useInMemoryDb,
       bool useFallBack = false,
-      Realm? localRealm,
       String? encryptionKey,
       int? businessId,
       int? branchId,
       int? userId});
-  // Realm? realm;
+
   Future<String> dbPath({required String path, int? folder});
   DataMigratorToLocal instance();
   void copyRemoteDataToLocalDb();
   List<String> activeRealmSubscriptions();
-  Future<void> forceSubs(
-      {int? businessId, Realm? localRealm, int? branchId, int? userId});
 }
 
 abstract class RealmInterface {
@@ -121,10 +107,9 @@ abstract class RealmInterface {
     int? page,
     int? itemsPerPage,
   });
-  Configurations getByTaxType({required String taxtype});
+  FutureOr<Configurations?> getByTaxType({required String taxtype});
   Variant? variant({int? variantId, String? name});
 
-  /// CRUD methods
   FutureOr<void> addAccess({
     required int userId,
     required String featureName,
@@ -145,7 +130,7 @@ abstract class RealmInterface {
   Future<Tenant?> saveTenant(
       {required Business business,
       required Branch branch,
-      required String phoneNumber,
+      String? phoneNumber,
       String? name,
       int? id,
       String? email,
@@ -158,7 +143,6 @@ abstract class RealmInterface {
       required HttpClientInterface flipperHttpClient,
       required String userType});
 
-  // End of CRUD methods
   Future<List<Favorite>> getFavorites();
   Future<Favorite?> getFavoriteById({required int favId});
   Future<Favorite?> getFavoriteByProdId({required int prodId});
@@ -172,8 +156,7 @@ abstract class RealmInterface {
       {required String barCode, required int branchId});
   Future<List<Product?>> getProductByName(
       {required String name, required int branchId});
-  // Future
-  //this function for now figure out what is the business id on backend side.
+
   Future<Product?> createProduct(
       {required Product product,
       required int businessId,
@@ -187,17 +170,13 @@ abstract class RealmInterface {
       int itemSeq = 1,
       bool ebmSynced = false});
 
-  Future<Voucher?> consumeVoucher({required int voucherCode});
-
   Stream<ITransaction> manageTransactionStream(
       {required String transactionType,
       required bool isExpense,
       required int branchId,
       bool? includeSubTotalCheck = false});
 
-  ///create an transaction if no pending transaction exist should create a new one
-  ///then if it exist should return the existing one!
-  ITransaction manageTransaction(
+  FutureOr<ITransaction> manageTransaction(
       {required String transactionType,
       required bool isExpense,
       required int branchId,
@@ -219,7 +198,7 @@ abstract class RealmInterface {
     required int tinNumber,
     required String bhFId,
   });
-  // Future<Spenn> spennPayment({required double amount, required phoneNumber});
+
   Future<ITransaction> collectPayment({
     required double cashReceived,
     required ITransaction transaction,
@@ -235,29 +214,15 @@ abstract class RealmInterface {
     required bool isIncome,
   });
 
-// app settings and users settings
   Future<Setting?> getSetting({required int businessId});
-
-  // Stream<List<Conversation>> conversationStreamList({int? receiverId});
-  // void sendMessage({required int receiverId, required Message message});
-  // Stream<List<Message>> messages({required int conversationId});
-
-  /// we treat all business as users and as contact at the same time
-  /// this is because a business act as point of contact for a user
-  /// and we do not to refer to the business phone number to send messages
-  /// we only care about name, this deliver from our core mission that
-  /// we want to make communication easy for business and users i.e customers
-  ///
-  //the method is not different from users, but users is for streaming users being added
-  //to connected devices, while this method is for getting all users using List<Business>
 
   Future<Customer?> addCustomer(
       {required Customer customer, required int transactionId});
   void assignCustomerToTransaction(
       {required int customerId, int? transactionId});
   void removeCustomerFromTransaction({required ITransaction transaction});
-  Customer? getCustomer({String? key, int? id});
-  List<Customer> getCustomers({String? key, int? id});
+  FutureOr<Customer?> getCustomer({String? key, int? id});
+  FutureOr<List<Customer>> getCustomers({String? key, int? id});
   Future<Customer?> getCustomerFuture({String? key, int? id});
 
   ITransaction? getTransactionById({required int id});
@@ -276,16 +241,12 @@ abstract class RealmInterface {
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
       {required int? transactionId});
 
-  //abstract method to update business
-
-  //analytics
   int lifeTimeCustomersForbranch({required String branchId});
 
-  //save discount
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount});
 
-  Future<List<Discount>> getDiscounts({required int branchId});
+  // Future<List<Discount>> getDiscounts({required int branchId});
 
   FutureOr<void> addTransactionItem(
       {required ITransaction transaction,
@@ -308,15 +269,7 @@ abstract class RealmInterface {
   Future<bool> enableAttendance(
       {required int businessId, required String email});
 
-  // Future<Profile?> profile({required int businessId});
-  // Future<Profile?> updateProfile({required Profile profile});
-
-  // Future<Pointss> addPoint({required int userId, required int point});
-
-  // Future<Pointss?> getPoints({required int userId});
   void consumePoints({required int userId, required int points});
-  // Future<Pin?> createPin();
-  // Future<Pin?> getPin({required String pin});
 
   Future<List<Product>> productsFuture({required int branchId});
 
@@ -328,7 +281,6 @@ abstract class RealmInterface {
     bool includePending = false,
   });
 
-  /// get a list of transactionItems given transactionId
   List<TransactionItem> transactionItems(
       {int? transactionId,
       bool? doneWithTransaction,
@@ -367,26 +319,9 @@ abstract class RealmInterface {
   Future<void> deleteAllProducts();
   Stock? getStockById({required int id});
 
-  /// socials methods
-  // Stream<Social> socialsStream({required int branchId});
-  // Future<Social?> getSocialById({required int id});
-
-  // Future<List<BusinessType>> businessTypes();
-
-  /// list messages
-  Stream<List<Conversation>> conversations({String? conversationId});
-  Future<void> sendScheduleMessages();
-  Future<Conversation?> getConversation({required String messageId});
-  Future<List<Conversation>> getScheduleMessages();
-  Future<int> registerOnSocial({String? phoneNumberOrEmail, String? password});
-  // Future<SocialToken?> loginOnSocial(
-  //     {String? phoneNumberOrEmail, String? password});
   Future<bool> isTokenValid(
       {required String tokenType, required int businessId});
 
-  Stream<List<Conversation>> getTop5RecentConversations();
-
-  //
   Future<void> patchSocialSetting({required Setting setting});
   Future<Setting?> getSocialSetting();
 
@@ -397,8 +332,6 @@ abstract class RealmInterface {
   Future<List<Device>> unpublishedDevices({required int businessId});
   Future<void> loadConversations(
       {required int businessId, int? pageSize = 10, String? pk, String? sk});
-
-  // Future<List<Social>> activesocialAccounts({required int branchId});
 
   FutureOr<Stock?> addStockToVariant({required Variant variant, Stock? stock});
   Stream<List<Variant>> geVariantStreamByProductId({required int productId});
@@ -415,13 +348,10 @@ abstract class RealmInterface {
         List<ITransaction> transactions,
         List<TransactionItem> transactionItems
       })> getUnSyncedData();
-  Future<Conversation> sendMessage(
-      {required String message, required Conversation latestConversation});
+
   Future<models.Ebm?> ebm({required int branchId});
   Future<void> saveEbm(
       {required int branchId, required String severUrl, required String bhFId});
-
-  // Future<ITenant> authState({required int branchId});
 
   Stream<Tenant?> authState({required int branchId});
 
@@ -431,8 +361,6 @@ abstract class RealmInterface {
   List<Customer> customers({required int branchId});
   void close();
   void clear();
-  // Future<List<SyncRecord>> syncedModels({required int branchId});
-  // Future<Permission?> permission({required int userId});
 
   Future<List<BusinessType>> businessTypes();
   Future<IPin?> getPin(
@@ -448,15 +376,9 @@ abstract class RealmInterface {
       required bool doneWithTransaction,
       required bool active});
 
-  Realm? realm;
   bool isRealmClosed();
 
-  /// we sum all non negative and non 0 stock value with the
-  /// retailing price
   Stream<double> stockValue({required branchId});
-
-  /// we sum up all soldItem that we get by querying the non negative stock
-  /// and non zero then what we get we query related sold item
 
   Stream<double> soldStockValue({required branchId});
   Stream<double> initialStock({required branchId});
@@ -473,7 +395,7 @@ abstract class RealmInterface {
   Future<Stream<double>> downloadAssetSave(
       {String? assetName, String? subPath = "branch"});
   Future<bool> removeS3File({required String fileName});
-  Assets? getAsset({String? assetName, int? productId});
+  FutureOr<Assets?> getAsset({String? assetName, int? productId});
   Future<void> amplifyLogout();
   List<Product> getProducts({String? key});
   List<Variant> getVariants({String? key});
@@ -508,15 +430,12 @@ abstract class RealmInterface {
         double netProfit,
       })> getReportData();
 
-  /// determine if current running user is admin
   bool isAdmin({required int userId, required String appFeature});
-  Future<LPermission?> permission({required int userId});
-  List<LPermission> permissions({required int userId});
-  List<Access> access({required int userId});
+  FutureOr<List<Access>> access({required int userId, String? featureName});
   Stream<List<StockRequest>> requestsStream(
       {required int branchId, required String filter});
   List<StockRequest> requests({required int branchId});
-  Tenant getTenant({required int userId});
+  FutureOr<Tenant?> getTenant({required int userId});
 
   Future<({String url, int userId, String customerCode})> subscribe(
       {required int businessId,
@@ -528,9 +447,10 @@ abstract class RealmInterface {
   Future<bool> hasActiveSubscription(
       {required int businessId,
       required HttpClientInterface flipperHttpClient});
-
-  Future<PaymentPlan> saveOrUpdatePaymentPlan({
+  Future<bool> firebaseLogin({String? token});
+  FutureOr<Plan?> saveOrUpdatePaymentPlan({
     required int businessId,
+    List<String>? addons,
     required String selectedPlan,
     required int additionalDevices,
     required bool isYearlyPlan,
@@ -538,11 +458,13 @@ abstract class RealmInterface {
     required int payStackUserId,
     required String paymentMethod,
     String? customerCode,
+    models.Plan? plan,
+    int numberOfPayments = 1,
     required HttpClientInterface flipperHttpClient,
   });
   Future<models.Plan?> getPaymentPlan({required int businessId});
-  FlipperSaleCompaign? getLatestCompaign();
-  Stream<PaymentPlan?> paymentPlanStream({required int businessId});
+  FutureOr<FlipperSaleCompaign?> getLatestCompaign();
+  Stream<Plan?> paymentPlanStream({required int businessId});
 
   Stream<List<TransactionItem>> transactionItemList(
       {DateTime? startDate, DateTime? endDate, bool? isPluReport});
@@ -557,7 +479,6 @@ abstract class RealmInterface {
   void createOrUpdateBranchOnCloud(
       {required Branch branch, required bool isOnline});
 
-  Future<List<Activity>> activities({required int userId});
   Future<void> refreshSession({required int branchId, int? refreshRate = 5});
   int createStockRequest(List<TransactionItem> items,
       {required String deliveryNote,
@@ -569,7 +490,6 @@ abstract class RealmInterface {
       required String assetName,
       required String subPath});
 
-  // Future<String> dbPath({required String path});
   Future<IUser> login(
       {required String userPhone,
       required bool skipDefaultAppSetup,
@@ -577,17 +497,15 @@ abstract class RealmInterface {
       required Pin pin,
       required HttpClientInterface flipperHttpClient});
 
-  /// since when we log in we get all business in login response object
-  /// it is assumed that this business/branches are for user access
   List<Business> businesses();
   Future<Business?> activeBusinesses({required int userId});
-  // Future<Business> getOnlineBusiness({required int userId});
+
   Future<List<Branch>> branches(
       {required int businessId, bool? includeSelf = false});
   Future<List<ITenant>> signup(
       {required Map business, required HttpClientInterface flipperHttpClient});
-  Business getBusiness({int? businessId});
-  Business? getBusinessById({required int businessId});
+  FutureOr<Business?> getBusiness({int? businessId});
+  FutureOr<Business?> getBusinessById({required int businessId});
   Future<Business> getBusinessFuture({int? businessId});
   Future<Business?> defaultBusiness();
   Branch? defaultBranch();
@@ -601,24 +519,23 @@ abstract class RealmInterface {
   Future<List<Business>> getContacts();
 
   Future<List<UnversalProduct>> universalProductNames({required int branchId});
-  Stream<List<AppNotification>> notificationStream({required int identifier});
-  void notify({required AppNotification notification});
-  AppNotification notification({required int id});
-  Future<Branch> addBranch(
-      {required String name,
-      required int businessId,
-      required String location,
-      required String userOwnerPhoneNumber,
-      required HttpClientInterface flipperHttpClient});
+  // Stream<List<AppNotification>> notificationStream({required int identifier});
+  // void notify({required AppNotification notification});
+  // AppNotification notification({required int id});
+  // Future<Branch> addBranch(
+  //     {required String name,
+  //     required int businessId,
+  //     required String location,
+  //     required String userOwnerPhoneNumber,
+  //     required HttpClientInterface flipperHttpClient});
   Future<void> deleteBranch(
       {required int branchId, required HttpClientInterface flipperHttpClient});
-  Branch? branch({required int serverId});
+  FutureOr<Branch?> branch({required int serverId});
 
   Future<http.Response> sendLoginRequest(
       String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
       {String? uid});
 
-  /// drawers
   bool isDrawerOpen({required int cashierId, required int branchId});
   Future<Drawers?> getDrawer({required int cashierId});
 
@@ -628,7 +545,7 @@ abstract class RealmInterface {
 
   Drawers? closeDrawer({required Drawers drawer, required double eod});
   FutureOr<void> saveStock({
-    required Variant variant,
+    Variant? variant,
     required double rsdQty,
     required int productId,
     required int variantId,
@@ -643,7 +560,8 @@ abstract class RealmInterface {
       double amount = 0.0,
       String? paymentMethod,
       required bool singlePaymentOnly});
-  List<TransactionPaymentRecord> getPaymentType({required int transactionId});
+  FutureOr<List<TransactionPaymentRecord>> getPaymentType(
+      {required int transactionId});
 
   SendPort? sendPort;
   ReceivePort? receivePort;
@@ -653,8 +571,6 @@ abstract class RealmInterface {
   Future<void> spawnIsolate(dynamic isolateHandler);
   void reDownloadAsset();
   void clearVariants();
-
-  /// update methods
 
   Future<void> processItem({
     required brick.Item item,
@@ -693,6 +609,8 @@ abstract class RealmInterface {
     int? quantityShipped,
     double? taxblAmt,
     double? totAmt,
+    double? dcRt,
+    double? dcAmt,
   });
 
   FutureOr<void> updateTransaction(
@@ -721,7 +639,7 @@ abstract class RealmInterface {
 
   void updateCounters({
     required List<Counter> counters,
-    required RwApiResponse receiptSignature,
+    RwApiResponse? receiptSignature,
   });
   FutureOr<void> updateDrawer({
     required int drawerId,
@@ -753,6 +671,8 @@ abstract class RealmInterface {
     int? productId,
     String? productName,
     String? unit,
+    String? pkgUnitCd,
+    bool? ebmSynced,
   });
   FutureOr<void> updateTenant({
     required int tenantId,
@@ -789,6 +709,7 @@ abstract class RealmInterface {
       String? name,
       bool? isComposite,
       String? unit,
+      String? color,
       String? imageUrl,
       String? expiryDate});
 
@@ -798,7 +719,11 @@ abstract class RealmInterface {
   FutureOr<void> updateReport({required int reportId, bool? downloaded});
 
   FutureOr<void> updateBusiness(
-      {required int businessId, String? name, bool? active, bool? isDefault});
+      {required int businessId,
+      String? name,
+      bool? active,
+      bool? isDefault,
+      String? backupFileId});
 
   FutureOr<void> updateBranch(
       {required int branchId, String? name, bool? active, bool? isDefault});
@@ -827,10 +752,6 @@ abstract class RealmInterface {
     String? tokenUid,
   });
 
-  /// end of update methods
-  ///
-  ///
-  /// delete all methods
   FutureOr<void> deleteAll<T extends Object>({
     required String tableName,
   });
@@ -851,4 +772,92 @@ abstract class RealmInterface {
     required DateTime createdAt,
     required deletedAt,
   });
+
+  FutureOr<void> addColor({required String name, required int branchId});
+
+  FutureOr<Branch> addBranch({
+    required String name,
+    required int businessId,
+    required String location,
+    String? userOwnerPhoneNumber,
+    HttpClientInterface? flipperHttpClient,
+    int? serverId,
+    String? description,
+    String? longitude,
+    String? latitude,
+    required bool isDefault,
+    required bool active,
+    DateTime? lastTouched,
+    DateTime? deletedAt,
+    int? id,
+  });
+
+  void whoAmI();
+
+  FutureOr<void> addBusiness(
+      {required int id,
+      int? userId,
+      required int serverId,
+      String? name,
+      String? currency,
+      String? categoryId,
+      String? latitude,
+      String? longitude,
+      String? timeZone,
+      String? country,
+      String? businessUrl,
+      String? hexColor,
+      String? imageUrl,
+      String? type,
+      bool? active,
+      String? chatUid,
+      String? metadata,
+      String? role,
+      int? lastSeen,
+      String? firstName,
+      String? lastName,
+      String? createdAt,
+      String? deviceToken,
+      bool? backUpEnabled,
+      String? subscriptionPlan,
+      String? nextBillingDate,
+      String? previousBillingDate,
+      bool? isLastSubscriptionPaymentSucceeded,
+      String? backupFileId,
+      String? email,
+      String? lastDbBackup,
+      String? fullName,
+      int? tinNumber,
+      required String bhfId,
+      String? dvcSrlNo,
+      String? adrs,
+      bool? taxEnabled,
+      String? taxServerUrl,
+      bool? isDefault,
+      int? businessTypeId,
+      DateTime? lastTouched,
+      DateTime? deletedAt,
+      required String encryptionKey});
+
+  FutureOr<LPermission?> permission({required int userId});
+
+  void updateAccess(
+      {required int accessId,
+      required int userId,
+      required String featureName,
+      required String accessLevel,
+      required String status,
+      required String userType}) {}
+
+  FutureOr<List<LPermission>> permissions({required int userId});
+
+  getCounters({required int branchId}) {}
+
+  Future<List<Discount>> getDiscounts({required int branchId});
+
+  void notify({required AppNotification notification}) {}
+
+  conversations({int? conversationId}) {}
+
+  getTop5RecentConversations() {}
 }

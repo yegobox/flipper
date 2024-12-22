@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:isolate';
+import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
+import 'package:flipper_models/RealmInterface.dart';
 import 'package:flipper_models/helperModels/business.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
@@ -13,12 +13,12 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/Booting.dart';
-import 'package:realm/realm.dart' as realmO;
 import 'dart:async';
+import 'package:flipper_services/abstractions/storage.dart' as storage;
+
 import 'package:flipper_models/exceptions.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:http/http.dart' as http;
-import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart' as old;
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
@@ -27,12 +27,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'dart:typed_data';
-import 'package:flipper_models/CoreDataInterface.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_services/abstractions/storage.dart' as storage;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:cbl/cbl.dart'
@@ -44,11 +42,7 @@ import 'package:flipper_services/database_provider.dart'
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
 
-class CoreSync with Booting implements CoreDataInterface {
-  final Map<String, StreamSubscription<QuerySnapshot>> _subscriptions = {};
-  final FirebaseFirestore? _firestore;
-  realmO.Realm? realm;
-  final Set<int> _processingIds = {};
+class CoreSync with Booting implements RealmInterface {
   final String apihub = AppSecrets.apihubProd;
   final repository = Repository();
   bool offlineLogin = false;
@@ -57,294 +51,7 @@ class CoreSync with Booting implements CoreDataInterface {
     return Isolate.current.debugName != null;
   }
 
-// Helper to remove unwanted fields from the map
-  void _removeFields(Map<String, dynamic> map, List<String> fields) {
-    for (var field in fields) {
-      map.remove(field);
-    }
-  }
-
-  CoreSync(this._firestore, {this.realm, SupabaseClient? client});
-  @override
-  Future<void> deleteDuplicate({required String tableName}) async {
-    try {
-      final idField = tableName.singularize() + "_id";
-      Map<dynamic, List<String>> idMap = {};
-
-      // Use pagination to handle large collections
-      var query = _firestore!.collection(tableName).limit(500);
-      while (true) {
-        final snapshot = await query.get();
-        if (snapshot.docs.isEmpty) break;
-
-        for (var doc in snapshot.docs) {
-          final id = doc.data()[idField];
-          if (id != null) {
-            idMap.putIfAbsent(id, () => []).add(doc.id);
-          }
-        }
-
-        query = query.startAfterDocument(snapshot.docs.last);
-      }
-
-      // Use a batched write for better performance and atomicity
-      final batch = _firestore!.batch();
-      for (var entry in idMap.entries) {
-        if (entry.value.length > 1) {
-          for (int i = 1; i < entry.value.length; i++) {
-            batch.delete(_firestore!.collection(tableName).doc(entry.value[i]));
-          }
-        }
-      }
-      await batch.commit();
-    } catch (e, s) {
-      talker.error('Error in deleteDuplicate: $e');
-      talker.error(s);
-    }
-  }
-
-  Future<void> watchTableAsync<T extends realmO.RealmObject>({
-    required String tableName,
-    required String idField,
-    bool useWatch = false,
-    required T Function(Map<String, dynamic>) createRealmObject,
-    required void Function(T, Map<String, dynamic>) updateRealmObject,
-    required SyncProvider syncProvider,
-    required List<int> branchIds,
-  }) async {
-    /// if it is not isolate re-init the Realm
-    if (!isInIsolate()) {
-      realm = ProxyService.local.realm!;
-    }
-    if (syncProvider == SyncProvider.FIRESTORE) {
-      try {
-        // Get Firestore collection changes without listening
-        final querySnapshot = await _firestore!
-            .collection(tableName)
-            .where('branch_id', whereIn: branchIds)
-            .limit(10)
-            .get();
-
-        for (var docChange in querySnapshot.docs) {
-          final id = int.parse(docChange.id);
-          final data = docChange.data();
-
-          // Process the document based on the change type
-          // Assuming all changes are either added or modified for this example
-          realm!.refresh();
-          var realmObject = realm!.query<T>(r'id == $0', [id]).firstOrNull;
-          if (realmObject == null) {
-            realmObject = createRealmObject(data);
-            realm!.write(() {
-              realm!.add<T>(realmObject!);
-            });
-            print("Added new object to Realm with ID: $id");
-          } else {
-            updateRealmObject(realmObject, data);
-            print("Updated existing object in Realm with ID: $id");
-          }
-        }
-
-        print("Finished processing all documents");
-      } catch (e, s) {
-        print("Error fetching or processing Firestore changes: $e");
-        print(s);
-      }
-    }
-  }
-
-  @override
-  Future<void> processbatchBackUp<T extends realmO.RealmObject>(
-      List<T> batch) async {
-    WriteBatch writeBatch = _firestore!.batch();
-
-    for (T item in batch) {
-      // Changed TransactionItem to T
-
-      final data = item.toEJson().toFlipperJson();
-      final docRef = _firestore!
-          .collection('transactionsItems')
-          .doc(data['id'].toString());
-
-      // Check if the document exists
-      final docSnapshot = await docRef.get();
-
-      if (docSnapshot.exists) {
-        writeBatch.update(docRef, data);
-      } else {
-        writeBatch.set(docRef, data);
-      }
-    }
-
-    // Commit the batch
-    await writeBatch.commit();
-
-    talker.info("Processed and committed batch of ${batch.length} items");
-  }
-
-  @override
-  Future<void> handleRealmChanges<T>(
-      {required realmO.RealmResults<T> results,
-      required String tableName,
-      required String idField,
-      required int Function(T) getId,
-      required Map<String, dynamic> Function(T) convertToMap,
-      required Function(Map<String, dynamic>) preProcessMap,
-      required SyncProvider syncProvider}) async {
-    results.changes.listen(
-      (changes) async {
-        for (var obj in changes.modified) {
-          final modifiedItem = results[obj];
-          final id = getId(modifiedItem);
-          try {
-            // Skip if this ID is currently being processed by watchTable
-            if (_processingIds.contains(id)) continue;
-            talker.warning("processed ID ${id}");
-            _processingIds.add(id);
-            Map<String, dynamic> map = convertToMap(modifiedItem);
-            if (syncProvider == SyncProvider.FIRESTORE) {
-              talker.warning("Change in realm happened");
-              await updateRecord(
-                tableName: tableName,
-                idField: idField,
-                map: map,
-                id: id,
-                syncProviders: [syncProvider, SyncProvider.SUPABASE],
-              );
-              Future.delayed(Duration(seconds: 2), () {
-                _processingIds.remove(id);
-              });
-              return;
-            }
-          } catch (e, s) {
-            talker.warning(e);
-            talker.error(s);
-          }
-        }
-
-        // Handle deleted objects if necessary
-        for (var index in changes.deleted) {
-          try {
-            final deletedId = getId(results[index]);
-
-            // Skip if this ID is currently being processed by watchTable
-            if (_processingIds.contains(deletedId)) continue;
-
-            await deleteRecord(
-                tableName: tableName, idField: idField, id: deletedId);
-          } catch (e, s) {
-            print('Error deleting record: $e');
-            print(s);
-          }
-        }
-      },
-      onError: (error) {},
-    );
-  }
-
-  @override
-  Future<void> deleteRecord(
-      {required String tableName,
-      required String idField,
-      required int id}) async {
-    if (!isInIsolate()) {
-      realm = ProxyService.local.realm!;
-    }
-
-    cancelWatch(tableName: tableName);
-    await _firestore!.collection(tableName).doc(id.toString()).delete();
-
-    talker.warning("Firestore deleted $tableName with id $id");
-  }
-
-  @override
-  Future<void> updateRecord(
-      {required String tableName,
-      required String idField,
-      required Map<String, dynamic> map,
-      required int id,
-      required List<SyncProvider> syncProviders}) async {
-    if (!isInIsolate()) {
-      realm = ProxyService.local.realm!;
-    }
-    // get a modified map
-    final modifiedMap =
-        map.map((key, value) => MapEntry(camelToSnakeCase(key), value));
-    modifiedMap[idField] = map['id'];
-    // add updated_at to any change made
-    modifiedMap['updated_at'] = DateTime.now().toIso8601String();
-    modifiedMap['local_update'] = true;
-
-    if (syncProviders.contains(SyncProvider.FIRESTORE)) {
-      try {
-        // Check if the document already exists
-        final docRef = _firestore!.collection(tableName).doc(id.toString());
-        final docSnapshot = await docRef.get();
-
-        /// first cancel the subscription to avoid re-writing back into the same document
-        cancelWatch(tableName: tableName);
-
-        if (docSnapshot.exists) {
-          talker.warning("UpdatedFirestore ${tableName} ${id}");
-          // Update existing document
-          await docRef.update(modifiedMap);
-        } else {
-          talker.warning("created");
-          // Create new document
-          await docRef.set(modifiedMap);
-        }
-        await docRef.update({'local_update': FieldValue.delete()});
-      } catch (e, s) {
-        talker.warning(e);
-        talker.error(s);
-        rethrow;
-      }
-    }
-    if (syncProviders.contains(SyncProvider.SUPABASE)) {
-      /// replicate data to second database as well.
-      brickUpdateRecord(
-        tableName: tableName,
-        idField: idField,
-        map: map,
-        id: id,
-        syncProviders: syncProviders,
-      );
-      // ProxyService.capela.updateRecord(
-      //   tableName: tableName,
-      //   idField: idField,
-      //   map: map,
-      //   id: id,
-      //   syncProviders: syncProviders,
-      // );
-    }
-  }
-
-  brickUpdateRecord(
-      {required String tableName,
-      required String idField,
-      required Map<String, dynamic> map,
-      required int id,
-      required List<SyncProvider> syncProviders}) async {
-    final repository = brick.Repository();
-    if (tableName == countersTable) {
-      try {
-        final upCounter = models.Counter(
-          id: map['id'],
-          lastTouched: DateTime.now(),
-          createdAt: DateTime.now(),
-          branchId: map['branchId'],
-          curRcptNo: map['curRcptNo'],
-          totRcptNo: map['totRcptNo'],
-          invcNo: map['invcNo'],
-          businessId: map['businessId'],
-          receiptType: map['receiptType'],
-        );
-        repository.upsert(upCounter);
-      } catch (e) {
-        talker.error(e);
-      }
-    }
-  }
+  CoreSync({SupabaseClient? client});
 
   Future<void> _supa({required String tableName, required int id}) async {
     await ProxyService.supa.init();
@@ -361,7 +68,8 @@ class CoreSync with Booting implements CoreDataInterface {
             await ProxyService.supa.client?.from(dataMapperTable).upsert({
           'table_name': tableName,
           'object_id': id,
-          'device_identifier': await ProxyService.local.getPlatformDeviceId(),
+          'device_identifier':
+              await ProxyService.strategy.getPlatformDeviceId(),
 
           /// Tobe done incorporate it into payment wall the device expected to download the object.
           'sync_devices': 0,
@@ -377,109 +85,6 @@ class CoreSync with Booting implements CoreDataInterface {
     }
   }
 
-  @override
-  Future<void> watchTable<T extends realmO.RealmObject>({
-    required String tableName,
-    required String idField,
-    required T Function(Map<String, dynamic>) createRealmObject,
-    required void Function(T, Map<String, dynamic>) updateRealmObject,
-    bool useWatch = false,
-    required List<int> branchIds,
-    required SyncProvider syncProvider,
-  }) async {
-    if (syncProvider == SyncProvider.FIRESTORE) {
-      try {
-        if (!isInIsolate()) {
-          realm = ProxyService.local.realm!;
-        }
-        if (_firestore == null) return;
-
-        print("QueryingOn: ${branchIds}");
-        // Listen for Firestore collection changes
-        final subscription = _firestore!
-            .collection(tableName)
-            .where('branch_id', whereIn: branchIds)
-            .orderBy('updated_at', descending: true)
-            .limit(100)
-            .snapshots()
-            .listen((querySnapshot) {
-          for (var docChange in querySnapshot.docChanges) {
-            final id = int.parse(docChange.doc.id);
-            final data = docChange.doc.data()!;
-
-            // Process the document based on the change type
-            switch (docChange.type) {
-              case DocumentChangeType.added:
-              case DocumentChangeType.modified:
-                try {
-                  if (realm!.isClosed) return;
-                  if (data['local_update'] == true) {
-                    // Ignore this update as it was triggered by our local write
-                    continue;
-                  }
-                  T? realmObject =
-                      realm!.query<T>(r'id == $0', [id]).firstOrNull;
-                  if (realmObject == null) {
-                    /// check if this object was deleted and is found in deletedObjects
-                    old.DeletedObject? deletedObject = realm!
-                        .query<old.DeletedObject>(
-                            r'id == $0', [id]).firstOrNull;
-                    if (deletedObject == null) {
-                      realmObject = createRealmObject(data);
-                      realm!.write(() {
-                        realm!.add<T>(realmObject!);
-                      });
-                    }
-                  } else {
-                    print(
-                        "Firestore changes updateRealmObject $tableName: ${id}");
-                    updateRealmObject(realmObject, data);
-                  }
-                } catch (e, s) {
-                  print("E: ${e}");
-                  print("S: ${s}");
-                }
-
-                break;
-              case DocumentChangeType.removed:
-                realm!.write(() {
-                  T? realmObject =
-                      realm!.query<T>(r'id == $0', [id]).firstOrNull;
-
-                  if (realmObject != null) {
-                    var eJson = (realmObject is old.Stock)
-                        ? realmObject.toEJson().toFlipperJson()
-                        : realmObject.toEJson().toFlipperJson();
-
-                    realm!.add<old.DeletedObject>(
-                      old.DeletedObject(
-                        realmO.ObjectId(),
-                        id: (realmObject is old.Stock)
-                            ? realmObject.id!
-                            : eJson['id'],
-                        branchId: eJson['branch_id'],
-                        businessId: eJson['business_id'],
-                        deviceCount: 1,
-                      ),
-                    );
-
-                    realm!.delete(realmObject);
-                  }
-                });
-                break;
-            }
-          }
-        }, onError: (error) {
-          print("Error listening to Firestore changes: $error");
-        });
-        _subscriptions[tableName] = subscription;
-      } catch (e) {
-        print("Error setting up Firestore listener: $e");
-        throw Exception("Error syncing: $e");
-      }
-    }
-  }
-
   bool compareChanges(Map<String, dynamic> item, Map<String, dynamic> map) {
     for (final key in item.keys) {
       if (map[key]?.toString() != item[key]?.toString()) {
@@ -491,26 +96,6 @@ class CoreSync with Booting implements CoreDataInterface {
 
   static const int BATCH_SIZE = 100;
 
-  Future<void> backUp(
-      {required int branchId,
-      required String encryptionKey,
-      required String dbPath}) async {
-    try {
-      List<old.TransactionItem> items = realm!
-          .query<old.TransactionItem>(r'branchId == $0', [branchId]).toList();
-      List<List<old.TransactionItem>> batches =
-          _splitIntoBatches(items, BATCH_SIZE);
-
-      for (var batch in batches) {
-        await processbatchBackUp(batch);
-      }
-      talker.info("Backup completed successfully for branch $branchId");
-    } catch (e, stackTrace) {
-      talker.error("Error during backup for branch $branchId: $e", stackTrace);
-      rethrow;
-    } finally {}
-  }
-
   List<List<old.TransactionItem>> _splitIntoBatches(
       List<old.TransactionItem> items, int batchSize) {
     return [
@@ -520,50 +105,11 @@ class CoreSync with Booting implements CoreDataInterface {
     ];
   }
 
-  Future<void> handleRealmChangesAsync<T>({
-    required realmO.RealmResults<T> results,
-    required String tableName,
-    required String idField,
-    required int Function(T) getId,
-    required Map<String, dynamic> Function(T) convertToMap,
-    required Function(Map<String, dynamic>) preProcessMap,
-    required SyncProvider syncProvider,
-  }) async {
-    //loop through all data and bulk update
-    for (T result in results) {
-      final id = getId(result);
-
-      try {
-        // Skip if this ID is currently being processed by watchTable
-        if (_processingIds.contains(id)) continue;
-        Map<String, dynamic> map = convertToMap(result);
-        if (syncProvider == SyncProvider.FIRESTORE) {
-          talker.warning("Change in realm happened Async");
-          _processingIds.add(id);
-          await updateRecord(
-            tableName: tableName,
-            idField: idField,
-            map: map,
-            id: id,
-            syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
-          );
-          Future.delayed(Duration(seconds: 2), () {
-            _processingIds.remove(id);
-          });
-          return;
-        }
-      } catch (e, s) {
-        talker.warning(e);
-        talker.error(s);
-      }
-    }
-  }
-
   @override
   Future<bool> firebaseLogin({String? token}) async {
     int? userId = ProxyService.box.getUserId();
     if (userId == null) return false;
-    final pinLocal = ProxyService.local.getPinLocal(userId: userId);
+    final pinLocal = ProxyService.strategy.getPinLocal(userId: userId);
     try {
       token ??= pinLocal?.tokenUid;
 
@@ -577,14 +123,15 @@ class CoreSync with Booting implements CoreDataInterface {
     } catch (e) {
       talker.error(e);
       // talker.info("Retry ${pinLocal?.uid ?? "NULL"}");
-      final http.Response response = await ProxyService.local.sendLoginRequest(
-          pinLocal!.phoneNumber!, ProxyService.http, AppSecrets.apihubProd,
-          uid: pinLocal.uid!);
+      final http.Response response = await ProxyService.strategy
+          .sendLoginRequest(
+              pinLocal!.phoneNumber!, ProxyService.http, AppSecrets.apihubProd,
+              uid: pinLocal.uid!);
       if (response.statusCode == 200 && response.body.isNotEmpty) {
         /// path the user pin, with
         final IUser user = IUser.fromJson(json.decode(response.body));
 
-        ProxyService.local.updatePin(
+        ProxyService.strategy.updatePin(
           userId: user.id!,
           phoneNumber: pinLocal.phoneNumber,
           tokenUid: user.uid,
@@ -592,24 +139,6 @@ class CoreSync with Booting implements CoreDataInterface {
       }
 
       return false;
-    }
-  }
-
-  @override
-  void cancelAll() {
-    for (final subscription in _subscriptions.values) {
-      subscription.cancel();
-    }
-    _subscriptions.clear();
-  }
-
-  @override
-  void cancelWatch({required String tableName}) {
-    final subscription = _subscriptions[tableName];
-    if (subscription != null) {
-      subscription.cancel();
-      _subscriptions
-          .remove(tableName); // Remove it from the map after cancellation
     }
   }
 
@@ -635,12 +164,6 @@ class CoreSync with Booting implements CoreDataInterface {
   SendPort? sendPort;
 
   @override
-  List<Access> access({required int userId}) {
-    // TODO: implement access
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Branch> activeBranch() {
     // TODO: implement activeBranch
     throw UnimplementedError();
@@ -659,17 +182,6 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<Branch> addBranch(
-      {required String name,
-      required int businessId,
-      required String location,
-      required String userOwnerPhoneNumber,
-      required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement addBranch
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Customer?> addCustomer(
       {required Customer customer, required int transactionId}) {
     // TODO: implement addCustomer
@@ -679,12 +191,6 @@ class CoreSync with Booting implements CoreDataInterface {
   @override
   Future<int> addFavorite({required Favorite data}) {
     // TODO: implement addFavorite
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Stock?> addStockToVariant({required Variant variant}) {
-    // TODO: implement addStockToVariant
     throw UnimplementedError();
   }
 
@@ -710,9 +216,10 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<void> amplifyLogout() {
-    // TODO: implement amplifyLogout
-    throw UnimplementedError();
+  Future<void> amplifyLogout() async {
+    try {
+      amplify.Amplify.Auth.signOut();
+    } catch (e) {}
   }
 
   @override
@@ -841,20 +348,6 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<CoreDataInterface> configureCapella(
-      {required bool useInMemory, required storage.LocalStorage box}) {
-    // TODO: implement configureCapella
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<CoreDataInterface> configureLocal(
-      {required bool useInMemory, required storage.LocalStorage box}) {
-    // TODO: implement configureLocal
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin}) {
     // TODO: implement configureSystem
@@ -864,12 +357,6 @@ class CoreSync with Booting implements CoreDataInterface {
   @override
   void consumePoints({required int userId, required int points}) {
     // TODO: implement consumePoints
-  }
-
-  @override
-  Future<T?> create<T>({required T data}) {
-    // TODO: implement create
-    throw UnimplementedError();
   }
 
   @override
@@ -969,7 +456,7 @@ class CoreSync with Booting implements CoreDataInterface {
   Future<bool> delete(
       {required int id,
       String? endPoint,
-      required HttpClientInterface flipperHttpClient}) {
+      HttpClientInterface? flipperHttpClient}) {
     // TODO: implement delete
     throw UnimplementedError();
   }
@@ -1041,7 +528,7 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<Branch?> branch({required int serverId}) async {
+  FutureOr<Branch?> branch({required int serverId}) async {
     final repository = Repository();
     final query =
         brick.Query(where: [brick.Where('serverId').isExactly(serverId)]);
@@ -1060,7 +547,7 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<Assets?> getAsset({String? assetName, int? productId}) async {
+  FutureOr<Assets?> getAsset({String? assetName, int? productId}) async {
     final repository = Repository();
     final query = brick.Query(
         where: assetName != null
@@ -1074,7 +561,7 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<Business> getBusiness({int? businessId}) async {
+  FutureOr<Business> getBusiness({int? businessId}) async {
     final repository = Repository();
     final query = brick.Query(
         where: businessId != null
@@ -1086,7 +573,7 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<Business?> getBusinessById({required int businessId}) async {
+  FutureOr<Business?> getBusinessById({required int businessId}) async {
     final repository = Repository();
     final query =
         brick.Query(where: [brick.Where('serverId').isExactly(businessId)]);
@@ -1125,7 +612,7 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<Configurations?> getByTaxType({required String taxtype}) async {
+  FutureOr<Configurations?> getByTaxType({required String taxtype}) async {
     final repository = Repository();
     final query = brick.Query(where: [
       brick.Where('taxType').isExactly(taxtype),
@@ -1320,7 +807,7 @@ class CoreSync with Booting implements CoreDataInterface {
     return variant;
   }
 
-  Future<Customer?> getCustomer({String? key, int? id}) async {
+  FutureOr<Customer?> getCustomer({String? key, int? id}) async {
     if (key != null && id != null) {
       throw ArgumentError(
           'Cannot provide both a key and an id at the same time');
@@ -1363,7 +850,7 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<List<Customer>> getCustomers({String? key, int? id}) async {
+  FutureOr<List<Customer>> getCustomers({String? key, int? id}) async {
     final List<Customer> customers = [];
     if (id != null) {
       // Query by ID
@@ -1507,7 +994,7 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<FlipperSaleCompaign?> getLatestCompaign() async {
+  FutureOr<FlipperSaleCompaign?> getLatestCompaign() async {
     final query = brick.Query(providerArgs: {'orderBy': 'createdAt DESC'});
     final List<FlipperSaleCompaign> fetchedCampaigns =
         await repository.get<FlipperSaleCompaign>(
@@ -1534,7 +1021,7 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<List<TransactionPaymentRecord>> getPaymentType(
+  FutureOr<List<TransactionPaymentRecord>> getPaymentType(
       {required int transactionId}) async {
     final query = brick.Query(
         where: [brick.Where('transactionId').isExactly(transactionId)]);
@@ -1605,12 +1092,6 @@ class CoreSync with Booting implements CoreDataInterface {
   @override
   Future<String?> getPlatformDeviceId() {
     // TODO: implement getPlatformDeviceId
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Product?> getProduct({required int id}) {
-    // TODO: implement getProduct
     throw UnimplementedError();
   }
 
@@ -1709,21 +1190,8 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<ITransaction?> getTransactionById({required int id}) {
-    // TODO: implement getTransactionById
-    throw UnimplementedError();
-  }
-
-  @override
   Future<TransactionItem?> getTransactionItemById({required int id}) {
     // TODO: implement getTransactionItemById
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<TransactionItem?> getTransactionItemByVariantId(
-      {required int variantId, int? transactionId}) {
-    // TODO: implement getTransactionItemByVariantId
     throw UnimplementedError();
   }
 
@@ -1738,12 +1206,6 @@ class CoreSync with Booting implements CoreDataInterface {
   Future<({double expense, double income})> getTransactionsAmountsSum(
       {required String period}) {
     // TODO: implement getTransactionsAmountsSum
-    throw UnimplementedError();
-  }
-
-  @override
-  Variant? getVariantById({required int id}) {
-    // TODO: implement getVariantById
     throw UnimplementedError();
   }
 
@@ -1769,19 +1231,13 @@ class CoreSync with Booting implements CoreDataInterface {
   Future<bool> hasActiveSubscription(
       {required int businessId,
       required HttpClientInterface flipperHttpClient}) async {
-    return ProxyService.local.hasActiveSubscription(
+    return ProxyService.strategy.hasActiveSubscription(
         businessId: businessId, flipperHttpClient: flipperHttpClient);
   }
 
   @override
   Future<void> initCollections() {
     // TODO: implement initCollections
-    throw UnimplementedError();
-  }
-
-  @override
-  CoreDataInterface instance() {
-    // TODO: implement instance
     throw UnimplementedError();
   }
 
@@ -1800,19 +1256,6 @@ class CoreSync with Booting implements CoreDataInterface {
   @override
   bool isRealmClosed() {
     // TODO: implement isRealmClosed
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<bool> isSubscribed(
-      {required String feature, required int businessId}) {
-    // TODO: implement isSubscribed
-    throw UnimplementedError();
-  }
-
-  @override
-  bool isTaxEnabled({required Business business}) {
-    // TODO: implement isTaxEnabled
     throw UnimplementedError();
   }
 
@@ -1900,7 +1343,7 @@ class CoreSync with Booting implements CoreDataInterface {
       await _patchPin(user.id!, flipperHttpClient, apihub,
           ownerName: user.tenants.first.name);
       ProxyService.box.writeInt(key: 'userId', value: user.id!);
-      await ProxyService.backUp.firebaseLogin(token: user.uid);
+      await ProxyService.strategy.firebaseLogin(token: user.uid);
       return user;
     } else {
       await _handleLoginError(response);
@@ -2072,7 +1515,7 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<ITransaction> manageTransaction(
+  FutureOr<ITransaction> manageTransaction(
       {required String transactionType,
       required bool isExpense,
       required int branchId,
@@ -2265,14 +1708,7 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  void saveEbm(
-      {required int branchId,
-      required String severUrl,
-      required String bhFId}) {
-    // TODO: implement saveEbm
-  }
-  @override
-  Future<void> saveOrUpdatePaymentPlan({
+  FutureOr<Plan?> saveOrUpdatePaymentPlan({
     required int businessId,
     List<String>? addons,
     required String selectedPlan,
@@ -2308,7 +1744,7 @@ class CoreSync with Booting implements CoreDataInterface {
       );
 
       // Create or update the plan
-      await _upsertPlan(
+      final updatedPlan = await _upsertPlan(
         repository: repository,
         businessId: businessId,
         selectedPlan: selectedPlan,
@@ -2321,6 +1757,8 @@ class CoreSync with Booting implements CoreDataInterface {
         addons: updatedAddons,
         nextBillingDate: nextBillingDate,
       );
+
+      return updatedPlan;
     } catch (e) {
       talker.error('Failed to save/update payment plan: $e');
       rethrow;
@@ -2404,7 +1842,7 @@ class CoreSync with Booting implements CoreDataInterface {
     );
   }
 
-  Future<void> _upsertPlan({
+  Future<Plan> _upsertPlan({
     required brick.Repository repository,
     required int businessId,
     required String selectedPlan,
@@ -2439,32 +1877,23 @@ class CoreSync with Booting implements CoreDataInterface {
         where: [brick.Where('businessId').isExactly(businessId)],
       ),
     );
+    return plan;
   }
 
   @override
-  void savePaymentType({required TransactionPaymentRecord paymentRecord}) {
-    // TODO: implement savePaymentType
-  }
+  Future<Pin?> savePin({required Pin pin}) async {
+    try {
+      final query = brick.Query.where('userId', pin.userId, limit1: true);
+      final savedPin = await repository.upsert(
+        pin,
+        query: query,
+      );
 
-  @override
-  Future<Pin?> savePin({required Pin pin}) {
-    // TODO: implement savePin
-    throw UnimplementedError();
-  }
-
-  @override
-  void saveStock({required Variant variant}) {
-    // TODO: implement saveStock
-  }
-
-  @override
-  Future<Tenant?> saveTenant(String phoneNumber, String name,
-      {required Business business,
-      required Branch branch,
-      required HttpClientInterface flipperHttpClient,
-      required String userType}) {
-    // TODO: implement saveTenant
-    throw UnimplementedError();
+      return savedPin;
+    } catch (e, s) {
+      talker.error(s.toString());
+      rethrow;
+    }
   }
 
   @override
@@ -2477,9 +1906,14 @@ class CoreSync with Booting implements CoreDataInterface {
   @override
   Future<http.Response> sendLoginRequest(
       String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
-      {String? uid}) {
-    // TODO: implement sendLoginRequest
-    throw UnimplementedError();
+      {String? uid}) async {
+    uid = uid ?? firebase.FirebaseAuth.instance.currentUser?.uid;
+    final response = await flipperHttpClient.post(
+      Uri.parse(apihub + '/v2/api/user'),
+      body:
+          jsonEncode(<String, String?>{'phoneNumber': phoneNumber, 'uid': uid}),
+    );
+    return response;
   }
 
   @override
@@ -2528,15 +1962,6 @@ class CoreSync with Booting implements CoreDataInterface {
   @override
   Future<void> startReplicator() {
     // TODO: implement startReplicator
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Stock?> stockByVariantId(
-      {required int variantId,
-      required int branchId,
-      bool nonZeroValue = false}) {
-    // TODO: implement stockByVariantId
     throw UnimplementedError();
   }
 
@@ -2618,16 +2043,6 @@ class CoreSync with Booting implements CoreDataInterface {
   Stream<List<TransactionItem>> transactionItemList(
       {DateTime? startDate, DateTime? endDate, bool? isPluReport}) {
     // TODO: implement transactionItemList
-    throw UnimplementedError();
-  }
-
-  @override
-  List<TransactionItem> transactionItems(
-      {required int transactionId,
-      required bool doneWithTransaction,
-      required int branchId,
-      required bool active}) {
-    // TODO: implement transactionItems
     throw UnimplementedError();
   }
 
@@ -2748,22 +2163,6 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  void updateStock({required int stockId, required double qty}) {
-    // TODO: implement updateStock
-  }
-
-  @override
-  void updateTransactionItemQty(
-      {required qty, required int transactionItemId}) {
-    // TODO: implement updateTransactionItemQty
-  }
-
-  @override
-  void updateTransactionStatus(ITransaction transaction, String receiptType) {
-    // TODO: implement updateTransactionStatus
-  }
-
-  @override
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) {
     // TODO: implement uploadPdfToS3
     throw UnimplementedError();
@@ -2773,19 +2172,6 @@ class CoreSync with Booting implements CoreDataInterface {
   Future<int> userNameAvailable(
       {required String name, required HttpClientInterface flipperHttpClient}) {
     // TODO: implement userNameAvailable
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Variant?> variant({int? variantId, String? name}) {
-    // TODO: implement variant
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Variant>> variants(
-      {required int branchId, int? productId, int? page, int? itemsPerPage}) {
-    // TODO: implement variants
     throw UnimplementedError();
   }
 
@@ -2808,11 +2194,6 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  void whoAmI() {
-    talker.warning("I am CoreSync");
-  }
-
-  @override
   Future<Configurations> saveTax(
       {required int configId, required double taxPercentage}) {
     // TODO: implement saveTax
@@ -2820,8 +2201,640 @@ class CoreSync with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<Configurations> taxes({required int branchId}) {
+  FutureOr<void> addAccess(
+      {required int userId,
+      required String featureName,
+      required String accessLevel,
+      required String userType,
+      required String status,
+      required int branchId,
+      required int businessId,
+      DateTime? createdAt}) {
+    // TODO: implement addAccess
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> addAsset(
+      {required int productId,
+      required assetName,
+      required int branchId,
+      required int businessId}) {
+    // TODO: implement addAsset
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> addCategory(
+      {required String name,
+      required int branchId,
+      required bool active,
+      required bool focused,
+      required DateTime lastTouched,
+      required int id,
+      required DateTime createdAt,
+      required deletedAt}) {
+    // TODO: implement addCategory
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> addColor({required String name, required int branchId}) {
+    // TODO: implement addColor
+    throw UnimplementedError();
+  }
+
+  @override
+  void clearVariants() {
+    // TODO: implement clearVariants
+  }
+
+  @override
+  void close() {
+    // TODO: implement close
+  }
+
+  @override
+  FutureOr<void> deleteAll<T extends Object>({required String tableName}) {
+    // TODO: implement deleteAll
+    throw UnimplementedError();
+  }
+
+  @override
+  void emptySentMessageQueue() {
+    // TODO: implement emptySentMessageQueue
+  }
+
+  @override
+  Future<bool> enableAttendance(
+      {required int businessId, required String email}) {
+    // TODO: implement enableAttendance
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<old.Business> getBusinessFuture({int? businessId}) {
+    // TODO: implement getBusinessFuture
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<old.Business>> getContacts() {
+    // TODO: implement getContacts
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<old.Customer?> getCustomerFuture({String? key, int? id}) {
+    // TODO: implement getCustomerFuture
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<
+      ({
+        List<old.Device> devices,
+        List<old.Favorite> favorites,
+        List<old.Product> products,
+        List<old.Stock> stocks,
+        List<old.TransactionItem> transactionItems,
+        List<old.ITransaction> transactions,
+        List<old.Variant> variants
+      })> getUnSyncedData() {
+    // TODO: implement getUnSyncedData
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<double> initialStock({required branchId}) {
+    // TODO: implement initialStock
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ext.SocialToken?> loginOnSocial(
+      {String? phoneNumberOrEmail, String? password}) {
+    // TODO: implement loginOnSocial
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> processItem(
+      {required old.Item item,
+      required Map<String, String> quantitis,
+      required Map<String, String> taxTypes,
+      required Map<String, String> itemClasses,
+      required Map<String, String> itemTypes}) {
+    // TODO: implement processItem
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateAcess(
+      {required int userId,
+      String? featureName,
+      String? status,
+      String? accessLevel,
+      String? userType}) {
+    // TODO: implement updateAcess
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateAsset({required int assetId, String? assetName}) {
+    // TODO: implement updateAsset
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateBranch(
+      {required int branchId, String? name, bool? active, bool? isDefault}) {
+    // TODO: implement updateBranch
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateCategory(
+      {required int categoryId,
+      String? name,
+      bool? active,
+      bool? focused,
+      int? branchId}) {
+    // TODO: implement updateCategory
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateColor(
+      {required int colorId, String? name, bool? active}) {
+    // TODO: implement updateColor
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateDrawer(
+      {required int drawerId,
+      int? cashierId,
+      int? nsSaleCount,
+      int? trSaleCount,
+      int? psSaleCount,
+      int? csSaleCount,
+      int? nrSaleCount,
+      int? incompleteSale,
+      double? totalCsSaleIncome,
+      double? totalNsSaleIncome,
+      String? openingDateTime,
+      double? closingBalance,
+      bool? open}) {
+    // TODO: implement updateDrawer
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateNotification(
+      {required int notificationId, bool? completed}) {
+    // TODO: implement updateNotification
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updatePin(
+      {required int userId, String? phoneNumber, String? tokenUid}) {
+    // TODO: implement updatePin
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateProduct(
+      {int? productId,
+      String? name,
+      bool? isComposite,
+      String? unit,
+      String? color,
+      String? imageUrl,
+      String? expiryDate}) {
+    // TODO: implement updateProduct
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateReport({required int reportId, bool? downloaded}) {
+    // TODO: implement updateReport
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateStockRequest(
+      {required int stockRequestId, DateTime? updatedAt, String? status}) {
+    // TODO: implement updateStockRequest
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateTenant(
+      {required int tenantId,
+      String? name,
+      String? phoneNumber,
+      String? email,
+      int? businessId,
+      String? type,
+      int? pin,
+      bool? sessionActive,
+      int? branchId}) {
+    // TODO: implement updateTenant
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateTransaction(
+      {required old.ITransaction transaction,
+      String? receiptType,
+      double? subTotal,
+      String? note,
+      String? status,
+      int? customerId,
+      bool? ebmSynced,
+      String? sarTyCd,
+      String? reference,
+      String? customerTin,
+      String? customerBhfId,
+      double? cashReceived,
+      bool? isRefunded,
+      String? customerName,
+      String? ticketName,
+      String? updatedAt,
+      int? invoiceNumber,
+      DateTime? lastTouched,
+      int? receiptNumber,
+      int? totalReceiptNumber,
+      bool? isProformaMode,
+      bool? isTrainingMode}) {
+    // TODO: implement updateTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateTransactionItem(
+      {double? qty,
+      required int transactionItemId,
+      double? discount,
+      bool? active,
+      double? taxAmt,
+      int? quantityApproved,
+      int? quantityRequested,
+      bool? ebmSynced,
+      bool? isRefunded,
+      bool? incrementQty,
+      double? price,
+      double? prc,
+      double? splyAmt,
+      bool? doneWithTransaction,
+      int? quantityShipped,
+      double? taxblAmt,
+      double? totAmt,
+      double? dcRt,
+      double? dcAmt}) {
+    // TODO: implement updateTransactionItem
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateUnit(
+      {required int unitId, String? name, bool? active, int? branchId}) {
+    // TODO: implement updateUnit
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<old.Stock?> addStockToVariant(
+      {required old.Variant variant, old.Stock? stock}) {
+    // TODO: implement addStockToVariant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<RealmInterface> configureCapella(
+      {required bool useInMemory, required storage.LocalStorage box}) {
+    // TODO: implement configureCapella
+    throw UnimplementedError();
+  }
+
+  @override
+  T? create<T>({required T data}) {
+    // TODO: implement create
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<old.Configurations>> taxes({required int branchId}) {
     // TODO: implement taxes
     throw UnimplementedError();
+  }
+
+  @override
+  old.Variant? variant({int? variantId, String? name}) {
+    // TODO: implement variant
+    throw UnimplementedError();
+  }
+
+  @override
+  List<old.Variant> variants(
+      {required int branchId, int? productId, int? page, int? itemsPerPage}) {
+    // TODO: implement variants
+    throw UnimplementedError();
+  }
+
+  @override
+  old.Product? getProduct({required int id}) {
+    // TODO: implement getProduct
+    throw UnimplementedError();
+  }
+
+  @override
+  old.ITransaction? getTransactionById({required int id}) {
+    // TODO: implement getTransactionById
+    throw UnimplementedError();
+  }
+
+  @override
+  old.TransactionItem? getTransactionItemByVariantId(
+      {required int variantId, int? transactionId}) {
+    // TODO: implement getTransactionItemByVariantId
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<old.Variant?> getVariantById({required int id}) {
+    // TODO: implement getVariantById
+    throw UnimplementedError();
+  }
+
+  @override
+  RealmInterface instance() {
+    // TODO: implement instance
+    throw UnimplementedError();
+  }
+
+  @override
+  bool isSubscribed({required String feature, required int businessId}) {
+    // TODO: implement isSubscribed
+    throw UnimplementedError();
+  }
+
+  @override
+  bool isTaxEnabled({required int businessId}) {
+    // TODO: implement isTaxEnabled
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> saveEbm(
+      {required int branchId,
+      required String severUrl,
+      required String bhFId}) {
+    // TODO: implement saveEbm
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> savePaymentType(
+      {old.TransactionPaymentRecord? paymentRecord,
+      int? transactionId,
+      double amount = 0.0,
+      String? paymentMethod,
+      required bool singlePaymentOnly}) {
+    // TODO: implement savePaymentType
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> saveStock(
+      {old.Variant? variant,
+      required double rsdQty,
+      required int productId,
+      required int variantId,
+      required int branchId,
+      required double currentStock,
+      required double value}) {
+    // TODO: implement saveStock
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateStock(
+      {required int stockId,
+      double? qty,
+      double? rsdQty,
+      double? initialStock,
+      bool? ebmSynced,
+      double? currentStock,
+      double? value,
+      DateTime? lastTouched}) {
+    // TODO: implement updateStock
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> addBusiness(
+      {required int id,
+      int? userId,
+      required int serverId,
+      String? name,
+      String? currency,
+      String? categoryId,
+      String? latitude,
+      String? longitude,
+      String? timeZone,
+      String? country,
+      String? businessUrl,
+      String? hexColor,
+      String? imageUrl,
+      String? type,
+      bool? active,
+      String? chatUid,
+      String? metadata,
+      String? role,
+      int? lastSeen,
+      String? firstName,
+      String? lastName,
+      String? createdAt,
+      String? deviceToken,
+      bool? backUpEnabled,
+      String? subscriptionPlan,
+      String? nextBillingDate,
+      String? previousBillingDate,
+      bool? isLastSubscriptionPaymentSucceeded,
+      String? backupFileId,
+      String? email,
+      String? lastDbBackup,
+      String? fullName,
+      int? tinNumber,
+      required String bhfId,
+      String? dvcSrlNo,
+      String? adrs,
+      bool? taxEnabled,
+      String? taxServerUrl,
+      bool? isDefault,
+      int? businessTypeId,
+      DateTime? lastTouched,
+      DateTime? deletedAt,
+      required String encryptionKey}) {
+    // TODO: implement addBusiness
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<old.LPermission?> permission({required int userId}) {
+    // TODO: implement permission
+    throw UnimplementedError();
+  }
+
+  @override
+  void whoAmI() {
+    print("I am coresync");
+  }
+
+  @override
+  FutureOr<List<old.Access>> access(
+      {required int userId, String? featureName}) {
+    // TODO: implement access
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<old.Branch> addBranch(
+      {required String name,
+      required int businessId,
+      required String location,
+      String? userOwnerPhoneNumber,
+      HttpClientInterface? flipperHttpClient,
+      int? serverId,
+      String? description,
+      String? longitude,
+      String? latitude,
+      required bool isDefault,
+      required bool active,
+      DateTime? lastTouched,
+      DateTime? deletedAt,
+      int? id}) {
+    // TODO: implement addBranch
+    throw UnimplementedError();
+  }
+
+  @override
+  List<TransactionItem> transactionItems(
+      {int? transactionId,
+      bool? doneWithTransaction,
+      required int branchId,
+      bool? active}) {
+    // TODO: implement transactionItems
+    throw UnimplementedError();
+  }
+
+  @override
+  old.Stock? stockByVariantId(
+      {required int variantId,
+      required int branchId,
+      bool nonZeroValue = false}) {
+    // TODO: implement stockByVariantId
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<List<old.LPermission>> permissions({required int userId}) {
+    // TODO: implement permissions
+    throw UnimplementedError();
+  }
+
+  @override
+  void updateAccess(
+      {required int accessId,
+      required int userId,
+      required String featureName,
+      required String accessLevel,
+      required String status,
+      required String userType}) {
+    // TODO: implement updateAccess
+  }
+
+  @override
+  FutureOr<void> updateBusiness(
+      {required int businessId,
+      String? name,
+      bool? active,
+      bool? isDefault,
+      String? backupFileId}) {
+    // TODO: implement updateBusiness
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateVariant(
+      {required List<old.Variant> updatables,
+      String? color,
+      String? taxTyCd,
+      int? variantId,
+      double? newRetailPrice,
+      double? retailPrice,
+      Map<int, String>? rates,
+      double? supplyPrice,
+      Map<int, String>? dates,
+      String? selectedProductType,
+      int? productId,
+      String? productName,
+      String? unit,
+      String? pkgUnitCd,
+      bool? ebmSynced}) {
+    // TODO: implement updateVariant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<old.Tenant?> saveTenant(
+      {required old.Business business,
+      required old.Branch branch,
+      String? phoneNumber,
+      String? name,
+      int? id,
+      String? email,
+      int? businessId,
+      bool? sessionActive,
+      int? branchId,
+      String? imageUrl,
+      int? pin,
+      bool? isDefault,
+      required HttpClientInterface flipperHttpClient,
+      required String userType}) {
+    // TODO: implement saveTenant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<old.Discount>> getDiscounts({required int branchId}) {
+    // TODO: implement getDiscounts
+    throw UnimplementedError();
+  }
+
+  @override
+  void notify({required old.AppNotification notification}) {
+    // TODO: implement notify
+  }
+
+  @override
+  conversations({int? conversationId}) {
+    // TODO: implement conversations
+    throw UnimplementedError();
+  }
+
+  @override
+  getTop5RecentConversations() {
+    // TODO: implement getTop5RecentConversations
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<RealmInterface> configureLocal(
+      {required bool useInMemory, required storage.LocalStorage box}) async {
+    return this as RealmInterface;
   }
 }

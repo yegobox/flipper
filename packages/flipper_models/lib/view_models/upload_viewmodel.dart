@@ -11,7 +11,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/app_service.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:realm/realm.dart';
+
 import 'package:talker_flutter/talker_flutter.dart';
 
 class UploadViewModel extends ProductViewModel {
@@ -58,7 +58,7 @@ class UploadViewModel extends ProductViewModel {
     try {
       // Log step: Ensure user is authenticated with AWS Cognito
       talker.warning('Authenticating user with AWS Cognito...');
-      await ProxyService.local
+      await ProxyService.strategy
           .syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
 
       talker.warning('Saving picked file locally...');
@@ -87,26 +87,27 @@ class UploadViewModel extends ProductViewModel {
       // Log step: Save asset and update database
       talker.warning('Saving asset and updating database...');
 
-      Product? product = ProxyService.local.getProduct(id: id);
+      Product? product = ProxyService.strategy.getProduct(id: id);
       try {
-        Assets? asset = ProxyService.local.getAsset(productId: product!.id);
+        Assets? asset =
+            await ProxyService.strategy.getAsset(productId: product!.id);
 
-        await ProxyService.local
-            .updateAsset(assetId: asset!.id!, assetName: uniqueFileName);
+        await ProxyService.strategy
+            .updateAsset(assetId: asset!.id, assetName: uniqueFileName);
       } catch (e) {
         saveAsset(assetName: uniqueFileName, productId: id);
       }
-      await ProxyService.local.downloadAssetSave(assetName: uniqueFileName);
+      await ProxyService.strategy.downloadAssetSave(assetName: uniqueFileName);
       await Future.delayed(Duration(seconds: 10));
 
-      await ProxyService.local
+      await ProxyService.strategy
           .updateProduct(productId: id, imageUrl: uniqueFileName);
 
       // Log success
       talker.warning('File uploaded and database updated successfully.');
 
       /// we requery product again and pass it to callback as it has been updated.
-      callBack(ProxyService.local.getProduct(id: id)!);
+      callBack(ProxyService.strategy.getProduct(id: id)!);
     } on StorageException catch (e) {
       talker.warning('StorageException: ${e.message}');
     } catch (e, s) {
@@ -130,7 +131,7 @@ class UploadViewModel extends ProductViewModel {
   }
 
   FutureOr<void> saveAsset({required int productId, required assetName}) async {
-    await ProxyService.local.addAsset(
+    await ProxyService.strategy.addAsset(
       productId: productId,
       assetName: assetName,
       branchId: ProxyService.box.getBranchId()!,

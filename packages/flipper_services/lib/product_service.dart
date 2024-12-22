@@ -29,11 +29,11 @@ class ProductService with ListenableServiceMixin {
   /// discount streams
   Stream<List<Discount>> discountStream({required int branchId}) async* {
     yield* Stream.fromFuture(
-        ProxyService.local.getDiscounts(branchId: branchId));
+        ProxyService.strategy.getDiscounts(branchId: branchId));
   }
 
   Stream<List<Product>> productStream({required int branchId}) {
-    return Stream.fromFuture(ProxyService.local
+    return Stream.fromFuture(ProxyService.strategy
             .getProductList(branchId: ProxyService.box.getBranchId()!))
         .asyncExpand((products) async* {
       // Yield the products as they become available
@@ -49,7 +49,7 @@ class ProductService with ListenableServiceMixin {
           sink.add(products); // Pass through all products if query is empty
         } else {
           final filteredProducts = products.where((product) =>
-              product.name!.toLowerCase().contains(query.toLowerCase()));
+              product.name.toLowerCase().contains(query.toLowerCase()));
           sink.add(filteredProducts.toList()); // Add filtered products to sink
         }
       },
@@ -58,7 +58,7 @@ class ProductService with ListenableServiceMixin {
 
   Future<Product?> getProductByBarCode({required String? code}) async {
     if (code == null) return null;
-    return await ProxyService.local.getProductByBarCode(
+    return await ProxyService.strategy.getProductByBarCode(
         barCode: code, branchId: ProxyService.box.getBranchId()!);
   }
 

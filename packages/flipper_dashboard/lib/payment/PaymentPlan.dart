@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class PaymentPlanUI extends StatefulWidget {
@@ -421,11 +420,11 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
 
           PayStackCustomer customer = await ProxyService.payStack
               .getPayStackCustomer(
-                  business: ProxyService.local.getBusiness(),
+                  business: (await ProxyService.strategy.getBusiness())!,
                   userIdentifier.toFlipperEmail(),
                   ProxyService.http);
 
-          ProxyService.backUp.saveOrUpdatePaymentPlan(
+          ProxyService.strategy.saveOrUpdatePaymentPlan(
               businessId: ProxyService.box.getBusinessId()!,
               selectedPlan: selectedPlan,
               addons: _additionalServices,

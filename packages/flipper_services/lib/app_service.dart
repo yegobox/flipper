@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:realm/realm.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flipper_models/realm_model_export.dart';
 import 'proxy.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -18,7 +17,7 @@ class AppService with ListenableServiceMixin {
   int? get branchId => ProxyService.box.getBranchId();
 
   final _business = ReactiveValue<Business>(Business(
-    ObjectId(),
+    id: randomNumber(),
     serverId: randomNumber(),
     isDefault: false,
     encryptionKey: "11",
@@ -50,7 +49,7 @@ class AppService with ListenableServiceMixin {
     int? branchId = ProxyService.box.getBranchId();
 
     final List<Category> result =
-        await ProxyService.local.categories(branchId: branchId ?? 0);
+        await ProxyService.strategy.categories(branchId: branchId ?? 0);
 
     _categories.value = result;
     notifyListeners();
@@ -79,7 +78,7 @@ class AppService with ListenableServiceMixin {
 
   Future<void> logSocial() async {
     final phoneNumber = ProxyService.box.getUserPhone()!.replaceFirst("+", "");
-    final token = await ProxyService.local.loginOnSocial(
+    final token = await ProxyService.strategy.loginOnSocial(
       password: phoneNumber,
       phoneNumberOrEmail: phoneNumber,
     );
@@ -89,7 +88,6 @@ class AppService with ListenableServiceMixin {
 
     final businessId = ProxyService.box.getBusinessId()!;
     final data = Token(
-      ObjectId(),
       id: randomNumber(),
       businessId: businessId,
       token: token?.body.token,
@@ -98,7 +96,7 @@ class AppService with ListenableServiceMixin {
       type: socialApp,
     );
 
-    await ProxyService.local.create(data: data);
+    await ProxyService.strategy.create(data: data);
   }
 
   final _contacts = ReactiveValue<List<Business>>([]);
@@ -106,16 +104,16 @@ class AppService with ListenableServiceMixin {
 
   /// contact are business in other words
   Future<void> loadContacts() async {
-    List<Business> contacts = await ProxyService.local.getContacts();
+    List<Business> contacts = await ProxyService.strategy.getContacts();
     _contacts.value = contacts;
   }
 
   /// check the default business/branch
   /// set the env the current user is operating in.
   Future<void> appInit() async {
-    List<Business> businesses = await ProxyService.local.businesses();
+    List<Business> businesses = await ProxyService.strategy.businesses();
 
-    List<Branch> branches = await ProxyService.local.branches(
+    List<Branch> branches = await ProxyService.strategy.branches(
         businessId: ProxyService.box.getBusinessId()!, includeSelf: true);
 
     bool hasMultipleBusinesses = businesses.length > 1;
@@ -148,7 +146,7 @@ class AppService with ListenableServiceMixin {
   Future<bool> isSocialLoggedin() async {
     if (ProxyService.box.getDefaultApp() == "2") {
       int businessId = ProxyService.box.getBusinessId()!;
-      return await ProxyService.local
+      return await ProxyService.strategy
           .isTokenValid(businessId: businessId, tokenType: socialApp);
     }
 

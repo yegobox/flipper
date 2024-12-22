@@ -14,7 +14,7 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flutter_riverpod/src/consumer.dart';
-import 'package:realm/realm.dart';
+
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:stacked/stacked.dart';
@@ -33,7 +33,7 @@ class ProductViewModel extends FlipperBaseModel
   List<IUnit> units = [];
   Future<void> loadUnits() async {
     int? branchId = ProxyService.box.getBranchId();
-    units = await ProxyService.local.units(branchId: branchId!);
+    units = await ProxyService.strategy.units(branchId: branchId!);
   }
 
   get categories => app.categories;
@@ -80,7 +80,7 @@ class ProductViewModel extends FlipperBaseModel
   Future<void> loadColors() async {
     int? branchId = ProxyService.box.getBranchId();
 
-    colors = await ProxyService.local.colors(branchId: branchId!);
+    colors = await ProxyService.strategy.colors(branchId: branchId!);
     notifyListeners();
     for (PColor color in colors) {
       if (color.active) {
@@ -99,23 +99,22 @@ class ProductViewModel extends FlipperBaseModel
   Future<Product> getProduct({int? productId}) async {
     try {
       if (productId != null) {
-        Product? product = ProxyService.local.getProduct(id: productId);
+        Product? product = ProxyService.strategy.getProduct(id: productId);
         setCurrentProduct(currentProduct: product!);
         setCurrentProduct(currentProduct: product);
-        kProductName = product.name!;
+        kProductName = product.name;
         setCurrentColor(color: product.color);
         notifyListeners();
         return product;
       }
 
       /// create a temp product or return it if it exists
-      Product? product = await ProxyService.local.createProduct(
+      Product? product = await ProxyService.strategy.createProduct(
         tinNumber: ProxyService.box.tin(),
         bhFId: (await ProxyService.box.bhfId()) ?? "00",
         businessId: ProxyService.box.getBusinessId()!,
         branchId: ProxyService.box.getBranchId()!,
         product: Product(
-          ObjectId(),
           id: randomNumber(),
           name: TEMP_PRODUCT,
           lastTouched: DateTime.now(),
@@ -126,7 +125,7 @@ class ProductViewModel extends FlipperBaseModel
       );
 
       setCurrentProduct(currentProduct: product!);
-      kProductName = product.name!;
+      kProductName = product.name;
       setCurrentColor(color: product.color);
       rebuildUi();
       return product;
@@ -158,7 +157,6 @@ class ProductViewModel extends FlipperBaseModel
     final int? branchId = ProxyService.box.getBranchId();
     if (categoryName == null) return;
     final Category category = Category(
-      ObjectId(),
       name: categoryName!,
       active: true,
       focused: false,
@@ -166,7 +164,7 @@ class ProductViewModel extends FlipperBaseModel
       id: randomNumber(),
     );
 
-    await ProxyService.local.create<Category>(data: category);
+    await ProxyService.strategy.create<Category>(data: category);
     app.loadCategories();
   }
 
@@ -174,8 +172,8 @@ class ProductViewModel extends FlipperBaseModel
     int branchId = ProxyService.box.getBranchId()!;
     for (Category category in categories) {
       if (category.focused) {
-        ProxyService.local.updateCategory(
-            categoryId: category.id!,
+        ProxyService.strategy.updateCategory(
+            categoryId: category.id,
             name: category.name,
             active: false,
             focused: false,
@@ -183,8 +181,8 @@ class ProductViewModel extends FlipperBaseModel
       }
     }
 
-    ProxyService.local.updateCategory(
-        categoryId: category.id!,
+    ProxyService.strategy.updateCategory(
+        categoryId: category.id,
         name: category.name,
         active: true,
         focused: true,
@@ -201,23 +199,23 @@ class ProductViewModel extends FlipperBaseModel
 
     for (IUnit unit in units) {
       if (unit.active) {
-        ProxyService.local.updateUnit(
-            unitId: unit.id!,
+        ProxyService.strategy.updateUnit(
+            unitId: unit.id,
             name: unit.name,
             active: false,
             branchId: branchId);
       }
     }
-    ProxyService.local.updateUnit(
-        unitId: newUnit.id!,
+    ProxyService.strategy.updateUnit(
+        unitId: newUnit.id,
         name: newUnit.name,
         active: true,
         branchId: branchId);
     if (type == 'product') {
-      ProxyService.local
-          .updateProduct(productId: product!.id!, unit: newUnit.name);
+      ProxyService.strategy
+          .updateProduct(productId: product!.id, unit: newUnit.name);
       // get updated product
-      product = ProxyService.local.getProduct(id: product!.id!);
+      product = ProxyService.strategy.getProduct(id: product!.id);
     }
 
     loadUnits();
@@ -227,11 +225,11 @@ class ProductViewModel extends FlipperBaseModel
 
   void updateStock({required int variantId}) async {
     if (_stockValue != null) {
-      Stock? stock = await ProxyService.local.stockByVariantId(
+      Stock? stock = await ProxyService.strategy.stockByVariantId(
           variantId: variantId, branchId: ProxyService.box.getBranchId()!);
 
-      ProxyService.local
-          .updateStock(stockId: stock!.id!, currentStock: _stockValue!);
+      ProxyService.strategy
+          .updateStock(stockId: stock!.id, currentStock: _stockValue!);
     }
   }
 
@@ -243,10 +241,10 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   void deleteVariant({required int id}) async {
-    Variant? variant = await ProxyService.local.variant(variantId: id);
+    Variant? variant = await ProxyService.strategy.variant(variantId: id);
     // can not delete regular variant every product should have a regular variant.
     if (variant!.name != 'Regular') {
-      ProxyService.local.delete(
+      ProxyService.strategy.delete(
           id: id, endPoint: 'variation', flipperHttpClient: ProxyService.http);
       //this will reload the variations remain
       getProduct();
@@ -257,16 +255,16 @@ class ProductViewModel extends FlipperBaseModel
       {required PColor color, required WidgetRef widgetReference}) async {
     for (PColor c in colors) {
       if (c.active) {
-        final PColor? _color = await ProxyService.local.getColor(id: c.id!);
-        ProxyService.local.updateColor(
-            colorId: _color!.id!, active: false, name: _color.name);
+        final PColor? _color = await ProxyService.strategy.getColor(id: c.id);
+        ProxyService.strategy
+            .updateColor(colorId: _color!.id, active: false, name: _color.name);
       }
     }
 
-    final PColor? _color = await ProxyService.local.getColor(id: color.id!);
+    final PColor? _color = await ProxyService.strategy.getColor(id: color.id);
 
-    ProxyService.local
-        .updateColor(colorId: _color!.id!, active: true, name: _color.name);
+    ProxyService.strategy
+        .updateColor(colorId: _color!.id, active: true, name: _color.name);
 
     widgetReference
         .read(unsavedProductProvider.notifier)
@@ -297,16 +295,16 @@ class ProductViewModel extends FlipperBaseModel
     double? supplyPrice,
     double? retailPrice,
   }) async {
-    Product? product = ProxyService.local.getProduct(id: productId ?? 0);
-    List<Variant> variants = await ProxyService.local.variants(
+    Product? product = ProxyService.strategy.getProduct(id: productId ?? 0);
+    List<Variant> variants = await ProxyService.strategy.variants(
         branchId: ProxyService.box.getBranchId()!, productId: productId);
 
     if (supplyPrice != null) {
       for (Variant variation in variants) {
         if (variation.name == "Regular") {
-          ProxyService.local.updateVariant(
+          ProxyService.strategy.updateVariant(
               updatables: [variation],
-              variantId: variation.id!,
+              variantId: variation.id,
               productName: product!.name,
               productId: variation.productId!,
               supplyPrice: supplyPrice,
@@ -318,9 +316,9 @@ class ProductViewModel extends FlipperBaseModel
     if (retailPrice != null) {
       for (Variant variation in variants) {
         if (variation.name == "Regular") {
-          ProxyService.local.updateVariant(
+          ProxyService.strategy.updateVariant(
               updatables: [variation],
-              variantId: variation.id!,
+              variantId: variation.id,
               productName: product!.name,
               productId: variation.productId!,
               retailPrice: retailPrice);
@@ -333,13 +331,13 @@ class ProductViewModel extends FlipperBaseModel
   Future<int> addFavorite(
       {required int favIndex, required int productId}) async {
     final favorite = Favorite(
-      ObjectId(),
+      id: randomNumber(),
       favIndex: favIndex,
       productId: productId,
       branchId: ProxyService.box.getBranchId(),
     );
 
-    int res = await ProxyService.local.addFavorite(data: favorite);
+    int res = await ProxyService.strategy.addFavorite(data: favorite);
     rebuildUi();
 
     return res;
@@ -349,31 +347,30 @@ class ProductViewModel extends FlipperBaseModel
     try {
       //get variants->delete
       int branchId = ProxyService.box.getBranchId()!;
-      List<Variant> variations = await ProxyService.local
+      List<Variant> variations = await ProxyService.strategy
           .variants(branchId: branchId, productId: productId);
       for (Variant variation in variations) {
         //get stock->delete
-        Stock? stock = await ProxyService.local.stockByVariantId(
-            variantId: variation.id!,
-            branchId: ProxyService.box.getBranchId()!);
+        Stock? stock = await ProxyService.strategy.stockByVariantId(
+            variantId: variation.id, branchId: ProxyService.box.getBranchId()!);
 
-        await ProxyService.local.delete(
-            id: variation.id!,
+        await ProxyService.strategy.delete(
+            id: variation.id,
             endPoint: 'variant',
             flipperHttpClient: ProxyService.http);
-        await ProxyService.local.delete(
-            id: stock!.id!,
+        await ProxyService.strategy.delete(
+            id: stock!.id,
             endPoint: 'stock',
             flipperHttpClient: ProxyService.http);
 
         Favorite? fav =
-            await ProxyService.local.getFavoriteByProdId(prodId: productId);
+            await ProxyService.strategy.getFavoriteByProdId(prodId: productId);
         if (fav != null) {
-          await ProxyService.local.deleteFavoriteByIndex(favIndex: fav.id!);
+          await ProxyService.strategy.deleteFavoriteByIndex(favIndex: fav.id);
         }
       }
       //then delete the product
-      await ProxyService.local.delete(
+      await ProxyService.strategy.delete(
           id: productId,
           endPoint: 'product',
           flipperHttpClient: ProxyService.http);
@@ -384,19 +381,19 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   void updateExpiryDate(DateTime date) async {
-    ProxyService.local.updateProduct(
-        productId: product!.id!, expiryDate: date.toIso8601String());
-    Product? cProduct = ProxyService.local.getProduct(id: product!.id!);
+    ProxyService.strategy.updateProduct(
+        productId: product!.id, expiryDate: date.toIso8601String());
+    Product? cProduct = ProxyService.strategy.getProduct(id: product!.id);
     setCurrentProduct(currentProduct: cProduct!);
     rebuildUi();
   }
 
   Stream<String> getProductName() async* {
-    yield product != null ? product!.name! : '';
+    yield product != null ? product!.name : '';
   }
 
   void deleteDiscount({id}) {
-    ProxyService.local.delete(
+    ProxyService.strategy.delete(
         id: id, endPoint: 'discount', flipperHttpClient: ProxyService.http);
   }
 
@@ -408,17 +405,17 @@ class ProductViewModel extends FlipperBaseModel
         await ProxyService.keypad.getPendingTransaction(branchId: branchId);
 
     if (transaction != null) {
-      List<TransactionItem> transactionItems = await ProxyService.local
+      List<TransactionItem> transactionItems = await ProxyService.strategy
           .getTransactionItemsByTransactionId(transactionId: transaction.id);
 
       for (TransactionItem item in transactionItems) {
         if (item.price.toInt() <= discount.amount!) {
           // item.discount = item.price;
-          ProxyService.local.updateTransactionItem(
-              transactionItemId: item.id!, discount: item.price);
+          ProxyService.strategy.updateTransactionItem(
+              transactionItemId: item.id, discount: item.price);
         } else {
-          ProxyService.local.updateTransactionItem(
-              transactionItemId: item.id!,
+          ProxyService.strategy.updateTransactionItem(
+              transactionItemId: item.id,
               discount: discount.amount!.toDouble());
         }
       }
@@ -431,7 +428,7 @@ class ProductViewModel extends FlipperBaseModel
   Future<void> bindTenant(
       {required int tenantId, required int productId}) async {
     try {
-      await ProxyService.local
+      await ProxyService.strategy
           .bindProduct(productId: productId, tenantId: tenantId);
       rebuildUi();
     } catch (e) {

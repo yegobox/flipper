@@ -1,8 +1,6 @@
-import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_dashboard/RefundReasonForm.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
-import 'package:flipper_models/power_sync/schema.dart';
-import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -65,7 +63,7 @@ class _RefundState extends ConsumerState<Refund> {
                       : "Refund",
                   onTap: () async {
                     try {
-                      if (widget.transaction!.isRefunded) {
+                      if (widget.transaction!.isRefunded ?? false) {
                         toast("This is already refunded");
                         return;
                       }
@@ -127,13 +125,13 @@ class _RefundState extends ConsumerState<Refund> {
                       bool purchaseCodeReceived = await showPurchaseCodeModal();
                       if (purchaseCodeReceived) {
                         if (widget.transaction!.receiptType == "PS") {
-                          if (widget.transaction!.isRefunded) {
+                          if (widget.transaction!.isRefunded ?? false) {
                             await handleReceipt(filterType: FilterType.CP);
                           } else {
                             await handleReceipt(filterType: FilterType.CP);
                           }
                         } else {
-                          if (widget.transaction!.isRefunded) {
+                          if (widget.transaction!.isRefunded ?? false) {
                             // I removed PR was await handleReceipt(filterType: FilterType.PR);
                             await handleReceipt(filterType: FilterType.CR);
                           } else {
@@ -143,13 +141,13 @@ class _RefundState extends ConsumerState<Refund> {
                       }
                     } else {
                       if (widget.transaction!.receiptType == "PS") {
-                        if (widget.transaction!.isRefunded) {
+                        if (widget.transaction!.isRefunded ?? false) {
                           await handleReceipt(filterType: FilterType.PR);
                         } else {
                           await handleReceipt(filterType: FilterType.CP);
                         }
                       } else {
-                        if (widget.transaction!.isRefunded) {
+                        if (widget.transaction!.isRefunded ?? false) {
                           await handleReceipt(filterType: FilterType.CR);
                         } else {
                           await handleReceipt(filterType: FilterType.CS);
@@ -269,7 +267,7 @@ class _RefundState extends ConsumerState<Refund> {
           .error("RefundableTransactionId: ${int.parse(widget.transactionId)}");
       talker.error("RefundableBranchId: ${widget.transaction?.id}");
 
-      List<TransactionItem> items = ProxyService.local.transactionItems(
+      List<TransactionItem> items = ProxyService.strategy.transactionItems(
           transactionId: int.parse(widget.transactionId),
           doneWithTransaction: true,
           branchId: widget.transaction!.branchId!,
@@ -278,47 +276,23 @@ class _RefundState extends ConsumerState<Refund> {
 
       for (TransactionItem item in items) {
         Variant? variant =
-            ProxyService.local.variant(variantId: item.variantId);
+            ProxyService.strategy.variant(variantId: item.variantId);
         if (variant != null) {
-          talker.info("Refund Variant to refund ${variant.toEJson()}");
-
-          Stock? stock = ProxyService.local.stockByVariantId(
-              variantId: variant.id!, branchId: variant.branchId!);
+          Stock? stock = ProxyService.strategy.stockByVariantId(
+              variantId: variant.id, branchId: variant.branchId!);
 
           if (stock != null) {
-            talker.info("Refund Stock to refund ${stock.toEJson()}");
-            ProxyService.local.realm!.writeN(
-              tableName: stocksTable,
-              writeCallback: () {
-                stock.ebmSynced = false;
-                stock.currentStock = stock.currentStock + item.qty;
-                return stock;
-              },
-              onAdd: (data) {
-                // ProxyService.backUp.replicateData(stocksTable, data);
-              },
-            );
+            ProxyService.strategy.updateStock(
+                stockId: stock.id,
+                currentStock: stock.currentStock! + item.qty,
+                ebmSynced: false);
 
-            ProxyService.local.realm!.writeN(
-              tableName: variantTable,
-              writeCallback: () {
-                variant.ebmSynced = false;
-                return variant;
-              },
-              onAdd: (data) {
-                // ProxyService.backUp.replicateData(variantTable, data);
-              },
-            );
+            ProxyService.strategy.updateVariant(
+                updatables: [variant], variantId: variant.id, ebmSynced: false);
 
-            ProxyService.local.realm!.writeN(
-              tableName: transactionTable,
-              writeCallback: () {
-                widget.transaction!.isRefunded = true;
-                return widget.transaction;
-              },
-              onAdd: (data) {
-                // ProxyService.backUp.replicateData(transactionTable, data);
-              },
+            ProxyService.strategy.updateTransaction(
+              transaction: widget.transaction!,
+              isRefunded: true,
             );
           }
         }

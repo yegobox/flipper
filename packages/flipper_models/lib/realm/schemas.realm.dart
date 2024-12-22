@@ -143,24 +143,24 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'serverId': serverId.toEJson(),
-//       'active': active.toEJson(),
-//       'description': description.toEJson(),
-//       'name': name.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'longitude': longitude.toEJson(),
-//       'latitude': latitude.toEJson(),
-//       'location': location.toEJson(),
-//       'isDefault': isDefault.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
-//       'isOnline': isOnline.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'serverId': serverId,
+//       'active': active,
+//       'description': description,
+//       'name': name,
+//       'businessId': businessId,
+//       'longitude': longitude,
+//       'latitude': latitude,
+//       'location': location,
+//       'isDefault': isDefault,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
+//       'isOnline': isOnline,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Branch value) => value.toEJson();
+//   static EJsonValue _toEJson(Branch value) => value;
 //   static Branch _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -351,24 +351,24 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'serverId': serverId.toEJson(),
-//       'active': active.toEJson(),
-//       'description': description.toEJson(),
-//       'name': name.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'longitude': longitude.toEJson(),
-//       'latitude': latitude.toEJson(),
-//       'location': location.toEJson(),
-//       'isDefault': isDefault.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
-//       'isOnline': isOnline.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'serverId': serverId,
+//       'active': active,
+//       'description': description,
+//       'name': name,
+//       'businessId': businessId,
+//       'longitude': longitude,
+//       'latitude': latitude,
+//       'location': location,
+//       'isDefault': isDefault,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
+//       'isOnline': isOnline,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Location value) => value.toEJson();
+//   static EJsonValue _toEJson(Location value) => value;
 //   static Location _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -791,54 +791,54 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       'serverId': serverId.toEJson(),
-//       'name': name.toEJson(),
-//       'currency': currency.toEJson(),
-//       'categoryId': categoryId.toEJson(),
-//       'latitude': latitude.toEJson(),
-//       'longitude': longitude.toEJson(),
-//       'userId': userId.toEJson(),
-//       'timeZone': timeZone.toEJson(),
-//       'country': country.toEJson(),
-//       'businessUrl': businessUrl.toEJson(),
-//       'hexColor': hexColor.toEJson(),
-//       'imageUrl': imageUrl.toEJson(),
-//       'type': type.toEJson(),
-//       'active': active.toEJson(),
-//       'chatUid': chatUid.toEJson(),
-//       'metadata': metadata.toEJson(),
-//       'role': role.toEJson(),
-//       'lastSeen': lastSeen.toEJson(),
-//       'firstName': firstName.toEJson(),
-//       'lastName': lastName.toEJson(),
-//       'createdAt': createdAt.toEJson(),
-//       'deviceToken': deviceToken.toEJson(),
-//       'backUpEnabled': backUpEnabled.toEJson(),
-//       'subscriptionPlan': subscriptionPlan.toEJson(),
-//       'nextBillingDate': nextBillingDate.toEJson(),
-//       'previousBillingDate': previousBillingDate.toEJson(),
+//       'id': id,
+//       'serverId': serverId,
+//       'name': name,
+//       'currency': currency,
+//       'categoryId': categoryId,
+//       'latitude': latitude,
+//       'longitude': longitude,
+//       'userId': userId,
+//       'timeZone': timeZone,
+//       'country': country,
+//       'businessUrl': businessUrl,
+//       'hexColor': hexColor,
+//       'imageUrl': imageUrl,
+//       'type': type,
+//       'active': active,
+//       'chatUid': chatUid,
+//       'metadata': metadata,
+//       'role': role,
+//       'lastSeen': lastSeen,
+//       'firstName': firstName,
+//       'lastName': lastName,
+//       'createdAt': createdAt,
+//       'deviceToken': deviceToken,
+//       'backUpEnabled': backUpEnabled,
+//       'subscriptionPlan': subscriptionPlan,
+//       'nextBillingDate': nextBillingDate,
+//       'previousBillingDate': previousBillingDate,
 //       'isLastSubscriptionPaymentSucceeded':
-//           isLastSubscriptionPaymentSucceeded.toEJson(),
-//       'backupFileId': backupFileId.toEJson(),
-//       'email': email.toEJson(),
-//       'lastDbBackup': lastDbBackup.toEJson(),
-//       'fullName': fullName.toEJson(),
-//       'tinNumber': tinNumber.toEJson(),
-//       'bhfId': bhfId.toEJson(),
-//       'dvcSrlNo': dvcSrlNo.toEJson(),
-//       'adrs': adrs.toEJson(),
-//       'taxEnabled': taxEnabled.toEJson(),
-//       'taxServerUrl': taxServerUrl.toEJson(),
-//       'isDefault': isDefault.toEJson(),
-//       'businessTypeId': businessTypeId.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
-//       'encryptionKey': encryptionKey.toEJson(),
+//           isLastSubscriptionPaymentSucceeded,
+//       'backupFileId': backupFileId,
+//       'email': email,
+//       'lastDbBackup': lastDbBackup,
+//       'fullName': fullName,
+//       'tinNumber': tinNumber,
+//       'bhfId': bhfId,
+//       'dvcSrlNo': dvcSrlNo,
+//       'adrs': adrs,
+//       'taxEnabled': taxEnabled,
+//       'taxServerUrl': taxServerUrl,
+//       'isDefault': isDefault,
+//       'businessTypeId': businessTypeId,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
+//       'encryptionKey': encryptionKey,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Business value) => value.toEJson();
+//   static EJsonValue _toEJson(Business value) => value;
 //   static Business _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -1044,18 +1044,18 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'active': active.toEJson(),
-//       'focused': focused.toEJson(),
-//       'name': name.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'active': active,
+//       'focused': focused,
+//       'name': name,
+//       'branchId': branchId,
+//       'deletedAt': deletedAt,
+//       'lastTouched': lastTouched,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Category value) => value.toEJson();
+//   static EJsonValue _toEJson(Category value) => value;
 //   static Category _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -1188,18 +1188,18 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'name': name.toEJson(),
-//       'colors': colors.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'active': active.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'name': name,
+//       'colors': colors,
+//       'branchId': branchId,
+//       'active': active,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(PColor value) => value.toEJson();
+//   static EJsonValue _toEJson(PColor value) => value;
 //   static PColor _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -1429,30 +1429,30 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'userName': userName.toEJson(),
-//       'body': body.toEJson(),
-//       'avatar': avatar.toEJson(),
-//       'channelType': channelType.toEJson(),
-//       'fromNumber': fromNumber.toEJson(),
-//       'toNumber': toNumber.toEJson(),
-//       'createdAt': createdAt.toEJson(),
-//       'messageType': messageType.toEJson(),
-//       'phoneNumberId': phoneNumberId.toEJson(),
-//       'messageId': messageId.toEJson(),
-//       'respondedBy': respondedBy.toEJson(),
-//       'conversationId': conversationId.toEJson(),
-//       'businessPhoneNumber': businessPhoneNumber.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'scheduledAt': scheduledAt.toEJson(),
-//       'delivered': delivered.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'userName': userName,
+//       'body': body,
+//       'avatar': avatar,
+//       'channelType': channelType,
+//       'fromNumber': fromNumber,
+//       'toNumber': toNumber,
+//       'createdAt': createdAt,
+//       'messageType': messageType,
+//       'phoneNumberId': phoneNumberId,
+//       'messageId': messageId,
+//       'respondedBy': respondedBy,
+//       'conversationId': conversationId,
+//       'businessPhoneNumber': businessPhoneNumber,
+//       'businessId': businessId,
+//       'scheduledAt': scheduledAt,
+//       'delivered': delivered,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Conversation value) => value.toEJson();
+//   static EJsonValue _toEJson(Conversation value) => value;
 //   static Conversation _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -1610,19 +1610,19 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'receiptType': receiptType.toEJson(),
-//       'totRcptNo': totRcptNo.toEJson(),
-//       'curRcptNo': curRcptNo.toEJson(),
-//       'invcNo': invcNo.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'businessId': businessId,
+//       'branchId': branchId,
+//       'receiptType': receiptType,
+//       'totRcptNo': totRcptNo,
+//       'curRcptNo': curRcptNo,
+//       'invcNo': invcNo,
+//       'lastTouched': lastTouched,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Counter value) => value.toEJson();
+//   static EJsonValue _toEJson(Counter value) => value;
 //   static Counter _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -1852,31 +1852,31 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'custNm': custNm.toEJson(),
-//       'email': email.toEJson(),
-//       'telNo': telNo.toEJson(),
-//       'adrs': adrs.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'updatedAt': updatedAt.toEJson(),
-//       'custNo': custNo.toEJson(),
-//       'custTin': custTin.toEJson(),
-//       'regrNm': regrNm.toEJson(),
-//       'regrId': regrId.toEJson(),
-//       'modrNm': modrNm.toEJson(),
-//       'modrId': modrId.toEJson(),
-//       'ebmSynced': ebmSynced.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
-//       'tin': tin.toEJson(),
-//       'bhfId': bhfId.toEJson(),
-//       'useYn': useYn.toEJson(),
-//       'customerType': customerType.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'custNm': custNm,
+//       'email': email,
+//       'telNo': telNo,
+//       'adrs': adrs,
+//       'branchId': branchId,
+//       'updatedAt': updatedAt,
+//       'custNo': custNo,
+//       'custTin': custTin,
+//       'regrNm': regrNm,
+//       'regrId': regrId,
+//       'modrNm': modrNm,
+//       'modrId': modrId,
+//       'ebmSynced': ebmSynced,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
+//       'tin': tin,
+//       'bhfId': bhfId,
+//       'useYn': useYn,
+//       'customerType': customerType,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Customer value) => value.toEJson();
+//   static EJsonValue _toEJson(Customer value) => value;
 //   static Customer _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -2070,23 +2070,23 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'linkingCode': linkingCode.toEJson(),
-//       'deviceName': deviceName.toEJson(),
-//       'deviceVersion': deviceVersion.toEJson(),
-//       'pubNubPublished': pubNubPublished.toEJson(),
-//       'phone': phone.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'userId': userId.toEJson(),
-//       'defaultApp': defaultApp.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'linkingCode': linkingCode,
+//       'deviceName': deviceName,
+//       'deviceVersion': deviceVersion,
+//       'pubNubPublished': pubNubPublished,
+//       'phone': phone,
+//       'branchId': branchId,
+//       'businessId': businessId,
+//       'userId': userId,
+//       'defaultApp': defaultApp,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Device value) => value.toEJson();
+//   static EJsonValue _toEJson(Device value) => value;
 //   static Device _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -2195,15 +2195,15 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'name': name.toEJson(),
-//       'amount': amount.toEJson(),
-//       'branchId': branchId.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'name': name,
+//       'amount': amount,
+//       'branchId': branchId,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Discount value) => value.toEJson();
+//   static EJsonValue _toEJson(Discount value) => value;
 //   static Discount _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -2441,32 +2441,32 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       '_id': realmId.toEJson(),
-//       'id': id.toEJson(),
-//       'openingBalance': openingBalance.toEJson(),
-//       'closingBalance': closingBalance.toEJson(),
-//       'openingDateTime': openingDateTime.toEJson(),
-//       'closingDateTime': closingDateTime.toEJson(),
-//       'csSaleCount': csSaleCount.toEJson(),
-//       'tradeName': tradeName.toEJson(),
-//       'totalNsSaleIncome': totalNsSaleIncome.toEJson(),
-//       'totalCsSaleIncome': totalCsSaleIncome.toEJson(),
-//       'nrSaleCount': nrSaleCount.toEJson(),
-//       'nsSaleCount': nsSaleCount.toEJson(),
-//       'trSaleCount': trSaleCount.toEJson(),
-//       'psSaleCount': psSaleCount.toEJson(),
-//       'incompleteSale': incompleteSale.toEJson(),
-//       'otherTransactions': otherTransactions.toEJson(),
-//       'paymentMode': paymentMode.toEJson(),
-//       'cashierId': cashierId.toEJson(),
-//       'open': open.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'branchId': branchId.toEJson(),
+//       '_id': realmId,
+//       'id': id,
+//       'openingBalance': openingBalance,
+//       'closingBalance': closingBalance,
+//       'openingDateTime': openingDateTime,
+//       'closingDateTime': closingDateTime,
+//       'csSaleCount': csSaleCount,
+//       'tradeName': tradeName,
+//       'totalNsSaleIncome': totalNsSaleIncome,
+//       'totalCsSaleIncome': totalCsSaleIncome,
+//       'nrSaleCount': nrSaleCount,
+//       'nsSaleCount': nsSaleCount,
+//       'trSaleCount': trSaleCount,
+//       'psSaleCount': psSaleCount,
+//       'incompleteSale': incompleteSale,
+//       'otherTransactions': otherTransactions,
+//       'paymentMode': paymentMode,
+//       'cashierId': cashierId,
+//       'open': open,
+//       'deletedAt': deletedAt,
+//       'businessId': businessId,
+//       'branchId': branchId,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Drawers value) => value.toEJson();
+//   static EJsonValue _toEJson(Drawers value) => value;
 //   static Drawers _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -2645,21 +2645,21 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'bhfId': bhfId.toEJson(),
-//       'tinNumber': tinNumber.toEJson(),
-//       'dvcSrlNo': dvcSrlNo.toEJson(),
-//       'userId': userId.toEJson(),
-//       'taxServerUrl': taxServerUrl.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'action': action.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'bhfId': bhfId,
+//       'tinNumber': tinNumber,
+//       'dvcSrlNo': dvcSrlNo,
+//       'userId': userId,
+//       'taxServerUrl': taxServerUrl,
+//       'businessId': businessId,
+//       'branchId': branchId,
+//       'lastTouched': lastTouched,
+//       'action': action,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(EBM value) => value.toEJson();
+//   static EJsonValue _toEJson(EBM value) => value;
 //   static EBM _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -2789,17 +2789,17 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'favIndex': favIndex.toEJson(),
-//       'productId': productId.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'favIndex': favIndex,
+//       'productId': productId,
+//       'branchId': branchId,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Favorite value) => value.toEJson();
+//   static EJsonValue _toEJson(Favorite value) => value;
 //   static Favorite _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -3053,33 +3053,33 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'name': name.toEJson(),
-//       'description': description.toEJson(),
-//       'taxId': taxId.toEJson(),
-//       'color': color.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'supplierId': supplierId.toEJson(),
-//       'categoryId': categoryId.toEJson(),
-//       'createdAt': createdAt.toEJson(),
-//       'unit': unit.toEJson(),
-//       'imageUrl': imageUrl.toEJson(),
-//       'expiryDate': expiryDate.toEJson(),
-//       'barCode': barCode.toEJson(),
-//       'nfcEnabled': nfcEnabled.toEJson(),
-//       'bindedToTenantId': bindedToTenantId.toEJson(),
-//       'isFavorite': isFavorite.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
-//       'spplrNm': spplrNm.toEJson(),
-//       'isComposite': isComposite.toEJson(),
-//       'composites': composites.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'name': name,
+//       'description': description,
+//       'taxId': taxId,
+//       'color': color,
+//       'businessId': businessId,
+//       'branchId': branchId,
+//       'supplierId': supplierId,
+//       'categoryId': categoryId,
+//       'createdAt': createdAt,
+//       'unit': unit,
+//       'imageUrl': imageUrl,
+//       'expiryDate': expiryDate,
+//       'barCode': barCode,
+//       'nfcEnabled': nfcEnabled,
+//       'bindedToTenantId': bindedToTenantId,
+//       'isFavorite': isFavorite,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
+//       'spplrNm': spplrNm,
+//       'isComposite': isComposite,
+//       'composites': composites,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Product value) => value.toEJson();
+//   static EJsonValue _toEJson(Product value) => value;
 //   static Product _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -3330,30 +3330,30 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'resultCd': resultCd.toEJson(),
-//       'resultMsg': resultMsg.toEJson(),
-//       'resultDt': resultDt.toEJson(),
-//       'rcptNo': rcptNo.toEJson(),
-//       'intrlData': intrlData.toEJson(),
-//       'rcptSign': rcptSign.toEJson(),
-//       'totRcptNo': totRcptNo.toEJson(),
-//       'vsdcRcptPbctDate': vsdcRcptPbctDate.toEJson(),
-//       'sdcId': sdcId.toEJson(),
-//       'mrcNo': mrcNo.toEJson(),
-//       'qrCode': qrCode.toEJson(),
-//       'receiptType': receiptType.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'transactionId': transactionId.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'invcNo': invcNo.toEJson(),
-//       'whenCreated': whenCreated.toEJson(),
-//       'invoiceNumber': invoiceNumber.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'resultCd': resultCd,
+//       'resultMsg': resultMsg,
+//       'resultDt': resultDt,
+//       'rcptNo': rcptNo,
+//       'intrlData': intrlData,
+//       'rcptSign': rcptSign,
+//       'totRcptNo': totRcptNo,
+//       'vsdcRcptPbctDate': vsdcRcptPbctDate,
+//       'sdcId': sdcId,
+//       'mrcNo': mrcNo,
+//       'qrCode': qrCode,
+//       'receiptType': receiptType,
+//       'branchId': branchId,
+//       'transactionId': transactionId,
+//       'lastTouched': lastTouched,
+//       'invcNo': invcNo,
+//       'whenCreated': whenCreated,
+//       'invoiceNumber': invoiceNumber,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Receipt value) => value.toEJson();
+//   static EJsonValue _toEJson(Receipt value) => value;
 //   static Receipt _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -3620,31 +3620,31 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'email': email.toEJson(),
-//       'userId': userId.toEJson(),
-//       'openReceiptFileOSaleComplete': openReceiptFileOSaleComplete.toEJson(),
-//       'autoPrint': autoPrint.toEJson(),
-//       'sendDailyReport': sendDailyReport.toEJson(),
-//       'defaultLanguage': defaultLanguage.toEJson(),
-//       'attendnaceDocCreated': attendnaceDocCreated.toEJson(),
-//       'isAttendanceEnabled': isAttendanceEnabled.toEJson(),
-//       'type': type.toEJson(),
-//       'enrolledInBot': enrolledInBot.toEJson(),
-//       'deviceToken': deviceToken.toEJson(),
-//       'businessPhoneNumber': businessPhoneNumber.toEJson(),
-//       'autoRespond': autoRespond.toEJson(),
-//       'token': token.toEJson(),
-//       'hasPin': hasPin.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'createdAt': createdAt.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'email': email,
+//       'userId': userId,
+//       'openReceiptFileOSaleComplete': openReceiptFileOSaleComplete,
+//       'autoPrint': autoPrint,
+//       'sendDailyReport': sendDailyReport,
+//       'defaultLanguage': defaultLanguage,
+//       'attendnaceDocCreated': attendnaceDocCreated,
+//       'isAttendanceEnabled': isAttendanceEnabled,
+//       'type': type,
+//       'enrolledInBot': enrolledInBot,
+//       'deviceToken': deviceToken,
+//       'businessPhoneNumber': businessPhoneNumber,
+//       'autoRespond': autoRespond,
+//       'token': token,
+//       'hasPin': hasPin,
+//       'businessId': businessId,
+//       'createdAt': createdAt,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Setting value) => value.toEJson();
+//   static EJsonValue _toEJson(Setting value) => value;
 //   static Setting _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -3910,30 +3910,30 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'tin': tin.toEJson(),
-//       'bhfId': bhfId.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'variantId': variantId.toEJson(),
-//       'currentStock': currentStock.toEJson(),
-//       'lowStock': lowStock.toEJson(),
-//       'canTrackingStock': canTrackingStock.toEJson(),
-//       'showLowStockAlert': showLowStockAlert.toEJson(),
-//       'productId': productId.toEJson(),
-//       'active': active.toEJson(),
-//       'value': value.toEJson(),
-//       'rsdQty': rsdQty.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
-//       'ebmSynced': ebmSynced.toEJson(),
-//       'cloudSynced': cloudSynced.toEJson(),
-//       'variant': variant.toEJson(),
-//       'initialStock': initialStock.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'tin': tin,
+//       'bhfId': bhfId,
+//       'branchId': branchId,
+//       'variantId': variantId,
+//       'currentStock': currentStock,
+//       'lowStock': lowStock,
+//       'canTrackingStock': canTrackingStock,
+//       'showLowStockAlert': showLowStockAlert,
+//       'productId': productId,
+//       'active': active,
+//       'value': value,
+//       'rsdQty': rsdQty,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
+//       'ebmSynced': ebmSynced,
+//       'cloudSynced': cloudSynced,
+//       'variant': variant,
+//       'initialStock': initialStock,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Stock value) => value.toEJson();
+//   static EJsonValue _toEJson(Stock value) => value;
 //   static Stock _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -4475,64 +4475,64 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
-//       'name': name.toEJson(),
-//       'color': color.toEJson(),
-//       'sku': sku.toEJson(),
-//       'productId': productId.toEJson(),
-//       'unit': unit.toEJson(),
-//       'productName': productName.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'taxName': taxName.toEJson(),
-//       'taxPercentage': taxPercentage.toEJson(),
-//       'isTaxExempted': isTaxExempted.toEJson(),
-//       'itemSeq': itemSeq.toEJson(),
-//       'isrccCd': isrccCd.toEJson(),
-//       'isrccNm': isrccNm.toEJson(),
-//       'isrcRt': isrcRt.toEJson(),
-//       'isrcAmt': isrcAmt.toEJson(),
-//       'taxTyCd': taxTyCd.toEJson(),
-//       'bcd': bcd.toEJson(),
-//       'itemClsCd': itemClsCd.toEJson(),
-//       'itemTyCd': itemTyCd.toEJson(),
-//       'itemStdNm': itemStdNm.toEJson(),
-//       'orgnNatCd': orgnNatCd.toEJson(),
-//       'pkg': pkg.toEJson(),
-//       'itemCd': itemCd.toEJson(),
-//       'pkgUnitCd': pkgUnitCd.toEJson(),
-//       'qtyUnitCd': qtyUnitCd.toEJson(),
-//       'itemNm': itemNm.toEJson(),
-//       'qty': qty.toEJson(),
-//       'prc': prc.toEJson(),
-//       'splyAmt': splyAmt.toEJson(),
-//       'tin': tin.toEJson(),
-//       'bhfId': bhfId.toEJson(),
-//       'dftPrc': dftPrc.toEJson(),
-//       'addInfo': addInfo.toEJson(),
-//       'isrcAplcbYn': isrcAplcbYn.toEJson(),
-//       'useYn': useYn.toEJson(),
-//       'regrId': regrId.toEJson(),
-//       'regrNm': regrNm.toEJson(),
-//       'modrId': modrId.toEJson(),
-//       'modrNm': modrNm.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'supplyPrice': supplyPrice.toEJson(),
-//       'retailPrice': retailPrice.toEJson(),
-//       'spplrItemClsCd': spplrItemClsCd.toEJson(),
-//       'spplrItemCd': spplrItemCd.toEJson(),
-//       'spplrItemNm': spplrItemNm.toEJson(),
-//       'ebmSynced': ebmSynced.toEJson(),
-//       'taxType': taxType.toEJson(),
-//       'branchIds': branchIds.toEJson(),
-//       'stock': stock.toEJson(),
-//       'dcRt': dcRt.toEJson(),
-//       'expirationDate': expirationDate.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'deletedAt': deletedAt,
+//       'name': name,
+//       'color': color,
+//       'sku': sku,
+//       'productId': productId,
+//       'unit': unit,
+//       'productName': productName,
+//       'branchId': branchId,
+//       'taxName': taxName,
+//       'taxPercentage': taxPercentage,
+//       'isTaxExempted': isTaxExempted,
+//       'itemSeq': itemSeq,
+//       'isrccCd': isrccCd,
+//       'isrccNm': isrccNm,
+//       'isrcRt': isrcRt,
+//       'isrcAmt': isrcAmt,
+//       'taxTyCd': taxTyCd,
+//       'bcd': bcd,
+//       'itemClsCd': itemClsCd,
+//       'itemTyCd': itemTyCd,
+//       'itemStdNm': itemStdNm,
+//       'orgnNatCd': orgnNatCd,
+//       'pkg': pkg,
+//       'itemCd': itemCd,
+//       'pkgUnitCd': pkgUnitCd,
+//       'qtyUnitCd': qtyUnitCd,
+//       'itemNm': itemNm,
+//       'qty': qty,
+//       'prc': prc,
+//       'splyAmt': splyAmt,
+//       'tin': tin,
+//       'bhfId': bhfId,
+//       'dftPrc': dftPrc,
+//       'addInfo': addInfo,
+//       'isrcAplcbYn': isrcAplcbYn,
+//       'useYn': useYn,
+//       'regrId': regrId,
+//       'regrNm': regrNm,
+//       'modrId': modrId,
+//       'modrNm': modrNm,
+//       'lastTouched': lastTouched,
+//       'supplyPrice': supplyPrice,
+//       'retailPrice': retailPrice,
+//       'spplrItemClsCd': spplrItemClsCd,
+//       'spplrItemCd': spplrItemCd,
+//       'spplrItemNm': spplrItemNm,
+//       'ebmSynced': ebmSynced,
+//       'taxType': taxType,
+//       'branchIds': branchIds,
+//       'stock': stock,
+//       'dcRt': dcRt,
+//       'expirationDate': expirationDate,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Variant value) => value.toEJson();
+//   static EJsonValue _toEJson(Variant value) => value;
 //   static Variant _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -4821,25 +4821,25 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'mainBranchId': mainBranchId.toEJson(),
-//       'subBranchId': subBranchId.toEJson(),
-//       'createdAt': createdAt.toEJson(),
-//       'status': status.toEJson(),
-//       'deliveryDate': deliveryDate.toEJson(),
-//       'deliveryNote': deliveryNote.toEJson(),
-//       'orderNote': orderNote.toEJson(),
-//       'customerReceivedOrder': customerReceivedOrder.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'mainBranchId': mainBranchId,
+//       'subBranchId': subBranchId,
+//       'createdAt': createdAt,
+//       'status': status,
+//       'deliveryDate': deliveryDate,
+//       'deliveryNote': deliveryNote,
+//       'orderNote': orderNote,
+//       'customerReceivedOrder': customerReceivedOrder,
 //       'driverRequestDeliveryConfirmation':
-//           driverRequestDeliveryConfirmation.toEJson(),
-//       'driverId': driverId.toEJson(),
-//       'items': items.toEJson(),
-//       'updatedAt': updatedAt.toEJson(),
+//           driverRequestDeliveryConfirmation,
+//       'driverId': driverId,
+//       'items': items,
+//       'updatedAt': updatedAt,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(StockRequest value) => value.toEJson();
+//   static EJsonValue _toEJson(StockRequest value) => value;
 //   static StockRequest _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -5397,68 +5397,68 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'name': name.toEJson(),
-//       'quantityRequested': quantityRequested.toEJson(),
-//       'quantityApproved': quantityApproved.toEJson(),
-//       'quantityShipped': quantityShipped.toEJson(),
-//       'transactionId': transactionId.toEJson(),
-//       'variantId': variantId.toEJson(),
-//       'qty': qty.toEJson(),
-//       'price': price.toEJson(),
-//       'discount': discount.toEJson(),
-//       'type': type.toEJson(),
-//       'remainingStock': remainingStock.toEJson(),
-//       'createdAt': createdAt.toEJson(),
-//       'updatedAt': updatedAt.toEJson(),
-//       'isTaxExempted': isTaxExempted.toEJson(),
-//       'isRefunded': isRefunded.toEJson(),
-//       'doneWithTransaction': doneWithTransaction.toEJson(),
-//       'active': active.toEJson(),
-//       'dcRt': dcRt.toEJson(),
-//       'dcAmt': dcAmt.toEJson(),
-//       'taxblAmt': taxblAmt.toEJson(),
-//       'taxAmt': taxAmt.toEJson(),
-//       'totAmt': totAmt.toEJson(),
-//       'itemSeq': itemSeq.toEJson(),
-//       'isrccCd': isrccCd.toEJson(),
-//       'isrccNm': isrccNm.toEJson(),
-//       'isrcRt': isrcRt.toEJson(),
-//       'isrcAmt': isrcAmt.toEJson(),
-//       'taxTyCd': taxTyCd.toEJson(),
-//       'bcd': bcd.toEJson(),
-//       'itemClsCd': itemClsCd.toEJson(),
-//       'itemTyCd': itemTyCd.toEJson(),
-//       'itemStdNm': itemStdNm.toEJson(),
-//       'orgnNatCd': orgnNatCd.toEJson(),
-//       'pkg': pkg.toEJson(),
-//       'itemCd': itemCd.toEJson(),
-//       'pkgUnitCd': pkgUnitCd.toEJson(),
-//       'qtyUnitCd': qtyUnitCd.toEJson(),
-//       'itemNm': itemNm.toEJson(),
-//       'prc': prc.toEJson(),
-//       'splyAmt': splyAmt.toEJson(),
-//       'tin': tin.toEJson(),
-//       'bhfId': bhfId.toEJson(),
-//       'dftPrc': dftPrc.toEJson(),
-//       'addInfo': addInfo.toEJson(),
-//       'isrcAplcbYn': isrcAplcbYn.toEJson(),
-//       'useYn': useYn.toEJson(),
-//       'regrId': regrId.toEJson(),
-//       'regrNm': regrNm.toEJson(),
-//       'modrId': modrId.toEJson(),
-//       'modrNm': modrNm.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'ebmSynced': ebmSynced.toEJson(),
-//       'partOfComposite': partOfComposite.toEJson(),
-//       'compositePrice': compositePrice.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'name': name,
+//       'quantityRequested': quantityRequested,
+//       'quantityApproved': quantityApproved,
+//       'quantityShipped': quantityShipped,
+//       'transactionId': transactionId,
+//       'variantId': variantId,
+//       'qty': qty,
+//       'price': price,
+//       'discount': discount,
+//       'type': type,
+//       'remainingStock': remainingStock,
+//       'createdAt': createdAt,
+//       'updatedAt': updatedAt,
+//       'isTaxExempted': isTaxExempted,
+//       'isRefunded': isRefunded,
+//       'doneWithTransaction': doneWithTransaction,
+//       'active': active,
+//       'dcRt': dcRt,
+//       'dcAmt': dcAmt,
+//       'taxblAmt': taxblAmt,
+//       'taxAmt': taxAmt,
+//       'totAmt': totAmt,
+//       'itemSeq': itemSeq,
+//       'isrccCd': isrccCd,
+//       'isrccNm': isrccNm,
+//       'isrcRt': isrcRt,
+//       'isrcAmt': isrcAmt,
+//       'taxTyCd': taxTyCd,
+//       'bcd': bcd,
+//       'itemClsCd': itemClsCd,
+//       'itemTyCd': itemTyCd,
+//       'itemStdNm': itemStdNm,
+//       'orgnNatCd': orgnNatCd,
+//       'pkg': pkg,
+//       'itemCd': itemCd,
+//       'pkgUnitCd': pkgUnitCd,
+//       'qtyUnitCd': qtyUnitCd,
+//       'itemNm': itemNm,
+//       'prc': prc,
+//       'splyAmt': splyAmt,
+//       'tin': tin,
+//       'bhfId': bhfId,
+//       'dftPrc': dftPrc,
+//       'addInfo': addInfo,
+//       'isrcAplcbYn': isrcAplcbYn,
+//       'useYn': useYn,
+//       'regrId': regrId,
+//       'regrNm': regrNm,
+//       'modrId': modrId,
+//       'modrNm': modrNm,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
+//       'branchId': branchId,
+//       'ebmSynced': ebmSynced,
+//       'partOfComposite': partOfComposite,
+//       'compositePrice': compositePrice,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(TransactionItem value) => value.toEJson();
+//   static EJsonValue _toEJson(TransactionItem value) => value;
 //   static TransactionItem _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -5917,44 +5917,44 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'reference': reference.toEJson(),
-//       'categoryId': categoryId.toEJson(),
-//       'transactionNumber': transactionNumber.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'status': status.toEJson(),
-//       'transactionType': transactionType.toEJson(),
-//       'subTotal': subTotal.toEJson(),
-//       'paymentType': paymentType.toEJson(),
-//       'cashReceived': cashReceived.toEJson(),
-//       'customerChangeDue': customerChangeDue.toEJson(),
-//       'createdAt': createdAt.toEJson(),
-//       'receiptType': receiptType.toEJson(),
-//       'updatedAt': updatedAt.toEJson(),
-//       'customerId': customerId.toEJson(),
-//       'customerType': customerType.toEJson(),
-//       'note': note.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'ticketName': ticketName.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
-//       'supplierId': supplierId.toEJson(),
-//       'ebmSynced': ebmSynced.toEJson(),
-//       'isIncome': isIncome.toEJson(),
-//       'isExpense': isExpense.toEJson(),
-//       'isRefunded': isRefunded.toEJson(),
-//       'customerName': customerName.toEJson(),
-//       'customerTin': customerTin.toEJson(),
-//       'remark': remark.toEJson(),
-//       'customerBhfId': customerBhfId.toEJson(),
-//       'sarTyCd': sarTyCd.toEJson(),
-//       'receiptNumber': receiptNumber.toEJson(),
-//       'totalReceiptNumber': totalReceiptNumber.toEJson(),
-//       'invoiceNumber': invoiceNumber.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'reference': reference,
+//       'categoryId': categoryId,
+//       'transactionNumber': transactionNumber,
+//       'branchId': branchId,
+//       'status': status,
+//       'transactionType': transactionType,
+//       'subTotal': subTotal,
+//       'paymentType': paymentType,
+//       'cashReceived': cashReceived,
+//       'customerChangeDue': customerChangeDue,
+//       'createdAt': createdAt,
+//       'receiptType': receiptType,
+//       'updatedAt': updatedAt,
+//       'customerId': customerId,
+//       'customerType': customerType,
+//       'note': note,
+//       'lastTouched': lastTouched,
+//       'ticketName': ticketName,
+//       'deletedAt': deletedAt,
+//       'supplierId': supplierId,
+//       'ebmSynced': ebmSynced,
+//       'isIncome': isIncome,
+//       'isExpense': isExpense,
+//       'isRefunded': isRefunded,
+//       'customerName': customerName,
+//       'customerTin': customerTin,
+//       'remark': remark,
+//       'customerBhfId': customerBhfId,
+//       'sarTyCd': sarTyCd,
+//       'receiptNumber': receiptNumber,
+//       'totalReceiptNumber': totalReceiptNumber,
+//       'invoiceNumber': invoiceNumber,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(ITransaction value) => value.toEJson();
+//   static EJsonValue _toEJson(ITransaction value) => value;
 //   static ITransaction _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -6153,19 +6153,19 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'name': name.toEJson(),
-//       'value': value.toEJson(),
-//       'active': active.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'createdAt': createdAt.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'branchId': branchId,
+//       'name': name,
+//       'value': value,
+//       'active': active,
+//       'lastTouched': lastTouched,
+//       'createdAt': createdAt,
+//       'deletedAt': deletedAt,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(IUnit value) => value.toEJson();
+//   static EJsonValue _toEJson(IUnit value) => value;
 //   static IUnit _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -6288,18 +6288,18 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'value': value.toEJson(),
-//       'interval': interval.toEJson(),
-//       'used': used.toEJson(),
-//       'createdAt': createdAt.toEJson(),
-//       'usedAt': usedAt.toEJson(),
-//       'descriptor': descriptor.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'value': value,
+//       'interval': interval,
+//       'used': used,
+//       'createdAt': createdAt,
+//       'usedAt': usedAt,
+//       'descriptor': descriptor,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Voucher value) => value.toEJson();
+//   static EJsonValue _toEJson(Voucher value) => value;
 //   static Voucher _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -6493,26 +6493,26 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'name': name.toEJson(),
-//       'phoneNumber': phoneNumber.toEJson(),
-//       'email': email.toEJson(),
-//       'nfcEnabled': nfcEnabled.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'userId': userId.toEJson(),
-//       'imageUrl': imageUrl.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
-//       'pin': pin.toEJson(),
-//       'sessionActive': sessionActive.toEJson(),
-//       'isDefault': isDefault.toEJson(),
-//       'isLongPressed': isLongPressed.toEJson(),
-//       'type': type.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'name': name,
+//       'phoneNumber': phoneNumber,
+//       'email': email,
+//       'nfcEnabled': nfcEnabled,
+//       'businessId': businessId,
+//       'userId': userId,
+//       'imageUrl': imageUrl,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
+//       'pin': pin,
+//       'sessionActive': sessionActive,
+//       'isDefault': isDefault,
+//       'isLongPressed': isLongPressed,
+//       'type': type,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Tenant value) => value.toEJson();
+//   static EJsonValue _toEJson(Tenant value) => value;
 //   static Tenant _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -6665,20 +6665,20 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'userId': userId.toEJson(),
-//       'phoneNumber': phoneNumber.toEJson(),
-//       'pin': pin.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'ownerName': ownerName.toEJson(),
-//       'tokenUid': tokenUid.toEJson(),
-//       'uid': uid.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'userId': userId,
+//       'phoneNumber': phoneNumber,
+//       'pin': pin,
+//       'branchId': branchId,
+//       'businessId': businessId,
+//       'ownerName': ownerName,
+//       'tokenUid': tokenUid,
+//       'uid': uid,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Pin value) => value.toEJson();
+//   static EJsonValue _toEJson(Pin value) => value;
 //   static Pin _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -6774,14 +6774,14 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'name': name.toEJson(),
-//       'userId': userId.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'name': name,
+//       'userId': userId,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(LPermission value) => value.toEJson();
+//   static EJsonValue _toEJson(LPermission value) => value;
 //   static LPermission _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -6907,19 +6907,19 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'type': type.toEJson(),
-//       'token': token.toEJson(),
-//       'validFrom': validFrom.toEJson(),
-//       'validUntil': validUntil.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'deletedAt': deletedAt.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'type': type,
+//       'token': token,
+//       'validFrom': validFrom,
+//       'validUntil': validUntil,
+//       'businessId': businessId,
+//       'lastTouched': lastTouched,
+//       'deletedAt': deletedAt,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Token value) => value.toEJson();
+//   static EJsonValue _toEJson(Token value) => value;
 //   static Token _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -7046,18 +7046,18 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'timestamp': timestamp.toEJson(),
-//       'lastTouched': lastTouched.toEJson(),
-//       'userId': userId.toEJson(),
-//       'event': event.toEJson(),
-//       'details': details.toEJson(),
-//       'action': action.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'timestamp': timestamp,
+//       'lastTouched': lastTouched,
+//       'userId': userId,
+//       'event': event,
+//       'details': details,
+//       'action': action,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Activity value) => value.toEJson();
+//   static EJsonValue _toEJson(Activity value) => value;
 //   static Activity _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -7198,20 +7198,20 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'itemClsCd': itemClsCd.toEJson(),
-//       'itemClsNm': itemClsNm.toEJson(),
-//       'itemClsLvl': itemClsLvl.toEJson(),
-//       'taxTyCd': taxTyCd.toEJson(),
-//       'mjrTgYn': mjrTgYn.toEJson(),
-//       'useYn': useYn.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'branchId': branchId.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'itemClsCd': itemClsCd,
+//       'itemClsNm': itemClsNm,
+//       'itemClsLvl': itemClsLvl,
+//       'taxTyCd': taxTyCd,
+//       'mjrTgYn': mjrTgYn,
+//       'useYn': useYn,
+//       'businessId': businessId,
+//       'branchId': branchId,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(UnversalProduct value) => value.toEJson();
+//   static EJsonValue _toEJson(UnversalProduct value) => value;
 //   static UnversalProduct _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -7333,16 +7333,16 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'taxType': taxType.toEJson(),
-//       'taxPercentage': taxPercentage.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'branchId': branchId.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'taxType': taxType,
+//       'taxPercentage': taxPercentage,
+//       'businessId': businessId,
+//       'branchId': branchId,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Configurations value) => value.toEJson();
+//   static EJsonValue _toEJson(Configurations value) => value;
 //   static Configurations _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -7455,16 +7455,16 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'completed': completed.toEJson(),
-//       'type': type.toEJson(),
-//       'message': message.toEJson(),
-//       'identifier': identifier.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'completed': completed,
+//       'type': type,
+//       'message': message,
+//       'identifier': identifier,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(AppNotification value) => value.toEJson();
+//   static EJsonValue _toEJson(AppNotification value) => value;
 //   static AppNotification _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -7566,16 +7566,16 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'assetName': assetName.toEJson(),
-//       'productId': productId.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'branchId': branchId,
+//       'businessId': businessId,
+//       'assetName': assetName,
+//       'productId': productId,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Assets value) => value.toEJson();
+//   static EJsonValue _toEJson(Assets value) => value;
 //   static Assets _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -7700,18 +7700,18 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'productId': productId.toEJson(),
-//       'variantId': variantId.toEJson(),
-//       'qty': qty.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'actualPrice': actualPrice.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'productId': productId,
+//       'variantId': variantId,
+//       'qty': qty,
+//       'branchId': branchId,
+//       'businessId': businessId,
+//       'actualPrice': actualPrice,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Composite value) => value.toEJson();
+//   static EJsonValue _toEJson(Composite value) => value;
 //   static Composite _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -7823,16 +7823,16 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'sku': sku.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'consumed': consumed.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'sku': sku,
+//       'branchId': branchId,
+//       'businessId': businessId,
+//       'consumed': consumed,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(SKU value) => value.toEJson();
+//   static EJsonValue _toEJson(SKU value) => value;
 //   static SKU _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -7948,17 +7948,17 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'filename': filename.toEJson(),
-//       's3Url': s3Url.toEJson(),
-//       'downloaded': downloaded.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'branchId': branchId,
+//       'businessId': businessId,
+//       'filename': filename,
+//       's3Url': s3Url,
+//       'downloaded': downloaded,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Report value) => value.toEJson();
+//   static EJsonValue _toEJson(Report value) => value;
 //   static Report _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -8104,21 +8104,21 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'userId': userId.toEJson(),
-//       'featureName': featureName.toEJson(),
-//       'userType': userType.toEJson(),
-//       'accessLevel': accessLevel.toEJson(),
-//       'createdAt': createdAt.toEJson(),
-//       'expiresAt': expiresAt.toEJson(),
-//       'status': status.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'branchId': branchId,
+//       'businessId': businessId,
+//       'userId': userId,
+//       'featureName': featureName,
+//       'userType': userType,
+//       'accessLevel': accessLevel,
+//       'createdAt': createdAt,
+//       'expiresAt': expiresAt,
+//       'status': status,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(Access value) => value.toEJson();
+//   static EJsonValue _toEJson(Access value) => value;
 //   static Access _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -8313,24 +8313,24 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'selectedPlan': selectedPlan.toEJson(),
-//       'additionalDevices': additionalDevices.toEJson(),
-//       'isYearlyPlan': isYearlyPlan.toEJson(),
-//       'totalPrice': totalPrice.toEJson(),
-//       'createdAt': createdAt.toEJson(),
-//       'paymentCompletedByUser': paymentCompletedByUser.toEJson(),
-//       'payStackCustomerId': payStackCustomerId.toEJson(),
-//       'rule': rule.toEJson(),
-//       'paymentMethod': paymentMethod.toEJson(),
-//       'customerCode': customerCode.toEJson(),
-//       'payStackPlanId': payStackPlanId.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'businessId': businessId,
+//       'selectedPlan': selectedPlan,
+//       'additionalDevices': additionalDevices,
+//       'isYearlyPlan': isYearlyPlan,
+//       'totalPrice': totalPrice,
+//       'createdAt': createdAt,
+//       'paymentCompletedByUser': paymentCompletedByUser,
+//       'payStackCustomerId': payStackCustomerId,
+//       'rule': rule,
+//       'paymentMethod': paymentMethod,
+//       'customerCode': customerCode,
+//       'payStackPlanId': payStackPlanId,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(PaymentPlan value) => value.toEJson();
+//   static EJsonValue _toEJson(PaymentPlan value) => value;
 //   static PaymentPlan _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -8461,16 +8461,16 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'compaignId': compaignId.toEJson(),
-//       'discountRate': discountRate.toEJson(),
-//       'createdAt': createdAt.toEJson(),
-//       'couponCode': couponCode.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'compaignId': compaignId,
+//       'discountRate': discountRate,
+//       'createdAt': createdAt,
+//       'couponCode': couponCode,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(FlipperSaleCompaign value) => value.toEJson();
+//   static EJsonValue _toEJson(FlipperSaleCompaign value) => value;
 //   static FlipperSaleCompaign _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -8587,16 +8587,16 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'transactionId': transactionId.toEJson(),
-//       'amount': amount.toEJson(),
-//       'paymentMethod': paymentMethod.toEJson(),
-//       'createdAt': createdAt.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'transactionId': transactionId,
+//       'amount': amount,
+//       'paymentMethod': paymentMethod,
+//       'createdAt': createdAt,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(TransactionPaymentRecord value) => value.toEJson();
+//   static EJsonValue _toEJson(TransactionPaymentRecord value) => value;
 //   static TransactionPaymentRecord _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -8719,18 +8719,18 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'branchId': branchId.toEJson(),
-//       'businessId': businessId.toEJson(),
-//       'objectName': objectName.toEJson(),
-//       'objectId': objectId.toEJson(),
-//       'deviceCount': deviceCount.toEJson(),
-//       'expectedDeviceCount': expectedDeviceCount.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'branchId': branchId,
+//       'businessId': businessId,
+//       'objectName': objectName,
+//       'objectId': objectId,
+//       'deviceCount': deviceCount,
+//       'expectedDeviceCount': expectedDeviceCount,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(DeletedObject value) => value.toEJson();
+//   static EJsonValue _toEJson(DeletedObject value) => value;
 //   static DeletedObject _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {
@@ -8851,17 +8851,17 @@
 
 //   EJsonValue toEJson() {
 //     return <String, dynamic>{
-//       'id': id.toEJson(),
-//       '_id': realmId.toEJson(),
-//       'tableName': tableName.toEJson(),
-//       'objectId': objectId.toEJson(),
-//       'deviceIdentifier': deviceIdentifier.toEJson(),
-//       'syncDevices': syncDevices.toEJson(),
-//       'deviceDownloadedObject': deviceDownloadedObject.toEJson(),
+//       'id': id,
+//       '_id': realmId,
+//       'tableName': tableName,
+//       'objectId': objectId,
+//       'deviceIdentifier': deviceIdentifier,
+//       'syncDevices': syncDevices,
+//       'deviceDownloadedObject': deviceDownloadedObject,
 //     };
 //   }
 
-//   static EJsonValue _toEJson(DataMapper value) => value.toEJson();
+//   static EJsonValue _toEJson(DataMapper value) => value;
 //   static DataMapper _fromEJson(EJsonValue ejson) {
 //     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
 //     return switch (ejson) {

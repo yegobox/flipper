@@ -3,7 +3,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:realm/realm.dart';
+
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -167,43 +167,41 @@ class _AddVariationState extends State<AddVariation> {
     Map<int, TextEditingController>? rates,
     Map<int, TextEditingController>? dates,
   }) async {
-    Business business = await ProxyService.local.getBusiness();
+    Business? business = await ProxyService.strategy.getBusiness();
     String itemPrefix = "flip-";
     String clip = itemPrefix +
         DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
-    final variantId = randomNumber();
+
     int id = randomNumber();
     // 321981891968185
     // 321981891968185
     List<Variant> variations = [];
-    Variant data = Variant(ObjectId(),
-        id: id,
-        color: model.product!.color,
-        name: nameController.text,
-        sku: sku,
-        lastTouched: DateTime.now(),
-        productId: model.product!.id!,
-        unit: model.productService.currentUnit!,
-        productName: nameController.text,
-        branchId: ProxyService.box.getBranchId()!,
-        supplyPrice: double.parse(costController.text),
-        retailPrice: double.parse(retailController.text),
-        isTaxExempted: isTaxExempted)
+    Variant data = Variant(
+      id: id,
+      color: model.product!.color,
+      name: nameController.text,
+      sku: sku,
+      lastTouched: DateTime.now(),
+      productId: model.product!.id,
+      unit: model.productService.currentUnit!,
+      productName: nameController.text,
+      branchId: ProxyService.box.getBranchId()!,
+      supplyPrice: double.parse(costController.text),
+      retailPrice: double.parse(retailController.text),
+    )
       ..name = nameController.text
       ..sku = sku
       ..retailPrice = double.parse(retailController.text)
       ..supplyPrice = double.parse(costController.text)
-      ..productId = model.product!.id!
+      ..productId = model.product!.id
       ..unit = model.productService.currentUnit!
-      ..isTaxExempted = isTaxExempted
       ..productName = model.product!.name
       ..branchId = model.productService.branchId!
-      ..id = variantId
       ..branchId = ProxyService.box.getBranchId()!
       ..taxPercentage = 0.0
       // RRA fields
       ..bhfId = await ProxyService.box.bhfId() ?? "00"
-      ..tin = business.tinNumber
+      ..tin = business!.tinNumber
       ..itemCd = clip
       ..itemStdNm = "Regular"
       ..prc = 0

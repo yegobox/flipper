@@ -8,7 +8,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:realm/realm.dart';
+
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/locator.dart' as loc;
@@ -45,10 +45,9 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
         await ProxyService.box.writeBool(key: 'isAnonymous', value: true);
 
         final thePin = Pin(
-          ObjectId(),
           userId: int.tryParse(pin.userId),
           pin: int.tryParse(pin.userId),
-          id: int.tryParse(pin.userId),
+          id: int.tryParse(pin.userId)?? 0,
           branchId: pin.branchId,
           businessId: pin.businessId,
           ownerName: pin.ownerName,
@@ -56,7 +55,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
           phoneNumber: pin.phoneNumber,
         );
 
-        await ProxyService.local.login(
+        await ProxyService.strategy.login(
           pin: thePin,
           flipperHttpClient: ProxyService.http,
           skipDefaultAppSetup: false,
@@ -76,7 +75,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
 
   // Get PIN from local service
   Future<IPin?> _getPin() async {
-    return await ProxyService.local.getPin(
+    return await ProxyService.strategy.getPin(
       pinString: _pinController.text,
       flipperHttpClient: ProxyService.http,
     );
@@ -85,7 +84,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
   // Handle the login completion flow (redirect after login)
   Future<void> _completeLogin(Pin thePin) async {
     try {
-      await ProxyService.local.savePin(pin: thePin);
+      await ProxyService.strategy.savePin(pin: thePin);
       await loc.getIt<AppService>().appInit();
       final defaultApp = ProxyService.box.getDefaultApp();
 

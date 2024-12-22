@@ -81,7 +81,7 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
   BranchAdapter();
 
   @override
-  final supabaseTableName = 'branchs';
+  final supabaseTableName = 'branches';
   @override
   final defaultToNull = true;
   @override

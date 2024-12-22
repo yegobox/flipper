@@ -45,7 +45,7 @@ class _AdminControlState extends State<AdminControl> {
     await ProxyService.box.writeBool(
         key: 'doneDownloadingAsset',
         value: !ProxyService.box.doneDownloadingAsset());
-    ProxyService.local.reDownloadAsset();
+    ProxyService.strategy.reDownloadAsset();
     setState(() {
       filesDownloaded = ProxyService.box.doneDownloadingAsset();
     });
@@ -54,17 +54,17 @@ class _AdminControlState extends State<AdminControl> {
   Future<void> toggleForceUPSERT(bool value) async {
     /// get product attempt to save'em in sqlite.
     final repository = Repository();
-    List<Product> products = await ProxyService.local
+    List<Product> products = await ProxyService.strategy
         .products(branchId: ProxyService.box.getBranchId()!);
     for (Product product in products) {
       await repository.upsert(models.Product(
-        id: product.id!,
-        name: product.name!,
+        id: product.id,
+        name: product.name,
         taxId: product.taxId,
         description: product.description,
         color: product.color,
-        businessId: product.businessId!,
-        branchId: product.branchId!,
+        businessId: product.businessId,
+        branchId: product.branchId,
         supplierId: product.supplierId,
         categoryId: product.categoryId,
         // taxId: product.taxId,
@@ -86,12 +86,12 @@ class _AdminControlState extends State<AdminControl> {
     try {
       // deal with items
 
-      List<Variant> variants = ProxyService.local
+      List<Variant> variants = ProxyService.strategy
           .variants(branchId: ProxyService.box.getBranchId()!);
       talker.warning("I Expect ${variants.length} variants When seeding");
       for (Variant variant in variants) {
         final vv = models.Variant(
-          id: variant.id!,
+          id: variant.id,
           // branchIds: [ProxyService.box.getBranchId()!],
           deletedAt: variant.deletedAt,
           name: variant.name ?? "", // Use empty string if name is null
@@ -103,7 +103,7 @@ class _AdminControlState extends State<AdminControl> {
           productName: variant.productName ?? "",
           branchId: variant.branchId, // Assuming this is optional
           taxName: variant.taxName ?? "",
-          taxPercentage: variant.taxPercentage.toInt(),
+          taxPercentage: variant.taxPercentage,
           itemSeq: variant.itemSeq,
           isrccCd: variant.isrccCd ?? "",
           isrccNm: variant.isrccNm ?? "",
@@ -120,11 +120,11 @@ class _AdminControlState extends State<AdminControl> {
           pkgUnitCd: variant.pkgUnitCd ?? "CT", // Default to "CT" if null
           qtyUnitCd: variant.qtyUnitCd ?? "BX", // Default to "BX" if null
           itemNm: variant.itemNm,
-          prc: variant.retailPrice.toInt(),
-          splyAmt: variant.splyAmt.toInt(),
+          prc: variant.retailPrice,
+          splyAmt: variant.splyAmt,
           tin: variant.tin,
           bhfId: variant.bhfId,
-          dftPrc: variant.dftPrc?.toInt() ?? 0,
+          dftPrc: variant.dftPrc ?? 0,
           addInfo: variant.addInfo ?? "",
           isrcAplcbYn: variant.isrcAplcbYn ?? "",
           useYn: variant.useYn ?? "",
@@ -133,31 +133,31 @@ class _AdminControlState extends State<AdminControl> {
           modrId: variant.modrId,
           modrNm: variant.modrNm,
           lastTouched: variant.lastTouched,
-          supplyPrice: variant.supplyPrice.toInt(),
-          retailPrice: variant.retailPrice.toInt(),
+          supplyPrice: variant.supplyPrice,
+          retailPrice: variant.retailPrice,
           spplrItemClsCd: variant.spplrItemClsCd,
           spplrItemCd: variant.spplrItemCd,
           spplrItemNm: variant.spplrItemNm,
           ebmSynced: variant.ebmSynced,
-          dcRt: variant.dcRt.toInt(),
+          dcRt: variant.dcRt,
           expirationDate: variant.expirationDate,
         );
         final addedV = await repository.upsert<models.Variant>(vv);
         // upsert stock first
         final stock = await repository.upsert<models.Stock>(models.Stock(
           variant: addedV,
-          id: variant.stock!.id!,
+          id: variant.stock!.id,
           tin: variant.stock!.tin,
           bhfId: variant.stock!.bhfId,
           branchId: variant.stock!.branchId,
-          currentStock: variant.stock!.currentStock.toInt(),
-          lowStock: variant.stock!.lowStock.toInt(),
+          currentStock: variant.stock!.currentStock,
+          lowStock: variant.stock!.lowStock,
           canTrackingStock: variant.stock!.canTrackingStock,
           showLowStockAlert: variant.stock!.showLowStockAlert,
           productId: variant.stock!.productId,
           active: variant.stock!.active,
-          value: variant.stock!.value.toInt(),
-          rsdQty: variant.stock!.rsdQty.toInt(),
+          value: variant.stock!.value,
+          rsdQty: variant.stock!.rsdQty,
           lastTouched: variant.stock!.lastTouched,
           ebmSynced: variant.stock!.ebmSynced,
           variantId: addedV.id,
@@ -168,20 +168,20 @@ class _AdminControlState extends State<AdminControl> {
         await repository.upsert<models.Variant>(addedV);
       }
       // deal with iTransactions now
-      List<ITransaction> transactions = ProxyService.local
+      List<ITransaction> transactions = ProxyService.strategy
           .transactions(branchId: ProxyService.box.getBranchId());
       talker
           .warning("I Expect ${transactions.length} transactions When seeding");
       for (ITransaction transaction in transactions) {
         final transItem = models.ITransaction(
-            id: transaction.id!,
+            id: transaction.id,
             branchId: transaction.branchId,
             status: transaction.status,
             transactionType: transaction.transactionType,
-            subTotal: transaction.subTotal.toInt(),
+            subTotal: transaction.subTotal,
             paymentType: transaction.paymentType,
-            cashReceived: transaction.cashReceived.toInt(),
-            customerChangeDue: transaction.customerChangeDue.toInt(),
+            cashReceived: transaction.cashReceived,
+            customerChangeDue: transaction.customerChangeDue,
             createdAt: transaction.createdAt,
             updatedAt: transaction.updatedAt,
             isIncome: transaction.isIncome,
@@ -206,17 +206,17 @@ class _AdminControlState extends State<AdminControl> {
             note: transaction.note);
         // await repository.upsert<models.ITransaction>(transItem);
 
-        List<TransactionItem> items = ProxyService.local
+        List<TransactionItem> items = ProxyService.strategy
             .transactionItems(branchId: ProxyService.box.getBranchId()!);
         talker
             .warning("I Expect ${items.length} transactions Item When seeding");
         for (TransactionItem item in items) {
           final ite = models.TransactionItem(
-            id: item.id!,
+            id: item.id,
             splyAmt: item.splyAmt,
             prc: item.prc,
-            name: (item.name ?? item.itemNm)!,
-            itemNm: (item.name ?? item.itemNm)!,
+            name: (item.name),
+            itemNm: (item.name),
             quantityRequested: item.quantityRequested,
             quantityApproved: item.quantityApproved,
             quantityShipped: item.quantityShipped,
@@ -229,7 +229,6 @@ class _AdminControlState extends State<AdminControl> {
             remainingStock: item.remainingStock,
             createdAt: item.createdAt,
             updatedAt: item.updatedAt,
-            isTaxExempted: item.isTaxExempted,
             isRefunded: item.isRefunded,
             doneWithTransaction: item.doneWithTransaction,
             active: item.active,

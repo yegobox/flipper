@@ -127,7 +127,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
                                 ))),
                         );
 
-                        await previewOrOrder(transaction: transaction);
+                        await previewOrOrder(transaction: transaction.value!);
 
                         await Future.delayed(const Duration(milliseconds: 600));
 

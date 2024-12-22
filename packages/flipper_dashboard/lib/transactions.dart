@@ -238,7 +238,7 @@ class TransactionsState extends ConsumerState<Transactions>
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(transaction.subTotal.toRwf(),
+                    Text(transaction.subTotal!.toRwf(),
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -271,7 +271,7 @@ class TransactionsState extends ConsumerState<Transactions>
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.reactive(
       onViewModelReady: (model) async {
-        Drawers? drawer = await ProxyService.local
+        Drawers? drawer = await ProxyService.strategy
             .getDrawer(cashierId: ProxyService.box.getUserId()!);
 
         // for rra z report

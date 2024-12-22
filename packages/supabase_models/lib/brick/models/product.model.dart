@@ -12,7 +12,7 @@ class Product extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   final int id;
 
-  final String name;
+  String name;
   String? description;
   String? taxId;
   String color;
@@ -45,9 +45,13 @@ class Product extends OfflineFirstWithSupabaseModel {
   @Supabase(name: "composites")
   final List<Composite>? composites;
 
+  @Supabase(ignore: true)
+  bool? searchMatch;
+
   Product({
     required this.id,
     required this.name,
+    this.searchMatch,
     this.description,
     this.taxId,
     required this.color,

@@ -1,4 +1,4 @@
-import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 
 class CustomSupplierDropdown extends StatelessWidget {

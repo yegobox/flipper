@@ -10,99 +10,98 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   final int id;
 
-  final String name;
-  final int? quantityRequested;
-  final int? quantityApproved;
-  final int? quantityShipped;
-  final int? transactionId;
-  final int? variantId;
+  String name;
+  int? quantityRequested;
+  int? quantityApproved;
+  int? quantityShipped;
+  int? transactionId;
+  int? variantId;
   // quantity
-  final double? qty;
-  final double price;
-  final double discount;
-  final String? type;
-  final double? remainingStock;
-  final String? createdAt;
-  final String? updatedAt;
-  final bool? isTaxExempted;
-  final bool? isRefunded;
+  double qty;
+  double price;
+  double discount;
+  String? type;
+  double? remainingStock;
+  String? createdAt;
+  String? updatedAt;
+  bool? isRefunded;
 
   /// property to help us adding new item to transaction
-  final bool? doneWithTransaction;
-  final bool? active;
+  bool? doneWithTransaction;
+  bool? active;
 
   // RRA fields
   // discount rate
-  final double? dcRt;
+  double? dcRt;
   // discount amount
-  final double? dcAmt;
+  double? dcAmt;
 
-  final double? taxblAmt;
-  final double? taxAmt;
+  double? taxblAmt;
+  double? taxAmt;
 
-  final double? totAmt;
+  double? totAmt;
 
   /// properties from respective variants
   /// these properties will be populated when adding a variant to transactionItem from a variant
   /// I believe there can be a smart way to clean this duplicate code
   /// but I want things to work in first place then I can refactor later.
   /// add RRA fields
-  final int? itemSeq;
+  int? itemSeq;
   // insurance code
-  final String? isrccCd;
+  String? isrccCd;
   // insurance name
-  final String? isrccNm;
+  String? isrccNm;
   // premium rate
-  final int? isrcRt;
+  int? isrcRt;
   // insurance amount
-  final int? isrcAmt;
+  int? isrcAmt;
   // taxation type code.
-  final String? taxTyCd;
+  String? taxTyCd;
   // bar code
-  final String? bcd;
+  String? bcd;
   // Item code
-  final String? itemClsCd;
+  String? itemClsCd;
   // Item type code
-  final String? itemTyCd;
+  String? itemTyCd;
   // Item standard name
-  final String? itemStdNm;
+  String? itemStdNm;
   // Item origin
-  final String? orgnNatCd;
+  String? orgnNatCd;
   // packaging unit code
-  final String? pkg;
+  String? pkg;
   // item code
-  final String? itemCd;
+  String? itemCd;
 
-  final String? pkgUnitCd;
+  String? pkgUnitCd;
 
-  final String? qtyUnitCd;
+  String? qtyUnitCd;
   // same as name but for rra happiness
-  final String itemNm;
+  String itemNm;
   // unit price
   // check if prc is saved as same as retailPrice again this property is same as price on this model!
-  final double prc;
+  double prc;
   // supply amount
-  final double splyAmt;
-  final int? tin;
-  final String? bhfId;
-  final double? dftPrc;
-  final String? addInfo;
-  final String? isrcAplcbYn;
-  final String? useYn;
-  final String? regrId;
-  final String? regrNm;
-  final String? modrId;
-  final String? modrNm;
+  double? splyAmt;
+  int? tin;
+  String? bhfId;
+  double? dftPrc;
+  String? addInfo;
+  String? isrcAplcbYn;
+  String? useYn;
+  String? regrId;
+  String? regrNm;
+  String? modrId;
+  String? modrNm;
 
-  final DateTime? lastTouched;
-  final DateTime? deletedAt;
+  DateTime? lastTouched;
+  DateTime? deletedAt;
 
-  final int? branchId;
-  final bool? ebmSynced;
-  final bool? partOfComposite;
-  final double? compositePrice;
+  int? branchId;
+  bool? ebmSynced;
+  bool? partOfComposite;
+  double? compositePrice;
   TransactionItem({
-    required this.splyAmt,
+    this.splyAmt,
     required this.id,
     this.taxTyCd,
     this.bcd,
@@ -137,14 +136,13 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.quantityShipped,
     this.transactionId,
     this.variantId,
-    this.qty,
+    required this.qty,
     required this.price,
     required this.discount,
     this.type,
     this.remainingStock,
     this.createdAt,
     this.updatedAt,
-    this.isTaxExempted,
     this.isRefunded,
     this.doneWithTransaction,
     this.active,

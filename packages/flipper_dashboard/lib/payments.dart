@@ -84,7 +84,7 @@ class PaymentsState extends ConsumerState<Payments> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 45),
-                  _buildAmountSection(widget.transaction.subTotal),
+                  _buildAmountSection(widget.transaction.subTotal!),
                   const SizedBox(height: 20),
                   Visibility(
                     visible: showDiscountField,
@@ -111,7 +111,7 @@ class PaymentsState extends ConsumerState<Payments> {
         /// check if there is a full customer attached, because there is cases where we don't want to create a user in normal flow
         /// because it might be tedious to fill tin number,name and phone number etc... then it make sense if no customer attached to this transaction
         /// to add extra field to request phone number from a user completing this transaction for the tin to be used as placeholder in this case
-        Customer? customer = ProxyService.local
+        Customer? customer = await ProxyService.strategy
             .getCustomer(id: widget.transaction.customerId ?? 0);
         if (customer == null) {
           /// there is no customer attached to this transaction then enable extra field.
@@ -232,7 +232,7 @@ class PaymentsState extends ConsumerState<Payments> {
             if (value == null || value.isEmpty) {
               return 'Please enter discount amount';
             }
-            if (double.parse(value) > widget.transaction.subTotal) {
+            if (double.parse(value) > widget.transaction.subTotal!) {
               return "Discount cannot exceed the total amount";
             }
             return null;
@@ -524,13 +524,13 @@ class PaymentsState extends ConsumerState<Payments> {
       required String categoryId}) async {
     model.handlingConfirm = true;
     double amount = _cash.text.isEmpty
-        ? widget.transaction.subTotal
+        ? widget.transaction.subTotal!
         : double.parse(_cash.text);
     // Parse discount ONLY if _discount.text is NOT empty
     double discount =
         _discount.text.isNotEmpty ? double.parse(_discount.text) : 0.0;
 
-    ProxyService.local.collectPayment(
+    ProxyService.strategy.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),

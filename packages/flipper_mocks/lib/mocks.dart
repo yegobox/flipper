@@ -2,7 +2,6 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
-import 'package:realm/realm.dart';
 
 final List<Map<String, dynamic>> mockUnits = [
   {'id': randomNumber(), 'name': 'Per Item', 'value': '', 'active': true},
@@ -228,7 +227,7 @@ final List<Map<String, dynamic>> mockUnits = [
 ];
 
 // variation mock
-final variationMock = Variant(ObjectId(),
+final variationMock = Variant(
     color: '#cc',
     name: 'Regular',
     lastTouched: DateTime.now(),
@@ -239,9 +238,7 @@ final variationMock = Variant(ObjectId(),
     productName: 'Custom Amount',
     branchId: 11,
     supplyPrice: 0.0,
-    retailPrice: 0.0,
-    isTaxExempted: false)
-  ..id = randomNumber()
+    retailPrice: 0.0)
   ..name = 'Regular'
   ..sku = 'sku'
   ..productId = 2
@@ -255,7 +252,6 @@ final variationMock = Variant(ObjectId(),
 
 // stock
 final stockMock = Stock(
-  ObjectId(),
   lastTouched: DateTime.now(),
   branchId: 11,
   id: randomNumber(),
@@ -263,10 +259,8 @@ final stockMock = Stock(
   currentStock: 0.0,
   productId: 2,
 )
-  ..id = randomNumber()
   ..branchId = 11
   ..variantId = 1
-  ..lowStock = 0.0
   ..currentStock = 0.0
   ..canTrackingStock = false
   ..showLowStockAlert = false
@@ -275,7 +269,7 @@ final stockMock = Stock(
 
 final AppService _appService = getIt<AppService>();
 
-final customProductMock = Product(ObjectId(),
+final customProductMock = Product(
     id: randomNumber(),
     lastTouched: DateTime.now(),
     name: "temp",
@@ -283,9 +277,7 @@ final customProductMock = Product(ObjectId(),
     color: "#e74c3c",
     branchId: _appService.branchId!)
   ..taxId = "XX"
-  ..businessId = _appService.businessId!
   ..name = "temp"
-  ..branchId = _appService.branchId!
   ..description = "L"
   ..color = "#e74c3c"
   ..supplierId = "XXX"
@@ -293,7 +285,7 @@ final customProductMock = Product(ObjectId(),
   ..unit = "kg"
   ..createdAt = DateTime.now().toIso8601String();
 
-final productMock = Product(ObjectId(),
+final productMock = Product(
     id: randomNumber(),
     lastTouched: DateTime.now(),
     name: "temp",
@@ -301,9 +293,7 @@ final productMock = Product(ObjectId(),
     color: "#e74c3c",
     branchId: _appService.branchId!)
   ..taxId = "XX"
-  ..businessId = _appService.businessId!
   ..name = "temp"
-  ..branchId = _appService.branchId!
   ..description = "L"
   ..color = "#e74c3c"
   ..supplierId = "XXX"
@@ -312,7 +302,7 @@ final productMock = Product(ObjectId(),
   ..createdAt = DateTime.now().toIso8601String();
 
 final branchMock = Branch(
-  ObjectId(),
+  id: randomNumber(),
   serverId: randomNumber(),
   active: false,
   description: 'desc',
@@ -324,7 +314,7 @@ final branchMock = Branch(
 );
 
 final businessMock = Business(
-  ObjectId(),
+  id: randomNumber(),
   serverId: randomNumber(),
   active: true,
   latitude: '0',

@@ -48,7 +48,7 @@ Widget SettingLayout(
                     ),
                     onPressed: (BuildContext context) async {
                       Tenant? tenant =
-                          await ProxyService.local.getTenantBYUserId(
+                          await ProxyService.strategy.getTenantBYUserId(
                         userId: ProxyService.box.getUserId()!,
                       );
                       _routerService
@@ -100,15 +100,15 @@ Widget SettingLayout(
                       ),
                     ),
                     onPressed: (BuildContext context) async {
-                      final data = await ProxyService.local
+                      final data = await ProxyService.strategy
                           .getTransactionsAmountsSum(
                               period: TransactionPeriod.today);
-                      Drawers? drawer = await ProxyService.local.getDrawer(
+                      Drawers? drawer = await ProxyService.strategy.getDrawer(
                         cashierId: ProxyService.box.getUserId()!,
                       );
                       if (drawer != null) {
-                        ProxyService.local.updateDrawer(
-                            drawerId: drawer.id!,
+                        ProxyService.strategy.updateDrawer(
+                            drawerId: drawer.id,
                             closingBalance: data.income,
                             cashierId: ProxyService.box.getUserId()!);
                       }

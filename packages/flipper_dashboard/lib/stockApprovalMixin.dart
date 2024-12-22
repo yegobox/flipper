@@ -1,8 +1,7 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:realm/realm.dart';
-import 'package:flipper_models/helperModels/random.dart';
+
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -40,11 +39,11 @@ mixin StockRequestApprovalLogic {
   }
 
   bool _canApproveItem({required TransactionItem item}) {
-    Stock? stock = ProxyService.local.stockByVariantId(
+    Stock? stock = ProxyService.strategy.stockByVariantId(
       variantId: item.variantId!,
       branchId: ProxyService.box.getBranchId()!,
     );
-    return stock != null && stock.currentStock >= item.quantityRequested!;
+    return stock != null && stock.currentStock! >= item.quantityRequested!;
   }
 
   Future<void> _approveItem(
@@ -52,8 +51,8 @@ mixin StockRequestApprovalLogic {
       required int subBranchId,
       required BuildContext context}) async {
     try {
-      await ProxyService.local.updateTransactionItem(
-        transactionItemId: item.id!,
+      await ProxyService.strategy.updateTransactionItem(
+        transactionItemId: item.id,
         quantityApproved: item.quantityRequested,
       );
       _updateVariantBranch(
@@ -69,29 +68,30 @@ mixin StockRequestApprovalLogic {
 
   void _updateVariantBranch(
       {required int variantId, required int subBranchId}) async {
-    Variant? variant = await ProxyService.local.getVariantById(id: variantId);
+    Variant? variant =
+        await ProxyService.strategy.getVariantById(id: variantId);
     if (variant != null) {
-      if (!variant.branchIds.contains(subBranchId)) {
-        // TODO: this logic will change in new version of flipper
+      // if (!variant.branchIds.contains(subBranchId)) {
+      // TODO: this logic will change in new version of flipper
 
-        //   variant.branchIds.add(subBranchId);
-      }
+      //   variant.branchIds.add(subBranchId);
+      // }
     }
   }
 
   void _updateOrCreateStock(
       {required TransactionItem item, required int subBranchId}) async {
-    Stock? stock = ProxyService.local.stockByVariantId(
+    Stock? stock = ProxyService.strategy.stockByVariantId(
       variantId: item.variantId!,
       branchId: subBranchId,
     );
     Variant? variant =
-        await ProxyService.local.getVariantById(id: item.variantId!);
+        await ProxyService.strategy.getVariantById(id: item.variantId!);
 
     /// stock for this item should be available in our location then creating item in new location
     /// we check that this item is not from location we would like to copy it to.
     if (stock == null) {
-      ProxyService.local.createNewStock(
+      ProxyService.strategy.createNewStock(
           item: item, variant: variant!, subBranchId: subBranchId);
     } else {
       _updateExistingStock(stock: stock, item: item, variant: variant!);
@@ -102,11 +102,11 @@ mixin StockRequestApprovalLogic {
       {required Stock stock,
       required TransactionItem item,
       required Variant variant}) async {
-    await ProxyService.local.updateStock(
-      stockId: stock.id!,
-      currentStock: stock.currentStock + item.quantityRequested!.toDouble(),
-      rsdQty: stock.rsdQty + item.quantityRequested!.toDouble(),
-      value: (stock.currentStock * variant.retailPrice),
+    await ProxyService.strategy.updateStock(
+      stockId: stock.id,
+      currentStock: stock.currentStock! + item.quantityRequested!.toDouble(),
+      rsdQty: stock.rsdQty! + item.quantityRequested!.toDouble(),
+      value: (stock.currentStock! * variant.retailPrice!),
       ebmSynced: false,
     );
   }
@@ -132,8 +132,8 @@ mixin StockRequestApprovalLogic {
       {required StockRequest request,
       required bool isFullyApproved,
       required BuildContext context}) async {
-    await ProxyService.local.updateStockRequest(
-        stockRequestId: request.id!,
+    await ProxyService.strategy.updateStockRequest(
+        stockRequestId: request.id,
         updatedAt: DateTime.now(),
         status: isFullyApproved
             ? RequestStatus.approved
@@ -224,7 +224,7 @@ mixin StockRequestApprovalLogic {
       {required TransactionItem item,
       required List<int?> approvedQuantities,
       required int index}) {
-    Stock? stock = ProxyService.local.stockByVariantId(
+    Stock? stock = ProxyService.strategy.stockByVariantId(
       variantId: item.variantId!,
       branchId: ProxyService.box.getBranchId()!,
     );
@@ -238,8 +238,7 @@ mixin StockRequestApprovalLogic {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(item.name ?? 'Unknown Item',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(item.name, style: TextStyle(fontWeight: FontWeight.bold)),
             SizedBox(height: 8),
             Row(
               children: [
@@ -318,8 +317,8 @@ mixin StockRequestApprovalLogic {
       required int approvedQuantity,
       required StockRequest request}) async {
     // item.quantityApproved = approvedQuantity;
-    await ProxyService.local.updateTransactionItem(
-      transactionItemId: item.id!,
+    await ProxyService.strategy.updateTransactionItem(
+      transactionItemId: item.id,
       quantityApproved: approvedQuantity,
     );
     _updateVariantBranch(
@@ -335,10 +334,10 @@ mixin StockRequestApprovalLogic {
       required int approvedQuantity,
       required int subBranchId}) async {
     Variant? variant =
-        await ProxyService.local.getVariantById(id: item.variantId!);
+        await ProxyService.strategy.getVariantById(id: item.variantId!);
     if (variant == null) return;
 
-    Stock? stock = ProxyService.local
+    Stock? stock = ProxyService.strategy
         .stockByVariantId(variantId: item.variantId!, branchId: subBranchId);
     if (stock == null) {
       _createNewStockForApprovedItem(
@@ -360,19 +359,14 @@ mixin StockRequestApprovalLogic {
       required Variant variant,
       required int approvedQuantity,
       required int subBranchId}) {
-    final newStock = Stock(
-      ObjectId(),
-      id: randomNumber(),
-      lastTouched: DateTime.now(),
-      branchId: variant.branchId!,
-      variantId: variant.id!,
-      currentStock: approvedQuantity.toDouble(),
+    ProxyService.strategy.saveStock(
       rsdQty: approvedQuantity.toDouble(),
-      value: (approvedQuantity * variant.retailPrice).toDouble(),
-      productId: variant.productId,
-      active: false,
+      currentStock: approvedQuantity.toDouble(),
+      value: (approvedQuantity * variant.retailPrice!).toDouble(),
+      productId: variant.productId!,
+      variantId: variant.id,
+      branchId: variant.branchId!,
     );
-    ProxyService.local.realm!.add(newStock);
   }
 
   void _updateExistingStockForApprovedItem(
@@ -380,21 +374,21 @@ mixin StockRequestApprovalLogic {
       required Variant variant,
       required int approvedQuantity}) {
     stock.lastTouched = DateTime.now();
-    stock.currentStock = stock.currentStock + approvedQuantity.toDouble();
-    stock.rsdQty = stock.rsdQty + approvedQuantity.toDouble();
-    stock.value = (stock.currentStock * variant.retailPrice);
+    stock.currentStock = stock.currentStock! + approvedQuantity.toDouble();
+    stock.rsdQty = stock.rsdQty! + approvedQuantity.toDouble();
+    stock.value = (stock.currentStock! * variant.retailPrice!);
   }
 
   void _updateMainBranchStock(
       {required int variantId, required int approvedQuantity}) {
-    Stock? mainBranchStock = ProxyService.local.stockByVariantId(
+    Stock? mainBranchStock = ProxyService.strategy.stockByVariantId(
       variantId: variantId,
       branchId: ProxyService.box.getBranchId()!,
     );
 
     if (mainBranchStock != null) {
       mainBranchStock.currentStock =
-          mainBranchStock.currentStock - approvedQuantity.toDouble();
+          mainBranchStock.currentStock! - approvedQuantity.toDouble();
       mainBranchStock.lastTouched = DateTime.now();
     }
   }

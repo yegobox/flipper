@@ -1,4 +1,4 @@
-// import 'package:realm/realm.dart';
+//
 // part 'schemas.realm.dart';
 
 // @RealmModel()
@@ -142,30 +142,30 @@
 //   @PrimaryKey()
 //   @MapTo('_id')
 //   late ObjectId realmId;
-//   String? userName;
-//   String? body;
-//   String? avatar;
-//   String? channelType;
-//   String? fromNumber;
-//   String? toNumber;
+  // String? userName;
+  // String? body;
+  // String? avatar;
+  // String? channelType;
+  // String? fromNumber;
+  // String? toNumber;
 
-//   String? createdAt;
-//   String? messageType;
-//   String? phoneNumberId;
+  // String? createdAt;
+  // String? messageType;
+  // String? phoneNumberId;
 
-//   String? messageId;
-//   String? respondedBy;
-//   String? conversationId;
+  // String? messageId;
+  // String? respondedBy;
+  // String? conversationId;
 
-//   String? businessPhoneNumber;
-//   int? businessId;
+  // String? businessPhoneNumber;
+  // int? businessId;
 
-//   DateTime? scheduledAt;
+  // DateTime? scheduledAt;
 
-//   bool? delivered;
+  // bool? delivered;
 
-//   DateTime? lastTouched;
-//   DateTime? deletedAt;
+  // DateTime? lastTouched;
+  // DateTime? deletedAt;
 // }
 
 // @RealmModel()

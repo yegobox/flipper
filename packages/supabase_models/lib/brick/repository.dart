@@ -31,9 +31,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     required String supabaseAnonKey,
   }) async {
     // Initialize FFI for Windows
-    if (Platform.isWindows) {
-      sqfliteFfiInit();
-    }
+
+    sqfliteFfiInit();
 
     // Get the appropriate directory path
     final directory = await _getDatabaseDirectory();

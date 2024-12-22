@@ -2,7 +2,7 @@
 
 import 'dart:math';
 
-import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -201,19 +201,20 @@ class StockBarChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final filteredItems = items.where((item) => item.currentStock > 1).toList();
+    final filteredItems =
+        items.where((item) => item.currentStock! > 1).toList();
 
     if (filteredItems.isEmpty) return;
 
     final double barWidth = size.width / (filteredItems.length * 2 + 1);
     final double maxStock =
-        filteredItems.map((e) => e.currentStock.toDouble()).reduce(max);
+        filteredItems.map((e) => e.currentStock!.toDouble()).reduce(max);
     final paint = Paint()..style = PaintingStyle.fill;
 
     for (int i = 0; i < filteredItems.length; i++) {
       final item = filteredItems[i];
       final barHeight =
-          (item.currentStock / maxStock) * size.height * animationValue;
+          (item.currentStock! / maxStock) * size.height * animationValue;
 
       final rect = Rect.fromLTRB(
         (i * 2 + 1) * barWidth,
@@ -229,7 +230,7 @@ class StockBarChartPainter extends CustomPainter {
       item.id.toString() == selectedItemId
           ? _drawText(
               canvas,
-              _formatNumber(item.currentStock.toInt()),
+              _formatNumber(item.currentStock!),
               Offset((i * 2 + 1.5) * barWidth, size.height - barHeight - 15),
               10,
               FontWeight.bold,
@@ -254,7 +255,7 @@ class StockBarChartPainter extends CustomPainter {
     textPainter.paint(canvas, position - Offset(textPainter.width / 2, 0));
   }
 
-  String _formatNumber(int number) {
+  String _formatNumber(double number) {
     if (number >= 1000000) {
       return '${(number / 1000000).toStringAsFixed(1)}M';
     } else if (number >= 1000) {
@@ -300,7 +301,7 @@ class ItemDetailCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     FutureBuilder<Variant?>(
-                      future: ProxyService.local
+                      future: ProxyService.strategy
                           .getVariantById(id: item.variantId!),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
@@ -320,7 +321,7 @@ class ItemDetailCard extends StatelessWidget {
                       },
                     ),
                     SizedBox(height: 8),
-                    Text('Sold: ${item.initialStock ?? 0 - item.currentStock}',
+                    Text('Sold: ${item.initialStock ?? 0 - item.currentStock!}',
                         style: Theme.of(context).textTheme.bodyMedium),
                     Text('In Stock: ${item.currentStock}',
                         style: Theme.of(context).textTheme.bodyMedium),
@@ -328,7 +329,7 @@ class ItemDetailCard extends StatelessWidget {
                 ),
               ),
               CircularStockIndicator(
-                stock: item.currentStock.toInt(),
+                stock: item.currentStock!.toInt(),
                 maxStock: 150,
               ),
             ],
@@ -348,13 +349,13 @@ class BestSellingItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     /// best selling item is the item that has the currentStock is the lowest
     final bestSeller = items.reduce((a, b) {
-      double aSold = a.initialStock! - a.currentStock;
-      double bSold = b.initialStock! - b.currentStock;
+      double aSold = a.initialStock! - a.currentStock!;
+      double bSold = b.initialStock! - b.currentStock!;
       return aSold > bSold ? a : b;
     });
     double itemsSold = bestSeller.initialStock == bestSeller.currentStock
         ? 1
-        : bestSeller.initialStock! - bestSeller.currentStock;
+        : bestSeller.initialStock! - bestSeller.currentStock!;
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -377,7 +378,7 @@ class BestSellingItemCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     FutureBuilder(
-                      future: ProxyService.local
+                      future: ProxyService.strategy
                           .getVariantById(id: bestSeller.variantId!),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==

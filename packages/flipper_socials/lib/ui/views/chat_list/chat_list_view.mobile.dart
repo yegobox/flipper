@@ -51,18 +51,18 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
               // ProxyService.remote.listenToChanges();
             }
           });
-          ProxyService.local.sendScheduleMessages();
+          // ProxyService.strategy.sendScheduleMessages();
           await ProxyService.messaging
               .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
-          ProxyService.local
+          ProxyService.strategy
               .loadConversations(businessId: ProxyService.box.getBusinessId()!);
         },
         builder: (build, viewModel, child) {
           return RefreshIndicator(
             onRefresh: () async {
-              ProxyService.local.sendScheduleMessages();
-              ProxyService.local.loadConversations(
-                  businessId: ProxyService.box.getBusinessId()!);
+              // ProxyService.strategy.sendScheduleMessages();
+              // ProxyService.strategy.loadConversations(
+              //     businessId: ProxyService.box.getBusinessId()!);
             },
             child: AnnotatedRegion<SystemUiOverlayStyle>(
               value: const SystemUiOverlayStyle(
@@ -99,7 +99,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
                   ],
                 ),
                 body: StreamBuilder<List<Conversation>>(
-                    stream: ProxyService.local.conversations(),
+                    stream: ProxyService.strategy.conversations(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                         final _conversations = snapshot.data;
@@ -121,7 +121,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
                                 flexibleSpace: FlexibleSpaceBar(
                                   titlePadding: EdgeInsets.zero,
                                   title: StreamBuilder<List<Conversation>>(
-                                    stream: ProxyService.local
+                                    stream: ProxyService.strategy
                                         .getTop5RecentConversations(),
                                     builder: (context, snapshot) {
                                       if (snapshot.hasData &&

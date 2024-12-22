@@ -9,8 +9,8 @@
 //             ? data.toJson()
 //             : (data != null ? (data as dynamic).toJson() : {}))
 //         : (data is old.Stock
-//             ? data.toEJson()?.toFlipperJson() ?? {}
-//             : data.toEJson()?.toFlipperJson() ?? {});
+//             ? data?.toFlipperJson() ?? {}
+//             : data?.toFlipperJson() ?? {});
 //     talker.warning(map);
 //     final id = _getId(map);
 
@@ -85,7 +85,7 @@
 // import 'package:flipper_models/RealmInterface.dart';
 // import 'package:flipper_models/secrets.dart';
 // import 'package:flipper_services/proxy.dart';
-// import 'package:realm/realm.dart';
+// 
 // import 'dart:async';
 // import 'package:http/http.dart' as http;
 // import 'package:flipper_models/helper_models.dart' as extensions;
@@ -262,7 +262,7 @@
 //     for (T item in batch) {
 //       // Changed TransactionItem to T
 
-//       final data = item.toEJson().toFlipperJson();
+//       final data = item.toFlipperJson();
 //       final docRef = _firestore!
 //           .collection('transactionsItems')
 //           .doc(data['id'].toString());
@@ -364,7 +364,7 @@
 //               _realm.realm!.query<DeletedObject>(r'id == $0', [id]).firstOrNull;
 //           if (obj != null) {
 //             final deletedObject = DeletedObject(
-//               ObjectId(),
+//               
 //               objectName: tableName,
 //               id: id,
 //               deviceCount: 1,
@@ -447,7 +447,7 @@
 //     if (syncProvider == SyncProvider.FIRESTORE) {
 //       try {
 //         if (_firestore == null) return;
-//         List<int> branchIds = ProxyService.local
+//         List<int> branchIds = ProxyService.strategy
 //             .branches(
 //                 businessId: ProxyService.box.getBusinessId()!,
 //                 includeSelf: true)
@@ -505,11 +505,11 @@
 //                         ? realmObject
 //                             .toEJson(includeVariant: false)
 //                             .toFlipperJson()
-//                         : realmObject.toEJson().toFlipperJson();
+//                         : realmObject.toFlipperJson();
 
 //                     _realm.realm!.add<DeletedObject>(
 //                       DeletedObject(
-//                         ObjectId(),
+//                         
 //                         id: (realmObject is Stock)
 //                             ? realmObject.id!
 //                             : eJson['id'],
@@ -675,7 +675,7 @@
 //   Future<bool> firebaseLogin({String? token}) async {
 //     int? userId = ProxyService.box.getUserId();
 //     if (userId == null) return false;
-//     final pinLocal = ProxyService.local.getPinLocal(userId: userId);
+//     final pinLocal = ProxyService.strategy.getPinLocal(userId: userId);
 //     try {
 //       token ??= pinLocal?.tokenUid;
 
@@ -689,7 +689,7 @@
 //     } catch (e) {
 //       talker.error(e);
 //       // talker.info("Retry ${pinLocal?.uid ?? "NULL"}");
-//       final http.Response response = await ProxyService.local.sendLoginRequest(
+//       final http.Response response = await ProxyService.strategy.sendLoginRequest(
 //           pinLocal!.phoneNumber!, ProxyService.http, AppSecrets.apihubProd,
 //           uid: pinLocal.uid!);
 //       if (response.statusCode == 200 && response.body.isNotEmpty) {

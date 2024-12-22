@@ -1,20 +1,8 @@
-import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_services/proxy.dart';
 
 class BillingService {
   /// catch error on backend trying to use a voucher more than once
   /// I should not base on used property since this property is mutated
   /// after the use instead I should check this property before I mutate the voucher
-
-  Future<Voucher?> useVoucher({int? voucher, int? userId}) async {
-    Voucher? voucherUse =
-        await ProxyService.local.consumeVoucher(voucherCode: voucher!);
-    if (voucherUse != null) {
-      return voucherUse;
-    } else {
-      throw VoucherException(term: "Voucher not found");
-    }
-  }
 
   // Future<Pointss> addPoints({int? points, int? userId}) async {
   //   return await ProxyService.isar.addPoint(userId: userId!, point: points!);

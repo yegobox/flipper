@@ -23,7 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:realm/realm.dart';
+
 import 'package:stacked/stacked.dart';
 import 'package:flutter/services.dart';
 
@@ -181,7 +181,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
               onPressed: () {
                 double newQuantity =
                     double.tryParse(quantityController.text) ?? 0.0;
-                model.updateVariantQuantity(variant.id!, newQuantity);
+                model.updateVariantQuantity(variant.id, newQuantity);
                 Navigator.pop(context);
               },
               child: Text('Save'),
@@ -322,7 +322,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       onChanged: (String? newValue) {
         if (newValue != null && newValue != variant.taxTyCd) {
           try {
-            ProxyService.local.updateVariant(
+            ProxyService.strategy.updateVariant(
                 updatables: [variant],
                 variantId: variant.id,
                 taxTyCd: newValue);
@@ -507,11 +507,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
 
           // Populate product name with the name of the product being edited
-          productNameController.text = product.name!;
-          model.setProductName(name: product.name!);
+          productNameController.text = product.name;
+          model.setProductName(name: product.name);
 
           // Populate variants related to the product
-          List<Variant> variants = await ProxyService.local.variants(
+          List<Variant> variants = await ProxyService.strategy.variants(
               productId: widget.productId!,
               branchId: ProxyService.box.getBranchId()!);
 
@@ -679,13 +679,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                   "This is the variant on composite${partOfComposite[i].variant.id}");
 
                               /// now save each
-                              ProxyService.local.saveComposite(
-                                composite: Composite(ObjectId(),
+                              ProxyService.strategy.saveComposite(
+                                composite: Composite(
                                     id: randomNumber(),
                                     businessId:
                                         ProxyService.box.getBusinessId(),
                                     productId:
-                                        ref.read(unsavedProductProvider)!.id!,
+                                        ref.read(unsavedProductProvider)!.id,
                                     qty: partOfComposite[i].quantity,
                                     actualPrice: double.tryParse(
                                             retailPriceController.text) ??
@@ -704,12 +704,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             /// print the sku and bar
                             talker.info("SKU ${sku} Bar Code ${barCode}");
 
-                            Product? product = ProxyService.local.getProduct(
-                                id: ref.read(unsavedProductProvider)!.id!);
+                            Product? product = ProxyService.strategy.getProduct(
+                                id: ref.read(unsavedProductProvider)!.id);
 
                             /// update the product with propper name
 
-                            ProxyService.local.updateProduct(
+                            ProxyService.strategy.updateProduct(
                               productId: ref.read(unsavedProductProvider)!.id,
                               name: productNameController.text,
                               isComposite: true,
@@ -717,7 +717,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
                             /// create the default variant to represent this composite item, in flipper each product
                             /// has a default variant
-                            ProxyService.local.createVariant(
+                            ProxyService.strategy.createVariant(
                               tinNumber: ProxyService.box.tin(),
                               branchId: ProxyService.box.getBranchId()!,
                               itemSeq: 1,
@@ -734,7 +734,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               supplierPrice:
                                   double.tryParse(supplyPriceController.text) ??
                                       0,
-                              productId: product!.id!,
+                              productId: product!.id,
                               color: product.color,
                               name: name,
                             );
@@ -771,7 +771,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ],
                 ),
               ),
-              if (product?.isValid ?? true && product?.imageUrl != null)
+              if (product?.imageUrl != null)
                 FutureBuilder(
                   future:
                       getImageFilePath(imageFileName: product!.imageUrl ?? ""),
@@ -1034,7 +1034,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
                                 // Select or deselect all variants
                                 model.scannedVariants.forEach((variant) {
-                                  _selectedVariants[variant.id!] = _selectAll;
+                                  _selectedVariants[variant.id] = _selectAll;
                                 });
                               });
                             },
@@ -1079,30 +1079,32 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   rows: model.scannedVariants.reversed.map((variant) {
                     if (variant.stock == null) {
                       final id = randomNumber();
-                      ProxyService.local.saveStock(
+                      ProxyService.strategy.saveStock(
                         variant: variant,
-                        rsdQty: variant.qty,
+                        rsdQty: variant.qty!,
                         productId: variant.productId!,
-                        variantId: variant.id!,
+                        variantId: variant.id,
                         branchId: variant.branchId!,
-                        currentStock: variant.qty,
-                        value: (variant.qty * (variant.retailPrice)).toDouble(),
+                        currentStock: variant.qty!,
+                        value:
+                            (variant.qty! * (variant.retailPrice!)).toDouble(),
                       );
 
-                      final stock = ProxyService.local.realm!
-                          .query<Stock>(r'id == $0', [id]).firstOrNull;
-                      variant.stock = stock;
+                      final stock = ProxyService.strategy.getStockById(id: id);
 
-                      ProxyService.local
+                      ProxyService.strategy
+                          .addStockToVariant(variant: variant, stock: stock!);
+
+                      ProxyService.strategy
                           .addStockToVariant(variant: variant, stock: stock);
                     }
-                    bool isSelected = _selectedVariants[variant.id!] ?? false;
+                    bool isSelected = _selectedVariants[variant.id] ?? false;
 
                     /// update the discount rate if we are in edit to have the value saved
-                    _rates[variant.id!] = TextEditingController(
+                    _rates[variant.id] = TextEditingController(
                       text: variant.dcRt.toString(),
                     );
-                    _dates[variant.id!] = TextEditingController(
+                    _dates[variant.id] = TextEditingController(
                       text: variant.expirationDate?.toYYYMMdd() ?? "",
                     );
 
@@ -1127,7 +1129,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             ),
                             onChanged: (value) {
                               setState(() {
-                                _selectedVariants[variant.id!] = value!;
+                                _selectedVariants[variant.id] = value!;
                                 _showDeleteButton =
                                     _selectedVariants.containsValue(true);
                               });
@@ -1135,7 +1137,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           ),
                         ),
                         DataCell(Text(variant.bcd ?? variant.name!)),
-                        DataCell(Text(variant.retailPrice.toStringAsFixed(2))),
+                        DataCell(Text(variant.retailPrice!.toStringAsFixed(2))),
                         DataCell(
                           Text(
                             variant.lastTouched == null
@@ -1214,7 +1216,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                         DataCell(
                           IconButton(
                             onPressed: () {
-                              model.removeVariant(id: variant.id!);
+                              model.removeVariant(id: variant.id);
                             },
                             icon: const Icon(
                               Icons.delete,

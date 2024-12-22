@@ -1,5 +1,4 @@
 // import 'package:flipper_routing/all_routes.dart';
-import 'package:flipper_services/proxy.dart';
 // import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 // import 'TestApp.dart';
@@ -11,8 +10,6 @@ void main() {
     setUpAll(() async {
       // Initialize dependencies for test environment
       await initializeDependenciesForTest();
-      ProxyService.local
-          .configureLocal(useInMemory: true, box: ProxyService.box);
     });
 
     setUp(() {});

@@ -32,7 +32,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
   @override
   Widget build(BuildContext context) {
     final currentTransaction =
-        ref.watch(currentTransactionsByIdStream(widget.transaction.id!));
+        ref.watch(currentTransactionsByIdStream(widget.transaction.id));
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {

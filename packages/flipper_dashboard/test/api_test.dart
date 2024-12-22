@@ -1,29 +1,27 @@
-import 'package:flipper_models/LocalRealmApi.dart';
+import 'package:flipper_models/CoreSync.dart';
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:realm/realm.dart';
+
 import 'package:test/test.dart';
 
 void main() {
   group('Isar Realm API!', () {
-    LocalRealmApi realm = LocalRealmApi();
+    CoreSync realm = CoreSync();
 
     setUpAll(() async {
       // Initialize the Realm API with an in-memory database for testing
-      await realm.configureLocal(useInMemory: true, box: ProxyService.box);
+      // await realm.configureLocal(useInMemory: true, box: ProxyService.box);
     });
 
     tearDownAll(() async {
       realm.close();
     });
     setUp(() async {
-      realm.realm!.write(() {
-        realm.realm!.deleteAll<Product>();
-        realm.realm!.deleteAll<SKU>();
-        realm.realm!.deleteAll<Variant>();
-      });
+      // realm.realm!.write(() {
+      //   realm.realm!.deleteAll<Product>();
+      //   realm.realm!.deleteAll<SKU>();
+      //   realm.realm!.deleteAll<Variant>();
+      // });
     });
 
     test('Add product into realm db', () async {
@@ -32,7 +30,7 @@ void main() {
           tinNumber: 111,
           branchId: 1,
           businessId: 1,
-          product: Product(ObjectId(),
+          product: Product(
               name: "Test Product",
               color: "#ccc",
               id: randomNumber(),
@@ -55,7 +53,7 @@ void main() {
     //           tinNumber: 111,
     //           branchId: 1,
     //           businessId: 1,
-    //           product: Product(ObjectId(),
+    //           product: Product(
     //               name: "Product $i",
     //               color: "#ccc",
     //               id: randomNumber(),

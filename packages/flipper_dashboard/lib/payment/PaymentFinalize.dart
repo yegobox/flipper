@@ -289,7 +289,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
       isLoading = true;
     });
     try {
-      models.Plan? paymentPlan = await ProxyService.backUp
+      models.Plan? paymentPlan = await ProxyService.strategy
           .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
 
       talker.warning("CurrentPaymentPlan: $paymentPlan");
@@ -302,11 +302,11 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                     100))
             .toInt();
       } else {
-        finalPrice = paymentPlan?.totalPrice?.toInt() ?? 0;
+        finalPrice = paymentPlan!.totalPrice?.toInt() ?? 0;
       }
       if (selectedPaymentMethod == "Card") {
         toast("Card Payment is temporarily unavailable");
-        await cardPayment(finalPrice, paymentPlan!, selectedPaymentMethod,
+        await cardPayment(finalPrice, paymentPlan, selectedPaymentMethod,
             plan: paymentPlan);
 
         /// listen on stream to check if payment has been completed by a user

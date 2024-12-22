@@ -13,7 +13,7 @@ import 'dart:ui' as ui;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_routing/all_routes.dart';
-import 'package:realm/realm.dart';
+
 import 'package:flipper_services/locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter/material.dart';
@@ -103,19 +103,19 @@ class _LoginState extends State<Login> {
                 !await ProxyService.box.pinLogin()! &&
                 !await ProxyService.box.authComplete()) {
               final key = user.phoneNumber ?? user.email!;
-              final response = await ProxyService.local.sendLoginRequest(
+              final response = await ProxyService.strategy.sendLoginRequest(
                   key, ProxyService.http, AppSecrets.apihubProd);
               final IUser iUser = IUser.fromJson(json.decode(response.body));
 
               /// pre-configure the system beore sending login request to
 
-              talker.warning("iUser: ${iUser.id}");
+              talker.warning("Login.dart: ${iUser.uid}");
 
               try {
-                IPin? pin = await ProxyService.local.getPin(
+                IPin? pin = await ProxyService.strategy.getPin(
                     pinString: iUser.id.toString(),
                     flipperHttpClient: ProxyService.http);
-                final thePin = Pin(ObjectId(),
+                final thePin = Pin(
                     userId: int.parse(pin!.userId),
                     pin: pin.pin,
                     id: int.parse(pin.userId),
@@ -123,8 +123,9 @@ class _LoginState extends State<Login> {
                     businessId: pin.businessId,
                     ownerName: pin.ownerName,
                     tokenUid: iUser.uid,
+                    uid: user.uid,
                     phoneNumber: iUser.phoneNumber);
-                ProxyService.local.login(
+                ProxyService.strategy.login(
                     userPhone: key,
                     skipDefaultAppSetup: false,
                     pin: thePin,

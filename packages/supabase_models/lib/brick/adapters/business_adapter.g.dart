@@ -253,7 +253,7 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
   BusinessAdapter();
 
   @override
-  final supabaseTableName = 'businesseses';
+  final supabaseTableName = 'businesses';
   @override
   final defaultToNull = true;
   @override

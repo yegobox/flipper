@@ -15,7 +15,7 @@ import 'package:flutter/material.dart';
 final deviceListProvider = FutureProvider<List<Device>>((ref) async {
   // Watch for updates from the updateStream
 //  await ref.watch(deviceUpdateProvider.); // Wait for the first event
-  return ProxyService.local.getDevices(
+  return ProxyService.strategy.getDevices(
     businessId: ProxyService.box.getBusinessId()!,
   );
 });

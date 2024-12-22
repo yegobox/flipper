@@ -156,8 +156,8 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   void _handleClearAll() async {
     for (var notification in widget.notifications) {
-      await ProxyService.local.updateNotification(
-          notificationId: notification.id!, completed: true);
+      await ProxyService.strategy
+          .updateNotification(notificationId: notification.id, completed: true);
     }
 
     setState(() {
@@ -169,10 +169,10 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   void _handleAcknowledge(
       AppNotification notification, int index, StateSetter setState) async {
-    await ProxyService.local
-        .updateNotification(notificationId: notification.id!, completed: true);
+    await ProxyService.strategy
+        .updateNotification(notificationId: notification.id, completed: true);
 
-    widget.onAcknowledge(notification.id!);
+    widget.onAcknowledge(notification.id);
     setState(() {
       widget.notifications.removeAt(index);
     });

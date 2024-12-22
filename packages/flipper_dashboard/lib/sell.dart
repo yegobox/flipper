@@ -36,7 +36,7 @@ class SellState extends ConsumerState<Sell> {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
         model.clearPreviousSaleCounts();
         model.toggleCheckbox(variantId: -1);
-        await model.getVariants(productId: widget.product.id!);
+        await model.getVariants(productId: widget.product.id);
       },
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -52,24 +52,24 @@ class SellState extends ConsumerState<Sell> {
             },
             title: titleWidget(
               model: model,
-              name: widget.product.name!,
+              name: widget.product.name,
             ),
             rightActionButtonName: 'Save',
             disableButton: false,
             showActionButton: true,
             onActionButtonClicked: () async {
-              Stock? stock = await ProxyService.local.stockByVariantId(
+              Stock? stock = await ProxyService.strategy.stockByVariantId(
                   variantId: model.checked,
                   branchId: ProxyService.box.getBranchId()!);
               Variant? variant =
-                  await ProxyService.local.getVariantById(id: model.checked);
+                  await ProxyService.strategy.getVariantById(id: model.checked);
 
               bool saved = await model.saveTransaction(
                   partOfComposite: false,
                   variation: variant!,
                   amountTotal: model.amountTotal,
                   customItem: false,
-                  currentStock: stock!.currentStock,
+                  currentStock: stock!.currentStock!,
                   pendingTransaction: pendingTransaction.value!);
               if (!saved) {
                 showSimpleNotification(const Text('No item selected'),
@@ -99,7 +99,7 @@ class SellState extends ConsumerState<Sell> {
                       Row(
                         children: [
                           Text(
-                            widget.product.name!,
+                            widget.product.name,
                             style: primaryTextStyle.copyWith(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 17,

@@ -2,19 +2,16 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'dart:typed_data';
-import 'package:flipper_models/CoreDataInterface.dart';
+import 'package:flipper_models/RealmInterface.dart';
 import 'package:flipper_models/power_sync/schema.dart';
-import 'package:realm_dart/src/realm_object.dart';
-import 'package:realm_dart/src/results.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
-import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/Booting.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/secrets.dart';
@@ -33,7 +30,7 @@ import 'package:flipper_services/database_provider.dart'
 import 'package:flipper_services/replicator_provider.dart'
     if (dart.library.html) 'DatabaseProvider.dart';
 
-class Capella with Booting implements CoreDataInterface {
+class Capella with Booting implements RealmInterface {
   @override
   DatabaseProvider? capella;
   bool offlineLogin = false;
@@ -106,32 +103,26 @@ class Capella with Booting implements CoreDataInterface {
     // init replicator
   }
 
-  @override
-  Future<CoreDataInterface> configureCapella(
-      {required bool useInMemory, required LocalStorage box}) async {
-    talker.warning("The real implementation of capella called");
+  // @override
+  // Future<CoreDataInterface> configureCapella(
+  //     {required bool useInMemory, required LocalStorage box}) async {
+  //   talker.warning("The real implementation of capella called");
 
-    capella = await (await DatabaseProvider(
-            encryptionKey: ProxyService.box.encryptionKey().toStringList())
-        .initialize());
-    talker.warning("CapelaDB ${capella?.database}");
-    await initCollections();
-    // init replicator for now here, it will be moved into settings later
-    // await startReplicator();
-    return this;
-  }
+  //   capella = await (await DatabaseProvider(
+  //           encryptionKey: ProxyService.box.encryptionKey().toStringList())
+  //       .initialize());
+  //   talker.warning("CapelaDB ${capella?.database}");
+  //   await initCollections();
+  //   // init replicator for now here, it will be moved into settings later
+  //   // await startReplicator();
+  //   return this;
+  // }
 
   @override
   Future<void> startReplicator() async {
     // final replicatorProvider = ReplicatorProvider(databaseProvider: capella!);
     // await replicatorProvider.init();
     // await replicatorProvider.startReplicator();
-  }
-
-  @override
-  Future<CoreDataInterface> configureLocal(
-      {required bool useInMemory, required LocalStorage box}) {
-    throw UnimplementedError();
   }
 
   Future<void> _suserbaseAuth() async {
@@ -156,18 +147,6 @@ class Capella with Booting implements CoreDataInterface {
         );
       }
     } catch (e) {}
-  }
-
-  @override
-  Future<void> configureSystem(String userPhone, IUser user,
-      {required bool offlineLogin}) async {
-    await configureTheBox(userPhone, user);
-    await updateLocalRealm(user, localRealm: ProxyService.local.realm);
-
-    AppInitializer.initialize();
-    if (!offlineLogin) {
-      await _suserbaseAuth();
-    }
   }
 
   @override
@@ -332,17 +311,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  void updateStock({required int stockId, required double qty}) {
-    // TODO: implement updateStock
-  }
-
-  @override
-  void updateTransactionItemQty(
-      {required qty, required int transactionItemId}) {
-    // TODO: implement updateTransactionItemQty
-  }
-
-  @override
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) {
     // TODO: implement uploadPdfToS3
     throw UnimplementedError();
@@ -352,12 +320,6 @@ class Capella with Booting implements CoreDataInterface {
   Future<int> userNameAvailable(
       {required String name, required HttpClientInterface flipperHttpClient}) {
     // TODO: implement userNameAvailable
-    throw UnimplementedError();
-  }
-
-  @override
-  List<Access> access({required int userId}) {
-    // TODO: implement access
     throw UnimplementedError();
   }
 
@@ -380,17 +342,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<Branch> addBranch(
-      {required String name,
-      required int businessId,
-      required String location,
-      required String userOwnerPhoneNumber,
-      required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement addBranch
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Customer?> addCustomer(
       {required Customer customer, required int transactionId}) {
     // TODO: implement addCustomer
@@ -400,12 +351,6 @@ class Capella with Booting implements CoreDataInterface {
   @override
   Future<int> addFavorite({required Favorite data}) {
     // TODO: implement addFavorite
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Stock?> addStockToVariant({required Variant variant}) {
-    // TODO: implement addStockToVariant
     throw UnimplementedError();
   }
 
@@ -524,12 +469,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<T?> create<T>({required T data}) {
-    // TODO: implement create
-    throw UnimplementedError();
-  }
-
-  @override
   void createNewStock(
       {required Variant variant,
       required TransactionItem item,
@@ -606,15 +545,6 @@ class Capella with Booting implements CoreDataInterface {
   @override
   Future<Business?> defaultBusiness() {
     // TODO: implement defaultBusiness
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<bool> delete(
-      {required int id,
-      String? endPoint,
-      required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement delete
     throw UnimplementedError();
   }
 
@@ -800,12 +730,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<Product?> getProduct({required int id}) {
-    // TODO: implement getProduct
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Product?> getProductByBarCode(
       {required String barCode, required int branchId}) {
     // TODO: implement getProductByBarCode
@@ -906,13 +830,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<TransactionItem?> getTransactionItemByVariantId(
-      {required int variantId, int? transactionId}) {
-    // TODO: implement getTransactionItemByVariantId
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
       {required int? transactionId}) {
     // TODO: implement getTransactionItemsByTransactionId
@@ -923,12 +840,6 @@ class Capella with Booting implements CoreDataInterface {
   Future<({double expense, double income})> getTransactionsAmountsSum(
       {required String period}) {
     // TODO: implement getTransactionsAmountsSum
-    throw UnimplementedError();
-  }
-
-  @override
-  Variant? getVariantById({required int id}) {
-    // TODO: implement getVariantById
     throw UnimplementedError();
   }
 
@@ -959,12 +870,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  CoreDataInterface instance() {
-    // TODO: implement instance
-    throw UnimplementedError();
-  }
-
-  @override
   bool isAdmin({required int userId, required String appFeature}) {
     // TODO: implement isAdmin
     throw UnimplementedError();
@@ -979,19 +884,6 @@ class Capella with Booting implements CoreDataInterface {
   @override
   bool isRealmClosed() {
     // TODO: implement isRealmClosed
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<bool> isSubscribed(
-      {required String feature, required int businessId}) {
-    // TODO: implement isSubscribed
-    throw UnimplementedError();
-  }
-
-  @override
-  bool isTaxEnabled({required Business business}) {
-    // TODO: implement isTaxEnabled
     throw UnimplementedError();
   }
 
@@ -1143,14 +1035,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  void saveEbm(
-      {required int branchId,
-      required String severUrl,
-      required String bhFId}) {
-    // TODO: implement saveEbm
-  }
-
-  @override
   Future<Plan> saveOrUpdatePaymentPlan(
       {required int businessId,
       int numberOfPayments = 1,
@@ -1165,32 +1049,6 @@ class Capella with Booting implements CoreDataInterface {
       models.Plan? plan,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement saveOrUpdatePaymentPlan
-    throw UnimplementedError();
-  }
-
-  @override
-  void savePaymentType({required TransactionPaymentRecord paymentRecord}) {
-    // TODO: implement savePaymentType
-  }
-
-  @override
-  Future<Pin?> savePin({required Pin pin}) {
-    // TODO: implement savePin
-    throw UnimplementedError();
-  }
-
-  @override
-  void saveStock({required Variant variant}) {
-    // TODO: implement saveStock
-  }
-
-  @override
-  Future<Tenant?> saveTenant(String phoneNumber, String name,
-      {required Business business,
-      required Branch branch,
-      required HttpClientInterface flipperHttpClient,
-      required String userType}) {
-    // TODO: implement saveTenant
     throw UnimplementedError();
   }
 
@@ -1224,15 +1082,6 @@ class Capella with Booting implements CoreDataInterface {
   @override
   Stream<SKU?> sku({required int branchId, required int businessId}) {
     // TODO: implement sku
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Stock?> stockByVariantId(
-      {required int variantId,
-      required int branchId,
-      bool nonZeroValue = false}) {
-    // TODO: implement stockByVariantId
     throw UnimplementedError();
   }
 
@@ -1300,16 +1149,6 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  List<TransactionItem> transactionItems(
-      {required int transactionId,
-      required bool doneWithTransaction,
-      required int branchId,
-      required bool active}) {
-    // TODO: implement transactionItems
-    throw UnimplementedError();
-  }
-
-  @override
   List<TransactionItem> transactionItemsFuture(
       {required int transactionId,
       required bool doneWithTransaction,
@@ -1359,259 +1198,316 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<void> updateRecord(
-      {required String tableName,
-      required String idField,
-      required Map<String, dynamic> map,
+  FutureOr<void> addAccess(
+      {required int userId,
+      required String featureName,
+      required String accessLevel,
+      required String userType,
+      required String status,
+      required int branchId,
+      required int businessId,
+      DateTime? createdAt}) {
+    // TODO: implement addAccess
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> addAsset(
+      {required int productId,
+      required assetName,
+      required int branchId,
+      required int businessId}) {
+    // TODO: implement addAsset
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> addCategory(
+      {required String name,
+      required int branchId,
+      required bool active,
+      required bool focused,
+      required DateTime lastTouched,
       required int id,
-      required List<SyncProvider> syncProviders}) async {
-    try {
-      final doc = MutableDocument.withId(map['id'].toString());
-
-      if (tableName == countersTable) {
-        final collection = await getCountersCollection();
-
-        /// remove illegal fields, the _id comes from realm maybe?
-        map.remove("_id");
-        map.remove("lastTouched");
-        map["channels"] = [
-          ProxyService.box.getBranchId()?.toString(),
-        ];
-        doc.setData(map);
-        await collection.saveDocument(doc);
-
-        talker.warning("Document saved successfully: ${doc.id}:${tableName}");
-      }
-    } catch (e) {
-      talker.warning('Error updating record: $e');
-    }
-  }
-
-  @override
-  Future<void> updateCounters({
-    required List<Counter> counters,
-    RwApiResponse? receiptSignature,
-  }) async {
-    final collection = await getCountersCollection();
-    throw UnimplementedError();
-    // await capella!.database!.writeN(
-    //   tableName: countersTable,
-    //   writeCallback: () {
-    //     List<MutableDocument> documents = [];
-
-    //     for (Counter counter in counters) {
-    //       try {
-    //         talker.warning("JSONN${counter.toJson()}");
-    //         // Ensure document ID is string
-    //         String documentId = counter.id.toString();
-
-    //         // Create updated counter
-    //         Counter updatedCounter = counter.copyWith(
-    //           totRcptNo: receiptSignature?.data?.totRcptNo,
-    //           curRcptNo: receiptSignature?.data?.rcptNo,
-    //           invcNo: (counter.invcNo != null) ? counter.invcNo! + 1 : 1,
-    //         );
-
-    //         // Create document and set data
-    //         final doc = MutableDocument.withId(documentId);
-
-    //         // Convert updatedCounter to a map once
-    //         var updatedCounterMap = updatedCounter.toJson();
-
-    //         // Remove the "lastTouched" key if it exists
-    //         updatedCounterMap.remove("lastTouched");
-
-    //         // Set "lastTouched" to the current time
-    //         updatedCounterMap["lastTouched"] = DateTime.now().toIso8601String();
-
-    //         updatedCounterMap["channels"] = [
-    //           ProxyService.box.getBranchId()?.toString(),
-    //         ];
-
-    //         // Write the modified map to the document
-    //         doc.setData(updatedCounterMap);
-
-    //         documents.add(doc);
-    //       } catch (e, s) {
-    //         talker.warning(s);
-    //       }
-    //     }
-
-    //     return documents;
-    //   },
-    //   onAdd: (docs) async {
-    //     try {
-    //       talker.warning("LENGHT:${docs.length}");
-
-    //       for (var doc in docs) {
-    //         // Get existing document if it exists
-    //         final existingDoc = await collection.document(doc.id);
-
-    //         // If document exists, update it with new data
-    //         if (existingDoc != null) {
-    //           final mutableExisting = existingDoc.toMutable();
-    //           talker.warning("Data to save: ${doc.toPlainMap()}");
-    //           mutableExisting.setData(doc.toPlainMap());
-    //           await collection.saveDocument(mutableExisting);
-    //         } else {
-    //           // Save new document
-    //           await collection.saveDocument(doc);
-    //         }
-    //         // update firestore
-    //         ProxyService.backUp.replicateData(
-    //           countersTable,
-    //           Counter.fromJson(doc.toPlainMap()),
-    //           useNewImplementation: true,
-    //         );
-    //         talker.warning("Document saved successfully: ${doc.id}");
-    //       }
-    //     } catch (e, s) {
-    //       talker.warning("Error saving document: $e");
-    //       talker.error("Error saving document: $s");
-    //       rethrow;
-    //     }
-    //   },
-    // );
-  }
-
-  @override
-  Future<Variant?> variant({int? variantId, String? name}) {
-    // TODO: implement variant
+      required DateTime createdAt,
+      required deletedAt}) {
+    // TODO: implement addCategory
     throw UnimplementedError();
   }
 
   @override
-  Future<List<Variant>> variants(
-      {required int branchId, int? productId, int? page, int? itemsPerPage}) {
-    // TODO: implement variants
+  FutureOr<void> addColor({required String name, required int branchId}) {
+    // TODO: implement addColor
     throw UnimplementedError();
   }
 
   @override
-  Future<void> backUp(
-      {required int branchId,
-      required String encryptionKey,
-      required String dbPath}) {
-    // TODO: implement backUp
+  void clearVariants() {
+    // TODO: implement clearVariants
+  }
+
+  @override
+  void close() {
+    // TODO: implement close
+  }
+
+  @override
+  FutureOr<void> deleteAll<T extends Object>({required String tableName}) {
+    // TODO: implement deleteAll
     throw UnimplementedError();
   }
 
   @override
-  void cancelAll() {
-    // TODO: implement cancelAll
+  void emptySentMessageQueue() {
+    // TODO: implement emptySentMessageQueue
   }
 
   @override
-  void cancelWatch({required String tableName}) {
-    // TODO: implement cancelWatch
-  }
-
-  @override
-  Future<void> deleteDuplicate({required String tableName}) {
-    // TODO: implement deleteDuplicate
+  Future<bool> enableAttendance(
+      {required int businessId, required String email}) {
+    // TODO: implement enableAttendance
     throw UnimplementedError();
   }
 
   @override
-  Future<void> deleteRecord(
-      {required String tableName, required String idField, required int id}) {
-    // TODO: implement deleteRecord
+  Future<Business> getBusinessFuture({int? businessId}) {
+    // TODO: implement getBusinessFuture
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> firebaseLogin({String? token}) {
-    // TODO: implement firebaseLogin
+  Future<List<Business>> getContacts() {
+    // TODO: implement getContacts
     throw UnimplementedError();
   }
 
   @override
-  Future<void> handleRealmChanges<T>(
-      {required RealmResults<T> results,
-      required String tableName,
-      required String idField,
-      required int Function(T p1) getId,
-      required Map<String, dynamic> Function(T p1) convertToMap,
-      required Function(Map<String, dynamic> p1) preProcessMap,
-      required SyncProvider syncProvider}) {
-    // TODO: implement handleRealmChanges
+  Future<Customer?> getCustomerFuture({String? key, int? id}) {
+    // TODO: implement getCustomerFuture
     throw UnimplementedError();
   }
 
   @override
-  Future<void> handleRealmChangesAsync<T>(
-      {required RealmResults<T> results,
-      required String tableName,
-      required String idField,
-      required int Function(T p1) getId,
-      required Map<String, dynamic> Function(T p1) convertToMap,
-      required Function(Map<String, dynamic> p1) preProcessMap,
-      required SyncProvider syncProvider}) {
-    // TODO: implement handleRealmChangesAsync
+  Future<
+      ({
+        List<Device> devices,
+        List<Favorite> favorites,
+        List<Product> products,
+        List<Stock> stocks,
+        List<TransactionItem> transactionItems,
+        List<ITransaction> transactions,
+        List<Variant> variants
+      })> getUnSyncedData() {
+    // TODO: implement getUnSyncedData
     throw UnimplementedError();
   }
 
   @override
-  Future<void> processbatchBackUp<T extends RealmObject>(List<T> batch) {
-    // TODO: implement processbatchBackUp
+  Stream<double> initialStock({required branchId}) {
+    // TODO: implement initialStock
     throw UnimplementedError();
   }
 
   @override
-  Future<void> watchTable<T extends RealmObject>(
-      {required String tableName,
-      required List<int> branchIds,
-      required String idField,
-      bool useWatch = false,
-      required T Function(Map<String, dynamic> p1) createRealmObject,
-      required void Function(T p1, Map<String, dynamic> p2) updateRealmObject,
-      required SyncProvider syncProvider}) {
-    // TODO: implement watchTable
+  Future<extensions.SocialToken?> loginOnSocial(
+      {String? phoneNumberOrEmail, String? password}) {
+    // TODO: implement loginOnSocial
     throw UnimplementedError();
   }
 
   @override
-  Future<void> watchTableAsync<T extends RealmObject>(
-      {required String tableName,
-      required String idField,
-      required List<int> branchIds,
-      bool useWatch = false,
-      required T Function(Map<String, dynamic> p1) createRealmObject,
-      required void Function(T p1, Map<String, dynamic> p2) updateRealmObject,
-      required SyncProvider syncProvider}) {
-    // TODO: implement watchTableAsync
+  FutureOr<void> updateAcess(
+      {required int userId,
+      String? featureName,
+      String? status,
+      String? accessLevel,
+      String? userType}) {
+    // TODO: implement updateAcess
     throw UnimplementedError();
   }
 
   @override
-  void whoAmI() {
-    // TODO: implement whoAmI
-    talker.warning("I am capella");
-  }
-
-  @override
-  Future<Configurations> saveTax(
-      {required int configId, required double taxPercentage}) {
-    // TODO: implement saveTax
+  FutureOr<void> updateAsset({required int assetId, String? assetName}) {
+    // TODO: implement updateAsset
     throw UnimplementedError();
   }
 
   @override
-  Future<Configurations> taxes({required int branchId}) {
-    // TODO: implement taxes
+  FutureOr<void> updateBranch(
+      {required int branchId, String? name, bool? active, bool? isDefault}) {
+    // TODO: implement updateBranch
     throw UnimplementedError();
   }
 
   @override
-  void addTransactionItem(
+  FutureOr<void> updateCategory(
+      {required int categoryId,
+      String? name,
+      bool? active,
+      bool? focused,
+      int? branchId}) {
+    // TODO: implement updateCategory
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateColor(
+      {required int colorId, String? name, bool? active}) {
+    // TODO: implement updateColor
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateDrawer(
+      {required int drawerId,
+      int? cashierId,
+      int? nsSaleCount,
+      int? trSaleCount,
+      int? psSaleCount,
+      int? csSaleCount,
+      int? nrSaleCount,
+      int? incompleteSale,
+      double? totalCsSaleIncome,
+      double? totalNsSaleIncome,
+      String? openingDateTime,
+      double? closingBalance,
+      bool? open}) {
+    // TODO: implement updateDrawer
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateNotification(
+      {required int notificationId, bool? completed}) {
+    // TODO: implement updateNotification
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updatePin(
+      {required int userId, String? phoneNumber, String? tokenUid}) {
+    // TODO: implement updatePin
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateProduct(
+      {int? productId,
+      String? name,
+      bool? isComposite,
+      String? unit,
+      String? color,
+      String? imageUrl,
+      String? expiryDate}) {
+    // TODO: implement updateProduct
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateReport({required int reportId, bool? downloaded}) {
+    // TODO: implement updateReport
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateStockRequest(
+      {required int stockRequestId, DateTime? updatedAt, String? status}) {
+    // TODO: implement updateStockRequest
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateTenant(
+      {required int tenantId,
+      String? name,
+      String? phoneNumber,
+      String? email,
+      int? businessId,
+      String? type,
+      int? pin,
+      bool? sessionActive,
+      int? branchId}) {
+    // TODO: implement updateTenant
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateTransaction(
+      {required ITransaction transaction,
+      String? receiptType,
+      double? subTotal,
+      String? note,
+      String? status,
+      int? customerId,
+      bool? ebmSynced,
+      String? sarTyCd,
+      String? reference,
+      String? customerTin,
+      String? customerBhfId,
+      double? cashReceived,
+      bool? isRefunded,
+      String? customerName,
+      String? ticketName,
+      String? updatedAt,
+      int? invoiceNumber,
+      DateTime? lastTouched,
+      int? receiptNumber,
+      int? totalReceiptNumber,
+      bool? isProformaMode,
+      bool? isTrainingMode}) {
+    // TODO: implement updateTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateTransactionItem(
+      {double? qty,
+      required int transactionItemId,
+      double? discount,
+      bool? active,
+      double? taxAmt,
+      int? quantityApproved,
+      int? quantityRequested,
+      bool? ebmSynced,
+      bool? isRefunded,
+      bool? incrementQty,
+      double? price,
+      double? prc,
+      double? splyAmt,
+      bool? doneWithTransaction,
+      int? quantityShipped,
+      double? taxblAmt,
+      double? totAmt,
+      double? dcRt,
+      double? dcAmt}) {
+    // TODO: implement updateTransactionItem
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateUnit(
+      {required int unitId, String? name, bool? active, int? branchId}) {
+    // TODO: implement updateUnit
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<Stock?> addStockToVariant({required Variant variant, Stock? stock}) {
+    // TODO: implement addStockToVariant
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> addTransactionItem(
       {required ITransaction transaction,
       required TransactionItem item,
       required bool partOfComposite}) {
     // TODO: implement addTransactionItem
+    throw UnimplementedError();
   }
 
   @override
-  Future<Branch?> branch({required int serverId}) {
+  FutureOr<Branch?> branch({required int serverId}) {
     // TODO: implement branch
     throw UnimplementedError();
   }
@@ -1642,6 +1538,31 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
+  Future<RealmInterface> configureCapella(
+      {required bool useInMemory, required LocalStorage box}) async {
+    return this as RealmInterface;
+  }
+
+  @override
+  Future<RealmInterface> configureLocal(
+      {required bool useInMemory, required LocalStorage box}) async {
+    return this as RealmInterface;
+  }
+
+  @override
+  Future<void> configureSystem(String userPhone, extensions.IUser user,
+      {required bool offlineLogin}) {
+    // TODO: implement configureSystem
+    throw UnimplementedError();
+  }
+
+  @override
+  T? create<T>({required T data}) {
+    // TODO: implement create
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
       required DateTime whenCreated,
@@ -1661,44 +1582,50 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<Assets?> getAsset({String? assetName, int? productId}) {
+  Future<bool> firebaseLogin({String? token}) {
+    // TODO: implement firebaseLogin
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<Assets?> getAsset({String? assetName, int? productId}) {
     // TODO: implement getAsset
     throw UnimplementedError();
   }
 
   @override
-  Future<Business> getBusiness({int? businessId}) {
+  FutureOr<Business> getBusiness({int? businessId}) {
     // TODO: implement getBusiness
     throw UnimplementedError();
   }
 
   @override
-  Future<Business?> getBusinessById({required int businessId}) {
+  FutureOr<Business?> getBusinessById({required int businessId}) {
     // TODO: implement getBusinessById
     throw UnimplementedError();
   }
 
   @override
-  Future<List<Customer>> getCustomers({String? key, int? id}) {
+  FutureOr<List<Customer>> getCustomers({String? key, int? id}) {
     // TODO: implement getCustomers
     throw UnimplementedError();
   }
 
   @override
-  Future<FlipperSaleCompaign?> getLatestCompaign() {
+  FutureOr<FlipperSaleCompaign?> getLatestCompaign() {
     // TODO: implement getLatestCompaign
     throw UnimplementedError();
   }
 
   @override
-  Future<List<TransactionPaymentRecord>> getPaymentType(
+  FutureOr<List<TransactionPaymentRecord>> getPaymentType(
       {required int transactionId}) {
     // TODO: implement getPaymentType
     throw UnimplementedError();
   }
 
   @override
-  Future<ITransaction?> getTransactionById({required int id}) {
+  ITransaction? getTransactionById({required int id}) {
     // TODO: implement getTransactionById
     throw UnimplementedError();
   }
@@ -1713,7 +1640,7 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  Future<ITransaction> manageTransaction(
+  FutureOr<ITransaction> manageTransaction(
       {required String transactionType,
       required bool isExpense,
       required int branchId,
@@ -1741,6 +1668,19 @@ class Capella with Booting implements CoreDataInterface {
   @override
   void removeCustomerFromTransaction({required ITransaction transaction}) {
     // TODO: implement removeCustomerFromTransaction
+  }
+
+  @override
+  Future<Configurations> saveTax(
+      {required int configId, required double taxPercentage}) {
+    // TODO: implement saveTax
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Configurations>> taxes({required int branchId}) {
+    // TODO: implement taxes
+    throw UnimplementedError();
   }
 
   @override
@@ -1794,7 +1734,330 @@ class Capella with Booting implements CoreDataInterface {
   }
 
   @override
-  void updateTransactionStatus(ITransaction transaction, String receiptType) {
-    // TODO: implement updateTransactionStatus
+  FutureOr<void> updateStock(
+      {required int stockId,
+      double? qty,
+      double? rsdQty,
+      double? initialStock,
+      bool? ebmSynced,
+      double? currentStock,
+      double? value,
+      DateTime? lastTouched}) {
+    // TODO: implement updateStock
+    throw UnimplementedError();
+  }
+
+  @override
+  Variant? variant({int? variantId, String? name}) {
+    // TODO: implement variant
+    throw UnimplementedError();
+  }
+
+  @override
+  List<Variant> variants(
+      {required int branchId, int? productId, int? page, int? itemsPerPage}) {
+    // TODO: implement variants
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> delete(
+      {required int id,
+      String? endPoint,
+      HttpClientInterface? flipperHttpClient}) {
+    // TODO: implement delete
+    throw UnimplementedError();
+  }
+
+  @override
+  Product? getProduct({required int id}) {
+    // TODO: implement getProduct
+    throw UnimplementedError();
+  }
+
+  @override
+  TransactionItem? getTransactionItemByVariantId(
+      {required int variantId, int? transactionId}) {
+    // TODO: implement getTransactionItemByVariantId
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Variant?> getVariantById({required int id}) {
+    // TODO: implement getVariantById
+    throw UnimplementedError();
+  }
+
+  @override
+  RealmInterface instance() {
+    // TODO: implement instance
+    throw UnimplementedError();
+  }
+
+  @override
+  bool isSubscribed({required String feature, required int businessId}) {
+    // TODO: implement isSubscribed
+    throw UnimplementedError();
+  }
+
+  @override
+  bool isTaxEnabled({required int businessId}) {
+    // TODO: implement isTaxEnabled
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> saveEbm(
+      {required int branchId,
+      required String severUrl,
+      required String bhFId}) {
+    // TODO: implement saveEbm
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> savePaymentType(
+      {TransactionPaymentRecord? paymentRecord,
+      int? transactionId,
+      double amount = 0.0,
+      String? paymentMethod,
+      required bool singlePaymentOnly}) {
+    // TODO: implement savePaymentType
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Pin?> savePin({required Pin pin}) {
+    // TODO: implement savePin
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> saveStock(
+      {Variant? variant,
+      required double rsdQty,
+      required int productId,
+      required int variantId,
+      required int branchId,
+      required double currentStock,
+      required double value}) {
+    // TODO: implement saveStock
+    throw UnimplementedError();
+  }
+
+  @override
+  Stock? stockByVariantId(
+      {required int variantId,
+      required int branchId,
+      bool nonZeroValue = false}) {
+    // TODO: implement stockByVariantId
+    throw UnimplementedError();
+  }
+
+  @override
+  List<TransactionItem> transactionItems(
+      {int? transactionId,
+      bool? doneWithTransaction,
+      required int branchId,
+      bool? active}) {
+    // TODO: implement transactionItems
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> processItem(
+      {required brick.Item item,
+      required Map<String, String> quantitis,
+      required Map<String, String> taxTypes,
+      required Map<String, String> itemClasses,
+      required Map<String, String> itemTypes}) {
+    // TODO: implement processItem
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> addBusiness(
+      {required int id,
+      int? userId,
+      required int serverId,
+      String? name,
+      String? currency,
+      String? categoryId,
+      String? latitude,
+      String? longitude,
+      String? timeZone,
+      String? country,
+      String? businessUrl,
+      String? hexColor,
+      String? imageUrl,
+      String? type,
+      bool? active,
+      String? chatUid,
+      String? metadata,
+      String? role,
+      int? lastSeen,
+      String? firstName,
+      String? lastName,
+      String? createdAt,
+      String? deviceToken,
+      bool? backUpEnabled,
+      String? subscriptionPlan,
+      String? nextBillingDate,
+      String? previousBillingDate,
+      bool? isLastSubscriptionPaymentSucceeded,
+      String? backupFileId,
+      String? email,
+      String? lastDbBackup,
+      String? fullName,
+      int? tinNumber,
+      required String bhfId,
+      String? dvcSrlNo,
+      String? adrs,
+      bool? taxEnabled,
+      String? taxServerUrl,
+      bool? isDefault,
+      int? businessTypeId,
+      DateTime? lastTouched,
+      DateTime? deletedAt,
+      required String encryptionKey}) {
+    // TODO: implement addBusiness
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<brick.LPermission?> permission({required int userId}) {
+    // TODO: implement permission
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<List<brick.LPermission>> permissions({required int userId}) {
+    // TODO: implement permissions
+    throw UnimplementedError();
+  }
+
+  @override
+  void updateAccess(
+      {required int accessId,
+      required int userId,
+      required String featureName,
+      required String accessLevel,
+      required String status,
+      required String userType}) {
+    // TODO: implement updateAccess
+  }
+
+  @override
+  void whoAmI() {
+    print("I am capella");
+  }
+
+  @override
+  Future<brick.Tenant?> saveTenant(
+      {required brick.Business business,
+      required brick.Branch branch,
+      String? phoneNumber,
+      String? name,
+      int? id,
+      String? email,
+      int? businessId,
+      bool? sessionActive,
+      int? branchId,
+      String? imageUrl,
+      int? pin,
+      bool? isDefault,
+      required HttpClientInterface flipperHttpClient,
+      required String userType}) {
+    // TODO: implement saveTenant
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<List<brick.Access>> access(
+      {required int userId, String? featureName}) {
+    // TODO: implement access
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<brick.Branch> addBranch(
+      {required String name,
+      required int businessId,
+      required String location,
+      String? userOwnerPhoneNumber,
+      HttpClientInterface? flipperHttpClient,
+      int? serverId,
+      String? description,
+      String? longitude,
+      String? latitude,
+      required bool isDefault,
+      required bool active,
+      DateTime? lastTouched,
+      DateTime? deletedAt,
+      int? id}) {
+    // TODO: implement addBranch
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateVariant(
+      {required List<brick.Variant> updatables,
+      String? color,
+      String? taxTyCd,
+      int? variantId,
+      double? newRetailPrice,
+      double? retailPrice,
+      Map<int, String>? rates,
+      double? supplyPrice,
+      Map<int, String>? dates,
+      String? selectedProductType,
+      int? productId,
+      String? productName,
+      String? unit,
+      String? pkgUnitCd,
+      bool? ebmSynced}) {
+    // TODO: implement updateVariant
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateBusiness(
+      {required int businessId,
+      String? name,
+      bool? active,
+      bool? isDefault,
+      String? backupFileId}) {
+    // TODO: implement updateBusiness
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Discount>> getDiscounts({required int branchId}) {
+    // TODO: implement getDiscounts
+    throw UnimplementedError();
+  }
+
+  @override
+  void notify({required brick.AppNotification notification}) {
+    // TODO: implement notify
+  }
+
+  @override
+  void updateCounters(
+      {required List<brick.Counter> counters,
+      RwApiResponse? receiptSignature}) {
+    // TODO: implement updateCounters
+  }
+
+  @override
+  conversations({int? conversationId}) {
+    // TODO: implement conversations
+    throw UnimplementedError();
+  }
+
+  @override
+  getTop5RecentConversations() {
+    // TODO: implement getTop5RecentConversations
+    throw UnimplementedError();
   }
 }

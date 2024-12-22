@@ -1,14 +1,13 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/SearchCustomer.dart';
-import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/src/consumer.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
-import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_services/constants.dart';
 
@@ -62,9 +61,9 @@ class BottomSheets {
                     onPressed: () {
                       if (double.tryParse(newQtyController.text) != null &&
                           double.tryParse(newQtyController.text) != 0) {
-                        ProxyService.local.updateTransactionItem(
+                        ProxyService.strategy.updateTransactionItem(
                             qty: double.tryParse(newQtyController.text),
-                            transactionItemId: transactionItem.id!);
+                            transactionItemId: transactionItem.id);
 
                         ref.refresh(transactionItemProvider((
                           transactionId: transactionId!,
@@ -83,7 +82,7 @@ class BottomSheets {
                     textColor: Colors.red,
                     text: 'Remove Product',
                     onPressed: () {
-                      ProxyService.local.deleteItemFromCart(
+                      ProxyService.strategy.deleteItemFromCart(
                         transactionItemId: transactionItem,
                         transactionId: transactionId,
                       );
@@ -110,7 +109,7 @@ class BottomSheets {
     final transaction = ref.watch(pendingTransactionProviderNonStream(
         (mode: TransactionType.sale, isExpense: false)));
     final items = ref.watch(transactionItemProvider((
-      transactionId: transaction.id!,
+      transactionId: transaction.value?.id ?? 0,
       branchId: ProxyService.box.getBranchId()!
     )));
     double calculateTotal(List<TransactionItem> items) {
@@ -121,7 +120,7 @@ class BottomSheets {
       return ListTile(
         contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
         title: Text(
-          transactionItem.name!,
+          transactionItem.name,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
         trailing: Row(
@@ -182,7 +181,7 @@ class BottomSheets {
                         onPressed: () {
                           // Handle "Clear All"
                           for (TransactionItem item in items) {
-                            ProxyService.local.deleteItemFromCart(
+                            ProxyService.strategy.deleteItemFromCart(
                                 transactionItemId: item,
                                 transactionId: transactionId);
                           }

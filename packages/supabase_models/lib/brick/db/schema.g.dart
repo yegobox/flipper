@@ -1,78 +1,83 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20241222105429.migration.dart';
+part '20241201193049.migration.dart';
+part '20241202075940.migration.dart';
+part '20241201181931.migration.dart';
+part '20241201190309.migration.dart';
+part '20241201195050.migration.dart';
 part '20241114183152.migration.dart';
 part '20241128071851.migration.dart';
 part '20241129195847.migration.dart';
 part '20241117103838.migration.dart';
+part '20241221150100.migration.dart';
 part '20241113144615.migration.dart';
+part '20241202043225.migration.dart';
+part '20241201194613.migration.dart';
 part '20241130180002.migration.dart';
+part '20241201190935.migration.dart';
 part '20241128071810.migration.dart';
 part '20241130163652.migration.dart';
 part '20241130175022.migration.dart';
+part '20241202043131.migration.dart';
 part '20241130074803.migration.dart';
 part '20241128141446.migration.dart';
+part '20241201190658.migration.dart';
 part '20241113200548.migration.dart';
 part '20241128072540.migration.dart';
+part '20241201192623.migration.dart';
 part '20241117164713.migration.dart';
 part '20241114183418.migration.dart';
 part '20241117083433.migration.dart';
-part '20241128071917.migration.dart';
-part '20241201181931.migration.dart';
-part '20241201185919.migration.dart';
 part '20241201190104.migration.dart';
-part '20241201190309.migration.dart';
-part '20241201190658.migration.dart';
-part '20241201190935.migration.dart';
-part '20241201192623.migration.dart';
 part '20241201192839.migration.dart';
-part '20241201193049.migration.dart';
-part '20241201194613.migration.dart';
-part '20241201195050.migration.dart';
+part '20241128071917.migration.dart';
+part '20241201185919.migration.dart';
 part '20241201203523.migration.dart';
-part '20241202043131.migration.dart';
-part '20241202043225.migration.dart';
-part '20241202075940.migration.dart';
+part '20241222105049.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
+  const Migration20241222105429(),
+  const Migration20241201193049(),
+  const Migration20241202075940(),
+  const Migration20241201181931(),
+  const Migration20241201190309(),
+  const Migration20241201195050(),
   const Migration20241114183152(),
   const Migration20241128071851(),
   const Migration20241129195847(),
   const Migration20241117103838(),
+  const Migration20241221150100(),
   const Migration20241113144615(),
+  const Migration20241202043225(),
+  const Migration20241201194613(),
   const Migration20241130180002(),
+  const Migration20241201190935(),
   const Migration20241128071810(),
   const Migration20241130163652(),
   const Migration20241130175022(),
+  const Migration20241202043131(),
   const Migration20241130074803(),
   const Migration20241128141446(),
+  const Migration20241201190658(),
   const Migration20241113200548(),
   const Migration20241128072540(),
+  const Migration20241201192623(),
   const Migration20241117164713(),
   const Migration20241114183418(),
   const Migration20241117083433(),
-  const Migration20241128071917(),
-  const Migration20241201181931(),
-  const Migration20241201185919(),
   const Migration20241201190104(),
-  const Migration20241201190309(),
-  const Migration20241201190658(),
-  const Migration20241201190935(),
-  const Migration20241201192623(),
   const Migration20241201192839(),
-  const Migration20241201193049(),
-  const Migration20241201194613(),
-  const Migration20241201195050(),
+  const Migration20241128071917(),
+  const Migration20241201185919(),
   const Migration20241201203523(),
-  const Migration20241202043131(),
-  const Migration20241202043225(),
-  const Migration20241202075940()
+  const Migration20241222105049()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema =
-    Schema(20241202075940, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20241222105429, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('Stock', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -81,14 +86,14 @@ final schema =
     SchemaColumn('bhf_id', Column.varchar),
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('variant_id', Column.integer),
-    SchemaColumn('current_stock', Column.integer),
+    SchemaColumn('current_stock', Column.Double),
     SchemaColumn('low_stock', Column.integer),
     SchemaColumn('can_tracking_stock', Column.boolean),
     SchemaColumn('show_low_stock_alert', Column.boolean),
     SchemaColumn('product_id', Column.integer),
     SchemaColumn('active', Column.boolean),
-    SchemaColumn('value', Column.integer),
-    SchemaColumn('rsd_qty', Column.integer),
+    SchemaColumn('value', Column.Double),
+    SchemaColumn('rsd_qty', Column.Double),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('ebm_synced', Column.boolean),
@@ -136,6 +141,29 @@ final schema =
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer)
   }, indices: <SchemaIndex>{}),
+  SchemaTable('Conversation', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('user_name', Column.varchar),
+    SchemaColumn('body', Column.varchar),
+    SchemaColumn('avatar', Column.varchar),
+    SchemaColumn('channel_type', Column.varchar),
+    SchemaColumn('from_number', Column.varchar),
+    SchemaColumn('to_number', Column.varchar),
+    SchemaColumn('created_at', Column.varchar),
+    SchemaColumn('message_type', Column.varchar),
+    SchemaColumn('phone_number_id', Column.varchar),
+    SchemaColumn('message_id', Column.varchar),
+    SchemaColumn('responded_by', Column.varchar),
+    SchemaColumn('conversation_id', Column.varchar),
+    SchemaColumn('business_phone_number', Column.varchar),
+    SchemaColumn('business_id', Column.integer),
+    SchemaColumn('scheduled_at', Column.datetime),
+    SchemaColumn('delivered', Column.boolean),
+    SchemaColumn('last_touched', Column.datetime),
+    SchemaColumn('deleted_at', Column.datetime)
+  }, indices: <SchemaIndex>{}),
   SchemaTable('ITransaction', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -146,10 +174,10 @@ final schema =
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('status', Column.varchar),
     SchemaColumn('transaction_type', Column.varchar),
-    SchemaColumn('sub_total', Column.integer),
+    SchemaColumn('sub_total', Column.Double),
     SchemaColumn('payment_type', Column.varchar),
-    SchemaColumn('cash_received', Column.integer),
-    SchemaColumn('customer_change_due', Column.integer),
+    SchemaColumn('cash_received', Column.Double),
+    SchemaColumn('customer_change_due', Column.Double),
     SchemaColumn('created_at', Column.varchar),
     SchemaColumn('receipt_type', Column.varchar),
     SchemaColumn('updated_at', Column.varchar),
@@ -233,7 +261,6 @@ final schema =
     SchemaColumn('remaining_stock', Column.Double),
     SchemaColumn('created_at', Column.varchar),
     SchemaColumn('updated_at', Column.varchar),
-    SchemaColumn('is_tax_exempted', Column.boolean),
     SchemaColumn('is_refunded', Column.boolean),
     SchemaColumn('done_with_transaction', Column.boolean),
     SchemaColumn('active', Column.boolean),
@@ -277,6 +304,13 @@ final schema =
     SchemaColumn('part_of_composite', Column.boolean),
     SchemaColumn('composite_price', Column.Double)
   }, indices: <SchemaIndex>{}),
+  SchemaTable('LPermission', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('name', Column.varchar),
+    SchemaColumn('user_id', Column.integer)
+  }, indices: <SchemaIndex>{}),
   SchemaTable('Variant', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -290,7 +324,7 @@ final schema =
     SchemaColumn('product_name', Column.varchar),
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('tax_name', Column.varchar),
-    SchemaColumn('tax_percentage', Column.integer),
+    SchemaColumn('tax_percentage', Column.Double),
     SchemaColumn('item_seq', Column.integer),
     SchemaColumn('isrcc_cd', Column.varchar),
     SchemaColumn('isrcc_nm', Column.varchar),
@@ -307,11 +341,11 @@ final schema =
     SchemaColumn('pkg_unit_cd', Column.varchar),
     SchemaColumn('qty_unit_cd', Column.varchar),
     SchemaColumn('item_nm', Column.varchar),
-    SchemaColumn('prc', Column.integer),
-    SchemaColumn('sply_amt', Column.integer),
+    SchemaColumn('prc', Column.Double),
+    SchemaColumn('sply_amt', Column.Double),
     SchemaColumn('tin', Column.integer),
     SchemaColumn('bhf_id', Column.varchar),
-    SchemaColumn('dft_prc', Column.integer),
+    SchemaColumn('dft_prc', Column.Double),
     SchemaColumn('add_info', Column.varchar),
     SchemaColumn('isrc_aplcb_yn', Column.varchar),
     SchemaColumn('use_yn', Column.varchar),
@@ -320,13 +354,13 @@ final schema =
     SchemaColumn('modr_id', Column.varchar),
     SchemaColumn('modr_nm', Column.varchar),
     SchemaColumn('last_touched', Column.datetime),
-    SchemaColumn('supply_price', Column.integer),
-    SchemaColumn('retail_price', Column.integer),
+    SchemaColumn('supply_price', Column.Double),
+    SchemaColumn('retail_price', Column.Double),
     SchemaColumn('spplr_item_cls_cd', Column.varchar),
     SchemaColumn('spplr_item_cd', Column.varchar),
     SchemaColumn('spplr_item_nm', Column.varchar),
     SchemaColumn('ebm_synced', Column.boolean),
-    SchemaColumn('dc_rt', Column.integer),
+    SchemaColumn('dc_rt', Column.Double),
     SchemaColumn('expiration_date', Column.datetime),
     SchemaColumn('stock_id', Column.integer)
   }, indices: <SchemaIndex>{}),
@@ -505,6 +539,14 @@ final schema =
     SchemaColumn('driver_id', Column.integer),
     SchemaColumn('updated_at', Column.datetime)
   }, indices: <SchemaIndex>{}),
+  SchemaTable('Discount', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('name', Column.varchar),
+    SchemaColumn('amount', Column.Double),
+    SchemaColumn('branch_id', Column.integer)
+  }, indices: <SchemaIndex>{}),
   SchemaTable('Business', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -613,6 +655,18 @@ final schema =
     SchemaColumn('when_created', Column.datetime),
     SchemaColumn('invoice_number', Column.integer)
   }, indices: <SchemaIndex>{}),
+  SchemaTable('Token', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('name', Column.varchar),
+    SchemaColumn('type', Column.varchar),
+    SchemaColumn('token', Column.varchar),
+    SchemaColumn('valid_from', Column.datetime),
+    SchemaColumn('valid_until', Column.datetime),
+    SchemaColumn('business_id', Column.integer),
+    SchemaColumn('last_touched', Column.datetime)
+  }, indices: <SchemaIndex>{}),
   SchemaTable('Ebm', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -666,7 +720,8 @@ final schema =
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('spplr_nm', Column.varchar),
-    SchemaColumn('is_composite', Column.boolean)
+    SchemaColumn('is_composite', Column.boolean),
+    SchemaColumn('search_match', Column.boolean)
   }, indices: <SchemaIndex>{}),
   SchemaTable('Assets', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
@@ -735,5 +790,14 @@ final schema =
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer)
+  }, indices: <SchemaIndex>{}),
+  SchemaTable('AppNotification', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('type', Column.varchar),
+    SchemaColumn('message', Column.varchar),
+    SchemaColumn('identifier', Column.integer),
+    SchemaColumn('completed', Column.boolean)
   }, indices: <SchemaIndex>{})
 });

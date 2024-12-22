@@ -4,8 +4,6 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/PurchaseCodeForm.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
-import 'package:flipper_models/power_sync/schema.dart';
-import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -21,7 +19,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:realm/realm.dart';
 
 mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixin, TextEditingControllersMixin {
@@ -46,9 +43,9 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       final dateRange = ref.watch(dateRangeProvider);
       final startDate = dateRange['startDate'];
 
-      final items = ProxyService.local.transactionItems(
+      final items = ProxyService.strategy.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
-        transactionId: transaction.id!,
+        transactionId: transaction.id,
         doneWithTransaction: false,
         active: true,
       );
@@ -60,13 +57,13 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       }
 
       // ignore: unused_local_variable
-      int orderId = ProxyService.local.createStockRequest(items,
+      int orderId = ProxyService.strategy.createStockRequest(items,
           deliveryNote: deliveryNote,
           deliveryDate: startDate,
           mainBranchId: ref.read(selectedSupplierProvider).value!.serverId!);
       await _markItemsAsDone(items, transaction);
       _changeTransactionStatus(transaction: transaction);
-      await _refreshTransactionItems(transactionId: transaction.id!);
+      await _refreshTransactionItems(transactionId: transaction.id);
 
       // locator<RouterService>()
       //     .navigateTo(WaitingOrdersPlacedRoute(orderId: orderId));
@@ -83,7 +80,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
 
   FutureOr<void> _changeTransactionStatus(
       {required ITransaction transaction}) async {
-    await ProxyService.local
+    await ProxyService.strategy
         .updateTransaction(transaction: transaction, status: ORDERING);
   }
 
@@ -111,12 +108,10 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> applyDiscount(ITransaction transaction) async {
-    if (transaction.id == null) return;
-
     // get items on cart
-    final items = await ProxyService.local.transactionItems(
+    final items = await ProxyService.strategy.transactionItems(
       branchId: ProxyService.box.getBranchId()!,
-      transactionId: transaction.id!,
+      transactionId: transaction.id,
       doneWithTransaction: false,
       active: true,
     );
@@ -138,34 +133,28 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     double remainingDiscount = discountAmount;
 
     try {
-      await ProxyService.local.realm!.writeN(
-        tableName: transactionTable,
-        writeCallback: () {
-          // Update items
-          for (var i = 0; i < items.length; i++) {
-            var item = items[i];
-            double itemTotal = item.price * item.qty;
-            double itemDiscountAmount;
+      // Update items
+      for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        double itemTotal = item.price * item.qty;
+        double itemDiscountAmount;
 
-            if (i == items.length - 1) {
-              // Last item gets remaining discount to avoid rounding issues
-              itemDiscountAmount = remainingDiscount;
-            } else {
-              itemDiscountAmount = (itemTotal / itemsTotal) * discountAmount;
-              remainingDiscount -= itemDiscountAmount;
-            }
-
-            item.dcRt = discountRate;
-            item.dcAmt = itemDiscountAmount;
-          }
-
-          // Update transaction
-          transaction.subTotal = itemsTotal - discountAmount;
-          return transaction;
-        },
-        onAdd: (data) {
-          // ProxyService.backUp.replicateData(transactionTable, data);
-        },
+        if (i == items.length - 1) {
+          // Last item gets remaining discount to avoid rounding issues
+          itemDiscountAmount = remainingDiscount;
+        } else {
+          itemDiscountAmount = (itemTotal / itemsTotal) * discountAmount;
+          remainingDiscount -= itemDiscountAmount;
+        }
+        ProxyService.strategy.updateTransactionItem(
+          transactionItemId: item.id,
+          dcRt: discountRate,
+          dcAmt: itemDiscountAmount,
+        );
+      }
+      ProxyService.strategy.updateTransaction(
+        transaction: transaction,
+        subTotal: itemsTotal - discountAmount,
       );
     } catch (e) {
       rethrow;
@@ -180,13 +169,10 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     try {
       // Validate transaction ID
       final transactionId = transaction.id;
-      if (transactionId == null) {
-        throw Exception('Transaction ID is required');
-      }
 
       // Save payment methods
       for (var payment in paymentMethods) {
-        ProxyService.local.savePaymentType(
+        ProxyService.strategy.savePaymentType(
           singlePaymentOnly: paymentMethods.length == 1,
           amount: payment.amount,
           transactionId: transactionId,
@@ -206,7 +192,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
 
       // Get customer
       Customer? customer =
-          await ProxyService.local.getCustomer(id: transaction.customerId);
+          await ProxyService.strategy.getCustomer(id: transaction.customerId);
 
       // Handle payment based on customer presence
       if (state && customer == null) {
@@ -356,7 +342,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                                 .read(isProcessingProvider.notifier)
                                 .stopProcessing();
                             _refreshTransactionItems(
-                                transactionId: transaction.id!);
+                                transactionId: transaction.id);
                             Navigator.of(context).pop();
 
                             ref.refresh(pendingTransactionProvider(

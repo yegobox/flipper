@@ -86,8 +86,9 @@ class MessageDisplayMobile extends StatelessWidget {
             color: Colors.black,
           )),
       subtitle: StreamBuilder(
-        stream: ProxyService.local.conversations(
-            conversationId: conversations![index].conversationId!),
+        stream: ProxyService.strategy.conversations(
+            // conversationId: conversations![index].conversationId!,
+            ),
         builder:
             (BuildContext context, AsyncSnapshot<List<Conversation>> snapshot) {
           if (snapshot.hasData) {
@@ -110,8 +111,9 @@ class MessageDisplayMobile extends StatelessWidget {
         },
       ),
       trailing: StreamBuilder(
-        stream: ProxyService.local.conversations(
-            conversationId: conversations![index].conversationId!),
+        stream: ProxyService.strategy.conversations(
+            // conversationId: conversations![index].conversationId!,
+            ),
         builder:
             (BuildContext context, AsyncSnapshot<List<Conversation>> snapshot) {
           if (snapshot.hasData) {

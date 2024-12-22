@@ -16,7 +16,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
   int? branchId;
   int? variantId;
   @Supabase(defaultValue: "0")
-  int? currentStock;
+  double? currentStock;
   @Supabase(defaultValue: "0")
   int? lowStock;
   @Supabase(defaultValue: "true")
@@ -25,8 +25,8 @@ class Stock extends OfflineFirstWithSupabaseModel {
   bool? showLowStockAlert;
   int? productId;
   bool? active;
-  int? value;
-  int? rsdQty;
+  double? value;
+  double? rsdQty;
   DateTime? lastTouched;
   DateTime? deletedAt;
   @Supabase(defaultValue: "false")
@@ -34,14 +34,13 @@ class Stock extends OfflineFirstWithSupabaseModel {
   @Supabase(defaultValue: "1")
   int? initialStock;
 
-  
-  final Variant variant;
+  Variant? variant;
 
   Stock({
     required this.id,
     this.tin,
     this.bhfId,
-    required this.variant,
+    this.variant,
     this.branchId,
     this.variantId,
     this.currentStock,

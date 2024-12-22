@@ -11,7 +11,7 @@ class MyDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           FutureBuilder<Tenant?>(
-              future: ProxyService.local
+              future: ProxyService.strategy
                   .getTenantBYUserId(userId: ProxyService.box.getUserId()!),
               builder: (context, snapshot) {
                 return DrawerHeader(
@@ -56,7 +56,7 @@ class MyDrawer extends StatelessWidget {
               }),
           // FIXME: fixme later.
           // FutureBuilder<List<Business>>(
-          //   future: ProxyService.local
+          //   future: ProxyService.strategy
           //       .businesses(userId: ProxyService.box.getUserId()!),
           //   builder: (context, businessSnapshot) {
           //     if (businessSnapshot.connectionState == ConnectionState.waiting) {
@@ -72,7 +72,7 @@ class MyDrawer extends StatelessWidget {
 
           //     // FIXME: uncomment this code.
           //     return FutureBuilder<List<Branch>>(
-          //       future: ProxyService.local
+          //       future: ProxyService.strategy
           //           .branches(businessId: businesses.first.serverId),
           //       builder: (context, branchSnapshot) {
           //         if (branchSnapshot.connectionState ==

@@ -52,9 +52,9 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
             if (confirm == true) {
               ITransaction? _transaction =
-                  await ProxyService.local.getTransactionById(id: ticket.id!);
+                  await ProxyService.strategy.getTransactionById(id: ticket.id);
 
-              await ProxyService.local.updateTransaction(
+              await ProxyService.strategy.updateTransaction(
                 transaction: _transaction!,
                 status: PENDING,
                 updatedAt: DateTime.now().toIso8601String(),
@@ -92,7 +92,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         builder: (context, model, child) {
           return Expanded(
             child: StreamBuilder<List<ITransaction>>(
-              stream: ProxyService.local.ticketsStreams(),
+              stream: ProxyService.strategy.ticketsStreams(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   List<ITransaction> data = snapshot.data!;

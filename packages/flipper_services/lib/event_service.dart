@@ -11,7 +11,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:realm/realm.dart';
+
 import 'package:stacked_services/stacked_services.dart';
 import 'login_event.dart';
 import 'dart:io';
@@ -113,12 +113,12 @@ class EventService
         String deviceVersion = Platform.version;
         // publish the device name and version
 
-        Device? device = await ProxyService.local.getDevice(
+        Device? device = await ProxyService.strategy.getDevice(
             phone: loginData.phone, linkingCode: loginData.linkingCode);
         try {
           if (device == null) {
-            await ProxyService.local.create(
-                data: Device(ObjectId(),
+            await ProxyService.strategy.create(
+                data: Device(
                     id: randomNumber(),
                     pubNubPublished: false,
                     branchId: loginData.branchId,
@@ -155,13 +155,6 @@ class EventService
       log("received message aha!");
       helper.IConversation conversation =
           helper.IConversation.fromJson(envelope.payload);
-
-      Conversation? localConversation = await ProxyService.local
-          .getConversation(messageId: conversation.messageId!);
-
-      if (localConversation == null) {
-        await ProxyService.local.create(data: conversation);
-      }
     });
   }
 
@@ -176,12 +169,12 @@ class EventService
     subscription.messages.listen((envelope) async {
       LoginData deviceEvent = LoginData.fromMap(envelope.payload);
 
-      Device? device = await ProxyService.local.getDevice(
+      Device? device = await ProxyService.strategy.getDevice(
           phone: deviceEvent.phone, linkingCode: deviceEvent.linkingCode);
 
       if (device == null) {
-        await ProxyService.local.create(
-            data: Device(ObjectId(),
+        await ProxyService.strategy.create(
+            data: Device(
                 id: randomNumber(),
                 pubNubPublished: true,
                 branchId: deviceEvent.branchId,
@@ -199,7 +192,7 @@ class EventService
   @override
   Future<void> keepTryingPublishDevice() async {
     if (ProxyService.box.getBusinessId() == null) return;
-    List<Device> devices = await ProxyService.local
+    List<Device> devices = await ProxyService.strategy
         .unpublishedDevices(businessId: ProxyService.box.getBusinessId()!);
     for (Device device in devices) {
       nub.PublishResult result = await publish(
@@ -216,9 +209,9 @@ class EventService
         },
       );
       if (result.description == 'Sent') {
-        ProxyService.local.realm!.writeAsync(() async {
-          device.pubNubPublished = true;
-        });
+        // ProxyService.strategy.realm!.writeAsync(() async {
+        //   device.pubNubPublished = true;
+        // });
       }
     }
   }

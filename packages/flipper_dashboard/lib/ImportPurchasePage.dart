@@ -4,14 +4,13 @@ import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/realm_model_export.dart' as brick;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 
 class ImportPurchasePage extends StatefulHookConsumerWidget {
@@ -49,7 +48,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       setState(() {
         isLoading = true;
       });
-      final data = await ProxyService.local.selectImportItems(
+      final data = await ProxyService.strategy.selectImportItems(
         tin: ProxyService.box.tin(),
         bhfId: (await ProxyService.box.bhfId()) ?? "00",
         lastReqDt: convertedDate,
@@ -174,8 +173,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     }
   }
 
-  Future<void> _acceptPurchase({required CoreViewModel model}) async {
-    ITransaction? pendingTransaction = null;
+  Future<void> _acceptPurchase({required brick.CoreViewModel model}) async {
+    brick.ITransaction? pendingTransaction = null;
     try {
       setState(() {
         isLoading = true;
@@ -187,18 +186,18 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           item.retailPrice ??= item.prc;
           talker.warning(
               "Retail Prices while saving item in our DB:: ${item.retailPrice}");
-          Product? product = await ProxyService.local.createProduct(
+          brick.Product? product = await ProxyService.strategy.createProduct(
             businessId: ProxyService.box.getBusinessId()!,
             branchId: ProxyService.box.getBranchId()!,
             tinNumber: ProxyService.box.tin(),
             bhFId: (await ProxyService.box.bhfId()) ?? "00",
-            product: Product(
+            product: brick.Product(
+              color: "#e74c3c",
               id: randomNumber(),
-              ObjectId(),
               name: item.itemNm,
               lastTouched: DateTime.now(),
-              branchId: ProxyService.box.getBranchId(),
-              businessId: ProxyService.box.getBusinessId(),
+              branchId: ProxyService.box.getBranchId()!,
+              businessId: ProxyService.box.getBusinessId()!,
               createdAt: DateTime.now().toIso8601String(),
               spplrNm: supplier.spplrNm,
             ),
@@ -212,28 +211,27 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           /// for the API to call the saveItem endpoint
           /// find variant
           talker.warning("Created Product ${product!.id}");
-          Variant? variant = await ProxyService.local
-              .getVariantByProductId(productId: product.id!);
+          brick.Variant? variant = await ProxyService.strategy
+              .getVariantByProductId(productId: product.id);
           talker.warning("Variant ${variant?.id}");
-          pendingTransaction = ProxyService.local.manageTransaction(
+          pendingTransaction = await ProxyService.strategy.manageTransaction(
             transactionType: TransactionType.purchase,
             isExpense: true,
             branchId: ProxyService.box.getBranchId()!,
           );
           if (variant != null) {
-            talker.warning(variant.toEJson().toFlipperJson());
             model.saveTransaction(
               variation: variant,
-              amountTotal: variant.retailPrice,
+              amountTotal: variant.retailPrice!,
               customItem: false,
-              currentStock: variant.stock!.currentStock,
+              currentStock: variant.stock!.currentStock!,
               pendingTransaction: pendingTransaction,
               partOfComposite: false,
               compositePrice: 0,
             );
             final bhfId = await ProxyService.box.bhfId() ?? "00";
 
-            ProxyService.local.updateTransaction(
+            ProxyService.strategy.updateTransaction(
               transaction: pendingTransaction,
               status: PARKED,
               //when sarTyCd == 6 it is incoming adjustment
@@ -244,10 +242,10 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               receiptType: TransactionType.purchase,
               customerTin: ProxyService.box.tin().toString(),
               customerBhfId: bhfId,
-              subTotal: pendingTransaction.subTotal + item.splyAmt,
-              cashReceived: -(pendingTransaction.subTotal + item.splyAmt),
+              subTotal: pendingTransaction.subTotal! + item.splyAmt,
+              cashReceived: -(pendingTransaction.subTotal! + item.splyAmt),
 
-              customerName: ProxyService.local.getBusiness().name,
+              customerName: (await ProxyService.strategy.getBusiness())!.name,
             );
           }
 
@@ -255,17 +253,16 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           await ProxyService.tax.savePurchases(
               item: supplier,
               bhfId: (await ProxyService.box.bhfId()) ?? "00",
-              realm: ProxyService.local.realm!,
               // P is Purchase, it has sort order of 1
               rcptTyCd: "P",
               URI: await ProxyService.box.getServerUrl() ?? "");
         }
 
-        ProxyService.local.updateTransaction(
+        ProxyService.strategy.updateTransaction(
           transaction: pendingTransaction!,
           status: COMPLETE,
         );
-        refreshTransactionItems(transactionId: pendingTransaction!.id!);
+        refreshTransactionItems(transactionId: pendingTransaction.id);
       }
       setState(() {
         isLoading = false;
@@ -308,7 +305,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.nonReactive(
-        viewModelBuilder: () => CoreViewModel(),
+        viewModelBuilder: () => brick.CoreViewModel(),
         builder: (context, model, child) {
           return Stack(
             alignment: Alignment.center,

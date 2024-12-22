@@ -51,7 +51,7 @@ class SecurityState extends ConsumerState<Security> {
                         SizedBox(height: 10),
                         Flexible(
                           child: StreamBuilder<Tenant?>(
-                              stream: ProxyService.local.getDefaultTenant(
+                              stream: ProxyService.strategy.getDefaultTenant(
                                   businessId:
                                       ProxyService.box.getBusinessId()!),
                               builder: (context, snapshot) {

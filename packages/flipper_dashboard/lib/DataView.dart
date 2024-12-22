@@ -5,11 +5,10 @@ import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/RowsPerPageInput.dart';
 import 'package:flipper_dashboard/TransactionDataSource.dart';
 import 'package:flipper_dashboard/TransactionItemDataSource.dart';
-import 'package:flipper_models/helperModels/extensions.dart';
 
 import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
-import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
@@ -121,7 +120,7 @@ class DataViewState extends ConsumerState<DataView>
           onRecount: (value) {
             final parsedValue = double.tryParse(value);
             if (parsedValue != null && parsedValue != 0) {
-              ProxyService.local
+              ProxyService.strategy
                   .updateStock(stockId: data.id, qty: parsedValue);
             }
           },
@@ -284,7 +283,7 @@ class DataViewState extends ConsumerState<DataView>
                           ?.fold<double>(
                               0,
                               (sum, transaction) =>
-                                  sum + transaction.cashReceived)
+                                  sum + transaction.cashReceived!)
                           .toRwf() ??
                       ""),
                 ],
@@ -345,14 +344,14 @@ class DataViewState extends ConsumerState<DataView>
     }
 
     /// Expenses these incudes purchases,import and any other type of expenses.
-    final expenses = ProxyService.local.transactions(
+    final expenses = ProxyService.strategy.transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: true,
       branchId: ProxyService.box.getBranchId(),
     );
 
-    final sales = ProxyService.local.transactions(
+    final sales = ProxyService.strategy.transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: false,
@@ -383,7 +382,7 @@ class DataViewState extends ConsumerState<DataView>
     return widget.transactionItems!.fold<double>(
       0.0,
       (sum, item) =>
-          sum + ((item.qty * item.price) - (item.qty * item.splyAmt)),
+          sum + ((item.qty * item.price) - (item.qty * item.splyAmt!)),
     );
   }
 
@@ -394,7 +393,7 @@ class DataViewState extends ConsumerState<DataView>
       0.0,
       (sum, item) =>
           sum +
-          (((item.qty * item.price) - (item.qty * item.splyAmt)) * 18 / 118),
+          (((item.qty * item.price) - (item.qty * item.splyAmt!)) * 18 / 118),
     );
     return grossProfit - taxAmount;
   }

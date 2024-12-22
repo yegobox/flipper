@@ -1,11 +1,10 @@
 import 'dart:convert';
 
-import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:realm/realm.dart';
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
@@ -32,7 +31,7 @@ final supplierListProvider =
     final List<dynamic> data = jsonDecode(response.body);
     return data.map<Branch>((item) {
       return Branch(
-        ObjectId(),
+        id: item['id'],
         businessId: item['business']['id'],
         name: item['business']['name'],
       );

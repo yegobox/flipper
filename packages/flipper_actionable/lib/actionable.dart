@@ -123,7 +123,7 @@ class Actionable extends StatelessWidget {
                                   height: 60,
                                   child: OutlinedButton(
                                     style: ButtonStyle(
-                                      shape: MaterialStateProperty.resolveWith<
+                                      shape: WidgetStateProperty.resolveWith<
                                           OutlinedBorder>(
                                         (states) => RoundedRectangleBorder(
                                           borderRadius:
@@ -131,20 +131,20 @@ class Actionable extends StatelessWidget {
                                         ),
                                       ),
                                       backgroundColor:
-                                          MaterialStateProperty.all<Color>(
+                                          WidgetStateProperty.all<Color>(
                                         const Color(0xff006AFE),
                                       ),
-                                      overlayColor: MaterialStateProperty
+                                      overlayColor: WidgetStateProperty
                                           .resolveWith<Color?>(
-                                        (Set<MaterialState> states) {
+                                        (Set<WidgetState> states) {
                                           if (states.contains(
-                                              MaterialState.hovered)) {
+                                              WidgetState.hovered)) {
                                             return Colors.blue;
                                           }
                                           if (states.contains(
-                                                  MaterialState.focused) ||
+                                                  WidgetState.focused) ||
                                               states.contains(
-                                                  MaterialState.pressed)) {
+                                                  WidgetState.pressed)) {
                                             return Colors.blue;
                                           }
                                           return null;

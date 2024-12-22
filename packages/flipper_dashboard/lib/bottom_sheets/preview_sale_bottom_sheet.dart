@@ -87,9 +87,9 @@ class PreviewSaleBottomSheetState
           leading: Container(
             width: 100,
             child: Text(
-              items.name!.length > 10
-                  ? items.name!.substring(0, 10)
-                  : items.name!,
+              items.name.length > 10
+                  ? items.name.substring(0, 10)
+                  : items.name,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w400,
@@ -145,7 +145,7 @@ class PreviewSaleBottomSheetState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         widget.mode == SellingMode.forSelling
-            ? AddCustomerButton(transactionId: transaction.value?.id!)
+            ? AddCustomerButton(transactionId: transaction.value?.id)
             : SizedBox.shrink(),
         Expanded(
           child: ListView.builder(
@@ -172,7 +172,7 @@ class PreviewSaleBottomSheetState
                 context: context,
                 delete: (item) async {
                   model.deleteTransactionItem(
-                    id: item.id!,
+                    id: item.id,
                     context: context,
                   );
                   ref.refresh(

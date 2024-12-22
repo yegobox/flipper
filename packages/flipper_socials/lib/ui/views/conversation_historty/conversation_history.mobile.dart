@@ -45,9 +45,9 @@ class _ConversationHistoryState extends State<ConversationHistory>
             },
           ),
           body: StreamBuilder<List<Conversation>>(
-            stream: ProxyService.local.conversations(
-              conversationId: widget.conversationId,
-            ),
+            stream: ProxyService.strategy.conversations(
+                // conversationId: widget.conversationId,
+                ),
             builder: (context, snapshot) {
               final data = snapshot.data ?? [];
               latestConversation = data.isEmpty ? null : data.last;
@@ -97,11 +97,11 @@ class _ConversationHistoryState extends State<ConversationHistory>
   }
 
   Future<void> _click(types.PartialText message) async {
-    Conversation conversation = await ProxyService.local.sendMessage(
-      message: message.text,
-      latestConversation: latestConversation!,
-    );
-    messageIdSet.add(conversation.id.toString()); // Add message ID to the set
-    messageList.insert(0, ConversationAdapter.fromConversation(conversation));
+    // Conversation conversation = await ProxyService.strategy.sendMessage(
+    //   message: message.text,
+    //   latestConversation: latestConversation!,
+    // );
+    // messageIdSet.add(conversation.id.toString()); // Add message ID to the set
+    // messageList.insert(0, ConversationAdapter.fromConversation(conversation));
   }
 }

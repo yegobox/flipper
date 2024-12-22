@@ -3,7 +3,7 @@ import 'package:flipper_models/helperModels/IStock.dart';
 import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:realm/realm.dart';
+import 'package:flipper_models/helperModels/RwApiResponse.dart' as api;
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 
 abstract class TaxApi {
@@ -12,7 +12,6 @@ abstract class TaxApi {
   Future<RwApiResponse> savePurchases({
     required SaleList item,
     required String URI,
-    required Realm realm,
     required String bhfId,
     String rcptTyCd = "S",
   });
@@ -30,7 +29,6 @@ abstract class TaxApi {
       required double totalvat,
       required double totalAmount,
       required String remark,
-      required Realm realm,
       required DateTime ocrnDt,
       required String URI});
   Future saveCustomer({required ICustomer customer, required String URI});
@@ -70,5 +68,5 @@ abstract class TaxApi {
       required String URI});
 
   Future<RwApiResponse> updateImportItems(
-      {required Item item, required String URI});
+      {required api.Item item, required String URI});
 }

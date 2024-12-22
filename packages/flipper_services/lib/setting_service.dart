@@ -2,7 +2,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
-import 'package:realm/realm.dart';
+
 import 'package:stacked/stacked.dart';
 
 class SettingsService with ListenableServiceMixin {
@@ -33,10 +33,10 @@ class SettingsService with ListenableServiceMixin {
     int businessId = ProxyService.box.getBusinessId()!;
 
     Setting? setting =
-        await ProxyService.local.getSetting(businessId: businessId);
+        await ProxyService.strategy.getSetting(businessId: businessId);
     if (setting != null) {
       Map<String, dynamic> settingsMap =
-          setting.toEJson() as Map<String, dynamic>;
+          setting as Map<String, dynamic>;
       //replace a key in settings_map if the key match with the key from map
 
       settingsMap.forEach((key, value) {
@@ -52,7 +52,6 @@ class SettingsService with ListenableServiceMixin {
         kMap[key] = value;
       });
       Setting setting = Setting(
-        ObjectId(),
         id: randomNumber(),
         email: kMap['email'] ?? '',
         userId: userId,
@@ -72,7 +71,7 @@ class SettingsService with ListenableServiceMixin {
   }
 
   Future<Setting?> settings() async {
-    return ProxyService.local
+    return ProxyService.strategy
         .getSetting(businessId: ProxyService.box.getBusinessId() ?? 0);
   }
 
@@ -125,7 +124,6 @@ class SettingsService with ListenableServiceMixin {
       }
 
       Setting(
-        ObjectId(),
         userId: setting.userId,
         id: setting.id,
         email: setting.email,
@@ -138,7 +136,7 @@ class SettingsService with ListenableServiceMixin {
         autoPrint: setting.autoPrint,
         isAttendanceEnabled: _isAttendanceEnabled.value,
       );
-      updateSettings(map: setting.toEJson() as Map<String, dynamic>);
+      updateSettings(map: setting as Map<String, dynamic>);
       notifyListeners();
     }
   }
@@ -152,7 +150,6 @@ class SettingsService with ListenableServiceMixin {
         _sendDailReport.value = !setting.sendDailyReport!;
       }
       Setting(
-        ObjectId(),
         id: setting.id,
         userId: setting.userId,
         email: setting.email,
@@ -164,7 +161,7 @@ class SettingsService with ListenableServiceMixin {
         openReceiptFileOSaleComplete: setting.openReceiptFileOSaleComplete,
         autoPrint: setting.autoPrint,
       );
-      updateSettings(map: setting.toEJson() as Map<String, dynamic>);
+      updateSettings(map: setting as Map<String, dynamic>);
       notifyListeners();
     }
   }
@@ -174,7 +171,7 @@ class SettingsService with ListenableServiceMixin {
     Setting? setting = await settings();
     if (setting != null) {
       int businessId = ProxyService.box.getBusinessId()!;
-      await ProxyService.local
+      await ProxyService.strategy
           .enableAttendance(businessId: businessId, email: setting.email!);
       return callback(true);
     } else {

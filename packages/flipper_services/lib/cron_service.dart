@@ -34,11 +34,11 @@ class CronService {
     ProxyService.box.remove(key: "customPhoneNumberForPayment");
     List<ConnectivityResult> results = await Connectivity().checkConnectivity();
 
-    await ProxyService.capela.configureCapella(
+    await ProxyService.strategy.configureCapella(
       useInMemory: false,
       box: ProxyService.box,
     );
-    ProxyService.capela.startReplicator();
+    ProxyService.strategy.startReplicator();
     if (Platform.isWindows) {
       ProxyService.setStrategy(Strategy.bricks);
       ProxyService.strategy.whoAmI();
@@ -57,7 +57,7 @@ class CronService {
     //       .createCollection(countersTable, "default");
     // }
     // // counters
-    // List<Counter> counters = ProxyService.local.realm!.all<Counter>().toList();
+    // List<Counter> counters = ProxyService.strategy.realm!.all<Counter>().toList();
     // for (Counter counter in counters) {
     //   print("counter: ${counter.id}");
     //   final document = odm.Counter(
@@ -81,11 +81,11 @@ class CronService {
     //         print("Document saved: ${doc.id}");
     //       });
     // }
-    ProxyService.backUp
+    ProxyService.strategy
         .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
     if (results.any((result) => result != ConnectivityResult.none)) {
       if (FirebaseAuth.instance.currentUser == null) {
-        await ProxyService.backUp.firebaseLogin();
+        await ProxyService.strategy.firebaseLogin();
       }
       talker.warning("Done checking connectivity: $doneInitializingDataPull");
       if (!doneInitializingDataPull) {
@@ -98,24 +98,24 @@ class CronService {
     ProxyService.box.writeBool(key: 'isOrdering', value: false);
 
     if (ProxyService.box.forceUPSERT()) {
-      // ProxyService.local.upSert();
-      ProxyService.capela.startReplicator();
+      // ProxyService.strategy.upSert();
+      ProxyService.strategy.startReplicator();
     }
 
-    await ProxyService.local.spawnIsolate(IsolateHandler.handler);
+    await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
 
     Timer.periodic(Duration(seconds: 40), (Timer t) async {
       if (ProxyService.box.getUserId() == null ||
           ProxyService.box.getBusinessId() == null) return;
 
-      if (ProxyService.local.sendPort != null) {
-        ProxyService.local.sendMessageToIsolate();
+      if (ProxyService.strategy.sendPort != null) {
+        ProxyService.strategy.sendMessageToIsolate();
       }
     });
 
     Timer.periodic(_downloadFileSchedule(), (Timer t) {
       if (!ProxyService.box.doneDownloadingAsset()) {
-        ProxyService.local.reDownloadAsset();
+        ProxyService.strategy.reDownloadAsset();
       }
     });
     await _setupFirebaseMessaging();
@@ -131,14 +131,13 @@ class CronService {
   }
 
   Future<void> _setupFirebaseMessaging() async {
-    Business? business = await ProxyService.local.getBusiness();
+    Business? business = await ProxyService.strategy.getBusiness();
     String? token;
 
     if (!Platform.isWindows && !isMacOs && !isIos) {
       token = await FirebaseMessaging.instance.getToken();
 
-      Map updatedBusiness = business.toEJson() as Map<String, dynamic>;
-      updatedBusiness['deviceToken'] = token.toString();
+      business!.deviceToken = token.toString();
     }
   }
 

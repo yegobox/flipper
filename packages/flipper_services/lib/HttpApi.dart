@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart' as f;
 
 abstract class RealmViaHttp {
   Future<bool> isCouponValid(

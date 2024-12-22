@@ -22,7 +22,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   int? branchId;
   String? taxName;
   @Supabase(defaultValue: "18")
-  int? taxPercentage;
+  double? taxPercentage;
 
   // add RRA fields
   int? itemSeq;
@@ -43,12 +43,12 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? qtyUnitCd;
   String? itemNm;
   @Supabase(defaultValue: "0")
-  int? prc;
-  int? splyAmt;
+  double? prc;
+  double? splyAmt;
   int? tin;
   String? bhfId;
   @Supabase(defaultValue: "0")
-  int? dftPrc;
+  double? dftPrc;
   String? addInfo;
   String? isrcAplcbYn;
   String? useYn;
@@ -58,14 +58,14 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? modrNm;
 
   DateTime? lastTouched;
-  int? supplyPrice;
-  int? retailPrice;
+  double? supplyPrice;
+  double? retailPrice;
   String? spplrItemClsCd;
   String? spplrItemCd;
   String? spplrItemNm;
   bool? ebmSynced;
 
-  int? dcRt;
+  double? dcRt;
   DateTime? expirationDate;
 
   // create circula relationship, I know!
@@ -75,9 +75,13 @@ class Variant extends OfflineFirstWithSupabaseModel {
 
   int? stockId;
 
+  @Sqlite(ignore: true)
+  double? qty;
+
   Variant({
     required this.id,
     this.deletedAt,
+    this.qty,
     this.stock,
     this.stockId,
     // required this.stockId,

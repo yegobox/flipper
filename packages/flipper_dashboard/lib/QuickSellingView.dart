@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
-import 'package:realm/realm.dart';
+
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/style_widget/button.dart';
 
@@ -119,9 +119,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     transactionItemsAsyncValue.whenData((items) {
       try {
         setState(() {
-          transactionItems = items.where((item) => item.isValid).toList();
+          transactionItems = items;
         });
-        if (items.isNotEmpty && !items.first.isValid) {
+        if (items.isNotEmpty) {
           ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
         }
       } catch (e) {
@@ -615,9 +615,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     final transaction = pendingTransaction.asData?.value;
 
-    final displayId = (transaction != null && transaction.isValid)
-        ? transaction.id.toString()
-        : 'Invalid';
+    final displayId =
+        (transaction != null) ? transaction.id.toString() : 'Invalid';
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -634,9 +633,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   onPressed: () {
                     if (kDebugMode) {
                       talker.info("We are adding dummy data in notification");
-                      ProxyService.local.notify(
+                      ProxyService.strategy.notify(
                         notification: AppNotification(
-                          ObjectId(),
                           identifier: ProxyService.box.getBranchId(),
                           type: "internal",
                           id: randomNumber(),
@@ -648,9 +646,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
                     Clipboard.setData(ClipboardData(text: displayId));
 
-                    ProxyService.local.notify(
+                    ProxyService.strategy.notify(
                       notification: AppNotification(
-                        ObjectId(),
                         identifier: ProxyService.box.getBranchId(),
                         type: "internal",
                         id: randomNumber(),

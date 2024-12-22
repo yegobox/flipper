@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:flipper_login/update_email.dart';
 import 'languages_screen.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -89,13 +88,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: const Icon(Icons.analytics),
               initialValue: model.kSetting.sendDailReport,
               onToggle: (bool value) {
-                model.enableDailyReport((message) {
-                  showSimpleNotification(
-                    Text(message),
-                    background: Colors.red,
-                    position: NotificationPosition.bottom,
-                  );
-                });
+                // model.enableDailyReport((message) {
+                //   showSimpleNotification(
+                //     Text(message),
+                //     background: Colors.red,
+                //     position: NotificationPosition.bottom,
+                //   );
+                // });
               },
             )
           ],

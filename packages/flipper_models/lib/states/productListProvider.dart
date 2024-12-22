@@ -5,11 +5,10 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:realm/realm.dart';
+
 import 'package:talker_flutter/talker_flutter.dart';
 
 final productColorsProvider =
@@ -59,7 +58,7 @@ final productFromSupplier =
     FutureProvider.autoDispose<List<Variant>>((ref) async {
   final supplier = ref.watch(selectedSupplierProvider);
 
-  String idToken = await ProxyService.local.getIdToken();
+  String idToken = await ProxyService.strategy.getIdToken();
   // talker.warning("idToken $idToken");
 
   var headers = {
@@ -130,7 +129,6 @@ final productFromSupplier =
       int supplyPrice = fields['supply_price']?['doubleValue'] ?? 0.0;
 
       return Variant(
-        ObjectId(),
         name: name,
         productName: productName,
         productId: int.parse(productId),

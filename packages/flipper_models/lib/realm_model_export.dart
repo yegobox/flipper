@@ -1,6 +1,6 @@
 export 'exceptions.dart';
 export 'helperModels/extensions.dart';
-export 'package:flipper_models/realm/schemas.dart';
+export 'package:supabase_models/supabase_models.dart';
 export 'package:flipper_models/view_models/login_viewmodel.dart';
 
 export 'package:flipper_models/view_models/coreViewModel.dart';

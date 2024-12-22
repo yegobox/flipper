@@ -1,4 +1,3 @@
-import 'package:flipper_ui/dialogs/main.dart';
 import 'package:flutter/material.dart';
 
 import 'package:stacked/stacked.dart';
@@ -66,27 +65,7 @@ class _SubscriptionWidgetState extends State<SubscriptionWidget> {
                           height: 60,
                           child: BoxButton(
                             onTap: () {
-                              if (_sub.currentState!.validate()) {
-                                model.activateFlipperPro(
-                                  _phoneNumber.text,
-                                  (success) {
-                                    if (success == 0) {
-                                      FlipperDialogs.showSuccessDialog(
-                                          context,
-                                          'Success',
-                                          'Your flipper pro has been activated');
-                                      // wait 5 seconds and pop navigation
-                                      Future.delayed(const Duration(seconds: 5),
-                                          () {
-                                        Navigator.pop(context);
-                                      });
-                                    } else {
-                                      FlipperDialogs.showErrorDialog(context,
-                                          'Error', 'Something went wrong');
-                                    }
-                                  },
-                                );
-                              }
+                              if (_sub.currentState!.validate()) {}
                             },
                             title: 'Upgrade to Pro',
                             busy: model.isProcessing,

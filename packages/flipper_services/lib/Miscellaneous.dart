@@ -2,11 +2,11 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:supabase_models/supabase_models.dart';
 
 mixin CoreMiscellaneous {
   Future<bool> isServerUp() async {
@@ -59,38 +59,37 @@ mixin CoreMiscellaneous {
       /// refreshing the user token will invalidate any session
       await FirebaseAuth.instance.signOut();
 
-      await ProxyService.local.amplifyLogout();
+      ProxyService.strategy.whoAmI();
+
+      await ProxyService.strategy.amplifyLogout();
 
       /// calling close on logout inroduced error where another attempt to login will fail since
       /// the instance of realm is instantiated at app start level.
       // resetDependencies(dispose: true);
       /// wait to sync data for this eod
-      // await ProxyService.local.realm!.syncSession.waitForUpload();
+      // await ProxyService.strategy.realm!.syncSession.waitForUpload();
 
       /// get all business and unset default
-      if (ProxyService.local.realm != null &&
-          ProxyService.box.getBranchId() != null) {
-        List<Business> businesses = ProxyService.local.businesses();
+      if (ProxyService.box.getBranchId() != null) {
+        List<Business> businesses = ProxyService.strategy.businesses();
         for (Business business in businesses) {
-          ProxyService.local.updateBusiness(
-            businessId: business.serverId!,
+          ProxyService.strategy.updateBusiness(
+            businessId: business.serverId,
             active: false,
             isDefault: false,
           );
         }
-        List<Branch> branches = await ProxyService.local
+        List<Branch> branches = await ProxyService.strategy
             .branches(businessId: ProxyService.box.getBusinessId()!);
         for (Branch branch in branches) {
-          ProxyService.local.updateBranch(
+          ProxyService.strategy.updateBranch(
             branchId: branch.serverId!,
             active: false,
             isDefault: false,
           );
         }
       }
-      ProxyService.local.close();
-      ProxyService.local.realm = null;
-      ProxyService.local.realm = null;
+      ProxyService.strategy.close();
       return Future.value(true);
     } catch (e, s) {
       log(e.toString());
@@ -100,10 +99,4 @@ mixin CoreMiscellaneous {
   }
 
   /// Ensures that the Realm database is initialized and ready to use.
-  Future<void> ensureRealmInitialized() async {
-    if (ProxyService.box.encryptionKey().isNotEmpty) {
-      await ProxyService.local
-          .configureLocal(useInMemory: false, box: ProxyService.box);
-    }
-  }
 }

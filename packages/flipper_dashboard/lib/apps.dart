@@ -64,10 +64,7 @@ class _AppsState extends ConsumerState<Apps> {
       ),
       body: Column(
         children: [
-          // Filter Row (Pinned to the top)
           _buildFilterRow(),
-
-          // Expanded Widget to take up remaining space between content and footer
           Expanded(
             child: SingleChildScrollView(
               child: Column(
@@ -82,8 +79,6 @@ class _AppsState extends ConsumerState<Apps> {
               ),
             ),
           ),
-
-          // Footer (Pinned to the bottom)
           _buildFooter(),
         ],
       ),
@@ -172,11 +167,6 @@ class _AppsState extends ConsumerState<Apps> {
           color: Colors.lightBlue,
           page: "Support",
         ),
-        // _buildCustomPaintWithIcon(
-        //   iconData: FluentIcons.cart_24_regular,
-        //   color: Colors.amber,
-        //   page: "Orders",
-        // ),
       ],
     );
   }
@@ -184,20 +174,6 @@ class _AppsState extends ConsumerState<Apps> {
   Widget _buildFooter() {
     return Column(
       children: [
-        FutureBuilder<LPermission?>(
-          future: ProxyService.local
-              .permission(userId: ProxyService.box.getUserId()!),
-          builder: (context, snapshot) {
-            return Text(
-              snapshot.data?.name?.toUpperCase() ?? "-",
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                color: Colors.black.withOpacity(0.7),
-                fontWeight: FontWeight.bold,
-              ),
-            );
-          },
-        ),
         const SizedBox(height: 8.0),
         Text(
           'FROM YEGOBOX',
@@ -288,7 +264,6 @@ class _AppsState extends ConsumerState<Apps> {
         return SemiCircleGauge(
           dataOnGreenSide: cashIn,
           dataOnRedSide: cashOut,
-          //maxDataValue: cashIn + cashOut,
           startPadding: 50.0,
           profitType: profitType,
           areValueColumnsVisible: true,
@@ -340,8 +315,8 @@ class _AppsState extends ConsumerState<Apps> {
         .toList();
     double sumCashIn = 0;
     for (final transaction in filteredTransactions) {
-      if (transaction.isIncome) {
-        sumCashIn += transaction.subTotal;
+      if (transaction.isIncome!) {
+        sumCashIn += transaction.subTotal!;
       }
     }
     return sumCashIn;
@@ -355,8 +330,8 @@ class _AppsState extends ConsumerState<Apps> {
         .toList();
     double sumCashOut = 0;
     for (final transaction in filteredTransactions) {
-      if (transaction.isExpense) {
-        sumCashOut += transaction.subTotal;
+      if (transaction.isExpense!) {
+        sumCashOut += transaction.subTotal!;
       }
     }
     return sumCashOut;

@@ -12,10 +12,10 @@ Future<ITransaction> _$ITransactionFromSupabase(Map<String, dynamic> data,
       branchId: data['branch_id'] as int?,
       status: data['status'] as String?,
       transactionType: data['transaction_type'] as String?,
-      subTotal: data['sub_total'] as int? ?? 0,
+      subTotal: data['sub_total'] as double? ?? 0.0,
       paymentType: data['payment_type'] as String?,
-      cashReceived: data['cash_received'] as int? ?? 0,
-      customerChangeDue: data['customer_change_due'] as int? ?? 0,
+      cashReceived: data['cash_received'] as double? ?? 0.0,
+      customerChangeDue: data['customer_change_due'] as double? ?? 0.0,
       createdAt: data['created_at'] as String?,
       receiptType: data['receipt_type'] as String?,
       updatedAt: data['updated_at'] as String?,
@@ -101,14 +101,15 @@ Future<ITransaction> _$ITransactionFromSqlite(Map<String, dynamic> data,
       transactionType: data['transaction_type'] == null
           ? null
           : data['transaction_type'] as String?,
-      subTotal: data['sub_total'] == null ? null : data['sub_total'] as int?,
+      subTotal: data['sub_total'] == null ? null : data['sub_total'] as double?,
       paymentType:
           data['payment_type'] == null ? null : data['payment_type'] as String?,
-      cashReceived:
-          data['cash_received'] == null ? null : data['cash_received'] as int?,
+      cashReceived: data['cash_received'] == null
+          ? null
+          : data['cash_received'] as double?,
       customerChangeDue: data['customer_change_due'] == null
           ? null
-          : data['customer_change_due'] as int?,
+          : data['customer_change_due'] as double?,
       createdAt:
           data['created_at'] == null ? null : data['created_at'] as String?,
       receiptType:
@@ -407,7 +408,7 @@ class ITransactionAdapter
       association: false,
       columnName: 'sub_total',
       iterable: false,
-      type: int,
+      type: double,
     ),
     'paymentType': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -419,13 +420,13 @@ class ITransactionAdapter
       association: false,
       columnName: 'cash_received',
       iterable: false,
-      type: int,
+      type: double,
     ),
     'customerChangeDue': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'customer_change_due',
       iterable: false,
-      type: int,
+      type: double,
     ),
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,

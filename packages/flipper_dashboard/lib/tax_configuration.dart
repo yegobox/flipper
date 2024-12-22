@@ -35,8 +35,8 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
 
   Future<void> _loadData() async {
     // Your async operations here
-    final ebm =
-        await ProxyService.local.ebm(branchId: ProxyService.box.getBranchId()!);
+    final ebm = await ProxyService.strategy
+        .ebm(branchId: ProxyService.box.getBranchId()!);
     final serverUrl =
         await ebm?.taxServerUrl ?? await ProxyService.box.getServerUrl();
 
@@ -71,15 +71,15 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
       viewModelBuilder: () => SettingViewModel(),
       onViewModelReady: (model) async {
         try {
-          final isTaxEnabledForBusiness = await ProxyService.local
+          final isTaxEnabledForBusiness = await ProxyService.strategy
               .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
           if (isTaxEnabledForBusiness) {
             setState(() {
               isTaxEnabled = true;
             });
           }
-          Business? business = await ProxyService.local.getBusiness();
-          model.isEbmActive = business.tinNumber != null &&
+          Business? business = await ProxyService.strategy.getBusiness();
+          model.isEbmActive = business!.tinNumber != null &&
               (await ProxyService.box.bhfId()) != null &&
               business.dvcSrlNo != null &&
               business.taxEnabled == true;
@@ -340,7 +340,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
             ),
             Center(
               child: FutureBuilder<String>(
-                future: ProxyService.local.dbPath(
+                future: ProxyService.strategy.dbPath(
                     path: 'db', folder: 23), // Fetch version from AppService
                 builder: (context, snapshot) {
                   // Check the state of the Future
@@ -385,7 +385,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
 
   void _saveForm() {
     if (_formKey.currentState!.validate()) {
-      ProxyService.local.saveEbm(
+      ProxyService.strategy.saveEbm(
           branchId: ProxyService.box.getBranchId()!,
           severUrl: _serverUrlController.text,
           bhFId: _branchController.text);

@@ -196,7 +196,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
     drawer.cashierId = ProxyService.box.getUserId();
     drawer.openingBalance = double.tryParse(_controller.text) ?? 0;
     drawer.open = true;
-    ProxyService.local.openDrawer(
+    ProxyService.strategy.openDrawer(
       drawer: drawer,
     );
 
@@ -206,10 +206,10 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
 
   void handleCloseDrawer() async {
     try {
-      Drawers? drawers = await ProxyService.local
+      Drawers? drawers = await ProxyService.strategy
           .getDrawer(cashierId: ProxyService.box.getUserId()!);
       if (drawers != null) {
-        ProxyService.local
+        ProxyService.strategy
             .closeDrawer(drawer: drawers, eod: double.parse(_controller.text));
       }
       await logOut();

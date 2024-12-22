@@ -1,5 +1,5 @@
 import 'package:flipper_dashboard/profile.dart';
-import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
@@ -9,7 +9,7 @@ class ProfileFutureWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Branch>(
-      future: ProxyService.local.activeBranch(),
+      future: ProxyService.strategy.activeBranch(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting ||
             !snapshot.hasData) {

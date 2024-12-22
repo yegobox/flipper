@@ -1,4 +1,4 @@
-import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,7 +29,7 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
   }
 
   void _loadTaxConfigurations() {
-    _taxConfigsFuture = ProxyService.local.taxes(branchId: widget.branchId);
+    _taxConfigsFuture = ProxyService.strategy.taxes(branchId: widget.branchId);
   }
 
   Future<void> _saveTaxConfiguration(int configId, String newTaxValue) async {
@@ -37,7 +37,7 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
       setState(() => _isLoading = true);
 
       final newTaxPercentage = double.parse(newTaxValue);
-      await ProxyService.local.saveTax(
+      await ProxyService.strategy.saveTax(
         configId: configId,
         taxPercentage: newTaxPercentage,
       );
@@ -75,9 +75,9 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
     final bool isEditing = _editingStates[config.id] ?? false;
 
     if (!_controllers.containsKey(config.id)) {
-      _controllers[config.id!] =
+      _controllers[config.id] =
           TextEditingController(text: config.taxPercentage.toString());
-      _formKeys[config.id!] = GlobalKey<FormState>();
+      _formKeys[config.id] = GlobalKey<FormState>();
     }
 
     return Card(
@@ -113,7 +113,7 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
                   },
                   onFieldSubmitted: (value) {
                     if (_formKeys[config.id]!.currentState!.validate()) {
-                      _saveTaxConfiguration(config.id!, value);
+                      _saveTaxConfiguration(config.id, value);
                     }
                   },
                 ),
@@ -127,13 +127,13 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
                   if (isEditing) {
                     if (_formKeys[config.id]!.currentState!.validate()) {
                       _saveTaxConfiguration(
-                        config.id!,
+                        config.id,
                         _controllers[config.id]!.text,
                       );
                     }
                   } else {
                     setState(() {
-                      _editingStates[config.id!] = true;
+                      _editingStates[config.id] = true;
                     });
                   }
                 },

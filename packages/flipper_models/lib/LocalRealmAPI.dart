@@ -31,7 +31,7 @@
 // import 'package:flipper_models/realmModels.dart';
 // import 'package:flipper_models/secrets.dart';
 // import 'package:flipper_services/proxy.dart';
-// import 'package:realm/realm.dart';
+// 
 // import 'package:rxdart/rxdart.dart';
 // import 'package:supabase_models/brick/repository.dart';
 // import 'package:supabase_models/brick/repository.dart' as brick;
@@ -178,7 +178,7 @@
 //       // If it doesn't exist, add it
 //       if (existingItem == null) {
 //         realm.add(UnversalProduct(
-//           ObjectId(),
+//           
 //           id: 1,
 //           itemClsCd: item['itemClsCd'],
 //           itemClsNm: item['itemClsNm'],
@@ -550,13 +550,13 @@
 //       /// because we want to close the inMemory realm db
 //       /// as soon as possible so I can be able to save real data into realm
 //       /// then I call login in here after signup as login handle configuring
-//       IPin? pin = await ProxyService.local.getPin(
+//       IPin? pin = await ProxyService.strategy.getPin(
 //           pinString: ProxyService.box.getUserId().toString(),
 //           flipperHttpClient: ProxyService.http);
 
 //       ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
 //       Pin? savedPin = await savePin(
-//           pin: Pin(ObjectId(),
+//           pin: Pin(
 //               userId: int.parse(pin!.userId),
 //               id: int.parse(pin.userId),
 //               branchId: pin.branchId,
@@ -576,7 +576,7 @@
 //       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
 //         ITenant jTenant = tenant;
 
-//         Tenant iTenant = Tenant(ObjectId(),
+//         Tenant iTenant = Tenant(
 //             isDefault: jTenant.isDefault,
 //             id: jTenant.id,
 //             name: jTenant.name,
@@ -588,7 +588,7 @@
 
 //         final businessToAdd = <Business>[];
 //         for (IBusiness business in jTenant.businesses) {
-//           Business biz = Business(ObjectId(),
+//           Business biz = Business(
 //               serverId: business.id,
 //               userId: business.userId,
 //               name: business.name,
@@ -639,7 +639,7 @@
 //         });
 //         final branchToAdd = <Branch>[];
 //         for (IBranch brannch in jTenant.branches) {
-//           Branch branch = Branch(ObjectId(),
+//           Branch branch = Branch(
 //               serverId: brannch.id,
 //               active: brannch.active,
 //               description: brannch.description,
@@ -657,7 +657,7 @@
 //         });
 
 //         for (IPermission permission in jTenant.permissions) {
-//           realm!.add<LPermission>(LPermission(ObjectId(),
+//           realm!.add<LPermission>(LPermission(
 //               id: permission.id, name: permission.name));
 //         }
 
@@ -737,7 +737,7 @@
 //       final tenantToAdd = <Tenant>[];
 //       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
 //         ITenant jTenant = tenant;
-//         Tenant iTenant = Tenant(ObjectId(),
+//         Tenant iTenant = Tenant(
 //             isDefault: jTenant.isDefault,
 //             id: jTenant.id,
 //             name: jTenant.name,
@@ -748,7 +748,7 @@
 //             phoneNumber: jTenant.phoneNumber);
 
 //         for (IBusiness business in jTenant.businesses) {
-//           Business biz = Business(ObjectId(),
+//           Business biz = Business(
 //               serverId: business.id,
 //               userId: business.userId,
 //               name: business.name,
@@ -800,7 +800,7 @@
 //         }
 
 //         for (IBranch brannch in jTenant.branches) {
-//           Branch branch = Branch(ObjectId(),
+//           Branch branch = Branch(
 //               serverId: brannch.id,
 //               active: brannch.active,
 //               description: brannch.description,
@@ -823,7 +823,7 @@
 //           LPermission? exist = realm!
 //               .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
 //           if (exist == null) {
-//             final perm = LPermission(ObjectId(),
+//             final perm = LPermission(
 //                 id: permission.id, name: permission.name);
 //             permissionToAdd.add(perm);
 //           }
@@ -863,7 +863,7 @@
 //     if (response.statusCode == 200) {
 //       int id = randomNumber();
 //       IBusiness iBusiness = IBusiness.fromJson(json.decode(response.body));
-//       Business business = Business(ObjectId(),
+//       Business business = Business(
 //           serverId: iBusiness.id,
 //           name: iBusiness.name,
 //           userId: iBusiness.userId,
@@ -918,7 +918,7 @@
 //       required Branch branch,
 //       required HttpClientInterface flipperHttpClient,
 //       required String userType}) async {
-//     talker.info(jsonEncode(branch.toEJson().toFlipperJson()));
+//     talker.info(jsonEncode(branch.toFlipperJson()));
 
 //     final data = jsonEncode({
 //       "phoneNumber": phoneNumber,
@@ -927,8 +927,8 @@
 //       "permissions": [
 //         {"name": userType.toLowerCase()}
 //       ],
-//       "businesses": [business.toEJson().toFlipperJson()],
-//       "branches": [branch.toEJson().toFlipperJson()]
+//       "businesses": [business.toFlipperJson()],
+//       "branches": [branch.toFlipperJson()]
 //     });
 
 //     final http.Response response = await flipperHttpClient
@@ -967,7 +967,7 @@
 //               .query<Business>(r'serverId == $0', [business.id]).firstOrNull;
 //           if (existingBusiness == null) {
 //             businessToAdd.add(Business(
-//               ObjectId(),
+//               
 //               serverId: business.id,
 //               userId: business.userId,
 //               name: business.name,
@@ -1020,7 +1020,7 @@
 //               realm!.query<Branch>(r'serverId==$0', [branch.id]).firstOrNull;
 //           if (existingBranch == null) {
 //             Branch br = Branch(
-//               ObjectId(),
+//               
 //               serverId: branch.id,
 //               name: branch.name,
 //               businessId: branch.businessId,
@@ -1038,7 +1038,7 @@
 //               .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
 //           if (existingPermission == null) {
 //             permissionToAdd.add(LPermission(
-//               ObjectId(),
+//               
 //               name: permission.name,
 //               id: permission.id,
 //               userId: permission.userId,
@@ -1051,7 +1051,7 @@
 //             realm!.query<Tenant>(r'userId==$0', [iTenant.userId]).firstOrNull;
 //         if (tenant == null) {
 //           tenantToAdd = Tenant(
-//             ObjectId(),
+//             
 //             name: jTenant.name,
 //             phoneNumber: jTenant.phoneNumber,
 //             email: jTenant.email,
@@ -1144,7 +1144,7 @@
 //       realm!.write(() {
 //         realm!.add<Branch>(
 //           Branch(
-//             ObjectId(),
+//             
 //             location: branchLocal.location,
 //             lastTouched: DateTime.now(),
 //             latitude: branchLocal.latitude,
@@ -1272,7 +1272,7 @@
 //             [stockId, branchId]).firstOrNull;
 
 //         if (stock == null) {
-//           final newStock = Stock(ObjectId(),
+//           final newStock = Stock(
 //               id: stockId,
 //               lastTouched: DateTime.now(),
 //               branchId: branchId,
@@ -1306,7 +1306,7 @@
 
 //         realm!.put<Variant>(variation, tableName: 'variants');
 
-//         final newStock = Stock(ObjectId(),
+//         final newStock = Stock(
 //             id: stockId,
 //             lastTouched: DateTime.now(),
 //             branchId: branchId,
@@ -1367,7 +1367,7 @@
 //     String itemPrefix = "FLIPPER-";
 //     String clip = itemPrefix +
 //         DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
-//     return Variant(ObjectId(),
+//     return Variant(
 //         lastTouched: DateTime.now(),
 //         name: product?.name ?? name,
 //         sku: sku,
@@ -1439,7 +1439,7 @@
 //       if (variant == null) {
 //         int variantId = randomNumber();
 
-//         variant = Variant(ObjectId(),
+//         variant = Variant(
 //             id: variantId,
 //             lastTouched: DateTime.now(),
 //             name: product!.name,
@@ -1491,7 +1491,7 @@
 //             spplrItemNm: CUSTOM_PRODUCT,
 //             qtyUnitCd: "U");
 
-//         Stock stock = Stock(ObjectId(),
+//         Stock stock = Stock(
 //             lastTouched: DateTime.now(),
 //             id: randomNumber(),
 //             branchId: branchId,
@@ -1740,7 +1740,7 @@
 //     }
 
 //     result = Configurations(
-//       ObjectId(),
+//       
 //       taxPercentage: taxPercentage,
 //       taxType: taxtype,
 //       id: randomNumber(),
@@ -1968,9 +1968,9 @@
 
 //   @override
 //   Future<void> amplifyLogout() async {
-//     try {
-//       amplify.Amplify.Auth.signOut();
-//     } catch (e) {}
+    // try {
+    //   amplify.Amplify.Auth.signOut();
+    // } catch (e) {}
 //   }
 
 //   @override
@@ -2013,7 +2013,7 @@
 
 //   SKU _createNewSku({required int branchId, required int businessId}) {
 //     SKU newSku = SKU(
-//       ObjectId(),
+//       
 //       id: randomNumber(),
 //       sku: _getNextSku(branchId),
 //       branchId: branchId,
@@ -2137,7 +2137,7 @@
 //       realm!.put<Variant>(newVariant, tableName: 'variants');
 
 //       // Create a Stock for the Regular Variant
-//       final Stock stock = Stock(ObjectId(),
+//       final Stock stock = Stock(
 //           lastTouched: DateTime.now(),
 //           id: randomNumber(),
 //           branchId: branchId,
@@ -2482,7 +2482,7 @@
 //       PaymentPlan paymentPlan = realm!.query<PaymentPlan>(
 //               r'businessId == $0', [businessId]).firstOrNull ??
 //           PaymentPlan(
-//             ObjectId(),
+//             
 //             businessId: businessId,
 //             selectedPlan: selectedPlan,
 //             paymentMethod: paymentMethod,
@@ -2679,7 +2679,7 @@
 //       required int subBranchId}) {
 //     realm!.write(() {
 //       final newStock = Stock(
-//         ObjectId(),
+//         
 //         id: randomNumber(),
 //         lastTouched: DateTime.now(),
 //         branchId: subBranchId,
@@ -2789,7 +2789,7 @@
 //       tableName: stockRequestsTable,
 //       writeCallback: () {
 //         final stockRequest = StockRequest(
-//           ObjectId(),
+//           
 //           id: orderId,
 //           deliveryDate: deliveryDate,
 //           deliveryNote: deliveryNote,
@@ -2997,7 +2997,7 @@
 //   @override
 //   FutureOr<Stock?> addStockToVariant({required Variant variant, Stock? stock}) {
 //     Stock stockObj = stock ??
-//         Stock(ObjectId(),
+//         Stock(
 //             id: randomNumber(),
 //             productId: variant.productId,
 //             variantId: variant.id,
@@ -3058,7 +3058,7 @@
 //       final unitsToAdd = <IUnit>[];
 //       // Open a write transaction
 //       for (Map map in units) {
-//         final unit = IUnit(ObjectId(),
+//         final unit = IUnit(
 //             active: map['active'],
 //             branchId: branchId,
 //             id: randomNumber(),
@@ -3279,7 +3279,7 @@
 //           return transaction;
 //         },
 //         onAdd: (data) {
-//           talker.warning(data.toEJson().toFlipperJson());
+//           talker.warning(data.toFlipperJson());
 //           // ProxyService.backUp.now(transactionTable, data);
 //         },
 //       );
@@ -3423,7 +3423,7 @@
 //       final colorsToAdd = <PColor>[];
 //       PColor color = data;
 //       for (String colorName in data.colors) {
-//         colorsToAdd.add(PColor(ObjectId(),
+//         colorsToAdd.add(PColor(
 //             id: randomNumber(),
 //             lastTouched: DateTime.now(),
 //             name: colorName,
@@ -3501,7 +3501,7 @@
 //       required brick.Counter counter}) async {
 //     int branchId = ProxyService.box.getBranchId()!;
 
-//     Receipt receipt = Receipt(ObjectId(),
+//     Receipt receipt = Receipt(
 //         id: randomNumber(),
 //         branchId: branchId,
 //         resultCd: signature.resultCd,
@@ -3805,7 +3805,7 @@
 //           bhFId: bhFId,
 //           branchId: branchId,
 //           businessId: businessId,
-//           product: Product(ObjectId(),
+//           product: Product(
 //               id: randomNumber(),
 //               lastTouched: DateTime.now(),
 //               name: CUSTOM_PRODUCT,
@@ -4206,7 +4206,7 @@
 //     int businessId = ProxyService.box.getBusinessId()!;
 //     if (existTransaction == null) {
 //       int id = randomNumber();
-//       final transaction = ITransaction(ObjectId(),
+//       final transaction = ITransaction(
 //           lastTouched: DateTime.now(),
 //           id: id,
 //           supplierId: businessId,
@@ -4248,7 +4248,7 @@
 //     if (existTransaction == null) {
 //       final int id = randomNumber();
 //       final transaction = ITransaction(
-//         ObjectId(),
+//         
 //         lastTouched: DateTime.now(),
 //         id: id,
 //         reference: randomNumber().toString(),
@@ -4294,7 +4294,7 @@
 //         includeSubTotalCheck: includeSubTotalCheck!);
 //     if (existTransaction == null) {
 //       final int id = randomNumber();
-//       final transaction = ITransaction(ObjectId(),
+//       final transaction = ITransaction(
 //           lastTouched: DateTime.now(),
 //           id: id,
 //           reference: randomNumber().toString(),
@@ -4435,7 +4435,7 @@
 //       {required int userId, required String activity}) async {
 //     try {
 //       final userActivity = Activity(
-//         ObjectId(),
+//         
 //         activity,
 //         id: randomNumber(),
 //         details: RealmValue.from({
@@ -4812,7 +4812,7 @@
 //       final business = data;
 //       final response = await flipperHttpClient.patch(
 //           Uri.parse("$apihub/v2/api/business/${business.id}"),
-//           body: jsonEncode(business.toEJson()));
+//           body: jsonEncode(business));
 //       if (response.statusCode != 200) {
 //         throw InternalServerError(term: "error patching the business");
 //       }
@@ -4820,19 +4820,19 @@
 //       final branch = data;
 //       final response = await flipperHttpClient.patch(
 //           Uri.parse("$apihub/v2/api/branch/${branch.id}"),
-//           body: jsonEncode(branch.toEJson()));
+//           body: jsonEncode(branch));
 //       if (response.statusCode != 200) {
 //         throw InternalServerError(term: "error patching the branch");
 //       }
 //     } else if (data is IUser) {
 //       final response = await flipperHttpClient.patch(
 //           Uri.parse("$apihub/v2/api/user"),
-//           body: jsonEncode(data.toEJson()));
+//           body: jsonEncode(data));
 //       return response.statusCode;
 //     } else if (data is Tenant) {
 //       final response = await flipperHttpClient.patch(
 //           Uri.parse("$apihub/v2/api/tenant/${data.id}"),
-//           body: jsonEncode(data.toEJson()));
+//           body: jsonEncode(data));
 //       if (response.statusCode == 200) {
 //         realm!.write(() {
 //           realm!.add<Tenant>(data);
@@ -4961,7 +4961,7 @@
 //   }) {
 //     realm!.write(() {
 //       final stock = Stock(
-//         ObjectId(),
+//         
 //         id: randomNumber(),
 //         lastTouched: DateTime.now(),
 //         branchId: branchId,
@@ -5084,7 +5084,7 @@
 //       });
 //     } else if (transactionId != 0) {
 //       final transactionPaymentRecord = TransactionPaymentRecord(
-//         ObjectId(),
+//         
 //         id: randomNumber(),
 //         amount: amount,
 //         transactionId: transactionId,
@@ -5231,7 +5231,7 @@
 //         ProxyService.backUp.updateRecord(
 //           tableName: productsTable,
 //           idField: "${productsTable.singularize()}_id",
-//           map: product.toEJson().toFlipperJson(),
+//           map: product.toFlipperJson(),
 //           id: product.id!,
 //           syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
 //         );
@@ -5247,7 +5247,7 @@
 //         ProxyService.backUp.updateRecord(
 //           tableName: assetsTable,
 //           idField: "${assetsTable.singularize()}_id",
-//           map: asset.toEJson().toFlipperJson(),
+//           map: asset.toFlipperJson(),
 //           id: asset.id!,
 //           syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
 //         );
@@ -5265,7 +5265,7 @@
 //         ProxyService.backUp.updateRecord(
 //           tableName: variantTable,
 //           idField: "${variantTable.singularize()}_id",
-//           map: variant.toEJson().toFlipperJson(),
+//           map: variant.toFlipperJson(),
 //           id: variant.id!,
 //           syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
 //         );
@@ -5283,7 +5283,7 @@
 //         ProxyService.backUp.updateRecord(
 //           tableName: stocksTable,
 //           idField: "${stocksTable.singularize()}_id",
-//           map: stock.toEJson().toFlipperJson(),
+//           map: stock.toFlipperJson(),
 //           id: stock.id!,
 //           syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
 //         );
@@ -5301,7 +5301,7 @@
 //         ProxyService.backUp.updateRecord(
 //           tableName: transactionItemsTable,
 //           idField: "${transactionItemsTable.singularize()}_id",
-//           map: item.toEJson().toFlipperJson(),
+//           map: item.toFlipperJson(),
 //           id: item.id!,
 //           syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
 //         );
@@ -5318,7 +5318,7 @@
 //         ProxyService.backUp.updateRecord(
 //           tableName: accessesTable,
 //           idField: "${accessesTable.singularize()}_id",
-//           map: access.toEJson().toFlipperJson(),
+//           map: access.toFlipperJson(),
 //           id: access.id!,
 //           syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
 //         );
@@ -5334,7 +5334,7 @@
 //         ProxyService.backUp.updateRecord(
 //           tableName: stockRequestsTable,
 //           idField: "${stockRequestsTable.singularize()}_id",
-//           map: request.toEJson().toFlipperJson(),
+//           map: request.toFlipperJson(),
 //           id: request.id!,
 //           syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
 //         );
@@ -5367,7 +5367,7 @@
 //       "userId": ProxyService.box.getUserId()!,
 //       "businessId": ProxyService.box.getBusinessId()!,
 //       'encryptionKey': ProxyService.box.encryptionKey(),
-//       'dbPath': await ProxyService.local.dbPath(
+//       'dbPath': await ProxyService.strategy.dbPath(
 //         path: 'local',
 //         folder: ProxyService.box.getBusinessId(),
 //       ),
@@ -5379,7 +5379,7 @@
 //       "bhfId": await ProxyService.box.bhfId(),
 //       'tinNumber': business.tinNumber,
 //       'encryptionKey': ProxyService.box.encryptionKey(),
-//       'dbPath': await ProxyService.local.dbPath(
+//       'dbPath': await ProxyService.strategy.dbPath(
 //         path: 'local',
 //         folder: ProxyService.box.getBusinessId(),
 //       ),
@@ -5428,9 +5428,9 @@
 //               if (separator[2] == "variant") {
 //                 final variantId = int.tryParse(separator[3]);
 //                 Variant? variant =
-//                     ProxyService.local.variant(variantId: variantId);
+//                     ProxyService.strategy.variant(variantId: variantId);
 //                 if (variant != null) {
-//                   ProxyService.local.realm!.writeN(
+//                   ProxyService.strategy.realm!.writeN(
 //                     tableName: variantTable,
 //                     writeCallback: () {
 //                       variant.ebmSynced = true;
@@ -5448,7 +5448,7 @@
 //                 final stockId = int.tryParse(separator[3]);
 //                 Stock? stock = getStockById(id: stockId!);
 //                 if (stock != null) {
-//                   ProxyService.local.realm!.writeN(
+//                   ProxyService.strategy.realm!.writeN(
 //                     tableName: stocksTable,
 //                     writeCallback: () {
 //                       stock.ebmSynced = true;
@@ -5466,7 +5466,7 @@
 //                 final customerId = int.tryParse(separator[3]);
 //                 Customer? customer = getCustomer(id: customerId);
 //                 if (customer != null) {
-//                   ProxyService.local.realm!.writeN(
+//                   ProxyService.strategy.realm!.writeN(
 //                     tableName: customersTable,
 //                     writeCallback: () {
 //                       customer.ebmSynced = true;
@@ -5485,7 +5485,7 @@
 //                 ITransaction? transaction =
 //                     getTransactionById(id: transactionId!);
 //                 if (transaction != null) {
-//                   ProxyService.local.realm!.writeN(
+//                   ProxyService.strategy.realm!.writeN(
 //                     tableName: transactionTable,
 //                     writeCallback: () {
 //                       transaction.ebmSynced = true;
@@ -5515,12 +5515,12 @@
 //       final downloadQueue = DownloadQueue(3);
 
 //       int? branchId = ProxyService.box.getBranchId();
-//       if (ProxyService.local.realm == null || branchId == null) {
+//       if (ProxyService.strategy.realm == null || branchId == null) {
 //         talker.warning("realm is null");
 //         return;
 //       }
 
-//       List<Assets> assets = ProxyService.local.realm!
+//       List<Assets> assets = ProxyService.strategy.realm!
 //           .query<Assets>(r'branchId == $0', [branchId]).toList();
 
 //       for (Assets asset in assets) {
@@ -5549,7 +5549,7 @@
 //     List<Variant> variants = realm!.all<Variant>().toList();
 //     for (Variant variant in variants) {
 //       // finc stocks for the variant
-//       List<Stock> stocks = ProxyService.local.realm!
+//       List<Stock> stocks = ProxyService.strategy.realm!
 //           .query<Stock>(r'variantId == $0', [variant.id]).toList();
 
 //       /// if variant have more than one stock delete them remain with the first one
@@ -5729,7 +5729,7 @@
 //         final int variantId = randomNumber();
 //         // Create a new product
 //         Product product = Product(
-//           ObjectId(),
+//           
 //           id: randomNumber(),
 //           name: item.name,
 //           barCode: item.barCode,
@@ -5796,7 +5796,7 @@
 //   }) {
 //     final itemQuantityIsNonZero = double.tryParse(itemQuantity);
 //     return Stock(
-//       ObjectId(),
+//       
 //       id: randomNumber(),
 //       variantId: randomNumber(),
 //       currentStock: double.parse(quantitis[product.barCode] ?? "1"),
@@ -5828,7 +5828,7 @@
 //     required Map<String, String> itemTypes,
 //   }) async {
 //     return Variant(
-//       ObjectId(),
+//       
 //       id: variantId,
 //       branchIds: [branchId],
 //       productId: product.id!,
@@ -6099,7 +6099,7 @@
 //     if (access == null) {
 //       realm!.write(() {
 //         realm!.add<Access>(Access(
-//           ObjectId(),
+//           
 //           id: randomNumber(),
 //           branchId: branchId,
 //           businessId: businessId,
@@ -6167,7 +6167,7 @@
 //     if (asset == null) {
 //       realm!.write(() {
 //         realm!.add<Assets>(
-//           Assets(ObjectId(),
+//           Assets(
 //               id: randomNumber(),
 //               assetName: assetName,
 //               productId: productId,
@@ -6194,7 +6194,7 @@
 //       realm!.write(() {
 //         realm!.add<Category>(
 //           Category(
-//             ObjectId(),
+//             
 //             id: id,
 //             focused: focused,
 //             name: name,

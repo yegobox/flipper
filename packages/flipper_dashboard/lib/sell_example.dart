@@ -96,12 +96,12 @@ class SellState extends ConsumerState<Sell> {
 
   String buildTitle(CoreViewModel model) {
     if (model.amountTotal.toString() == 'null') {
-      return widget.product.name!;
+      return widget.product.name;
     }
     if (model.amountTotal == 0) {
       return '';
     }
-    return widget.product.name! + ' Frw' + model.amountTotal.toInt().toString();
+    return widget.product.name + ' Frw' + model.amountTotal.toInt().toString();
   }
 
   Widget Quantity(
@@ -585,10 +585,10 @@ class SellState extends ConsumerState<Sell> {
         child: InkWell(
           onTap: () {
             //load stock of this variant
-            model.loadVariantStock(variantId: variant.id!);
+            model.loadVariantStock(variantId: variant.id);
             model.keypad
-                .setAmount(amount: variant.retailPrice * model.quantity);
-            model.toggleCheckbox(variantId: variant.id!);
+                .setAmount(amount: variant.retailPrice! * model.quantity);
+            model.toggleCheckbox(variantId: variant.id);
           },
           child: Container(
             child: Padding(
@@ -602,7 +602,7 @@ class SellState extends ConsumerState<Sell> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       FutureBuilder<Variant?>(
-                          future: model.getVariant(variantId: variant.id!),
+                          future: model.getVariant(variantId: variant.id),
                           builder: (context, snapshot) {
                             return snapshot.hasData
                                 ? Expanded(
@@ -622,7 +622,7 @@ class SellState extends ConsumerState<Sell> {
                         child: Row(children: [
                           Container(
                             child: Text(
-                              'Frw${variant.retailPrice.toInt()}',
+                              'Frw${variant.retailPrice}',
                               style: GoogleFonts.poppins(
                                 textStyle: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -657,7 +657,7 @@ class SellState extends ConsumerState<Sell> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.reactive(
         onViewModelReady: (model) async {
-          await model.getVariants(productId: widget.product.id!);
+          await model.getVariants(productId: widget.product.id);
         },
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
@@ -693,7 +693,7 @@ class SellState extends ConsumerState<Sell> {
                       Row(
                         children: [
                           Text(
-                            widget.product.name!,
+                            widget.product.name,
                             style: GoogleFonts.rubik(
                               textStyle: TextStyle(
                                   fontWeight: FontWeight.w500,

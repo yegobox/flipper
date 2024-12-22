@@ -3,7 +3,7 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 
 @ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(tableName: 'businesseses'),
+  supabaseConfig: SupabaseSerializable(tableName: 'businesses'),
 )
 class Business extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)

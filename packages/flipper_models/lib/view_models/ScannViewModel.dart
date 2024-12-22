@@ -6,7 +6,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:realm/realm.dart';
+
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flutter/material.dart';
 
@@ -54,7 +54,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         // If found, update it
         variant.retailPrice = retailPrice;
         variant.supplyPrice = supplyPrice;
-        variant.qty = (variant.qty) + 1; // Increment the quantity safely
+        variant.qty = (variant.qty!) + 1; // Increment the quantity safely
         notifyListeners();
         return;
       }
@@ -64,7 +64,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     // If no matching variant was found, add a new one
     scannedVariants.add(
       Variant(
-        ObjectId(),
         name: product.name,
         retailPrice: retailPrice,
         supplyPrice: supplyPrice,
@@ -79,7 +78,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         unit: 'Per Item',
         productName: kProductName ?? product.name,
         branchId: branchId,
-        isTaxExempted: isTaxExempted,
         lastTouched: DateTime.now(),
       ),
     );
@@ -91,13 +89,12 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     int businessId = ProxyService.box.getBusinessId()!;
     int branchId = ProxyService.box.getBranchId()!;
     String bhfid = (await ProxyService.box.bhfId()) ?? "00";
-    return await ProxyService.local.createProduct(
+    return await ProxyService.strategy.createProduct(
       tinNumber: ProxyService.box.tin(),
       bhFId: bhfid,
       businessId: ProxyService.box.getBusinessId()!,
       branchId: ProxyService.box.getBranchId()!,
       product: Product(
-        ObjectId(),
         name: name,
         color: COLOR,
         businessId: businessId,
@@ -117,8 +114,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       // If the variant is found, remove it from the list
       Variant matchedVariant = scannedVariants[index];
       try {
-        ProxyService.local.delete(
-            id: matchedVariant.id!,
+        ProxyService.strategy.delete(
+            id: matchedVariant.id,
             endPoint: 'variant',
             flipperHttpClient: ProxyService.http);
       } catch (e) {}
@@ -147,10 +144,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       Variant variant =
           scannedVariants.firstWhere((variant) => variant.id == id);
 
-      Stock? stock = ProxyService.local.stockByVariantId(
-          variantId: variant.id!, branchId: ProxyService.box.getBranchId()!);
-      ProxyService.local.updateStock(
-          stockId: stock!.id!,
+      Stock? stock = ProxyService.strategy.stockByVariantId(
+          variantId: variant.id, branchId: ProxyService.box.getBranchId()!);
+      ProxyService.strategy.updateStock(
+          stockId: stock!.id,
           currentStock: newQuantity,
           rsdQty: newQuantity,
           initialStock: newQuantity,
@@ -167,8 +164,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   Future<void> deleteAllVariants() async {
     // Assuming that each variant has a unique ID
     for (var variant in scannedVariants) {
-      await ProxyService.local.delete(
-          id: variant.id!,
+      await ProxyService.strategy.delete(
+          id: variant.id,
           endPoint: 'variant',
           flipperHttpClient: ProxyService.http);
     }
@@ -185,7 +182,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
       // If the variant is found, update its unit
 
-      ProxyService.local.updateVariant(
+      ProxyService.strategy.updateVariant(
           updatables: [variant],
           unit: selectedUnit ?? 'Per Item',
           variantId: id);
@@ -205,7 +202,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       Map<int, TextEditingController>? dates}) async {
     if (editmode) {
       try {
-        ProxyService.local.updateVariant(
+        ProxyService.strategy.updateVariant(
           updatables: scannedVariants,
           newRetailPrice: newRetailPrice,
           rates: rates?.map((key, value) => MapEntry(key, value.text)),

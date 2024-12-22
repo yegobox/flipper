@@ -1,5 +1,4 @@
-import 'package:flipper_models/realm/schemas.dart';
-import 'package:flipper_models/view_models/coreViewModel.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -30,9 +29,9 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     /// selling mode.
     if (!ref.read(toggleProvider.notifier).state) {
       if (value.isNotEmpty) {
-        Variant? variant = ProxyService.local.variant(name: value);
+        Variant? variant = ProxyService.strategy.variant(name: value);
         if (variant != null) {
-          ITransaction currentTransaction = ProxyService.local
+          ITransaction currentTransaction = await ProxyService.strategy
               .manageTransaction(
                   branchId: ProxyService.box.getBranchId()!,
                   transactionType: TransactionType.sale,
@@ -40,10 +39,10 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
 
           await model.saveTransaction(
               variation: variant,
-              amountTotal: variant.retailPrice,
+              amountTotal: variant.retailPrice!,
               customItem: false,
               pendingTransaction: currentTransaction,
-              currentStock: variant.stock!.currentStock,
+              currentStock: variant.stock!.currentStock!,
               partOfComposite: false);
 
           ref.refresh(transactionItemsProvider((isExpense: false)));

@@ -114,7 +114,9 @@ Future<Product> _$ProductFromSqlite(Map<String, dynamic> data,
           data['is_composite'] == null ? null : data['is_composite'] == 1,
       composites: (await provider.rawQuery(
               'SELECT DISTINCT `f_Composite_brick_id` FROM `_brick_Product_composites` WHERE l_Product_brick_id = ?',
-              [data['_brick_id'] as int]).then((results) {
+              [
+            data['_brick_id'] as int
+          ]).then((results) {
         final ids = results.map((r) => r['f_Composite_brick_id']);
         return Future.wait<Composite>(ids.map((primaryKey) => repository!
             .getAssociation<Composite>(
@@ -123,7 +125,9 @@ Future<Product> _$ProductFromSqlite(Map<String, dynamic> data,
             .then((r) => r!.first)));
       }))
           .toList()
-          .cast<Composite>())
+          .cast<Composite>(),
+      searchMatch:
+          data['search_match'] == null ? null : data['search_match'] == 1)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -154,7 +158,9 @@ Future<Map<String, dynamic>> _$ProductToSqlite(Product instance,
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'spplr_nm': instance.spplrNm,
     'is_composite':
-        instance.isComposite == null ? null : (instance.isComposite! ? 1 : 0)
+        instance.isComposite == null ? null : (instance.isComposite! ? 1 : 0),
+    'search_match':
+        instance.searchMatch == null ? null : (instance.searchMatch! ? 1 : 0)
   };
 }
 
@@ -402,6 +408,12 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
       columnName: 'composites',
       iterable: true,
       type: Composite,
+    ),
+    'searchMatch': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'search_match',
+      iterable: false,
+      type: bool,
     )
   };
   @override

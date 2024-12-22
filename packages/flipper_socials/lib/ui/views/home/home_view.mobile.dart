@@ -173,7 +173,7 @@ class HomeViewMobile extends ViewModelWidget<social.HomeViewModel> {
                           child: OutlinedButton(
                             onPressed: viewModel.sendUsIntrestRequest,
                             style: primaryButtonStyle.copyWith(
-                                shape: MaterialStateProperty.resolveWith<
+                                shape: WidgetStateProperty.resolveWith<
                                         OutlinedBorder>(
                                     (states) => RoundedRectangleBorder(
                                         borderRadius:
@@ -192,7 +192,7 @@ class HomeViewMobile extends ViewModelWidget<social.HomeViewModel> {
                           child: OutlinedButton(
                             onPressed: viewModel.returnToApps,
                             style: primaryButtonStyle.copyWith(
-                                shape: MaterialStateProperty.resolveWith<
+                                shape: WidgetStateProperty.resolveWith<
                                         OutlinedBorder>(
                                     (states) => RoundedRectangleBorder(
                                         borderRadius:
