@@ -1,5 +1,4 @@
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,132 +15,173 @@ class CountryPicker extends StatefulWidget {
 class _CountryPickerState extends State<CountryPicker> {
   bool termsAndCondValue = false;
   String pickedCountry = 'RW';
+
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
+    final size = MediaQuery.of(context).size;
+    final theme = Theme.of(context);
+
     return Scaffold(
-      key: Key('countryPicker'),
-      body: Stack(
-        children: [
-          Positioned(
-            top: 8,
-            left: 0,
-            child: IconButton(
-              onPressed: () {
-                final _routerService = locator<RouterService>();
-                _routerService.navigateTo(AuthRoute());
-              },
-              icon: Image.asset('assets/fav.png',
-                  height: 90, width: 45, package: 'flipper_login'),
-              color: Colors.black,
-            ),
-          ),
-          Positioned(
-            top: 45,
-            right: 30,
-            child: Text("Sign In",
-                style: GoogleFonts.poppins(
-                    fontSize: 17, fontWeight: FontWeight.normal)),
-          ),
-          Column(
-            children: <Widget>[
-              SizedBox(height: screenHeight * 0.1),
-              Text('Select the country where your business is located',
-                  style: GoogleFonts.poppins(
-                      fontSize: 28, fontWeight: FontWeight.normal)),
-              SizedBox(height: screenHeight * 0.03),
-              SizedBox(
-                width: 400,
-                height: 60,
-                child: CountryCodePicker(
-                  hideSearch: true,
-                  alignLeft: false,
-                  onChanged: (element) => {
-                    pickedCountry = element.code.toString(),
-                    print(pickedCountry)
-                  },
-                  initialSelection: pickedCountry,
-                  showCountryOnly: false,
-                  showOnlyCountryWhenClosed: true,
-                  textStyle:
-                      GoogleFonts.poppins(fontSize: 20, color: Colors.black),
-                ),
+      key: const Key('countryPicker'),
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              floating: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                onPressed: () {
+                  final routerService = locator<RouterService>();
+                  routerService.navigateTo(AuthRoute());
+                },
+                icon: const Icon(Icons.arrow_back_ios),
               ),
-              SizedBox(height: screenHeight * 0.02),
-              Row(
-                children: [
-                  Flexible(
-                    child: Text(
-                        'I agree to flipper’s Seller Agreement and Privacy Policy.',
-                        style: GoogleFonts.poppins(fontSize: 20)),
-                  ),
-                  Checkbox(
-                    activeColor: const Color(0xff006AFE),
-                    checkColor: activeColor,
-                    focusColor: activeColor,
-                    value: termsAndCondValue,
-                    shape: CircleBorder(),
-                    onChanged: (bool? value) {
-                      setState(() {
-                        termsAndCondValue = value!;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: 10),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Wrap(
-                  children: [
-                    Text(
-                        'This app is protected by reCAPTCHA Enterprise and Google Privacy Policy and Terms of Service apply.',
-                        style: GoogleFonts.poppins(fontSize: 18)),
-                  ],
-                ),
-              ),
-              SizedBox(height: 130),
-              SizedBox(
-                width: 368,
-                height: 68,
-                child: OutlinedButton(
-                  key: Key('Continue'),
-                  style: primaryButtonStyle.copyWith(
-                      shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
-                          (states) => RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4)))),
-                  onPressed: () async {
-                    if (termsAndCondValue) {
-                      //Navigate to signinpage.dart
-                      final _routerService = locator<RouterService>();
-                      _routerService.navigateTo(
-                          PhoneInputScreenRoute(countryCode: pickedCountry));
-                    } else {
-                      final snackBar = SnackBar(
-                        content: const Text(
-                            'Accept terms and conditions to continue.'),
-                        action: SnackBarAction(
-                          label: 'Okay',
-                          onPressed: () {
-                            // Some code to undo the change.
-                          },
-                        ),
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                    }
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    // Handle sign in navigation
                   },
                   child: Text(
-                    "Continue",
+                    "Sign In",
                     style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 20,
-                        color: Colors.white),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: theme.primaryColor,
+                    ),
                   ),
                 ),
-              )
-            ],
-          )
-        ],
+                const SizedBox(width: 16),
+              ],
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const SizedBox(height: 32),
+                  Text(
+                    'Select the country where your business is located',
+                    style: GoogleFonts.poppins(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 40),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: CountryCodePicker(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      hideSearch: false,
+                      searchDecoration: InputDecoration(
+                        hintText: 'Search country...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        prefixIcon: const Icon(Icons.search),
+                      ),
+                      dialogSize: Size(size.width * 0.9, size.height * 0.8),
+                      onChanged: (element) {
+                        setState(() {
+                          pickedCountry = element.code.toString();
+                        });
+                      },
+                      initialSelection: pickedCountry,
+                      showCountryOnly: true,
+                      showOnlyCountryWhenClosed: true,
+                      textStyle: GoogleFonts.poppins(
+                        fontSize: 18,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        termsAndCondValue = !termsAndCondValue;
+                      });
+                    },
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: Checkbox(
+                            value: termsAndCondValue,
+                            activeColor: theme.primaryColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                termsAndCondValue = value!;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'I agree to flippers Seller Agreement and Privacy Policy.',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'This app is protected by reCAPTCHA Enterprise and Google Privacy Policy and Terms of Service apply.',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ]),
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.all(16),
+        child: ElevatedButton(
+          key: const Key('Continue'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: theme.primaryColor,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          onPressed: termsAndCondValue
+              ? () {
+                  final routerService = locator<RouterService>();
+                  routerService.navigateTo(
+                    PhoneInputScreenRoute(countryCode: pickedCountry),
+                  );
+                }
+              : null,
+          child: Text(
+            "Continue",
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w500,
+              fontSize: 18,
+              color: Colors.white,
+            ),
+          ),
+        ),
       ),
     );
   }

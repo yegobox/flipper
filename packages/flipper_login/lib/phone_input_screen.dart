@@ -123,11 +123,15 @@ class PhoneInputScreen extends StatelessWidget {
                   mfaHint: mfaHint,
                 ),
                 const SizedBox(height: 8),
-                FlipperButton(
-                  text: l.goBackButtonLabel,
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: FlipperButton(
+                    text: l.goBackButtonLabel,
+                    textColor: Colors.black,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
                 ),
               ],
             ),
