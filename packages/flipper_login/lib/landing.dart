@@ -1,16 +1,13 @@
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import 'responsive_layout.dart';
-
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class Landing extends StatefulWidget {
-  Landing({Key? key}) : super(key: key);
+  const Landing({Key? key}) : super(key: key);
 
   @override
   State<Landing> createState() => _LandingState();
@@ -18,193 +15,106 @@ class Landing extends StatefulWidget {
 
 class _LandingState extends State<Landing> {
   final _routerService = locator<RouterService>();
-  final List<Widget> _pages = [
-    Image.asset("assets/main.png",
-        height: 321, width: 321, package: 'flipper_login'),
-    Image.asset(
-      "assets/image_2.png",
-      height: 321,
-      width: 321,
-      package: 'flipper_login',
+
+  final List<PageContent> _pagesContent = [
+    PageContent(
+      imagePath: "assets/main.png",
+      text: "Everything you need to run your business in the modern age",
     ),
-    Image.asset("assets/image_3.png",
-        height: 321, width: 321, package: 'flipper_login'),
-    Image.asset("assets/image_4.png",
-        height: 321, width: 321, package: 'flipper_login'),
+    PageContent(
+      imagePath: "assets/image_2.png",
+      text: "Signup and sell in minutes - no commitments or hidden fees",
+    ),
+    PageContent(
+      imagePath: "assets/image_3.png",
+      text: "Simple and useful reports to help you grow your business",
+    ),
+    PageContent(
+      imagePath: "assets/image_4.png",
+      text: "Engage with your customer wherever you can find them",
+    ),
   ];
 
-  final List<Widget> _pagesText = [
-    Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
-      child: Text(
-        "Everything you need to run your business in the modern age",
-        style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-            decoration: TextDecoration.none),
-        textAlign: TextAlign.center,
-      ),
-    ),
-    Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
-      child: Text(
-        "Signup and sell in minutes - no commitments or hidden fees",
-        style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-            decoration: TextDecoration.none),
-        textAlign: TextAlign.center,
-      ),
-    ),
-    Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
-      child: Text(
-        "Simple and useful reports to help you grow your business",
-        style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-            decoration: TextDecoration.none),
-        textAlign: TextAlign.center,
-      ),
-    ),
-    Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
-      child: Text(
-        "Engage with your customer wherever you can find them",
-        style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-            decoration: TextDecoration.none),
-        textAlign: TextAlign.center,
-      ),
-    )
-  ];
   final signInButtonKey = Key('signInButtonKey');
 
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+
     return ResponsiveLayout(
       mobile: Stack(
         children: [
           CarouselSlider.builder(
-              unlimitedMode: true,
-              enableAutoSlider: false,
-              slideBuilder: (index) {
-                return Container(
-                  alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: <Color>[
-                        Color(0xff0056C2),
-                        Color(0xff9747FF),
-                      ],
-                      tileMode: TileMode.clamp,
+            unlimitedMode: true,
+            enableAutoSlider: true,
+            slideBuilder: (index) {
+              final page = _pagesContent[index];
+              return Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xff0056C2), Color(0xff9747FF)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Image.asset(
+                      'assets/flipper_logo.png',
+                      height: 82,
+                      width: 82,
+                      package: 'flipper_login',
                     ),
-                  ),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: screenHeight * 0.1,
+                    Image.asset(
+                      page.imagePath,
+                      height: 321,
+                      width: 321,
+                      package: 'flipper_login',
+                      semanticLabel: 'Carousel image ${index + 1}',
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text(
+                        page.text,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      Image.asset(
-                        'assets/flipper_logo.png',
-                        height: 82,
-                        width: 82,
-                        package: 'flipper_login',
-                      ),
-                      _pages[index],
-                      _pagesText[index],
-                      const Spacer(),
-                    ],
-                  ),
-                );
-              },
-              slideIndicator: CircularSlideIndicator(
-                currentIndicatorColor: Colors.white,
-                padding: EdgeInsets.only(bottom: screenHeight * 0.28),
-              ),
-              itemCount: _pages.length),
+                    ),
+                  ],
+                ),
+              );
+            },
+            slideIndicator: CircularSlideIndicator(
+              currentIndicatorColor: Colors.white,
+              padding: EdgeInsets.only(bottom: screenHeight * 0.28),
+            ),
+            itemCount: _pagesContent.length,
+          ),
+          Spacer(),
           Positioned(
             left: 0,
             right: 0,
             bottom: 30,
             child: Column(
               children: [
-                SizedBox(
-                  width: 368,
-                  height: 68,
-                  child: OutlinedButton(
-                    style: ButtonStyle(
-                      shape: WidgetStateProperty.all<OutlinedBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                      side: WidgetStateProperty.resolveWith(
-                          (states) => const BorderSide(color: Colors.white)),
-                      backgroundColor:
-                          WidgetStateProperty.all<Color>(Colors.transparent),
-                      overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                        (Set<WidgetState> states) {
-                          if (states.contains(WidgetState.hovered)) {
-                            return Colors.transparent;
-                          }
-                          if (states.contains(WidgetState.focused) ||
-                              states.contains(WidgetState.pressed)) {
-                            return Colors.transparent;
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    onPressed: () async {
-                      _routerService.navigateTo(AuthRoute());
-                    },
-                    child: Text(
-                      "Create Account",
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 20,
-                          color: Colors.white),
-                    ),
-                  ),
+                _buildButton(
+                  text: "Create Account",
+                  onPressed: () => _routerService.navigateTo(AuthRoute()),
                 ),
-                const SizedBox(
-                  height: 22,
+                const SizedBox(height: 22),
+                _buildButton(
+                  text: "Sign In",
+                  key: signInButtonKey,
+                  onPressed: () =>
+                      _routerService.clearStackAndShow(AuthRoute()),
                 ),
-                SizedBox(
-                  width: 368,
-                  height: 68,
-                  child: OutlinedButton(
-                    key: signInButtonKey,
-                    style: primaryButtonStyle.copyWith(
-                        side: WidgetStateProperty.resolveWith((states) =>
-                            const BorderSide(color: Color(0xff006AFE))),
-                        shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
-                            (states) => RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4)))),
-                    onPressed: () async {
-                      _routerService.clearStackAndShow(AuthRoute());
-                    },
-                    child: Text(
-                      "Sign In",
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 20,
-                          color: Colors.white),
-                    ),
-                  ),
-                )
               ],
             ),
-          )
+          ),
         ],
       ),
       desktop: Row(
@@ -212,38 +122,73 @@ class _LandingState extends State<Landing> {
         children: [
           Flexible(
             child: CarouselSlider.builder(
-                unlimitedMode: true,
-                enableAutoSlider: false,
-                slideBuilder: (index) {
-                  return Container(
-                    alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: <Color>[
-                          Color(0xff0056C2),
-                          Color(0xff636A73),
-                        ],
-                        tileMode: TileMode.clamp,
+              unlimitedMode: true,
+              enableAutoSlider: true,
+              slideBuilder: (index) {
+                final page = _pagesContent[index];
+                return Wrap(
+                  direction: Axis.vertical,
+                  children: [
+                    Image.asset(
+                      page.imagePath,
+                      height: 321,
+                      width: 321,
+                      package: 'flipper_login',
+                    ),
+                    Text(
+                      page.text,
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                    child: Wrap(
-                      direction: Axis.vertical,
-                      children: [
-                        _pages[index],
-                      ],
-                    ),
-                  );
-                },
-                slideIndicator: CircularSlideIndicator(
-                  currentIndicatorColor: Colors.white,
-                  padding: const EdgeInsets.only(bottom: 10),
-                ),
-                itemCount: _pages.length),
+                  ],
+                );
+              },
+              slideIndicator: CircularSlideIndicator(
+                currentIndicatorColor: Colors.white,
+              ),
+              itemCount: _pagesContent.length,
+            ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildButton({
+    required String text,
+    required VoidCallback onPressed,
+    Key? key,
+  }) {
+    return SizedBox(
+      width: 368,
+      height: 68,
+      child: OutlinedButton(
+        key: key,
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.white),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        ),
+        onPressed: onPressed,
+        child: Text(
+          text,
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w400,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class PageContent {
+  final String imagePath;
+  final String text;
+
+  PageContent({required this.imagePath, required this.text});
 }

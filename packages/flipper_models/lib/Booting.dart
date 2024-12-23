@@ -114,7 +114,7 @@ mixin Booting {
         await ProxyService.strategy.addBranch(
           id: branch.id,
           serverId: branch.id,
-          location: branch.location!,
+          location: branch.location ?? "",
           description: branch.description,
           name: branch.name!,
           businessId: branch.businessId!,

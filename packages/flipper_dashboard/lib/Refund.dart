@@ -267,11 +267,12 @@ class _RefundState extends ConsumerState<Refund> {
           .error("RefundableTransactionId: ${int.parse(widget.transactionId)}");
       talker.error("RefundableBranchId: ${widget.transaction?.id}");
 
-      List<TransactionItem> items = ProxyService.strategy.transactionItems(
-          transactionId: int.parse(widget.transactionId),
-          doneWithTransaction: true,
-          branchId: widget.transaction!.branchId!,
-          active: true);
+      List<TransactionItem> items = await ProxyService.strategy
+          .transactionItems(
+              transactionId: int.parse(widget.transactionId),
+              doneWithTransaction: true,
+              branchId: widget.transaction!.branchId!,
+              active: true);
       talker.error("Items to Refund: ${items.length}");
 
       for (TransactionItem item in items) {

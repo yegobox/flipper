@@ -317,7 +317,7 @@ mixin TransactionMixin {
       }
 
       // Handle activation of inactive items
-      List<TransactionItem> inactiveItems = ProxyService.strategy
+      List<TransactionItem> inactiveItems = await ProxyService.strategy
           .transactionItems(
               branchId: ProxyService.box.getBranchId()!,
               transactionId: pendingTransaction.id,
@@ -353,7 +353,7 @@ mixin TransactionMixin {
 
   Future<void> updatePendingTransactionTotals(
       ITransaction pendingTransaction) async {
-    List<TransactionItem> items = ProxyService.strategy.transactionItems(
+    List<TransactionItem> items = await ProxyService.strategy.transactionItems(
       branchId: ProxyService.box.getBranchId()!,
       transactionId: pendingTransaction.id,
       doneWithTransaction: false,

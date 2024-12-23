@@ -83,8 +83,7 @@ abstract class RealmInterface {
       {required int variantId,
       required int branchId,
       bool nonZeroValue = false});
-  Future<Stock?> stockByVariantIdFuture(
-      {required int variantId, bool nonZeroValue = false});
+
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
   Category? activeCategory({required int branchId});
@@ -99,7 +98,11 @@ abstract class RealmInterface {
       String? endPoint,
       HttpClientInterface? flipperHttpClient});
   Future<PColor?> getColor({required int id});
-  Future<Stock?> getStock({required int branchId, required int variantId});
+  Future<Stock?> getStock(
+      {required int branchId,
+      required int variantId,
+      bool nonZeroValue = false,
+      int? id});
   List<Variant> variants({
     required int branchId,
     int? productId,
@@ -268,7 +271,7 @@ abstract class RealmInterface {
     bool includePending = false,
   });
 
-  List<TransactionItem> transactionItems(
+  FutureOr<List<TransactionItem>> transactionItems(
       {int? transactionId,
       bool? doneWithTransaction,
       required int branchId,
@@ -309,7 +312,6 @@ abstract class RealmInterface {
       {required String tokenType, required int businessId});
 
   Future<void> patchSocialSetting({required Setting setting});
-  Future<Setting?> getSocialSetting();
 
   Future<Device?> getDevice(
       {required String phone, required String linkingCode});

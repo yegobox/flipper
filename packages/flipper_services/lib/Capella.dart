@@ -755,13 +755,11 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<Setting?> getSocialSetting() {
-    // TODO: implement getSocialSetting
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Stock?> getStock({required int branchId, required int variantId}) {
+  Future<Stock?> getStock(
+      {required int branchId,
+      int? variantId,
+      bool nonZeroValue = false,
+      int? id}) {
     // TODO: implement getStock
     throw UnimplementedError();
   }
@@ -1047,13 +1045,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<Stock?> stockByVariantIdFuture(
-      {required int variantId, bool nonZeroValue = false}) {
-    // TODO: implement stockByVariantIdFuture
-    throw UnimplementedError();
-  }
-
-  @override
   List<Stock> stocks({required int branchId}) {
     // TODO: implement stocks
     throw UnimplementedError();
@@ -1203,36 +1194,8 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  void clearVariants() {
-    // TODO: implement clearVariants
-  }
-
-  @override
-  void close() {
-    // TODO: implement close
-  }
-
-  @override
   FutureOr<void> deleteAll<T extends Object>({required String tableName}) {
     // TODO: implement deleteAll
-    throw UnimplementedError();
-  }
-
-  @override
-  void emptySentMessageQueue() {
-    // TODO: implement emptySentMessageQueue
-  }
-
-  @override
-  Future<bool> enableAttendance(
-      {required int businessId, required String email}) {
-    // TODO: implement enableAttendance
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Business> getBusinessFuture({int? businessId}) {
-    // TODO: implement getBusinessFuture
     throw UnimplementedError();
   }
 

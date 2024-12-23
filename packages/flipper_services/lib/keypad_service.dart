@@ -74,7 +74,7 @@ class KeyPadService with ListenableServiceMixin {
       includeSubTotalCheck: false,
     );
 
-    List<TransactionItem> items = ProxyService.strategy.transactionItems(
+    List<TransactionItem> items = await ProxyService.strategy.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
         transactionId: transaction.id,
         doneWithTransaction: false,

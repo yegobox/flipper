@@ -368,7 +368,7 @@ class TaxController<OBJ> {
           );
           //query item and re-assign
           final List<TransactionItem> items =
-              ProxyService.strategy.transactionItems(
+              await ProxyService.strategy.transactionItems(
             branchId: ProxyService.box.getBranchId()!,
             transactionId: transaction.id,
           );

@@ -134,7 +134,7 @@ class CoreViewModel extends FlipperBaseModel
     /// query for an item that is not active so we can edit it
     /// if the item is not available it will be created, if we are done with working with item
     /// we then change status of active from false to true
-    List<TransactionItem> items = ProxyService.strategy.transactionItems(
+    List<TransactionItem> items = await ProxyService.strategy.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
         transactionId: pendingTransaction.id,
         doneWithTransaction: false,
@@ -281,11 +281,12 @@ class CoreViewModel extends FlipperBaseModel
           .getTransactionItemByVariantId(
               variantId: variation.id, transactionId: pendingTransaction.id);
 
-      List<TransactionItem> items = ProxyService.strategy.transactionItems(
-          branchId: ProxyService.box.getBranchId()!,
-          transactionId: pendingTransaction.id,
-          doneWithTransaction: false,
-          active: true);
+      List<TransactionItem> items = await ProxyService.strategy
+          .transactionItems(
+              branchId: ProxyService.box.getBranchId()!,
+              transactionId: pendingTransaction.id,
+              doneWithTransaction: false,
+              active: true);
 
       if (existTransactionItem != null) {
         ProxyService.strategy.updateTransactionItem(
@@ -317,11 +318,12 @@ class CoreViewModel extends FlipperBaseModel
           remainingStock: stock?.currentStock ?? 0 - 1,
         );
 
-        List<TransactionItem> items = ProxyService.strategy.transactionItems(
-            branchId: ProxyService.box.getBranchId()!,
-            transactionId: pendingTransaction.id,
-            doneWithTransaction: false,
-            active: true);
+        List<TransactionItem> items = await ProxyService.strategy
+            .transactionItems(
+                branchId: ProxyService.box.getBranchId()!,
+                transactionId: pendingTransaction.id,
+                doneWithTransaction: false,
+                active: true);
         ProxyService.strategy.addTransactionItem(
           transaction: pendingTransaction,
           item: newItem,
@@ -625,7 +627,7 @@ class CoreViewModel extends FlipperBaseModel
 
     if (keypad.transaction == null) return 0.0;
 
-    List<TransactionItem> items = ProxyService.strategy.transactionItems(
+    List<TransactionItem> items = await ProxyService.strategy.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
         transactionId: keypad.transaction!.id,
         doneWithTransaction: false,

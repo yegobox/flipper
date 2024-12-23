@@ -42,9 +42,10 @@ class VariationList extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     FutureBuilder<Stock?>(
-                      future: ProxyService.strategy.stockByVariantIdFuture(
+                      future: Future.value(ProxyService.strategy.getStock(
                         variantId: variant.id,
-                      ),
+                        branchId: ProxyService.box.getBranchId()!,
+                      )),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {

@@ -204,9 +204,9 @@ class _AdminControlState extends State<AdminControl> {
             lastTouched: transaction.lastTouched,
             customerTin: transaction.customerTin,
             note: transaction.note);
-        // await repository.upsert<models.ITransaction>(transItem);
+        await repository.upsert<models.ITransaction>(transItem);
 
-        List<TransactionItem> items = ProxyService.strategy
+        List<TransactionItem> items = await ProxyService.strategy
             .transactionItems(branchId: ProxyService.box.getBranchId()!);
         talker
             .warning("I Expect ${items.length} transactions Item When seeding");

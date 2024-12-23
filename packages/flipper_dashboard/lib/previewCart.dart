@@ -43,7 +43,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       final dateRange = ref.watch(dateRangeProvider);
       final startDate = dateRange['startDate'];
 
-      final items = ProxyService.strategy.transactionItems(
+      final items = await ProxyService.strategy.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
         transactionId: transaction.id,
         doneWithTransaction: false,

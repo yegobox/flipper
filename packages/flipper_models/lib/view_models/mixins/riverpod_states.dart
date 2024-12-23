@@ -272,7 +272,7 @@ class TransactionItemsNotifier
       talker.info("Loading transactionId $currentTransaction");
       state = const AsyncValue.loading();
 
-      final items = ProxyService.strategy.transactionItems(
+      final items =await ProxyService.strategy.transactionItems(
           branchId: ProxyService.box.getBranchId()!,
           transactionId: currentTransaction,
           doneWithTransaction: false,

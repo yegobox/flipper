@@ -798,7 +798,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<Business> getBusiness({int? businessId}) async {
+  FutureOr<Business?> getBusiness({int? businessId}) async {
     final repository = Repository();
     final query = brick.Query(
         where: businessId != null
@@ -806,7 +806,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             : [brick.Where('isDefault').isExactly(true)]);
     final result = await repository.get<models.Business>(
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-    return result.first;
+    return result.firstOrNull;
   }
 
   @override
@@ -1382,15 +1382,33 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Setting?> getSocialSetting() {
-    // TODO: implement getSocialSetting
-    throw UnimplementedError("getSocialSetting method is not implemented yet");
-  }
-
-  @override
-  Future<Stock?> getStock({required int branchId, required int variantId}) {
-    // TODO: implement getStock
-    throw UnimplementedError("getStock method is not implemented yet");
+  Future<Stock?> getStock(
+      {required int branchId,
+      required int? variantId,
+      bool nonZeroValue = false,
+      int? id}) async {
+    if (variantId == null) {
+      final stock = await repository.get<Stock>(
+          query: brick.Query(where: [
+        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
+      ]));
+      return stock.firstOrNull;
+    } else if (id != null) {
+      final stock = await repository.get<Stock>(
+          query: brick.Query(where: [
+        brick.Where('id', value: id, compare: brick.Compare.exact),
+        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
+      ]));
+      return stock.firstOrNull;
+    } else {
+      final stock = await repository.get<Stock>(
+          query: brick.Query(where: [
+        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
+        brick.Where('variantId',
+            value: variantId, compare: brick.Compare.exact),
+      ]));
+      return stock.firstOrNull;
+    }
   }
 
   @override
@@ -2223,14 +2241,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<void> startReplicator() {
     // TODO: implement startReplicator
     throw UnimplementedError("startReplicator method is not implemented yet");
-  }
-
-  @override
-  Future<Stock?> stockByVariantIdFuture(
-      {required int variantId, bool nonZeroValue = false}) {
-    // TODO: implement stockByVariantIdFuture
-    throw UnimplementedError(
-        "stockByVariantIdFuture method is not implemented yet");
   }
 
   @override
@@ -3075,9 +3085,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<LPermission?> permission({required int userId}) {
-    // TODO: implement permission
-    throw UnimplementedError("permission method is not implemented yet");
+  FutureOr<LPermission?> permission({required int userId}) async {
+    return (await repository.get<LPermission>(
+            query:
+                brick.Query(where: [brick.Where('userId').isExactly(userId)])))
+        .firstOrNull;
   }
 
   @override
@@ -3086,9 +3098,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<List<Access>> access({required int userId, String? featureName}) {
-    // TODO: implement access
-    throw UnimplementedError("access method is not implemented yet");
+  FutureOr<List<Access>> access(
+      {required int userId, String? featureName}) async {
+    return await repository.get<Access>(
+        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
   }
 
   @override
@@ -3122,13 +3135,37 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  List<TransactionItem> transactionItems(
+  FutureOr<List<TransactionItem>> transactionItems(
       {int? transactionId,
       bool? doneWithTransaction,
       required int branchId,
-      bool? active}) {
-    // TODO: implement transactionItems
-    throw UnimplementedError("transactionItems method is not implemented yet");
+      bool? active}) async {
+    if (transactionId == null) {
+      final items = await repository.get<TransactionItem>(
+          query: brick.Query(where: [
+        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
+      ]));
+      return items;
+    } else if (doneWithTransaction == null || active == null) {
+      final items = await repository.get<TransactionItem>(
+          query: brick.Query(where: [
+        brick.Where('transactionId',
+            value: transactionId, compare: brick.Compare.exact),
+        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
+      ]));
+      return items;
+    } else {
+      final items = await repository.get<TransactionItem>(
+          query: brick.Query(where: [
+        brick.Where('transactionId',
+            value: transactionId, compare: brick.Compare.exact),
+        brick.Where('doneWithTransaction',
+            value: doneWithTransaction, compare: brick.Compare.exact),
+        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
+        brick.Where('active', value: active, compare: brick.Compare.exact),
+      ]));
+      return items;
+    }
   }
 
   @override
