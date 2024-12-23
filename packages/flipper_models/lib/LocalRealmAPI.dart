@@ -31,7 +31,7 @@
 // import 'package:flipper_models/realmModels.dart';
 // import 'package:flipper_models/secrets.dart';
 // import 'package:flipper_services/proxy.dart';
-// 
+
 // import 'package:rxdart/rxdart.dart';
 // import 'package:supabase_models/brick/repository.dart';
 // import 'package:supabase_models/brick/repository.dart' as brick;
@@ -178,7 +178,7 @@
 //       // If it doesn't exist, add it
 //       if (existingItem == null) {
 //         realm.add(UnversalProduct(
-//           
+          
 //           id: 1,
 //           itemClsCd: item['itemClsCd'],
 //           itemClsNm: item['itemClsNm'],
@@ -967,7 +967,7 @@
 //               .query<Business>(r'serverId == $0', [business.id]).firstOrNull;
 //           if (existingBusiness == null) {
 //             businessToAdd.add(Business(
-//               
+              
 //               serverId: business.id,
 //               userId: business.userId,
 //               name: business.name,
@@ -1020,7 +1020,7 @@
 //               realm!.query<Branch>(r'serverId==$0', [branch.id]).firstOrNull;
 //           if (existingBranch == null) {
 //             Branch br = Branch(
-//               
+              
 //               serverId: branch.id,
 //               name: branch.name,
 //               businessId: branch.businessId,
@@ -1038,7 +1038,7 @@
 //               .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
 //           if (existingPermission == null) {
 //             permissionToAdd.add(LPermission(
-//               
+              
 //               name: permission.name,
 //               id: permission.id,
 //               userId: permission.userId,
@@ -1051,7 +1051,7 @@
 //             realm!.query<Tenant>(r'userId==$0', [iTenant.userId]).firstOrNull;
 //         if (tenant == null) {
 //           tenantToAdd = Tenant(
-//             
+            
 //             name: jTenant.name,
 //             phoneNumber: jTenant.phoneNumber,
 //             email: jTenant.email,
@@ -1144,7 +1144,7 @@
 //       realm!.write(() {
 //         realm!.add<Branch>(
 //           Branch(
-//             
+            
 //             location: branchLocal.location,
 //             lastTouched: DateTime.now(),
 //             latitude: branchLocal.latitude,
@@ -1740,7 +1740,7 @@
 //     }
 
 //     result = Configurations(
-//       
+      
 //       taxPercentage: taxPercentage,
 //       taxType: taxtype,
 //       id: randomNumber(),
@@ -1968,9 +1968,9 @@
 
 //   @override
 //   Future<void> amplifyLogout() async {
-    // try {
-    //   amplify.Amplify.Auth.signOut();
-    // } catch (e) {}
+//     try {
+//       amplify.Amplify.Auth.signOut();
+//     } catch (e) {}
 //   }
 
 //   @override
@@ -2013,7 +2013,7 @@
 
 //   SKU _createNewSku({required int branchId, required int businessId}) {
 //     SKU newSku = SKU(
-//       
+      
 //       id: randomNumber(),
 //       sku: _getNextSku(branchId),
 //       branchId: branchId,
@@ -2482,7 +2482,7 @@
 //       PaymentPlan paymentPlan = realm!.query<PaymentPlan>(
 //               r'businessId == $0', [businessId]).firstOrNull ??
 //           PaymentPlan(
-//             
+            
 //             businessId: businessId,
 //             selectedPlan: selectedPlan,
 //             paymentMethod: paymentMethod,
@@ -2679,7 +2679,7 @@
 //       required int subBranchId}) {
 //     realm!.write(() {
 //       final newStock = Stock(
-//         
+        
 //         id: randomNumber(),
 //         lastTouched: DateTime.now(),
 //         branchId: subBranchId,
@@ -2789,7 +2789,7 @@
 //       tableName: stockRequestsTable,
 //       writeCallback: () {
 //         final stockRequest = StockRequest(
-//           
+          
 //           id: orderId,
 //           deliveryDate: deliveryDate,
 //           deliveryNote: deliveryNote,
@@ -4248,7 +4248,7 @@
 //     if (existTransaction == null) {
 //       final int id = randomNumber();
 //       final transaction = ITransaction(
-//         
+        
 //         lastTouched: DateTime.now(),
 //         id: id,
 //         reference: randomNumber().toString(),
@@ -4435,7 +4435,7 @@
 //       {required int userId, required String activity}) async {
 //     try {
 //       final userActivity = Activity(
-//         
+        
 //         activity,
 //         id: randomNumber(),
 //         details: RealmValue.from({
@@ -4961,7 +4961,7 @@
 //   }) {
 //     realm!.write(() {
 //       final stock = Stock(
-//         
+        
 //         id: randomNumber(),
 //         lastTouched: DateTime.now(),
 //         branchId: branchId,
@@ -5084,7 +5084,7 @@
 //       });
 //     } else if (transactionId != 0) {
 //       final transactionPaymentRecord = TransactionPaymentRecord(
-//         
+        
 //         id: randomNumber(),
 //         amount: amount,
 //         transactionId: transactionId,
@@ -5729,7 +5729,7 @@
 //         final int variantId = randomNumber();
 //         // Create a new product
 //         Product product = Product(
-//           
+          
 //           id: randomNumber(),
 //           name: item.name,
 //           barCode: item.barCode,
@@ -5796,7 +5796,7 @@
 //   }) {
 //     final itemQuantityIsNonZero = double.tryParse(itemQuantity);
 //     return Stock(
-//       
+      
 //       id: randomNumber(),
 //       variantId: randomNumber(),
 //       currentStock: double.parse(quantitis[product.barCode] ?? "1"),
@@ -5828,7 +5828,7 @@
 //     required Map<String, String> itemTypes,
 //   }) async {
 //     return Variant(
-//       
+      
 //       id: variantId,
 //       branchIds: [branchId],
 //       productId: product.id!,
@@ -6099,7 +6099,7 @@
 //     if (access == null) {
 //       realm!.write(() {
 //         realm!.add<Access>(Access(
-//           
+          
 //           id: randomNumber(),
 //           branchId: branchId,
 //           businessId: businessId,
@@ -6194,7 +6194,7 @@
 //       realm!.write(() {
 //         realm!.add<Category>(
 //           Category(
-//             
+            
 //             id: id,
 //             focused: focused,
 //             name: name,

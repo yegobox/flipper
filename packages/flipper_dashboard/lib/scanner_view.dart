@@ -185,18 +185,18 @@ class ScannViewState extends ConsumerState<ScannView> {
       model.productService.setBarcode(barcode.rawValue);
     }
     scanToLogin(result: barcode.rawValue);
-    if (widget.intent == ATTENDANCE) {
-      bool isCheckInDone =
-          await ProxyService.strategy.checkIn(checkInCode: barcode.rawValue);
-      if (isCheckInDone) {
-        showSimpleNotification(
-          const Text('Check In Successful'),
-          background: Colors.green,
-          position: NotificationPosition.bottom,
-        );
-        _routerService.pop();
-      }
-    }
+    // if (widget.intent == ATTENDANCE) {
+    //   bool isCheckInDone =
+    //       await ProxyService.strategy.checkIn(checkInCode: barcode.rawValue);
+    //   if (isCheckInDone) {
+    //     showSimpleNotification(
+    //       const Text('Check In Successful'),
+    //       background: Colors.green,
+    //       position: NotificationPosition.bottom,
+    //     );
+    //     _routerService.pop();
+    //   }
+    // }
 
     navigate(barcode.rawValue, model);
   }

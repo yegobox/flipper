@@ -32,8 +32,6 @@ void main() {
       ProxyService.strategy
           .deleteAll<TransactionItem>(tableName: transactionItemsTable);
       ProxyService.strategy.deleteAll<SKU>(tableName: skusTable);
-
-      ProxyService.strategy.close();
     });
 
     testWidgets('Widget displays stock requests correctly',

@@ -118,8 +118,8 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Business?>(
-      future: ProxyService.strategy
-          .getBusinessFuture(businessId: widget.branch.businessId),
+      future: Future.value(ProxyService.strategy
+          .getBusiness(businessId: widget.branch.businessId)),
       builder: (context, snapshot) {
         return PopupMenuButton<String>(
           color: Colors.white,
@@ -173,8 +173,8 @@ class PMobile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Business?>(
-      future: ProxyService.strategy
-          .getBusinessFuture(businessId: widget.branch.businessId),
+      future: Future.value(ProxyService.strategy
+          .getBusiness(businessId: widget.branch.businessId)),
       builder: (context, snapshot) {
         return GestureDetector(
           onLongPress: () => locator<RouterService>()

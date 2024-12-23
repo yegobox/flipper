@@ -43,7 +43,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       try {
         Business? business = await ProxyService.strategy.defaultBusiness();
         Branch? branch = ref.read(selectedBranchProvider) ??
-            ProxyService.strategy.defaultBranch();
+            await ProxyService.strategy.defaultBranch();
 
         Tenant? newTenant;
         if (!editMode) {

@@ -71,7 +71,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
                         Expanded(
                           child: _isSelectingBranch
                               ? _buildBranchList(branches: branches.value!)
-                              : _buildBusinessList(businesses: businesses),
+                              : _buildBusinessList(
+                                  businesses: businesses.value!),
                         ),
                       ],
                     )
@@ -195,7 +196,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
 
     try {
       await _setDefaultBusiness(business);
-      if (ProxyService.strategy.businesses().length == 1) {
+      if ((await ProxyService.strategy
+                  .businesses(userId: ProxyService.box.getUserId()!))
+              .length ==
+          1) {
         _navigateToBranchSelection();
       }
     } finally {
@@ -255,7 +259,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   }
 
   void _updateAllBusinessesInactive() async {
-    final businesses = ProxyService.strategy.businesses();
+    final businesses = await ProxyService.strategy
+        .businesses(userId: ProxyService.box.getUserId()!);
     for (final business in businesses) {
       await ProxyService.strategy.updateBusiness(
         businessId: business.serverId,

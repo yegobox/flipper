@@ -146,8 +146,8 @@ class SignupViewModel extends ReactiveViewModel {
     // }
 
     await saveBusinessId(tenants);
-    Business business = await getBusiness(tenants);
-    List<Branch> branches = await getBranches(business);
+    Business? business = await getBusiness(tenants);
+    List<Branch> branches = await getBranches(business!);
     await saveBranchId(branches);
 
     appService.appInit();
@@ -170,9 +170,9 @@ class SignupViewModel extends ReactiveViewModel {
     );
   }
 
-  Future<Business> getBusiness(List<ITenant> tenants) {
-    return ProxyService.strategy
-        .getBusinessFuture(businessId: tenants.first.businesses.first.id);
+  Future<Business?> getBusiness(List<ITenant> tenants) async {
+    return await ProxyService.strategy
+        .getBusiness(businessId: tenants.first.businesses.first.id);
   }
 
   Future<List<Branch>> getBranches(Business business) async {

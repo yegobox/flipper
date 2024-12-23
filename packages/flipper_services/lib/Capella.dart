@@ -330,7 +330,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<Business?> activeBusinesses({required int userId}) {
+  Future<Business?> activeBusiness({required int userId}) {
     // TODO: implement activeBusinesses
     throw UnimplementedError();
   }
@@ -401,12 +401,6 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<List<extensions.BusinessType>> businessTypes() {
     // TODO: implement businessTypes
-    throw UnimplementedError();
-  }
-
-  @override
-  List<Business> businesses() {
-    // TODO: implement businesses
     throw UnimplementedError();
   }
 
@@ -730,20 +724,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<Product?> getProductByBarCode(
-      {required String barCode, required int branchId}) {
-    // TODO: implement getProductByBarCode
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Product?>> getProductByName(
-      {required String name, required int branchId}) {
-    // TODO: implement getProductByName
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<Product>> getProductList(
       {int? prodIndex, required int branchId}) {
     // TODO: implement getProductList
@@ -806,20 +786,8 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Tenant getTenant({required int userId}) {
+  Tenant getTenant({int? userId, int? pin}) {
     // TODO: implement getTenant
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Tenant?> getTenantBYPin({required int pin}) {
-    // TODO: implement getTenantBYPin
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Tenant?> getTenantBYUserId({required int userId}) {
-    // TODO: implement getTenantBYUserId
     throw UnimplementedError();
   }
 
@@ -964,13 +932,6 @@ class Capella with Booting implements RealmInterface {
   @override
   void reDownloadAsset() {
     // TODO: implement reDownloadAsset
-  }
-
-  @override
-  Future<void> recordUserActivity(
-      {required int userId, required String activity}) {
-    // TODO: implement recordUserActivity
-    throw UnimplementedError();
   }
 
   @override
@@ -1770,12 +1731,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Product? getProduct({required int id}) {
-    // TODO: implement getProduct
-    throw UnimplementedError();
-  }
-
-  @override
   TransactionItem? getTransactionItemByVariantId(
       {required int variantId, int? transactionId}) {
     // TODO: implement getTransactionItemByVariantId
@@ -2058,6 +2013,19 @@ class Capella with Booting implements RealmInterface {
   @override
   getTop5RecentConversations() {
     // TODO: implement getTop5RecentConversations
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Business>> businesses({required int userId}) {
+    // TODO: implement businesses
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<brick.Product?> getProduct(
+      {int? id, String? barCode, int? branchId, String? name}) {
+    // TODO: implement getProduct
     throw UnimplementedError();
   }
 }

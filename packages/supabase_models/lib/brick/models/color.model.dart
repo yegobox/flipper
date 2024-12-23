@@ -10,7 +10,8 @@ class PColor extends OfflineFirstWithSupabaseModel {
   final int id;
 
   late String? name;
-  late List<String> colors;
+  @Sqlite(ignore: true)
+  List<String>? colors;
   int? branchId;
   bool active = false;
 
@@ -20,7 +21,7 @@ class PColor extends OfflineFirstWithSupabaseModel {
   PColor({
     required this.id,
     this.name,
-    required this.colors,
+    this.colors,
     this.branchId,
     required this.active,
     this.lastTouched,

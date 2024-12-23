@@ -87,7 +87,7 @@ class UploadViewModel extends ProductViewModel {
       // Log step: Save asset and update database
       talker.warning('Saving asset and updating database...');
 
-      Product? product = ProxyService.strategy.getProduct(id: id);
+      Product? product = await ProxyService.strategy.getProduct(id: id);
       try {
         Assets? asset =
             await ProxyService.strategy.getAsset(productId: product!.id);
@@ -107,7 +107,7 @@ class UploadViewModel extends ProductViewModel {
       talker.warning('File uploaded and database updated successfully.');
 
       /// we requery product again and pass it to callback as it has been updated.
-      callBack(ProxyService.strategy.getProduct(id: id)!);
+      callBack((await ProxyService.strategy.getProduct(id: id))!);
     } on StorageException catch (e) {
       talker.warning('StorageException: ${e.message}');
     } catch (e, s) {

@@ -650,7 +650,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                         )),
                     SizedBox(width: 10),
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         try {
                           /// form is validated and we are not dealing with composite product
                           if (_formKey.currentState!.validate() &&
@@ -704,8 +704,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             /// print the sku and bar
                             talker.info("SKU ${sku} Bar Code ${barCode}");
 
-                            Product? product = ProxyService.strategy.getProduct(
-                                id: ref.read(unsavedProductProvider)!.id);
+                            Product? product = await ProxyService.strategy
+                                .getProduct(
+                                    id: ref.read(unsavedProductProvider)!.id,
+                                    branchId: ProxyService.box.getBranchId()!);
 
                             /// update the product with propper name
 
@@ -1078,7 +1080,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ],
                   rows: model.scannedVariants.reversed.map((variant) {
                     if (variant.stock == null) {
-                      final id = randomNumber();
+                     
                       ProxyService.strategy.saveStock(
                         variant: variant,
                         rsdQty: variant.qty!,
@@ -1090,13 +1092,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             (variant.qty! * (variant.retailPrice!)).toDouble(),
                       );
 
-                      final stock = ProxyService.strategy.getStockById(id: id);
+                      // final stock =await ProxyService.strategy.getStockById(id: id);
 
-                      ProxyService.strategy
-                          .addStockToVariant(variant: variant, stock: stock!);
+                      // ProxyService.strategy
+                      //     .addStockToVariant(variant: variant, stock: stock!);
 
-                      ProxyService.strategy
-                          .addStockToVariant(variant: variant, stock: stock);
+                     
                     }
                     bool isSelected = _selectedVariants[variant.id] ?? false;
 

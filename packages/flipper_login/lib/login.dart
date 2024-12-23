@@ -97,7 +97,7 @@ class _LoginState extends State<Login> {
           // final user = await firebase.FirebaseAuth.instance.currentUser;
 
           firebase.FirebaseAuth.instance
-              .userChanges()
+              .authStateChanges()
               .listen((firebase.User? user) async {
             if (user != null &&
                 !await ProxyService.box.pinLogin()! &&
@@ -125,7 +125,12 @@ class _LoginState extends State<Login> {
                     tokenUid: iUser.uid,
                     uid: user.uid,
                     phoneNumber: iUser.phoneNumber);
-                ProxyService.strategy.login(
+
+                /// pre-resolve userId for used in fetching the business
+                /// this will be overriden later in the login process
+                ProxyService.box
+                    .writeInt(key: "userId", value: int.parse(pin.userId));
+                await ProxyService.strategy.login(
                     userPhone: key,
                     skipDefaultAppSetup: false,
                     pin: thePin,
@@ -133,7 +138,8 @@ class _LoginState extends State<Login> {
                 await ProxyService.box
                     .writeBool(key: 'authComplete', value: true);
                 model.completeLogin(thePin);
-              } catch (e) {
+              } catch (e, s) {
+                talker.error(e, s);
                 rethrow;
               }
             }

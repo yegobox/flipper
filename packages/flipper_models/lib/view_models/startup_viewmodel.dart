@@ -124,7 +124,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   }
 
   Future<void> _allRequirementsMeets() async {
-    List<Business> businesses = await ProxyService.strategy.businesses();
+    List<Business> businesses = await ProxyService.strategy
+        .businesses(userId: ProxyService.box.getUserId()!);
 
     List<Branch> branches = await ProxyService.strategy
         .branches(businessId: ProxyService.box.getBusinessId()!);

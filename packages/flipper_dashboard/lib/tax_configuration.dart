@@ -338,28 +338,6 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
                 },
               ),
             ),
-            Center(
-              child: FutureBuilder<String>(
-                future: ProxyService.strategy.dbPath(
-                    path: 'db', folder: 23), // Fetch version from AppService
-                builder: (context, snapshot) {
-                  // Check the state of the Future
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  } else if (snapshot.hasError) {
-                    return Text("Error: ${snapshot.error}");
-                  } else if (snapshot.hasData) {
-                    return Text(
-                      "Path: ${snapshot.data}",
-                      style: TextStyle(
-                          fontSize: 10, fontWeight: FontWeight.normal),
-                    );
-                  } else {
-                    return Text("No Path Aveilable");
-                  }
-                },
-              ),
-            ),
           ],
         ),
       ),

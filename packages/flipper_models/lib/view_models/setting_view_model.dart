@@ -125,9 +125,9 @@ class SettingViewModel extends CoreViewModel {
         callback(1);
       } else {
         /// the
-        Business? business = await ProxyService.strategy.getBusiness();
-        ProxyService.strategy.enableAttendance(
-            businessId: business!.serverId, email: setting.email!);
+        // Business? business = await ProxyService.strategy.getBusiness();
+        // ProxyService.strategy.enableAttendance(
+        //     businessId: business!.serverId, email: setting.email!);
       }
     } else {
       callback(2);

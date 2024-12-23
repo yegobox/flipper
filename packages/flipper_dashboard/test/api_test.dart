@@ -13,9 +13,7 @@ void main() {
       // await realm.configureLocal(useInMemory: true, box: ProxyService.box);
     });
 
-    tearDownAll(() async {
-      realm.close();
-    });
+    tearDownAll(() async {});
     setUp(() async {
       // realm.realm!.write(() {
       //   realm.realm!.deleteAll<Product>();

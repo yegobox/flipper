@@ -63,8 +63,8 @@ class LoginViewModel extends FlipperBaseModel
       } else {
         locator<RouterService>().navigateTo(FlipperAppRoute());
       }
-    } catch (e) {
-      print(e);
+    } catch (e, s) {
+      talker.error(e, s);
       rethrow;
     }
   }

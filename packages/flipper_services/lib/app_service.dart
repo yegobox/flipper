@@ -111,7 +111,8 @@ class AppService with ListenableServiceMixin {
   /// check the default business/branch
   /// set the env the current user is operating in.
   Future<void> appInit() async {
-    List<Business> businesses = await ProxyService.strategy.businesses();
+    List<Business> businesses = await ProxyService.strategy
+        .businesses(userId: ProxyService.box.getUserId()!);
 
     List<Branch> branches = await ProxyService.strategy.branches(
         businessId: ProxyService.box.getBusinessId()!, includeSelf: true);

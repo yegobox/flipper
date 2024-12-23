@@ -10,7 +10,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 
 mixin Booting {
-  Future<void> updateLocalRealm(IUser user,
+  Future<void> saveNeccessaryData(IUser user,
       {bool usenewVersion = false}) async {
     for (ITenant tenant in user.tenants) {
       await _addOrUpdateTenant(

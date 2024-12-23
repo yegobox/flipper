@@ -828,13 +828,12 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   weakUp({required String pin, required int userId}) async {
-    ProxyService.strategy.recordUserActivity(
-      userId: userId,
-      activity: 'session',
-    );
+    // ProxyService.strategy.recordUserActivity(
+    //   userId: userId,
+    //   activity: 'session',
+    // );
     ProxyService.box.writeInt(key: 'userId', value: userId);
-    Tenant? tenant =
-        await ProxyService.strategy.getTenantBYUserId(userId: userId);
+    Tenant? tenant = await ProxyService.strategy.getTenant(userId: userId);
 
     ProxyService.strategy.updateTenant(
         tenantId: tenant!.id,
@@ -849,7 +848,7 @@ class CoreViewModel extends FlipperBaseModel
     /// set the pin for the current business default tenant
     // if (business != null) {
     /// get the default tenant
-    await ProxyService.strategy.getTenantBYUserId(
+    await ProxyService.strategy.getTenant(
       userId: business!.userId!,
     );
     // final response = await ProxyService.isar.update(

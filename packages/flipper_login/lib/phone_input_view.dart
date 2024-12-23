@@ -1,57 +1,21 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_ui/flipper_ui.dart';
-
 import 'package:flutter/material.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:stacked_services/stacked_services.dart';
 
-typedef SMSCodeRequestedCallback = void Function(
-  BuildContext context,
-  AuthAction? action,
-  Object flowKey,
-  String phoneNumber,
-);
-
-typedef PhoneNumberSubmitCallback = void Function(String phoneNumber);
-
-/// {@template ui.auth.views.phone_input_view}
-/// A view that could be used to build a custom [PhoneInputScreen].
-/// {@endtemplate}
 class PhoneInputView extends StatefulWidget {
-  /// {@macro ui.auth.auth_controller.auth}
   final FirebaseAuth? auth;
-
   final String pickedCountryCode;
-
-  /// {@macro ui.auth.auth_action}
   final AuthAction? action;
-
-  /// A unique object that could be used to obtain an instance of the
-  /// [PhoneAuthController].
   final Object flowKey;
-
-  /// A callback that is being called when the SMS code was requested.
   final SMSCodeRequestedCallback? onSMSCodeRequested;
-
-  /// A callback that is being called when the user submits a phone number.
   final PhoneNumberSubmitCallback? onSubmit;
-
-  /// Returned widget would be placed under the title.
   final WidgetBuilder? subtitleBuilder;
-
-  /// Returned widget would be placed at the bottom.
   final WidgetBuilder? footerBuilder;
-
-  /// {@macro ui.auth.providers.phone_auth_provider.mfa_session}
   final MultiFactorSession? multiFactorSession;
-
-  /// {@macro ui.auth.providers.phone_auth_provider.mfa_hint}
   final PhoneMultiFactorInfo? mfaHint;
 
-  /// {@macro ui.auth.views.phone_input_view}
   const PhoneInputView({
     super.key,
     required this.flowKey,
@@ -72,6 +36,7 @@ class PhoneInputView extends StatefulWidget {
 
 class _PhoneInputViewState extends State<PhoneInputView> {
   final phoneInputKey = GlobalKey<PhoneInputState>();
+  bool isLoading = false;
 
   PhoneNumberSubmitCallback onSubmit(PhoneAuthController ctrl) =>
       (String phoneNumber) {
@@ -88,6 +53,7 @@ class _PhoneInputViewState extends State<PhoneInputView> {
   void _next(PhoneAuthController ctrl) {
     final number = PhoneInput.getPhoneNumber(phoneInputKey);
     if (number != null) {
+      setState(() => isLoading = true);
       onSubmit(ctrl)(number);
     }
   }
@@ -95,6 +61,7 @@ class _PhoneInputViewState extends State<PhoneInputView> {
   @override
   Widget build(BuildContext context) {
     final localization = FirebaseUILocalizations.labelsOf(context);
+    final theme = Theme.of(context);
 
     return AuthFlowBuilder<PhoneAuthController>(
       flowKey: widget.flowKey,
@@ -102,6 +69,7 @@ class _PhoneInputViewState extends State<PhoneInputView> {
       auth: widget.auth,
       listener: (oldState, newState, controller) {
         if (newState is SMSCodeRequested) {
+          setState(() => isLoading = false);
           final cb = widget.onSMSCodeRequested ??
               FirebaseUIAction.ofType<SMSCodeRequestedAction>(context)
                   ?.callback;
@@ -113,43 +81,76 @@ class _PhoneInputViewState extends State<PhoneInputView> {
             PhoneInput.getPhoneNumber(phoneInputKey)!,
           );
         }
+
         if (newState is SignedIn) {
-          final _routerService = locator<RouterService>();
-          _routerService.clearStackAndShow(StartUpViewRoute(invokeLogin: true));
+          setState(() => isLoading = true);
+        }
+
+        if (newState is AuthFailed) {
+          setState(() => isLoading = false);
         }
       },
       builder: (context, state, ctrl, child) {
-        //Declare local variable to hold the selected country code, acquired from the previous page
         var inputCountryCode = widget.pickedCountryCode;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(localization.phoneVerificationViewTitleText),
-            const SizedBox(height: 32),
-            if (widget.subtitleBuilder != null)
-              widget.subtitleBuilder!(context),
-            if (state is AwaitingPhoneNumber || state is SMSCodeRequested) ...[
-              PhoneInput(
-                initialCountryCode: inputCountryCode,
-                onSubmit: onSubmit(ctrl),
-                key: phoneInputKey,
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                localization.phoneVerificationViewTitleText,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
-              FlipperButton(
-                color: Colors.black,
-                text: localization.verifyPhoneNumberButtonText,
-                onPressed: () => _next(ctrl),
-              ),
+              const SizedBox(height: 32),
+              if (widget.subtitleBuilder != null)
+                widget.subtitleBuilder!(context),
+              if (state is AwaitingPhoneNumber ||
+                  state is SMSCodeRequested) ...[
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: PhoneInput(
+                    initialCountryCode: inputCountryCode,
+                    onSubmit: onSubmit(ctrl),
+                    key: phoneInputKey,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                FlipperButton(
+                  color: theme.primaryColor,
+                  text: isLoading
+                      ? 'Please wait...'
+                      : localization.verifyPhoneNumberButtonText,
+                  onPressed: isLoading ? null : () => _next(ctrl),
+                  isLoading: isLoading,
+                ),
+              ],
+              if (state is AuthFailed) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ErrorText(
+                    exception: state.exception,
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+              if (widget.footerBuilder != null) widget.footerBuilder!(context),
             ],
-            if (state is AuthFailed) ...[
-              const SizedBox(height: 8),
-              ErrorText(exception: state.exception),
-              const SizedBox(height: 8),
-            ],
-            if (widget.footerBuilder != null) widget.footerBuilder!(context),
-          ],
+          ),
         );
       },
     );

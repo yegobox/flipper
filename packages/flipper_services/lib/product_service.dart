@@ -58,8 +58,8 @@ class ProductService with ListenableServiceMixin {
 
   Future<Product?> getProductByBarCode({required String? code}) async {
     if (code == null) return null;
-    return await ProxyService.strategy.getProductByBarCode(
-        barCode: code, branchId: ProxyService.box.getBranchId()!);
+    return await ProxyService.strategy
+        .getProduct(barCode: code, branchId: ProxyService.box.getBranchId()!);
   }
 
   ProductService() {

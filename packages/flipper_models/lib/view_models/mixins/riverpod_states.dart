@@ -484,14 +484,11 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
 
       // Fetch additional products beyond the initial 20 items
       if (searchString.isNotEmpty) {
-        List<Product?> additionalProducts = await ProxyService.strategy
-            .getProductByName(
-                name: searchString, branchId: ProxyService.box.getBranchId()!);
+        Product? additionalProducts = await ProxyService.strategy.getProduct(
+            name: searchString, branchId: ProxyService.box.getBranchId()!);
 
         // Filter out null products and cast non-null products to Product type
-        products.addAll(additionalProducts
-            .where((product) => product != null)
-            .map((product) => product as Product));
+        products.addAll([additionalProducts!]);
       }
 
       // Apply search filter to the merged list
@@ -997,8 +994,9 @@ final userAccessesProvider = FutureProvider<List<Access>>((ref) async {
   return await ProxyService.strategy.access(userId: userId);
 });
 
-final businessesProvider = Provider<List<Business>>((ref) {
-  return ProxyService.strategy.businesses();
+final businessesProvider = FutureProvider<List<Business>>((ref) async {
+  return await ProxyService.strategy
+      .businesses(userId: ProxyService.box.getUserId()!);
 });
 
 // Define a provider for the selected branch

@@ -47,8 +47,7 @@ Widget SettingLayout(
                       ),
                     ),
                     onPressed: (BuildContext context) async {
-                      Tenant? tenant =
-                          await ProxyService.strategy.getTenantBYUserId(
+                      Tenant? tenant = await ProxyService.strategy.getTenant(
                         userId: ProxyService.box.getUserId()!,
                       );
                       _routerService

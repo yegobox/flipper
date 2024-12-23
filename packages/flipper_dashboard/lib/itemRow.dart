@@ -209,8 +209,9 @@ class _RowItemState extends ConsumerState<RowItem>
       }
 
       /// first check if this item is a composite
-      Product? product =
-          ProxyService.strategy.getProduct(id: widget.variant!.productId!);
+      Product? product = await ProxyService.strategy.getProduct(
+          id: widget.variant!.productId!,
+          branchId: ProxyService.box.getBranchId()!);
       if (product != null &&
           product.isComposite != null &&
           product.isComposite!) {

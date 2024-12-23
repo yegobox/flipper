@@ -10,6 +10,7 @@ class FlipperButton extends StatelessWidget {
   final Color? textColor;
   final double? radius;
   final bool busy;
+  final bool isLoading;
 
   const FlipperButton({
     Key? key,
@@ -21,56 +22,72 @@ class FlipperButton extends StatelessWidget {
     this.textColor,
     this.onPressed,
     this.busy = false,
+    this.isLoading = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final bool isDisabled = busy || isLoading;
+
+    return SizedBox(
       width: width,
       height: height,
       child: TextButton(
-        child: busy
-            ? SizedBox(
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Loading or busy indicator
+            if (isDisabled)
+              SizedBox(
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(textColor ?? Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    textColor ?? Colors.white,
+                  ),
                 ),
-              )
-            : Text(
+              ),
+
+            // Button text with opacity animation
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 300),
+              opacity: isDisabled ? 0.0 : 1.0,
+              child: Text(
                 text,
                 style: TextStyle(color: textColor ?? Colors.white),
               ),
+            ),
+          ],
+        ),
         style: ButtonStyle(
-          shape: WidgetStateProperty.all<OutlinedBorder>(
+          shape: MaterialStateProperty.all<OutlinedBorder>(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(radius ?? 10.0),
             ),
           ),
-          backgroundColor: WidgetStateProperty.resolveWith<Color>(
-            (Set<WidgetState> states) {
-              if (states.contains(WidgetState.disabled)) {
+          backgroundColor: MaterialStateProperty.resolveWith<Color>(
+            (Set<MaterialState> states) {
+              if (states.contains(MaterialState.disabled)) {
                 return Colors.grey; // Color when button is disabled
               }
               return color ?? const Color(0xffF2F2F2);
             },
           ),
-          overlayColor: WidgetStateProperty.resolveWith<Color?>(
-            (Set<WidgetState> states) {
-              if (states.contains(WidgetState.hovered)) {
+          overlayColor: MaterialStateProperty.resolveWith<Color?>(
+            (Set<MaterialState> states) {
+              if (states.contains(MaterialState.hovered)) {
                 return Colors.blue.withOpacity(0.04);
               }
-              if (states.contains(WidgetState.focused) ||
-                  states.contains(WidgetState.pressed)) {
+              if (states.contains(MaterialState.focused) ||
+                  states.contains(MaterialState.pressed)) {
                 return Colors.blue.withOpacity(0.12);
               }
               return null; // Defer to the widget's default.
             },
           ),
         ),
-        onPressed: busy ? null : onPressed,
+        onPressed: isDisabled ? null : onPressed,
       ),
     );
   }

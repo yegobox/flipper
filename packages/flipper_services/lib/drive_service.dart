@@ -111,37 +111,37 @@ class GoogleDrive {
   /// and the second login will not prompt the user to login
   Future upload() async {
     // download files first before uploading
-    final dir = await ProxyService.strategy
-        .dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
-    // ProxyService.isarApi
-    File file = File(path.context.canonicalize(dir + '/mdbx.dat'));
-    // end of download
-    http.Client? client = await silentLogin();
-    Future.delayed(const Duration(seconds: 20));
-    if (client == null) return;
-    ga.DriveApi drive = ga.DriveApi(client);
-    ga.File fileToUpload = ga.File();
-    // https://ko.stackfinder.net/questions/68955545/flutter-how-to-backup-user-data-on-google-drive-like-whatsapp-does
-    // https://developers.google.com/drive/api/v3/appdata
-    fileToUpload.parents = ["appDataFolder"];
+    // final dir = await ProxyService.strategy
+    //     .dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
+    // // ProxyService.isarApi
+    // File file = File(path.context.canonicalize(dir + '/mdbx.dat'));
+    // // end of download
+    // http.Client? client = await silentLogin();
+    // Future.delayed(const Duration(seconds: 20));
+    // if (client == null) return;
+    // ga.DriveApi drive = ga.DriveApi(client);
+    // ga.File fileToUpload = ga.File();
+    // // https://ko.stackfinder.net/questions/68955545/flutter-how-to-backup-user-data-on-google-drive-like-whatsapp-does
+    // // https://developers.google.com/drive/api/v3/appdata
+    // fileToUpload.parents = ["appDataFolder"];
 
-    fileToUpload.name = path.basename(file.absolute.path);
+    // fileToUpload.name = path.basename(file.absolute.path);
 
-    ga.File response = await drive.files.create(
-      fileToUpload,
-      uploadMedia: ga.Media(
-        file.openRead(),
-        file.lengthSync(),
-      ),
-    );
+    // ga.File response = await drive.files.create(
+    //   fileToUpload,
+    //   uploadMedia: ga.Media(
+    //     file.openRead(),
+    //     file.lengthSync(),
+    //   ),
+    // );
 
-    FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
+    // FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
 
-    ProxyService.strategy.updateBusiness(
-      businessId: ProxyService.box.getBusinessId()!,
-      backupFileId: fileUploaded.id,
-    );
-    ProxyService.box.writeString(key: 'gdID', value: fileUploaded.id);
+    // ProxyService.strategy.updateBusiness(
+    //   businessId: ProxyService.box.getBusinessId()!,
+    //   backupFileId: fileUploaded.id,
+    // );
+    // ProxyService.box.writeString(key: 'gdID', value: fileUploaded.id);
   }
 
   /// file stream will always be available if the dgId is not null
@@ -159,21 +159,21 @@ class GoogleDrive {
     ga.Media file = (await drive.files
         .get(gdID, downloadOptions: ga.DownloadOptions.fullMedia)) as ga.Media;
 
-    final dir = await ProxyService.strategy
-        .dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
+    // final dir = await ProxyService.strategy
+    //     .dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
 
-    final saveFile = File(dir + '/$fName');
+    // final saveFile = File(dir + '/$fName');
 
-    List<int> dataStore = [];
+    // List<int> dataStore = [];
 
-    file.stream.listen((data) {
-      // log.w("DataReceived: ${data.length}");
-      dataStore.insertAll(dataStore.length, data);
-    }, onDone: () async {
-      // log.w("Task Done");
-      await saveFile.writeAsBytes(dataStore);
-      // changeFileNameOnlySync(file, 'mdbx.dat');
-    }, onError: (error) {});
+    // file.stream.listen((data) {
+    //   // log.w("DataReceived: ${data.length}");
+    //   dataStore.insertAll(dataStore.length, data);
+    // }, onDone: () async {
+    //   // log.w("Task Done");
+    //   await saveFile.writeAsBytes(dataStore);
+    //   // changeFileNameOnlySync(file, 'mdbx.dat');
+    // }, onError: (error) {});
   }
 
   File changeFileNameOnlySync(File file, String newFileName) {

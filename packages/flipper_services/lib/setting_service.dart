@@ -35,8 +35,7 @@ class SettingsService with ListenableServiceMixin {
     Setting? setting =
         await ProxyService.strategy.getSetting(businessId: businessId);
     if (setting != null) {
-      Map<String, dynamic> settingsMap =
-          setting as Map<String, dynamic>;
+      Map<String, dynamic> settingsMap = setting as Map<String, dynamic>;
       //replace a key in settings_map if the key match with the key from map
 
       settingsMap.forEach((key, value) {
@@ -170,9 +169,9 @@ class SettingsService with ListenableServiceMixin {
       {required bool bool, required Function callback}) async {
     Setting? setting = await settings();
     if (setting != null) {
-      int businessId = ProxyService.box.getBusinessId()!;
-      await ProxyService.strategy
-          .enableAttendance(businessId: businessId, email: setting.email!);
+      // int businessId = ProxyService.box.getBusinessId()!;
+      // await ProxyService.strategy
+      //     .enableAttendance(businessId: businessId, email: setting.email!);
       return callback(true);
     } else {
       return callback(false);
