@@ -297,7 +297,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   }
 
   Future<void> _updateBranchActive(Branch branch) async {
-    ProxyService.strategy.updateBranch(
+    await ProxyService.strategy.updateBranch(
         branchId: branch.serverId!, active: true, isDefault: true);
   }
 

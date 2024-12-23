@@ -33,4 +33,32 @@ class Branch extends OfflineFirstWithSupabaseModel {
     this.isDefault = false,
     this.isOnline = false,
   });
+  // copyWith method
+  Branch copyWith({
+    int? id,
+    String? name,
+    int? serverId,
+    String? location,
+    String? description,
+    bool? active,
+    int? businessId,
+    String? latitude,
+    String? longitude,
+    bool? isDefault,
+    bool? isOnline,
+  }) {
+    return Branch(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      serverId: serverId ?? this.serverId,
+      location: location ?? this.location,
+      description: description ?? this.description,
+      active: active ?? this.active,
+      businessId: businessId ?? this.businessId,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      isDefault: isDefault ?? this.isDefault,
+      isOnline: isOnline ?? this.isOnline,
+    );
+  }
 }

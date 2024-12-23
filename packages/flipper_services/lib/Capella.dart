@@ -1349,6 +1349,8 @@ class Capella with Booting implements RealmInterface {
       int? businessId,
       String? type,
       int? pin,
+      int? userId,
+      int? id,
       bool? sessionActive,
       int? branchId}) {
     // TODO: implement updateTenant
@@ -1796,7 +1798,7 @@ class Capella with Booting implements RealmInterface {
   @override
   FutureOr<void> addBusiness(
       {required int id,
-      int? userId,
+      required int userId,
       required int serverId,
       String? name,
       String? currency,

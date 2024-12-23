@@ -120,6 +120,20 @@ class AppService with ListenableServiceMixin {
     bool hasMultipleBusinesses = businesses.length > 1;
     bool hasMultipleBranches = branches.length > 1;
 
+    if (businesses.length == 1) {
+      // set it as default
+      await ProxyService.strategy.updateBusiness(
+        businessId: businesses.first.serverId,
+        active: true,
+        isDefault: true,
+      );
+    }
+    if (branches.length == 1) {
+      // set it as default directly
+      await ProxyService.strategy.updateBranch(
+          branchId: branches.first.serverId!, active: true, isDefault: true);
+    }
+
     if ((hasMultipleBusinesses || hasMultipleBranches)) {
       throw LoginChoicesException(term: "Choose default business");
     }

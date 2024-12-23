@@ -665,6 +665,8 @@ abstract class RealmInterface {
     int? pin,
     bool? sessionActive,
     int? branchId,
+    int? userId,
+    int? id,
   });
 
   FutureOr<void> updateCategory({
@@ -777,7 +779,7 @@ abstract class RealmInterface {
 
   FutureOr<void> addBusiness(
       {required int id,
-      int? userId,
+      required int userId,
       required int serverId,
       String? name,
       String? currency,

@@ -2682,13 +2682,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<void> updateBranch(
-      {required int branchId, String? name, bool? active, bool? isDefault}) {
-    // TODO: implement updateBranch
-    throw UnimplementedError("updateBranch method is not implemented yet");
-  }
-
-  @override
   FutureOr<void> updateCategory(
       {required int categoryId,
       String? name,
@@ -2773,8 +2766,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? name,
       String? phoneNumber,
       String? email,
+      int? userId,
       int? businessId,
       String? type,
+      int? id,
       int? pin,
       bool? sessionActive,
       int? branchId}) async {
@@ -2783,20 +2778,18 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       brick.Where('id').isExactly(tenantId),
     ])))
         .firstOrNull;
-    if (tenant != null) {
-      repository.upsert<Tenant>(Tenant(
-        id: tenantId,
-        name: name ?? tenant.name,
-        phoneNumber: phoneNumber ?? tenant.phoneNumber,
-        email: email ?? tenant.email,
-        businessId: businessId ?? tenant.businessId,
-        type: type ?? tenant.type,
-        pin: pin ?? tenant.pin,
-        sessionActive: sessionActive ?? tenant.sessionActive,
-      ));
-    } else {
-      throw Exception("Tenant not found");
-    }
+
+    repository.upsert<Tenant>(Tenant(
+      id: tenantId,
+      name: name ?? tenant?.name,
+      userId: userId ?? tenant?.userId,
+      phoneNumber: phoneNumber ?? tenant?.phoneNumber,
+      email: email ?? tenant?.email,
+      businessId: businessId ?? tenant?.businessId,
+      type: type ?? tenant?.type ?? "Agent",
+      pin: pin ?? tenant?.pin,
+      sessionActive: sessionActive ?? tenant?.sessionActive,
+    ));
   }
 
   @override
@@ -2997,7 +2990,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   FutureOr<void> addBusiness(
       {required int id,
-      int? userId,
+      required int userId,
       required int serverId,
       String? name,
       String? currency,
@@ -3057,6 +3050,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       chatUid: chatUid,
       metadata: metadata,
       role: role,
+      userId: userId,
       lastSeen: lastSeen,
       firstName: firstName,
       lastName: lastName,
@@ -3081,6 +3075,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       businessTypeId: businessTypeId,
       lastTouched: lastTouched,
       deletedAt: deletedAt,
+      encryptionKey: encryptionKey,
+      
     ));
   }
 
@@ -3195,14 +3191,45 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<void> updateBusiness(
+  Future<void> updateBusiness(
       {required int businessId,
       String? name,
       bool? active,
       bool? isDefault,
-      String? backupFileId}) {
-    // TODO: implement updateBusiness
-    throw UnimplementedError("updateBusiness method is not implemented yet");
+      String? backupFileId}) async {
+    final query =
+        brick.Query(where: [brick.Where('serverId').isExactly(businessId)]);
+    final business = await repository.get<Business>(query: query);
+    if (business.firstOrNull != null) {
+      final businessUpdate = business.first.copyWith(
+        serverId: business.first.serverId,
+        name: name,
+        active: active,
+        isDefault: isDefault,
+        backupFileId: backupFileId,
+      );
+      repository.upsert<Business>(businessUpdate);
+    }
+  }
+
+  @override
+  FutureOr<void> updateBranch(
+      {required int branchId,
+      String? name,
+      bool? active,
+      bool? isDefault}) async {
+    final query =
+        brick.Query(where: [brick.Where('serverId').isExactly(branchId)]);
+    final branch = await repository.get<Branch>(query: query);
+    if (branch.firstOrNull != null) {
+      final branchUpdate = branch.first.copyWith(
+        serverId: branch.first.serverId,
+        name: name,
+        active: active,
+        isDefault: isDefault,
+      );
+      repository.upsert<Branch>(branchUpdate);
+    }
   }
 
   @override

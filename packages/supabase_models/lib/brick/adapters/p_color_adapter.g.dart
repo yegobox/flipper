@@ -7,7 +7,7 @@ Future<PColor> _$PColorFromSupabase(Map<String, dynamic> data,
   return PColor(
       id: data['id'] as int,
       name: data['name'] as String?,
-      colors: data['colors'].toList().cast<String>(),
+      colors: data['colors']?.toList().cast<String>(),
       branchId: data['branch_id'] as int?,
       active: data['active'] as bool,
       lastTouched: data['last_touched'] == null
@@ -38,7 +38,6 @@ Future<PColor> _$PColorFromSqlite(Map<String, dynamic> data,
   return PColor(
       id: data['id'] as int,
       name: data['name'] == null ? null : data['name'] as String?,
-      colors: jsonDecode(data['colors']).toList().cast<String>(),
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       active: data['active'] == 1,
       lastTouched: data['last_touched'] == null
@@ -60,7 +59,6 @@ Future<Map<String, dynamic>> _$PColorToSqlite(PColor instance,
   return {
     'id': instance.id,
     'name': instance.name,
-    'colors': jsonEncode(instance.colors),
     'branch_id': instance.branchId,
     'active': instance.active ? 1 : 0,
     'last_touched': instance.lastTouched?.toIso8601String(),
@@ -129,12 +127,6 @@ class PColorAdapter extends OfflineFirstWithSupabaseAdapter<PColor> {
       association: false,
       columnName: 'name',
       iterable: false,
-      type: String,
-    ),
-    'colors': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'colors',
-      iterable: true,
       type: String,
     ),
     'branchId': const RuntimeSqliteColumnDefinition(

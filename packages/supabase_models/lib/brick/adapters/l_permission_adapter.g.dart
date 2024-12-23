@@ -37,7 +37,7 @@ class LPermissionAdapter extends OfflineFirstWithSupabaseAdapter<LPermission> {
   LPermissionAdapter();
 
   @override
-  final supabaseTableName = 'l_permissions';
+  final supabaseTableName = 'permissions';
   @override
   final defaultToNull = true;
   @override

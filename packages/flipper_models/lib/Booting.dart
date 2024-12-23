@@ -62,7 +62,13 @@ mixin Booting {
         await ProxyService.strategy.getTenant(userId: int.parse(userId));
     if (exist == null) {
       await ProxyService.strategy.updateTenant(
-          tenantId: iTenant.id, sessionActive: (userId == iTenant.userId));
+          businessId: iTenant.businessId,
+          branchId: ProxyService.box.getBranchId()!,
+          name: iTenant.name,
+          userId: int.parse(userId),
+          id: iTenant.id,
+          tenantId: iTenant.id,
+          sessionActive: (userId == iTenant.userId));
     }
   }
 
@@ -136,8 +142,9 @@ mixin Booting {
           await ProxyService.strategy.getBusiness(businessId: business.id);
       if (exist == null) {
         await ProxyService.strategy.addBusiness(
-          id: randomNumber(),
-          userId: business.userId,
+          id: business.id!,
+          userId: business.userId!,
+          encryptionKey: business.encryptionKey,
           serverId: business.id!,
           name: business.name,
           currency: business.currency,
@@ -179,7 +186,6 @@ mixin Booting {
           businessTypeId: business.businessTypeId,
           lastTouched: business.lastTouched,
           deletedAt: business.deletedAt,
-          encryptionKey: business.encryptionKey,
         );
       }
     }
