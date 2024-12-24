@@ -30,12 +30,20 @@ mixin ProductMixin {
       required packagingUnit,
       Map<int, TextEditingController>? rates,
       Map<int, TextEditingController>? dates,
+      required String productName,
       required String selectedProductType}) async {
-    Business? business = await ProxyService.strategy
+    ///loop variations add pkgUnitCd this come from UI but a lot of
+    ///EBM fields will be hard coded to simplify the UI, so we will loop the variation
+    ///and add some missing fields to simplify the UI
+    Business business = await ProxyService.local
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     try {
+      // find the related product to update its name
+      final product =
+          await ProxyService.local.getProduct(id: variations!.first.productId!);
+      ProxyService.local.updateProduct(id: product!.id!, name: productName);
       List<Variant> updatables = [];
-      for (var i = 0; i < variations!.length; i++) {
+      for (var i = 0; i < variations.length; i++) {
         variations[i].pkgUnitCd = packagingUnit;
         final number = randomNumber().toString().substring(0, 5);
 
@@ -43,7 +51,7 @@ mixin ProductMixin {
         variations[i].isrccNm = "";
         variations[i].isrcRt = 0;
         variations[i].dcRt = rates?[variations[i]] == null
-            ? 0.0
+            ? 0
             : double.parse(rates![variations[i]]!.text);
 
         variations[i].expirationDate = dates?[variations[i].id] == null
@@ -52,46 +60,76 @@ mixin ProductMixin {
 
         variations[i].color = currentColor;
         variations[i].pkg = "1";
-        variations[i].itemCd = DateTime.now().generateFlipperClip();
+        variations[i].itemCd = await ProxyService.local.itemCode(
+            countryCode: "RW",
+            productType: "2",
+            packagingUnit: packagingUnit,
+            quantityUnit: "CT");
         variations[i].modrNm = number;
+        // variations[i].productName = productName;
         variations[i].modrId = number;
-        variations[i].itemNm = variations[i].name;
         variations[i].regrId = randomNumber().toString().substring(0, 5);
 
         variations[i].itemTyCd = selectedProductType;
 
+        /// available type for itemTyCd are 1 for raw material and 3 for service
+        /// is insurance applicable default is not applicable
         variations[i].isrcAplcbYn = "N";
         variations[i].useYn = "N";
         variations[i].itemSeq = i;
-        variations[i].itemStdNm = variations[i].name;
+        variations[i].itemStdNm = productName;
         variations[i].taxPercentage = 18.0;
+        // await setTaxPercentage(variations[i]);
 
-        variations[i].tin = business!.tinNumber;
+        variations[i].tin = business.tinNumber;
 
         variations[i].bhfId = business.bhfId ?? "00";
         variations[i].bcd = variations[i].bcd;
         variations[i].splyAmt = variations[i].supplyPrice;
 
+        /// country of origin for this item we default until we support something different
+        /// and this will happen when we do import.
         variations[i].orgnNatCd = "RW";
+        variations[i].itemNm = productName;
+        variations[i].name = productName;
 
-        variations[i].regrNm = variations[i].name;
+        /// registration name
+        variations[i].regrNm = productName;
 
-        variations[i].taxTyCd = variations[i].taxTyCd ?? "B";
+        /// taxation type code
+        variations[i].taxTyCd = variations[i].taxTyCd ??
+            "B"; // available types A(A-EX),B(B-18.00%),C,D
         variations[i].taxName = variations[i].taxTyCd ?? "B";
-
+        // default unit price
         variations[i].dftPrc = variations[i].retailPrice;
 
+        // NOTE: I believe bellow item are required when saving purchase
         variations[i].spplrItemCd = "";
         variations[i].spplrItemClsCd = "";
-        variations[i].spplrItemNm = variations[i].name;
+        variations[i].spplrItemNm = productName;
         variations[i].ebmSynced = false;
 
-        variations[i].qtyUnitCd = "U";
+        /// Packaging Unit
+        variations[i].qtyUnitCd = "U"; // see 4.6 in doc
         updatables.add(variations[i]);
       }
 
-      ProxyService.strategy.addVariant(
+      await ProxyService.strategy.addVariant(
           variations: updatables, branchId: ProxyService.box.getBranchId()!);
+      // add this variant to rra
+      await VariantPatch.patchVariant(
+        URI: (await ProxyService.box.getServerUrl())!,
+        localRealm: ProxyService.local.realm,
+        sendPort: (message) {
+          // ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
+      StockPatch.patchStock(
+        URI: (await ProxyService.box.getServerUrl())!,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
     } catch (e, s) {
       talker.error(e);
       talker.error(s);
@@ -133,7 +171,7 @@ mixin ProductMixin {
           variantId: variant.id,
           productName: productName,
           productId: mproduct.id,
-          pkgUnitCd: "NT");
+          pkgUnitCd: "CT");
     }
 
     return ProxyService.strategy.getProduct(id: mproduct.id);
