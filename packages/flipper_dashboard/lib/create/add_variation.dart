@@ -49,7 +49,8 @@ class _AddVariationState extends State<AddVariation> {
                   onPressed: () async {
                     if (AddVariation._formKey.currentState!.validate()) {
                       /// TODO: change this hard coded on mobile later.
-                      await _saveVariation(model, selectedProductType: "1");
+                      await _saveVariation(model,
+                          selectedProductType: "1", productName: "");
                       _routerService.pop();
                     }
                   },
@@ -166,6 +167,7 @@ class _AddVariationState extends State<AddVariation> {
     required String selectedProductType,
     Map<int, TextEditingController>? rates,
     Map<int, TextEditingController>? dates,
+    required String productName,
   }) async {
     Business? business = await ProxyService.strategy.getBusiness();
     String itemPrefix = "flip-";
@@ -217,6 +219,7 @@ class _AddVariationState extends State<AddVariation> {
     await model.addVariant(
       selectedProductType: selectedProductType,
       packagingUnit: "BJ",
+      productName: productName,
       rates: rates,
       dates: dates,
       variations: variations,

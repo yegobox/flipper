@@ -1,5 +1,6 @@
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -35,13 +36,14 @@ mixin ProductMixin {
     ///loop variations add pkgUnitCd this come from UI but a lot of
     ///EBM fields will be hard coded to simplify the UI, so we will loop the variation
     ///and add some missing fields to simplify the UI
-    Business business = await ProxyService.local
+    Business? business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     try {
       // find the related product to update its name
-      final product =
-          await ProxyService.local.getProduct(id: variations!.first.productId!);
-      ProxyService.local.updateProduct(id: product!.id!, name: productName);
+      final product = await ProxyService.strategy
+          .getProduct(id: variations!.first.productId!);
+      ProxyService.strategy
+          .updateProduct(productId: product!.id, name: productName);
       List<Variant> updatables = [];
       for (var i = 0; i < variations.length; i++) {
         variations[i].pkgUnitCd = packagingUnit;
@@ -60,7 +62,7 @@ mixin ProductMixin {
 
         variations[i].color = currentColor;
         variations[i].pkg = "1";
-        variations[i].itemCd = await ProxyService.local.itemCode(
+        variations[i].itemCd = await ProxyService.strategy.itemCode(
             countryCode: "RW",
             productType: "2",
             packagingUnit: packagingUnit,
@@ -81,7 +83,7 @@ mixin ProductMixin {
         variations[i].taxPercentage = 18.0;
         // await setTaxPercentage(variations[i]);
 
-        variations[i].tin = business.tinNumber;
+        variations[i].tin = business!.tinNumber;
 
         variations[i].bhfId = business.bhfId ?? "00";
         variations[i].bcd = variations[i].bcd;
@@ -119,7 +121,6 @@ mixin ProductMixin {
       // add this variant to rra
       await VariantPatch.patchVariant(
         URI: (await ProxyService.box.getServerUrl())!,
-        localRealm: ProxyService.local.realm,
         sendPort: (message) {
           // ProxyService.notification.sendLocalNotification(body: message);
         },

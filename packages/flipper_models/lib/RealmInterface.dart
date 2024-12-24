@@ -843,4 +843,10 @@ abstract class RealmInterface {
   conversations({int? conversationId}) {}
 
   getTop5RecentConversations() {}
+
+  FutureOr<String> itemCode(
+      {required String countryCode,
+      required String productType,
+      required packagingUnit,
+      required String quantityUnit});
 }

@@ -1993,4 +1993,14 @@ class Capella with Booting implements RealmInterface {
     // TODO: implement getProduct
     throw UnimplementedError();
   }
+
+  @override
+  FutureOr<String> itemCode(
+      {required String countryCode,
+      required String productType,
+      required packagingUnit,
+      required String quantityUnit}) {
+    // TODO: implement itemCode
+    throw UnimplementedError();
+  }
 }

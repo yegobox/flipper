@@ -3076,7 +3076,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       lastTouched: lastTouched,
       deletedAt: deletedAt,
       encryptionKey: encryptionKey,
-      
     ));
   }
 
@@ -3314,5 +3313,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       brick.Where('branchId').isExactly(branchId),
     ])))
         .firstOrNull;
+  }
+
+  @override
+  FutureOr<String> itemCode(
+      {required String countryCode,
+      required String productType,
+      required packagingUnit,
+      required String quantityUnit}) {
+    // TODO: implement itemCode
+    throw UnimplementedError();
   }
 }

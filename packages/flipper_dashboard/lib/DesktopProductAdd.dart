@@ -367,6 +367,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           dates: _dates);
     } else {
       await model.addVariant(
+          productName: model.kProductName!,
           rates: _rates,
           dates: _dates,
           variations: model.scannedVariants,
@@ -1080,7 +1081,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ],
                   rows: model.scannedVariants.reversed.map((variant) {
                     if (variant.stock == null) {
-                     
                       ProxyService.strategy.saveStock(
                         variant: variant,
                         rsdQty: variant.qty!,
@@ -1096,8 +1096,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
                       // ProxyService.strategy
                       //     .addStockToVariant(variant: variant, stock: stock!);
-
-                     
                     }
                     bool isSelected = _selectedVariants[variant.id] ?? false;
 

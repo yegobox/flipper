@@ -69,4 +69,29 @@ class Customer extends OfflineFirstWithSupabaseModel {
     this.useYn,
     this.customerType,
   });
+  // toJson method
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'custNm': custNm,
+      'email': email,
+      'telNo': telNo,
+      'adrs': adrs,
+      'branchId': branchId,
+      'updatedAt': updatedAt,
+      'custNo': custNo,
+      'custTin': custTin,
+      'regrNm': regrNm,
+      'regrId': regrId,
+      'modrNm': modrNm,
+      'modrId': modrId,
+      'ebmSynced': ebmSynced,
+      'lastTouched': lastTouched,
+      'deletedAt': deletedAt,
+      'tin': tin,
+      'bhfId': bhfId,
+      'useYn': useYn,
+      'customerType': customerType,
+    };
+  }
 }

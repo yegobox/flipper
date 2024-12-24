@@ -1,14 +1,224 @@
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper_models/firebase_options.dart';
+import 'package:flipper_models/helperModels/ICustomer.dart';
+import 'package:flipper_models/helperModels/IStock.dart';
+import 'package:flipper_models/helperModels/IVariant.dart';
+import 'package:flipper_models/helperModels/UniversalProduct.dart';
+import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
-
+import 'package:flipper_models/rw_tax.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:http/http.dart' as http;
+import 'dart:collection';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import 'package:supabase_models/brick/repository.dart' as brick;
+import 'package:supabase_models/brick/repository.dart';
 
-class IsolateHandler {
+final repository = Repository();
+mixin VariantPatch {
+  static Future<void> patchVariant(
+      {required String URI, required Function(String) sendPort}) async {
+    // List<Variant> variants =
+    //     localRealm!.query<Variant>(r'ebmSynced == $0', [false]).toList();
+    final variants = await repository.get<Variant>(
+        query: brick.Query(where: [Where('ebmSynced').isExactly(false)]));
+    // delete all variants
+
+    for (Variant variant in variants) {
+      try {
+        IVariant iVariant = IVariant.fromJson(variant.toJson());
+
+        final response = await RWTax().saveItem(variation: iVariant, URI: URI);
+
+        if (response.resultCd == "000") {
+          sendPort('${response.resultMsg}:variant:${variant.id.toString()}');
+
+          variant.ebmSynced = true;
+          repository.upsert(variant);
+        }
+      } catch (e, s) {
+        talker.error(e, s);
+        rethrow;
+      }
+    }
+  }
+}
+mixin StockPatch {
+  static Future<void> patchStock(
+      {required String URI, required Function(String) sendPort}) async {
+    // List<Stock> stocks =
+    //     localRealm!.query<Stock>(r'ebmSynced ==$0', [false]).toList();
+    final stocks = await repository.get<Stock>(
+        query: brick.Query(where: [Where('ebmSynced').isExactly(false)]));
+
+    // List<int?> variantIds = stocks.map((stock) => stock.variantId).toList();
+    Map<int, Variant?> variantMap = {};
+    // localRealm.query<Variant>(r'id IN $0', [variantIds]).forEach((variant) {
+    //   variantMap[variant.id!] = variant;
+    // });
+    for (Stock stock in stocks) {
+      if (!stock.ebmSynced!) {
+        Variant? variant = variantMap[stock.variantId];
+        if (variant == null) {
+          continue;
+        }
+
+        try {
+          IStock iStock = IStock(
+            id: stock.id,
+            currentStock: stock.currentStock!,
+          );
+          IVariant iVariant = IVariant.fromJson(variant.toJson());
+
+          final response = await RWTax()
+              .saveStockMaster(stock: iStock, variant: iVariant, URI: URI);
+          if (response.resultCd == "000") {
+            sendPort('${response.resultMsg}');
+            // localRealm.write(() {
+            //   stock.ebmSynced = true;
+            // });
+          } else {
+            sendPort('${response.resultMsg}}');
+          }
+        } catch (e) {
+          rethrow;
+        }
+      }
+    }
+  }
+}
+mixin PatchTransactionItem {
+  static Future<void> patchTransactionItem(
+      {required String URI,
+      required Function(String) sendPort,
+      required int tinNumber,
+      required String bhfId}) async {
+    // List<ITransaction> transactions = localRealm!.query<ITransaction>(
+    //     r'ebmSynced == $0 && status == $1 && customerName != null && customerTin != null',
+    //     [false, COMPLETE]).toList();
+    final transactions = await repository.get<ITransaction>(
+        query: brick.Query(where: [
+      Where('ebmSynced').isExactly(false),
+      Where('status').isExactly(COMPLETE),
+      Where('customerName').isNot(null),
+      Where('customerTin').isNot(null)
+    ]));
+
+    print("transactions count ${transactions.length}");
+    for (ITransaction transaction in transactions) {
+      double taxB = 0;
+
+      double totalvat = 0;
+
+      // Configurations taxConfigTaxB =
+      //     localRealm.query<Configurations>(r'taxType == $0', ["B"]).first;
+      Configurations taxConfigTaxB = (await repository.get<Configurations>(
+              query: brick.Query(where: [Where('taxType').isExactly("B")])))
+          .first;
+
+      // List<TransactionItem> items = localRealm.query<TransactionItem>(
+      //     r'transactionId == $0', [transaction.id]).toList();
+      List<TransactionItem> items = await repository.get<TransactionItem>(
+          query: brick.Query(
+              where: [Where('transactionId').isExactly(transaction.id)]));
+
+      for (var item in items) {
+        if (item.taxTyCd == "B") {
+          taxB += (item.price * item.qty);
+        }
+      }
+
+      final totalTaxB = calculateTotalTax(taxB, taxConfigTaxB);
+
+      totalvat = totalTaxB;
+
+      if (transaction.customerName == null || transaction.customerTin == null) {
+        continue;
+      }
+      try {
+        final response = await RWTax().saveStockItems(
+            transaction: transaction,
+            tinNumber: tinNumber.toString(),
+            bhFId: bhfId,
+            customerName: transaction.customerName ?? "N/A",
+            custTin: transaction.customerTin ?? "999909695",
+            regTyCd: "A",
+            sarTyCd: transaction.sarTyCd ?? "11",
+            custBhfId: transaction.customerBhfId ?? "",
+            totalSupplyPrice: transaction.subTotal!,
+            totalvat: totalvat,
+            totalAmount: transaction.subTotal!,
+            remark: transaction.remark ?? "",
+            ocrnDt: DateTime.parse(
+                transaction.updatedAt ?? DateTime.now().toString()),
+            URI: URI);
+
+        if (response.resultCd == "000") {
+          sendPort(
+              'notification:${response.resultMsg}:transaction:${transaction.id.toString()}');
+          // localRealm.write(() {
+          transaction.ebmSynced = true;
+          // });
+          repository.upsert(transaction);
+        } else {
+          sendPort('notification:${response.resultMsg}}');
+        }
+        print(response);
+      } catch (e) {}
+    }
+  }
+
+  static double calculateTotalTax(double tax, Configurations config) {
+    final percentage = config.taxPercentage ?? 0;
+    return (tax * percentage) / 100 + percentage;
+  }
+}
+mixin CustomerPatch {
+  static void patchCustomer(
+      {required String URI,
+      required Function(String) sendPort,
+      required int tinNumber,
+      required String bhfId,
+      required int branchId}) async {
+    // List<Customer> customers =
+    //     localRealm!.query<Customer>(r'branchId ==$0', [branchId]).toList();
+    final customers = await repository.get<Customer>(
+        query: brick.Query(where: [Where('branchId').isExactly(branchId)]));
+
+    for (Customer customer in customers) {
+      if (!customer.ebmSynced!) {
+        try {
+          // localRealm.write(() {
+          customer.tin = tinNumber;
+          customer.bhfId = bhfId;
+          // });
+          repository.upsert(customer);
+
+          if ((customer.custTin?.length ?? 0) < 9) return;
+          ICustomer iCustomer = ICustomer.fromJson(customer.toJson());
+
+          final response =
+              await RWTax().saveCustomer(customer: iCustomer, URI: URI);
+          if (response.resultCd == "000") {
+            sendPort(
+                'notification:${response.resultMsg.substring(0, 10)}:customer:${customer.id.toString()}');
+          } else {
+            sendPort('notification:${response.resultMsg}}');
+          }
+        } catch (e) {}
+      }
+    }
+  }
+}
+
+class IsolateHandler with StockPatch {
   static Future<void> clearFirestoreCache() async {
     try {
       await FirebaseFirestore.instance.clearPersistence();
@@ -28,224 +238,61 @@ class IsolateHandler {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // port.listen((message) async {
-    //   if (message is Map<String, dynamic>) {
-    //     print("Message received");
-    //     String local = message['dbPath'];
-    //     String encryptionKey = message['encryptionKey'];
-    //     LocalConfiguration configLocal =
-    //         localConfig(encryptionKey.toIntList(), local);
-    //     if (localRealm == null) {
-    //       localRealm = Realm(configLocal);
-    //     }
+    port.listen((message) async {
+      if (message is Map<String, dynamic>) {
+        print("Message received");
+        String local = message['dbPath'];
+        String encryptionKey = message['encryptionKey'];
 
-    //     if (message['task'] == 'sync') {}
-    //     if (message['task'] == 'taxService') {
-    //       int branchId = message['branchId'];
-    //       int tinNumber = message['tinNumber'];
+        if (message['task'] == 'sync') {}
+        if (message['task'] == 'taxService') {
+          int branchId = message['branchId'];
+          int tinNumber = message['tinNumber'];
 
-    //       String URI = message['URI'];
-    //       String bhfId = message['bhfId'];
-    //       String encryptionKey = message['encryptionKey'];
-    //       String local = message['dbPath'];
+          String URI = message['URI'];
+          String bhfId = message['bhfId'];
+          String encryptionKey = message['encryptionKey'];
+          String local = message['dbPath'];
 
-    //       LocalConfiguration configLocal =
-    //           localConfig(encryptionKey.toIntList(), local);
+          PatchTransactionItem.patchTransactionItem(
+            URI: URI,
+            sendPort: (message) {
+              sendPort.send("notification:" + message);
+            },
+            tinNumber: tinNumber,
+            bhfId: bhfId,
+          );
+          StockPatch.patchStock(
+            URI: URI,
+            sendPort: (message) {
+              sendPort.send("notification:" + message);
+            },
+          );
 
-    //       if (localRealm == null) {
-    //         localRealm = Realm(configLocal);
-    //       }
-    //       double calculateTotalTax(double tax, Configurations config) {
-    //         final percentage = config.taxPercentage ?? 0;
-    //         return (tax * percentage) / 100 + percentage;
-    //       }
+          VariantPatch.patchVariant(
+            URI: URI,
+            sendPort: (message) {
+              sendPort.send("notification:" + message);
+            },
+          );
 
-    //       _selfHeal(localRealm: localRealm);
-
-    //       List<ITransaction> transactions = localRealm!.query<ITransaction>(
-    //           r'ebmSynced == $0 && status == $1 && customerName != null && customerTin != null',
-    //           [false, COMPLETE]).toList();
-
-    //       print("transactions count ${transactions.length}");
-    //       for (ITransaction transaction in transactions) {
-    //         double taxB = 0;
-
-    //         double totalvat = 0;
-
-    //         Configurations taxConfigTaxB = localRealm!
-    //             .query<Configurations>(r'taxType == $0', ["B"]).first;
-
-    //         List<TransactionItem> items = localRealm!.query<TransactionItem>(
-    //             r'transactionId == $0', [transaction.id]).toList();
-
-    //         for (var item in items) {
-    //           if (item.taxTyCd == "B") {
-    //             taxB += (item.price * item.qty);
-    //           }
-    //         }
-
-    //         final totalTaxB = calculateTotalTax(taxB, taxConfigTaxB);
-
-    //         totalvat = totalTaxB;
-
-    //         if (transaction.customerName == null ||
-    //             transaction.customerTin == null) {
-    //           continue;
-    //         }
-    //         try {
-    //           final response = await RWTax().saveStockItems(
-    //               transaction: transaction,
-    //               tinNumber: tinNumber.toString(),
-    //               bhFId: bhfId,
-    //               customerName: transaction.customerName ?? "N/A",
-    //               custTin: transaction.customerTin ?? "999909695",
-    //               regTyCd: "A",
-    //               sarTyCd: transaction.sarTyCd ?? "11",
-    //               realm: localRealm!,
-    //               custBhfId: transaction.customerBhfId ?? "",
-    //               totalSupplyPrice: transaction.subTotal,
-    //               totalvat: totalvat,
-    //               totalAmount: transaction.subTotal,
-    //               remark: transaction.remark ?? "",
-    //               ocrnDt: DateTime.parse(
-    //                   transaction.updatedAt ?? DateTime.now().toString()),
-    //               URI: URI);
-
-    //           if (response.resultCd == "000") {
-    //             sendPort.send(
-    //                 'notification:${response.resultMsg}:transaction:${transaction.id.toString()}');
-    //           } else {
-    //             sendPort.send('notification:${response.resultMsg}}');
-    //           }
-    //           print(response);
-    //         } catch (e) {}
-    //       }
-
-    //       List<Stock> stocks =
-    //           localRealm!.query<Stock>(r'ebmSynced ==$0', [false]).toList();
-
-    //       List<int?> variantIds =
-    //           stocks.map((stock) => stock.variantId).toList();
-    //       Map<int, Variant?> variantMap = {};
-    //       localRealm!
-    //           .query<Variant>(r'id IN $0', [variantIds]).forEach((variant) {
-    //         variantMap[variant.id!] = variant;
-    //       });
-    //       for (Stock stock in stocks) {
-    //         if (!stock.ebmSynced) {
-    //           Variant? variant = variantMap[stock.variantId];
-    //           if (variant == null) {
-    //             continue;
-    //           }
-
-    //           try {
-    //             IStock iStock = IStock(
-    //               id: stock.id,
-    //               currentStock: stock.currentStock,
-    //             );
-    //             IVariant iVariant =
-    //                 IVariant.fromJson(variant.toFlipperJson());
-
-    //             final response = await RWTax().saveStockMaster(
-    //                 stock: iStock, variant: iVariant, URI: URI);
-    //             if (response.resultCd == "000") {
-    //               sendPort.send(
-    //                   'notification:${response.resultMsg}:stock:${stock.id.toString()}');
-    //             } else {
-    //               sendPort.send('notification:${response.resultMsg}}');
-    //             }
-    //           } catch (e) {
-    //             rethrow;
-    //           }
-    //         }
-    //       }
-
-    //       List<Variant> variants =
-    //           localRealm!.query<Variant>(r'ebmSynced == $0', [false]).toList();
-
-    //       for (Variant variant in variants) {
-    //         try {
-    //           IVariant iVariant =
-    //               IVariant.fromJson(variant.toFlipperJson());
-
-    //           iVariant.isrcAplcbYn = variant.isrcAplcbYn?.isEmpty ?? true
-    //               ? "N"
-    //               : variant.isrcAplcbYn;
-
-    //           if (variant.qtyUnitCd == null ||
-    //               variant.taxTyCd == null ||
-    //               variant.bhfId == null ||
-    //               variant.bhfId!.isEmpty) return;
-    //           final response =
-    //               await RWTax().saveItem(variation: iVariant, URI: URI);
-
-    //           if (response.resultCd == "000") {
-    //             sendPort.send(
-    //                 'notification:${response.resultMsg}:variant:${variant.id.toString()}');
-    //           } else {
-    //             sendPort.send('notification:${response.resultMsg}}');
-    //           }
-    //         } catch (e, s) {
-    //           talker.error(s);
-    //         }
-    //       }
-
-    //       List<Customer> customers = localRealm!
-    //           .query<Customer>(r'branchId ==$0', [branchId]).toList();
-
-    //       for (Customer customer in customers) {
-    //         if (!customer.ebmSynced) {
-    //           try {
-    //             localRealm!.write(() {
-    //               customer.tin = tinNumber;
-    //               customer.bhfId = bhfId;
-    //             });
-
-    //             if ((customer.custTin?.length ?? 0) < 9) return;
-    //             ICustomer iCustomer =
-    //                 ICustomer.fromJson(customer.toFlipperJson());
-
-    //             final response =
-    //                 await RWTax().saveCustomer(customer: iCustomer, URI: URI);
-    //             if (response.resultCd == "000") {
-    //               sendPort.send(
-    //                   'notification:${response.resultMsg.substring(0, 10)}:customer:${customer.id.toString()}');
-    //             } else {
-    //               sendPort.send('notification:${response.resultMsg}}');
-    //             }
-    //           } catch (e) {}
-    //         }
-    //       }
-    //     }
-    //   }
-    // });
+          CustomerPatch.patchCustomer(
+            URI: URI,
+            tinNumber: tinNumber,
+            bhfId: bhfId,
+            branchId: branchId,
+            sendPort: (message) {
+              sendPort.send("notification:" + message);
+            },
+          );
+        }
+      }
+    });
   }
-
-  // static LocalConfiguration localConfig(
-  //   List<int> encryptionKey,
-  //   String dbPatch,
-  // ) {
-  //   final config = Configuration.local(
-  //     localModels,
-  //     encryptionKey: encryptionKey,
-  //     path: dbPatch,
-  //     schemaVersion: schemaVersion,
-  //     migrationCallback: (migration, oldSchemaVersion) {
-  //       if (oldSchemaVersion < 2) {
-  //         migration.deleteType('Drawers');
-  //       }
-  //       if (oldSchemaVersion < 7) {
-  //         migration.deleteType('Log');
-  //       }
-  //     },
-  //   );
-  // return config;
-  // }
 
   static Future<void> localData(List<dynamic> args) async {
     final rootIsolateToken = args[0] as RootIsolateToken;
 
-    final dbPatch = args[3] as String;
     String? key = args[4] as String?;
 
     int? branchId = args[2] as int?;
@@ -258,230 +305,67 @@ class IsolateHandler {
         bhfid == null ||
         URI == null) return;
 
-    List<int> encryptionKey = key.toIntList();
-    // LocalConfiguration config = localConfig(encryptionKey, dbPatch);
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     DartPluginRegistrant.ensureInitialized();
-
-    // localRealm = Realm(config);
   }
 
   static Future<void> fetchDataAndSaveUniversalProducts(
       int businessId, int branchId, String URI, String bhfid) async {
-    // try {
-    //   Business business =
-    //       localRealm!.query<Business>(r'serverId == $0', [businessId]).first;
+    try {
+      // Business business =
+      //     localRealm!.query<Business>(r'serverId == $0', [businessId]).first;
+      Business business = (await repository.get<Business>(
+              query: brick.Query(
+                  where: [Where('serverId').isExactly(businessId)])))
+          .first;
 
-    //   final url = URI + "/itemClass/selectItemsClass";
-    //   final headers = {"Content-Type": "application/json"};
-    //   final body = jsonEncode({
-    //     "tin": business.tinNumber,
-    //     "bhfId": bhfid,
-    //     "lastReqDt": "20190523000000",
-    //   });
-    //   print("Loading item codes");
-    //   final response =
-    //       await http.post(Uri.parse(url), headers: headers, body: body);
-    //   if (response.statusCode == 200) {
-    //     final jsonResponse = json.decode(response.body);
+      final url = URI + "/itemClass/selectItemsClass";
+      final headers = {"Content-Type": "application/json"};
+      final body = jsonEncode({
+        "tin": business.tinNumber,
+        "bhfId": bhfid,
+        "lastReqDt": "20190523000000",
+      });
+      print("Loading item codes");
+      final response =
+          await http.post(Uri.parse(url), headers: headers, body: body);
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
 
-    //     if (jsonResponse['data'] != null &&
-    //         jsonResponse['data']['itemClsList'] != null) {
-    //       final List<dynamic> itemClsList = jsonResponse['data']['itemClsList'];
+        if (jsonResponse['data'] != null &&
+            jsonResponse['data']['itemClsList'] != null) {
+          final List<dynamic> itemClsList = jsonResponse['data']['itemClsList'];
 
-    //       for (var item in itemClsList) {
-    //         final UniversalProduct product = UniversalProduct.fromJson(item);
-    //         UnversalProduct? uni = localRealm!.query<UnversalProduct>(
-    //             r'itemClsCd == $0', [product.itemClsCd]).firstOrNull;
-    //         if (uni == null) {
-    //           localRealm!.write(() {
-    //             localRealm!.add(
-    //               UnversalProduct(
-    //                 id: randomNumber(),
-    //                 itemClsCd: product.itemClsCd,
-    //                 itemClsLvl: product.itemClsLvl,
-    //                 itemClsNm: product.itemClsNm,
-    //                 branchId: branchId,
-    //                 businessId: businessId,
-    //                 useYn: product.useYn,
-    //                 mjrTgYn: product.mjrTgYn,
-    //                 taxTyCd: product.taxTyCd,
-    //               ),
-    //             );
-    //           });
-    //         }
-    //       }
-    //     } else {
-    //       print('No data found in the response.');
-    //     }
-    //   } else {
-    //     print('Failed to load data. Status code: ${response.statusCode}');
-    //   }
-    // } catch (e) {}
-  }
-
-  static void _selfHeal() {
-    // List<Stock> stocks = localRealm!.query<Stock>(r'variant == NULL').toList();
-
-    // for (Stock stock in stocks) {
-    //   Variant? variant =
-    //       localRealm.query<Variant>(r'id == $0', [stock.variantId]).firstOrNull;
-
-    //   localRealm.write(() {
-    //     if (variant != null) {
-    //       print("Healed Stock: ${stock.id}");
-    //     }
-    //   });
-    // }
-
-    // List<Variant> vVariants =
-    //     localRealm.query<Variant>(r'productName == NULL').toList();
-    // for (Variant variant in vVariants) {
-    //   Product? product = localRealm
-    //       .query<Product>(r'id == $0', [variant.productId]).firstOrNull;
-    //   if (product != null) {
-    //     localRealm.write(() {
-    //       print("healedProductName: ${variant.id}");
-    //       variant.productName = product.name;
-    //     });
-    //   }
-    // }
-
-    // List<Variant> variants = localRealm
-    //     .query<Variant>(r'itemClsCd == null OR itemClsCd == ""')
-    //     .toList();
-
-    // for (Variant variant in variants) {
-    //   localRealm.write(() {
-    //     variant.itemClsCd = "5020230602";
-    //   });
-    // }
-
-    // List<TransactionItem> items = localRealm
-    //     .query<TransactionItem>(r'itemClsCd == null OR itemClsCd == ""')
-    //     .toList();
-    // for (TransactionItem item in items) {
-    //   localRealm.write(() {
-    //     item.itemClsCd = "5020230602";
-    //   });
-    // }
-
-    // List<Variant> variantsall = localRealm.all<Variant>().toList();
-
-    // for (Variant variant in variantsall) {
-    //   final stock =
-    //       localRealm.query<Stock>(r'variantId == $0', [variant.id]).firstOrNull;
-    //   if (stock == null) {
-    //     print("healed Stock: ${variant.id}");
-    //     localRealm.write(() {
-    //       final newStock = Stock(
-    //         id: randomNumber(),
-    //         lastTouched: DateTime.now(),
-    //         branchId: variant.branchId,
-    //         variantId: variant.id!,
-    //         currentStock: variant.stock?.rsdQty ?? 0,
-    //         rsdQty: variant.stock?.rsdQty ?? 0,
-    //         ebmSynced: false,
-    //         value:
-    //             (variant.stock?.rsdQty ?? 0 * variant.retailPrice).toDouble(),
-    //         productId: variant.productId,
-    //         active: false,
-    //       );
-    //       localRealm.add(newStock);
-    //     });
-    //   }
-    // }
-
-    // List<Configurations> configurations =
-    //     localRealm.all<Configurations>().toList();
-    // Set<String> uniqueTaxTypes = {};
-
-    // for (Configurations config in configurations) {
-    //   if (!uniqueTaxTypes.contains(config.taxType!)) {
-    //     uniqueTaxTypes.add(config.taxType!);
-    //   } else {
-    //     localRealm.write(() {
-    //       localRealm.delete(config);
-    //       print("Deleted unnessary taxes");
-    //     });
-    //   }
-    // }
-
-    // List<EBM> ebms = localRealm.all<EBM>().toList();
-    // Set<String> uniqueEbms = {};
-
-    // for (EBM config in ebms) {
-    //   if (!uniqueEbms.contains(config.branchId.toString())) {
-    //     uniqueEbms.add(config.branchId.toString());
-    //   } else {
-    //     localRealm.write(() {
-    //       localRealm.delete(config);
-    //       print("Deleted ebm config");
-    //     });
-    //   }
-    // }
-    // List<Variant> variantsAll = localRealm.all<Variant>().toList();
-    // List<ITransaction> transactions = localRealm.all<ITransaction>().toList();
-    // for (ITransaction transaction in transactions) {
-    //   final TransactionPaymentRecord? record = localRealm
-    //       .query<TransactionPaymentRecord>(
-    //           r'transactionId == $0', [transaction.id]).firstOrNull;
-    //   if (record == null) {
-    //     localRealm.write(() {
-    //       localRealm.add<TransactionPaymentRecord>(TransactionPaymentRecord(
-    //         amount: transaction.cashReceived,
-    //         transactionId: transaction.id!,
-    //         paymentMethod: transaction.paymentType,
-    //       ));
-    //     });
-    //   }
-    // }
-
-    // List<Stock> stockss =
-    //     localRealm.query<Stock>(r'initialStock == NULL').toList();
-
-    // for (Stock stock in stockss) {
-    //   if (stock.initialStock == null) {
-    //     localRealm.write(() {
-    //       stock.initialStock = stock.currentStock;
-    //     });
-    //   }
-    // }
-
-    // for (Variant variant in variantsAll) {
-    //   if (variant.stock == null) {
-    //     Stock? stock = localRealm.query<Stock>(
-    //         r'variantId ==$0 && branchId == $1',
-    //         [variant.id, variant.branchId]).firstOrNull;
-    //     if (stock != null) {
-    //       localRealm.write(() {
-    //         variant.stock = stock;
-    //         print("Updated stock");
-    //       });
-    //     } else {
-    //       localRealm.write(() {
-    //         final id = randomNumber();
-    //         localRealm.add(
-    //           Stock(
-    //             id: id,
-    //             lastTouched: DateTime.now(),
-    //             branchId: variant.branchId,
-    //             variantId: variant.id!,
-    //             currentStock: variant.stock?.rsdQty ?? 0,
-    //             rsdQty: variant.stock?.rsdQty ?? 0,
-    //             value: (variant.stock?.rsdQty ?? 0 * (variant.retailPrice))
-    //                 .toDouble(),
-    //             productId: variant.productId,
-    //             active: false,
-    //           ),
-    //         );
-
-    //         final stock =
-    //             localRealm.query<Stock>(r'id == $0', [id]).firstOrNull;
-    //         variant.stock = stock;
-    //       });
-    //     }
-    //   }
-    // }
+          for (var item in itemClsList) {
+            final UniversalProduct product = UniversalProduct.fromJson(item);
+            // UnversalProduct? uni = localRealm!.query<UnversalProduct>(
+            //     r'itemClsCd == $0', [product.itemClsCd]).firstOrNull;
+            UnversalProduct? uni = (await repository.get<UnversalProduct>(
+                    query: brick.Query(where: [
+              Where('itemClsCd').isExactly(product.itemClsCd)
+            ])))
+                .firstOrNull;
+            if (uni == null) {
+              final unii = UnversalProduct(
+                id: randomNumber(),
+                itemClsCd: product.itemClsCd,
+                itemClsLvl: product.itemClsLvl,
+                itemClsNm: product.itemClsNm,
+                branchId: branchId,
+                businessId: businessId,
+                useYn: product.useYn,
+                mjrTgYn: product.mjrTgYn,
+                taxTyCd: product.taxTyCd,
+              );
+              repository.upsert(unii);
+            }
+          }
+        } else {
+          print('No data found in the response.');
+        }
+      } else {
+        print('Failed to load data. Status code: ${response.statusCode}');
+      }
+    } catch (e) {}
   }
 }

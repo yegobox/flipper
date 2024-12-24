@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:flipper_models/isolateHandelr.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
 import 'package:dio/dio.dart';
 import 'package:flipper_models/NetworkHelper.dart';
@@ -389,9 +390,8 @@ class RWTax with NetworkHelper implements TaxApi {
 
         // Update transaction and item statuses
         updateTransactionAndItems(transaction, items, receiptCodes['rcptTyCd']);
-         StockPatch.patchStock(
+        StockPatch.patchStock(
             URI: URI,
-            localRealm: ProxyService.local.realm,
             sendPort: (message) {
               ProxyService.notification.sendLocalNotification(body: message);
             });
