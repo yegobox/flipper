@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:flipper_models/RealmInterface.dart';
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
-import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
+// import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/Booting.dart';
@@ -17,7 +17,7 @@ import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
+// import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:http/http.dart' as http;
 import 'package:cbl/cbl.dart'
@@ -125,29 +125,29 @@ class Capella with Booting implements RealmInterface {
     // await replicatorProvider.startReplicator();
   }
 
-  Future<void> _suserbaseAuth() async {
-    try {
-      // Check if the user already exists
-      final email = '${ProxyService.box.getBranchId()}@flipper.rw';
-      final superUser.User? existingUser =
-          superUser.Supabase.instance.client.auth.currentUser;
+  // Future<void> _suserbaseAuth() async {
+  //   try {
+  //     // Check if the user already exists
+  //     final email = '${ProxyService.box.getBranchId()}@flipper.rw';
+  //     final superUser.User? existingUser =
+  //         superUser.Supabase.instance.client.auth.currentUser;
 
-      if (existingUser == null) {
-        // User does not exist, proceed to sign up
-        await superUser.Supabase.instance.client.auth.signUp(
-          email: email,
-          password: email,
-        );
-        // Handle sign-up response if needed
-      } else {
-        // User exists, log them in
-        await superUser.Supabase.instance.client.auth.signInWithPassword(
-          email: email,
-          password: email,
-        );
-      }
-    } catch (e) {}
-  }
+  //     if (existingUser == null) {
+  //       // User does not exist, proceed to sign up
+  //       await superUser.Supabase.instance.client.auth.signUp(
+  //         email: email,
+  //         password: email,
+  //       );
+  //       // Handle sign-up response if needed
+  //     } else {
+  //       // User exists, log them in
+  //       await superUser.Supabase.instance.client.auth.signInWithPassword(
+  //         email: email,
+  //         password: email,
+  //       );
+  //     }
+  //   } catch (e) {}
+  // }
 
   @override
   void consumePoints({required int userId, required int points}) {
@@ -836,7 +836,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  bool isAdmin({required int userId, required String appFeature}) {
+  FutureOr<bool> isAdmin({required int userId, required String appFeature}) {
     // TODO: implement isAdmin
     throw UnimplementedError();
   }
@@ -1649,17 +1649,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Stream<List<ITransaction>> transactionsStream(
-      {String? status,
-      String? transactionType,
-      int? branchId,
-      bool isCashOut = false,
-      bool includePending = false}) {
-    // TODO: implement transactionsStream
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<void> updateStock(
       {required int stockId,
       double? qty,
@@ -2001,6 +1990,21 @@ class Capella with Booting implements RealmInterface {
       required packagingUnit,
       required String quantityUnit}) {
     // TODO: implement itemCode
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<brick.ITransaction>> transactionsStream(
+      {String? status,
+      String? transactionType,
+      int? branchId,
+      bool isCashOut = false,
+      bool includePending = false,
+      int? id,
+      FilterType? filterType,
+      DateTime? startDate,
+      DateTime? endDate}) {
+    // TODO: implement transactionsStream
     throw UnimplementedError();
   }
 }

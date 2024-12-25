@@ -3,6 +3,7 @@
 import 'package:brick_sqlite/db.dart';
 part '20241201193049.migration.dart';
 part '20241202075940.migration.dart';
+part '20241222105049.migration.dart';
 part '20241201181931.migration.dart';
 part '20241201190309.migration.dart';
 part '20241201195050.migration.dart';
@@ -12,7 +13,9 @@ part '20241129195847.migration.dart';
 part '20241117103838.migration.dart';
 part '20241221150100.migration.dart';
 part '20241113144615.migration.dart';
+part '20241222105429.migration.dart';
 part '20241202043225.migration.dart';
+part '20241223170328.migration.dart';
 part '20241201194613.migration.dart';
 part '20241130180002.migration.dart';
 part '20241201190935.migration.dart';
@@ -34,14 +37,13 @@ part '20241201192839.migration.dart';
 part '20241128071917.migration.dart';
 part '20241201185919.migration.dart';
 part '20241201203523.migration.dart';
-part '20241222105049.migration.dart';
-part '20241222105429.migration.dart';
-part '20241223170328.migration.dart';
+part '20241224205109.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
   const Migration20241201193049(),
   const Migration20241202075940(),
+  const Migration20241222105049(),
   const Migration20241201181931(),
   const Migration20241201190309(),
   const Migration20241201195050(),
@@ -51,7 +53,9 @@ final migrations = <Migration>{
   const Migration20241117103838(),
   const Migration20241221150100(),
   const Migration20241113144615(),
+  const Migration20241222105429(),
   const Migration20241202043225(),
+  const Migration20241223170328(),
   const Migration20241201194613(),
   const Migration20241130180002(),
   const Migration20241201190935(),
@@ -73,14 +77,21 @@ final migrations = <Migration>{
   const Migration20241128071917(),
   const Migration20241201185919(),
   const Migration20241201203523(),
-  const Migration20241222105049(),
-  const Migration20241222105429(),
-  const Migration20241223170328()
+  const Migration20241224205109()
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema =
-    Schema(20241223170328, generatorVersion: 1, tables: <SchemaTable>{
+    Schema(20241224205109, generatorVersion: 1, tables: <SchemaTable>{
+  SchemaTable('ItemCode', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('item_code', Column.varchar),
+    SchemaColumn('created_at', Column.datetime)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['item_code'], unique: false)
+  }),
   SchemaTable('Stock', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -541,6 +552,15 @@ final schema =
     SchemaColumn('driver_id', Column.integer),
     SchemaColumn('updated_at', Column.datetime)
   }, indices: <SchemaIndex>{}),
+  SchemaTable('AppNotification', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('type', Column.varchar),
+    SchemaColumn('message', Column.varchar),
+    SchemaColumn('identifier', Column.integer),
+    SchemaColumn('completed', Column.boolean)
+  }, indices: <SchemaIndex>{}),
   SchemaTable('Discount', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -792,14 +812,5 @@ final schema =
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer)
-  }, indices: <SchemaIndex>{}),
-  SchemaTable('AppNotification', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('id', Column.integer, unique: true),
-    SchemaColumn('type', Column.varchar),
-    SchemaColumn('message', Column.varchar),
-    SchemaColumn('identifier', Column.integer),
-    SchemaColumn('completed', Column.boolean)
   }, indices: <SchemaIndex>{})
 });

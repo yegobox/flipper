@@ -77,7 +77,6 @@ abstract class RealmInterface {
   });
   Stream<List<Product>> productStreams({int? prodIndex});
 
-  Stream<List<ITransaction>> orders({required int branchId});
   Future<List<Product>> getProductList({int? prodIndex, required int branchId});
   Stock? stockByVariantId(
       {required int variantId,
@@ -189,8 +188,7 @@ abstract class RealmInterface {
   Future<List<ITransaction>> completedTransactions(
       {required int branchId, String? status = COMPLETE});
   Future<TransactionItem?> getTransactionItemById({required int id});
-  Stream<List<ITransaction>> transactionList(
-      {DateTime? startDate, DateTime? endDate});
+
   Future<Variant?> getCustomVariant({
     required int businessId,
     required int branchId,
@@ -226,9 +224,7 @@ abstract class RealmInterface {
 
   ITransaction? getTransactionById({required int id});
   Future<List<ITransaction>> tickets();
-  Stream<List<ITransaction>> ticketsStreams();
-  Stream<List<ITransaction>> transactionStreamById(
-      {required int id, required FilterType filterType});
+
   Future<int> deleteTransactionByIndex({required int transactionIndex});
 
   Stream<List<Variant>> getVariantByProductIdStream({int? productId});
@@ -244,8 +240,6 @@ abstract class RealmInterface {
 
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount});
-
-  // Future<List<Discount>> getDiscounts({required int branchId});
 
   FutureOr<void> addTransactionItem(
       {required ITransaction transaction,
@@ -269,6 +263,10 @@ abstract class RealmInterface {
     int? branchId,
     bool isCashOut = false,
     bool includePending = false,
+    int? id,
+    FilterType? filterType,
+    DateTime? startDate,
+    DateTime? endDate,
   });
 
   FutureOr<List<TransactionItem>> transactionItems(
@@ -403,7 +401,7 @@ abstract class RealmInterface {
 
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName);
   RealmInterface instance();
-  Tenant? tenant({int? businessId, int? userId});
+  FutureOr<Tenant?> tenant({int? businessId, int? userId});
   Stream<List<Report>> reports({required int branchId});
   Report report({required int id});
 
@@ -413,7 +411,7 @@ abstract class RealmInterface {
         double netProfit,
       })> getReportData();
 
-  bool isAdmin({required int userId, required String appFeature});
+  FutureOr<bool> isAdmin({required int userId, required String appFeature});
   FutureOr<List<Access>> access({required int userId, String? featureName});
   Stream<List<StockRequest>> requestsStream(
       {required int branchId, required String filter});
@@ -501,15 +499,7 @@ abstract class RealmInterface {
   Future<List<Business>> getContacts();
 
   Future<List<UnversalProduct>> universalProductNames({required int branchId});
-  // Stream<List<AppNotification>> notificationStream({required int identifier});
-  // void notify({required AppNotification notification});
-  // AppNotification notification({required int id});
-  // Future<Branch> addBranch(
-  //     {required String name,
-  //     required int businessId,
-  //     required String location,
-  //     required String userOwnerPhoneNumber,
-  //     required HttpClientInterface flipperHttpClient});
+
   Future<void> deleteBranch(
       {required int branchId, required HttpClientInterface flipperHttpClient});
   FutureOr<Branch?> branch({required int serverId});

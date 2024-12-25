@@ -73,41 +73,48 @@ class TenantWidget extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(right: 12.0),
           child: CircleAvatarWidget(
-            text: tenant?.name ?? "N/A",
+            text: tenant.value?.name ?? "N/A",
             size: 40,
           ),
         ),
         const SizedBox(height: 16),
-        if (ProxyService.strategy.isAdmin(
-          userId: ProxyService.box.getUserId() ?? 0,
-          appFeature: AppFeature.Settings,
-        ))
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: SizedBox(
-              height: 40,
-              width: 40,
-              child: IconButton(
-                icon: const Icon(
-                  Icons.settings,
-                  color: Colors.white,
-                ),
-                onPressed: () {
-                  locator<RouterService>().navigateTo(AdminControlRoute());
-                },
-                style: IconButton.styleFrom(
-                  shape: CircleBorder(
-                    side: BorderSide(
-                      color: backgroundColor,
-                      width: 3,
+        FutureBuilder<bool>(
+          future: Future.value(ProxyService.strategy.isAdmin(
+            userId: ProxyService.box.getUserId() ?? 0,
+            appFeature: AppFeature.Settings,
+          )),
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data == true) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 12.0),
+                child: SizedBox(
+                  height: 40,
+                  width: 40,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.settings,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      locator<RouterService>().navigateTo(AdminControlRoute());
+                    },
+                    style: IconButton.styleFrom(
+                      shape: CircleBorder(
+                        side: BorderSide(
+                          color: backgroundColor,
+                          width: 3,
+                        ),
+                      ),
+                      backgroundColor: backgroundColor,
+                      foregroundColor: backgroundColor,
                     ),
                   ),
-                  backgroundColor: backgroundColor,
-                  foregroundColor: backgroundColor,
                 ),
-              ),
-            ),
-          ),
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
       ],
     );
   }

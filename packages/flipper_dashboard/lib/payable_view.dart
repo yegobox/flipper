@@ -47,7 +47,8 @@ class _PayableViewState extends ConsumerState<PayableView> {
                 widget.ticketHandler();
               },
               child: StreamBuilder<List<ITransaction>>(
-                stream: ProxyService.strategy.ticketsStreams(),
+                stream:
+                    ProxyService.strategy.transactionsStream(status: PARKED),
                 builder: (context, snapshot) {
                   final List<ITransaction> transactions = snapshot.data ?? [];
                   final int tickets = transactions.length;

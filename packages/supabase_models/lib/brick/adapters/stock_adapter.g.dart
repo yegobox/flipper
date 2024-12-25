@@ -224,7 +224,7 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
     'variant': const RuntimeSupabaseColumnDefinition(
       association: true,
       columnName: 'variant',
-      associationType: Variant,
+      associationType: Map,
       associationIsNullable: true,
     )
   };
@@ -346,7 +346,7 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
       association: true,
       columnName: 'variant_Variant_brick_id',
       iterable: false,
-      type: Variant,
+      type: Map,
     )
   };
   @override

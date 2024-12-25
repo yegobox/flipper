@@ -27,6 +27,7 @@ import 'package:brick_offline_first/brick_offline_first.dart' show RuntimeOfflin
 // ignore: unused_import, unused_shown_name
 import 'package:sqflite_common/sqlite_api.dart' show DatabaseExecutor;
 
+import '../brick/models/itemCode.model.dart';
 import '../brick/models/stock.model.dart';
 import '../brick/models/counter.model.dart';
 import '../brick/models/category.model.dart';
@@ -50,6 +51,7 @@ import '../brick/models/access.model.dart';
 import '../brick/models/customer.model.dart';
 import '../brick/models/report.model.dart';
 import '../brick/models/stockRequest.model.dart';
+import '../brick/models/appNotification.model.dart';
 import '../brick/models/discount.model.dart';
 import '../brick/models/business.model.dart';
 import '../brick/models/sku.model.dart';
@@ -62,8 +64,8 @@ import '../brick/models/product.model.dart';
 import '../brick/models/asset.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/drawer.model.dart';
-import '../brick/models/appNotification.model.dart';
 
+part 'adapters/item_code_adapter.g.dart';
 part 'adapters/stock_adapter.g.dart';
 part 'adapters/counter_adapter.g.dart';
 part 'adapters/category_adapter.g.dart';
@@ -87,6 +89,7 @@ part 'adapters/access_adapter.g.dart';
 part 'adapters/customer_adapter.g.dart';
 part 'adapters/report_adapter.g.dart';
 part 'adapters/stock_request_adapter.g.dart';
+part 'adapters/app_notification_adapter.g.dart';
 part 'adapters/discount_adapter.g.dart';
 part 'adapters/business_adapter.g.dart';
 part 'adapters/s_k_u_adapter.g.dart';
@@ -99,10 +102,10 @@ part 'adapters/product_adapter.g.dart';
 part 'adapters/assets_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 part 'adapters/drawers_adapter.g.dart';
-part 'adapters/app_notification_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
+  ItemCode: ItemCodeAdapter(),
   Stock: StockAdapter(),
   Counter: CounterAdapter(),
   Category: CategoryAdapter(),
@@ -126,6 +129,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Customer: CustomerAdapter(),
   Report: ReportAdapter(),
   StockRequest: StockRequestAdapter(),
+  AppNotification: AppNotificationAdapter(),
   Discount: DiscountAdapter(),
   Business: BusinessAdapter(),
   SKU: SKUAdapter(),
@@ -137,13 +141,13 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter(),
-  AppNotification: AppNotificationAdapter()
+  Drawers: DrawersAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
 /// Sqlite mappings should only be used when initializing a [SqliteProvider]
 final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
+  ItemCode: ItemCodeAdapter(),
   Stock: StockAdapter(),
   Counter: CounterAdapter(),
   Category: CategoryAdapter(),
@@ -167,6 +171,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Customer: CustomerAdapter(),
   Report: ReportAdapter(),
   StockRequest: StockRequestAdapter(),
+  AppNotification: AppNotificationAdapter(),
   Discount: DiscountAdapter(),
   Business: BusinessAdapter(),
   SKU: SKUAdapter(),
@@ -178,7 +183,6 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter(),
-  AppNotification: AppNotificationAdapter()
+  Drawers: DrawersAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

@@ -272,7 +272,7 @@ class TransactionItemsNotifier
       talker.info("Loading transactionId $currentTransaction");
       state = const AsyncValue.loading();
 
-      final items =await ProxyService.strategy.transactionItems(
+      final items = await ProxyService.strategy.transactionItems(
           branchId: ProxyService.box.getBranchId()!,
           transactionId: currentTransaction,
           doneWithTransaction: false,
@@ -730,7 +730,7 @@ final transactionListProvider =
   }
 
   try {
-    final stream = ProxyService.strategy.transactionList(
+    final stream = ProxyService.strategy.transactionsStream(
       startDate: startDate,
       endDate: endDate,
     );
@@ -756,7 +756,7 @@ final currentTransactionsByIdStream =
 
   // Use ProxyService to get the IsarStream of transactions
   final transactionsStream = ProxyService.strategy
-      .transactionStreamById(id: id, filterType: FilterType.TRANSACTION);
+      .transactionsStream(id: id, filterType: FilterType.TRANSACTION);
 
   // Return the stream
   return transactionsStream;
@@ -788,7 +788,7 @@ final transactionsStreamProvider =
 final ordersStreamProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
   int branchId = ProxyService.box.getBranchId() ?? 0;
-  return ProxyService.strategy.orders(branchId: branchId);
+  return ProxyService.strategy.transactionsStream(branchId: branchId);
 });
 final variantStreamProvider =
     StreamProvider.autoDispose.family<List<Variant>, int>((ref, id) {
@@ -981,9 +981,9 @@ const int NO_SELECTION = -1;
 
 final selectedItemIdProvider = StateProvider<int?>((ref) => NO_SELECTION);
 
-final tenantProvider = Provider<Tenant?>((ref) {
+final tenantProvider = FutureProvider<Tenant?>((ref) async {
   final userId = ProxyService.box.getUserId();
-  return ProxyService.strategy.tenant(userId: userId);
+  return await ProxyService.strategy.tenant(userId: userId);
 });
 
 /// check if a user has either, admin,read,write on a given feature
@@ -1002,26 +1002,57 @@ final businessesProvider = FutureProvider<List<Business>>((ref) async {
 // Define a provider for the selected branch
 final selectedBranchProvider = AutoDisposeStateProvider<Branch?>((ref) => null);
 // Provider to check if a user has access to a specific feature
+/// A provider that determines if a user has access to a specific feature based on their permissions.
+/// This provider implements a hierarchical access control system where certain elevated permissions
+/// (like ticket access) can restrict access to other features.
 final featureAccessProvider = Provider.family<bool, String>((ref, featureName) {
-  final accesses = ref.watch(userAccessesProvider);
-  final now = DateTime.now();
+  try {
+    // Get the current user's access permissions
+    final accesses = ref.watch(userAccessesProvider);
+    final now = DateTime.now();
 
-  // Check if the elevated permission (e.g., "ticket") is active
-  final hasElevatedPermission = accesses.value?.any((access) =>
-      access.featureName == AppFeature.Tickets &&
-      access.status == 'active' &&
-      (access.expiresAt == null || access.expiresAt!.isAfter(now)));
+    // Default access granted if no permissions are set
+    // if (accesses.value == null) return true;
+    talker.warning("Accesses: ${accesses.value?.first.featureName}");
 
-  // If the elevated permission is active, return false for other permissions
-  if (hasElevatedPermission! && featureName != AppFeature.Tickets) {
+    /// Check for elevated permission (specifically ticket access)
+    /// An elevated permission is a special type of access that, when active,
+    /// restricts the user from accessing other features. This is typically
+    /// used in scenarios where you want to limit a user to only specific
+    /// functionality (like only working with tickets) and prevent access
+    /// to other parts of the application.
+    final hasElevatedPermission = accesses.value?.any((access) =>
+        access.featureName == AppFeature.Tickets &&
+        access.status == 'active' &&
+        (access.expiresAt == null || access.expiresAt!.isAfter(now)));
+
+    /// If user has elevated ticket permission:
+    /// - Allow access to ticket feature
+    /// - Deny access to all other features
+    /// This ensures users with elevated permissions can only access their
+    /// designated feature and nothing else
+    if (hasElevatedPermission == true && featureName != AppFeature.Tickets) {
+      return false;
+    }
+
+    /// Standard permission check for the requested feature:
+    /// 1. If feature name is not found in any access and is not the ticket feature, grant access automatically
+    /// 2. For existing features:
+    ///    - Status must be 'active'
+    ///    - Either no expiration date is set, or it hasn't expired yet
+    /// Note: If no accesses are defined (accesses.value == null),
+    /// we grant access by default for backward compatibility
+    if (accesses.value == null) return true;
+    if (!accesses.value!.any((access) => access.featureName == featureName) &&
+        featureName != AppFeature.Tickets) return true;
+    return accesses.value!.any((access) =>
+        access.featureName == featureName &&
+        access.status == 'active' &&
+        (access.expiresAt == null || access.expiresAt!.isAfter(now)));
+  } catch (e, s) {
+    talker.error(e, s);
     return false;
   }
-
-  // Normal permission check for the requested feature
-  return accesses.value!.any((access) =>
-      access.featureName == featureName &&
-      access.status == 'active' &&
-      (access.expiresAt == null || access.expiresAt!.isAfter(now)));
 });
 
 final featureAccessLevelProvider =

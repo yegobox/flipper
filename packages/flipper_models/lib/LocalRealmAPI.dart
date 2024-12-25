@@ -728,127 +728,127 @@
 //   Future<List<ITenant>> tenantsFromOnline(
 //       {required int businessId,
 //       required HttpClientInterface flipperHttpClient}) async {
-//     final http.Response response = await flipperHttpClient
-//         .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
-//     if (response.statusCode == 200) {
-//       if (realm == null) {
-//         await configureLocal(useInMemory: false, box: ProxyService.box);
-//       }
-//       final tenantToAdd = <Tenant>[];
-//       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
-//         ITenant jTenant = tenant;
-//         Tenant iTenant = Tenant(
-//             isDefault: jTenant.isDefault,
-//             id: jTenant.id,
-//             name: jTenant.name,
-//             userId: jTenant.userId,
-//             businessId: jTenant.businessId,
-//             nfcEnabled: jTenant.nfcEnabled,
-//             email: jTenant.email,
-//             phoneNumber: jTenant.phoneNumber);
+    // final http.Response response = await flipperHttpClient
+    //     .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
+    // if (response.statusCode == 200) {
+    //   if (realm == null) {
+    //     await configureLocal(useInMemory: false, box: ProxyService.box);
+    //   }
+    //   final tenantToAdd = <Tenant>[];
+    //   for (ITenant tenant in ITenant.fromJsonList(response.body)) {
+    //     ITenant jTenant = tenant;
+    //     Tenant iTenant = Tenant(
+    //         isDefault: jTenant.isDefault,
+    //         id: jTenant.id,
+    //         name: jTenant.name,
+    //         userId: jTenant.userId,
+    //         businessId: jTenant.businessId,
+    //         nfcEnabled: jTenant.nfcEnabled,
+    //         email: jTenant.email,
+    //         phoneNumber: jTenant.phoneNumber);
 
-//         for (IBusiness business in jTenant.businesses) {
-//           Business biz = Business(
-//               serverId: business.id,
-//               userId: business.userId,
-//               name: business.name,
-//               currency: business.currency,
-//               categoryId: business.categoryId,
-//               latitude: business.latitude,
-//               longitude: business.longitude,
-//               timeZone: business.timeZone,
-//               country: business.country,
-//               businessUrl: business.businessUrl,
-//               hexColor: business.hexColor,
-//               imageUrl: business.imageUrl,
-//               type: business.type,
-//               active: business.active,
-//               chatUid: business.chatUid,
-//               metadata: business.metadata,
-//               role: business.role,
-//               lastSeen: business.lastSeen,
-//               firstName: business.firstName,
-//               lastName: business.lastName,
-//               createdAt: business.createdAt,
-//               deviceToken: business.deviceToken,
-//               backUpEnabled: business.backUpEnabled,
-//               subscriptionPlan: business.subscriptionPlan,
-//               nextBillingDate: business.nextBillingDate,
-//               previousBillingDate: business.previousBillingDate,
-//               isLastSubscriptionPaymentSucceeded:
-//                   business.isLastSubscriptionPaymentSucceeded,
-//               backupFileId: business.backupFileId,
-//               email: business.email,
-//               lastDbBackup: business.lastDbBackup,
-//               fullName: business.fullName,
-//               tinNumber: business.tinNumber,
-//               bhfId: business.bhfId,
-//               dvcSrlNo: business.dvcSrlNo,
-//               adrs: business.adrs,
-//               taxEnabled: business.taxEnabled,
-//               taxServerUrl: business.taxServerUrl,
-//               isDefault: business.isDefault,
-//               businessTypeId: business.businessTypeId,
-//               lastTouched: business.lastTouched,
-//               deletedAt: business.deletedAt,
-//               encryptionKey: business.encryptionKey);
-//           Business? exist = realm!
-//               .query<Business>(r'serverId == $0', [business.id]).firstOrNull;
-//           if (exist == null) {
-//             realm!.add<Business>(biz);
-//           }
-//         }
+    //     for (IBusiness business in jTenant.businesses) {
+    //       Business biz = Business(
+    //           serverId: business.id,
+    //           userId: business.userId,
+    //           name: business.name,
+    //           currency: business.currency,
+    //           categoryId: business.categoryId,
+    //           latitude: business.latitude,
+    //           longitude: business.longitude,
+    //           timeZone: business.timeZone,
+    //           country: business.country,
+    //           businessUrl: business.businessUrl,
+    //           hexColor: business.hexColor,
+    //           imageUrl: business.imageUrl,
+    //           type: business.type,
+    //           active: business.active,
+    //           chatUid: business.chatUid,
+    //           metadata: business.metadata,
+    //           role: business.role,
+    //           lastSeen: business.lastSeen,
+    //           firstName: business.firstName,
+    //           lastName: business.lastName,
+    //           createdAt: business.createdAt,
+    //           deviceToken: business.deviceToken,
+    //           backUpEnabled: business.backUpEnabled,
+    //           subscriptionPlan: business.subscriptionPlan,
+    //           nextBillingDate: business.nextBillingDate,
+    //           previousBillingDate: business.previousBillingDate,
+    //           isLastSubscriptionPaymentSucceeded:
+    //               business.isLastSubscriptionPaymentSucceeded,
+    //           backupFileId: business.backupFileId,
+    //           email: business.email,
+    //           lastDbBackup: business.lastDbBackup,
+    //           fullName: business.fullName,
+    //           tinNumber: business.tinNumber,
+    //           bhfId: business.bhfId,
+    //           dvcSrlNo: business.dvcSrlNo,
+    //           adrs: business.adrs,
+    //           taxEnabled: business.taxEnabled,
+    //           taxServerUrl: business.taxServerUrl,
+    //           isDefault: business.isDefault,
+    //           businessTypeId: business.businessTypeId,
+    //           lastTouched: business.lastTouched,
+    //           deletedAt: business.deletedAt,
+    //           encryptionKey: business.encryptionKey);
+    //       Business? exist = realm!
+    //           .query<Business>(r'serverId == $0', [business.id]).firstOrNull;
+    //       if (exist == null) {
+    //         realm!.add<Business>(biz);
+    //       }
+    //     }
 
-//         for (IBranch brannch in jTenant.branches) {
-//           Branch branch = Branch(
-//               serverId: brannch.id,
-//               active: brannch.active,
-//               description: brannch.description,
-//               name: brannch.name,
-//               businessId: brannch.businessId,
-//               longitude: brannch.longitude,
-//               latitude: brannch.latitude,
-//               isDefault: brannch.isDefault,
-//               lastTouched: brannch.lastTouched,
-//               deletedAt: brannch.deletedAt);
-//           Branch? exist =
-//               realm!.query<Branch>(r'serverId == $0', [brannch.id]).firstOrNull;
-//           if (exist == null) {
-//             realm!.write(() => realm!.add<Branch>(branch));
-//           }
-//         }
+    //     for (IBranch brannch in jTenant.branches) {
+    //       Branch branch = Branch(
+    //           serverId: brannch.id,
+    //           active: brannch.active,
+    //           description: brannch.description,
+    //           name: brannch.name,
+    //           businessId: brannch.businessId,
+    //           longitude: brannch.longitude,
+    //           latitude: brannch.latitude,
+    //           isDefault: brannch.isDefault,
+    //           lastTouched: brannch.lastTouched,
+    //           deletedAt: brannch.deletedAt);
+    //       Branch? exist =
+    //           realm!.query<Branch>(r'serverId == $0', [brannch.id]).firstOrNull;
+    //       if (exist == null) {
+    //         realm!.write(() => realm!.add<Branch>(branch));
+    //       }
+    //     }
 
-//         final permissionToAdd = <LPermission>[];
-//         for (IPermission permission in jTenant.permissions) {
-//           LPermission? exist = realm!
-//               .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
-//           if (exist == null) {
-//             final perm = LPermission(
-//                 id: permission.id, name: permission.name);
-//             permissionToAdd.add(perm);
-//           }
-//         }
+    //     final permissionToAdd = <LPermission>[];
+    //     for (IPermission permission in jTenant.permissions) {
+    //       LPermission? exist = realm!
+    //           .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
+    //       if (exist == null) {
+    //         final perm = LPermission(
+    //             id: permission.id, name: permission.name);
+    //         permissionToAdd.add(perm);
+    //       }
+    //     }
 
-//         realm!.write(() {
-//           realm!.addAll<LPermission>(permissionToAdd);
-//         });
-//         Tenant? tenanti =
-//             realm!.query<Tenant>(r'userId==$0', [iTenant.userId]).firstOrNull;
+    //     realm!.write(() {
+    //       realm!.addAll<LPermission>(permissionToAdd);
+    //     });
+    //     Tenant? tenanti =
+    //         realm!.query<Tenant>(r'userId==$0', [iTenant.userId]).firstOrNull;
 
-//         if (tenanti == null) {
-//           tenantToAdd.add(iTenant);
-//         }
-//       }
+    //     if (tenanti == null) {
+    //       tenantToAdd.add(iTenant);
+    //     }
+    //   }
 
-//       if (tenantToAdd.isNotEmpty) {
-//         realm!.write(() {
-//           realm!.addAll<Tenant>(tenantToAdd);
-//         });
-//       }
+    //   if (tenantToAdd.isNotEmpty) {
+    //     realm!.write(() {
+    //       realm!.addAll<Tenant>(tenantToAdd);
+    //     });
+    //   }
 
-//       return ITenant.fromJsonList(response.body);
-//     }
-//     throw InternalServerException(term: "we got unexpected response");
+    //   return ITenant.fromJsonList(response.body);
+    // }
+    // throw InternalServerException(term: "we got unexpected response");
 //   }
 
 //   @override
@@ -2209,16 +2209,16 @@
 
 //   @override
 //   Tenant? tenant({int? businessId, int? userId}) {
-//     Tenant? tenant;
+    // Tenant? tenant;
 
-//     if (businessId != null) {
-//       tenant =
-//           realm!.query<Tenant>(r'businessId == $0', [businessId]).firstOrNull;
-//     } else {
-//       tenant = realm!.query<Tenant>(r'userId == $0', [userId]).firstOrNull;
-//     }
+    // if (businessId != null) {
+    //   tenant =
+    //       realm!.query<Tenant>(r'businessId == $0', [businessId]).firstOrNull;
+    // } else {
+    //   tenant = realm!.query<Tenant>(r'userId == $0', [userId]).firstOrNull;
+    // }
 
-//     return tenant;
+    // return tenant;
 //   }
 
 //   @override
@@ -4590,14 +4590,14 @@
 
 //   @override
 //   Future<List<Tenant>> tenants({int? businessId, int? excludeUserId}) async {
-//     if (businessId != null) {
-//       if (excludeUserId != null) {
-//         return realm!.query<Tenant>(r'businessId == $0 && userId != $1',
-//             [businessId, excludeUserId]).toList();
-//       } else {
-//         return realm!.query<Tenant>(r'businessId == $0', [businessId]).toList();
-//       }
-//     }
+    // if (businessId != null) {
+    //   if (excludeUserId != null) {
+    //     return realm!.query<Tenant>(r'businessId == $0 && userId != $1',
+    //         [businessId, excludeUserId]).toList();
+    //   } else {
+    //     return realm!.query<Tenant>(r'businessId == $0', [businessId]).toList();
+    //   }
+    // }
 //     throw Exception('BusinessId is required');
 //   }
 

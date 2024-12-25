@@ -38,3 +38,4 @@ export 'token.model.dart';
 export 'conversation.model.dart';
 export 'appNotification.model.dart';
 export 'permission.model.dart';
+export 'itemCode.model.dart';

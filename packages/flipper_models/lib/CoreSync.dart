@@ -13,6 +13,7 @@ import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/secrets.dart';
@@ -1521,9 +1522,32 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  bool isAdmin({required int userId, required String appFeature}) {
-    // TODO: implement isAdmin
-    throw UnimplementedError("isAdmin method is not implemented yet");
+  FutureOr<bool> isAdmin(
+      {required int userId, required String appFeature}) async {
+    //  try {
+    //     final Access? permission = realm?.query<Access>(
+    //         r'userId == $0 && featureName == $1',
+    //         [userId, appFeature]).firstOrNull;
+    //     talker.warning(permission?.accessLevel?.toLowerCase());
+    //     return permission?.accessLevel?.toLowerCase() == "admin";
+    //   } catch (e) {
+    //     rethrow;
+    //   }
+    // check if we have any access where UserId first
+    final anyAccess = await repository.get<Access>(
+        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
+
+    /// cases where no access was set to a user he is admin by default.
+    if (anyAccess.firstOrNull == null) return true;
+
+    final accesses = await repository.get<Access>(
+        query: brick.Query(where: [
+      brick.Where('userId').isExactly(userId),
+      brick.Or('featureName').isExactly(appFeature),
+      brick.Or('accessLevel').isExactly('admin'),
+    ]));
+
+    return accesses.firstOrNull != null;
   }
 
   @override
@@ -1844,10 +1868,39 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       {required String transactionType,
       required bool isExpense,
       required int branchId,
-      bool? includeSubTotalCheck = false}) {
-    // TODO: implement manageTransactionStream
-    throw UnimplementedError(
-        "manageTransactionStream method is not implemented yet");
+      bool? includeSubTotalCheck = false}) async* {
+    final ITransaction? existTransaction = await _pendingTransaction(
+        branchId: branchId,
+        isExpense: isExpense,
+        transactionType: transactionType,
+        includeSubTotalCheck: includeSubTotalCheck!);
+
+    if (existTransaction == null) {
+      final int id = randomNumber();
+      final transaction = ITransaction(
+          lastTouched: DateTime.now(),
+          id: id,
+          reference: randomNumber().toString(),
+          transactionNumber: randomNumber().toString(),
+          status: PENDING,
+          isExpense: isExpense,
+          isIncome: !isExpense,
+          transactionType: transactionType,
+          subTotal: 0,
+          cashReceived: 0,
+          updatedAt: DateTime.now().toIso8601String(),
+          customerChangeDue: 0.0,
+          paymentType: ProxyService.box.paymentType() ?? "Cash",
+          branchId: branchId,
+          createdAt: DateTime.now().toIso8601String());
+
+      // save transaction to isar
+      repository.upsert<ITransaction>(transaction);
+
+      yield transaction;
+    } else {
+      yield existTransaction;
+    }
   }
 
   @override
@@ -1862,12 +1915,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Drawers? openDrawer({required Drawers drawer}) {
     // TODO: implement openDrawer
     throw UnimplementedError("openDrawer method is not implemented yet");
-  }
-
-  @override
-  Stream<List<ITransaction>> orders({required int branchId}) {
-    // TODO: implement orders
-    throw UnimplementedError("orders method is not implemented yet");
   }
 
   @override
@@ -1958,11 +2005,28 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   Stream<List<StockRequest>> requestsStream(
       {required int branchId, required String filter}) {
-    // final response =
-    //     stockRequestsRef.whereMain_branch_id(isEqualTo: branchId).snapshots();
-    // return response
-    //     .map((snapshot) => snapshot.docs.map((doc) => doc.data).toList());
-    throw UnimplementedError("requestsStream method is not implemented yet");
+    if (filter == RequestStatus.approved) {
+      final query = repository.subscribe<StockRequest>(
+          query: brick.Query(where: [
+        brick.Where('mainBranchId').isExactly(branchId),
+        brick.Where('status').isExactly(RequestStatus.approved),
+      ]));
+
+      return query
+          .map((changes) => changes.toList())
+          .debounceTime(Duration(milliseconds: 100));
+    } else {
+      final query = repository.subscribe<StockRequest>(
+          query: brick.Query(where: [
+        brick.Where('mainBranchId').isExactly(branchId),
+        brick.Or('status').isExactly(RequestStatus.pending),
+        brick.Or('status').isExactly(RequestStatus.partiallyApproved),
+      ]));
+
+      return query
+          .map((changes) => changes.toList())
+          .debounceTime(Duration(milliseconds: 100));
+    }
   }
 
   @override
@@ -2274,35 +2338,166 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Tenant? tenant({int? businessId, int? userId}) {
-    // TODO: implement tenant
-    throw UnimplementedError("tenant method is not implemented yet");
+  FutureOr<Tenant?> tenant({int? businessId, int? userId}) async {
+    if (businessId != null) {
+      return (await repository.get<Tenant>(
+              query: brick.Query(
+                  where: [brick.Where('businessId').isExactly(businessId)])))
+          .firstOrNull;
+    } else {
+      return (await repository.get<Tenant>(
+              query: brick.Query(
+                  where: [brick.Where('userId').isExactly(userId)])))
+          .firstOrNull;
+    }
   }
 
   @override
   Future<List<Tenant>> tenants({int? businessId, int? excludeUserId}) {
-    // TODO: implement tenants
-    throw UnimplementedError("tenants method is not implemented yet");
+    return repository.get<Tenant>(
+        query: brick.Query(where: [
+      brick.Where('businessId').isExactly(businessId),
+      brick.Or('userId').isExactly(excludeUserId),
+      brick.Or('pin').isExactly(false)
+    ]));
   }
 
   @override
   Future<List<ext.ITenant>> tenantsFromOnline(
       {required int businessId,
-      required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement tenantsFromOnline
-    throw UnimplementedError("tenantsFromOnline method is not implemented yet");
+      required HttpClientInterface flipperHttpClient}) async {
+    final http.Response response = await flipperHttpClient
+        .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
+    if (response.statusCode == 200) {
+      final tenantToAdd = <Tenant>[];
+      for (ITenant tenant in ITenant.fromJsonList(response.body)) {
+        ITenant jTenant = tenant;
+        Tenant iTenant = Tenant(
+            isDefault: jTenant.isDefault,
+            id: jTenant.id,
+            name: jTenant.name,
+            userId: jTenant.userId,
+            businessId: jTenant.businessId,
+            nfcEnabled: jTenant.nfcEnabled,
+            email: jTenant.email,
+            phoneNumber: jTenant.phoneNumber);
+
+        for (IBusiness business in jTenant.businesses) {
+          Business biz = Business(
+              id: business.id!,
+              serverId: business.id!,
+              userId: business.userId,
+              name: business.name,
+              currency: business.currency,
+              categoryId: business.categoryId,
+              latitude: business.latitude,
+              longitude: business.longitude,
+              timeZone: business.timeZone,
+              country: business.country,
+              businessUrl: business.businessUrl,
+              hexColor: business.hexColor,
+              imageUrl: business.imageUrl,
+              type: business.type,
+              active: business.active,
+              chatUid: business.chatUid,
+              metadata: business.metadata,
+              role: business.role,
+              lastSeen: business.lastSeen,
+              firstName: business.firstName,
+              lastName: business.lastName,
+              createdAt: business.createdAt,
+              deviceToken: business.deviceToken,
+              backUpEnabled: business.backUpEnabled,
+              subscriptionPlan: business.subscriptionPlan,
+              nextBillingDate: business.nextBillingDate,
+              previousBillingDate: business.previousBillingDate,
+              isLastSubscriptionPaymentSucceeded:
+                  business.isLastSubscriptionPaymentSucceeded,
+              backupFileId: business.backupFileId,
+              email: business.email,
+              lastDbBackup: business.lastDbBackup,
+              fullName: business.fullName,
+              tinNumber: business.tinNumber,
+              bhfId: business.bhfId,
+              dvcSrlNo: business.dvcSrlNo,
+              adrs: business.adrs,
+              taxEnabled: business.taxEnabled,
+              taxServerUrl: business.taxServerUrl,
+              isDefault: business.isDefault,
+              businessTypeId: business.businessTypeId,
+              lastTouched: business.lastTouched,
+              deletedAt: business.deletedAt,
+              encryptionKey: business.encryptionKey);
+          Business? exist = (await repository.get<Business>(
+                  query: brick.Query(
+                      where: [brick.Where('serverId').isExactly(business.id)])))
+              .firstOrNull;
+          if (exist == null) {
+            await repository.upsert<Business>(biz);
+          }
+        }
+
+        for (IBranch brannch in jTenant.branches) {
+          Branch branch = Branch(
+              id: brannch.id!,
+              serverId: brannch.id,
+              active: brannch.active,
+              description: brannch.description,
+              name: brannch.name,
+              businessId: brannch.businessId,
+              longitude: brannch.longitude,
+              latitude: brannch.latitude,
+              isDefault: brannch.isDefault);
+          Branch? exist = (await repository.get<Branch>(
+                  query: brick.Query(
+                      where: [brick.Where('serverId').isExactly(brannch.id)])))
+              .firstOrNull;
+          if (exist == null) {
+            await repository.upsert<Branch>(branch);
+          }
+        }
+
+        final permissionToAdd = <LPermission>[];
+        for (ext.IPermission permission in jTenant.permissions) {
+          LPermission? exist = (await repository.get<LPermission>(
+                  query: brick.Query(
+                      where: [brick.Where('id').isExactly(permission.id)])))
+              .firstOrNull;
+          if (exist == null) {
+            final perm = LPermission(id: permission.id!, name: permission.name);
+            permissionToAdd.add(perm);
+          }
+        }
+
+        for (LPermission permission in permissionToAdd) {
+          await repository.upsert<LPermission>(permission);
+        }
+
+        Tenant? tenanti = (await repository.get<Tenant>(
+                query: brick.Query(
+                    where: [brick.Where('userId').isExactly(iTenant.userId)])))
+            .firstOrNull;
+
+        if (tenanti == null) {
+          tenantToAdd.add(iTenant);
+        }
+      }
+
+      if (tenantToAdd.isNotEmpty) {
+        for (Tenant tenant in tenantToAdd) {
+          await repository.upsert<Tenant>(tenant);
+        }
+      }
+
+      return ITenant.fromJsonList(response.body);
+    }
+    throw InternalServerException(term: "we got unexpected response");
   }
 
   @override
   Future<List<ITransaction>> tickets() {
     // TODO: implement tickets
     throw UnimplementedError("tickets method is not implemented yet");
-  }
-
-  @override
-  Stream<List<ITransaction>> ticketsStreams() {
-    // TODO: implement ticketsStreams
-    throw UnimplementedError("ticketsStreams method is not implemented yet");
   }
 
   @override
@@ -2341,21 +2536,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Stream<List<ITransaction>> transactionList(
-      {DateTime? startDate, DateTime? endDate}) {
-    // TODO: implement transactionList
-    throw UnimplementedError("transactionList method is not implemented yet");
-  }
-
-  @override
-  Stream<List<ITransaction>> transactionStreamById(
-      {required int id, required FilterType filterType}) {
-    // TODO: implement transactionStreamById
-    throw UnimplementedError(
-        "transactionStreamById method is not implemented yet");
-  }
-
-  @override
   List<ITransaction> transactions(
       {DateTime? startDate,
       DateTime? endDate,
@@ -2374,14 +2554,21 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     String? transactionType,
     int? branchId,
     bool isCashOut = false,
+    int? id,
+    FilterType? filterType,
     bool includePending = false,
+    DateTime? startDate,
+    DateTime? endDate,
   }) {
-    // Build the query conditions once
     final List<brick.Where> conditions = [
       brick.Where('status').isExactly(status ?? COMPLETE),
       brick.Where('subTotal').isGreaterThan(0),
+      if (id != null) brick.Where('id').isExactly(id),
+      if (filterType != null) brick.Where('filterType').isExactly(filterType),
       if (branchId != null) brick.Where('branchId').isExactly(branchId),
       if (isCashOut) brick.Where('isExpense').isExactly(true),
+      if (startDate != null && endDate != null)
+        brick.Where('lastTouched').isBetween(startDate, endDate),
     ];
 
     final queryString = brick.Query(where: conditions);
@@ -3083,7 +3270,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   FutureOr<LPermission?> permission({required int userId}) async {
     return (await repository.get<LPermission>(
             query:
-                brick.Query(where: [brick.Where('userId').isExactly(userId)])))
+                brick.Query(where: [brick.Where('userId').isExactly(userId)]),
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))
         .firstOrNull;
   }
 
@@ -3320,8 +3508,32 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       {required String countryCode,
       required String productType,
       required packagingUnit,
-      required String quantityUnit}) {
-    // TODO: implement itemCode
-    throw UnimplementedError();
+      required String quantityUnit}) async {
+    final repository = Repository();
+    final Query = brick.Query(
+      where: [brick.Where('itemCode').isNot(null)],
+      providerArgs: {'orderBy': 'itemCode DESC'},
+    );
+    final items = await repository.get<models.ItemCode>(
+        query: Query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+
+    // Extract the last sequence number and increment it
+    int lastSequence = 0;
+    if (items.isNotEmpty) {
+      final lastItemCode = items.first.itemCode;
+      final sequencePart = lastItemCode.substring(lastItemCode.length - 7);
+      lastSequence = int.parse(sequencePart);
+    }
+    final newSequence = (lastSequence + 1).toString().padLeft(7, '0');
+    // Construct the new item code
+    final newItemCode =
+        '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
+
+    // Save the new item code in the database
+    final newItem = ItemCode(
+        itemCode: newItemCode, id: randomNumber(), createdAt: DateTime.now());
+    await repository.upsert(newItem);
+
+    return newItemCode;
   }
 }
