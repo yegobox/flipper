@@ -33,37 +33,41 @@ class CronService {
   Future<void> schedule() async {
     await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
     Timer.periodic(Duration(minutes: 10), (Timer t) async {
-       PatchTransactionItem.patchTransactionItem(
-            URI: URI,
-            sendPort: (message) {
-              sendPort.send("notification:" + message);
-            },
-            tinNumber: tinNumber,
-            bhfId: bhfId,
-          );
-          StockPatch.patchStock(
-            URI: URI,
-            sendPort: (message) {
-              sendPort.send("notification:" + message);
-            },
-          );
+      final URI = await ProxyService.box.getServerUrl();
+      final tinNumber = ProxyService.box.tin();
+      final bhfId = await ProxyService.box.bhfId();
+      final branchId = ProxyService.box.getBranchId()!;
+      PatchTransactionItem.patchTransactionItem(
+        URI: URI!,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+        tinNumber: tinNumber,
+        bhfId: bhfId!,
+      );
+      StockPatch.patchStock(
+        URI: URI,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
 
-          VariantPatch.patchVariant(
-            URI: URI,
-            sendPort: (message) {
-              sendPort.send("notification:" + message);
-            },
-          );
+      VariantPatch.patchVariant(
+        URI: URI,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
 
-          CustomerPatch.patchCustomer(
-            URI: URI,
-            tinNumber: tinNumber,
-            bhfId: bhfId,
-            branchId: branchId,
-            sendPort: (message) {
-              sendPort.send("notification:" + message);
-            },
-          );
+      CustomerPatch.patchCustomer(
+        URI: URI,
+        tinNumber: tinNumber,
+        bhfId: bhfId,
+        branchId: branchId,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
     });
     Timer.periodic(Duration(seconds: 40), (Timer t) async {
       if (ProxyService.strategy.sendPort != null) {
