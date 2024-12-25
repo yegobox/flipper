@@ -49,16 +49,11 @@ mixin VariantPatch {
 mixin StockPatch {
   static Future<void> patchStock(
       {required String URI, required Function(String) sendPort}) async {
-    // List<Stock> stocks =
-    //     localRealm!.query<Stock>(r'ebmSynced ==$0', [false]).toList();
     final stocks = await repository.get<Stock>(
         query: brick.Query(where: [Where('ebmSynced').isExactly(false)]));
 
-    // List<int?> variantIds = stocks.map((stock) => stock.variantId).toList();
     Map<int, Variant?> variantMap = {};
-    // localRealm.query<Variant>(r'id IN $0', [variantIds]).forEach((variant) {
-    //   variantMap[variant.id!] = variant;
-    // });
+
     for (Stock stock in stocks) {
       if (!stock.ebmSynced!) {
         Variant? variant = variantMap[stock.variantId];
@@ -77,9 +72,8 @@ mixin StockPatch {
               .saveStockMaster(stock: iStock, variant: iVariant, URI: URI);
           if (response.resultCd == "000") {
             sendPort('${response.resultMsg}');
-            // localRealm.write(() {
-            //   stock.ebmSynced = true;
-            // });
+            stock.ebmSynced = true;
+            repository.upsert(stock);
           } else {
             sendPort('${response.resultMsg}}');
           }
@@ -96,9 +90,6 @@ mixin PatchTransactionItem {
       required Function(String) sendPort,
       required int tinNumber,
       required String bhfId}) async {
-    // List<ITransaction> transactions = localRealm!.query<ITransaction>(
-    //     r'ebmSynced == $0 && status == $1 && customerName != null && customerTin != null',
-    //     [false, COMPLETE]).toList();
     final transactions = await repository.get<ITransaction>(
         query: brick.Query(where: [
       Where('ebmSynced').isExactly(false),
@@ -106,21 +97,14 @@ mixin PatchTransactionItem {
       Where('customerName').isNot(null),
       Where('customerTin').isNot(null)
     ]));
-
-    print("transactions count ${transactions.length}");
     for (ITransaction transaction in transactions) {
       double taxB = 0;
 
       double totalvat = 0;
-
-      // Configurations taxConfigTaxB =
-      //     localRealm.query<Configurations>(r'taxType == $0', ["B"]).first;
       Configurations taxConfigTaxB = (await repository.get<Configurations>(
               query: brick.Query(where: [Where('taxType').isExactly("B")])))
           .first;
 
-      // List<TransactionItem> items = localRealm.query<TransactionItem>(
-      //     r'transactionId == $0', [transaction.id]).toList();
       List<TransactionItem> items = await repository.get<TransactionItem>(
           query: brick.Query(
               where: [Where('transactionId').isExactly(transaction.id)]));
@@ -159,9 +143,8 @@ mixin PatchTransactionItem {
         if (response.resultCd == "000") {
           sendPort(
               'notification:${response.resultMsg}:transaction:${transaction.id.toString()}');
-          // localRealm.write(() {
+
           transaction.ebmSynced = true;
-          // });
           repository.upsert(transaction);
         } else {
           sendPort('notification:${response.resultMsg}}');
@@ -183,18 +166,14 @@ mixin CustomerPatch {
       required int tinNumber,
       required String bhfId,
       required int branchId}) async {
-    // List<Customer> customers =
-    //     localRealm!.query<Customer>(r'branchId ==$0', [branchId]).toList();
     final customers = await repository.get<Customer>(
         query: brick.Query(where: [Where('branchId').isExactly(branchId)]));
 
     for (Customer customer in customers) {
       if (!customer.ebmSynced!) {
         try {
-          // localRealm.write(() {
           customer.tin = tinNumber;
           customer.bhfId = bhfId;
-          // });
           repository.upsert(customer);
 
           if ((customer.custTin?.length ?? 0) < 9) return;
@@ -238,7 +217,7 @@ class IsolateHandler with StockPatch {
       if (message is Map<String, dynamic>) {
         if (message['task'] == 'taxService') {
           int branchId = message['branchId'];
-          // int tinNumber = message['tinNumber'];
+
           int businessId = message['businessId'];
           String dbPath = message['dbPath'];
 
@@ -251,38 +230,6 @@ class IsolateHandler with StockPatch {
               businessId: businessId,
               bhfid: bhfId,
               URI: URI);
-
-          // PatchTransactionItem.patchTransactionItem(
-          //   URI: URI,
-          //   sendPort: (message) {
-          //     sendPort.send("notification:" + message);
-          //   },
-          //   tinNumber: tinNumber,
-          //   bhfId: bhfId,
-          // );
-          // StockPatch.patchStock(
-          //   URI: URI,
-          //   sendPort: (message) {
-          //     sendPort.send("notification:" + message);
-          //   },
-          // );
-
-          // VariantPatch.patchVariant(
-          //   URI: URI,
-          //   sendPort: (message) {
-          //     sendPort.send("notification:" + message);
-          //   },
-          // );
-
-          // CustomerPatch.patchCustomer(
-          //   URI: URI,
-          //   tinNumber: tinNumber,
-          //   bhfId: bhfId,
-          //   branchId: branchId,
-          //   sendPort: (message) {
-          //     sendPort.send("notification:" + message);
-          //   },
-          // );
         }
       }
     });
@@ -296,18 +243,8 @@ class IsolateHandler with StockPatch {
       required String URI}) async {
     final rootIsolateToken = args[1] as RootIsolateToken;
 
-    // List<UnversalProduct> codes = await repository.get<UnversalProduct>(
-    //     query: brick.Query(where: [
-    //   Where('branchId').isExactly(branchId),
-    // ]));
-
-    // if (codes.isEmpty) {
-    // final Completer<void> completer = Completer<void>();
     await fetchDataAndSaveUniversalProducts(businessId, branchId, URI, bhfid,
         dbPath: dbPath);
-
-    // completer.complete();
-    // }
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     DartPluginRegistrant.ensureInitialized();
   }

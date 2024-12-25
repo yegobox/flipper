@@ -32,7 +32,39 @@ class CronService {
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
     await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
+    Timer.periodic(Duration(minutes: 10), (Timer t) async {
+       PatchTransactionItem.patchTransactionItem(
+            URI: URI,
+            sendPort: (message) {
+              sendPort.send("notification:" + message);
+            },
+            tinNumber: tinNumber,
+            bhfId: bhfId,
+          );
+          StockPatch.patchStock(
+            URI: URI,
+            sendPort: (message) {
+              sendPort.send("notification:" + message);
+            },
+          );
 
+          VariantPatch.patchVariant(
+            URI: URI,
+            sendPort: (message) {
+              sendPort.send("notification:" + message);
+            },
+          );
+
+          CustomerPatch.patchCustomer(
+            URI: URI,
+            tinNumber: tinNumber,
+            bhfId: bhfId,
+            branchId: branchId,
+            sendPort: (message) {
+              sendPort.send("notification:" + message);
+            },
+          );
+    });
     Timer.periodic(Duration(seconds: 40), (Timer t) async {
       if (ProxyService.strategy.sendPort != null) {
         try {
