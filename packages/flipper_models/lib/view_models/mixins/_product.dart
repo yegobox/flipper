@@ -40,8 +40,10 @@ mixin ProductMixin {
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     try {
       // find the related product to update its name
-      final product = await ProxyService.strategy
-          .getProduct(id: variations!.first.productId!);
+      final product = await ProxyService.strategy.getProduct(
+          id: variations!.first.productId!,
+          branchId: ProxyService.box.getBranchId()!,
+          businessId: ProxyService.box.getBusinessId()!);
       ProxyService.strategy
           .updateProduct(productId: product!.id, name: productName);
       List<Variant> updatables = [];
@@ -175,6 +177,9 @@ mixin ProductMixin {
           pkgUnitCd: "CT");
     }
 
-    return ProxyService.strategy.getProduct(id: mproduct.id);
+    return await ProxyService.strategy.getProduct(
+        id: mproduct.id,
+        branchId: ProxyService.box.getBranchId()!,
+        businessId: ProxyService.box.getBusinessId()!);
   }
 }

@@ -560,7 +560,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   // Add the product type dropdown here
 
                   !ref.watch(isCompositeProvider)
-                      ? scanField(model, productRef)
+                      ? scanField(model, productRef: productRef)
                       : SizedBox.shrink(),
                   packagingDropDown(model),
 
@@ -707,6 +707,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
                             Product? product = await ProxyService.strategy
                                 .getProduct(
+                                    businessId:
+                                        ProxyService.box.getBusinessId()!,
                                     id: ref.read(unsavedProductProvider)!.id,
                                     branchId: ProxyService.box.getBranchId()!);
 
@@ -889,7 +891,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     );
   }
 
-  Padding scanField(ScannViewModel model, Product? productRef) {
+  Padding scanField(ScannViewModel model, {Product? productRef}) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: TextFormField(
@@ -904,16 +906,27 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         textInputAction: TextInputAction.done,
         onFieldSubmitted: (barCodeInput) {
           _inputTimer?.cancel();
+          talker.warning("Starting timer for barcode: ${barCodeInput.trim()}");
+
           _inputTimer = Timer(const Duration(seconds: 1), () {
-            if (barCodeInput.isNotEmpty) {
-              model.onAddVariant(
-                editmode: widget.productId != null,
-                barCode: barCodeInput,
-                retailPrice: double.tryParse(retailPriceController.text) ?? 0,
-                supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
-                isTaxExempted: false,
-                product: productRef!,
-              );
+            talker
+                .warning("Timer completed for barcode: ${barCodeInput.trim()}");
+
+            if (barCodeInput.trim().isNotEmpty) {
+              try {
+                model.onAddVariant(
+                  editmode: widget.productId != null,
+                  barCode: barCodeInput,
+                  retailPrice: double.tryParse(retailPriceController.text) ?? 0,
+                  supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
+                  isTaxExempted: false,
+                  product: productRef!,
+                );
+                talker.warning("onAddVariant called successfully");
+              } catch (e, s) {
+                talker.error("Error in onAddVariant: $e", s);
+              }
+
               scannedInputController.clear();
               scannedInputFocusNode.requestFocus();
             }
@@ -1001,7 +1014,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 spreadRadius: 2,
                 blurRadius: 5,
                 offset: Offset(0, 3),
@@ -1099,7 +1112,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     }
                     bool isSelected = _selectedVariants[variant.id] ?? false;
 
-                    /// update the discount rate if we are in edit to have the value saved
+                    /// update the discount rate if we are in edit mode to have the value saved
                     _rates[variant.id] = TextEditingController(
                       text: variant.dcRt.toString(),
                     );
@@ -1115,7 +1128,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           return Theme.of(context)
                               .colorScheme
                               .primary
-                              .withOpacity(0.08);
+                              .withValues(alpha: .08);
                         }
                         return null;
                       }),
@@ -1177,11 +1190,16 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               FilteringTextInputFormatter.digitsOnly,
                             ],
                             onChanged: (value) {
-                              // Optionally, handle any validation or processing when the value changes
+                              // Parse the entered value to an integer; default to 0 if parsing fails
                               final discount = int.tryParse(value) ?? 0;
+
+                              // Check if the parsed discount is outside the valid range (0 to 100)
                               if (discount < 0 || discount > 100) {
-                                // Optional: Ensure the value is between 0% and 100%
+                                // If the value is invalid (less than 0 or greater than 100), reset the field to '0'
                                 _rates[variant.id]?.text = '0';
+                              } else {
+                                // If the value is valid, update the field with the entered value
+                                _rates[variant.id]?.text = value;
                               }
                             },
                           ),

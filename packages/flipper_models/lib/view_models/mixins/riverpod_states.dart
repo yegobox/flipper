@@ -485,7 +485,9 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
       // Fetch additional products beyond the initial 20 items
       if (searchString.isNotEmpty) {
         Product? additionalProducts = await ProxyService.strategy.getProduct(
-            name: searchString, branchId: ProxyService.box.getBranchId()!);
+            name: searchString,
+            branchId: ProxyService.box.getBranchId()!,
+            businessId: ProxyService.box.getBusinessId()!);
 
         // Filter out null products and cast non-null products to Product type
         products.addAll([additionalProducts!]);

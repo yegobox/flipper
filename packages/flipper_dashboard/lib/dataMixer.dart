@@ -58,7 +58,9 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     try {
       /// first if there is image attached delete if first
       Product? product = await ProxyService.strategy.getProduct(
-          id: productId!, branchId: ProxyService.box.getBranchId()!);
+          businessId: ProxyService.box.getBusinessId()!,
+          id: productId!,
+          branchId: ProxyService.box.getBranchId()!);
       if (product?.isComposite ?? false) {
         /// search composite and delete them as well
         List<Composite> composites =
@@ -102,6 +104,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     Product? product;
     if (!isOrdering) {
       product = await ProxyService.strategy.getProduct(
+          businessId: ProxyService.box.getBusinessId()!,
           id: variant.productId ?? 0,
           branchId: ProxyService.box.getBranchId()!);
     }

@@ -146,6 +146,7 @@ class _AdminControlState extends State<AdminControl> {
         // upsert stock first
         final stock = await repository.upsert<models.Stock>(models.Stock(
           variant: addedV,
+          // variant: addedV,
           id: variant.stock!.id,
           tin: variant.stock!.tin,
           bhfId: variant.stock!.bhfId,
@@ -160,7 +161,6 @@ class _AdminControlState extends State<AdminControl> {
           rsdQty: variant.stock!.rsdQty,
           lastTouched: variant.stock!.lastTouched,
           ebmSynced: variant.stock!.ebmSynced,
-          variantId: addedV.id,
         ));
         // re-assign variant with the stock
         // addedV.stock = stock;

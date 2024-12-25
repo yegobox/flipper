@@ -253,14 +253,13 @@ final variationMock = Variant(
 // stock
 final stockMock = Stock(
   lastTouched: DateTime.now(),
+  variant: variationMock,
   branchId: 11,
   id: randomNumber(),
-  variantId: 1,
   currentStock: 0.0,
   productId: 2,
 )
   ..branchId = 11
-  ..variantId = 1
   ..currentStock = 0.0
   ..canTrackingStock = false
   ..showLowStockAlert = false

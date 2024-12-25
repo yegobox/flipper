@@ -9,7 +9,6 @@ Future<Stock> _$StockFromSupabase(Map<String, dynamic> data,
       tin: data['tin'] as int?,
       bhfId: data['bhf_id'] as String?,
       branchId: data['branch_id'] as int?,
-      variantId: data['variant_id'] as int?,
       currentStock: data['current_stock'] as double? ?? 0,
       lowStock: data['low_stock'] as int? ?? 0,
       canTrackingStock: data['can_tracking_stock'] as bool? ?? true,
@@ -26,10 +25,8 @@ Future<Stock> _$StockFromSupabase(Map<String, dynamic> data,
           : DateTime.tryParse(data['deleted_at'] as String),
       ebmSynced: data['ebm_synced'] as bool? ?? false,
       initialStock: data['initial_stock'] as int? ?? 1,
-      variant: data['variant'] == null
-          ? null
-          : await VariantAdapter().fromSupabase(data['variant'],
-              provider: provider, repository: repository));
+      variant: await VariantAdapter().fromSupabase(data['variant'],
+          provider: provider, repository: repository));
 }
 
 Future<Map<String, dynamic>> _$StockToSupabase(Stock instance,
@@ -40,7 +37,6 @@ Future<Map<String, dynamic>> _$StockToSupabase(Stock instance,
     'tin': instance.tin,
     'bhf_id': instance.bhfId,
     'branch_id': instance.branchId,
-    'variant_id': instance.variantId,
     'current_stock': instance.currentStock,
     'low_stock': instance.lowStock,
     'can_tracking_stock': instance.canTrackingStock,
@@ -53,10 +49,9 @@ Future<Map<String, dynamic>> _$StockToSupabase(Stock instance,
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'ebm_synced': instance.ebmSynced,
     'initial_stock': instance.initialStock,
-    'variant': instance.variant != null
-        ? await VariantAdapter().toSupabase(instance.variant!,
-            provider: provider, repository: repository)
-        : null
+    'variant': await VariantAdapter().toSupabase(instance.variant,
+        provider: provider, repository: repository),
+    'variant_id': instance.variantId
   };
 }
 
@@ -68,7 +63,6 @@ Future<Stock> _$StockFromSqlite(Map<String, dynamic> data,
       tin: data['tin'] == null ? null : data['tin'] as int?,
       bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      variantId: data['variant_id'] == null ? null : data['variant_id'] as int?,
       currentStock: data['current_stock'] == null
           ? null
           : data['current_stock'] as double?,
@@ -96,16 +90,11 @@ Future<Stock> _$StockFromSqlite(Map<String, dynamic> data,
       ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
       initialStock:
           data['initial_stock'] == null ? null : data['initial_stock'] as int?,
-      variant: data['variant_Variant_brick_id'] == null
-          ? null
-          : (data['variant_Variant_brick_id'] > -1
-              ? (await repository?.getAssociation<Variant>(
-                  Query.where(
-                      'primaryKey', data['variant_Variant_brick_id'] as int,
-                      limit1: true),
-                ))
-                  ?.first
-              : null))
+      variant: (await repository!.getAssociation<Variant>(
+        Query.where('primaryKey', data['variant_Variant_brick_id'] as int,
+            limit1: true),
+      ))!
+          .first)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -117,7 +106,6 @@ Future<Map<String, dynamic>> _$StockToSqlite(Stock instance,
     'tin': instance.tin,
     'bhf_id': instance.bhfId,
     'branch_id': instance.branchId,
-    'variant_id': instance.variantId,
     'current_stock': instance.currentStock,
     'low_stock': instance.lowStock,
     'can_tracking_stock': instance.canTrackingStock == null
@@ -135,11 +123,8 @@ Future<Map<String, dynamic>> _$StockToSqlite(Stock instance,
     'ebm_synced':
         instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
     'initial_stock': instance.initialStock,
-    'variant_Variant_brick_id': instance.variant != null
-        ? instance.variant!.primaryKey ??
-            await provider.upsert<Variant>(instance.variant!,
-                repository: repository)
-        : null
+    'variant_Variant_brick_id': instance.variant.primaryKey ??
+        await provider.upsert<Variant>(instance.variant, repository: repository)
   };
 }
 
@@ -168,10 +153,6 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
     'branchId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'branch_id',
-    ),
-    'variantId': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'variant_id',
     ),
     'currentStock': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -225,7 +206,12 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
       association: true,
       columnName: 'variant',
       associationType: Map,
-      associationIsNullable: true,
+      associationIsNullable: false,
+      foreignKey: 'variant_id',
+    ),
+    'variantId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'variant_id',
     )
   };
   @override
@@ -261,12 +247,6 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'branch_id',
-      iterable: false,
-      type: int,
-    ),
-    'variantId': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'variant_id',
       iterable: false,
       type: int,
     ),

@@ -100,7 +100,9 @@ class ProductViewModel extends FlipperBaseModel
     try {
       if (productId != null) {
         Product? product = await ProxyService.strategy.getProduct(
-            id: productId, branchId: ProxyService.box.getBranchId()!);
+            id: productId,
+            branchId: ProxyService.box.getBranchId()!,
+            businessId: ProxyService.box.getBusinessId()!);
         setCurrentProduct(currentProduct: product!);
         setCurrentProduct(currentProduct: product);
         kProductName = product.name;
@@ -217,7 +219,9 @@ class ProductViewModel extends FlipperBaseModel
           .updateProduct(productId: product!.id, unit: newUnit.name);
       // get updated product
       product = await ProxyService.strategy.getProduct(
-          id: product!.id, branchId: ProxyService.box.getBranchId()!);
+          businessId: ProxyService.box.getBusinessId()!,
+          id: product!.id,
+          branchId: ProxyService.box.getBranchId()!);
     }
 
     loadUnits();
@@ -298,7 +302,9 @@ class ProductViewModel extends FlipperBaseModel
     double? retailPrice,
   }) async {
     Product? product = await ProxyService.strategy.getProduct(
-        id: productId ?? 0, branchId: ProxyService.box.getBranchId()!);
+        businessId: ProxyService.box.getBusinessId()!,
+        id: productId ?? 0,
+        branchId: ProxyService.box.getBranchId()!);
     List<Variant> variants = await ProxyService.strategy.variants(
         branchId: ProxyService.box.getBranchId()!, productId: productId);
 
@@ -386,8 +392,10 @@ class ProductViewModel extends FlipperBaseModel
   void updateExpiryDate(DateTime date) async {
     ProxyService.strategy.updateProduct(
         productId: product!.id, expiryDate: date.toIso8601String());
-    Product? cProduct = await ProxyService.strategy
-        .getProduct(id: product!.id, branchId: ProxyService.box.getBranchId()!);
+    Product? cProduct = await ProxyService.strategy.getProduct(
+        id: product!.id,
+        branchId: ProxyService.box.getBranchId()!,
+        businessId: ProxyService.box.getBusinessId()!);
     setCurrentProduct(currentProduct: cProduct!);
     rebuildUi();
   }

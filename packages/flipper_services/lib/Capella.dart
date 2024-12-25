@@ -1586,12 +1586,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Stream<List<ITransaction>> orders({required int branchId}) {
-    // TODO: implement orders
-    throw UnimplementedError();
-  }
-
-  @override
   void removeCustomerFromTransaction({required ITransaction transaction}) {
     // TODO: implement removeCustomerFromTransaction
   }
@@ -1612,26 +1606,6 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<List<ITransaction>> tickets() {
     // TODO: implement tickets
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<ITransaction>> ticketsStreams() {
-    // TODO: implement ticketsStreams
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<ITransaction>> transactionList(
-      {DateTime? startDate, DateTime? endDate}) {
-    // TODO: implement transactionList
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<ITransaction>> transactionStreamById(
-      {required int id, required FilterType filterType}) {
-    // TODO: implement transactionStreamById
     throw UnimplementedError();
   }
 
@@ -1710,7 +1684,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  bool isTaxEnabled({required int businessId}) {
+  Future<bool> isTaxEnabled({required int businessId}) {
     // TODO: implement isTaxEnabled
     throw UnimplementedError();
   }
@@ -1977,13 +1951,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  FutureOr<brick.Product?> getProduct(
-      {int? id, String? barCode, int? branchId, String? name}) {
-    // TODO: implement getProduct
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<String> itemCode(
       {required String countryCode,
       required String productType,
@@ -2005,6 +1972,23 @@ class Capella with Booting implements RealmInterface {
       DateTime? startDate,
       DateTime? endDate}) {
     // TODO: implement transactionsStream
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<brick.SKU> getSku({required int branchId, required int businessId}) {
+    // TODO: implement getSku
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<brick.Product?> getProduct(
+      {int? id,
+      String? barCode,
+      required int branchId,
+      String? name,
+      required int businessId}) {
+    // TODO: implement getProduct
     throw UnimplementedError();
   }
 }

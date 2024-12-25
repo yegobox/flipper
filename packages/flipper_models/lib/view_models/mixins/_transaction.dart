@@ -34,7 +34,7 @@ mixin TransactionMixin {
       required double discount}) async {
     try {
       final bhfId = (await ProxyService.box.bhfId()) ?? "00";
-      final taxExanbled = ProxyService.strategy
+      final taxExanbled = await ProxyService.strategy
           .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
       RwApiResponse? response;
       final hasServerUrl = await ProxyService.box.getServerUrl() != null;

@@ -631,19 +631,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 IconButton(
                   icon: Icon(Icons.copy),
                   onPressed: () {
-                    if (kDebugMode) {
-                      talker.info("We are adding dummy data in notification");
-                      ProxyService.strategy.notify(
-                        notification: AppNotification(
-                          identifier: ProxyService.box.getBranchId(),
-                          type: "internal",
-                          id: randomNumber(),
-                          completed: false,
-                          message: "Sale completed",
-                        ),
-                      );
-                    }
-
                     Clipboard.setData(ClipboardData(text: displayId));
 
                     ProxyService.strategy.notify(

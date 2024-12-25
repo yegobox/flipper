@@ -305,6 +305,17 @@ class IsolateHandler with StockPatch {
         bhfid == null ||
         URI == null) return;
 
+    List<UnversalProduct> codes = await repository.get<UnversalProduct>(
+        query: brick.Query(where: [
+      Where('branchId').isExactly(branchId),
+    ]));
+
+    if (codes.isEmpty) {
+      final Completer<void> completer = Completer<void>();
+      await fetchDataAndSaveUniversalProducts(businessId, branchId, URI, bhfid);
+
+      completer.complete();
+    }
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     DartPluginRegistrant.ensureInitialized();
   }
@@ -312,8 +323,6 @@ class IsolateHandler with StockPatch {
   static Future<void> fetchDataAndSaveUniversalProducts(
       int businessId, int branchId, String URI, String bhfid) async {
     try {
-      // Business business =
-      //     localRealm!.query<Business>(r'serverId == $0', [businessId]).first;
       Business business = (await repository.get<Business>(
               query: brick.Query(
                   where: [Where('serverId').isExactly(businessId)])))
@@ -338,8 +347,7 @@ class IsolateHandler with StockPatch {
 
           for (var item in itemClsList) {
             final UniversalProduct product = UniversalProduct.fromJson(item);
-            // UnversalProduct? uni = localRealm!.query<UnversalProduct>(
-            //     r'itemClsCd == $0', [product.itemClsCd]).firstOrNull;
+
             UnversalProduct? uni = (await repository.get<UnversalProduct>(
                     query: brick.Query(where: [
               Where('itemClsCd').isExactly(product.itemClsCd)

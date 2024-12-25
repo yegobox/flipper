@@ -153,7 +153,11 @@ abstract class RealmInterface {
   Future<int> deleteFavoriteByIndex({required int favIndex});
 
   FutureOr<Product?> getProduct(
-      {int? id, String? barCode, int? branchId, String? name});
+      {int? id,
+      String? barCode,
+      required int branchId,
+      String? name,
+      required int businessId});
 
   Future<Product?> createProduct(
       {required Product product,
@@ -281,7 +285,7 @@ abstract class RealmInterface {
       required bool active});
 
   Future<Variant?> getVariantById({required int id});
-  bool isTaxEnabled({required int businessId});
+  Future<bool> isTaxEnabled({required int businessId});
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
       required DateTime whenCreated,
@@ -386,6 +390,7 @@ abstract class RealmInterface {
   List<Composite> compositesByVariantId({required int variantId});
   Composite? composite({required int variantId});
   Stream<SKU?> sku({required int branchId, required int businessId});
+  FutureOr<SKU> getSku({required int branchId, required int businessId});
   void createVariant(
       {required String barCode,
       required String sku,

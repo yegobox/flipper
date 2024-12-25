@@ -14,7 +14,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
   int? tin;
   String? bhfId;
   int? branchId;
-  int? variantId;
+  // int? variantId;
   @Supabase(defaultValue: "0")
   double? currentStock;
   @Supabase(defaultValue: "0")
@@ -34,15 +34,22 @@ class Stock extends OfflineFirstWithSupabaseModel {
   @Supabase(defaultValue: "1")
   int? initialStock;
 
-  Variant? variant;
+  @Supabase(foreignKey: 'variant_id')
+  final Variant variant;
+
+  // If the association will be created by the app, specify
+  // a field that maps directly to the foreign key column
+  // so that Brick can notify Supabase of the association.
+  @Sqlite(ignore: true)
+  int get variantId => variant.id;
 
   Stock({
     required this.id,
     this.tin,
     this.bhfId,
-    this.variant,
+    required this.variant,
     this.branchId,
-    this.variantId,
+    // this.variantId,
     this.currentStock,
     this.lowStock,
     this.canTrackingStock,

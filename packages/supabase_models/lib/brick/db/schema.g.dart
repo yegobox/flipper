@@ -10,6 +10,7 @@ part '20241201195050.migration.dart';
 part '20241114183152.migration.dart';
 part '20241128071851.migration.dart';
 part '20241129195847.migration.dart';
+part '20241224205109.migration.dart';
 part '20241117103838.migration.dart';
 part '20241221150100.migration.dart';
 part '20241113144615.migration.dart';
@@ -37,7 +38,8 @@ part '20241201192839.migration.dart';
 part '20241128071917.migration.dart';
 part '20241201185919.migration.dart';
 part '20241201203523.migration.dart';
-part '20241224205109.migration.dart';
+part '20241225115118.migration.dart';
+part '20241225120000.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -50,6 +52,7 @@ final migrations = <Migration>{
   const Migration20241114183152(),
   const Migration20241128071851(),
   const Migration20241129195847(),
+  const Migration20241224205109(),
   const Migration20241117103838(),
   const Migration20241221150100(),
   const Migration20241113144615(),
@@ -77,12 +80,13 @@ final migrations = <Migration>{
   const Migration20241128071917(),
   const Migration20241201185919(),
   const Migration20241201203523(),
-  const Migration20241224205109()
+  const Migration20241225115118(),
+  const Migration20241225120000()
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema =
-    Schema(20241224205109, generatorVersion: 1, tables: <SchemaTable>{
+    Schema(20241225120000, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -99,7 +103,6 @@ final schema =
     SchemaColumn('tin', Column.integer),
     SchemaColumn('bhf_id', Column.varchar),
     SchemaColumn('branch_id', Column.integer),
-    SchemaColumn('variant_id', Column.integer),
     SchemaColumn('current_stock', Column.Double),
     SchemaColumn('low_stock', Column.integer),
     SchemaColumn('can_tracking_stock', Column.boolean),

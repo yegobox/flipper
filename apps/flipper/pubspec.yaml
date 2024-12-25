@@ -1,7 +1,7 @@
 name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 1.170.4252223232897+1735120258
+version: 1.170.4252223232898+1735145766
 
 environment:
   sdk: ">=3.3.4 <4.0.0"
@@ -195,7 +195,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  build_runner: ^2.4.13
+  build_runner: ^2.4.14
   flutter_assets_generator: ^0.0.8
   # custom_lint:
   # riverpod_generator: ^2.3.5
@@ -214,7 +214,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.3047.0
+  msix_version: 1.170.3048.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"

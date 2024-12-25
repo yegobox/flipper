@@ -13,7 +13,7 @@ dependencies:
   permission_handler: ^11.3.1
   cloud_firestore_odm: ^1.0.0-dev.88
   json_annotation: ^4.9.0
-  build_runner: ^2.4.13
+  build_runner: ^2.4.14
   riverpod_lint: ^2.3.7
   dart_mappable_builder: ^4.2.1
   custom_lint: ^0.6.4

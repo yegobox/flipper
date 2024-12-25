@@ -46,8 +46,10 @@ class FavoriteViewModel extends ProductViewModel {
   }
 
   Future<Product?> getProductById(int prodIndex) async {
-    Product? res = await ProxyService.strategy
-        .getProduct(id: prodIndex, branchId: ProxyService.box.getBranchId()!);
+    Product? res = await ProxyService.strategy.getProduct(
+        id: prodIndex,
+        branchId: ProxyService.box.getBranchId()!,
+        businessId: ProxyService.box.getBusinessId()!);
     return res;
   }
 }

@@ -31,6 +31,16 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
+    await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
+
+    Timer.periodic(Duration(seconds: 40), (Timer t) async {
+      if (ProxyService.box.getUserId() == null ||
+          ProxyService.box.getBusinessId() == null) return;
+
+      if (ProxyService.strategy.sendPort != null) {
+        ProxyService.strategy.sendMessageToIsolate();
+      }
+    });
     ProxyService.box.remove(key: "customPhoneNumberForPayment");
     List<ConnectivityResult> results = await Connectivity().checkConnectivity();
 
@@ -101,17 +111,6 @@ class CronService {
       // ProxyService.strategy.upSert();
       ProxyService.strategy.startReplicator();
     }
-
-    await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
-
-    Timer.periodic(Duration(seconds: 40), (Timer t) async {
-      if (ProxyService.box.getUserId() == null ||
-          ProxyService.box.getBusinessId() == null) return;
-
-      if (ProxyService.strategy.sendPort != null) {
-        ProxyService.strategy.sendMessageToIsolate();
-      }
-    });
 
     Timer.periodic(_downloadFileSchedule(), (Timer t) {
       if (!ProxyService.box.doneDownloadingAsset()) {

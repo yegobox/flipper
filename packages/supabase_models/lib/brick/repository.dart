@@ -11,7 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
 export 'package:brick_core/query.dart'
-    show And, Or, Query, QueryAction, Where, WherePhrase, Compare;
+    show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
 class Repository extends OfflineFirstWithSupabaseRepository {
   static late Repository? _singleton;

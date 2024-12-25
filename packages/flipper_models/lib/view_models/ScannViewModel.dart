@@ -37,23 +37,24 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
   final talker = TalkerFlutter.init();
 
-  void onAddVariant(
+  Future<void> onAddVariant(
       {required String barCode,
       required bool isTaxExempted,
       required Product product,
       required double retailPrice,
       required double supplyPrice,
-      required bool editmode}) {
+      required bool editmode}) async {
     int branchId = ProxyService.box.getBranchId()!;
 
     /// scan item if the same item is scanned more than once
     /// then its quantity will be incremented otherwise if the item is not found
     /// a new item will be created and added to the scannedVariants list
     for (var variant in scannedVariants) {
-      if (variant.name == barCode) {
+      if (variant.bcd == barCode) {
         // If found, update it
         variant.retailPrice = retailPrice;
         variant.supplyPrice = supplyPrice;
+
         variant.qty = (variant.qty!) + 1; // Increment the quantity safely
         notifyListeners();
         return;
@@ -62,24 +63,36 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     talker.info(
         "Scanned or about to create variant with productId ${product.id}");
     // If no matching variant was found, add a new one
-    scannedVariants.add(
-      Variant(
-        name: product.name,
-        retailPrice: retailPrice,
-        supplyPrice: supplyPrice,
-        prc: retailPrice,
+    final variant = Variant(
+      id: randomNumber(),
+      name: product.name,
+      retailPrice: retailPrice,
+      supplyPrice: supplyPrice,
+      prc: retailPrice,
+      qty: 1,
+      dcRt: 0,
+      // bcd is bar code
+      bcd: barCode,
+      sku: barCode,
+      productId: product.id,
+      color: currentColor,
+      unit: 'Per Item',
+      productName: kProductName ?? product.name,
+      branchId: branchId,
+      lastTouched: DateTime.now(),
+    );
+    variant.stock = Stock(
+      id: randomNumber(),
+      currentStock: 1,
+      variant: variant,
+      branchId: branchId,
+      initialStock: 1,
+      showLowStockAlert: true,
+      bhfId: (await ProxyService.box.bhfId()) ?? "00",
+    );
 
-        /// bcd is bar code
-        bcd: barCode,
-        id: randomNumber(),
-        sku: barCode,
-        productId: product.id,
-        color: currentColor,
-        unit: 'Per Item',
-        productName: kProductName ?? product.name,
-        branchId: branchId,
-        lastTouched: DateTime.now(),
-      ),
+    scannedVariants.add(
+      variant,
     );
 
     notifyListeners();

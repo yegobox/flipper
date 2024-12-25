@@ -96,8 +96,11 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildDataWidget(ITransaction transaction) {
-    ref.refresh(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false)));
+    // Defer the refresh until after the build phase
+    Future.microtask(() {
+      ref.refresh(pendingTransactionProvider(
+          (mode: TransactionType.sale, isExpense: false)));
+    });
 
     return widget.isBigScreen
         ? _buildBigScreenLayout(transaction,

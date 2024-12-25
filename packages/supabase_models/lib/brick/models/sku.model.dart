@@ -9,7 +9,7 @@ class SKU extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   final int id;
 
-  int? sku = 1000;
+  int? sku;
   int? branchId;
   int? businessId;
   bool? consumed = false;

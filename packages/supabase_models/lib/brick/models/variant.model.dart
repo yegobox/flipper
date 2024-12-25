@@ -75,6 +75,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
 
   int? stockId;
 
+  /// only a placeholder for capturing stock quantity for this variant,
+  /// since when capturing qty we only have variant and not stock.
   @Sqlite(ignore: true)
   double? qty;
 

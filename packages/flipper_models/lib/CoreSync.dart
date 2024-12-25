@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/RealmInterface.dart';
 import 'package:flipper_models/SessionManager.dart';
@@ -274,7 +275,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               id: stockId,
               lastTouched: DateTime.now(),
               branchId: branchId,
-              variantId: variation.id,
+              variant: variation,
+              // variantId: variation.id,
               currentStock: stock?.rsdQty ?? 0,
               rsdQty: stock?.rsdQty ?? 0,
               value: (variation.stock?.rsdQty ?? 0 * (variation.retailPrice!))
@@ -310,7 +312,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             id: stockId,
             lastTouched: DateTime.now(),
             branchId: branchId,
-            variantId: variation.id,
+            // variantId: variation.id,
+            variant: variation,
             currentStock: variation.stock?.rsdQty ?? 0,
             value: (variation.stock?.rsdQty ?? 0 * (variation.retailPrice!))
                 .toDouble(),
@@ -564,6 +567,83 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         "createOrUpdateBranchOnCloud method is not implemented yet");
   }
 
+  Future<models.Variant> _createRegularVariant(int branchId, int? tinNumber,
+      {required double qty,
+      required double supplierPrice,
+      required double retailPrice,
+      required int itemSeq,
+      String? bhFId,
+      required bool ebmSynced,
+      Product? product,
+      required int productId,
+      required String name,
+      required String sku}) async {
+    final int variantId = randomNumber();
+    final number = randomNumber().toString().substring(0, 5);
+
+    return Variant(
+        lastTouched: DateTime.now(),
+        name: product?.name ?? name,
+        sku: sku,
+        productId: product?.id ?? productId,
+        color: product?.color,
+        unit: 'Per Item',
+        productName: product?.name ?? name,
+        branchId: branchId,
+        supplyPrice: supplierPrice,
+        retailPrice: retailPrice,
+        id: variantId,
+        bhfId: bhFId ?? '00',
+        itemStdNm: "Regular",
+        addInfo: "A",
+        pkg: "1",
+        splyAmt: supplierPrice,
+        itemClsCd: "5020230602",
+        itemCd: await itemCode(
+          countryCode: 'RW',
+          productType: productType,
+          packagingUnit: packagingUnit,
+          quantityUnit: quantityUnit,
+        ),
+        modrNm: number,
+        modrId: number,
+        pkgUnitCd: "BJ",
+        regrId: randomNumber().toString().substring(0, 5),
+        itemTyCd: "2", // this is a finished product
+        /// available type for itemTyCd are 1 for raw material and 3 for service
+        /// is insurance applicable default is not applicable
+        isrcAplcbYn: "N",
+        useYn: "N",
+        itemSeq: itemSeq,
+        itemNm: product?.name ?? name,
+        taxPercentage: 18.0,
+        tin: tinNumber,
+        bcd: product?.name ?? name,
+
+        /// country of origin for this item we default until we support something different
+        /// and this will happen when we do import.
+        orgnNatCd: "RW",
+
+        /// registration name
+        regrNm: product?.name ?? name,
+
+        /// taxation type code
+        taxTyCd: "B", // available types A(A-EX),B(B-18.00%),C,D
+        // default unit price
+        dftPrc: retailPrice,
+        prc: retailPrice,
+
+        // NOTE: I believe bellow item are required when saving purchase
+        ///but I wonder how to get them when saving an item.
+        spplrItemCd: "",
+        spplrItemClsCd: "",
+        spplrItemNm: product?.name ?? name,
+
+        /// Packaging Unit
+        qtyUnitCd: "U", // see 4.6 in doc
+        ebmSynced: ebmSynced);
+  }
+
   @override
   Future<Product?> createProduct(
       {required Product product,
@@ -576,9 +656,52 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       double supplyPrice = 0,
       double retailPrice = 0,
       int itemSeq = 1,
-      bool ebmSynced = false}) {
-    // TODO: implement createProduct
-    throw UnimplementedError("createProduct method is not implemented yet");
+      bool ebmSynced = false}) async {
+    final String productName = product.name;
+    if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
+      final Product? existingProduct = await getProduct(
+          name: productName, businessId: businessId, branchId: branchId);
+      if (existingProduct != null) {
+        return existingProduct;
+      }
+    }
+
+    SKU sku = await getSku(branchId: branchId, businessId: businessId);
+
+    sku.consumed = true;
+    await repository.upsert(sku);
+    await repository.upsert(product);
+
+    if (!skipRegularVariant) {
+      Product? kProduct = await getProduct(
+          id: product.id, branchId: branchId, businessId: businessId);
+      Variant newVariant = await _createRegularVariant(branchId, tinNumber,
+          qty: qty,
+          product: product,
+          bhFId: bhFId,
+          supplierPrice: supplyPrice,
+          retailPrice: retailPrice,
+          name: product.name,
+          sku: sku.sku.toString(),
+          productId: product.id,
+          itemSeq: itemSeq,
+          ebmSynced: ebmSynced);
+      await repository.upsert<Variant>(newVariant);
+
+      final Stock stock = Stock(
+          lastTouched: DateTime.now(),
+          id: randomNumber(),
+          variant: newVariant,
+          branchId: branchId,
+          // variantId: newVariant.id,
+          currentStock: qty,
+          productId: kProduct!.id);
+
+      await repository.upsert<Stock>(stock);
+    }
+    return (await repository.get<Product>(
+            query: brick.Query.where('id', product.id)))
+        .first;
   }
 
   @override
@@ -1009,14 +1132,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             lastTouched: DateTime.now(),
             id: stockId,
             branchId: branchId,
-            variantId: variantId,
+            // variantId: variantId,
             currentStock: 0,
             productId: product.id)
           ..canTrackingStock = false
           ..showLowStockAlert = false
           ..currentStock = 0
           ..branchId = branchId
-          ..variantId = variantId
+          // ..variantId = variantId
           ..lowStock = 10 // default static
           ..canTrackingStock = true
           ..showLowStockAlert = true
@@ -2284,21 +2407,100 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Stream<SKU?> sku({required int branchId, required int businessId}) {
-    // TODO: implement sku
-    throw UnimplementedError("sku method is not implemented yet");
-  }
-
-  @override
   Stream<double> soldStockValue({required branchId}) {
     // TODO: implement soldStockValue
     throw UnimplementedError("soldStockValue method is not implemented yet");
   }
 
   @override
-  Future<void> spawnIsolate(isolateHandler) {
-    // TODO: implement spawnIsolate
-    throw UnimplementedError("spawnIsolate method is not implemented yet");
+  Future<void> spawnIsolate(isolateHandler) async {
+    try {
+      final isTaxEnabledFor =
+          await isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
+      if (isTaxEnabledFor) {
+        // 1. Create the ReceivePort to receive messages from the isolate
+        receivePort = ReceivePort();
+
+        // 2. Spawn the isolate and pass the receivePort.sendPort to it
+        // await Isolate.spawn(isolateHandler, receivePort!.sendPort);
+        final rootIsolateToken = RootIsolateToken.instance!;
+
+        await Isolate.spawn(
+          isolateHandler,
+          [receivePort!.sendPort, rootIsolateToken, CouchbaseLite.context],
+          debugName: 'backgroundIsolate',
+        );
+
+        // 3. Retrieve the SendPort sent back by the isolate (used to send messages to the isolate)
+        // sendPort = await receivePort!.first;
+
+        receivePort!.listen(
+          (message) async {
+            if (message is SendPort) {
+              // Store the sendPort for communication with isolate
+              sendPort = message;
+              print('SendPort received');
+            }
+            String identifier = message as String;
+            List<String> separator = identifier.split(":");
+
+            if (separator.first == "notification") {
+              if (separator.length == 2) {
+                /// this is error message
+                ProxyService.notification
+                    .sendLocalNotification(body: separator[1]);
+              }
+              if (separator.length < 3) return;
+              if (separator[2] == "variant") {
+                final variantId = int.tryParse(separator[3]);
+                Variant? variant =
+                    ProxyService.strategy.variant(variantId: variantId);
+                if (variant != null) {
+                  variant.ebmSynced = true;
+                  repository.upsert<Variant>(variant);
+                }
+                ProxyService.notification
+                    .sendLocalNotification(body: "Item Saving " + separator[1]);
+              }
+              if (separator[2] == "stock") {
+                final stockId = int.tryParse(separator[3]);
+                Stock? stock = await getStockById(id: stockId!);
+                if (stock != null) {
+                  stock.ebmSynced = true;
+                  repository.upsert<Stock>(stock);
+                }
+                ProxyService.notification.sendLocalNotification(
+                    body: "Stock Saving " + separator[1]);
+              }
+              if (separator[2] == "customer") {
+                final customerId = int.tryParse(separator[3]);
+                Customer? customer = await getCustomer(id: customerId);
+                if (customer != null) {
+                  customer.ebmSynced = true;
+                  repository.upsert<Customer>(customer);
+                }
+                ProxyService.notification.sendLocalNotification(
+                    body: "Customer Saving " + separator[1]);
+              }
+              if (separator[2] == "transaction") {
+                final transactionId = int.tryParse(separator[3]);
+                ITransaction? transaction =
+                    getTransactionById(id: transactionId!);
+                if (transaction != null) {
+                  transaction.ebmSynced = true;
+                  repository.upsert<ITransaction>(transaction);
+                }
+                ProxyService.notification.sendLocalNotification(
+                    body: "Transaction Saving " + separator[1]);
+              }
+            }
+          },
+        );
+      }
+    } catch (error, s) {
+      talker.warning('Error managing isolates: $error');
+      talker.warning('Error managing isolates: $s');
+    }
   }
 
   @override
@@ -2593,10 +2795,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<List<UnversalProduct>> universalProductNames({required int branchId}) {
-    // TODO: implement universalProductNames
-    throw UnimplementedError(
-        "universalProductNames method is not implemented yet");
+  Future<List<UnversalProduct>> universalProductNames(
+      {required int branchId}) async {
+    return repository.get<UnversalProduct>(
+        query:
+            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
   }
 
   @override
@@ -3113,9 +3316,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  bool isTaxEnabled({required int businessId}) {
-    // TODO: implement isTaxEnabled
-    throw UnimplementedError("isTaxEnabled method is not implemented yet");
+  Future<bool> isTaxEnabled({required int businessId}) async {
+    return (await getBusiness())?.tinNumber != null;
   }
 
   @override
@@ -3151,11 +3353,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       id: randomNumber(),
       lastTouched: DateTime.now(),
       branchId: branchId,
-      variantId: variantId,
+      // variantId: variantId,
+      variant: variant!,
       currentStock: currentStock,
       rsdQty: rsdQty,
       value: value,
-      productId: variant!.productId,
+      productId: variant.productId,
     );
     await repository.upsert<Stock>(stock);
   }
@@ -3492,13 +3695,18 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<models.Product?> getProduct(
-      {int? id, String? barCode, int? branchId, String? name}) async {
+      {int? id,
+      String? barCode,
+      required int branchId,
+      String? name,
+      required int businessId}) async {
     return (await repository.get<Product>(
             query: brick.Query(where: [
-      brick.Where('id', value: id, compare: brick.Compare.exact),
+      brick.Or('id').isExactly(id),
       brick.Or('barCode').isExactly(barCode),
       brick.Or('name').isExactly(name),
       brick.Where('branchId').isExactly(branchId),
+      brick.Where('businessId').isExactly(businessId),
     ])))
         .firstOrNull;
   }
@@ -3512,7 +3720,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     final repository = Repository();
     final Query = brick.Query(
       where: [brick.Where('itemCode').isNot(null)],
-      providerArgs: {'orderBy': 'itemCode DESC'},
+      orderBy: [brick.OrderBy('itemCode', ascending: false)],
     );
     final items = await repository.get<models.ItemCode>(
         query: Query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
@@ -3535,5 +3743,42 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     await repository.upsert(newItem);
 
     return newItemCode;
+  }
+
+  @override
+  Stream<SKU?> sku({required int branchId, required int businessId}) {
+    // TODO: implement sku
+    throw UnimplementedError("sku method is not implemented yet");
+  }
+
+  @override
+  FutureOr<SKU> getSku({required int branchId, required int businessId}) async {
+    final query = brick.Query(
+      where: [
+        brick.Where('branchId').isExactly(branchId),
+        brick.Where('businessId').isExactly(businessId),
+      ],
+    );
+    final skus = await repository.get<SKU>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+
+    // Extract the last sequence number and increment it
+    int lastSequence = 0;
+    if (skus.isNotEmpty) {
+      final lastSku = skus.first;
+      lastSequence = lastSku.sku!;
+    }
+    final newSequence = lastSequence + 1;
+
+    // Create and save the new SKU
+    final newSku = SKU(
+      sku: newSequence,
+      branchId: branchId,
+      businessId: businessId,
+      id: randomNumber(),
+    );
+    await repository.upsert(newSku);
+
+    return newSku;
   }
 }
