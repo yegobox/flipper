@@ -14,7 +14,6 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:http/http.dart' as http;
-import 'dart:collection';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:supabase_models/brick/repository.dart' as brick;
@@ -25,11 +24,8 @@ final repository = Repository();
 mixin VariantPatch {
   static Future<void> patchVariant(
       {required String URI, required Function(String) sendPort}) async {
-    // List<Variant> variants =
-    //     localRealm!.query<Variant>(r'ebmSynced == $0', [false]).toList();
     final variants = await repository.get<Variant>(
         query: brick.Query(where: [Where('ebmSynced').isExactly(false)]));
-    // delete all variants
 
     for (Variant variant in variants) {
       try {
