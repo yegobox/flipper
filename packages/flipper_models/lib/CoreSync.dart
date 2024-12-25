@@ -29,6 +29,7 @@ import 'package:flipper_models/exceptions.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:http/http.dart' as http;
 import 'package:flipper_models/power_sync/schema.dart';
+import 'package:supabase_models/brick/databasePath.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/repository.dart' as brick;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -601,9 +602,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         itemClsCd: "5020230602",
         itemCd: await itemCode(
           countryCode: 'RW',
-          productType: productType,
-          packagingUnit: packagingUnit,
-          quantityUnit: quantityUnit,
+          productType: "2",
+          packagingUnit: "CT",
+          quantityUnit: "BJ",
         ),
         modrNm: number,
         modrId: number,
@@ -2381,10 +2382,28 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<void> sendMessageToIsolate() {
-    // TODO: implement sendMessageToIsolate
-    throw UnimplementedError(
-        "sendMessageToIsolate method is not implemented yet");
+  Future<void> sendMessageToIsolate() async {
+    if (ProxyService.box.stopTaxService()!) return;
+
+    Business? business =
+        await getBusiness(businessId: ProxyService.box.getBusinessId()!);
+
+    try {
+      sendPort!.send({
+        'task': 'taxService',
+        'branchId': ProxyService.box.getBranchId()!,
+        "businessId": ProxyService.box.getBusinessId()!,
+        "URI": await ProxyService.box.getServerUrl(),
+        "bhfId": await ProxyService.box.bhfId(),
+        'tinNumber': business!.tinNumber,
+        'encryptionKey': ProxyService.box.encryptionKey(),
+        'dbPath':
+            path.join((await DatabasePath.getDatabaseDirectory()), dbFileName),
+      });
+    } catch (e, s) {
+      talker.error(e, s);
+      rethrow;
+    }
   }
 
   @override
@@ -2427,7 +2446,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
         await Isolate.spawn(
           isolateHandler,
-          [receivePort!.sendPort, rootIsolateToken, CouchbaseLite.context],
+          // [receivePort!.sendPort, rootIsolateToken, CouchbaseLite.context],
+          [receivePort!.sendPort, rootIsolateToken],
           debugName: 'backgroundIsolate',
         );
 
@@ -3317,7 +3337,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<bool> isTaxEnabled({required int businessId}) async {
-    return (await getBusiness())?.tinNumber != null;
+    final business = (await getBusiness(businessId: businessId));
+    return business?.tinNumber != null;
   }
 
   @override

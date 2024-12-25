@@ -10,7 +10,6 @@ import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/helperModels/UniversalProduct.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_services/constants.dart';
@@ -20,6 +19,7 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:supabase_models/brick/repository.dart' as brick;
 import 'package:supabase_models/brick/repository.dart';
+import 'package:sqlite3/sqlite3.dart';
 
 final repository = Repository();
 mixin VariantPatch {
@@ -240,102 +240,106 @@ class IsolateHandler with StockPatch {
 
     port.listen((message) async {
       if (message is Map<String, dynamic>) {
-        print("Message received");
-        String local = message['dbPath'];
-        String encryptionKey = message['encryptionKey'];
-
-        if (message['task'] == 'sync') {}
         if (message['task'] == 'taxService') {
           int branchId = message['branchId'];
-          int tinNumber = message['tinNumber'];
+          // int tinNumber = message['tinNumber'];
+          int businessId = message['businessId'];
+          String dbPath = message['dbPath'];
 
           String URI = message['URI'];
           String bhfId = message['bhfId'];
-          String encryptionKey = message['encryptionKey'];
-          String local = message['dbPath'];
 
-          PatchTransactionItem.patchTransactionItem(
-            URI: URI,
-            sendPort: (message) {
-              sendPort.send("notification:" + message);
-            },
-            tinNumber: tinNumber,
-            bhfId: bhfId,
-          );
-          StockPatch.patchStock(
-            URI: URI,
-            sendPort: (message) {
-              sendPort.send("notification:" + message);
-            },
-          );
+          localData(args,
+              dbPath: dbPath,
+              branchId: branchId,
+              businessId: businessId,
+              bhfid: bhfId,
+              URI: URI);
 
-          VariantPatch.patchVariant(
-            URI: URI,
-            sendPort: (message) {
-              sendPort.send("notification:" + message);
-            },
-          );
+          // PatchTransactionItem.patchTransactionItem(
+          //   URI: URI,
+          //   sendPort: (message) {
+          //     sendPort.send("notification:" + message);
+          //   },
+          //   tinNumber: tinNumber,
+          //   bhfId: bhfId,
+          // );
+          // StockPatch.patchStock(
+          //   URI: URI,
+          //   sendPort: (message) {
+          //     sendPort.send("notification:" + message);
+          //   },
+          // );
 
-          CustomerPatch.patchCustomer(
-            URI: URI,
-            tinNumber: tinNumber,
-            bhfId: bhfId,
-            branchId: branchId,
-            sendPort: (message) {
-              sendPort.send("notification:" + message);
-            },
-          );
+          // VariantPatch.patchVariant(
+          //   URI: URI,
+          //   sendPort: (message) {
+          //     sendPort.send("notification:" + message);
+          //   },
+          // );
+
+          // CustomerPatch.patchCustomer(
+          //   URI: URI,
+          //   tinNumber: tinNumber,
+          //   bhfId: bhfId,
+          //   branchId: branchId,
+          //   sendPort: (message) {
+          //     sendPort.send("notification:" + message);
+          //   },
+          // );
         }
       }
     });
   }
 
-  static Future<void> localData(List<dynamic> args) async {
-    final rootIsolateToken = args[0] as RootIsolateToken;
+  static Future<void> localData(List<dynamic> args,
+      {required int branchId,
+      required int businessId,
+      required String dbPath,
+      required String bhfid,
+      required String URI}) async {
+    final rootIsolateToken = args[1] as RootIsolateToken;
 
-    String? key = args[4] as String?;
+    // List<UnversalProduct> codes = await repository.get<UnversalProduct>(
+    //     query: brick.Query(where: [
+    //   Where('branchId').isExactly(branchId),
+    // ]));
 
-    int? branchId = args[2] as int?;
-    int? businessId = args[7] as int?;
-    String? bhfid = args[6] as String?;
-    String? URI = args[8] as String?;
-    if (key == null ||
-        branchId == null ||
-        businessId == null ||
-        bhfid == null ||
-        URI == null) return;
+    // if (codes.isEmpty) {
+    // final Completer<void> completer = Completer<void>();
+    await fetchDataAndSaveUniversalProducts(businessId, branchId, URI, bhfid,
+        dbPath: dbPath);
 
-    List<UnversalProduct> codes = await repository.get<UnversalProduct>(
-        query: brick.Query(where: [
-      Where('branchId').isExactly(branchId),
-    ]));
-
-    if (codes.isEmpty) {
-      final Completer<void> completer = Completer<void>();
-      await fetchDataAndSaveUniversalProducts(businessId, branchId, URI, bhfid);
-
-      completer.complete();
-    }
+    // completer.complete();
+    // }
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     DartPluginRegistrant.ensureInitialized();
   }
 
   static Future<void> fetchDataAndSaveUniversalProducts(
-      int businessId, int branchId, String URI, String bhfid) async {
+    int businessId,
+    int branchId,
+    String URI,
+    String bhfid, {
+    required String dbPath,
+  }) async {
     try {
-      Business business = (await repository.get<Business>(
-              query: brick.Query(
-                  where: [Where('serverId').isExactly(businessId)])))
-          .first;
+      final db = sqlite3.open(dbPath);
+      final result =
+          db.select("Select * from Business where server_id = $businessId");
 
+      print(result.single.toString());
+      Business business = Business.fromMap(result.single);
       final url = URI + "/itemClass/selectItemsClass";
+      print(url);
+      print(bhfid);
       final headers = {"Content-Type": "application/json"};
       final body = jsonEncode({
         "tin": business.tinNumber,
         "bhfId": bhfid,
-        "lastReqDt": "20190523000000",
+        "lastReqDt": "20210523000000",
       });
-      print("Loading item codes");
+
       final response =
           await http.post(Uri.parse(url), headers: headers, body: body);
       if (response.statusCode == 200) {
@@ -347,13 +351,11 @@ class IsolateHandler with StockPatch {
 
           for (var item in itemClsList) {
             final UniversalProduct product = UniversalProduct.fromJson(item);
+            final result = db.select(
+                "SELECT * FROM UnversalProduct WHERE item_cls_cd = ?",
+                [product.itemClsCd]);
 
-            UnversalProduct? uni = (await repository.get<UnversalProduct>(
-                    query: brick.Query(where: [
-              Where('itemClsCd').isExactly(product.itemClsCd)
-            ])))
-                .firstOrNull;
-            if (uni == null) {
+            if (result.isEmpty) {
               final unii = UnversalProduct(
                 id: randomNumber(),
                 itemClsCd: product.itemClsCd,
@@ -365,7 +367,20 @@ class IsolateHandler with StockPatch {
                 mjrTgYn: product.mjrTgYn,
                 taxTyCd: product.taxTyCd,
               );
-              repository.upsert(unii);
+
+              db.execute(
+                  "INSERT INTO UnversalProduct (id, item_cls_cd, item_cls_lvl, item_cls_nm, branch_id, business_id, use_yn, mjr_tg_yn, tax_ty_cd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                  [
+                    unii.id,
+                    unii.itemClsCd,
+                    unii.itemClsLvl,
+                    unii.itemClsNm,
+                    unii.branchId,
+                    unii.businessId,
+                    unii.useYn,
+                    unii.mjrTgYn,
+                    unii.taxTyCd
+                  ]);
             }
           }
         } else {
@@ -374,6 +389,9 @@ class IsolateHandler with StockPatch {
       } else {
         print('Failed to load data. Status code: ${response.statusCode}');
       }
-    } catch (e) {}
+    } catch (e, s) {
+      print(e);
+      print(s);
+    }
   }
 }

@@ -839,9 +839,10 @@ abstract class RealmInterface {
 
   getTop5RecentConversations() {}
 
-  FutureOr<String> itemCode(
-      {required String countryCode,
-      required String productType,
-      required packagingUnit,
-      required String quantityUnit});
+  FutureOr<String> itemCode({
+    required String countryCode, // e.g., "RW"
+    required String productType, // e.g., "2"
+    required String packagingUnit, // e.g., "NT"
+    required String quantityUnit, // e.g., "BJ"
+  });
 }

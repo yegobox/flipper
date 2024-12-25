@@ -29,4 +29,18 @@ class UnversalProduct extends OfflineFirstWithSupabaseModel {
     this.businessId,
     this.branchId,
   });
+  // fromMap method
+  factory UnversalProduct.fromMap(Map<String, dynamic> map) {
+    return UnversalProduct(
+      id: map['id'] as int,
+      itemClsCd: map['item_cls_cd'] as String?,
+      itemClsNm: map['item_cls_nm'] as String?,
+      itemClsLvl: map['item_cls_lvl'] as int?,
+      taxTyCd: map['tax_ty_cd'] as String?,
+      mjrTgYn: map['mjr_tg_yn'] as String?,
+      useYn: map['use_yn'] as String?,
+      businessId: map['business_id'] as int?,
+      branchId: map['branch_id'] as int?,
+    );
+  }
 }

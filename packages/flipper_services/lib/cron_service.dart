@@ -34,11 +34,12 @@ class CronService {
     await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
 
     Timer.periodic(Duration(seconds: 40), (Timer t) async {
-      if (ProxyService.box.getUserId() == null ||
-          ProxyService.box.getBusinessId() == null) return;
-
       if (ProxyService.strategy.sendPort != null) {
-        ProxyService.strategy.sendMessageToIsolate();
+        try {
+          ProxyService.strategy.sendMessageToIsolate();
+        } catch (e) {
+          talker.error(e);
+        }
       }
     });
     ProxyService.box.remove(key: "customPhoneNumberForPayment");

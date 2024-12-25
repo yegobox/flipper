@@ -74,7 +74,7 @@ dependency_overrides:
   analyzer: ^6.0.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^2.4.7
+  sqlite3: ^2.5.0
   stacked_services: ^1.6.0
   # amplify_db_common:
   #   git:

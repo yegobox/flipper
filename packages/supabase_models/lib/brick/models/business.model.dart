@@ -182,4 +182,58 @@ class Business extends OfflineFirstWithSupabaseModel {
       backupFileId: backupFileId ?? this.backupFileId,
     );
   }
+
+  // fromMap method
+  factory Business.fromMap(Map<String, dynamic> map) {
+    return Business(
+      id: map['id'] as int,
+      serverId: map['server_id'] as int,
+      name: map['name'] as String?,
+      currency: map['currency'] as String?,
+      categoryId: map['category_id'] as String?,
+      latitude: map['latitude'] as String?,
+      longitude: map['longitude'] as String?,
+      userId: map['user_id'] as int,
+      timeZone: map['time_zone'] as String?,
+      country: map['country'] as String?,
+      businessUrl: map['business_url'] as String?,
+      hexColor: map['hex_color'] as String?,
+      imageUrl: map['image_url'] as String?,
+      type: map['type'] as String?,
+      // active: map['active'] as bool,
+      chatUid: map['chat_uid'] as String?,
+      metadata: map['metadata'] as String?,
+      role: map['role'] as String?,
+      lastSeen: map['last_seen'] as int?,
+      firstName: map['first_name'] as String?,
+      lastName: map['last_name'] as String?,
+      createdAt: map['created_at'] as String?,
+      deviceToken: map['deviceToken'] as String?,
+      // backUpEnabled: map['back_up_enabled'] as bool?,
+      subscriptionPlan: map['subscription_plan'] as String?,
+      nextBillingDate: map['next_billing_date'] as String?,
+      previousBillingDate: map['previous_billing_date'] as String?,
+      // isLastSubscriptionPaymentSucceeded:
+      //     map['is_last_subscription_payment_succeeded'] as bool?,
+      backupFileId: map['backup_file_id'] as String?,
+      email: map['email'] as String?,
+      lastDbBackup: map['last_db_backup'] as String?,
+      fullName: map['full_name'] as String?,
+      tinNumber: map['tin_number'] as int?,
+      bhfId: map['bhf_id'] as String?,
+      dvcSrlNo: map['dvc_srl_no'] as String?,
+      adrs: map['adrs'] as String?,
+      // taxEnabled: map['tax_enabled'] as bool?,
+      taxServerUrl: map['tax_server_url'] as String?,
+      // isDefault: map['is_default'] as bool?,
+      businessTypeId: map['business_type_id'] as int?,
+      lastTouched: map['last_touched'] == null
+          ? null
+          : DateTime.tryParse(map['last_touched'] as String),
+      deletedAt: map['deleted_at'] == null
+          ? null
+          : DateTime.tryParse(map['deleted_at'] as String),
+      encryptionKey: map['encryption_key'] as String?,
+    );
+  }
 }
