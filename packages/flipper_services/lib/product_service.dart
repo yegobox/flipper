@@ -34,7 +34,7 @@ class ProductService with ListenableServiceMixin {
 
   Stream<List<Product>> productStream({required int branchId}) {
     return Stream.fromFuture(ProxyService.strategy
-            .getProductList(branchId: ProxyService.box.getBranchId()!))
+            .getProducts(branchId: ProxyService.box.getBranchId()!))
         .asyncExpand((products) async* {
       // Yield the products as they become available
       yield products;

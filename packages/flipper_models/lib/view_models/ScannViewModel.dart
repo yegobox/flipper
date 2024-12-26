@@ -85,7 +85,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       id: randomNumber(),
       currentStock: 1,
       variantId: variant.id,
-      variant: variant,
+      // variant: variant,
       branchId: branchId,
       initialStock: 1,
       showLowStockAlert: true,

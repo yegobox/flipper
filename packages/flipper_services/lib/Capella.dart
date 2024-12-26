@@ -724,19 +724,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<List<Product>> getProductList(
-      {int? prodIndex, required int branchId}) {
-    // TODO: implement getProductList
-    throw UnimplementedError();
-  }
-
-  @override
-  List<Product> getProducts({String? key}) {
-    // TODO: implement getProducts
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Receipt?> getReceipt({required int transactionId}) {
     // TODO: implement getReceipt
     throw UnimplementedError();
@@ -1045,7 +1032,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  List<Stock> stocks({required int branchId}) {
+  Future<List<Stock>> stocks({required int branchId}) {
     // TODO: implement stocks
     throw UnimplementedError();
   }
@@ -1645,13 +1632,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  List<Variant> variants(
-      {required int branchId, int? productId, int? page, int? itemsPerPage}) {
-    // TODO: implement variants
-    throw UnimplementedError();
-  }
-
-  @override
   Future<bool> delete(
       {required int id,
       String? endPoint,
@@ -1991,6 +1971,20 @@ class Capella with Booting implements RealmInterface {
       String? name,
       required int businessId}) {
     // TODO: implement getProduct
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Product>> getProducts(
+      {String? key, int? prodIndex, required int branchId}) {
+    // TODO: implement getProducts
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Variant>> variants(
+      {required int branchId, int? productId, int? page, int? itemsPerPage}) {
+    // TODO: implement variants
     throw UnimplementedError();
   }
 }

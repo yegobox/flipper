@@ -105,17 +105,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return false;
   }
 
-  static const int BATCH_SIZE = 100;
-
-  List<List<TransactionItem>> _splitIntoBatches(
-      List<TransactionItem> items, int batchSize) {
-    return [
-      for (var i = 0; i < items.length; i += batchSize)
-        items.sublist(
-            i, i + batchSize > items.length ? items.length : i + batchSize)
-    ];
-  }
-
   @override
   Future<bool> firebaseLogin({String? token}) async {
     int? userId = ProxyService.box.getUserId();
@@ -277,7 +266,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               variantId: variation.id,
               lastTouched: DateTime.now(),
               branchId: branchId,
-              variant: variation,
               currentStock: stock?.rsdQty ?? 0,
               rsdQty: stock?.rsdQty ?? 0,
               value: (variation.stock?.rsdQty ?? 0 * (variation.retailPrice!))
@@ -294,34 +282,34 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         stock.lastTouched = DateTime.now().toLocal();
         stock.value = (variation.stock?.rsdQty ?? 0 * (variation.retailPrice!))
             .toDouble();
-        await repository.upsert<Stock>(stock);
+
         variant.stock?.rsdQty = variation.stock?.rsdQty ?? 0;
         variant.retailPrice = variation.retailPrice;
         variant.supplyPrice = variation.supplyPrice;
         variant.taxPercentage = variation.taxPercentage!.toDouble();
         variant.lastTouched = DateTime.now().toLocal();
+        variant.stock = stock;
+        variant.stockId = stock.id;
         await repository.upsert<Variant>(variant);
       } else {
         int stockId = randomNumber();
 
-        talker.info("Saving variant when scanning..... [1]");
-
-        await repository.upsert<Variant>(variation);
-
         final newStock = Stock(
             id: stockId,
             lastTouched: DateTime.now(),
-            variantId: variation.id,
             branchId: branchId,
-            // variantId: variation.id,
-            variant: variation,
             currentStock: variation.stock?.rsdQty ?? 0,
             value: (variation.stock?.rsdQty ?? 0 * (variation.retailPrice!))
                 .toDouble(),
-            productId: variation.productId)
-          ..active = true;
-        //newStock.variantId = variation.id;
+            active: true,
+            productId: variation.productId);
+
+        /// for relationship we save stock first then variant
         await repository.upsert<Stock>(newStock);
+        Variant variant = await repository.upsert<Variant>(variation);
+        variant.stock = newStock;
+        variant.stockId = newStock.id;
+        await repository.upsert<Variant>(variant);
       }
     } catch (e, s) {
       talker.warning('Error in updateStock: $e $s');
@@ -695,9 +683,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           lastTouched: DateTime.now(),
           id: randomNumber(),
           variantId: newVariant.id,
-          variant: newVariant,
+          // variant: newVariant,
           branchId: branchId,
-          // variantId: newVariant.id,
           currentStock: qty,
           productId: kProduct!.id);
 
@@ -1132,7 +1119,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             qtyUnitCd: "U");
 
         Stock stock = Stock(
-            variant: variant,
+            // variant: variant,
             variantId: variant.id,
             lastTouched: DateTime.now(),
             id: stockId,
@@ -1480,16 +1467,19 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<List<Product>> getProductList(
-      {int? prodIndex, required int branchId}) {
-    // TODO: implement getProductList
-    throw UnimplementedError("getProductList method is not implemented yet");
-  }
-
-  @override
-  List<Product> getProducts({String? key}) {
-    // TODO: implement getProducts
-    throw UnimplementedError("getProducts method is not implemented yet");
+  Future<List<Product>> getProducts(
+      {String? key, int? prodIndex, required int branchId}) async {
+    if (key != null) {
+      return await repository.get<Product>(
+          query: brick.Query(where: [brick.Where('name').isExactly(key)]));
+    }
+    if (prodIndex != null) {
+      return await repository.get<Product>(
+          query: brick.Query(where: [brick.Where('id').isExactly(prodIndex)]));
+    }
+    return await repository.get<Product>(
+        query:
+            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
   }
 
   @override
@@ -2540,12 +2530,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  List<Stock> stocks({required int branchId}) {
-    // TODO: implement stocks
-    throw UnimplementedError("stocks method is not implemented yet");
-  }
-
-  @override
   Future<({String customerCode, String url, int userId})> subscribe(
       {required int businessId,
       required Business business,
@@ -3310,10 +3294,45 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  List<Variant> variants(
-      {required int branchId, int? productId, int? page, int? itemsPerPage}) {
-    // TODO: implement variants
-    throw UnimplementedError("variants method is not implemented yet");
+  Future<List<Variant>> variants(
+      {required int branchId,
+      int? productId,
+      int? page,
+      int? itemsPerPage}) async {
+    List<Variant> variants = [];
+
+    if (productId != null) {
+      variants = await repository.get<Variant>(
+          query: brick.Query(where: [
+        brick.Where('productId').isExactly(productId),
+        brick.Where('branchId').isExactly(branchId),
+        brick.Where('productName').isNot(CUSTOM_PRODUCT),
+        brick.Where('name').isNot(TEMP_PRODUCT),
+      ]));
+    } else {
+      variants = await repository.get<Variant>(
+          query: brick.Query(where: [
+        brick.Where('branchId').isExactly(branchId),
+        brick.Where('productName').isNot(CUSTOM_PRODUCT),
+        brick.Where('name').isNot(TEMP_PRODUCT),
+      ]));
+    }
+
+    if (variants.isEmpty) {
+      variants = await repository.get<Variant>(
+          query: brick.Query(where: [
+        brick.Where('branchIds').contains(branchId),
+        brick.Where('retailPrice').isGreaterThan(0),
+        brick.Where('name').isNot(TEMP_PRODUCT),
+      ]));
+    }
+
+    if (page != null && itemsPerPage != null) {
+      final offset = page * itemsPerPage;
+      return variants.skip(offset).take(itemsPerPage).toList();
+    }
+
+    return variants;
   }
 
   @override
@@ -3390,11 +3409,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       lastTouched: DateTime.now(),
       branchId: branchId,
       variantId: variantId,
-      variant: variant!,
+      // variant: variant!,
       currentStock: currentStock,
       rsdQty: rsdQty,
       value: value,
-      productId: variant.productId,
+      productId: variant!.productId,
     );
     await repository.upsert<Stock>(stock);
   }

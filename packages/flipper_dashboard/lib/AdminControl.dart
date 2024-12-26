@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 // import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
@@ -54,231 +55,84 @@ class _AdminControlState extends State<AdminControl> {
   Future<void> toggleForceUPSERT(bool value) async {
     /// get product attempt to save'em in sqlite.
     final repository = Repository();
-    List<Product> products = await ProxyService.strategy
-        .products(branchId: ProxyService.box.getBranchId()!);
-    for (Product product in products) {
-      await repository.upsert(models.Product(
-        id: product.id,
-        name: product.name,
-        taxId: product.taxId,
-        description: product.description,
-        color: product.color,
-        businessId: product.businessId,
-        branchId: product.branchId,
-        supplierId: product.supplierId,
-        categoryId: product.categoryId,
-        // taxId: product.taxId,
-        unit: product.unit,
-        imageUrl: product.imageUrl,
-        expiryDate: product.expiryDate,
-        barCode: product.barCode,
-        nfcEnabled: product.nfcEnabled,
-        bindedToTenantId: product.bindedToTenantId,
-        isFavorite: product.isFavorite,
-        lastTouched: product.lastTouched,
-        deletedAt: product.deletedAt,
 
-        spplrNm: product.spplrNm,
-        isComposite: product.isComposite,
-        composites: [],
-      ));
-    }
     try {
-      // deal with items
+      // List<Variant> variants = ProxyService.strategy
+      //     .variants(branchId: ProxyService.box.getBranchId()!);
+      // talker.warning("I Expect ${variants.length} variants When seeding");
 
-      List<Variant> variants = ProxyService.strategy
-          .variants(branchId: ProxyService.box.getBranchId()!);
-      talker.warning("I Expect ${variants.length} variants When seeding");
-      for (Variant variant in variants) {
-        final vv = models.Variant(
-          stockId: variant.stockId,
-          id: variant.id,
-          // branchIds: [ProxyService.box.getBranchId()!],
-          deletedAt: variant.deletedAt,
-          name: variant.name ?? "", // Use empty string if name is null
-          color: variant.color,
-          sku: variant.sku,
+      // fake variant
+      final variant = models.Variant(
+        id: 11111,
+        name: 'Per Item',
+        color: '#e74c3c',
+        sku: 'sku',
+        productId: randomNumber(),
+        unit: 'Per Item',
+        productName: 'Custom Amount',
+        branchId: ProxyService.box.getBranchId()!,
+        taxName: 'N/A',
+        taxPercentage: 18.0,
+        itemSeq: 1,
+        isrccCd: '00',
+        isrccNm: '00',
+        isrcRt: 0,
+        isrcAmt: 0,
+        taxTyCd: 'B',
+        bcd: '00',
+        itemClsCd: '5020230602',
+        itemTyCd: '1',
+        itemStdNm: 'Custom Amount',
+        orgnNatCd: 'RW',
+        pkg: '1',
+        itemCd: '00',
+        pkgUnitCd: 'CT',
+        qtyUnitCd: 'BX',
+        itemNm: 'Custom Amount',
+        prc: 0,
+        splyAmt: 0,
+        tin: ProxyService.box.tin(),
+        bhfId: (await ProxyService.box.bhfId()) ?? "00",
+        dftPrc: 0,
+        addInfo: 'A',
+        isrcAplcbYn: 'N',
+        useYn: 'N',
+        regrId: '00',
+        regrNm: '00',
+        modrId: '00',
+        modrNm: '00',
+        lastTouched: DateTime.now(),
+        supplyPrice: 0,
+        retailPrice: 0,
+        spplrItemClsCd: '5020230602',
+        spplrItemCd: '00',
+        spplrItemNm: 'Custom Amount',
+        ebmSynced: false,
+        dcRt: 0,
+        expirationDate: DateTime.now(),
+      );
 
-          productId: variant.productId,
-          unit: variant.unit,
-          productName: variant.productName ?? "",
-          branchId: variant.branchId, // Assuming this is optional
-          taxName: variant.taxName ?? "",
-          taxPercentage: variant.taxPercentage,
-          itemSeq: variant.itemSeq,
-          isrccCd: variant.isrccCd ?? "",
-          isrccNm: variant.isrccNm ?? "",
-          isrcRt: variant.isrcRt ?? 0,
-          isrcAmt: variant.isrcAmt ?? 0,
-          taxTyCd: variant.taxTyCd ?? "B", // Default to "B" if null
-          bcd: variant.bcd ?? "",
-          itemClsCd: variant.itemClsCd,
-          itemTyCd: variant.itemTyCd,
-          itemStdNm: variant.itemStdNm ?? "",
-          orgnNatCd: variant.orgnNatCd ?? "",
-          pkg: variant.pkg ?? "1", // Default to "1" if null
-          itemCd: variant.itemCd ?? "",
-          pkgUnitCd: variant.pkgUnitCd ?? "CT", // Default to "CT" if null
-          qtyUnitCd: variant.qtyUnitCd ?? "BX", // Default to "BX" if null
-          itemNm: variant.itemNm,
-          prc: variant.retailPrice,
-          splyAmt: variant.splyAmt,
-          tin: variant.tin,
-          bhfId: variant.bhfId,
-          dftPrc: variant.dftPrc ?? 0,
-          addInfo: variant.addInfo ?? "",
-          isrcAplcbYn: variant.isrcAplcbYn ?? "",
-          useYn: variant.useYn ?? "",
-          regrId: variant.regrId,
-          regrNm: variant.regrNm,
-          modrId: variant.modrId,
-          modrNm: variant.modrNm,
-          lastTouched: variant.lastTouched,
-          supplyPrice: variant.supplyPrice,
-          retailPrice: variant.retailPrice,
-          spplrItemClsCd: variant.spplrItemClsCd,
-          spplrItemCd: variant.spplrItemCd,
-          spplrItemNm: variant.spplrItemNm,
-          ebmSynced: variant.ebmSynced,
-          dcRt: variant.dcRt,
-          expirationDate: variant.expirationDate,
-        );
-        final addedV = await repository.upsert<models.Variant>(vv);
-        // upsert stock first
-        final stock = await repository.upsert<models.Stock>(models.Stock(
-          variant: addedV,
-          // variant: addedV,
-          variantId: addedV.id,
-          id: variant.stock!.id,
-          tin: variant.stock!.tin,
-          bhfId: variant.stock!.bhfId,
-          branchId: variant.stock!.branchId,
-          currentStock: variant.stock!.currentStock,
-          lowStock: variant.stock!.lowStock,
-          canTrackingStock: variant.stock!.canTrackingStock,
-          showLowStockAlert: variant.stock!.showLowStockAlert,
-          productId: variant.stock!.productId,
-          active: variant.stock!.active,
-          value: variant.stock!.value,
-          rsdQty: variant.stock!.rsdQty,
-          lastTouched: variant.stock!.lastTouched,
-          ebmSynced: variant.stock!.ebmSynced,
-        ));
-        // re-assign variant with the stock
-        // addedV.stock = stock;
-        addedV.stockId = stock.id;
-        await repository.upsert<models.Variant>(addedV);
-      }
-      // deal with iTransactions now
-      List<ITransaction> transactions = ProxyService.strategy
-          .transactions(branchId: ProxyService.box.getBranchId());
-      talker
-          .warning("I Expect ${transactions.length} transactions When seeding");
-      for (ITransaction transaction in transactions) {
-        final transItem = models.ITransaction(
-            id: transaction.id,
-            branchId: transaction.branchId,
-            status: transaction.status,
-            transactionType: transaction.transactionType,
-            subTotal: transaction.subTotal,
-            paymentType: transaction.paymentType,
-            cashReceived: transaction.cashReceived,
-            customerChangeDue: transaction.customerChangeDue,
-            createdAt: transaction.createdAt,
-            updatedAt: transaction.updatedAt,
-            isIncome: transaction.isIncome,
-            isExpense: transaction.isExpense,
-            ticketName: transaction.ticketName,
-            categoryId: transaction.categoryId,
-            reference: transaction.reference,
-            transactionNumber: transaction.transactionNumber,
-            receiptNumber: transaction.receiptNumber,
-            receiptType: transaction.receiptType,
-            isRefunded: transaction.isRefunded,
-            customerId: transaction.customerId,
-            invoiceNumber: transaction.invoiceNumber,
-            sarTyCd: transaction.sarTyCd,
-            customerBhfId: transaction.customerBhfId,
-            remark: transaction.remark,
-            ebmSynced: transaction.ebmSynced,
-            customerName: transaction.customerName,
-            supplierId: transaction.supplierId,
-            lastTouched: transaction.lastTouched,
-            customerTin: transaction.customerTin,
-            note: transaction.note);
-        await repository.upsert<models.ITransaction>(transItem);
-
-        List<TransactionItem> items = await ProxyService.strategy
-            .transactionItems(branchId: ProxyService.box.getBranchId()!);
-        talker
-            .warning("I Expect ${items.length} transactions Item When seeding");
-        for (TransactionItem item in items) {
-          final ite = models.TransactionItem(
-            id: item.id,
-            splyAmt: item.splyAmt,
-            prc: item.prc,
-            name: (item.name),
-            itemNm: (item.name),
-            quantityRequested: item.quantityRequested,
-            quantityApproved: item.quantityApproved,
-            quantityShipped: item.quantityShipped,
-            transactionId: item.transactionId,
-            variantId: item.variantId,
-            qty: item.qty,
-            price: item.price,
-            discount: item.discount,
-            type: item.type,
-            remainingStock: item.remainingStock,
-            createdAt: item.createdAt,
-            updatedAt: item.updatedAt,
-            isRefunded: item.isRefunded,
-            doneWithTransaction: item.doneWithTransaction,
-            active: item.active,
-            dcRt: item.dcRt,
-            dcAmt: item.dcAmt,
-            taxblAmt: item.taxblAmt,
-            taxAmt: item.taxAmt,
-            totAmt: item.totAmt,
-            itemSeq: item.itemSeq,
-            isrccCd: item.isrccCd,
-            isrccNm: item.isrccNm,
-            isrcRt: 0,
-            isrcAmt: 0,
-            taxTyCd: item.taxTyCd,
-            bcd: item.bcd,
-            itemClsCd: item.itemClsCd,
-            itemTyCd: item.itemTyCd,
-            itemStdNm: item.itemStdNm,
-            orgnNatCd: item.orgnNatCd,
-            pkg: item.pkg,
-            itemCd: item.itemCd,
-            pkgUnitCd: item.pkgUnitCd,
-            qtyUnitCd: item.qtyUnitCd,
-            // itemNm already handled above
-            // prc already handled above
-            tin: item.tin,
-            bhfId: item.bhfId,
-            dftPrc: item.dftPrc,
-            addInfo: item.addInfo,
-            isrcAplcbYn: item.isrcAplcbYn,
-            useYn: item.useYn,
-            regrId: item.regrId,
-            regrNm: item.regrNm,
-            modrId: item.modrId,
-            modrNm: item.modrNm,
-            lastTouched: item.lastTouched,
-            deletedAt: item.deletedAt,
-            branchId: item.branchId,
-            ebmSynced: item.ebmSynced,
-            partOfComposite: item.partOfComposite,
-            compositePrice: item.compositePrice,
-          );
-          await repository.upsert<models.TransactionItem>(ite);
-        }
-      }
+      Stock stock = Stock(
+        // variant: v,
+        id: randomNumber(),
+        currentStock: 110,
+        variantId: 1,
+        branchId: ProxyService.box.getBranchId()!,
+        active: true,
+        value: 0,
+        rsdQty: 0,
+        lastTouched: DateTime.now(),
+        ebmSynced: false,
+      );
+      final vStock = await repository.upsert<Stock>(stock);
+      final v = await repository.upsert<models.Variant>(variant);
+      v.stock = vStock;
+      v.stockId = vStock.id;
+      final ff = await repository.upsert<Variant>(v);
+      print("StockLoaded:${ff.stock!.currentStock ?? 1000}");
     } catch (e, s) {
-      talker.warning(e);
-      talker.error(s);
+      print(e);
+      print(s);
     }
     try {
       await ProxyService.box.writeBool(

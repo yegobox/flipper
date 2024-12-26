@@ -25,7 +25,7 @@ import 'package:flipper_dashboard/StockRecount.dart';
 class DataView extends StatefulHookConsumerWidget {
   const DataView({
     super.key,
-    this.stocks,
+    this.variants,
     this.transactions,
     required this.startDate,
     required this.endDate,
@@ -38,7 +38,7 @@ class DataView extends StatefulHookConsumerWidget {
   });
 
   final List<ITransaction>? transactions;
-  final List<Stock>? stocks;
+  final List<Variant>? variants;
   final DateTime startDate;
   final DateTime endDate;
   final bool showDetailedReport;
@@ -84,7 +84,7 @@ class DataViewState extends ConsumerState<DataView>
       showDetailed: widget.showDetailedReport,
       transactionItems: widget.transactionItems,
       transactions: widget.transactions,
-      stocks: widget.stocks,
+      variants: widget.variants,
       rowsPerPage: widget.rowsPerPage,
     );
   }
@@ -308,7 +308,7 @@ class DataViewState extends ConsumerState<DataView>
 
   List<GridColumn> _getTableHeaders() {
     const headerPadding = EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
-    if (widget.stocks != null && widget.stocks!.isNotEmpty) {
+    if (widget.variants != null && widget.variants!.isNotEmpty) {
       return stockTableHeader(headerPadding);
     } else if (widget.showDetailedReport) {
       return pluReportTableHeader(headerPadding);
@@ -323,7 +323,7 @@ class DataViewState extends ConsumerState<DataView>
     required bool showDetailed,
     List<TransactionItem>? transactionItems,
     List<ITransaction>? transactions,
-    List<Stock>? stocks,
+    List<Variant>? variants,
     required int rowsPerPage,
   }) {
     if (transactionItems != null && transactionItems.isNotEmpty) {
@@ -331,8 +331,8 @@ class DataViewState extends ConsumerState<DataView>
           transactionItems, rowsPerPage, showDetailed);
     } else if (transactions != null && transactions.isNotEmpty) {
       return TransactionDataSource(transactions, rowsPerPage, showDetailed);
-    } else if (stocks != null && stocks.isNotEmpty) {
-      return StockDataSource(stocks: stocks, rowsPerPage: rowsPerPage);
+    } else if (variants != null && variants.isNotEmpty) {
+      return StockDataSource(variants: variants, rowsPerPage: rowsPerPage);
     }
     throw Exception('No valid data source available');
   }
@@ -357,7 +357,8 @@ class DataViewState extends ConsumerState<DataView>
       isExpense: false,
       branchId: ProxyService.box.getBranchId(),
     );
-    final isStockRecount = widget.stocks != null && widget.stocks!.isNotEmpty;
+    final isStockRecount =
+        widget.variants != null && widget.variants!.isNotEmpty;
     final config = ExportConfig(
       transactions: sales,
       endDate: widget.endDate,

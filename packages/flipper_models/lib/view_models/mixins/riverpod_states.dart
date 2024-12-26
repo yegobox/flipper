@@ -1164,13 +1164,12 @@ final stockRequestsProvider = StreamProvider.autoDispose
       .requestsStream(branchId: branchId, filter: filter);
 });
 
-final stocksProvider =
-    Provider.autoDispose.family<List<Stock>, ({int branchId})>((ref, params) {
+final variantsProvider = FutureProvider.autoDispose
+    .family<List<Variant>, ({int branchId})>((ref, params) async {
   final (:branchId) = params;
 
-  return ProxyService.strategy.stocks(branchId: branchId);
+  return await ProxyService.strategy.variants(branchId: branchId);
 });
-
 final branchesProvider = FutureProvider.autoDispose
     .family<List<Branch>, ({bool? includeSelf})>((ref, params) async {
   final (:includeSelf) = params;

@@ -1,18 +1,24 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20241226102910.migration.dart';
-part '20241226105654.migration.dart';
+part '20241226131322.migration.dart';
+part '20241226140243.migration.dart';
+part '20241226141804.migration.dart';
+part '20241226170651.migration.dart';
+part '20241226171918.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20241226102910(),
-  const Migration20241226105654()
+  const Migration20241226131322(),
+  const Migration20241226140243(),
+  const Migration20241226141804(),
+  const Migration20241226170651(),
+  const Migration20241226171918()
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema =
-    Schema(20241226105654, generatorVersion: 1, tables: <SchemaTable>{
+    Schema(20241226171918, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -26,11 +32,6 @@ final schema =
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
     SchemaColumn('id', Column.integer, unique: true),
-    SchemaColumn('variant_Variant_brick_id', Column.integer,
-        isForeignKey: true,
-        foreignTableName: 'Variant',
-        onDeleteCascade: false,
-        onDeleteSetDefault: false),
     SchemaColumn('variant_id', Column.integer),
     SchemaColumn('tin', Column.integer),
     SchemaColumn('bhf_id', Column.varchar),
@@ -260,6 +261,7 @@ final schema =
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
     SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('stock_id', Column.integer),
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('tax_percentage', Column.num),
     SchemaColumn('name', Column.varchar),
@@ -307,9 +309,7 @@ final schema =
     SchemaColumn('ebm_synced', Column.boolean),
     SchemaColumn('dc_rt', Column.Double),
     SchemaColumn('expiration_date', Column.datetime)
-  }, indices: <SchemaIndex>{
-    SchemaIndex(columns: ['id'], unique: true)
-  }),
+  }, indices: <SchemaIndex>{}),
   SchemaTable('Device', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),

@@ -63,7 +63,6 @@ abstract class RealmInterface {
       {required int configId, required double taxPercentage});
 
   Future<double> totalStock({int? productId, int? variantId});
-  List<Stock> stocks({required int branchId});
   Stream<double> getStockStream(
       {int? productId, int? variantId, required int branchId});
   List<ITransaction> transactions({
@@ -77,7 +76,7 @@ abstract class RealmInterface {
   });
   Stream<List<Product>> productStreams({int? prodIndex});
 
-  Future<List<Product>> getProductList({int? prodIndex, required int branchId});
+  // Future<List<Product>> getProductList({int? prodIndex, required int branchId});
   Stock? stockByVariantId(
       {required int variantId,
       required int branchId,
@@ -102,7 +101,7 @@ abstract class RealmInterface {
       required int variantId,
       bool nonZeroValue = false,
       int? id});
-  List<Variant> variants({
+  Future<List<Variant>> variants({
     required int branchId,
     int? productId,
     int? page,
@@ -382,7 +381,8 @@ abstract class RealmInterface {
   Future<bool> removeS3File({required String fileName});
   FutureOr<Assets?> getAsset({String? assetName, int? productId});
   Future<void> amplifyLogout();
-  List<Product> getProducts({String? key});
+  Future<List<Product>> getProducts(
+      {String? key, int? prodIndex, required int branchId});
   List<Variant> getVariants({String? key});
 
   void saveComposite({required Composite composite});

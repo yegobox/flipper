@@ -254,7 +254,7 @@ final variationMock = Variant(
 final stockMock = Stock(
   lastTouched: DateTime.now(),
   variantId: variationMock.id,
-  variant: variationMock,
+  // variant: variationMock,
   branchId: 11,
   id: randomNumber(),
   currentStock: 0.0,

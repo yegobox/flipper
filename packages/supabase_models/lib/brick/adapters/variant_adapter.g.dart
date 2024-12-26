@@ -6,6 +6,7 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Variant(
       id: data['id'] as int,
+      stockId: data['stock_id'] as int?,
       deletedAt: data['deleted_at'] == null
           ? null
           : DateTime.tryParse(data['deleted_at'] as String),
@@ -66,6 +67,7 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
+    'stock_id': instance.stockId,
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'tax_percentage': instance.taxPercentage,
     'name': instance.name,
@@ -121,6 +123,7 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Variant(
       id: data['id'] as int,
+      stockId: data['stock_id'] == null ? null : data['stock_id'] as int?,
       deletedAt: data['deleted_at'] == null
           ? null
           : data['deleted_at'] == null
@@ -206,6 +209,7 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
+    'stock_id': instance.stockId,
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'tax_percentage': instance.taxPercentage,
     'name': instance.name,
@@ -270,6 +274,10 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'id': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'id',
+    ),
+    'stockId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'stock_id',
     ),
     'deletedAt': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -463,7 +471,7 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
   @override
   final ignoreDuplicates = false;
   @override
-  final uniqueFields = {'id'};
+  final uniqueFields = {};
   @override
   final Map<String, RuntimeSqliteColumnDefinition> fieldsToSqliteColumns = {
     'primaryKey': const RuntimeSqliteColumnDefinition(
@@ -475,6 +483,12 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'id': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'id',
+      iterable: false,
+      type: int,
+    ),
+    'stockId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'stock_id',
       iterable: false,
       type: int,
     ),

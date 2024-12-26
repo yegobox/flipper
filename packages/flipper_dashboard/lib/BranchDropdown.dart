@@ -2,7 +2,6 @@
 
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/style_widget/text.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -26,10 +25,6 @@ class BranchDropdown extends ConsumerWidget {
             onChanged: (Branch? newBranch) {
               if (newBranch != null) {
                 ref.read(selectedBranchProvider.notifier).state = newBranch;
-                ref.refresh(stocksProvider((
-                  branchId:
-                      newBranch.serverId ?? ProxyService.box.getBranchId()!
-                )));
               }
             },
             items: branches.map<DropdownMenuItem<Branch>>((Branch branch) {

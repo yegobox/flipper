@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20241226102910_up = [
+const List<MigrationCommand> _migration_20241226131322_up = [
   InsertTable('ItemCode'),
   InsertTable('Stock'),
   InsertTable('Counter'),
@@ -55,6 +55,7 @@ const List<MigrationCommand> _migration_20241226102910_up = [
   InsertColumn('created_at', Column.datetime, onTable: 'ItemCode'),
   InsertColumn('id', Column.integer, onTable: 'Stock', unique: true),
   InsertForeignKey('Stock', 'Variant', foreignKeyColumn: 'variant_Variant_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
+  InsertColumn('variant_id', Column.integer, onTable: 'Stock'),
   InsertColumn('tin', Column.integer, onTable: 'Stock'),
   InsertColumn('bhf_id', Column.varchar, onTable: 'Stock'),
   InsertColumn('branch_id', Column.integer, onTable: 'Stock'),
@@ -579,13 +580,12 @@ const List<MigrationCommand> _migration_20241226102910_up = [
   InsertColumn('branch_id', Column.integer, onTable: 'Drawers'),
   CreateIndex(columns: ['item_code'], onTable: 'ItemCode', unique: false),
   CreateIndex(columns: ['id'], onTable: 'Stock', unique: true),
-  CreateIndex(columns: ['id'], onTable: 'Variant', unique: true),
   CreateIndex(columns: ['l_StockRequest_brick_id', 'f_TransactionItem_brick_id'], onTable: '_brick_StockRequest_items', unique: true),
   CreateIndex(columns: ['l_Product_brick_id', 'f_Composite_brick_id'], onTable: '_brick_Product_composites', unique: true),
   CreateIndex(columns: ['l_Plan_brick_id', 'f_PlanAddon_brick_id'], onTable: '_brick_Plan_addons', unique: true)
 ];
 
-const List<MigrationCommand> _migration_20241226102910_down = [
+const List<MigrationCommand> _migration_20241226131322_down = [
   DropTable('ItemCode'),
   DropTable('Stock'),
   DropTable('Counter'),
@@ -631,6 +631,7 @@ const List<MigrationCommand> _migration_20241226102910_down = [
   DropColumn('created_at', onTable: 'ItemCode'),
   DropColumn('id', onTable: 'Stock'),
   DropColumn('variant_Variant_brick_id', onTable: 'Stock'),
+  DropColumn('variant_id', onTable: 'Stock'),
   DropColumn('tin', onTable: 'Stock'),
   DropColumn('bhf_id', onTable: 'Stock'),
   DropColumn('branch_id', onTable: 'Stock'),
@@ -1155,7 +1156,6 @@ const List<MigrationCommand> _migration_20241226102910_down = [
   DropColumn('branch_id', onTable: 'Drawers'),
   DropIndex('index_ItemCode_on_item_code'),
   DropIndex('index_Stock_on_id'),
-  DropIndex('index_Variant_on_id'),
   DropIndex('index__brick_StockRequest_items_on_l_StockRequest_brick_id_f_TransactionItem_brick_id'),
   DropIndex('index__brick_Product_composites_on_l_Product_brick_id_f_Composite_brick_id'),
   DropIndex('index__brick_Plan_addons_on_l_Plan_brick_id_f_PlanAddon_brick_id')
@@ -1166,15 +1166,15 @@ const List<MigrationCommand> _migration_20241226102910_down = [
 //
 
 @Migratable(
-  version: '20241226102910',
-  up: _migration_20241226102910_up,
-  down: _migration_20241226102910_down,
+  version: '20241226131322',
+  up: _migration_20241226131322_up,
+  down: _migration_20241226131322_down,
 )
-class Migration20241226102910 extends Migration {
-  const Migration20241226102910()
+class Migration20241226131322 extends Migration {
+  const Migration20241226131322()
     : super(
-        version: 20241226102910,
-        up: _migration_20241226102910_up,
-        down: _migration_20241226102910_down,
+        version: 20241226131322,
+        up: _migration_20241226131322_up,
+        down: _migration_20241226131322_down,
       );
 }

@@ -36,9 +36,10 @@ class TransactionDataSource extends DynamicDataSource<ITransaction> {
   }
 }
 
-class StockDataSource extends DynamicDataSource<Stock> {
-  StockDataSource({required List<Stock> stocks, required this.rowsPerPage}) {
-    data = stocks;
+class StockDataSource extends DynamicDataSource<Variant> {
+  StockDataSource(
+      {required List<Variant> variants, required this.rowsPerPage}) {
+    data = variants;
     buildPaginatedDataGridRows();
   }
 

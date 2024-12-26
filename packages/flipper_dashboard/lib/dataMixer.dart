@@ -22,31 +22,24 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required bool isOrdering,
     required bool forceRemoteUrl,
   }) {
-    final stockStream = ref.watch(stockByVariantIdProvider(variant.id));
-
-    return stockStream.when(
-      data: (double stock) {
-        return FutureBuilder<Widget>(
-          future: buildRowItem(
-              forceRemoteUrl: forceRemoteUrl,
-              context: context,
-              model: model,
-              variant: variant,
-              stock: isOrdering ? 0.0 : stock,
-              isOrdering: isOrdering),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return snapshot.data ?? SizedBox.shrink();
-            } else {
-              return SizedBox(
-                  width: 20, height: 20, child: CircularProgressIndicator());
-            }
-          },
-        );
+    return FutureBuilder<Widget>(
+      future: buildRowItem(
+          forceRemoteUrl: forceRemoteUrl,
+          context: context,
+          model: model,
+          variant: variant,
+          stock: isOrdering ? 0.0 : variant.stock?.currentStock ?? 0.0,
+          isOrdering: isOrdering),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return snapshot.data ?? SizedBox.shrink();
+        } else {
+          return SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(strokeWidth: 2));
+        }
       },
-      error: (dynamic error, stackTrace) => SizedBox.shrink(),
-      loading: () => SizedBox(
-          width: 20, height: 20, child: const CircularProgressIndicator()),
     );
   }
 

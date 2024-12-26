@@ -19,7 +19,7 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
   @override
   Widget build(BuildContext context) {
     final branch = ref.watch(selectedBranchProvider);
-    final items = ref.watch(stocksProvider(
+    final items = ref.watch(variantsProvider(
         (branchId: branch?.serverId ?? ProxyService.box.getBranchId()!)));
     final selectedItemId = ref.watch(selectedItemProvider);
 
@@ -47,51 +47,58 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
         ),
       ),
       body: SafeArea(
-        child: items.isNotEmpty
-            ? CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          BestSellingItemCard(items: items),
-                          SizedBox(height: 20),
-                          StockVisualizationCard(
-                            items: items,
-                            selectedItemId: selectedItemId,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SliverPadding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) => ItemDetailCard(
-                          item: items[index],
-                          isSelected: items[index].id == selectedItemId,
-                          onTap: () {
-                            ref.read(selectedItemProvider.notifier).state =
-                                items[index].id.toString();
-                          },
+        child: items.when(
+          data: (data) => data.isNotEmpty // data is the list of stocks
+              ? CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            BestSellingItemCard(items: data),
+                            SizedBox(height: 20),
+                            StockVisualizationCard(
+                              items: data,
+                              selectedItemId: selectedItemId,
+                            ),
+                          ],
                         ),
-                        childCount: items.length,
                       ),
                     ),
-                  ),
-                ],
-              )
-            : SizedBox.shrink(),
+                    SliverPadding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) => ItemDetailCard(
+                            item: data[index],
+                            isSelected: data[index].id == selectedItemId,
+                            onTap: () {
+                              ref.read(selectedItemProvider.notifier).state =
+                                  data[index].id.toString();
+                            },
+                          ),
+                          childCount: data.length,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Center(
+                  child: Text('No items found.')), // Show empty state message
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+              child:
+                  Text('Error loading items: $error')), // Handle loading state
+        ),
       ),
     );
   }
 }
 
 class StockVisualizationCard extends StatelessWidget {
-  final List<Stock> items;
+  final List<Variant> items;
   final String? selectedItemId;
 
   const StockVisualizationCard({
@@ -128,7 +135,7 @@ class StockVisualizationCard extends StatelessWidget {
 }
 
 class AnimatedStockBarChart extends StatefulWidget {
-  final List<Stock> items;
+  final List<Variant> items;
   final String? selectedItemId;
 
   const AnimatedStockBarChart({
@@ -189,7 +196,7 @@ class _AnimatedStockBarChartState extends State<AnimatedStockBarChart>
 }
 
 class StockBarChartPainter extends CustomPainter {
-  final List<Stock> items;
+  final List<Variant> items;
   final double animationValue;
   final String? selectedItemId;
 
@@ -202,19 +209,19 @@ class StockBarChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final filteredItems =
-        items.where((item) => item.currentStock! > 1).toList();
+        items.where((item) => item.stock!.currentStock! > 1).toList();
 
     if (filteredItems.isEmpty) return;
 
     final double barWidth = size.width / (filteredItems.length * 2 + 1);
     final double maxStock =
-        filteredItems.map((e) => e.currentStock!.toDouble()).reduce(max);
+        filteredItems.map((e) => e.stock!.currentStock!.toDouble()).reduce(max);
     final paint = Paint()..style = PaintingStyle.fill;
 
     for (int i = 0; i < filteredItems.length; i++) {
       final item = filteredItems[i];
       final barHeight =
-          (item.currentStock! / maxStock) * size.height * animationValue;
+          (item.stock!.currentStock! / maxStock) * size.height * animationValue;
 
       final rect = Rect.fromLTRB(
         (i * 2 + 1) * barWidth,
@@ -230,7 +237,7 @@ class StockBarChartPainter extends CustomPainter {
       item.id.toString() == selectedItemId
           ? _drawText(
               canvas,
-              _formatNumber(item.currentStock!),
+              _formatNumber(item.stock!.currentStock!),
               Offset((i * 2 + 1.5) * barWidth, size.height - barHeight - 15),
               10,
               FontWeight.bold,
@@ -271,7 +278,7 @@ class StockBarChartPainter extends CustomPainter {
 }
 
 class ItemDetailCard extends StatelessWidget {
-  final Stock item;
+  final Variant item;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -302,7 +309,7 @@ class ItemDetailCard extends StatelessWidget {
                   children: [
                     FutureBuilder<Variant?>(
                       future: ProxyService.strategy
-                          .getVariantById(id: item.variantId!),
+                          .getVariantById(id: item.stock!.variantId!),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -321,15 +328,16 @@ class ItemDetailCard extends StatelessWidget {
                       },
                     ),
                     SizedBox(height: 8),
-                    Text('Sold: ${item.initialStock ?? 0 - item.currentStock!}',
+                    Text(
+                        'Sold: ${item.stock!.initialStock ?? 0 - item.stock!.currentStock!}',
                         style: Theme.of(context).textTheme.bodyMedium),
-                    Text('In Stock: ${item.currentStock}',
+                    Text('In Stock: ${item.stock!.currentStock}',
                         style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
               ),
               CircularStockIndicator(
-                stock: item.currentStock!.toInt(),
+                stock: item.stock!.currentStock!.toInt(),
                 maxStock: 150,
               ),
             ],
@@ -341,7 +349,7 @@ class ItemDetailCard extends StatelessWidget {
 }
 
 class BestSellingItemCard extends StatelessWidget {
-  final List<Stock> items;
+  final List<Variant> items;
 
   const BestSellingItemCard({Key? key, required this.items}) : super(key: key);
 
@@ -349,13 +357,14 @@ class BestSellingItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     /// best selling item is the item that has the currentStock is the lowest
     final bestSeller = items.reduce((a, b) {
-      double aSold = a.initialStock! - a.currentStock!;
-      double bSold = b.initialStock! - b.currentStock!;
+      double aSold = a.stock!.initialStock! - a.stock!.currentStock!;
+      double bSold = b.stock!.initialStock! - b.stock!.currentStock!;
       return aSold > bSold ? a : b;
     });
-    double itemsSold = bestSeller.initialStock == bestSeller.currentStock
-        ? 1
-        : bestSeller.initialStock! - bestSeller.currentStock!;
+    double itemsSold =
+        bestSeller.stock!.initialStock == bestSeller.stock!.currentStock
+            ? 1
+            : bestSeller.stock!.initialStock! - bestSeller.stock!.currentStock!;
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -379,7 +388,7 @@ class BestSellingItemCard extends StatelessWidget {
                   children: [
                     FutureBuilder(
                       future: ProxyService.strategy
-                          .getVariantById(id: bestSeller.variantId!),
+                          .getVariantById(id: bestSeller.stock!.variantId!),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {

@@ -7,15 +7,12 @@ import 'package:supabase_models/brick/models/stock.model.dart';
   supabaseConfig: SupabaseSerializable(tableName: 'variants'),
 )
 class Variant extends OfflineFirstWithSupabaseModel {
-  @Sqlite(unique: true, index: true)
-  @Supabase(unique: true)
+  @Sqlite(unique: true)
   final int id;
-  @Supabase(nullable: true, ignore: true)
-  @Sqlite(nullable: true, ignore: true)
-  Stock? stock;
 
-  @Supabase(nullable: true, ignore: true)
-  @Sqlite(nullable: true, ignore: true)
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  Stock? stock;
   int? stockId;
   DateTime? deletedAt;
   @Sqlite(defaultValue: "18.0", columnType: Column.num)

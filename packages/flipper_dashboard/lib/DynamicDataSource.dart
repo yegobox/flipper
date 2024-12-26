@@ -15,7 +15,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       } else if (item is ITransaction && !showPluReport) {
         return _buildITransactionRow(item);
       } else if (item is Stock) {
-        return _buildStockRow(item);
+        // return _buildStockRow(item);
+        throw UnimplementedError();
       } else {
         // Handle other types of items or return an empty row
         return DataGridRow(cells: []);
@@ -23,16 +24,16 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     }).toList();
   }
 
-  DataGridRow _buildStockRow(Stock stock) {
-    return DataGridRow(cells: [
-      DataGridCell<String>(
-          columnName: 'Name', value: stock.variant?.productName ?? ''),
-      DataGridCell<double>(
-          columnName: 'CurrentStock', value: stock.currentStock),
-      DataGridCell<double>(
-          columnName: 'Price', value: stock.variant?.retailPrice),
-    ]);
-  }
+  // DataGridRow _buildStockRow(Stock stock) {
+  //   return DataGridRow(cells: [
+  //     DataGridCell<String>(
+  //         columnName: 'Name', value: stock.variant?.productName ?? ''),
+  //     DataGridCell<double>(
+  //         columnName: 'CurrentStock', value: stock.currentStock),
+  //     DataGridCell<double>(
+  //         columnName: 'Price', value: stock.variant?.retailPrice),
+  //   ]);
+  // }
 
   DataGridRow _buildTransactionItemRow(TransactionItem transactionItem) {
     return DataGridRow(
