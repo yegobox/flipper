@@ -2,7 +2,6 @@ export 'helperModels/DateTimeConverter.dart';
 export 'helperModels/points.dart';
 export 'helperModels/pin.dart';
 export 'helperModels/transaction_item.dart';
-export 'helperModels/itransaction.dart';
 export 'helperModels/feature.dart';
 export 'helperModels/discount.dart';
 export 'helperModels/SyncRecord.dart';

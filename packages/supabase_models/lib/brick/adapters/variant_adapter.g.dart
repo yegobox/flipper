@@ -9,6 +9,7 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       deletedAt: data['deleted_at'] == null
           ? null
           : DateTime.tryParse(data['deleted_at'] as String),
+      taxPercentage: data['tax_percentage'] as num? ?? 18.0,
       name: data['name'] as String?,
       color: data['color'] as String?,
       sku: data['sku'] as String?,
@@ -17,7 +18,6 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       productName: data['product_name'] as String?,
       branchId: data['branch_id'] as int?,
       taxName: data['tax_name'] as String?,
-      taxPercentage: data['tax_percentage'] as double? ?? 18.0,
       itemSeq: data['item_seq'] as int?,
       isrccCd: data['isrcc_cd'] as String?,
       isrccNm: data['isrcc_nm'] as String?,
@@ -58,8 +58,7 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       dcRt: data['dc_rt'] as double?,
       expirationDate: data['expiration_date'] == null
           ? null
-          : DateTime.tryParse(data['expiration_date'] as String),
-      stockId: data['stock_id'] as int?);
+          : DateTime.tryParse(data['expiration_date'] as String));
 }
 
 Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
@@ -68,6 +67,7 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
   return {
     'id': instance.id,
     'deleted_at': instance.deletedAt?.toIso8601String(),
+    'tax_percentage': instance.taxPercentage,
     'name': instance.name,
     'color': instance.color,
     'sku': instance.sku,
@@ -76,7 +76,6 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'product_name': instance.productName,
     'branch_id': instance.branchId,
     'tax_name': instance.taxName,
-    'tax_percentage': instance.taxPercentage,
     'item_seq': instance.itemSeq,
     'isrcc_cd': instance.isrccCd,
     'isrcc_nm': instance.isrccNm,
@@ -113,8 +112,7 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'spplr_item_nm': instance.spplrItemNm,
     'ebm_synced': instance.ebmSynced,
     'dc_rt': instance.dcRt,
-    'expiration_date': instance.expirationDate?.toIso8601String(),
-    'stock_id': instance.stockId
+    'expiration_date': instance.expirationDate?.toIso8601String()
   };
 }
 
@@ -128,6 +126,8 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
           : data['deleted_at'] == null
               ? null
               : DateTime.tryParse(data['deleted_at'] as String),
+      taxPercentage:
+          data['tax_percentage'] == null ? null : data['tax_percentage'],
       name: data['name'] == null ? null : data['name'] as String?,
       color: data['color'] == null ? null : data['color'] as String?,
       sku: data['sku'] == null ? null : data['sku'] as String?,
@@ -137,9 +137,6 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
           data['product_name'] == null ? null : data['product_name'] as String?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
-      taxPercentage: data['tax_percentage'] == null
-          ? null
-          : data['tax_percentage'] as double?,
       itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
       isrccCd: data['isrcc_cd'] == null ? null : data['isrcc_cd'] as String?,
       isrccNm: data['isrcc_nm'] == null ? null : data['isrcc_nm'] as String?,
@@ -200,8 +197,7 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
           ? null
           : data['expiration_date'] == null
               ? null
-              : DateTime.tryParse(data['expiration_date'] as String),
-      stockId: data['stock_id'] == null ? null : data['stock_id'] as int?)
+              : DateTime.tryParse(data['expiration_date'] as String))
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -211,6 +207,7 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
   return {
     'id': instance.id,
     'deleted_at': instance.deletedAt?.toIso8601String(),
+    'tax_percentage': instance.taxPercentage,
     'name': instance.name,
     'color': instance.color,
     'sku': instance.sku,
@@ -219,7 +216,6 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'product_name': instance.productName,
     'branch_id': instance.branchId,
     'tax_name': instance.taxName,
-    'tax_percentage': instance.taxPercentage,
     'item_seq': instance.itemSeq,
     'isrcc_cd': instance.isrccCd,
     'isrcc_nm': instance.isrccNm,
@@ -257,8 +253,7 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'ebm_synced':
         instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
     'dc_rt': instance.dcRt,
-    'expiration_date': instance.expirationDate?.toIso8601String(),
-    'stock_id': instance.stockId
+    'expiration_date': instance.expirationDate?.toIso8601String()
   };
 }
 
@@ -279,6 +274,10 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'deletedAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'deleted_at',
+    ),
+    'taxPercentage': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'tax_percentage',
     ),
     'name': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -311,10 +310,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'taxName': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'tax_name',
-    ),
-    'taxPercentage': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'tax_percentage',
     ),
     'itemSeq': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -463,10 +458,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'expirationDate': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'expiration_date',
-    ),
-    'stockId': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'stock_id',
     )
   };
   @override
@@ -492,6 +483,12 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       columnName: 'deleted_at',
       iterable: false,
       type: DateTime,
+    ),
+    'taxPercentage': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'tax_percentage',
+      iterable: false,
+      type: num,
     ),
     'name': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -540,12 +537,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       columnName: 'tax_name',
       iterable: false,
       type: String,
-    ),
-    'taxPercentage': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'tax_percentage',
-      iterable: false,
-      type: double,
     ),
     'itemSeq': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -768,12 +759,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       columnName: 'expiration_date',
       iterable: false,
       type: DateTime,
-    ),
-    'stockId': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'stock_id',
-      iterable: false,
-      type: int,
     )
   };
   @override

@@ -1,96 +1,18 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20241201193049.migration.dart';
-part '20241202075940.migration.dart';
-part '20241222105049.migration.dart';
-part '20241201181931.migration.dart';
-part '20241201190309.migration.dart';
-part '20241201195050.migration.dart';
-part '20241114183152.migration.dart';
-part '20241128071851.migration.dart';
-part '20241129195847.migration.dart';
-part '20241224205109.migration.dart';
-part '20241117103838.migration.dart';
-part '20241221150100.migration.dart';
-part '20241113144615.migration.dart';
-part '20241222105429.migration.dart';
-part '20241202043225.migration.dart';
-part '20241223170328.migration.dart';
-part '20241201194613.migration.dart';
-part '20241130180002.migration.dart';
-part '20241201190935.migration.dart';
-part '20241128071810.migration.dart';
-part '20241130163652.migration.dart';
-part '20241130175022.migration.dart';
-part '20241202043131.migration.dart';
-part '20241130074803.migration.dart';
-part '20241128141446.migration.dart';
-part '20241201190658.migration.dart';
-part '20241113200548.migration.dart';
-part '20241128072540.migration.dart';
-part '20241201192623.migration.dart';
-part '20241117164713.migration.dart';
-part '20241114183418.migration.dart';
-part '20241117083433.migration.dart';
-part '20241201190104.migration.dart';
-part '20241201192839.migration.dart';
-part '20241128071917.migration.dart';
-part '20241201185919.migration.dart';
-part '20241201203523.migration.dart';
-part '20241225115118.migration.dart';
-part '20241225120000.migration.dart';
-part '20241225222019.migration.dart';
-part '20241226044230.migration.dart';
+part '20241226102910.migration.dart';
+part '20241226105654.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20241201193049(),
-  const Migration20241202075940(),
-  const Migration20241222105049(),
-  const Migration20241201181931(),
-  const Migration20241201190309(),
-  const Migration20241201195050(),
-  const Migration20241114183152(),
-  const Migration20241128071851(),
-  const Migration20241129195847(),
-  const Migration20241224205109(),
-  const Migration20241117103838(),
-  const Migration20241221150100(),
-  const Migration20241113144615(),
-  const Migration20241222105429(),
-  const Migration20241202043225(),
-  const Migration20241223170328(),
-  const Migration20241201194613(),
-  const Migration20241130180002(),
-  const Migration20241201190935(),
-  const Migration20241128071810(),
-  const Migration20241130163652(),
-  const Migration20241130175022(),
-  const Migration20241202043131(),
-  const Migration20241130074803(),
-  const Migration20241128141446(),
-  const Migration20241201190658(),
-  const Migration20241113200548(),
-  const Migration20241128072540(),
-  const Migration20241201192623(),
-  const Migration20241117164713(),
-  const Migration20241114183418(),
-  const Migration20241117083433(),
-  const Migration20241201190104(),
-  const Migration20241201192839(),
-  const Migration20241128071917(),
-  const Migration20241201185919(),
-  const Migration20241201203523(),
-  const Migration20241225115118(),
-  const Migration20241225120000(),
-  const Migration20241225222019(),
-  const Migration20241226044230()
+  const Migration20241226102910(),
+  const Migration20241226105654()
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema =
-    Schema(20241226044230, generatorVersion: 1, tables: <SchemaTable>{
+    Schema(20241226105654, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -109,11 +31,12 @@ final schema =
         foreignTableName: 'Variant',
         onDeleteCascade: false,
         onDeleteSetDefault: false),
+    SchemaColumn('variant_id', Column.integer),
     SchemaColumn('tin', Column.integer),
     SchemaColumn('bhf_id', Column.varchar),
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('current_stock', Column.Double),
-    SchemaColumn('low_stock', Column.integer),
+    SchemaColumn('low_stock', Column.Double),
     SchemaColumn('can_tracking_stock', Column.boolean),
     SchemaColumn('show_low_stock_alert', Column.boolean),
     SchemaColumn('product_id', Column.integer),
@@ -338,6 +261,7 @@ final schema =
         autoincrement: true, nullable: false, isPrimaryKey: true),
     SchemaColumn('id', Column.integer, unique: true),
     SchemaColumn('deleted_at', Column.datetime),
+    SchemaColumn('tax_percentage', Column.num),
     SchemaColumn('name', Column.varchar),
     SchemaColumn('color', Column.varchar),
     SchemaColumn('sku', Column.varchar),
@@ -346,7 +270,6 @@ final schema =
     SchemaColumn('product_name', Column.varchar),
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('tax_name', Column.varchar),
-    SchemaColumn('tax_percentage', Column.Double),
     SchemaColumn('item_seq', Column.integer),
     SchemaColumn('isrcc_cd', Column.varchar),
     SchemaColumn('isrcc_nm', Column.varchar),
@@ -383,9 +306,10 @@ final schema =
     SchemaColumn('spplr_item_nm', Column.varchar),
     SchemaColumn('ebm_synced', Column.boolean),
     SchemaColumn('dc_rt', Column.Double),
-    SchemaColumn('expiration_date', Column.datetime),
-    SchemaColumn('stock_id', Column.integer)
-  }, indices: <SchemaIndex>{}),
+    SchemaColumn('expiration_date', Column.datetime)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Device', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),

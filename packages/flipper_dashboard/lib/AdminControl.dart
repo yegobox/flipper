@@ -91,6 +91,7 @@ class _AdminControlState extends State<AdminControl> {
       talker.warning("I Expect ${variants.length} variants When seeding");
       for (Variant variant in variants) {
         final vv = models.Variant(
+          stockId: variant.stockId,
           id: variant.id,
           // branchIds: [ProxyService.box.getBranchId()!],
           deletedAt: variant.deletedAt,
@@ -147,6 +148,7 @@ class _AdminControlState extends State<AdminControl> {
         final stock = await repository.upsert<models.Stock>(models.Stock(
           variant: addedV,
           // variant: addedV,
+          variantId: addedV.id,
           id: variant.stock!.id,
           tin: variant.stock!.tin,
           bhfId: variant.stock!.bhfId,

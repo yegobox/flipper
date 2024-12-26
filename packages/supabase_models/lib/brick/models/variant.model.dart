@@ -7,11 +7,20 @@ import 'package:supabase_models/brick/models/stock.model.dart';
   supabaseConfig: SupabaseSerializable(tableName: 'variants'),
 )
 class Variant extends OfflineFirstWithSupabaseModel {
-  @Sqlite(unique: true)
+  @Sqlite(unique: true, index: true)
   @Supabase(unique: true)
   final int id;
-  DateTime? deletedAt;
+  @Supabase(nullable: true, ignore: true)
+  @Sqlite(nullable: true, ignore: true)
+  Stock? stock;
 
+  @Supabase(nullable: true, ignore: true)
+  @Sqlite(nullable: true, ignore: true)
+  int? stockId;
+  DateTime? deletedAt;
+  @Sqlite(defaultValue: "18.0", columnType: Column.num)
+  @Supabase(defaultValue: "18.0")
+  num? taxPercentage;
   String? name;
   String? color;
   String? sku;
@@ -21,8 +30,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? productName;
   int? branchId;
   String? taxName;
-  @Supabase(defaultValue: "18.0")
-  double? taxPercentage;
 
   // add RRA fields
   int? itemSeq;
@@ -67,13 +74,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
 
   double? dcRt;
   DateTime? expirationDate;
-
-  // create circula relationship, I know!
-  @Supabase(nullable: true, ignore: true)
-  @Sqlite(nullable: true, ignore: true)
-  Stock? stock;
-
-  int? stockId;
 
   /// only a placeholder for capturing stock quantity for this variant,
   /// since when capturing qty we only have variant and not stock.

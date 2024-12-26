@@ -5,35 +5,29 @@ import 'package:supabase_models/brick/models/variant.model.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'stocks'),
-  sqliteConfig: SqliteSerializable(),
 )
 class Stock extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true, index: true)
   @Supabase(unique: true)
   final int id;
 
-  /// this variant_id need to be set as foreign key
-  /// ALTER TABLE stocks
-  /// ADD CONSTRAINT fk_variant_id
-  /// FOREIGN KEY (variant_id) REFERENCES variants(id);
-
-  @Supabase(foreignKey: 'variant')
-  final Variant variant;
+  @Supabase(foreignKey: 'variant_id')
+  Variant? variant;
 
   // If the association will be created by the app, specify
   // a field that maps directly to the foreign key column
   // so that Brick can notify Supabase of the association.
-  @Sqlite(ignore: true)
-  int get variantId => variant.id;
+  // @Sqlite(ignore: true)
+  final int variantId;
 
   int? tin;
   String? bhfId;
   int? branchId;
   // int? variantId;
-  @Supabase(defaultValue: "0")
+  @Supabase(defaultValue: "0.0")
   double? currentStock;
-  @Supabase(defaultValue: "0")
-  int? lowStock;
+  @Supabase(defaultValue: "0.0")
+  double? lowStock;
   @Supabase(defaultValue: "true")
   bool? canTrackingStock;
   @Supabase(defaultValue: "true")
@@ -52,6 +46,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
   Stock({
     required this.id,
     this.tin,
+    required this.variantId,
     this.bhfId,
     required this.variant,
     this.branchId,

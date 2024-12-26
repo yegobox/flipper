@@ -731,5 +731,6 @@ class App {}
 
 
 // Find all comments in a file: //.*$|/\*[\s\S]*?\*/
-
+// brick knowledge: https://github.com/GetDutchie/brick/issues/454
+// https://github.com/GetDutchie/brick/issues/493
 // 50482

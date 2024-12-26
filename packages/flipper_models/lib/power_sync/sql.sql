@@ -55,6 +55,91 @@ ALTER TABLE stocks
 ADD CONSTRAINT fk_variant_id
 FOREIGN KEY (variant_id) REFERENCES variants(id);
 
+-- these precision are required to avoid issues
+-- Alter the column with increased precision
+ALTER TABLE transactions
+ALTER COLUMN sub_total TYPE NUMERIC(20,4);
+
+ALTER TABLE transactions
+ALTER COLUMN cash_received TYPE NUMERIC(20,4);
+
+ALTER TABLE transactions
+ALTER COLUMN customer_change_due TYPE NUMERIC(20,4);
+
+ALTER TABLE transactions
+ALTER COLUMN customer_change_due TYPE NUMERIC(20,4);
+
+ALTER TABLE variants
+ALTER COLUMN tax_percentage TYPE NUMERIC(20,4);
+
+
+ALTER TABLE variants
+ALTER COLUMN prc TYPE NUMERIC(20,4);
+
+ALTER TABLE variants
+ALTER COLUMN dft_prc TYPE NUMERIC(20,4);
+
+ALTER TABLE variants
+ALTER COLUMN dc_rt TYPE NUMERIC(20,4);
+
+ALTER TABLE variants
+ALTER COLUMN sply_amt TYPE NUMERIC(20,4);
+
+ALTER TABLE variants
+ALTER COLUMN supply_price TYPE NUMERIC(20,4);
+
+ALTER TABLE variants
+ALTER COLUMN retail_price TYPE NUMERIC(20,4);
+
+ALTER TABLE variants
+ALTER COLUMN dc_rt TYPE NUMERIC(20,4);
+
+
+ALTER TABLE transaction_items
+ALTER COLUMN remaining_stock TYPE NUMERIC(20,4);
+
+ALTER TABLE transaction_items
+ALTER COLUMN price TYPE NUMERIC(20,4);
+
+ALTER TABLE transaction_items
+ALTER COLUMN qty TYPE NUMERIC(20,4);
+
+ALTER TABLE transaction_items
+ALTER COLUMN discount TYPE NUMERIC(20,4);
+
+ALTER TABLE transaction_items
+ALTER COLUMN dc_rt TYPE NUMERIC(20,4);
+
+ALTER TABLE transaction_items
+ALTER COLUMN dc_amt TYPE NUMERIC(20,4);
+
+ALTER TABLE transaction_items
+ALTER COLUMN taxbl_amt TYPE NUMERIC(20,4);
+
+ALTER TABLE transaction_items
+ALTER COLUMN tax_amt TYPE NUMERIC(20,4);
+
+ALTER TABLE transaction_items
+ALTER COLUMN tot_amt TYPE NUMERIC(20,4);
+
+ALTER TABLE transaction_items
+ALTER COLUMN prc TYPE NUMERIC(20,4);
+
+ALTER TABLE transaction_items
+ALTER COLUMN sply_amt TYPE NUMERIC(20,4);
+
+ALTER TABLE transaction_items
+ALTER COLUMN dft_prc TYPE NUMERIC(20,4);
+
+ALTER TABLE transaction_items
+ALTER COLUMN composite_price TYPE NUMERIC(20,4);
+
+ALTER TABLE composites
+ALTER COLUMN qty TYPE NUMERIC(20,4);
+
+ALTER TABLE composites
+ALTER COLUMN actualPrice TYPE NUMERIC(20,4);
+
 -- Unit Table
 DROP TABLE IF EXISTS public.units;
 CREATE TABLE public.units (

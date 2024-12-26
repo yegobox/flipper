@@ -87,7 +87,6 @@ mixin ProductMixin {
         variations[i].itemSeq = i;
         variations[i].itemStdNm = productName;
         variations[i].taxPercentage = 18.0;
-        // await setTaxPercentage(variations[i]);
 
         variations[i].tin = business!.tinNumber;
 

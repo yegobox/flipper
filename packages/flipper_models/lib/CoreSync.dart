@@ -274,6 +274,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         if (stock == null) {
           stock = Stock(
               id: stockId,
+              variantId: variation.id,
               lastTouched: DateTime.now(),
               branchId: branchId,
               variant: variation,
@@ -310,6 +311,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         final newStock = Stock(
             id: stockId,
             lastTouched: DateTime.now(),
+            variantId: variation.id,
             branchId: branchId,
             // variantId: variation.id,
             variant: variation,
@@ -318,7 +320,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
                 .toDouble(),
             productId: variation.productId)
           ..active = true;
-
+        //newStock.variantId = variation.id;
         await repository.upsert<Stock>(newStock);
       }
     } catch (e, s) {
@@ -692,6 +694,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       final Stock stock = Stock(
           lastTouched: DateTime.now(),
           id: randomNumber(),
+          variantId: newVariant.id,
           variant: newVariant,
           branchId: branchId,
           // variantId: newVariant.id,
@@ -1130,6 +1133,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
         Stock stock = Stock(
             variant: variant,
+            variantId: variant.id,
             lastTouched: DateTime.now(),
             id: stockId,
             branchId: branchId,
@@ -1970,10 +1974,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           isExpense: isExpense,
           isIncome: !isExpense,
           transactionType: transactionType,
-          subTotal: 0,
-          cashReceived: 0,
+          subTotal: 0.0,
+          cashReceived: 0.0,
           updatedAt: DateTime.now().toIso8601String(),
-          customerChangeDue: 0,
+          customerChangeDue: 0.0,
           paymentType: ProxyService.box.paymentType() ?? "Cash",
           branchId: branchId,
           createdAt: DateTime.now().toIso8601String());
@@ -2010,8 +2014,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           isExpense: isExpense,
           isIncome: !isExpense,
           transactionType: transactionType,
-          subTotal: 0,
-          cashReceived: 0,
+          subTotal: 0.0,
+          cashReceived: 0.0,
           updatedAt: DateTime.now().toIso8601String(),
           customerChangeDue: 0.0,
           paymentType: ProxyService.box.paymentType() ?? "Cash",
@@ -3385,7 +3389,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       id: randomNumber(),
       lastTouched: DateTime.now(),
       branchId: branchId,
-      // variantId: variantId,
+      variantId: variantId,
       variant: variant!,
       currentStock: currentStock,
       rsdQty: rsdQty,
