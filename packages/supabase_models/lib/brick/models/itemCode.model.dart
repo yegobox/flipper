@@ -10,8 +10,9 @@ class ItemCode extends OfflineFirstWithSupabaseModel {
   final int id;
 
   @Sqlite(index: true)
+  @Supabase(name: 'item_code')
   final String itemCode;
-
+  @Supabase(name: 'created_at')
   final DateTime createdAt;
 
   ItemCode({

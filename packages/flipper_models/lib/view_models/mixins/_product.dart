@@ -44,8 +44,12 @@ mixin ProductMixin {
           id: variations!.first.productId!,
           branchId: ProxyService.box.getBranchId()!,
           businessId: ProxyService.box.getBusinessId()!);
-      ProxyService.strategy
-          .updateProduct(productId: product!.id, name: productName);
+      ProxyService.strategy.updateProduct(
+        productId: product!.id,
+        name: productName,
+        branchId: ProxyService.box.getBranchId()!,
+        businessId: ProxyService.box.getBusinessId()!,
+      );
       List<Variant> updatables = [];
       for (var i = 0; i < variations.length; i++) {
         variations[i].pkgUnitCd = packagingUnit;
@@ -159,8 +163,13 @@ mixin ProductMixin {
     List<Variant> variants = await ProxyService.strategy.variants(
         productId: mproduct.id, branchId: ProxyService.box.getBranchId()!);
 
-    ProxyService.strategy
-        .updateProduct(productId: mproduct.id, name: productName, color: color);
+    ProxyService.strategy.updateProduct(
+      productId: mproduct.id,
+      name: productName,
+      color: color,
+      branchId: ProxyService.box.getBranchId()!,
+      businessId: ProxyService.box.getBusinessId()!,
+    );
 
     ProxyService.strategy.updateCategory(
       categoryId: activeCat!.id,

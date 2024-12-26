@@ -8,9 +8,7 @@ part of 'IVariant.dart';
 
 IVariant _$IVariantFromJson(Map<String, dynamic> json) => IVariant(
       id: (json['id'] as num?)?.toInt(),
-      deletedAt: json['deletedAt'] == null
-          ? null
-          : DateTime.parse(json['deletedAt'] as String),
+      deletedAt: json['deletedAt'],
       name: json['name'] as String?,
       color: json['color'] as String?,
       sku: json['sku'] as String?,
@@ -51,9 +49,7 @@ IVariant _$IVariantFromJson(Map<String, dynamic> json) => IVariant(
       modrId: json['modrId'] as String?,
       modrNm: json['modrNm'] as String?,
       rsdQty: (json['rsdQty'] as num?)?.toDouble() ?? 0.0,
-      lastTouched: json['lastTouched'] == null
-          ? null
-          : DateTime.parse(json['lastTouched'] as String),
+      lastTouched: json['lastTouched'],
       supplyPrice: (json['supplyPrice'] as num?)?.toDouble() ?? 0.0,
       retailPrice: (json['retailPrice'] as num?)?.toDouble() ?? 0.0,
       action: json['action'] as String?,

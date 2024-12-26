@@ -85,7 +85,7 @@ abstract class RealmInterface {
 
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
-  Category? activeCategory({required int branchId});
+  FutureOr<Category?> activeCategory({required int branchId});
   Future<List<IUnit>> units({required int branchId});
   T? create<T>({required T data});
   Stream<double> getStockValue({required int branchId});
@@ -688,6 +688,8 @@ abstract class RealmInterface {
       bool? isComposite,
       String? unit,
       String? color,
+      required int branchId,
+      required int businessId,
       String? imageUrl,
       String? expiryDate});
 

@@ -29,7 +29,7 @@ class ListUnits extends StatelessWidget {
             ),
             trailing: Radio<String>(
               value: unit.id.toString(),
-              groupValue: unit.active ? unit.id.toString() : '0',
+              groupValue: unit.active! ? unit.id.toString() : '0',
               onChanged: (_) => _onUnitTapped(model, unit),
             ),
           ),

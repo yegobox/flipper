@@ -192,9 +192,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Category? activeCategory({required int branchId}) {
-    // TODO: implement activeCategory
-    throw UnimplementedError("activeCategory is not implemented yet");
+  Future<models.Category?> activeCategory({required int branchId}) async {
+    return (await repository.get<Category>(
+            query: brick.Query(where: [
+              brick.Where('focused').isExactly(true),
+              brick.Where('active').isExactly(true),
+              brick.Where('branchId').isExactly(branchId),
+            ], limit: 1),
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))
+        .firstOrNull;
   }
 
   @override
@@ -260,47 +266,39 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<void> _processVariant(int branchId, Variant variation) async {
     try {
       int stockId = randomNumber();
-      // Variant? variant = realm!.query<Variant>(
-      //     r'id == $0 && branchId == $1 && deletedAt == nil',
-      //     [variation.id, branchId]).firstOrNull;
       Variant? variant = await getVariantById(id: variation.id);
 
       if (variant != null) {
-        // Stock? stock = realm!.query<Stock>(
-        //     r'id == $0 && branchId == $1 && deletedAt == nil',
-        //     [stockId, branchId]).firstOrNull;
         Stock? stock = await getStockById(id: stockId);
 
         if (stock == null) {
-          final newStock = Stock(
+          stock = Stock(
               id: stockId,
               lastTouched: DateTime.now(),
               branchId: branchId,
               variant: variation,
-              // variantId: variation.id,
               currentStock: stock?.rsdQty ?? 0,
               rsdQty: stock?.rsdQty ?? 0,
               value: (variation.stock?.rsdQty ?? 0 * (variation.retailPrice!))
                   .toDouble(),
               productId: variation.productId,
               active: false);
-          // realm!.put<Stock>(newStock, tableName: 'stocks');
-          repository.upsert<Stock>(newStock);
+
+          await repository.upsert<Stock>(stock);
         }
 
-        stock!.currentStock =
+        stock.currentStock =
             stock.currentStock! + (variation.stock?.rsdQty ?? 0);
         stock.rsdQty = stock.currentStock! + (stock.rsdQty!);
         stock.lastTouched = DateTime.now().toLocal();
         stock.value = (variation.stock?.rsdQty ?? 0 * (variation.retailPrice!))
             .toDouble();
-        // realm!.put<Stock>(stock, tableName: 'stocks');
         await repository.upsert<Stock>(stock);
         variant.stock?.rsdQty = variation.stock?.rsdQty ?? 0;
         variant.retailPrice = variation.retailPrice;
         variant.supplyPrice = variation.supplyPrice;
+        variant.taxPercentage = variation.taxPercentage!.toDouble();
         variant.lastTouched = DateTime.now().toLocal();
-        // realm!.put<Variant>(variant, tableName: 'variants');
         await repository.upsert<Variant>(variant);
       } else {
         int stockId = randomNumber();
@@ -324,7 +322,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         await repository.upsert<Stock>(newStock);
       }
     } catch (e, s) {
+      talker.warning('Error in updateStock: $e $s');
       talker.error(s);
+      rethrow;
     }
   }
 
@@ -1105,7 +1105,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             useYn: "N",
             itemSeq: 1,
             itemStdNm: product.name,
-            taxPercentage: 18,
+            taxPercentage: 18.0,
             tin: tinNumber,
             bcd: CUSTOM_PRODUCT,
 
@@ -3151,13 +3151,24 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? unit,
       String? color,
       String? imageUrl,
-      String? expiryDate}) {
-    // TODO: implement updateProduct
-    throw UnimplementedError("updateProduct method is not implemented yet");
+      required int branchId,
+      required int businessId,
+      String? expiryDate}) async {
+    final product = await getProduct(
+        id: productId, branchId: branchId, businessId: businessId);
+    if (product != null) {
+      product.name = name ?? product.name;
+      product.isComposite = isComposite ?? product.isComposite;
+      product.unit = unit ?? product.unit;
+      product.expiryDate = expiryDate ?? product.expiryDate;
+      product.imageUrl = imageUrl ?? product.imageUrl;
+      product.color = color ?? product.color;
+      repository.upsert(product);
+    }
   }
 
   @override
-  FutureOr<void> updateReport({required int reportId, bool? downloaded}) {
+  FutureOr<void> updateReport({required int reportId, bool? downloaded}) async {
     // TODO: implement updateReport
     throw UnimplementedError("updateReport method is not implemented yet");
   }

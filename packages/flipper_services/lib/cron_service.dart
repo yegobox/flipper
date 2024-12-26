@@ -12,7 +12,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-// import 'package:firestore_models/firestore_models.dart' as odm;
 
 class CronService {
   final drive = GoogleDrive();
@@ -93,41 +92,7 @@ class CronService {
       ProxyService.setStrategy(Strategy.bricks);
       ProxyService.strategy.whoAmI();
     }
-    final counter = await ProxyService.strategy.getCounters(branchId: 1);
-    talker.warning("GET COUNTER FROM STRATEGY: ${counter.length}");
-
-    // AsyncCollection? collection = await ProxyService
-    //     .capela.capella?.flipperDatabase!
-    //     .collection(countersTable, 'user_data');
-    // if (collection == null) {
-    //   collection = await ProxyService.capela.capella?.flipperDatabase!
-    //       .createCollection(countersTable, "default");
-    // }
-    // // counters
-    // List<Counter> counters = ProxyService.strategy.realm!.all<Counter>().toList();
-    // for (Counter counter in counters) {
-    //   print("counter: ${counter.id}");
-    //   final document = odm.Counter(
-    //     id: counter.id,
-    //     businessId: counter.businessId,
-    //     branchId: counter.branchId,
-    //     receiptType: counter.receiptType,
-    //     totRcptNo: counter.totRcptNo,
-    //     curRcptNo: counter.curRcptNo,
-    //     invcNo: counter.invcNo,
-    //     lastTouched: counter.lastTouched,
-    //   );
-    //   await ProxyService.capela.capella?.flipperDatabase!.writeN(
-    //       tableName: countersTable,
-    //       writeCallback: () {
-    //         return MutableDocument.withId(
-    //             counter.id.toString(), document.toJson());
-    //       },
-    //       onAdd: (doc) async {
-    //         await collection!.saveDocument(doc);
-    //         print("Document saved: ${doc.id}");
-    //       });
-    // }
+  
     ProxyService.strategy
         .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
     if (results.any((result) => result != ConnectivityResult.none)) {

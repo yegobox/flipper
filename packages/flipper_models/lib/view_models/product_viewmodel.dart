@@ -201,7 +201,7 @@ class ProductViewModel extends FlipperBaseModel
     final int branchId = ProxyService.box.getBranchId()!;
 
     for (IUnit unit in units) {
-      if (unit.active) {
+      if (unit.active ?? false) {
         ProxyService.strategy.updateUnit(
             unitId: unit.id,
             name: unit.name,
@@ -215,8 +215,12 @@ class ProductViewModel extends FlipperBaseModel
         active: true,
         branchId: branchId);
     if (type == 'product') {
-      ProxyService.strategy
-          .updateProduct(productId: product!.id, unit: newUnit.name);
+      ProxyService.strategy.updateProduct(
+        productId: product!.id,
+        unit: newUnit.name,
+        branchId: ProxyService.box.getBranchId()!,
+        businessId: ProxyService.box.getBusinessId()!,
+      );
       // get updated product
       product = await ProxyService.strategy.getProduct(
           businessId: ProxyService.box.getBusinessId()!,
@@ -391,7 +395,11 @@ class ProductViewModel extends FlipperBaseModel
 
   void updateExpiryDate(DateTime date) async {
     ProxyService.strategy.updateProduct(
-        productId: product!.id, expiryDate: date.toIso8601String());
+      productId: product!.id,
+      expiryDate: date.toIso8601String(),
+      branchId: ProxyService.box.getBranchId()!,
+      businessId: ProxyService.box.getBusinessId()!,
+    );
     Product? cProduct = await ProxyService.strategy.getProduct(
         id: product!.id,
         branchId: ProxyService.box.getBranchId()!,

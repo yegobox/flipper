@@ -1321,6 +1321,8 @@ class Capella with Booting implements RealmInterface {
       bool? isComposite,
       String? unit,
       String? color,
+      required int branchId,
+      required int businessId,
       String? imageUrl,
       String? expiryDate}) {
     // TODO: implement updateProduct

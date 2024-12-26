@@ -716,6 +716,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
                             ProxyService.strategy.updateProduct(
                               productId: ref.read(unsavedProductProvider)!.id,
+                              branchId: ProxyService.box.getBranchId()!,
+                              businessId: ProxyService.box.getBusinessId()!,
                               name: productNameController.text,
                               isComposite: true,
                             );

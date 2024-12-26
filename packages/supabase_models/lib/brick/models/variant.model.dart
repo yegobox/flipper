@@ -7,8 +7,8 @@ import 'package:supabase_models/brick/models/stock.model.dart';
   supabaseConfig: SupabaseSerializable(tableName: 'variants'),
 )
 class Variant extends OfflineFirstWithSupabaseModel {
-  @Supabase(unique: true)
   @Sqlite(unique: true)
+  @Supabase(unique: true)
   final int id;
   DateTime? deletedAt;
 
@@ -21,7 +21,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? productName;
   int? branchId;
   String? taxName;
-  @Supabase(defaultValue: "18")
+  @Supabase(defaultValue: "18.0")
   double? taxPercentage;
 
   // add RRA fields
@@ -42,12 +42,12 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? pkgUnitCd;
   String? qtyUnitCd;
   String? itemNm;
-  @Supabase(defaultValue: "0")
+  @Supabase(defaultValue: "0.0")
   double? prc;
   double? splyAmt;
   int? tin;
   String? bhfId;
-  @Supabase(defaultValue: "0")
+  @Supabase(defaultValue: "0.0")
   double? dftPrc;
   String? addInfo;
   String? isrcAplcbYn;
@@ -78,6 +78,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   /// only a placeholder for capturing stock quantity for this variant,
   /// since when capturing qty we only have variant and not stock.
   @Sqlite(ignore: true)
+  @Supabase(ignore: true)
   double? qty;
 
   Variant({

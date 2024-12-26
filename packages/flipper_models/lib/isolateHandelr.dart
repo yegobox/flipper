@@ -261,11 +261,9 @@ class IsolateHandler with StockPatch {
       final result =
           db.select("Select * from Business where server_id = $businessId");
 
-      print(result.single.toString());
       Business business = Business.fromMap(result.single);
       final url = URI + "/itemClass/selectItemsClass";
-      print(url);
-      print(bhfid);
+
       final headers = {"Content-Type": "application/json"};
       final body = jsonEncode({
         "tin": business.tinNumber,

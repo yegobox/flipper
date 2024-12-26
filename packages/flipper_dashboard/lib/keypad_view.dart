@@ -74,7 +74,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: Offset(0, 5),
           ),
@@ -246,12 +246,12 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             ),
             TextButton(
               child: Text('Confirm'),
-              onPressed: () {
+              onPressed: () async {
                 // discount, transactionType: transactionType, isIncome: isIncome
                 final bool isIncome =
                     (widget.transactionType == TransactionType.cashIn ||
                         widget.transactionType == TransactionType.sale);
-                Category? activeCat = ProxyService.strategy
+                Category? activeCat = await ProxyService.strategy
                     .activeCategory(branchId: ProxyService.box.getBranchId()!);
                 if (activeCat == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -338,7 +338,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         ref.read(keypadProvider.notifier).reset();
       },
     );
-    Category? category = ProxyService.strategy
+    Category? category = await ProxyService.strategy
         .activeCategory(branchId: ProxyService.box.getBranchId()!);
     var shortestSide = MediaQuery.of(context).size.shortestSide;
     var useMobileLayout = shortestSide < 600;

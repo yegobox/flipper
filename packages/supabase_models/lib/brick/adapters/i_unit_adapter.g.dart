@@ -9,14 +9,11 @@ Future<IUnit> _$IUnitFromSupabase(Map<String, dynamic> data,
       branchId: data['branch_id'] as int?,
       name: data['name'] as String?,
       value: data['value'] as String?,
-      active: data['active'] as bool,
+      active: data['active'] as bool? ?? false,
       lastTouched: data['last_touched'] == null
           ? null
           : DateTime.tryParse(data['last_touched'] as String),
-      createdAt: data['created_at'] as String?,
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : DateTime.tryParse(data['deleted_at'] as String));
+      createdAt: data['created_at'] as String?);
 }
 
 Future<Map<String, dynamic>> _$IUnitToSupabase(IUnit instance,
@@ -29,8 +26,7 @@ Future<Map<String, dynamic>> _$IUnitToSupabase(IUnit instance,
     'value': instance.value,
     'active': instance.active,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'created_at': instance.createdAt,
-    'deleted_at': instance.deletedAt?.toIso8601String()
+    'created_at': instance.createdAt
   };
 }
 
@@ -42,19 +38,14 @@ Future<IUnit> _$IUnitFromSqlite(Map<String, dynamic> data,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       name: data['name'] == null ? null : data['name'] as String?,
       value: data['value'] == null ? null : data['value'] as String?,
-      active: data['active'] == 1,
+      active: data['active'] == null ? null : data['active'] == 1,
       lastTouched: data['last_touched'] == null
           ? null
           : data['last_touched'] == null
               ? null
               : DateTime.tryParse(data['last_touched'] as String),
       createdAt:
-          data['created_at'] == null ? null : data['created_at'] as String?,
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String))
+          data['created_at'] == null ? null : data['created_at'] as String?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -66,10 +57,9 @@ Future<Map<String, dynamic>> _$IUnitToSqlite(IUnit instance,
     'branch_id': instance.branchId,
     'name': instance.name,
     'value': instance.value,
-    'active': instance.active ? 1 : 0,
+    'active': instance.active == null ? null : (instance.active! ? 1 : 0),
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'created_at': instance.createdAt,
-    'deleted_at': instance.deletedAt?.toIso8601String()
+    'created_at': instance.createdAt
   };
 }
 
@@ -110,16 +100,12 @@ class IUnitAdapter extends OfflineFirstWithSupabaseAdapter<IUnit> {
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'created_at',
-    ),
-    'deletedAt': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
     )
   };
   @override
   final ignoreDuplicates = false;
   @override
-  final uniqueFields = {};
+  final uniqueFields = {'id'};
   @override
   final Map<String, RuntimeSqliteColumnDefinition> fieldsToSqliteColumns = {
     'primaryKey': const RuntimeSqliteColumnDefinition(
@@ -169,12 +155,6 @@ class IUnitAdapter extends OfflineFirstWithSupabaseAdapter<IUnit> {
       columnName: 'created_at',
       iterable: false,
       type: String,
-    ),
-    'deletedAt': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
-      iterable: false,
-      type: DateTime,
     )
   };
   @override

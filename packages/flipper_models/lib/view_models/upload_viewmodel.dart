@@ -103,8 +103,12 @@ class UploadViewModel extends ProductViewModel {
       await ProxyService.strategy.downloadAssetSave(assetName: uniqueFileName);
       await Future.delayed(Duration(seconds: 10));
 
-      await ProxyService.strategy
-          .updateProduct(productId: id, imageUrl: uniqueFileName);
+      await ProxyService.strategy.updateProduct(
+        productId: id,
+        imageUrl: uniqueFileName,
+        branchId: ProxyService.box.getBranchId()!,
+        businessId: ProxyService.box.getBusinessId()!,
+      );
 
       // Log success
       talker.warning('File uploaded and database updated successfully.');

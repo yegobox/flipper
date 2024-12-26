@@ -17,7 +17,7 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       productName: data['product_name'] as String?,
       branchId: data['branch_id'] as int?,
       taxName: data['tax_name'] as String?,
-      taxPercentage: data['tax_percentage'] as double? ?? 18,
+      taxPercentage: data['tax_percentage'] as double? ?? 18.0,
       itemSeq: data['item_seq'] as int?,
       isrccCd: data['isrcc_cd'] as String?,
       isrccNm: data['isrcc_nm'] as String?,
@@ -34,11 +34,11 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       pkgUnitCd: data['pkg_unit_cd'] as String?,
       qtyUnitCd: data['qty_unit_cd'] as String?,
       itemNm: data['item_nm'] as String?,
-      prc: data['prc'] as double? ?? 0,
+      prc: data['prc'] as double? ?? 0.0,
       splyAmt: data['sply_amt'] as double?,
       tin: data['tin'] as int?,
       bhfId: data['bhf_id'] as String?,
-      dftPrc: data['dft_prc'] as double? ?? 0,
+      dftPrc: data['dft_prc'] as double? ?? 0.0,
       addInfo: data['add_info'] as String?,
       isrcAplcbYn: data['isrc_aplcb_yn'] as String?,
       useYn: data['use_yn'] as String?,
@@ -59,8 +59,7 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       expirationDate: data['expiration_date'] == null
           ? null
           : DateTime.tryParse(data['expiration_date'] as String),
-      stockId: data['stock_id'] as int?,
-      qty: data['qty'] as double?);
+      stockId: data['stock_id'] as int?);
 }
 
 Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
@@ -115,8 +114,7 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'ebm_synced': instance.ebmSynced,
     'dc_rt': instance.dcRt,
     'expiration_date': instance.expirationDate?.toIso8601String(),
-    'stock_id': instance.stockId,
-    'qty': instance.qty
+    'stock_id': instance.stockId
   };
 }
 
@@ -469,10 +467,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'stockId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'stock_id',
-    ),
-    'qty': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'qty',
     )
   };
   @override

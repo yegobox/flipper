@@ -7,25 +7,26 @@ import 'package:brick_supabase/brick_supabase.dart';
 )
 class IUnit extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
+  @Supabase(unique: true)
   final int id;
 
   int? branchId;
   String? name;
   String? value;
-  bool active = false;
+  @Sqlite(defaultValue: "false")
+  @Supabase(defaultValue: "false")
+  bool? active;
 
   DateTime? lastTouched;
 
   String? createdAt;
-  DateTime? deletedAt;
   IUnit({
     required this.id,
     this.branchId,
     this.name,
     this.value,
-    this.active = false,
+    this.active,
     this.lastTouched,
     this.createdAt,
-    this.deletedAt,
   });
 }

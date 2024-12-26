@@ -40,6 +40,8 @@ part '20241201185919.migration.dart';
 part '20241201203523.migration.dart';
 part '20241225115118.migration.dart';
 part '20241225120000.migration.dart';
+part '20241225222019.migration.dart';
+part '20241226044230.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -81,12 +83,14 @@ final migrations = <Migration>{
   const Migration20241201185919(),
   const Migration20241201203523(),
   const Migration20241225115118(),
-  const Migration20241225120000()
+  const Migration20241225120000(),
+  const Migration20241225222019(),
+  const Migration20241226044230()
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema =
-    Schema(20241225120000, generatorVersion: 1, tables: <SchemaTable>{
+    Schema(20241226044230, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -100,6 +104,11 @@ final schema =
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
     SchemaColumn('id', Column.integer, unique: true),
+    SchemaColumn('variant_Variant_brick_id', Column.integer,
+        isForeignKey: true,
+        foreignTableName: 'Variant',
+        onDeleteCascade: false,
+        onDeleteSetDefault: false),
     SchemaColumn('tin', Column.integer),
     SchemaColumn('bhf_id', Column.varchar),
     SchemaColumn('branch_id', Column.integer),
@@ -114,13 +123,10 @@ final schema =
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('ebm_synced', Column.boolean),
-    SchemaColumn('initial_stock', Column.integer),
-    SchemaColumn('variant_Variant_brick_id', Column.integer,
-        isForeignKey: true,
-        foreignTableName: 'Variant',
-        onDeleteCascade: false,
-        onDeleteSetDefault: false)
-  }, indices: <SchemaIndex>{}),
+    SchemaColumn('initial_stock', Column.integer)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Counter', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -637,8 +643,7 @@ final schema =
     SchemaColumn('value', Column.varchar),
     SchemaColumn('active', Column.boolean),
     SchemaColumn('last_touched', Column.datetime),
-    SchemaColumn('created_at', Column.varchar),
-    SchemaColumn('deleted_at', Column.datetime)
+    SchemaColumn('created_at', Column.varchar)
   }, indices: <SchemaIndex>{}),
   SchemaTable('Location', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
