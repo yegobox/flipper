@@ -34,10 +34,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         if (snapshot.connectionState == ConnectionState.done) {
           return snapshot.data ?? SizedBox.shrink();
         } else {
-          return SizedBox(
-              width: 12,
-              height: 12,
-              child: CircularProgressIndicator(strokeWidth: 2));
+          return Text('...Loading');
         }
       },
     );

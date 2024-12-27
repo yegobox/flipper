@@ -7,8 +7,6 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_models/realmExtension.dart';
-import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flutter/services.dart';
 
 class FlipperBaseModel extends ReactiveViewModel {
