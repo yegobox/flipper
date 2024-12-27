@@ -698,7 +698,8 @@ class CoreViewModel extends FlipperBaseModel
     Set<TransactionItem> allItems = {};
     for (ITransaction completedTransaction in completedTransactions) {
       List<TransactionItem> transactionItems = await ProxyService.strategy
-          .getTransactionItemsByTransactionId(
+          .transactionItems(
+              branchId: ProxyService.box.getBranchId()!,
               transactionId: completedTransaction.id);
       allItems.addAll(transactionItems.toSet());
     }

@@ -10,7 +10,7 @@ abstract class Indicator {
   List<AnimationController> animation();
 
   void postInvalidate() {
-    context.setState(() {});
+    // context.setState(() {});
   }
 
   void start() {

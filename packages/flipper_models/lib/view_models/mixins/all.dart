@@ -49,16 +49,7 @@ mixin SharebleMethods {
     });
   }
 
-  Stream<List<TransactionItem>> transactionItemsStream({
-    required ITransaction transaction,
-  }) {
-    final transactions = ProxyService.strategy.transactionItemsFuture(
-      transactionId: transaction.id,
-      doneWithTransaction: false,
-      active: false,
-    );
-    return Stream.value(transactions);
-  }
+ 
 
   Stream<List<ITransaction>> getCashInTransactions() {
     final transactions = ProxyService.strategy.transactions(isExpense: false);

@@ -426,7 +426,9 @@ class ProductViewModel extends FlipperBaseModel
 
     if (transaction != null) {
       List<TransactionItem> transactionItems = await ProxyService.strategy
-          .getTransactionItemsByTransactionId(transactionId: transaction.id);
+          .transactionItems(
+              transactionId: transaction.id,
+              branchId: ProxyService.box.getBranchId()!);
 
       for (TransactionItem item in transactionItems) {
         if (item.price.toInt() <= discount.amount!) {

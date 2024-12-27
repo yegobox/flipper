@@ -106,12 +106,17 @@ class BottomSheets {
     required Function onCharge,
     int? transactionId,
   }) {
+    // Watch the transaction
     final transaction = ref.watch(pendingTransactionProviderNonStream(
-        (mode: TransactionType.sale, isExpense: false)));
-    final items = ref.watch(transactionItemProvider((
+      (mode: TransactionType.sale, isExpense: false),
+    ));
+
+    // Watch items as AsyncValue
+    final itemsAsync = ref.watch(transactionItemProvider((
       transactionId: transaction.value?.id ?? 0,
       branchId: ProxyService.box.getBranchId()!
     )));
+
     double calculateTotal(List<TransactionItem> items) {
       return items.fold(0, (sum, item) => sum + item.price);
     }
@@ -152,6 +157,54 @@ class BottomSheets {
       );
     }
 
+    Widget _buildContent(List<TransactionItem> items) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SearchInputWithDropdown(),
+          SizedBox(height: 16),
+          if (items.isNotEmpty)
+            ...items.map((item) => _buildTransactionItem(item)).toList(),
+          SizedBox(height: 16),
+          Divider(color: Colors.grey),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              FlipperButtonFlat(
+                textColor: Colors.red,
+                onPressed: () {
+                  for (TransactionItem item in items) {
+                    ProxyService.strategy.deleteItemFromCart(
+                      transactionItemId: item,
+                      transactionId: transactionId,
+                    );
+                  }
+                  doneDelete();
+                },
+                text: 'Clear All',
+              ),
+              Text(
+                'Total: ${calculateTotal(items).toRwf()}',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 16),
+          FlipperButton(
+            color: Colors.blue,
+            width: double.infinity,
+            text: 'Charge ${calculateTotal(items).toRwf()}',
+            onPressed: () {
+              onCharge(transactionId, calculateTotal(items));
+            },
+          ),
+        ],
+      );
+    }
+
     WoltModalSheet.show<void>(
       context: context,
       pageListBuilder: (BuildContext context) {
@@ -160,54 +213,15 @@ class BottomSheets {
             hasSabGradient: false,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SearchInputWithDropdown(),
-                  SizedBox(height: 16),
-                  if (items.isNotEmpty)
-                    ...items
-                        .map((item) => _buildTransactionItem(item))
-                        .toList(),
-                  SizedBox(height: 16),
-                  Divider(
-                    color: Colors.grey,
+              child: itemsAsync.when(
+                data: (items) => _buildContent(items),
+                loading: () => Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(
+                  child: Text(
+                    'Error loading items: ${error.toString()}',
+                    style: TextStyle(color: Colors.red),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      FlipperButtonFlat(
-                        textColor: Colors.red,
-                        onPressed: () {
-                          // Handle "Clear All"
-                          for (TransactionItem item in items) {
-                            ProxyService.strategy.deleteItemFromCart(
-                                transactionItemId: item,
-                                transactionId: transactionId);
-                          }
-                          doneDelete();
-                        },
-                        text: 'Clear All',
-                      ),
-                      Text(
-                        'Total: ${calculateTotal(items).toRwf()}',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  FlipperButton(
-                    color: Colors.blue,
-                    width: double.infinity,
-                    text: 'Charge ${calculateTotal(items).toRwf()}',
-                    onPressed: () {
-                      onCharge(transactionId, calculateTotal(items));
-                    },
-                  ),
-                ],
+                ),
               ),
             ),
           ),

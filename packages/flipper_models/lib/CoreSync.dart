@@ -795,6 +795,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           await repository.delete<Stock>(stock);
         }
         break;
+      case 'transactionItem':
+        final transactionItem = await transactionItems(
+            id: id, branchId: ProxyService.box.getBranchId()!);
+
+        await repository.delete<TransactionItem>(transactionItem.first);
+
+        break;
       // case 'discount':
       //   final discount = await getDiscount(id: id, branchId: ProxyService.box.getBranchId()!);
       //   if (discount != null) {
@@ -1675,21 +1682,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           .firstOrNull;
     }
     throw Exception("UserId or Pin is required");
-  }
-
-  @override
-  Future<TransactionItem?> getTransactionItemById({required int id}) {
-    // TODO: implement getTransactionItemById
-    throw UnimplementedError(
-        "getTransactionItemById method is not implemented yet");
-  }
-
-  @override
-  Future<List<TransactionItem>> getTransactionItemsByTransactionId(
-      {required int? transactionId}) {
-    // TODO: implement getTransactionItemsByTransactionId
-    throw UnimplementedError(
-        "getTransactionItemsByTransactionId method is not implemented yet");
   }
 
   @override
@@ -2817,35 +2809,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Stream<List<TransactionItem>> transactionItemList(
-      {DateTime? startDate, DateTime? endDate, bool? isPluReport}) {
-    // TODO: implement transactionItemList
-    throw UnimplementedError(
-        "transactionItemList method is not implemented yet");
-  }
-
-  @override
-  List<TransactionItem> transactionItemsFuture(
-      {required int transactionId,
-      required bool doneWithTransaction,
-      required bool active}) {
-    // TODO: implement transactionItemsFuture
-    throw UnimplementedError(
-        "transactionItemsFuture method is not implemented yet");
-  }
-
-  @override
-  Stream<List<TransactionItem>> transactionItemsStreams(
-      {required int transactionId,
-      required int branchId,
-      required bool doneWithTransaction,
-      required bool active}) {
-    // TODO: implement transactionItemsStreams
-    throw UnimplementedError(
-        "transactionItemsStreams method is not implemented yet");
-  }
-
-  @override
   List<ITransaction> transactions(
       {DateTime? startDate,
       DateTime? endDate,
@@ -3692,37 +3655,43 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
+  Stream<List<TransactionItem>> transactionItemsStreams(
+      {int? transactionId,
+      required int branchId,
+      DateTime? startDate,
+      DateTime? endDate,
+      bool? doneWithTransaction,
+      bool? active}) {
+    return repository.subscribe<TransactionItem>(
+        query: brick.Query(where: [
+      if (transactionId != null)
+        brick.Where('transactionId').isExactly(transactionId),
+      brick.Where('branchId').isExactly(branchId),
+      if (startDate != null && endDate != null)
+        brick.Where('lastTouched').isBetween(startDate, endDate),
+      if (doneWithTransaction != null)
+        brick.Where('doneWithTransaction').isExactly(doneWithTransaction),
+      if (active != null) brick.Where('active').isExactly(active),
+    ]));
+  }
+
+  @override
   FutureOr<List<TransactionItem>> transactionItems(
       {int? transactionId,
       bool? doneWithTransaction,
       required int branchId,
+      int? id,
       bool? active}) async {
-    if (transactionId == null) {
-      final items = await repository.get<TransactionItem>(
-          query: brick.Query(where: [
-        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
-      ]));
-      return items;
-    } else if (doneWithTransaction == null || active == null) {
-      final items = await repository.get<TransactionItem>(
-          query: brick.Query(where: [
-        brick.Where('transactionId',
-            value: transactionId, compare: brick.Compare.exact),
-        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
-      ]));
-      return items;
-    } else {
-      final items = await repository.get<TransactionItem>(
-          query: brick.Query(where: [
-        brick.Where('transactionId',
-            value: transactionId, compare: brick.Compare.exact),
-        brick.Where('doneWithTransaction',
-            value: doneWithTransaction, compare: brick.Compare.exact),
-        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
-        brick.Where('active', value: active, compare: brick.Compare.exact),
-      ]));
-      return items;
-    }
+    return repository.get(
+        query: brick.Query(where: [
+      if (transactionId != null)
+        brick.Where('transactionId').isExactly(transactionId),
+      brick.Where('branchId').isExactly(branchId),
+      if (id != null) brick.Where('id').isExactly(id),
+      if (doneWithTransaction != null)
+        brick.Where('doneWithTransaction').isExactly(doneWithTransaction),
+      if (active != null) brick.Where('active').isExactly(active),
+    ]));
   }
 
   @override

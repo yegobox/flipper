@@ -417,17 +417,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<bool> checkIn({required String? checkInCode}) {
-    // TODO: implement checkIn
-    throw UnimplementedError();
-  }
-
-  @override
-  void clear() {
-    // TODO: implement clear
-  }
-
-  @override
   void clearData({required ClearData data}) {
     // TODO: implement clearData
   }
@@ -521,12 +510,6 @@ class Capella with Booting implements RealmInterface {
   @override
   List<Customer> customers({required int branchId}) {
     // TODO: implement customers
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<String> dbPath({required String path, int? folder}) {
-    // TODO: implement dbPath
     throw UnimplementedError();
   }
 
@@ -777,19 +760,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<TransactionItem?> getTransactionItemById({required int id}) {
-    // TODO: implement getTransactionItemById
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<TransactionItem>> getTransactionItemsByTransactionId(
-      {required int? transactionId}) {
-    // TODO: implement getTransactionItemsByTransactionId
-    throw UnimplementedError();
-  }
-
-  @override
   Future<({double expense, double income})> getTransactionsAmountsSum(
       {required String period}) {
     // TODO: implement getTransactionsAmountsSum
@@ -932,12 +902,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<int> registerOnSocial({String? phoneNumberOrEmail, String? password}) {
-    // TODO: implement registerOnSocial
-    throw UnimplementedError();
-  }
-
-  @override
   Future<bool> removeS3File({required String fileName}) {
     // TODO: implement removeS3File
     throw UnimplementedError();
@@ -1032,12 +996,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<List<Stock>> stocks({required int branchId}) {
-    // TODO: implement stocks
-    throw UnimplementedError();
-  }
-
-  @override
   Future<({String customerCode, String url, int userId})> subscribe(
       {required int businessId,
       required Business business,
@@ -1077,32 +1035,6 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<double> totalStock({int? productId, int? variantId}) {
     // TODO: implement totalStock
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<TransactionItem>> transactionItemList(
-      {DateTime? startDate, DateTime? endDate, bool? isPluReport}) {
-    // TODO: implement transactionItemList
-    throw UnimplementedError();
-  }
-
-  @override
-  List<TransactionItem> transactionItemsFuture(
-      {required int transactionId,
-      required bool doneWithTransaction,
-      required bool active}) {
-    // TODO: implement transactionItemsFuture
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<TransactionItem>> transactionItemsStreams(
-      {required int transactionId,
-      required int branchId,
-      required bool doneWithTransaction,
-      required bool active}) {
-    // TODO: implement transactionItemsStreams
     throw UnimplementedError();
   }
 
@@ -1986,6 +1918,18 @@ class Capella with Booting implements RealmInterface {
   Future<List<brick.Variant>> variants(
       {required int branchId, int? productId, int? page, int? itemsPerPage}) {
     // TODO: implement variants
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<brick.TransactionItem>> transactionItemsStreams(
+      {int? transactionId,
+      required int branchId,
+      DateTime? startDate,
+      DateTime? endDate,
+      bool? doneWithTransaction,
+      bool? active}) {
+    // TODO: implement transactionItemsStreams
     throw UnimplementedError();
   }
 }

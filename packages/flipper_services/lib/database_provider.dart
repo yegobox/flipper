@@ -155,6 +155,7 @@ class DatabaseProvider {
   }
 
   /// Processes and returns the encryption key
+  // ignore: unused_element
   Future<EncryptionKey?> _getEncryptionKey() async {
     if (_userEncryptionKey.isEmpty) {
       _logWarning('No encryption key provided', null);

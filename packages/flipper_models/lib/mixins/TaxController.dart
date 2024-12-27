@@ -148,8 +148,9 @@ class TaxController<OBJ> {
         if (responses.resultCd == "000") {
           Business? business = await ProxyService.strategy.getBusiness();
           List<TransactionItem> items =
-              await ProxyService.strategy.getTransactionItemsByTransactionId(
+              await ProxyService.strategy.transactionItems(
             transactionId: transaction.id,
+            branchId: ProxyService.box.getBranchId()!,
           );
           Receipt? receipt = await ProxyService.strategy
               .getReceipt(transactionId: transaction.id);

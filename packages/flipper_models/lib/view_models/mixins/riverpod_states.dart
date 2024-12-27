@@ -114,18 +114,18 @@ final transactionItemsStreamProvider = StreamProvider.autoDispose
   );
 });
 
-final transactionItemProvider = Provider.autoDispose
+final transactionItemProvider = FutureProvider.autoDispose
     .family<List<TransactionItem>, ({int branchId, int transactionId})>(
-        (ref, params) {
+        (ref, params) async {
   final (:branchId, :transactionId) = params;
 
-  return ProxyService.strategy.transactionItemsFuture(
+  return await ProxyService.strategy.transactionItems(
     transactionId: transactionId,
     doneWithTransaction: false,
+    branchId: branchId,
     active: true,
   );
 });
-
 final stockByVariantIdProvider =
     StreamProvider.autoDispose.family<double, int>((ref, variantId) {
   int branchId = ProxyService.box.getBranchId()!;
@@ -696,7 +696,6 @@ final transactionItemListProvider =
   final dateRange = ref.watch(dateRangeProvider);
   final startDate = dateRange['startDate'];
   final endDate = dateRange['endDate'];
-  final isPluReport = ref.watch(toggleBooleanValueProvider);
 
   // Use keepAlive to prevent the provider from being disposed immediately
   ref.keepAlive();
@@ -706,10 +705,10 @@ final transactionItemListProvider =
   }
 
   return ProxyService.strategy
-      .transactionItemList(
+      .transactionItemsStreams(
     startDate: startDate,
     endDate: endDate,
-    isPluReport: isPluReport,
+    branchId: ProxyService.box.getBranchId()!,
   )
       .map((transactions) {
     // talker.info("Transaction Item Data: $transactions");

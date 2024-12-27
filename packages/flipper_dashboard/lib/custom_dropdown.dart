@@ -561,7 +561,6 @@ class _DropdownButtonState<T> extends State<CustomDropdownButton<T>>
         style: _textStyle!.copyWith(color: Theme.of(context).hintColor),
         child: IgnorePointer(
           child: widget.hint,
-          ignoringSemantics: false,
         ),
       ));
     }

@@ -90,7 +90,8 @@ class KeyPadService with ListenableServiceMixin {
   Future<ITransaction?> getTransactionById({required int id}) async {
     ITransaction? od = await ProxyService.strategy.getTransactionById(id: id);
     List<TransactionItem> transactionItems = await ProxyService.strategy
-        .getTransactionItemsByTransactionId(transactionId: od!.id);
+        .transactionItems(
+            transactionId: od!.id, branchId: ProxyService.box.getBranchId()!);
     _countTransactionItems.value = transactionItems.length;
 
     _transaction.value = od;

@@ -34,9 +34,9 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
                                   snapshot.data!.name == 'Regular'
                                       ? snapshot.data!.productName! +
                                           "(" +
-                                          snapshot.data!.name! +
+                                          snapshot.data!.name +
                                           ")"
-                                      : snapshot.data!.name!,
+                                      : snapshot.data!.name,
                                   style: GoogleFonts.poppins(
                                     textStyle: TextStyle(
                                         fontWeight: FontWeight.w700,

@@ -36,8 +36,12 @@ class SaleIndicatorState extends ConsumerState<SaleIndicator> {
         builder: (a, model, b) {
           return Row(children: [
             StreamBuilder<List<TransactionItem>>(
-              stream:
-                  model.transactionItemsStream(transaction: transaction.value!),
+              stream: ProxyService.strategy.transactionItemsStreams(
+                transactionId: transaction.value!.id,
+                branchId: ProxyService.box.getBranchId()!,
+                doneWithTransaction: false,
+                active: false,
+              ),
               builder: (context, snapshot) {
                 final List<TransactionItem> transactionItems =
                     snapshot.data ?? [];

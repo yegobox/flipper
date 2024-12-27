@@ -184,7 +184,6 @@ abstract class RealmInterface {
 
   Future<List<ITransaction>> completedTransactions(
       {required int branchId, String? status = COMPLETE});
-  Future<TransactionItem?> getTransactionItemById({required int id});
 
   Future<Variant?> getCustomVariant({
     required int businessId,
@@ -230,8 +229,6 @@ abstract class RealmInterface {
 
   Future<TransactionItem?> getTransactionItemByVariantId(
       {required int variantId, int? transactionId});
-  Future<List<TransactionItem>> getTransactionItemsByTransactionId(
-      {required int? transactionId});
 
   int lifeTimeCustomersForbranch({required String branchId});
 
@@ -271,11 +268,6 @@ abstract class RealmInterface {
       bool? doneWithTransaction,
       required int branchId,
       bool? active});
-
-  List<TransactionItem> transactionItemsFuture(
-      {required int transactionId,
-      required bool doneWithTransaction,
-      required bool active});
 
   Future<Variant?> getVariantById({required int id});
   Future<bool> isTaxEnabled({required int businessId});
@@ -349,10 +341,12 @@ abstract class RealmInterface {
       {required bool offlineLogin});
   Future<Pin?> savePin({required Pin pin});
   Stream<List<TransactionItem>> transactionItemsStreams(
-      {required int transactionId,
+      {int? transactionId,
       required int branchId,
-      required bool doneWithTransaction,
-      required bool active});
+      DateTime? startDate,
+      DateTime? endDate,
+      bool? doneWithTransaction,
+      bool? active});
 
   bool isRealmClosed();
 
@@ -445,9 +439,6 @@ abstract class RealmInterface {
   Future<models.Plan?> getPaymentPlan({required int businessId});
   FutureOr<FlipperSaleCompaign?> getLatestCompaign();
   Stream<Plan?> paymentPlanStream({required int businessId});
-
-  Stream<List<TransactionItem>> transactionItemList(
-      {DateTime? startDate, DateTime? endDate, bool? isPluReport});
 
   void deleteItemFromCart(
       {required TransactionItem transactionItemId, int? transactionId});
