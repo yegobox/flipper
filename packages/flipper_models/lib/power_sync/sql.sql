@@ -52,6 +52,31 @@ DROP TABLE IF EXISTS public.transaction_items;
 DROP TABLE IF EXISTS public.stocks CASCADE;
 
 
+DROP TABLE IF EXISTS public.customers CASCADE;
+CREATE TABLE public.customers (
+  id bigint PRIMARY KEY,
+  cust_nm text,
+  email text,
+  tel_no text,
+  adrs text,
+  branch_id bigint,
+  updated_at timestamp with time zone,
+  cust_no text,
+  cust_tin text,
+  regn_nm text,
+  regn_id text,
+  modr_nm text,
+  modr_id text,
+  ebm_synced boolean,
+  last_touched timestamp with time zone,
+  action text,
+  deleted_at timestamp with time zone,
+  tin bigint,
+  bhf_id text,
+  use_yn text,
+  customer_type text,
+  created_at timestamp with time zone DEFAULT now()
+);
 
 -- Stock Table
 DROP TABLE IF EXISTS public.stocks CASCADE;
