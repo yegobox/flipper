@@ -49,22 +49,15 @@ mixin VariantPatch {
 mixin StockPatch {
   static Future<void> patchStock(
       {required String URI, required Function(String) sendPort}) async {
-    final stocks = await repository.get<Stock>(
+    final variants = await repository.get<Variant>(
         query: brick.Query(where: [Where('ebmSynced').isExactly(false)]));
 
-    Map<int, Variant?> variantMap = {};
-
-    for (Stock stock in stocks) {
-      if (!stock.ebmSynced!) {
-        Variant? variant = variantMap[stock.variantId];
-        if (variant == null) {
-          continue;
-        }
-
+    for (Variant variant in variants) {
+      if (!variant.ebmSynced!) {
         try {
           IStock iStock = IStock(
-            id: stock.id,
-            currentStock: stock.currentStock!,
+            id: variant.id,
+            currentStock: variant.stock!.currentStock!,
           );
           IVariant iVariant = IVariant.fromJson(variant.toJson());
 
@@ -72,8 +65,8 @@ mixin StockPatch {
               .saveStockMaster(stock: iStock, variant: iVariant, URI: URI);
           if (response.resultCd == "000") {
             sendPort('${response.resultMsg}');
-            stock.ebmSynced = true;
-            repository.upsert(stock);
+            variant.ebmSynced = true;
+            repository.upsert(variant);
           } else {
             sendPort('${response.resultMsg}}');
           }

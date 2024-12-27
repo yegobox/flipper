@@ -374,8 +374,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       return await repository.get<Branch>(
           query: brick.Query(where: [
         brick.Where('businessId').isExactly(businessId),
-        brick.Or('active').isExactly(active),
-        brick.Or('active').isExactly(false)
+        brick.Where('active').isExactly(active),
+        brick.Where('active').isExactly(false)
       ]));
     } catch (e, s) {
       talker.error(e);
@@ -1743,16 +1743,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   FutureOr<bool> isAdmin(
       {required int userId, required String appFeature}) async {
-    //  try {
-    //     final Access? permission = realm?.query<Access>(
-    //         r'userId == $0 && featureName == $1',
-    //         [userId, appFeature]).firstOrNull;
-    //     talker.warning(permission?.accessLevel?.toLowerCase());
-    //     return permission?.accessLevel?.toLowerCase() == "admin";
-    //   } catch (e) {
-    //     rethrow;
-    //   }
-    // check if we have any access where UserId first
     final anyAccess = await repository.get<Access>(
         query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
 
@@ -1762,8 +1752,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     final accesses = await repository.get<Access>(
         query: brick.Query(where: [
       brick.Where('userId').isExactly(userId),
-      brick.Or('featureName').isExactly(appFeature),
-      brick.Or('accessLevel').isExactly('admin'),
+      brick.Where('featureName').isExactly(appFeature),
+      brick.Where('accessLevel').isExactly('admin'),
     ]));
 
     return accesses.firstOrNull != null;
@@ -2668,8 +2658,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return repository.get<Tenant>(
         query: brick.Query(where: [
       brick.Where('businessId').isExactly(businessId),
-      brick.Or('userId').isExactly(excludeUserId),
-      brick.Or('pin').isExactly(false)
+      if (excludeUserId != null) brick.Where('userId').isExactly(excludeUserId),
     ]));
   }
 
@@ -3913,9 +3902,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       required int businessId}) async {
     return (await repository.get<Product>(
             query: brick.Query(where: [
-      brick.Or('id').isExactly(id),
-      brick.Or('barCode').isExactly(barCode),
-      brick.Or('name').isExactly(name),
+      // brick.Or('id').isExactly(id),
+      if (id != null) brick.Where('id').isExactly(id),
+      if (name != null) brick.Where('name').isExactly(name),
+      if (barCode != null) brick.Where('barCode').isExactly(barCode),
       brick.Where('branchId').isExactly(branchId),
       brick.Where('businessId').isExactly(businessId),
     ])))

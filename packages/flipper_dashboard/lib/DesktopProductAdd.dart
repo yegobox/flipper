@@ -101,7 +101,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         color: color,
         boxShadow: [
           BoxShadow(
-              color: color.withOpacity(0.8),
+              color: color.withAlpha((0.8 * 255).round()),
               offset: const Offset(1, 2),
               blurRadius: _blurRadius)
         ],
