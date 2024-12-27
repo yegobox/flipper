@@ -316,7 +316,7 @@ abstract class RealmInterface {
   Future<void> loadConversations(
       {required int businessId, int? pageSize = 10, String? pk, String? sk});
 
-  FutureOr<Stock?> addStockToVariant({required Variant variant, Stock? stock});
+  FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});
   Stream<List<Variant>> geVariantStreamByProductId({required int productId});
 
   Future<({double income, double expense})> getTransactionsAmountsSum(

@@ -1407,7 +1407,8 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  FutureOr<Stock?> addStockToVariant({required Variant variant, Stock? stock}) {
+  FutureOr<Variant> addStockToVariant(
+      {required Variant variant, Stock? stock}) {
     // TODO: implement addStockToVariant
     throw UnimplementedError();
   }

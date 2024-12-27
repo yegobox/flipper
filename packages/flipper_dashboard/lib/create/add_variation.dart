@@ -191,7 +191,6 @@ class _AddVariationState extends State<AddVariation> {
       supplyPrice: double.parse(costController.text),
       retailPrice: double.parse(retailController.text),
     )
-      ..name = nameController.text
       ..sku = sku
       ..retailPrice = double.parse(retailController.text)
       ..supplyPrice = double.parse(costController.text)

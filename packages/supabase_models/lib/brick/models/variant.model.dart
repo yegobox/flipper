@@ -18,7 +18,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   @Sqlite(defaultValue: "18.0", columnType: Column.num)
   @Supabase(defaultValue: "18.0")
   num? taxPercentage;
-  String? name;
+  String name;
   String? color;
   String? sku;
 
@@ -84,8 +84,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.qty,
     this.stock,
     this.stockId,
-    // required this.stockId,
-    this.name,
+    required this.name,
     this.color,
     this.sku,
     this.productId,

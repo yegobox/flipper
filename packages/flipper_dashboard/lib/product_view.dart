@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result
-
 import 'package:flipper_dashboard/DataView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -32,30 +30,26 @@ class ProductView extends StatefulHookConsumerWidget {
 }
 
 class ProductViewState extends ConsumerState<ProductView> with Datamixer {
-  // Search and scroll controllers
   final searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
 
-  // Current view mode, defaults to products
   ViewMode _selectedStatus = ViewMode.products;
 
   @override
   void initState() {
     super.initState();
-    // Listener for infinite scrolling on the grid
+
     _scrollController.addListener(_scrollListener);
   }
 
   void _scrollListener() {
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
-      // Load more variants when the user has scrolled to end of grid/list.
       _loadMoreVariants();
     }
   }
 
-  // Loads more variants, triggered when user scrolls to end of variants list.
   void _loadMoreVariants() {
     ref
         .read(
@@ -78,18 +72,16 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     return ViewModelBuilder<ProductViewModel>.nonReactive(
       onViewModelReady: (model) async {
         await model.loadTenants();
-        // Load the initial products when the view model is ready.
+
         _loadInitialProducts();
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
-        // Build the main UI content.
         return _buildMainContent(context, model);
       },
     );
   }
 
-  // Loads initial products when the view is loaded.
   void _loadInitialProducts() {
     ref
         .read(productsProvider(ProxyService.box.getBranchId() ?? 0).notifier)
@@ -100,41 +92,32 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   Widget _buildMainContent(BuildContext context, ProductViewModel model) {
-    // Check if the transaction tab is selected
     final buttonIndex = ref.watch(buttonIndexProvider);
     if (buttonIndex == 1) {
-      // Show the transaction list if the correct button is selected.
       return ConstrainedBox(
         constraints: const BoxConstraints(maxHeight: 700),
         child: TransactionList(showDetailedReport: true),
       );
     }
-    // Otherwise build the product/stock list.
+
     return _buildVariantList(context, model);
   }
 
   Widget _buildVariantList(BuildContext context, ProductViewModel model) {
-    // use a consumer to rebuild when the state changes.
     return Consumer(
       builder: (context, ref, _) {
-        // Consume the variant data from the provider and load data.
         return ref
             .watch(outerVariantsProvider(ProxyService.box.getBranchId() ?? 0))
             .when(
               data: (variants) {
                 if (variants.isEmpty) {
-                  // Show message when no product/stock data is available.
                   return const Text('No Products available.');
                 }
-                // If there is data display it in a grid or stock view.
+
                 return _buildVariantsGrid(context, model, variants: variants);
               },
               error: (_, __) => const SizedBox.shrink(),
-              loading: () => const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(),
-              ),
+              loading: () => Center(child: const Text('Loading...')),
             );
       },
     );
@@ -144,7 +127,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       {required List<Variant> variants}) {
     final showProductList = ref.watch(showProductsList);
 
-    // Fetching the stock items, if any.
     final dateRange = ref.watch(dateRangeProvider);
     final startDate = dateRange['startDate'];
     final endDate = dateRange['endDate'];
@@ -153,12 +135,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       children: [
         Column(
           children: [
-            // Segmented button for choosing between products or stock.
             _buildSegmentedButton(context, ref),
             const SizedBox(
               height: 30,
             ),
-            // Display the main content: either grid of products or the stock view.
             _buildMainContentSection(context, model, variants, showProductList,
                 startDate, endDate, ref),
           ],
@@ -167,7 +147,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     );
   }
 
-  // Build the segmented button for selecting products or stocks view
   Widget _buildSegmentedButton(BuildContext context, WidgetRef ref) {
     return SegmentedButton<ViewMode>(
       style: ButtonStyle(
@@ -209,14 +188,13 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         setState(() {
           _selectedStatus = newSelection.first;
         });
-        // Handle the view mode change (products or stock).
+
         _handleViewModeChange(ref, newSelection.first);
       },
     );
   }
 
   void _handleViewModeChange(WidgetRef ref, ViewMode newSelection) {
-    // Change to products or stock view depending on the selection.
     ref.read(showProductsList.notifier).state =
         newSelection == ViewMode.products;
   }
@@ -229,7 +207,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       DateTime? startDate,
       DateTime? endDate,
       WidgetRef ref) {
-    // Render product grid if `showProductList` is true, otherwise the stock view.
     return showProductList
         ? _buildProductGrid(context, model, variants)
         : _buildStockView(context, model, variants, startDate, endDate, ref);
@@ -277,8 +254,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
               endDate: endDate ?? DateTime.now(),
               variants: variants,
               rowsPerPage: ref.read(rowsPerPageProvider),
-
-              /// for print to work we need to show detailed report
               showDetailedReport: true,
             ),
           );

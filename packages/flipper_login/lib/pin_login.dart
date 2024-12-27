@@ -47,7 +47,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
         final thePin = Pin(
           userId: int.tryParse(pin.userId),
           pin: int.tryParse(pin.userId),
-          id: int.tryParse(pin.userId)?? 0,
+          id: int.tryParse(pin.userId) ?? 0,
           branchId: pin.branchId,
           businessId: pin.businessId,
           ownerName: pin.ownerName,
@@ -102,7 +102,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
 
   // Error handling for login
   Future<void> _handleLoginError(dynamic e, StackTrace s) async {
-    String errorMessage = 'An unknown error occurred';
+    String errorMessage = '';
     if (e is BusinessNotFoundException) {
       errorMessage = e.errMsg();
     } else if (e is PinError) {
@@ -111,6 +111,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
       locator<RouterService>().navigateTo(LoginChoicesRoute());
       return;
     } else {
+      errorMessage = e.toString();
       await Sentry.captureException(e, stackTrace: s);
     }
 

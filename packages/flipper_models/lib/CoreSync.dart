@@ -3186,9 +3186,19 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? name,
       bool? active,
       bool? focused,
-      int? branchId}) {
-    // TODO: implement updateCategory
-    throw UnimplementedError("updateCategory method is not implemented yet");
+      int? branchId}) async {
+    final category = (await repository.get<Category>(
+            query: brick.Query(where: [
+      brick.Where('id', value: categoryId, compare: Compare.exact),
+    ])))
+        .firstOrNull;
+    if (category != null) {
+      category.name = name ?? category.name;
+      category.active = active ?? category.active;
+      category.focused = focused ?? category.focused;
+      category.branchId = branchId ?? category.branchId;
+      await repository.upsert<Category>(category);
+    }
   }
 
   @override
@@ -3252,7 +3262,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       product.expiryDate = expiryDate ?? product.expiryDate;
       product.imageUrl = imageUrl ?? product.imageUrl;
       product.color = color ?? product.color;
-      repository.upsert(product);
+      await repository.upsert(product);
     }
   }
 
@@ -3364,9 +3374,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<Stock?> addStockToVariant({required Variant variant, Stock? stock}) {
-    // TODO: implement addStockToVariant
-    throw UnimplementedError("addStockToVariant method is not implemented yet");
+  FutureOr<Variant> addStockToVariant(
+      {required Variant variant, Stock? stock}) async {
+    variant.stock = stock;
+    return await repository.upsert<Variant>(variant);
   }
 
   @override
@@ -3785,9 +3796,62 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? productName,
       String? unit,
       String? pkgUnitCd,
-      bool? ebmSynced}) {
-    // TODO: implement updateVariant
-    throw UnimplementedError("updateVariant method is not implemented yet");
+      bool? ebmSynced}) async {
+    if (variantId != null) {
+      Variant? variant = await getVariantById(id: variantId);
+      if (variant != null) {
+        variant.productName = productName ?? variant.productName;
+        variant.productId = productId ?? variant.productId;
+        variant.taxTyCd = taxTyCd ?? variant.taxTyCd;
+        variant.unit = unit ?? variant.unit;
+        repository.upsert(variant);
+      }
+      return;
+    }
+
+    // loop through all variants and update all with retailPrice and supplyPrice
+
+    for (var i = 0; i < updatables.length; i++) {
+      Product? product = await getProduct(
+          id: updatables[i].productId!,
+          branchId: updatables[i].branchId!,
+          businessId: ProxyService.box.getBusinessId()!);
+      updatables[i].productName = product?.name ?? updatables[i].productName;
+      if (updatables[i].stock == null) {
+        await addStockToVariant(variant: updatables[i]);
+      }
+
+      product?.name = updatables[i].name;
+      double rate = rates?[updatables[i].id] == null
+          ? 0
+          : double.parse(rates![updatables[i].id]!);
+      if (color != null) {
+        updatables[i].color = color;
+      }
+
+      updatables[i].itemNm = updatables[i].name;
+      updatables[i].ebmSynced = false;
+      updatables[i].retailPrice =
+          newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
+      updatables[i].itemTyCd = selectedProductType;
+      updatables[i].dcRt = rate;
+      updatables[i].expirationDate = dates?[updatables[i].id] == null
+          ? null
+          : DateTime.tryParse(dates![updatables[i].id]!);
+
+      if (retailPrice != 0 && retailPrice != null) {
+        updatables[i].retailPrice = retailPrice;
+      }
+      if (supplyPrice != 0 && supplyPrice != null) {
+        updatables[i].supplyPrice = supplyPrice;
+      }
+
+      updatables[i].stock?.rsdQty = (updatables[i].stock?.rsdQty ?? 0);
+      updatables[i].stock?.currentStock = (updatables[i].stock?.rsdQty ?? 0);
+      updatables[i].lastTouched = DateTime.now().toLocal();
+      // realm!.add<Variant>(updatables[i]);
+      await repository.upsert(updatables[i]);
+    }
   }
 
   @override

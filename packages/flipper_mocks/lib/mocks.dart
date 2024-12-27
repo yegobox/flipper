@@ -239,7 +239,6 @@ final variationMock = Variant(
     branchId: 11,
     supplyPrice: 0.0,
     retailPrice: 0.0)
-  ..name = 'Regular'
   ..sku = 'sku'
   ..productId = 2
   ..unit = 'Per Item'

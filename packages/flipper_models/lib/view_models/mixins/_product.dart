@@ -154,40 +154,47 @@ mixin ProductMixin {
       required bool inUpdateProcess,
       required String productName,
       required String color}) async {
-    ProxyService.analytics
-        .trackEvent("product_creation", {'feature_name': 'product_creation'});
+    try {
+      ProxyService.analytics
+          .trackEvent("product_creation", {'feature_name': 'product_creation'});
 
-    Category? activeCat = await ProxyService.strategy
-        .activeCategory(branchId: ProxyService.box.getBranchId()!);
-    List<Variant> variants = await ProxyService.strategy.variants(
-        productId: mproduct.id, branchId: ProxyService.box.getBranchId()!);
+      Category? activeCat = await ProxyService.strategy
+          .activeCategory(branchId: ProxyService.box.getBranchId()!);
+      List<Variant> variants = await ProxyService.strategy.variants(
+          productId: mproduct.id, branchId: ProxyService.box.getBranchId()!);
 
-    ProxyService.strategy.updateProduct(
-      productId: mproduct.id,
-      name: productName,
-      color: color,
-      branchId: ProxyService.box.getBranchId()!,
-      businessId: ProxyService.box.getBusinessId()!,
-    );
-
-    ProxyService.strategy.updateCategory(
-      categoryId: activeCat!.id,
-      active: false,
-      focused: false,
-    );
-
-    for (Variant variant in variants) {
-      await ProxyService.strategy.updateVariant(
-          updatables: [variant],
-          variantId: variant.id,
-          productName: productName,
-          productId: mproduct.id,
-          pkgUnitCd: "CT");
-    }
-
-    return await ProxyService.strategy.getProduct(
-        id: mproduct.id,
+      await ProxyService.strategy.updateProduct(
+        productId: mproduct.id,
+        name: productName,
+        color: color,
         branchId: ProxyService.box.getBranchId()!,
-        businessId: ProxyService.box.getBusinessId()!);
+        businessId: ProxyService.box.getBusinessId()!,
+      );
+      if (activeCat != null) {
+        ProxyService.strategy.updateCategory(
+          categoryId: activeCat.id,
+          active: false,
+          focused: false,
+        );
+      }
+
+      for (Variant variant in variants) {
+        await ProxyService.strategy.updateVariant(
+            updatables: [variant],
+            variantId: variant.id,
+            productName: productName,
+            productId: mproduct.id,
+            pkgUnitCd: "CT");
+      }
+
+      return await ProxyService.strategy.getProduct(
+          id: mproduct.id,
+          branchId: ProxyService.box.getBranchId()!,
+          businessId: ProxyService.box.getBusinessId()!);
+    } catch (e, s) {
+      talker.warning(e);
+      talker.error(s);
+      rethrow;
+    }
   }
 }
