@@ -13,7 +13,7 @@ mixin StockRequestApprovalLogic {
     bool isFullyApproved = true;
 
     for (var item in request.items) {
-      if (_canApproveItem(item: item)) {
+      if (await _canApproveItem(item: item)) {
         _approveItem(
             item: item, subBranchId: request.subBranchId!, context: context);
       } else {
@@ -21,10 +21,16 @@ mixin StockRequestApprovalLogic {
         itemsNeedingApproval.add(item);
       }
     }
+    // TODO: re-implement this as using request.items.first.variantId! is not the right way.
+    Variant? variant = await ProxyService.strategy
+        .getVariantById(id: request.items.first.variantId!);
 
     if (!isFullyApproved) {
       bool partialApprovalResult = await _handlePartialApproval(
-          items: itemsNeedingApproval, request: request, context: context);
+          variant: variant!,
+          items: itemsNeedingApproval,
+          request: request,
+          context: context);
       if (!partialApprovalResult) return;
     }
 
@@ -38,8 +44,8 @@ mixin StockRequestApprovalLogic {
         request: request, isFullyApproved: isFullyApproved, context: context);
   }
 
-  bool _canApproveItem({required TransactionItem item}) {
-    Stock? stock = ProxyService.strategy.stockByVariantId(
+  Future<bool> _canApproveItem({required TransactionItem item}) async {
+    Stock? stock = await ProxyService.strategy.getStock(
       variantId: item.variantId!,
       branchId: ProxyService.box.getBranchId()!,
     );
@@ -81,7 +87,7 @@ mixin StockRequestApprovalLogic {
 
   void _updateOrCreateStock(
       {required TransactionItem item, required int subBranchId}) async {
-    Stock? stock = ProxyService.strategy.stockByVariantId(
+    Stock? stock = await ProxyService.strategy.getStock(
       variantId: item.variantId!,
       branchId: subBranchId,
     );
@@ -114,9 +120,10 @@ mixin StockRequestApprovalLogic {
   Future<bool> _handlePartialApproval(
       {required List<TransactionItem> items,
       required StockRequest request,
+      required Variant variant,
       required BuildContext context}) async {
     bool partialApprovalResult = await _showPartialApprovalDialog(
-        items: items, request: request, context: context);
+        variant: variant, items: items, request: request, context: context);
     if (!partialApprovalResult) {
       _showSnackBar(message: 'Approval cancelled', context: context);
       return false;
@@ -152,6 +159,7 @@ mixin StockRequestApprovalLogic {
   Future<bool> _showPartialApprovalDialog(
       {required List<TransactionItem> items,
       required StockRequest request,
+      required Variant variant,
       required BuildContext context}) async {
     List<int?> approvedQuantities = List.filled(items.length, null);
 
@@ -161,7 +169,9 @@ mixin StockRequestApprovalLogic {
             title: Text('Partial Approval',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             content: _buildDialogContent(
-                items: items, approvedQuantities: approvedQuantities),
+                variant: variant,
+                items: items,
+                approvedQuantities: approvedQuantities),
             actions: [
               TextButton(
                 child: Text('Cancel'),
@@ -194,7 +204,8 @@ mixin StockRequestApprovalLogic {
 
   Widget _buildDialogContent(
       {required List<TransactionItem> items,
-      required List<int?> approvedQuantities}) {
+      required List<int?> approvedQuantities,
+      required Variant variant}) {
     return Container(
       width: double.maxFinite,
       child: Column(
@@ -210,6 +221,7 @@ mixin StockRequestApprovalLogic {
               shrinkWrap: true,
               itemCount: items.length,
               itemBuilder: (context, index) => _buildItemCard(
+                  variant: variant,
                   item: items[index],
                   approvedQuantities: approvedQuantities,
                   index: index),
@@ -223,13 +235,8 @@ mixin StockRequestApprovalLogic {
   Widget _buildItemCard(
       {required TransactionItem item,
       required List<int?> approvedQuantities,
+      required Variant variant,
       required int index}) {
-    Stock? stock = ProxyService.strategy.stockByVariantId(
-      variantId: item.variantId!,
-      branchId: ProxyService.box.getBranchId()!,
-    );
-    double availableStock = stock?.currentStock ?? 0;
-
     return Card(
       elevation: 2,
       margin: EdgeInsets.symmetric(vertical: 8),
@@ -251,15 +258,16 @@ mixin StockRequestApprovalLogic {
                   ],
                 ),
                 Spacer(),
-                Text('Available: $availableStock'),
+                Text('Available: ${variant.stock!.currentStock}'),
               ],
             ),
             SizedBox(height: 12),
             TextFormField(
-              initialValue: (availableStock < item.quantityRequested!
-                      ? availableStock
-                      : item.quantityRequested)
-                  .toString(),
+              initialValue:
+                  (variant.stock!.currentStock! < item.quantityRequested!
+                          ? variant.stock!.currentStock
+                          : item.quantityRequested)
+                      .toString(),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
@@ -270,7 +278,7 @@ mixin StockRequestApprovalLogic {
               ),
               onChanged: (value) => _updateApprovedQuantity(
                   value: value,
-                  availableStock: availableStock,
+                  availableStock: variant.stock!.currentStock!,
                   approvedQuantities: approvedQuantities,
                   index: index),
             ),
@@ -337,8 +345,8 @@ mixin StockRequestApprovalLogic {
         await ProxyService.strategy.getVariantById(id: item.variantId!);
     if (variant == null) return;
 
-    Stock? stock = ProxyService.strategy
-        .stockByVariantId(variantId: item.variantId!, branchId: subBranchId);
+    Stock? stock = await ProxyService.strategy
+        .getStock(variantId: item.variantId!, branchId: subBranchId);
     if (stock == null) {
       _createNewStockForApprovedItem(
           item: item,
@@ -379,9 +387,9 @@ mixin StockRequestApprovalLogic {
     stock.value = (stock.currentStock! * variant.retailPrice!);
   }
 
-  void _updateMainBranchStock(
-      {required int variantId, required int approvedQuantity}) {
-    Stock? mainBranchStock = ProxyService.strategy.stockByVariantId(
+  Future<void> _updateMainBranchStock(
+      {required int variantId, required int approvedQuantity}) async {
+    Stock? mainBranchStock = await ProxyService.strategy.getStock(
       variantId: variantId,
       branchId: ProxyService.box.getBranchId()!,
     );

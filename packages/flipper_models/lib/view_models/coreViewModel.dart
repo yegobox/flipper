@@ -224,7 +224,7 @@ class CoreViewModel extends FlipperBaseModel
         branchId: ProxyService.box.getBranchId()!);
     if (variation == null) return;
 
-    Stock? stock = await ProxyService.strategy.stockByVariantId(
+    Stock? stock = await ProxyService.strategy.getStock(
         variantId: variation.id, branchId: ProxyService.box.getBranchId()!);
 
     String name = variation.productName != 'Custom Amount'
@@ -270,7 +270,7 @@ class CoreViewModel extends FlipperBaseModel
     if (variation == null) return;
 
     if (items.isEmpty) {
-      Stock? stock = await ProxyService.strategy.stockByVariantId(
+      Stock? stock = await ProxyService.strategy.getStock(
           variantId: variation.id, branchId: ProxyService.box.getBranchId()!);
 
       String name = variation.productName != 'Custom Amount'
@@ -789,7 +789,7 @@ class CoreViewModel extends FlipperBaseModel
     toggleCheckbox(variantId: variants.first.id);
     increaseQty(callback: (quantity) {}, custom: true);
     Variant? variant = await ProxyService.strategy.getVariantById(id: checked);
-    Stock? stock = await ProxyService.strategy.stockByVariantId(
+    Stock? stock = await ProxyService.strategy.getStock(
         variantId: checked, branchId: ProxyService.box.getBranchId()!);
     await saveTransaction(
         partOfComposite: false,

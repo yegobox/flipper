@@ -235,7 +235,7 @@ class ProductViewModel extends FlipperBaseModel
 
   void updateStock({required int variantId}) async {
     if (_stockValue != null) {
-      Stock? stock = await ProxyService.strategy.stockByVariantId(
+      Stock? stock = await ProxyService.strategy.getStock(
           variantId: variantId, branchId: ProxyService.box.getBranchId()!);
 
       ProxyService.strategy
@@ -364,7 +364,7 @@ class ProductViewModel extends FlipperBaseModel
           .variants(branchId: branchId, productId: productId);
       for (Variant variation in variations) {
         //get stock->delete
-        Stock? stock = await ProxyService.strategy.stockByVariantId(
+        Stock? stock = await ProxyService.strategy.getStock(
             variantId: variation.id, branchId: ProxyService.box.getBranchId()!);
 
         await ProxyService.strategy.delete(

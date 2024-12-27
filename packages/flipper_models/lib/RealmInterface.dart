@@ -76,12 +76,6 @@ abstract class RealmInterface {
   });
   Stream<List<Product>> productStreams({int? prodIndex});
 
-  // Future<List<Product>> getProductList({int? prodIndex, required int branchId});
-  Stock? stockByVariantId(
-      {required int variantId,
-      required int branchId,
-      bool nonZeroValue = false});
-
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
   FutureOr<Category?> activeCategory({required int branchId});
@@ -98,7 +92,7 @@ abstract class RealmInterface {
   Future<PColor?> getColor({required int id});
   Future<Stock?> getStock(
       {required int branchId,
-      required int variantId,
+      int? variantId,
       bool nonZeroValue = false,
       int? id});
   Future<List<Variant>> variants({

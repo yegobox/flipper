@@ -132,7 +132,7 @@ CREATE TABLE public.variants (
     dc_rt double precision,  -- Changed from numeric(10,2) to double precision to match Dart double
     expiration_date timestamp with time zone DEFAULT now(),
     stock_id bigint NULL,
-     CONSTRAINT fk_stock
+    CONSTRAINT fk_stock
         FOREIGN KEY (stock_id)
         REFERENCES stocks(id)
         ON DELETE CASCADE

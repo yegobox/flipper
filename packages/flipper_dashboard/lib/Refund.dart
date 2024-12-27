@@ -279,8 +279,8 @@ class _RefundState extends ConsumerState<Refund> {
         Variant? variant =
             ProxyService.strategy.variant(variantId: item.variantId);
         if (variant != null) {
-          Stock? stock = ProxyService.strategy.stockByVariantId(
-              variantId: variant.id, branchId: variant.branchId!);
+          Stock? stock = await ProxyService.strategy
+              .getStock(variantId: variant.id, branchId: variant.branchId!);
 
           if (stock != null) {
             ProxyService.strategy.updateStock(

@@ -761,9 +761,110 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<bool> delete(
       {required int id,
       String? endPoint,
-      HttpClientInterface? flipperHttpClient}) {
-    // TODO: implement delete
-    throw UnimplementedError("delete method is not implemented yet");
+      HttpClientInterface? flipperHttpClient}) async {
+    switch (endPoint) {
+      case 'product':
+        final product = await getProduct(
+            id: id,
+            branchId: ProxyService.box.getBranchId()!,
+            businessId: ProxyService.box.getBusinessId()!);
+        if (product != null) {
+          await repository.delete<Product>(product);
+        }
+        break;
+      case 'variant':
+        final variant = await getVariantById(id: id);
+        if (variant != null) {
+          await repository.delete<Variant>(variant);
+        }
+        break;
+      case 'stock':
+        final stock =
+            await getStock(id: id, branchId: ProxyService.box.getBranchId()!);
+        if (stock != null) {
+          await repository.delete<Stock>(stock);
+        }
+        break;
+      // case 'discount':
+      //   final discount = await getDiscount(id: id, branchId: ProxyService.box.getBranchId()!);
+      //   if (discount != null) {
+      //     await repository.delete<Discount>(discount);
+      //   }
+      //   break;
+      // case 'category':
+      //   final category = await getCategory(id: id, branchId: ProxyService.box.getBranchId()!);
+      //   if (category != null) {
+      //     await repository.delete<Category>(category);
+      //   }
+      //   break;
+      // case 'unit':
+      //   final unit = await getUnit(id: id, branchId: ProxyService.box.getBranchId()!);
+      //   if (unit != null) {
+      //     await repository.delete<IUnit>(unit);
+      //   }
+      //   break;
+      // case 'setting':
+      //   final setting = await getSetting(id: id, branchId: ProxyService.box.getBranchId()!);
+      //   if (setting != null) {
+      //     await repository.delete<Setting>(setting);
+      //   }
+      //   break;
+      // case 'token':
+      //   final token = await getToken(id: id, branchId: ProxyService.box.getBranchId()!);
+      //   if (token != null) {
+      //     await repository.delete<Token>(token);
+      //   }
+      //   break;
+      // case 'device':
+      //   final device = await getDevice(id: id, branchId: ProxyService.box.getBranchId()!);
+      //   if (device != null) {
+      //     await repository.delete<Device>(device);
+      //   }
+      //   break;
+      // case 'favorite':
+      //   final favorite = await getFavoriteByIndex(id: id, branchId: ProxyService.box.getBranchId()!);
+      //   if (favorite != null) {
+      //     await repository.delete<Favorite>(favorite);
+      //   }
+      //   break;
+      // case 'composite':
+      //   final composite = await getComposite(id: id, branchId: ProxyService.box.getBranchId()!);
+      //   if (composite != null) {
+      //     await repository.delete<Composite>(composite);
+      //   }
+      //   break;
+      // case 'setting':
+      //   final setting = await getSetting(id: id, branchId: ProxyService.box.getBranchId()!);
+      //   if (setting != null) {
+      //     await repository.delete<Setting>(setting);
+      //   }
+      //   break;
+      // case 'team':
+      //   final team = await getTeam(id: id, branchId: ProxyService.box.getBranchId()!);
+      //   if (team != null) {
+      //     await repository.delete<Team>(team);
+      //   }
+      //   break;
+      // case 'plan':
+      //   final plan = await getPlan(id: id, branchId: ProxyService.box.getBranchId()!);
+      //   if (plan != null) {
+      //     await repository.delete<Plan>(plan);
+      //   }
+      //   break;
+      // case 'planAddon':
+      //   final planAddon = await getPlanAddon(id: id, branchId: ProxyService.box.getBranchId()!);
+      //   if (planAddon != null) {
+      //     await repository.delete<PlanAddon>(planAddon);
+      //   }
+      //   break;
+      // case 'planAddon':
+      //   final planAddon = await getPlanAddon(id: id, branchId: ProxyService.box.getBranchId()!);
+      //   if (planAddon != null) {
+      //     await repository.delete<PlanAddon>(planAddon);
+      //   }
+      //   break;
+    }
+    return true;
   }
 
   @override
@@ -1503,7 +1604,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   Future<Stock?> getStock(
       {required int branchId,
-      required int? variantId,
+      int? variantId,
       bool nonZeroValue = false,
       int? id}) async {
     if (variantId == null) {
@@ -3607,15 +3708,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       ]));
       return items;
     }
-  }
-
-  @override
-  Stock? stockByVariantId(
-      {required int variantId,
-      required int branchId,
-      bool nonZeroValue = false}) {
-    // TODO: implement stockByVariantId
-    throw UnimplementedError("stockByVariantId method is not implemented yet");
   }
 
   @override

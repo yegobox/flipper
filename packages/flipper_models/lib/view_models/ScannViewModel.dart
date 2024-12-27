@@ -152,13 +152,13 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     notifyListeners();
   }
 
-  void updateVariantQuantity(int id, double newQuantity) {
+  Future<void> updateVariantQuantity(int id, double newQuantity) async {
     try {
       // Find the variant with the specified id
       Variant variant =
           scannedVariants.firstWhere((variant) => variant.id == id);
 
-      Stock? stock = ProxyService.strategy.stockByVariantId(
+      Stock? stock = await ProxyService.strategy.getStock(
           variantId: variant.id, branchId: ProxyService.box.getBranchId()!);
       ProxyService.strategy.updateStock(
           stockId: stock!.id,

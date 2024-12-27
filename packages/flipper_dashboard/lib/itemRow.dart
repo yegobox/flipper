@@ -240,7 +240,7 @@ class _RowItemState extends ConsumerState<RowItem>
       } else {
         double stockQty = 0;
         if (!widget.isOrdering) {
-          Stock? stock = ProxyService.strategy.stockByVariantId(
+          Stock? stock = await ProxyService.strategy.getStock(
               variantId: widget.variant?.id ?? 0,
               branchId: ProxyService.box.getBranchId()!);
           stockQty = stock?.currentStock ?? 0.0;
