@@ -14,6 +14,70 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 
+// Separate widget for search field to prevent unnecessary rebuilds
+class SearchFieldWidget extends ConsumerWidget {
+  const SearchFieldWidget({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showDatePicker = ref.watch(buttonIndexProvider) == 1;
+
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: SearchField(
+        controller: controller,
+        showAddButton: true,
+        showDatePicker: showDatePicker,
+        showIncomingButton: true,
+        showOrderButton: true,
+      ),
+    );
+  }
+}
+
+// Separate widget for product list to prevent unnecessary rebuilds
+class ProductListWidget extends StatelessWidget {
+  const ProductListWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(8.0),
+      child: ProductView.normalMode(),
+    );
+  }
+}
+
+// Separate widget for transaction section
+class TransactionWidget extends ConsumerWidget {
+  const TransactionWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ref.watch(
+      pendingTransactionProvider((mode: TransactionType.sale, isExpense: false))
+          .select((value) => value.when(
+                data: (transaction) {
+                  return Expanded(
+                    child: TicketsList(
+                      showAppBar: false,
+                      transaction: transaction,
+                    ),
+                  ).shouldSeeTheApp(ref, AppFeature.Tickets);
+                },
+                error: (_, __) => const SizedBox.shrink(),
+                loading: () => const SizedBox.shrink(),
+              )),
+    );
+  }
+}
+
+// Main AppLayoutDrawer widget
 class AppLayoutDrawer extends StatefulHookConsumerWidget {
   const AppLayoutDrawer({
     Key? key,
@@ -31,12 +95,23 @@ class AppLayoutDrawer extends StatefulHookConsumerWidget {
 }
 
 class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
-  final TextEditingController searchContrroller = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
+
+  // Cache the row widget
+  Widget? _cachedRow;
+  bool? _previousScanningMode;
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isScanningMode = ref.watch(scanningModeProvider);
-    return ViewModelBuilder<CoreViewModel>.reactive(
+
+    return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) {
         ref.read(previewingCart.notifier).state = false;
@@ -47,7 +122,13 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
             if (constraints.maxWidth < 600) {
               return buildApps(model);
             } else {
-              return buildRow(isScanningMode);
+              // Only rebuild row if scanning mode changes
+              if (_cachedRow == null ||
+                  _previousScanningMode != isScanningMode) {
+                _previousScanningMode = isScanningMode;
+                _cachedRow = buildRow(isScanningMode);
+              }
+              return _cachedRow!;
             }
           },
         );
@@ -63,9 +144,64 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
     );
   }
 
+  Widget buildReceiptUI() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SizedBox(
+        width: 400,
+        child: PreviewSaleBottomSheet(
+          reverse: false,
+        ),
+      ),
+    );
+  }
+
+  Widget buildSideMenu() {
+    if (!ProxyService.remoteConfig.isMultiUserEnabled()) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      child: SideMenu(
+        mode: SideMenuMode.compact,
+        builder: (data) {
+          return SideMenuData(
+            header: SizedBox(
+              child: Image.asset(
+                'assets/logo.png',
+                package: 'flipper_dashboard',
+                width: 40,
+                height: 40,
+              ),
+            ),
+            items: const [],
+            footer: const TenantWidget(),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget buildMainContent(bool isScanningMode) {
+    return Expanded(
+      child: isScanningMode
+          ? buildReceiptUI().shouldSeeTheApp(ref, AppFeature.Sales)
+          : CheckOut(isBigScreen: true).shouldSeeTheApp(ref, AppFeature.Sales),
+    ).shouldSeeTheApp(ref, AppFeature.Inventory);
+  }
+
+  Widget buildProductSection() {
+    return Flexible(
+      child: ListView(
+        children: [
+          SearchFieldWidget(controller: searchController),
+          const ProductListWidget(),
+        ],
+      ),
+    ).shouldSeeTheApp(ref, AppFeature.Sales);
+  }
+
   Widget buildRow(bool isScanningMode) {
-    final transaction = ref.watch(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false)));
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -73,84 +209,12 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ProxyService.remoteConfig.isMultiUserEnabled()
-                ? Container(
-                    child: SideMenu(
-                      mode: SideMenuMode.compact,
-                      builder: (data) {
-                        return SideMenuData(
-                          header: Container(
-                            child: Image.asset(
-                              'assets/logo.png',
-                              package: 'flipper_dashboard',
-                              width: 40,
-                              height: 40,
-                            ),
-                          ),
-                          items: [],
-                          footer: TenantWidget(),
-                        );
-                      },
-                    ),
-                  )
-                : SizedBox.shrink(),
+            buildSideMenu(),
             const SizedBox(width: 20),
-
-            /// add the ticket UI which will only show if is left alone in tree
-            /// when Ticket is visible in row then we make sure the rest of widget is not visible
-            /// we can do this by making sure the rest of widget does not show if we ever found the
-            /// ticket in permission list
-            transaction.when(
-                data: (transaction) {
-                  return Expanded(
-                    child: TicketsList(
-                      showAppBar: false,
-                      transaction: transaction,
-                    ),
-                  ).shouldSeeTheApp(ref, AppFeature.Tickets);
-                },
-                error: (error, s) => SizedBox.shrink(),
-                loading: () => SizedBox.shrink()),
-
-            Expanded(
-              child: isScanningMode
-                  ? buildReceiptUI().shouldSeeTheApp(ref, AppFeature.Sales)
-                  : CheckOut(isBigScreen: true)
-                      .shouldSeeTheApp(ref, AppFeature.Sales),
-            ).shouldSeeTheApp(ref, AppFeature.Inventory),
-            Flexible(
-              child: ListView(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: SearchField(
-                      controller: searchContrroller,
-                      showAddButton: true,
-                      showDatePicker: ref.watch(buttonIndexProvider) == 1,
-                      showIncomingButton: true,
-                      showOrderButton: true,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ProductView.normalMode(),
-                  ),
-                ],
-              ),
-            ).shouldSeeTheApp(ref, AppFeature.Sales),
+            const TransactionWidget(),
+            buildMainContent(isScanningMode),
+            buildProductSection(),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget buildReceiptUI() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        width: 400,
-        child: PreviewSaleBottomSheet(
-          reverse: false,
         ),
       ),
     );
