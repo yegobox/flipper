@@ -269,7 +269,8 @@ class TransactionItemsNotifier
   Future<List<TransactionItem>> loadItems(
       {required int currentTransaction}) async {
     try {
-      talker.info("Loading transactionId $currentTransaction");
+      talker.info(
+          "TransactionItemsNotifier:Loading transactionId $currentTransaction");
       state = const AsyncValue.loading();
 
       final items = await ProxyService.strategy.transactionItems(

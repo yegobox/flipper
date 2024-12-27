@@ -191,7 +191,7 @@ mixin TransactionMixin {
     try {
       String name = variation.productName ?? "N/A";
 
-      TransactionItem? existTransactionItem = ProxyService.strategy
+      TransactionItem? existTransactionItem = await ProxyService.strategy
           .getTransactionItemByVariantId(
               variantId: variation.id, transactionId: pendingTransaction.id);
 
@@ -307,7 +307,8 @@ mixin TransactionMixin {
           modrNm: variation.modrNm,
           partOfComposite: partOfComposite,
           dcRt: variation.dcRt,
-          dcAmt: (variation.retailPrice! * variation.qty!) * variation.dcRt!,
+          dcAmt: (variation.retailPrice! * (variation.qty ?? 1.0)) *
+              variation.dcRt!,
         );
 
         ProxyService.strategy.addTransactionItem(

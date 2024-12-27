@@ -1642,7 +1642,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  TransactionItem? getTransactionItemByVariantId(
+  Future<TransactionItem?> getTransactionItemByVariantId(
       {required int variantId, int? transactionId}) {
     // TODO: implement getTransactionItemByVariantId
     throw UnimplementedError();

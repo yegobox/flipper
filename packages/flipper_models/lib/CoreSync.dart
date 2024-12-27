@@ -206,12 +206,22 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  void addTransactionItem(
+  Future<void> addTransactionItem(
       {required ITransaction transaction,
       required TransactionItem item,
-      required bool partOfComposite}) {
-    // TODO: implement addTransactionItem
-    throw UnimplementedError("addTransactionItem is not implemented yet");
+      required bool partOfComposite}) async {
+    repository.upsert<TransactionItem>(item);
+
+    final allItems = await repository.get<TransactionItem>(
+        query: brick.Query(
+            where: [brick.Where('transactionId').isExactly(transaction.id)]));
+
+    allItems.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
+
+    for (var i = 0; i < allItems.length; i++) {
+      allItems[i].itemSeq = i + 1; // itemSeq should start from 1
+      await repository.upsert<TransactionItem>(allItems[i]);
+    }
   }
 
   @override
@@ -3443,11 +3453,16 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  TransactionItem? getTransactionItemByVariantId(
-      {required int variantId, int? transactionId}) {
-    // TODO: implement getTransactionItemByVariantId
-    throw UnimplementedError(
-        "getTransactionItemByVariantId method is not implemented yet");
+  Future<models.TransactionItem?> getTransactionItemByVariantId(
+      {required int variantId, int? transactionId}) async {
+    return (await repository.get<TransactionItem>(
+            query: brick.Query(where: [
+      brick.Where('variantId', value: variantId, compare: brick.Compare.exact),
+      if (transactionId != null)
+        brick.Where('transactionId',
+            value: transactionId, compare: brick.Compare.exact),
+    ])))
+        .firstOrNull;
   }
 
   @override

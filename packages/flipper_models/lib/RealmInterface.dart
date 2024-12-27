@@ -228,7 +228,7 @@ abstract class RealmInterface {
 
   Future<int> sendReport({required List<TransactionItem> transactionItems});
 
-  TransactionItem? getTransactionItemByVariantId(
+  Future<TransactionItem?> getTransactionItemByVariantId(
       {required int variantId, int? transactionId});
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
       {required int? transactionId});

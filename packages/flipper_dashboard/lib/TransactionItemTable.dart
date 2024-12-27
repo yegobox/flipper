@@ -236,7 +236,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     }
   }
 
-  void _deleteCompositeItems(TransactionItem item, bool isOrdering) {
+  Future<void> _deleteCompositeItems(
+      TransactionItem item, bool isOrdering) async {
     try {
       Variant? variant =
           ProxyService.strategy.variant(variantId: item.variantId!);
@@ -244,7 +245,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ProxyService.strategy.composites(productId: variant!.productId!);
 
       for (final composite in composites) {
-        final deletableItem = ProxyService.strategy
+        final deletableItem = await ProxyService.strategy
             .getTransactionItemByVariantId(variantId: composite.variantId!);
         if (deletableItem != null) {
           ProxyService.strategy
