@@ -5,8 +5,8 @@ Future<Stock> _$StockFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Stock(
-      id: data['id'] as int,
-      variantId: data['variant_id'] as int?,
+      id: data['id'] as String?,
+      variantId: data['variant_id'] as String?,
       tin: data['tin'] as int?,
       bhfId: data['bhf_id'] as String?,
       branchId: data['branch_id'] as int?,
@@ -14,7 +14,7 @@ Future<Stock> _$StockFromSupabase(Map<String, dynamic> data,
       lowStock: data['low_stock'] as double? ?? 0.0,
       canTrackingStock: data['can_tracking_stock'] as bool? ?? true,
       showLowStockAlert: data['show_low_stock_alert'] as bool? ?? true,
-      productId: data['product_id'] as int?,
+      productId: data['product_id'] as String?,
       active: data['active'] as bool?,
       value: data['value'] as double?,
       rsdQty: data['rsd_qty'] as double?,
@@ -25,7 +25,7 @@ Future<Stock> _$StockFromSupabase(Map<String, dynamic> data,
           ? null
           : DateTime.tryParse(data['deleted_at'] as String),
       ebmSynced: data['ebm_synced'] as bool? ?? false,
-      initialStock: data['initial_stock'] as int? ?? 1);
+      initialStock: data['initial_stock'] as double? ?? 0.0);
 }
 
 Future<Map<String, dynamic>> _$StockToSupabase(Stock instance,
@@ -56,8 +56,9 @@ Future<Stock> _$StockFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Stock(
-      id: data['id'] as int,
-      variantId: data['variant_id'] == null ? null : data['variant_id'] as int?,
+      id: data['id'] as String,
+      variantId:
+          data['variant_id'] == null ? null : data['variant_id'] as String?,
       tin: data['tin'] == null ? null : data['tin'] as int?,
       bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
@@ -71,7 +72,8 @@ Future<Stock> _$StockFromSqlite(Map<String, dynamic> data,
       showLowStockAlert: data['show_low_stock_alert'] == null
           ? null
           : data['show_low_stock_alert'] == 1,
-      productId: data['product_id'] == null ? null : data['product_id'] as int?,
+      productId:
+          data['product_id'] == null ? null : data['product_id'] as String?,
       active: data['active'] == null ? null : data['active'] == 1,
       value: data['value'] == null ? null : data['value'] as double?,
       rsdQty: data['rsd_qty'] == null ? null : data['rsd_qty'] as double?,
@@ -86,8 +88,9 @@ Future<Stock> _$StockFromSqlite(Map<String, dynamic> data,
               ? null
               : DateTime.tryParse(data['deleted_at'] as String),
       ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
-      initialStock:
-          data['initial_stock'] == null ? null : data['initial_stock'] as int?)
+      initialStock: data['initial_stock'] == null
+          ? null
+          : data['initial_stock'] as double?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -202,7 +205,7 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
   @override
   final ignoreDuplicates = false;
   @override
-  final uniqueFields = {};
+  final uniqueFields = {'id'};
   @override
   final Map<String, RuntimeSqliteColumnDefinition> fieldsToSqliteColumns = {
     'primaryKey': const RuntimeSqliteColumnDefinition(
@@ -215,13 +218,13 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'variantId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'variant_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'tin': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -269,7 +272,7 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
       association: false,
       columnName: 'product_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'active': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -311,7 +314,7 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
       association: false,
       columnName: 'initial_stock',
       iterable: false,
-      type: int,
+      type: double,
     )
   };
   @override

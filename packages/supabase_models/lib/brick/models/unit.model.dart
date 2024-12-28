@@ -1,6 +1,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'units'),
@@ -8,7 +9,7 @@ import 'package:brick_supabase/brick_supabase.dart';
 class IUnit extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   @Supabase(unique: true)
-  final int id;
+  final String id;
 
   int? branchId;
   String? name;
@@ -21,12 +22,12 @@ class IUnit extends OfflineFirstWithSupabaseModel {
 
   String? createdAt;
   IUnit({
-    required this.id,
+    String? id,
     this.branchId,
     this.name,
     this.value,
     this.active,
     this.lastTouched,
     this.createdAt,
-  });
+  }) : id = id ?? const Uuid().v4();
 }

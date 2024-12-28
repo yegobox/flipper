@@ -2,6 +2,7 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'stock_requests'),
@@ -10,7 +11,7 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 class StockRequest extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   @Supabase(unique: true)
-  final int id;
+  final String id;
   int? mainBranchId;
   int? subBranchId;
   DateTime? createdAt;
@@ -25,7 +26,7 @@ class StockRequest extends OfflineFirstWithSupabaseModel {
   final List<TransactionItem> items;
   DateTime? updatedAt; // Optional field for tracking last update
   StockRequest({
-    required this.id,
+    String? id,
     this.mainBranchId,
     this.subBranchId,
     this.createdAt,
@@ -38,5 +39,5 @@ class StockRequest extends OfflineFirstWithSupabaseModel {
     this.driverId,
     required this.items,
     this.updatedAt,
-  });
+  }) : id = id ?? const Uuid().v4();
 }

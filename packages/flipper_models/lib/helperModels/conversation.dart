@@ -8,7 +8,7 @@ part 'conversation.g.dart';
 
 @JsonSerializable()
 class IConversation extends IJsonSerializable {
-  int? id;
+  String? id;
   @JsonKey(defaultValue: 'Awesome Richie')
   String userName;
   String body;
@@ -55,7 +55,7 @@ class IConversation extends IJsonSerializable {
       this.delivered,
       this.messageId,
       this.deletedAt,
-      this.id = 0});
+      this.id = "0"});
 
   IConversation.notificaton(
       {required this.userName, required this.body, required this.id});

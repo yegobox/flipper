@@ -6,7 +6,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 mixin Refresh<T extends ConsumerStatefulWidget> on ConsumerState<T> {
-  Future<void> refreshTransactionItems({required int transactionId}) async {
+  Future<void> refreshTransactionItems({required String transactionId}) async {
     try {
       final isOrdering = ProxyService.box.isOrdering() ?? false;
 

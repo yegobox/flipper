@@ -5,7 +5,7 @@ Future<PlanAddon> _$PlanAddonFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return PlanAddon(
-      id: data['id'] as int?,
+      id: data['id'] as String?,
       planId: data['plan_id'] as int?,
       addonName: data['addon_name'] as String?,
       createdAt: data['created_at'] == null
@@ -28,7 +28,7 @@ Future<PlanAddon> _$PlanAddonFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return PlanAddon(
-      id: data['id'] == null ? null : data['id'] as int?,
+      id: data['id'] as String,
       planId: data['plan_id'] == null ? null : data['plan_id'] as int?,
       addonName:
           data['addon_name'] == null ? null : data['addon_name'] as String?,
@@ -94,7 +94,7 @@ class PlanAddonAdapter extends OfflineFirstWithSupabaseAdapter<PlanAddon> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'planId': const RuntimeSqliteColumnDefinition(
       association: false,

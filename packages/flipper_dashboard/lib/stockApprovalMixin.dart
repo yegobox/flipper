@@ -73,7 +73,7 @@ mixin StockRequestApprovalLogic {
   }
 
   void _updateVariantBranch(
-      {required int variantId, required int subBranchId}) async {
+      {required String variantId, required int subBranchId}) async {
     Variant? variant =
         await ProxyService.strategy.getVariantById(id: variantId);
     if (variant != null) {
@@ -388,7 +388,7 @@ mixin StockRequestApprovalLogic {
   }
 
   Future<void> _updateMainBranchStock(
-      {required int variantId, required int approvedQuantity}) async {
+      {required String variantId, required int approvedQuantity}) async {
     Stock? mainBranchStock = await ProxyService.strategy.getStock(
       variantId: variantId,
       branchId: ProxyService.box.getBranchId()!,

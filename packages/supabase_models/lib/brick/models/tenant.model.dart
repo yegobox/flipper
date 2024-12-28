@@ -1,13 +1,14 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'tenants'),
 )
 class Tenant extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
-  final int id;
+  final String id;
 
   String? name;
   String? phoneNumber;
@@ -34,7 +35,7 @@ class Tenant extends OfflineFirstWithSupabaseModel {
   bool isLongPressed = false;
   String type = "Agent";
   Tenant({
-    required this.id,
+    String? id,
     this.name,
     this.phoneNumber,
     this.email,
@@ -49,5 +50,5 @@ class Tenant extends OfflineFirstWithSupabaseModel {
     this.isDefault,
     this.isLongPressed = false,
     this.type = "Agent",
-  });
+  }) : id = id ?? const Uuid().v4();
 }

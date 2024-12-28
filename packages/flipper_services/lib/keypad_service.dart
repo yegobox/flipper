@@ -16,9 +16,9 @@ class KeyPadService with ListenableServiceMixin {
 
   double get amountTotal => _amountTotal.value;
 
-  final _check = ReactiveValue<int>(0);
+  final _check = ReactiveValue<String>("");
 
-  int get check => _check.value;
+  String get check => _check.value;
 
   final _cashReceived = ReactiveValue<double>(0.00);
 
@@ -33,7 +33,7 @@ class KeyPadService with ListenableServiceMixin {
     notifyListeners();
   }
 
-  void toggleCheckbox({required int variantId}) {
+  void toggleCheckbox({required String variantId}) {
     _check.value = variantId;
   }
 
@@ -87,7 +87,7 @@ class KeyPadService with ListenableServiceMixin {
 
   /// this function update _transactions.value the same as getTransactions but this takes id of the transaction we want
   /// it is very important to not fonfuse these functions. later on.
-  Future<ITransaction?> getTransactionById({required int id}) async {
+  Future<ITransaction?> getTransactionById({required String id}) async {
     ITransaction? od = await ProxyService.strategy.getTransactionById(id: id);
     List<TransactionItem> transactionItems = await ProxyService.strategy
         .transactionItems(

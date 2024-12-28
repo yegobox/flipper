@@ -5,7 +5,7 @@ Future<Pin> _$PinFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Pin(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       userId: data['user_id'] as int?,
       phoneNumber: data['phone_number'] as String?,
       pin: data['pin'] as int?,
@@ -36,7 +36,7 @@ Future<Pin> _$PinFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Pin(
-      id: data['id'] as int,
+      id: data['id'] as String,
       userId: data['user_id'] == null ? null : data['user_id'] as int?,
       phoneNumber:
           data['phone_number'] == null ? null : data['phone_number'] as String?,
@@ -130,7 +130,7 @@ class PinAdapter extends OfflineFirstWithSupabaseAdapter<Pin> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'userId': const RuntimeSqliteColumnDefinition(
       association: false,

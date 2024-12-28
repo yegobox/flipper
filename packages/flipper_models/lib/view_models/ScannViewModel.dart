@@ -64,7 +64,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         "Scanned or about to create variant with productId ${product.id}");
     // If no matching variant was found, add a new one
     final variant = Variant(
-      id: randomNumber(),
       name: product.name,
       retailPrice: retailPrice,
       supplyPrice: supplyPrice,
@@ -82,7 +81,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       lastTouched: DateTime.now(),
     );
     variant.stock = Stock(
-      id: randomNumber(),
       currentStock: 1,
       variantId: variant.id,
       // variant: variant,
@@ -113,14 +111,13 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         color: COLOR,
         businessId: businessId,
         branchId: branchId,
-        id: randomNumber(),
         lastTouched: DateTime.now(),
       ),
       skipRegularVariant: true,
     );
   }
 
-  void removeVariant({required int id}) {
+  void removeVariant({required String id}) {
     // Find the index of the variant with the specified id
     int index = scannedVariants.indexWhere((variant) => variant.id == id);
 
@@ -152,7 +149,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     notifyListeners();
   }
 
-  Future<void> updateVariantQuantity(int id, double newQuantity) async {
+  Future<void> updateVariantQuantity(String id, double newQuantity) async {
     try {
       // Find the variant with the specified id
       Variant variant =
@@ -188,7 +185,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     notifyListeners();
   }
 
-  void updateVariantUnit(int id, String? selectedUnit) {
+  void updateVariantUnit(String id, String? selectedUnit) {
     try {
       // Find the variant with the specified id
       Variant variant =
@@ -211,9 +208,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   Future<void> bulkUpdateVariants(bool editmode,
       {required String color,
       required String selectedProductType,
-      Map<int, TextEditingController>? rates,
+      Map<String, TextEditingController>? rates,
       required double newRetailPrice,
-      Map<int, TextEditingController>? dates}) async {
+      Map<String, TextEditingController>? dates}) async {
     if (editmode) {
       try {
         ProxyService.strategy.updateVariant(

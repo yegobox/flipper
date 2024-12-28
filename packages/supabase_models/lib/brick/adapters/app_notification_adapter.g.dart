@@ -5,7 +5,7 @@ Future<AppNotification> _$AppNotificationFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return AppNotification(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       type: data['type'] as String?,
       message: data['message'] as String?,
       identifier: data['identifier'] as int?,
@@ -29,7 +29,7 @@ Future<AppNotification> _$AppNotificationFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return AppNotification(
-      id: data['id'] as int,
+      id: data['id'] as String,
       type: data['type'] == null ? null : data['type'] as String?,
       message: data['message'] == null ? null : data['message'] as String?,
       identifier:
@@ -99,7 +99,7 @@ class AppNotificationAdapter
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'type': const RuntimeSqliteColumnDefinition(
       association: false,

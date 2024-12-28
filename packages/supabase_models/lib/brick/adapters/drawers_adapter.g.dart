@@ -5,7 +5,7 @@ Future<Drawers> _$DrawersFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Drawers(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       openingBalance: data['opening_balance'] as double?,
       closingBalance: data['closing_balance'] as double?,
       openingDateTime: data['opening_date_time'] as String?,
@@ -62,7 +62,7 @@ Future<Drawers> _$DrawersFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Drawers(
-      id: data['id'] as int,
+      id: data['id'] as String,
       openingBalance: data['opening_balance'] == null
           ? null
           : data['opening_balance'] as double?,
@@ -253,7 +253,7 @@ class DrawersAdapter extends OfflineFirstWithSupabaseAdapter<Drawers> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'openingBalance': const RuntimeSqliteColumnDefinition(
       association: false,

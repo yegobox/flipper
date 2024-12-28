@@ -17,9 +17,9 @@ class TaxSettingsModal extends StatefulWidget {
 
 class _TaxSettingsModalState extends State<TaxSettingsModal> {
   late Future<List<Configurations>> _taxConfigsFuture;
-  final Map<int, bool> _editingStates = {};
-  final Map<int, TextEditingController> _controllers = {};
-  final Map<int, GlobalKey<FormState>> _formKeys = {};
+  final Map<String, bool> _editingStates = {};
+  final Map<String, TextEditingController> _controllers = {};
+  final Map<String, GlobalKey<FormState>> _formKeys = {};
   bool _isLoading = false;
 
   @override
@@ -32,7 +32,8 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
     _taxConfigsFuture = ProxyService.strategy.taxes(branchId: widget.branchId);
   }
 
-  Future<void> _saveTaxConfiguration(int configId, String newTaxValue) async {
+  Future<void> _saveTaxConfiguration(
+      String configId, String newTaxValue) async {
     try {
       setState(() => _isLoading = true);
 

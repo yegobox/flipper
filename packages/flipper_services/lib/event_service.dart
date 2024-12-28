@@ -119,7 +119,6 @@ class EventService
           if (device == null) {
             await ProxyService.strategy.create(
                 data: Device(
-                    id: randomNumber(),
                     pubNubPublished: false,
                     branchId: loginData.branchId,
                     businessId: loginData.businessId,
@@ -175,7 +174,6 @@ class EventService
       if (device == null) {
         await ProxyService.strategy.create(
             data: Device(
-                id: randomNumber(),
                 pubNubPublished: true,
                 branchId: deviceEvent.branchId,
                 businessId: deviceEvent.businessId,

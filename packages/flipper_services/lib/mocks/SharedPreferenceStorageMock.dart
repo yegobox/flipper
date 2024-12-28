@@ -306,4 +306,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
   bool exportAsPdf() {
     return false;
   }
+  
+  @override
+  String transactionId() {
+    // TODO: implement transactionId
+    throw UnimplementedError();
+  }
 }

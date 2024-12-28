@@ -56,7 +56,6 @@ mixin StockPatch {
       if (!variant.ebmSynced!) {
         try {
           IStock iStock = IStock(
-            id: variant.id,
             currentStock: variant.stock!.currentStock!,
           );
           IVariant iVariant = IVariant.fromJson(variant.toJson());
@@ -281,7 +280,6 @@ class IsolateHandler with StockPatch {
 
             if (result.isEmpty) {
               final unii = UnversalProduct(
-                id: randomNumber(),
                 itemClsCd: product.itemClsCd,
                 itemClsLvl: product.itemClsLvl,
                 itemClsNm: product.itemClsNm,

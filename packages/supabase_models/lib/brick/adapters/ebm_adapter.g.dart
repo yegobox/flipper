@@ -5,7 +5,7 @@ Future<Ebm> _$EbmFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Ebm(
-      id: data['id'] as int?,
+      id: data['id'] as String?,
       bhfId: data['bhf_id'] as String,
       tinNumber: data['tin_number'] as int,
       dvcSrlNo: data['dvc_srl_no'] as String,
@@ -38,7 +38,7 @@ Future<Ebm> _$EbmFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Ebm(
-      id: data['id'] == null ? null : data['id'] as int?,
+      id: data['id'] as String,
       bhfId: data['bhf_id'] as String,
       tinNumber: data['tin_number'] as int,
       dvcSrlNo: data['dvc_srl_no'] as String,
@@ -133,7 +133,7 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'bhfId': const RuntimeSqliteColumnDefinition(
       association: false,

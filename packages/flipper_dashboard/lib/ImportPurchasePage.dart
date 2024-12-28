@@ -193,7 +193,6 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
             bhFId: (await ProxyService.box.bhfId()) ?? "00",
             product: brick.Product(
               color: "#e74c3c",
-              id: randomNumber(),
               name: item.itemNm,
               lastTouched: DateTime.now(),
               branchId: ProxyService.box.getBranchId()!,

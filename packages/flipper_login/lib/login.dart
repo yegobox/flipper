@@ -118,7 +118,6 @@ class _LoginState extends State<Login> {
                 final thePin = Pin(
                     userId: int.parse(pin!.userId),
                     pin: pin.pin,
-                    id: int.parse(pin.userId),
                     branchId: pin.branchId,
                     businessId: pin.businessId,
                     ownerName: pin.ownerName,

@@ -111,7 +111,7 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                             .addVariant(
                                 variant: VVariant(
                               productName: _searchResults[index].productName!,
-                              name: _searchResults[index].name!,
+                              name: _searchResults[index].name,
                               retailPrice: _searchResults[index].retailPrice!,
                               id: _searchResults[index].id,
                               productId: _searchResults[index].productId!,
@@ -127,7 +127,7 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                           borderRadius: BorderRadius.zero,
                         ),
                         child: ListTile(
-                          title: Text(_searchResults[index].name!),
+                          title: Text(_searchResults[index].name),
                           subtitle:
                               Text(_searchResults[index].productName ?? ""),
                         ),

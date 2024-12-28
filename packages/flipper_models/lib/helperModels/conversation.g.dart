@@ -29,7 +29,7 @@ IConversation _$IConversationFromJson(Map<String, dynamic> json) =>
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
-      id: (json['id'] as num?)?.toInt() ?? 0,
+      id: json['id'] as String? ?? "0",
     )
       ..action = json['action'] as String
       ..lastTouched = json['lastTouched'] == null

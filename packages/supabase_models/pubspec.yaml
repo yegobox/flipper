@@ -18,6 +18,7 @@ dependencies:
   sqflite_common_ffi: ^2.3.4+4
   path_provider: ^2.1.5
   path: ^1.9.0
+  uuid: ^4.5.1
 dependency_overrides: 
   brick_offline_first_build: ^3.3.0
 

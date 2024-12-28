@@ -189,7 +189,6 @@ class SignupViewModel extends ReactiveViewModel {
       active: true,
       focused: true,
       name: "NONE",
-      id: randomNumber(),
       branchId: branches[0].serverId!,
     );
     ProxyService.strategy.create<Category>(data: category);
@@ -197,7 +196,6 @@ class SignupViewModel extends ReactiveViewModel {
 
   Future<void> createDefaultColor(List<Branch> branches) async {
     final PColor color = PColor(
-      id: randomNumber(),
       colors: [
         '#d63031',
         '#0984e3',

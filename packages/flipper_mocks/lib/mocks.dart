@@ -232,15 +232,14 @@ final variationMock = Variant(
     name: 'Regular',
     lastTouched: DateTime.now(),
     sku: 'sku',
-    id: randomNumber(),
-    productId: 2,
+    productId: "2",
     unit: 'Per Item',
     productName: 'Custom Amount',
     branchId: 11,
     supplyPrice: 0.0,
     retailPrice: 0.0)
   ..sku = 'sku'
-  ..productId = 2
+  ..productId = "2"
   ..unit = 'Per Item'
   ..productName = 'Custom Amount'
   ..branchId = 11
@@ -255,21 +254,20 @@ final stockMock = Stock(
   variantId: variationMock.id,
   // variant: variationMock,
   branchId: 11,
-  id: randomNumber(),
+
   currentStock: 0.0,
-  productId: 2,
+  productId: "2",
 )
   ..branchId = 11
   ..currentStock = 0.0
   ..canTrackingStock = false
   ..showLowStockAlert = false
-  ..productId = 2
+  ..productId = "2"
   ..active = false;
 
 final AppService _appService = getIt<AppService>();
 
 final customProductMock = Product(
-    id: randomNumber(),
     lastTouched: DateTime.now(),
     name: "temp",
     businessId: _appService.businessId!,
@@ -285,7 +283,6 @@ final customProductMock = Product(
   ..createdAt = DateTime.now().toIso8601String();
 
 final productMock = Product(
-    id: randomNumber(),
     lastTouched: DateTime.now(),
     name: "temp",
     businessId: _appService.businessId!,
@@ -301,7 +298,6 @@ final productMock = Product(
   ..createdAt = DateTime.now().toIso8601String();
 
 final branchMock = Branch(
-  id: randomNumber(),
   serverId: randomNumber(),
   active: false,
   description: 'desc',
@@ -313,7 +309,6 @@ final branchMock = Branch(
 );
 
 final businessMock = Business(
-  id: randomNumber(),
   serverId: randomNumber(),
   active: true,
   latitude: '0',

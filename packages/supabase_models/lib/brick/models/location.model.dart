@@ -1,13 +1,14 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'locations'),
 )
 class Location extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
-  final int id;
+  final String id;
 
   int? serverId;
 
@@ -27,7 +28,7 @@ class Location extends OfflineFirstWithSupabaseModel {
   DateTime? deletedAt;
   bool? isOnline = false;
   Location({
-    required this.id,
+    String? id,
     this.serverId,
     this.active,
     this.description,
@@ -40,5 +41,5 @@ class Location extends OfflineFirstWithSupabaseModel {
     this.lastTouched,
     this.deletedAt,
     this.isOnline = false,
-  });
+  }) : id = id ?? const Uuid().v4();
 }

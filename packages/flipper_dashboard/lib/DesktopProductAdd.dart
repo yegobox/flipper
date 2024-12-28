@@ -7,7 +7,6 @@ import 'package:flipper_dashboard/FieldCompositeActivated.dart';
 import 'package:flipper_dashboard/SearchProduct.dart';
 import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_ui/style_widget/text.dart';
 import 'package:intl/intl.dart';
@@ -50,7 +49,7 @@ class QuantityCell extends StatelessWidget {
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
 
-  final int? productId;
+  final String? productId;
 
   @override
   ProductEntryScreenState createState() => ProductEntryScreenState();
@@ -64,8 +63,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   double _iconSize = 24;
   Color pickerColor = Colors.amber;
 
-  Map<int, TextEditingController> _rates = {};
-  Map<int, TextEditingController> _dates = {};
+  Map<String, TextEditingController> _rates = {};
+  Map<String, TextEditingController> _dates = {};
 
   bool _selectAll = false;
   bool _showDeleteButton = false;
@@ -682,7 +681,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               /// now save each
                               ProxyService.strategy.saveComposite(
                                 composite: Composite(
-                                    id: randomNumber(),
                                     businessId:
                                         ProxyService.box.getBusinessId(),
                                     productId:
@@ -1005,7 +1003,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     );
   }
 
-  Map<int, bool> _selectedVariants = {};
+  Map<String, bool> _selectedVariants = {};
 
   Stack TableVariants(ScannViewModel model, BuildContext context) {
     return Stack(
@@ -1150,7 +1148,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             },
                           ),
                         ),
-                        DataCell(Text(variant.bcd ?? variant.name!)),
+                        DataCell(Text(variant.bcd ?? variant.name)),
                         DataCell(Text(variant.retailPrice!.toStringAsFixed(2))),
                         DataCell(
                           Text(

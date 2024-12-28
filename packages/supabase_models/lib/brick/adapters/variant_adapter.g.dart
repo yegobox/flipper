@@ -5,16 +5,13 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Variant(
-      id: data['id'] as int,
-      stockId: data['stock_id'] as int?,
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : DateTime.tryParse(data['deleted_at'] as String),
+      id: data['id'] as String?,
+      stockId: data['stock_id'] as String?,
       taxPercentage: data['tax_percentage'] as num? ?? 18.0,
       name: data['name'] as String,
       color: data['color'] as String?,
       sku: data['sku'] as String?,
-      productId: data['product_id'] as int?,
+      productId: data['product_id'] as String?,
       unit: data['unit'] as String?,
       productName: data['product_name'] as String?,
       branchId: data['branch_id'] as int?,
@@ -68,7 +65,6 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
   return {
     'id': instance.id,
     'stock_id': instance.stockId,
-    'deleted_at': instance.deletedAt?.toIso8601String(),
     'tax_percentage': instance.taxPercentage,
     'name': instance.name,
     'color': instance.color,
@@ -122,19 +118,15 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Variant(
-      id: data['id'] as int,
-      stockId: data['stock_id'] == null ? null : data['stock_id'] as int?,
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String),
+      id: data['id'] as String,
+      stockId: data['stock_id'] == null ? null : data['stock_id'] as String?,
       taxPercentage:
           data['tax_percentage'] == null ? null : data['tax_percentage'],
       name: data['name'] as String,
       color: data['color'] == null ? null : data['color'] as String?,
       sku: data['sku'] == null ? null : data['sku'] as String?,
-      productId: data['product_id'] == null ? null : data['product_id'] as int?,
+      productId:
+          data['product_id'] == null ? null : data['product_id'] as String?,
       unit: data['unit'] == null ? null : data['unit'] as String?,
       productName:
           data['product_name'] == null ? null : data['product_name'] as String?,
@@ -210,7 +202,6 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
   return {
     'id': instance.id,
     'stock_id': instance.stockId,
-    'deleted_at': instance.deletedAt?.toIso8601String(),
     'tax_percentage': instance.taxPercentage,
     'name': instance.name,
     'color': instance.color,
@@ -278,10 +269,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'stockId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'stock_id',
-    ),
-    'deletedAt': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
     ),
     'taxPercentage': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -471,7 +458,7 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
   @override
   final ignoreDuplicates = false;
   @override
-  final uniqueFields = {};
+  final uniqueFields = {'id'};
   @override
   final Map<String, RuntimeSqliteColumnDefinition> fieldsToSqliteColumns = {
     'primaryKey': const RuntimeSqliteColumnDefinition(
@@ -484,19 +471,13 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'stockId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'stock_id',
       iterable: false,
-      type: int,
-    ),
-    'deletedAt': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
-      iterable: false,
-      type: DateTime,
+      type: String,
     ),
     'taxPercentage': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -526,7 +507,7 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'product_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'unit': const RuntimeSqliteColumnDefinition(
       association: false,

@@ -131,9 +131,8 @@ final productFromSupplier =
       return Variant(
         name: name,
         productName: productName,
-        productId: int.parse(productId),
+        productId: productId,
         branchId: branchId,
-        id: id,
         color: color,
         retailPrice: retailPrice.toDouble(),
         supplyPrice: supplyPrice.toDouble(),

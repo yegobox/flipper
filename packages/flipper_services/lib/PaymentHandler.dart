@@ -79,7 +79,7 @@ mixin PaymentHandler {
         isYearlyPlan: paymentPlan.isYearlyPlan!,
         totalPrice: paymentPlan.totalPrice!.toDouble(),
         flipperHttpClient: ProxyService.http,
-        payStackUserId: userId);
+        payStackUserId: userId.toString());
     if (!await launchUrl(Uri.parse(url))) {
       throw Exception('Could not launch $url');
     }

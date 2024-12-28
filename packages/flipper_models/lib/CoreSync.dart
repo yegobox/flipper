@@ -49,6 +49,7 @@ import 'package:cbl/cbl.dart'
 
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+import 'package:uuid/uuid.dart';
 
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
@@ -194,7 +195,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<Customer?> addCustomer(
-      {required Customer customer, required int transactionId}) {
+      {required Customer customer, required String transactionId}) {
     // TODO: implement addCustomer
     throw UnimplementedError("addCustomer is not implemented yet");
   }
@@ -233,7 +234,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         final unit = IUnit(
             active: map['active'],
             branchId: branchId,
-            id: randomNumber(),
             name: map['name'],
             lastTouched: DateTime.now(),
             value: map['value']);
@@ -264,15 +264,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   Future<void> _processVariant(int branchId, Variant variation) async {
     try {
-      int stockId = randomNumber();
       Variant? variant = await getVariantById(id: variation.id);
 
       if (variant != null) {
-        Stock? stock = await getStockById(id: stockId);
+        Stock? stock = await getStockById(id: variant.stockId!);
 
         if (stock == null) {
           stock = Stock(
-              id: stockId,
+              id: variant.stockId!,
               variantId: variation.id,
               lastTouched: DateTime.now(),
               branchId: branchId,
@@ -286,14 +285,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           await repository.upsert<Stock>(stock);
         }
 
-        stock.currentStock =
-            stock.currentStock! + (variation.stock?.rsdQty ?? 0);
+        stock.currentStock = stock.currentStock! +
+            (variation.stock?.rsdQty ?? variation.qty ?? 0);
         stock.rsdQty = stock.currentStock! + (stock.rsdQty!);
         stock.lastTouched = DateTime.now().toLocal();
         stock.value = (variation.stock?.rsdQty ?? 0 * (variation.retailPrice!))
             .toDouble();
 
-        variant.stock?.rsdQty = variation.stock?.rsdQty ?? 0;
+        variant.stock?.rsdQty = variation.stock?.rsdQty ?? variation.qty ?? 0;
         variant.retailPrice = variation.retailPrice;
         variant.supplyPrice = variation.supplyPrice;
         variant.taxPercentage = variation.taxPercentage!.toDouble();
@@ -302,15 +301,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         variant.stockId = stock.id;
         await repository.upsert<Variant>(variant);
       } else {
-        int stockId = randomNumber();
-
         final newStock = Stock(
-            id: stockId,
             lastTouched: DateTime.now(),
             branchId: branchId,
-            currentStock: variation.stock?.rsdQty ?? 0,
-            value: (variation.stock?.rsdQty ?? 0 * (variation.retailPrice!))
-                .toDouble(),
+            rsdQty: variation.qty ?? 0,
+            initialStock: variation.qty ?? 0,
+            currentStock: variation.qty ?? 0,
+            value: (variation.qty ?? 0 * (variation.retailPrice!)).toDouble(),
             active: true,
             productId: variation.productId);
 
@@ -318,6 +315,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         await repository.upsert<Stock>(newStock);
         Variant variant = await repository.upsert<Variant>(variation);
         variant.stock = newStock;
+
         variant.stockId = newStock.id;
         await repository.upsert<Variant>(variant);
       }
@@ -337,7 +335,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   void assignCustomerToTransaction(
-      {required int customerId, int? transactionId}) {
+      {required String customerId, String? transactionId}) {
     // TODO: implement assignCustomerToTransaction
   }
 
@@ -368,7 +366,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<bool> bindProduct({required int productId, required int tenantId}) {
+  Future<bool> bindProduct(
+      {required String productId, required String tenantId}) {
     // TODO: implement bindProduct
     throw UnimplementedError('addVariant method is not implemented yet');
   }
@@ -384,8 +383,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       return await repository.get<Branch>(
           query: brick.Query(where: [
         brick.Where('businessId').isExactly(businessId),
-        brick.Where('active').isExactly(active),
-        brick.Where('active').isExactly(false)
+        brick.Or('active').isExactly(active),
+        brick.Or('active').isExactly(false)
       ]));
     } catch (e, s) {
       talker.error(e);
@@ -494,13 +493,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Composite composite({required int variantId}) {
+  Composite composite({required String variantId}) {
     // TODO: implement composite
     throw UnimplementedError("composite method is not implemented yet");
   }
 
   @override
-  List<Composite> composites({required int productId}) {
+  List<Composite> composites({required String productId}) {
     // TODO: implement composites
     throw UnimplementedError("composites method is not implemented yet");
   }
@@ -576,10 +575,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? bhFId,
       required bool ebmSynced,
       Product? product,
-      required int productId,
+      required String productId,
       required String name,
       required String sku}) async {
-    final int variantId = randomNumber();
+    final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
 
     return Variant(
@@ -691,7 +690,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
       final Stock stock = Stock(
           lastTouched: DateTime.now(),
-          id: randomNumber(),
           variantId: newVariant.id,
           // variant: newVariant,
           branchId: branchId,
@@ -729,22 +727,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  void createVariant(
-      {required String barCode,
-      required String sku,
-      required int productId,
-      required int branchId,
-      required double retailPrice,
-      required double supplierPrice,
-      required double qty,
-      required String color,
-      required int tinNumber,
-      required int itemSeq,
-      required String name}) {
-    // TODO: implement createVariant
-  }
-
-  @override
   List<Customer> customers({required int branchId}) {
     // TODO: implement customers
     throw UnimplementedError("customers method is not implemented yet");
@@ -769,7 +751,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<bool> delete(
-      {required int id,
+      {required String id,
       String? endPoint,
       HttpClientInterface? flipperHttpClient}) async {
     switch (endPoint) {
@@ -784,17 +766,21 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         break;
       case 'variant':
         final variant = await getVariantById(id: id);
-        if (variant != null) {
-          await repository.delete<Variant>(variant);
-        }
-        break;
-      case 'stock':
-        final stock =
-            await getStock(id: id, branchId: ProxyService.box.getBranchId()!);
+        final stock = await getStockById(id: variant!.stockId!);
         if (stock != null) {
-          await repository.delete<Stock>(stock);
+          try {
+            await repository.delete<Stock>(
+              stock,
+              query: brick.Query(
+                  where: [brick.Where('id').isExactly(variant.stockId)]),
+            );
+            await repository.delete<Variant>(variant,
+                query: brick.Query(
+                    where: [brick.Where('id').isExactly(stock.variantId)]));
+          } catch (e) {}
         }
         break;
+
       case 'transactionItem':
         final transactionItem = await transactionItems(
             id: id, branchId: ProxyService.box.getBranchId()!);
@@ -898,7 +884,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<int> deleteFavoriteByIndex({required int favIndex}) {
+  Future<int> deleteFavoriteByIndex({required String favIndex}) {
     // TODO: implement deleteFavoriteByIndex
     throw UnimplementedError(
         "deleteFavoriteByIndex method is not implemented yet");
@@ -906,12 +892,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   void deleteItemFromCart(
-      {required TransactionItem transactionItemId, int? transactionId}) {
+      {required TransactionItem transactionItemId, String? transactionId}) {
     // TODO: implement deleteItemFromCart
   }
 
   @override
-  Future<int> deleteTransactionByIndex({required int transactionIndex}) {
+  Future<int> deleteTransactionByIndex({required String transactionIndex}) {
     // TODO: implement deleteTransactionByIndex
     throw UnimplementedError(
         "deleteTransactionByIndex method is not implemented yet");
@@ -989,7 +975,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Product?> findProductByTenantId({required int tenantId}) async {
+  Future<Product?> findProductByTenantId({required String tenantId}) async {
     final query = brick.Query(
         where: [brick.Where('bindedToTenantId').isExactly(tenantId)]);
     final result = await repository.get<models.Product>(
@@ -1008,7 +994,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Stream<List<Variant>> geVariantStreamByProductId({required int productId}) {
+  Stream<List<Variant>> geVariantStreamByProductId(
+      {required String productId}) {
     final repository = Repository();
     final query =
         brick.Query(where: [brick.Where('productId').isExactly(productId)]);
@@ -1017,7 +1004,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<Assets?> getAsset({String? assetName, int? productId}) async {
+  FutureOr<Assets?> getAsset({String? assetName, String? productId}) async {
     final repository = Repository();
     final query = brick.Query(
         where: assetName != null
@@ -1068,7 +1055,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       int id = randomNumber();
       IBusiness iBusiness = IBusiness.fromJson(json.decode(response.body));
       Business business = Business(
-          id: iBusiness.id!,
           serverId: iBusiness.id!,
           name: iBusiness.name,
           userId: iBusiness.userId,
@@ -1094,7 +1080,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<PColor?> getColor({required int id}) async {
+  Future<PColor?> getColor({required String id}) async {
     final repository = Repository();
     final query = brick.Query(where: [brick.Where('id').isExactly(id)]);
     final result = await repository.get<models.PColor>(
@@ -1150,7 +1136,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           branchId: branchId,
           businessId: businessId,
           product: models.Product(
-              id: randomNumber(),
               lastTouched: DateTime.now(),
               name: CUSTOM_PRODUCT,
               businessId: businessId,
@@ -1181,8 +1166,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     final repository = Repository();
     try {
       if (variant == null) {
-        int variantId = randomNumber();
-        final stockId = randomNumber();
+        String variantId = const Uuid().v4();
+        final stockId = const Uuid().v4();
         variant = Variant(
             id: variantId,
 
@@ -1413,7 +1398,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Favorite?> getFavoriteById({required int favId}) async {
+  Future<Favorite?> getFavoriteById({required String favId}) async {
     final query = brick.Query(where: [brick.Where('id').isExactly(favId)]);
     final List<Favorite> fetchedFavorites = await repository.get<Favorite>(
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
@@ -1421,7 +1406,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Favorite?> getFavoriteByIndex({required int favIndex}) async {
+  Future<Favorite?> getFavoriteByIndex({required String favIndex}) async {
     final query =
         brick.Query(where: [brick.Where('favIndex').isExactly(favIndex)]);
     final List<Favorite> fetchedFavorites = await repository.get<Favorite>(
@@ -1430,7 +1415,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Stream<Favorite?> getFavoriteByIndexStream({required int favIndex}) {
+  Stream<Favorite?> getFavoriteByIndexStream({required String favIndex}) {
     final repository = brick.Repository();
     final query =
         brick.Query(where: [brick.Where('favIndex').isExactly(favIndex)]);
@@ -1442,7 +1427,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Favorite?> getFavoriteByProdId({required int prodId}) async {
+  Future<Favorite?> getFavoriteByProdId({required String prodId}) async {
     final query =
         brick.Query(where: [brick.Where('productId').isExactly(prodId)]);
     final List<Favorite> fetchedFavorites = await repository.get<Favorite>(
@@ -1492,7 +1477,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   FutureOr<List<TransactionPaymentRecord>> getPaymentType(
-      {required int transactionId}) async {
+      {required String transactionId}) async {
     final query = brick.Query(
         where: [brick.Where('transactionId').isExactly(transactionId)]);
     final List<TransactionPaymentRecord> fetchedPaymentTypes =
@@ -1521,7 +1506,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             await branch(serverId: localPin.firstOrNull!.branchId!);
         if (branchE != null || business != null) {
           return IPin(
-              id: localPin.firstOrNull?.id,
+              id: int.tryParse(localPin.firstOrNull?.id ?? "0"),
               pin: localPin.firstOrNull?.pin ?? int.parse(pinString),
               userId: localPin.firstOrNull!.userId!.toString(),
               phoneNumber: localPin.firstOrNull!.phoneNumber!,
@@ -1601,7 +1586,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Receipt?> getReceipt({required int transactionId}) {
+  Future<Receipt?> getReceipt({required String transactionId}) {
     // TODO: implement getReceipt
     throw UnimplementedError("getReceipt method is not implemented yet");
   }
@@ -1621,9 +1606,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   Future<Stock?> getStock(
       {required int branchId,
-      int? variantId,
+      String? variantId,
       bool nonZeroValue = false,
-      int? id}) async {
+      String? id}) async {
     if (variantId == null) {
       final stock = await repository.get<Stock>(
           query: brick.Query(where: [
@@ -1649,7 +1634,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<Stock?> getStockById({required int id}) async {
+  FutureOr<Stock?> getStockById({required String id}) async {
     final query = brick.Query(where: [
       brick.Where('id', value: id, compare: brick.Compare.exact),
     ]);
@@ -1658,7 +1643,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Stream<double> getStockStream(
-      {int? productId, int? variantId, required int branchId}) {
+      {String? productId, String? variantId, required int branchId}) {
     // TODO: implement getStockStream
     throw UnimplementedError("getStockStream method is not implemented yet");
   }
@@ -1693,7 +1678,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Variant? getVariantByProductId({required int productId}) {
+  Variant? getVariantByProductId({required String productId}) {
     // TODO: implement getVariantByProductId
     throw UnimplementedError(
         "getVariantByProductId method is not implemented yet");
@@ -1903,7 +1888,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       id: pin.userId!,
       tenants: [
         ITenant(
-            id: randomNumber(),
             name: pin.ownerName == null ? "DEFAULT" : pin.ownerName!,
             phoneNumber: phoneNumber,
             permissions: [],
@@ -1920,7 +1904,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   List<IBranch> _convertBranches(List<Branch> branches) {
     return branches
         .map((e) => IBranch(
-            id: e.id,
             name: e.name,
             businessId: e.businessId,
             longitude: e.longitude,
@@ -2047,10 +2030,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         transactionType: transactionType,
         includeSubTotalCheck: includeSubTotalCheck!);
     if (existTransaction == null) {
-      final int id = randomNumber();
       final transaction = ITransaction(
           lastTouched: DateTime.now(),
-          id: id,
           reference: randomNumber().toString(),
           transactionNumber: randomNumber().toString(),
           status: PENDING,
@@ -2087,10 +2068,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         includeSubTotalCheck: includeSubTotalCheck!);
 
     if (existTransaction == null) {
-      final int id = randomNumber();
       final transaction = ITransaction(
           lastTouched: DateTime.now(),
-          id: id,
           reference: randomNumber().toString(),
           transactionNumber: randomNumber().toString(),
           status: PENDING,
@@ -2142,7 +2121,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Stream<List<Product>> productStreams({int? prodIndex}) {
+  Stream<List<Product>> productStreams({String? prodIndex}) {
     // final products = productsRef
     //     .whereId(isEqualTo: prodIndex)
     //     .whereBranchId(isEqualTo: ProxyService.box.getBranchId()!);
@@ -2267,7 +2246,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required int additionalDevices,
     required bool isYearlyPlan,
     required double totalPrice,
-    required int payStackUserId,
+    required String payStackUserId,
     required String paymentMethod,
     String? customerCode,
     models.Plan? plan,
@@ -2355,7 +2334,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (existingAddonNames.contains(addonName)) continue;
 
       final newAddon = models.PlanAddon(
-        id: randomNumber(),
         addonName: addonName,
         createdAt: DateTime.now(),
         planId: businessId,
@@ -2384,7 +2362,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }) async {
     await repository.upsert(
       models.Plan(
-        id: businessId,
         rule: isYearlyPlan ? 'yearly' : 'monthly',
         addons: addons,
       ),
@@ -2401,14 +2378,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required int additionalDevices,
     required bool isYearlyPlan,
     required double totalPrice,
-    required int payStackUserId,
+    required String payStackUserId,
     required String paymentMethod,
     required List<models.PlanAddon> addons,
     required DateTime nextBillingDate,
     required int numberOfPayments,
   }) async {
     final plan = models.Plan(
-      id: businessId,
       businessId: businessId,
       selectedPlan: selectedPlan,
       additionalDevices: additionalDevices,
@@ -2559,7 +2535,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               }
               if (separator.length < 3) return;
               if (separator[2] == "variant") {
-                final variantId = int.tryParse(separator[3]);
+                final variantId = separator[3];
                 Variant? variant =
                     ProxyService.strategy.variant(variantId: variantId);
                 if (variant != null) {
@@ -2570,8 +2546,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
                     .sendLocalNotification(body: "Item Saving " + separator[1]);
               }
               if (separator[2] == "stock") {
-                final stockId = int.tryParse(separator[3]);
-                Stock? stock = await getStockById(id: stockId!);
+                final stockId = separator[3];
+                Stock? stock = await getStockById(id: stockId);
                 if (stock != null) {
                   stock.ebmSynced = true;
                   repository.upsert<Stock>(stock);
@@ -2590,9 +2566,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
                     body: "Customer Saving " + separator[1]);
               }
               if (separator[2] == "transaction") {
-                final transactionId = int.tryParse(separator[3]);
+                final transactionId = separator[3];
                 ITransaction? transaction =
-                    getTransactionById(id: transactionId!);
+                    getTransactionById(id: transactionId);
                 if (transaction != null) {
                   transaction.ebmSynced = true;
                   repository.upsert<ITransaction>(transaction);
@@ -2676,7 +2652,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         ITenant jTenant = tenant;
         Tenant iTenant = Tenant(
             isDefault: jTenant.isDefault,
-            id: jTenant.id,
             name: jTenant.name,
             userId: jTenant.userId,
             businessId: jTenant.businessId,
@@ -2686,7 +2661,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
         for (IBusiness business in jTenant.businesses) {
           Business biz = Business(
-              id: business.id!,
               serverId: business.id!,
               userId: business.userId,
               name: business.name,
@@ -2741,7 +2715,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
         for (IBranch brannch in jTenant.branches) {
           Branch branch = Branch(
-              id: brannch.id!,
               serverId: brannch.id,
               active: brannch.active,
               description: brannch.description,
@@ -2766,7 +2739,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
                       where: [brick.Where('id').isExactly(permission.id)])))
               .firstOrNull;
           if (exist == null) {
-            final perm = LPermission(id: permission.id!, name: permission.name);
+            final perm = LPermission(name: permission.name);
             permissionToAdd.add(perm);
           }
         }
@@ -2803,7 +2776,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<double> totalStock({int? productId, int? variantId}) {
+  Future<double> totalStock({String? productId, String? variantId}) {
     // TODO: implement totalStock
     throw UnimplementedError("totalStock method is not implemented yet");
   }
@@ -2827,7 +2800,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     String? transactionType,
     int? branchId,
     bool isCashOut = false,
-    int? id,
+    String? id,
     FilterType? filterType,
     bool includePending = false,
     DateTime? startDate,
@@ -2954,7 +2927,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<Configurations> saveTax(
-      {required int configId, required double taxPercentage}) {
+      {required String configId, required double taxPercentage}) {
     // TODO: implement saveTax
     throw UnimplementedError("saveTax method is not implemented yet");
   }
@@ -2970,7 +2943,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       required int businessId,
       DateTime? createdAt}) async {
     await repository.upsert<Access>(Access(
-      id: userId,
       branchId: branchId,
       businessId: businessId,
       userId: userId,
@@ -2984,7 +2956,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<void> addAsset(
-      {required int productId,
+      {required String productId,
       required assetName,
       required int branchId,
       required int businessId}) async {
@@ -2995,7 +2967,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     ]));
     if (asset.firstOrNull == null) {
       await repository.upsert<Assets>(Assets(
-        id: randomNumber(),
         assetName: assetName,
         productId: productId,
         branchId: branchId,
@@ -3011,7 +2982,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       required bool active,
       required bool focused,
       required DateTime lastTouched,
-      required int id,
+      String? id,
       required DateTime createdAt,
       required deletedAt}) async {
     final category = await repository.get<Category>(
@@ -3020,7 +2991,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     ]));
     if (category.firstOrNull == null) {
       await repository.upsert<Category>(Category(
-        id: id,
         focused: focused,
         name: name,
         active: active,
@@ -3034,7 +3004,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   FutureOr<void> addColor({required String name, required int branchId}) {
     repository.upsert<PColor>(PColor(
-      id: randomNumber(),
       name: name,
       active: false,
       branchId: branchId,
@@ -3137,14 +3106,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<void> updateAsset({required int assetId, String? assetName}) {
+  FutureOr<void> updateAsset({required String assetId, String? assetName}) {
     // TODO: implement updateAsset
     throw UnimplementedError("updateAsset method is not implemented yet");
   }
 
   @override
   FutureOr<void> updateCategory(
-      {required int categoryId,
+      {required String categoryId,
       String? name,
       bool? active,
       bool? focused,
@@ -3165,14 +3134,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   FutureOr<void> updateColor(
-      {required int colorId, String? name, bool? active}) {
+      {required String colorId, String? name, bool? active}) {
     // TODO: implement updateColor
     throw UnimplementedError("  updateColor method is not implemented yet");
   }
 
   @override
   FutureOr<void> updateDrawer(
-      {required int drawerId,
+      {required String drawerId,
       int? cashierId,
       int? nsSaleCount,
       int? trSaleCount,
@@ -3191,7 +3160,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   FutureOr<void> updateNotification(
-      {required int notificationId, bool? completed}) {
+      {required String notificationId, bool? completed}) {
     // TODO: implement updateNotification
     throw UnimplementedError(
         "updateNotification method is not implemented yet");
@@ -3206,7 +3175,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   FutureOr<void> updateProduct(
-      {int? productId,
+      {String? productId,
       String? name,
       bool? isComposite,
       String? unit,
@@ -3229,22 +3198,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<void> updateReport({required int reportId, bool? downloaded}) async {
+  FutureOr<void> updateReport(
+      {required String reportId, bool? downloaded}) async {
     // TODO: implement updateReport
     throw UnimplementedError("updateReport method is not implemented yet");
   }
 
   @override
-  FutureOr<void> updateStockRequest(
-      {required int stockRequestId, DateTime? updatedAt, String? status}) {
-    // TODO: implement updateStockRequest
-    throw UnimplementedError(
-        "updateStockRequest method is not implemented yet");
-  }
-
-  @override
   Future<void> updateTenant(
-      {required int tenantId,
+      {required String tenantId,
       String? name,
       String? phoneNumber,
       String? email,
@@ -3305,7 +3267,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   FutureOr<void> updateTransactionItem(
       {double? qty,
-      required int transactionItemId,
+      required String transactionItemId,
       double? discount,
       bool? active,
       double? taxAmt,
@@ -3330,7 +3292,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   FutureOr<void> updateUnit(
-      {required int unitId, String? name, bool? active, int? branchId}) {
+      {required String unitId, String? name, bool? active, int? branchId}) {
     // TODO: implement updateUnit
     throw UnimplementedError("updateUnit method is not implemented yet");
   }
@@ -3362,7 +3324,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Variant? variant({int? variantId, String? name}) {
+  Variant? variant({String? variantId, String? name}) {
     // TODO: implement variant
     throw UnimplementedError("variant method is not implemented yet");
   }
@@ -3370,7 +3332,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   Future<List<Variant>> variants(
       {required int branchId,
-      int? productId,
+      String? productId,
       int? page,
       int? itemsPerPage}) async {
     List<Variant> variants = [];
@@ -3410,14 +3372,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  ITransaction? getTransactionById({required int id}) {
+  ITransaction? getTransactionById({required String id}) {
     // TODO: implement getTransactionById
     throw UnimplementedError("getTransactionById is not implemented yet");
   }
 
   @override
   Future<models.TransactionItem?> getTransactionItemByVariantId(
-      {required int variantId, int? transactionId}) async {
+      {required String variantId, String? transactionId}) async {
     return (await repository.get<TransactionItem>(
             query: brick.Query(where: [
       brick.Where('variantId', value: variantId, compare: brick.Compare.exact),
@@ -3429,7 +3391,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Variant?> getVariantById({required int id}) async {
+  Future<Variant?> getVariantById({required String id}) async {
     final query = brick.Query(where: [
       brick.Where('id', value: id, compare: brick.Compare.exact),
     ]);
@@ -3466,7 +3428,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   FutureOr<void> savePaymentType(
       {TransactionPaymentRecord? paymentRecord,
-      int? transactionId,
+      String? transactionId,
       double amount = 0.0,
       String? paymentMethod,
       required bool singlePaymentOnly}) {
@@ -3478,13 +3440,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   FutureOr<void> saveStock(
       {Variant? variant,
       required double rsdQty,
-      required int productId,
-      required int variantId,
+      required String productId,
+      required String variantId,
       required int branchId,
       required double currentStock,
       required double value}) async {
     final stock = Stock(
-      id: randomNumber(),
       lastTouched: DateTime.now(),
       branchId: branchId,
       variantId: variantId,
@@ -3499,7 +3460,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   FutureOr<void> updateStock(
-      {required int stockId,
+      {required String stockId,
       double? qty,
       double? rsdQty,
       double? initialStock,
@@ -3557,7 +3518,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       DateTime? deletedAt,
       required String encryptionKey}) {
     repository.upsert<Business>(Business(
-      id: id,
       serverId: serverId,
       name: name,
       currency: currency,
@@ -3641,7 +3601,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       DateTime? deletedAt,
       int? id}) async {
     return await repository.upsert<Branch>(Branch(
-      id: id!,
       serverId: serverId,
       location: location,
       description: description,
@@ -3656,7 +3615,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Stream<List<TransactionItem>> transactionItemsStreams(
-      {int? transactionId,
+      {String? transactionId,
       required int branchId,
       DateTime? startDate,
       DateTime? endDate,
@@ -3676,12 +3635,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<List<TransactionItem>> transactionItems(
-      {int? transactionId,
-      bool? doneWithTransaction,
-      required int branchId,
-      int? id,
-      bool? active}) async {
+  FutureOr<List<TransactionItem>> transactionItems({
+    String? transactionId,
+    bool? doneWithTransaction,
+    required int branchId,
+    String? id,
+    bool? active,
+  }) async {
     return repository.get(
         query: brick.Query(where: [
       if (transactionId != null)
@@ -3702,7 +3662,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   void updateAccess(
-      {required int accessId,
+      {required String accessId,
       required int userId,
       required String featureName,
       required String accessLevel,
@@ -3758,14 +3718,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       {required List<Variant> updatables,
       String? color,
       String? taxTyCd,
-      int? variantId,
+      String? variantId,
       double? newRetailPrice,
       double? retailPrice,
-      Map<int, String>? rates,
+      Map<String, String>? rates,
       double? supplyPrice,
-      Map<int, String>? dates,
+      Map<String, String>? dates,
       String? selectedProductType,
-      int? productId,
+      String? productId,
       String? productName,
       String? unit,
       String? pkgUnitCd,
@@ -3833,7 +3793,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       required Branch branch,
       String? phoneNumber,
       String? name,
-      int? id,
+      String? id,
       String? email,
       int? businessId,
       bool? sessionActive,
@@ -3879,7 +3839,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<models.Product?> getProduct(
-      {int? id,
+      {String? id,
       String? barCode,
       required int branchId,
       String? name,
@@ -3923,8 +3883,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
 
     // Save the new item code in the database
-    final newItem = ItemCode(
-        itemCode: newItemCode, id: randomNumber(), createdAt: DateTime.now());
+    final newItem = ItemCode(itemCode: newItemCode, createdAt: DateTime.now());
     await repository.upsert(newItem);
 
     return newItemCode;
@@ -3960,10 +3919,32 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       sku: newSequence,
       branchId: branchId,
       businessId: businessId,
-      id: randomNumber(),
     );
     await repository.upsert(newSku);
 
     return newSku;
+  }
+
+  @override
+  void createVariant(
+      {required String barCode,
+      required String sku,
+      required String productId,
+      required int branchId,
+      required double retailPrice,
+      required double supplierPrice,
+      required double qty,
+      required String color,
+      required int tinNumber,
+      required int itemSeq,
+      required String name}) {
+    // TODO: implement createVariant
+  }
+
+  @override
+  FutureOr<void> updateStockRequest(
+      {required String stockRequestId, DateTime? updatedAt, String? status}) {
+    // TODO: implement updateStockRequest
+    throw UnimplementedError();
   }
 }

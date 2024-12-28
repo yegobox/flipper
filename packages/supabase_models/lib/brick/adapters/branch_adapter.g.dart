@@ -5,7 +5,7 @@ Future<Branch> _$BranchFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Branch(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       name: data['name'] as String?,
       serverId: data['server_id'] as int?,
       location: data['location'] as String?,
@@ -40,7 +40,7 @@ Future<Branch> _$BranchFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Branch(
-      id: data['id'] as int,
+      id: data['id'] as String,
       name: data['name'] == null ? null : data['name'] as String?,
       serverId: data['server_id'] == null ? null : data['server_id'] as int?,
       location: data['location'] == null ? null : data['location'] as String?,
@@ -147,7 +147,7 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'name': const RuntimeSqliteColumnDefinition(
       association: false,

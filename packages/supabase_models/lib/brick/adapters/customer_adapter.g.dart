@@ -5,7 +5,7 @@ Future<Customer> _$CustomerFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Customer(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       custNm: data['cust_nm'] as String?,
       email: data['email'] as String?,
       telNo: data['tel_no'] as String?,
@@ -64,7 +64,7 @@ Future<Customer> _$CustomerFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Customer(
-      id: data['id'] as int,
+      id: data['id'] as String,
       custNm: data['cust_nm'] == null ? null : data['cust_nm'] as String?,
       email: data['email'] == null ? null : data['email'] as String?,
       telNo: data['tel_no'] == null ? null : data['tel_no'] as String?,
@@ -236,7 +236,7 @@ class CustomerAdapter extends OfflineFirstWithSupabaseAdapter<Customer> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'custNm': const RuntimeSqliteColumnDefinition(
       association: false,

@@ -1,13 +1,14 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'customers'),
 )
 class Customer extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
-  final int id;
+  final String id;
 
   //customer name
   String? custNm;
@@ -48,7 +49,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
   String? useYn;
   String? customerType;
   Customer({
-    required this.id,
+    String? id,
     this.custNm,
     this.email,
     this.telNo,
@@ -68,7 +69,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
     this.bhfId,
     this.useYn,
     this.customerType,
-  });
+  }) : id = id ?? const Uuid().v4();
   // toJson method
   Map<String, dynamic> toJson() {
     return {

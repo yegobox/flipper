@@ -1,13 +1,14 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'receipts'),
 )
 class Receipt extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
-  final int id;
+  final String id;
 
   String? resultCd;
   String? resultMsg;
@@ -32,7 +33,7 @@ class Receipt extends OfflineFirstWithSupabaseModel {
   int? invoiceNumber;
 
   Receipt({
-    required this.id,
+    String? id,
     this.resultCd,
     this.resultMsg,
     this.resultDt,
@@ -51,5 +52,5 @@ class Receipt extends OfflineFirstWithSupabaseModel {
     this.invcNo,
     this.whenCreated,
     this.invoiceNumber,
-  });
+  }) : id = id ?? const Uuid().v4();
 }

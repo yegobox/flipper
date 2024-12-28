@@ -6,7 +6,7 @@ part 'tenant.g.dart';
 
 @JsonSerializable()
 class ITenant {
-  late int id;
+   int? id;
   String name;
   String phoneNumber;
   String? email; // Make email nullable
@@ -28,7 +28,7 @@ class ITenant {
   bool isLongPressed;
 
   ITenant(
-      {required this.id,
+      { this.id,
       required this.name,
       required this.phoneNumber,
       this.email, // Allow nullable email

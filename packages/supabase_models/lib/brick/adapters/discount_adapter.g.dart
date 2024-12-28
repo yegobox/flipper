@@ -5,7 +5,7 @@ Future<Discount> _$DiscountFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Discount(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       name: data['name'] as String?,
       amount: data['amount'] as double?,
       branchId: data['branch_id'] as int?);
@@ -26,7 +26,7 @@ Future<Discount> _$DiscountFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Discount(
-      id: data['id'] as int,
+      id: data['id'] as String,
       name: data['name'] == null ? null : data['name'] as String?,
       amount: data['amount'] == null ? null : data['amount'] as double?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?)
@@ -87,7 +87,7 @@ class DiscountAdapter extends OfflineFirstWithSupabaseAdapter<Discount> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'name': const RuntimeSqliteColumnDefinition(
       association: false,

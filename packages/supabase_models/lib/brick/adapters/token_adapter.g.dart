@@ -5,7 +5,7 @@ Future<Token> _$TokenFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Token(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       name: data['name'] as String?,
       type: data['type'] as String?,
       token: data['token'] as String?,
@@ -40,7 +40,7 @@ Future<Token> _$TokenFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Token(
-      id: data['id'] as int,
+      id: data['id'] as String,
       name: data['name'] == null ? null : data['name'] as String?,
       type: data['type'] == null ? null : data['type'] as String?,
       token: data['token'] == null ? null : data['token'] as String?,
@@ -138,7 +138,7 @@ class TokenAdapter extends OfflineFirstWithSupabaseAdapter<Token> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'name': const RuntimeSqliteColumnDefinition(
       association: false,

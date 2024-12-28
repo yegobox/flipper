@@ -269,7 +269,7 @@ class _RefundState extends ConsumerState<Refund> {
 
       List<TransactionItem> items = await ProxyService.strategy
           .transactionItems(
-              transactionId: int.parse(widget.transactionId),
+              transactionId: widget.transactionId,
               doneWithTransaction: true,
               branchId: widget.transaction!.branchId!,
               active: true);

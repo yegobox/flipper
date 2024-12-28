@@ -14,10 +14,10 @@ class NoticeSheetModel extends BaseViewModel {
 
   Future<void> expressInterest() async {
     Social social = Social(
+        id: randomNumber(),
         branchId: ProxyService.box.getBranchId()!,
         isAccountSet: false,
         message: message,
-        id: randomNumber(),
         lastTouched: DateTime.now(),
         socialType: 'whatapp',
         socialUrl:

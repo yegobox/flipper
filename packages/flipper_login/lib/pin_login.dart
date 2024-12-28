@@ -47,7 +47,6 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
         final thePin = Pin(
           userId: int.tryParse(pin.userId),
           pin: int.tryParse(pin.userId),
-          id: int.tryParse(pin.userId) ?? 0,
           branchId: pin.branchId,
           businessId: pin.businessId,
           ownerName: pin.ownerName,

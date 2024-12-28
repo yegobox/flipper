@@ -17,7 +17,6 @@ class AppService with ListenableServiceMixin {
   int? get branchId => ProxyService.box.getBranchId();
 
   final _business = ReactiveValue<Business>(Business(
-    id: randomNumber(),
     serverId: randomNumber(),
     isDefault: false,
     encryptionKey: "11",
@@ -88,7 +87,6 @@ class AppService with ListenableServiceMixin {
 
     final businessId = ProxyService.box.getBusinessId()!;
     final data = Token(
-      id: randomNumber(),
       businessId: businessId,
       token: token?.body.token,
       validFrom: token?.body.validFrom,

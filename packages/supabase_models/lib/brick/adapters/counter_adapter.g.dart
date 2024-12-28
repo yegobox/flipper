@@ -5,7 +5,7 @@ Future<Counter> _$CounterFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Counter(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       businessId: data['business_id'] as int?,
       branchId: data['branch_id'] as int?,
       receiptType: data['receipt_type'] as String?,
@@ -40,7 +40,7 @@ Future<Counter> _$CounterFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Counter(
-      id: data['id'] as int,
+      id: data['id'] as String,
       businessId:
           data['business_id'] == null ? null : data['business_id'] as int?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
@@ -143,7 +143,7 @@ class CounterAdapter extends OfflineFirstWithSupabaseAdapter<Counter> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'businessId': const RuntimeSqliteColumnDefinition(
       association: false,

@@ -83,7 +83,7 @@ class DiscountRow extends StatelessWidget {
         ));
   }
 
-  doSomething(BuildContext context, int id) {
+  doSomething(BuildContext context, String id) {
     delete(id);
   }
 }

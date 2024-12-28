@@ -5,7 +5,7 @@ Future<ITransaction> _$ITransactionFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return ITransaction(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       reference: data['reference'] as String?,
       categoryId: data['category_id'] as String?,
       transactionNumber: data['transaction_number'] as String?,
@@ -88,7 +88,7 @@ Future<ITransaction> _$ITransactionFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return ITransaction(
-      id: data['id'] as int,
+      id: data['id'] as String,
       reference:
           data['reference'] == null ? null : data['reference'] as String?,
       categoryId:
@@ -366,7 +366,7 @@ class ITransactionAdapter
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'reference': const RuntimeSqliteColumnDefinition(
       association: false,

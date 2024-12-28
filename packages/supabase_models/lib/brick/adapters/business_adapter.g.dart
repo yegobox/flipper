@@ -5,7 +5,7 @@ Future<Business> _$BusinessFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Business(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       serverId: data['server_id'] as int,
       name: data['name'] as String?,
       currency: data['currency'] as String?,
@@ -110,7 +110,7 @@ Future<Business> _$BusinessFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Business(
-      id: data['id'] as int,
+      id: data['id'] as String,
       serverId: data['server_id'] as int,
       name: data['name'] == null ? null : data['name'] as String?,
       currency: data['currency'] == null ? null : data['currency'] as String?,
@@ -447,7 +447,7 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'serverId': const RuntimeSqliteColumnDefinition(
       association: false,

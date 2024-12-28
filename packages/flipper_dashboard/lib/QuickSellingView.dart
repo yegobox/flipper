@@ -62,11 +62,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     super.initState();
     ref.read(paymentMethodsProvider)[0].controller.addListener(() async {
       await Future.delayed(Duration(seconds: 5));
-      updatePaymentAmounts(transactionId: 0);
+      updatePaymentAmounts(transactionId: "");
     });
   }
 
-  void updatePaymentAmounts({required int transactionId}) {
+  void updatePaymentAmounts({required String transactionId}) {
     if (ref.read(paymentMethodsProvider).isEmpty) return;
 
     double remainingAmount = totalAfterDiscountAndShipping;
@@ -193,7 +193,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           _buildTotalRow(),
           SizedBox(height: 20),
           _buildForm(isOrdering,
-              transactionId: transactionAsyncValue.value?.id ?? 0),
+              transactionId: transactionAsyncValue.value?.id ?? ""),
           SizedBox(height: 20),
           _buildFooter(transactionAsyncValue),
         ],
@@ -213,7 +213,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildForm(bool isOrdering, {required int transactionId}) {
+  Widget _buildForm(bool isOrdering, {required String transactionId}) {
     return Form(
       key: widget.formKey,
       child: Column(
@@ -356,7 +356,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildReceivedAmountField({required int transactionId}) {
+  Widget _buildReceivedAmountField({required String transactionId}) {
     return TextFormField(
       controller: widget.receivedAmountController,
       keyboardType: TextInputType.number,
@@ -473,7 +473,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildPaymentMethodField({required int transactionId}) {
+  Widget _buildPaymentMethodField({required String transactionId}) {
     return Column(
       children: [
         for (int i = 0; i < ref.read(paymentMethodsProvider).length; i++)
@@ -489,7 +489,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildPaymentMethodRow(int index, {required int transactionId}) {
+  Widget _buildPaymentMethodRow(int index, {required String transactionId}) {
     return Column(
       children: [
         Row(
@@ -577,7 +577,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  void _addPaymentMethod({required int transactionId}) {
+  void _addPaymentMethod({required String transactionId}) {
     setState(() {
       ref
           .read(paymentMethodsProvider)
@@ -589,7 +589,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     });
   }
 
-  void _removePaymentMethod(int index, {required int transactionId}) {
+  void _removePaymentMethod(int index, {required String transactionId}) {
     setState(() {
       ref.read(paymentMethodsProvider)[index];
       ref.read(paymentMethodsProvider.notifier).removePaymentMethod(index);
@@ -637,7 +637,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                       notification: AppNotification(
                         identifier: ProxyService.box.getBranchId(),
                         type: "internal",
-                        id: randomNumber(),
                         completed: false,
                         message: "TransactionId copied to keypad",
                       ),

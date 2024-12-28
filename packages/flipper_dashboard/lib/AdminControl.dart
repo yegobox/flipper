@@ -1,6 +1,5 @@
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 // import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
@@ -12,6 +11,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/repository.dart';
+import 'package:uuid/uuid.dart';
 
 class AdminControl extends StatefulWidget {
   const AdminControl({super.key});
@@ -63,11 +63,11 @@ class _AdminControlState extends State<AdminControl> {
 
       // fake variant
       final variant = models.Variant(
-        id: 11111,
+        id: "11111",
         name: 'Per Item',
         color: '#e74c3c',
         sku: 'sku',
-        productId: randomNumber(),
+        productId: "randomNumber()",
         unit: 'Per Item',
         productName: 'Custom Amount',
         branchId: ProxyService.box.getBranchId()!,
@@ -114,9 +114,9 @@ class _AdminControlState extends State<AdminControl> {
 
       Stock stock = Stock(
         // variant: v,
-        id: randomNumber(),
+        id: Uuid().v4(),
         currentStock: 110,
-        variantId: 1,
+        variantId: "1",
         branchId: ProxyService.box.getBranchId()!,
         active: true,
         value: 0,

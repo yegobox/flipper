@@ -1,6 +1,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'composites'),
@@ -9,10 +10,10 @@ import 'package:brick_supabase/brick_supabase.dart';
 class Composite extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   @Supabase(unique: true)
-  final int id;
+  final String id;
 
-  int? productId;
-  int? variantId;
+  String? productId;
+  String? variantId;
   double? qty;
   int? branchId;
   int? businessId;
@@ -23,12 +24,12 @@ class Composite extends OfflineFirstWithSupabaseModel {
   double? actualPrice;
 
   Composite({
-    required this.id,
+    String? id,
     this.productId,
     this.variantId,
     this.qty,
     this.branchId,
     this.businessId,
     this.actualPrice,
-  });
+  }) : id = id ?? const Uuid().v4();
 }

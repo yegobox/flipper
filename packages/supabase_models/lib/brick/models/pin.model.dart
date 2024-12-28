@@ -1,13 +1,14 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'pins'),
 )
 class Pin extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
-  final int id;
+  final String id;
 
   int? userId;
   String? phoneNumber;
@@ -18,7 +19,7 @@ class Pin extends OfflineFirstWithSupabaseModel {
   String? tokenUid;
   String? uid;
   Pin({
-    required this.id,
+    String? id,
     this.userId,
     this.phoneNumber,
     this.pin,
@@ -27,5 +28,5 @@ class Pin extends OfflineFirstWithSupabaseModel {
     this.ownerName,
     this.tokenUid,
     this.uid,
-  });
+  }) : id = id ?? const Uuid().v4();
 }

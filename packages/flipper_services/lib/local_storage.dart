@@ -389,4 +389,9 @@ class SharedPreferenceStorage implements LocalStorage {
   bool exportAsPdf() {
     return prefs.getBool('exportAsPdf') ?? false;
   }
+
+  @override
+  String transactionId() {
+    return prefs.getString('transactionId') ?? "";
+  }
 }

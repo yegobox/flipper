@@ -29,6 +29,7 @@ abstract class LocalStorage {
   String encryptionKey();
   Future<void> clear();
   Future<bool> authComplete();
+  String transactionId();
 
   /// firebase token, we take uid from logged in device (mobile)
   /// then we send it back to server and get equivalent token uid

@@ -96,7 +96,7 @@ class ProductViewModel extends FlipperBaseModel
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
   String? kProductName;
-  Future<Product> getProduct({int? productId}) async {
+  Future<Product> getProduct({String? productId}) async {
     try {
       if (productId != null) {
         Product? product = await ProxyService.strategy.getProduct(
@@ -118,7 +118,6 @@ class ProductViewModel extends FlipperBaseModel
         businessId: ProxyService.box.getBusinessId()!,
         branchId: ProxyService.box.getBranchId()!,
         product: Product(
-          id: randomNumber(),
           name: TEMP_PRODUCT,
           lastTouched: DateTime.now(),
           businessId: ProxyService.box.getBusinessId()!,
@@ -164,7 +163,6 @@ class ProductViewModel extends FlipperBaseModel
       active: true,
       focused: false,
       branchId: branchId!,
-      id: randomNumber(),
     );
 
     await ProxyService.strategy.create<Category>(data: category);
@@ -233,7 +231,7 @@ class ProductViewModel extends FlipperBaseModel
     notifyListeners();
   }
 
-  void updateStock({required int variantId}) async {
+  void updateStock({required String variantId}) async {
     if (_stockValue != null) {
       Stock? stock = await ProxyService.strategy.getStock(
           variantId: variantId, branchId: ProxyService.box.getBranchId()!);
@@ -250,7 +248,7 @@ class ProductViewModel extends FlipperBaseModel
     rebuildUi();
   }
 
-  void deleteVariant({required int id}) async {
+  void deleteVariant({required String id}) async {
     Variant? variant = await ProxyService.strategy.variant(variantId: id);
     // can not delete regular variant every product should have a regular variant.
     if (variant!.name != 'Regular') {
@@ -293,7 +291,7 @@ class ProductViewModel extends FlipperBaseModel
   /// add variation to a product [variations],[retailPrice],[supplyPrice]
 
   void navigateAddVariation(
-      {required int productId, required BuildContext context}) {
+      {required String productId, required BuildContext context}) {
     _routerService.navigateTo(AddVariationRoute(productId: productId));
   }
 
@@ -301,13 +299,13 @@ class ProductViewModel extends FlipperBaseModel
   /// of related stock
   Future<void> updateRegularVariant({
     required bool inUpdateProcess,
-    int? productId,
+    String? productId,
     double? supplyPrice,
     double? retailPrice,
   }) async {
     Product? product = await ProxyService.strategy.getProduct(
         businessId: ProxyService.box.getBusinessId()!,
-        id: productId ?? 0,
+        id: productId,
         branchId: ProxyService.box.getBranchId()!);
     List<Variant> variants = await ProxyService.strategy.variants(
         branchId: ProxyService.box.getBranchId()!, productId: productId);
@@ -342,9 +340,8 @@ class ProductViewModel extends FlipperBaseModel
 
   /// Add a product into the favorites
   Future<int> addFavorite(
-      {required int favIndex, required int productId}) async {
+      {required String favIndex, required String productId}) async {
     final favorite = Favorite(
-      id: randomNumber(),
       favIndex: favIndex,
       productId: productId,
       branchId: ProxyService.box.getBranchId(),
@@ -356,7 +353,7 @@ class ProductViewModel extends FlipperBaseModel
     return res;
   }
 
-  Future<void> deleteProduct({required int productId}) async {
+  Future<void> deleteProduct({required String productId}) async {
     try {
       //get variants->delete
       int branchId = ProxyService.box.getBranchId()!;
@@ -364,16 +361,10 @@ class ProductViewModel extends FlipperBaseModel
           .variants(branchId: branchId, productId: productId);
       for (Variant variation in variations) {
         //get stock->delete
-        Stock? stock = await ProxyService.strategy.getStock(
-            variantId: variation.id, branchId: ProxyService.box.getBranchId()!);
-
+        /// deleting variant is supposed to cascade delete stock
         await ProxyService.strategy.delete(
             id: variation.id,
             endPoint: 'variant',
-            flipperHttpClient: ProxyService.http);
-        await ProxyService.strategy.delete(
-            id: stock!.id,
-            endPoint: 'stock',
             flipperHttpClient: ProxyService.http);
 
         Favorite? fav =
@@ -448,7 +439,7 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   Future<void> bindTenant(
-      {required int tenantId, required int productId}) async {
+      {required String tenantId, required String productId}) async {
     try {
       await ProxyService.strategy
           .bindProduct(productId: productId, tenantId: tenantId);

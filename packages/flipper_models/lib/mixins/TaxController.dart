@@ -332,7 +332,6 @@ class TaxController<OBJ> {
             receiptType == "TR" ||
             receiptType == "CS") {
           final tran = ITransaction(
-            id: randomNumber(),
             receiptNumber: receiptSignature.data?.rcptNo,
             totalReceiptNumber: receiptSignature.data?.totRcptNo,
             invoiceNumber: counter.invcNo,

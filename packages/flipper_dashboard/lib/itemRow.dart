@@ -39,8 +39,8 @@ Map<int, String> positionString = {
   15: 'sixteenth'
 };
 
-typedef void DeleteProductFunction(int? id, String type);
-typedef void DeleteVariantFunction(int? id, String type);
+typedef void DeleteProductFunction(String? id, String type);
+typedef void DeleteVariantFunction(String? id, String type);
 
 class RowItem extends StatefulHookConsumerWidget {
   final String color;
@@ -55,7 +55,7 @@ class RowItem extends StatefulHookConsumerWidget {
   final Variant? variant;
   final Product? product;
   final bool? addFavoriteMode;
-  final int? favIndex;
+  final String? favIndex;
   final String variantName;
   final bool isComposite;
   final bool isOrdering;
@@ -82,7 +82,7 @@ class RowItem extends StatefulHookConsumerWidget {
     required this.isOrdering,
   }) : super(key: key);
 
-  static _defaultFunction(int? id, String type) {
+  static _defaultFunction(String? id, String type) {
     print("no function provided for the action");
   }
 
@@ -241,7 +241,7 @@ class _RowItemState extends ConsumerState<RowItem>
         double stockQty = 0;
         if (!widget.isOrdering) {
           Stock? stock = await ProxyService.strategy.getStock(
-              variantId: widget.variant?.id ?? 0,
+              variantId: widget.variant?.id ?? "",
               branchId: ProxyService.box.getBranchId()!);
           stockQty = stock?.currentStock ?? 0.0;
         }

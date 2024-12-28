@@ -10,7 +10,7 @@ import 'package:stacked_services/stacked_services.dart';
 
 class AddVariation extends StatefulWidget {
   const AddVariation({Key? key, required this.productId}) : super(key: key);
-  final int productId;
+  final String productId;
   static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
@@ -165,8 +165,8 @@ class _AddVariationState extends State<AddVariation> {
   Future<void> _saveVariation(
     ProductViewModel model, {
     required String selectedProductType,
-    Map<int, TextEditingController>? rates,
-    Map<int, TextEditingController>? dates,
+    Map<String, TextEditingController>? rates,
+    Map<String, TextEditingController>? dates,
     required String productName,
   }) async {
     Business? business = await ProxyService.strategy.getBusiness();
@@ -174,12 +174,10 @@ class _AddVariationState extends State<AddVariation> {
     String clip = itemPrefix +
         DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
 
-    int id = randomNumber();
     // 321981891968185
     // 321981891968185
     List<Variant> variations = [];
     Variant data = Variant(
-      id: id,
       color: model.product!.color,
       name: nameController.text,
       sku: sku,

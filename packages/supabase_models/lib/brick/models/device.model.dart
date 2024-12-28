@@ -1,13 +1,14 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'devices'),
 )
 class Device extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
-  final int id;
+  final String id;
 
   String? linkingCode;
   String? deviceName;
@@ -25,7 +26,7 @@ class Device extends OfflineFirstWithSupabaseModel {
   DateTime? deletedAt;
 
   Device({
-    required this.id,
+    String? id,
     this.linkingCode,
     this.deviceName,
     this.deviceVersion,
@@ -37,5 +38,5 @@ class Device extends OfflineFirstWithSupabaseModel {
     this.defaultApp,
     this.lastTouched,
     this.deletedAt,
-  });
+ }) : id = id ?? const Uuid().v4();
 }

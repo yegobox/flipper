@@ -5,7 +5,7 @@ Future<Device> _$DeviceFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Device(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       linkingCode: data['linking_code'] as String?,
       deviceName: data['device_name'] as String?,
       deviceVersion: data['device_version'] as String?,
@@ -46,7 +46,7 @@ Future<Device> _$DeviceFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Device(
-      id: data['id'] as int,
+      id: data['id'] as String,
       linkingCode:
           data['linking_code'] == null ? null : data['linking_code'] as String?,
       deviceName:
@@ -173,7 +173,7 @@ class DeviceAdapter extends OfflineFirstWithSupabaseAdapter<Device> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'linkingCode': const RuntimeSqliteColumnDefinition(
       association: false,

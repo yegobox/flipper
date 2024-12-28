@@ -1,4 +1,3 @@
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -12,7 +11,6 @@ import 'package:flutter/services.dart';
 class FlipperBaseModel extends ReactiveViewModel {
   void openDrawer() {
     Drawers drawer = Drawers(
-      id: randomNumber(),
       openingBalance: 0.0,
       closingBalance: 0.0,
       cashierId: ProxyService.box.getUserId()!,
@@ -45,7 +43,7 @@ class FlipperBaseModel extends ReactiveViewModel {
         businessId: ProxyService.box.getBusinessId()!,
         excludeUserId: ProxyService.box.getUserId()!);
 
-    Set<int> uniqueUserIds = {};
+    Set<String> uniqueUserIds = {};
     List<Tenant> uniqueUsers = [];
 
     for (var user in users) {

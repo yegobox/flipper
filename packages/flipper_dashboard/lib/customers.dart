@@ -224,8 +224,12 @@ class CustomersState extends ConsumerState<Customers> {
     );
   }
 
-  Widget _buildAddButton(BuildContext context, CoreViewModel model,
-      AsyncValue<List<Customer>> customersRef, String searchKeyword, int id) {
+  Widget _buildAddButton(
+      BuildContext context,
+      CoreViewModel model,
+      AsyncValue<List<Customer>> customersRef,
+      String searchKeyword,
+      String id) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: FlipperButton(
@@ -255,7 +259,7 @@ class CustomersState extends ConsumerState<Customers> {
       CoreViewModel model,
       AsyncValue<List<Customer>> customersRef,
       String searchKeyword,
-      int id) async {
+      String id) async {
     final customers = customersRef.asData?.value ?? [];
     final filteredCustomers = ref
         .read(customersProvider.notifier)

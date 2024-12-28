@@ -5,13 +5,13 @@ Future<TransactionItem> _$TransactionItemFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return TransactionItem(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       name: data['name'] as String,
       quantityRequested: data['quantity_requested'] as int?,
       quantityApproved: data['quantity_approved'] as int?,
       quantityShipped: data['quantity_shipped'] as int?,
-      transactionId: data['transaction_id'] as int?,
-      variantId: data['variant_id'] as int?,
+      transactionId: data['transaction_id'] as String?,
+      variantId: data['variant_id'] as String?,
       qty: data['qty'] as double,
       price: data['price'] as double,
       discount: data['discount'] as double,
@@ -135,7 +135,7 @@ Future<TransactionItem> _$TransactionItemFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return TransactionItem(
-      id: data['id'] as int,
+      id: data['id'] as String,
       name: data['name'] as String,
       quantityRequested: data['quantity_requested'] == null
           ? null
@@ -148,8 +148,9 @@ Future<TransactionItem> _$TransactionItemFromSqlite(Map<String, dynamic> data,
           : data['quantity_shipped'] as int?,
       transactionId: data['transaction_id'] == null
           ? null
-          : data['transaction_id'] as int?,
-      variantId: data['variant_id'] == null ? null : data['variant_id'] as int?,
+          : data['transaction_id'] as String?,
+      variantId:
+          data['variant_id'] == null ? null : data['variant_id'] as String?,
       qty: data['qty'] as double,
       price: data['price'] as double,
       discount: data['discount'] as double,
@@ -549,7 +550,7 @@ class TransactionItemAdapter
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'name': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -579,13 +580,13 @@ class TransactionItemAdapter
       association: false,
       columnName: 'transaction_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'variantId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'variant_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'qty': const RuntimeSqliteColumnDefinition(
       association: false,

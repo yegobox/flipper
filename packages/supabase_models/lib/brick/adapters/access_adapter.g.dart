@@ -5,7 +5,7 @@ Future<Access> _$AccessFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Access(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       branchId: data['branch_id'] as int?,
       businessId: data['business_id'] as int?,
       userId: data['user_id'] as int?,
@@ -42,7 +42,7 @@ Future<Access> _$AccessFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Access(
-      id: data['id'] as int,
+      id: data['id'] as String,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       businessId:
           data['business_id'] == null ? null : data['business_id'] as int?,
@@ -150,7 +150,7 @@ class AccessAdapter extends OfflineFirstWithSupabaseAdapter<Access> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,

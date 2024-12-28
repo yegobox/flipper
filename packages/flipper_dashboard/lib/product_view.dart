@@ -11,8 +11,8 @@ import 'package:flipper_dashboard/TransactionList.dart';
 enum ViewMode { products, stocks }
 
 class ProductView extends StatefulHookConsumerWidget {
-  final int? favIndex;
-  final List<int> existingFavs;
+  final String? favIndex;
+  final List<String> existingFavs;
 
   ProductView.normalMode({Key? key})
       : favIndex = null,

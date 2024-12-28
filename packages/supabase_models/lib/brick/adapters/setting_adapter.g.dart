@@ -5,7 +5,7 @@ Future<Setting> _$SettingFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Setting(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       email: data['email'] as String?,
       userId: data['user_id'] as int?,
       openReceiptFileOSaleComplete:
@@ -63,7 +63,7 @@ Future<Setting> _$SettingFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Setting(
-      id: data['id'] as int,
+      id: data['id'] as String,
       email: data['email'] == null ? null : data['email'] as String?,
       userId: data['user_id'] == null ? null : data['user_id'] as int?,
       openReceiptFileOSaleComplete:
@@ -259,7 +259,7 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'email': const RuntimeSqliteColumnDefinition(
       association: false,

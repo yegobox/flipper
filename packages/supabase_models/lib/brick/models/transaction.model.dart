@@ -1,6 +1,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'transactions'),
@@ -8,7 +9,7 @@ import 'package:brick_supabase/brick_supabase.dart';
 class ITransaction extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(unique: true)
-  final int id;
+  final String id;
 
   String? reference;
   String? categoryId;
@@ -72,7 +73,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   ITransaction({
     this.ticketName,
     this.deletedAt,
-    required this.id,
+    String? id,
     this.categoryId,
     this.transactionNumber,
     this.reference,
@@ -103,5 +104,5 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.receiptNumber,
     this.totalReceiptNumber,
     this.invoiceNumber,
-  });
+ }) : id = id ?? const Uuid().v4();
 }

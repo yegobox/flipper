@@ -5,7 +5,7 @@ Future<SKU> _$SKUFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return SKU(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       sku: data['sku'] as int?,
       branchId: data['branch_id'] as int?,
       businessId: data['business_id'] as int?,
@@ -28,7 +28,7 @@ Future<SKU> _$SKUFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return SKU(
-      id: data['id'] as int,
+      id: data['id'] as String,
       sku: data['sku'] == null ? null : data['sku'] as int?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       businessId:
@@ -96,7 +96,7 @@ class SKUAdapter extends OfflineFirstWithSupabaseAdapter<SKU> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'sku': const RuntimeSqliteColumnDefinition(
       association: false,

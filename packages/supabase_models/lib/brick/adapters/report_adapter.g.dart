@@ -5,7 +5,7 @@ Future<Report> _$ReportFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Report(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       branchId: data['branch_id'] as int?,
       businessId: data['business_id'] as int?,
       filename: data['filename'] as String?,
@@ -30,7 +30,7 @@ Future<Report> _$ReportFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Report(
-      id: data['id'] as int,
+      id: data['id'] as String,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       businessId:
           data['business_id'] == null ? null : data['business_id'] as int?,
@@ -105,7 +105,7 @@ class ReportAdapter extends OfflineFirstWithSupabaseAdapter<Report> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,

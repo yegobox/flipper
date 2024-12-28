@@ -32,7 +32,7 @@ CustomerData _$CustomerDataFromJson(Map<String, dynamic> json) => CustomerData(
       domain: json['domain'] as String,
       customerCode: json['customer_code'] as String,
       riskAction: json['risk_action'] as String,
-      id: (json['id'] as num).toInt(),
+      id: json['id'] as String,
       integration: (json['integration'] as num).toInt(),
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),

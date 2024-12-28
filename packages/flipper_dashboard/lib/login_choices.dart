@@ -321,7 +321,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
     // } else {
     //   Drawers drawer = Drawers(
     //
-    //     id: randomNumber(),
+    //
     //     openingBalance: 0.0,
     //     closingBalance: 0.0,
     //     cashierId: ProxyService.box.getUserId()!,

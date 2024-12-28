@@ -5,7 +5,7 @@ Future<Category> _$CategoryFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Category(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       active: data['active'] as bool?,
       focused: data['focused'] as bool,
       name: data['name'] as String?,
@@ -36,7 +36,7 @@ Future<Category> _$CategoryFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Category(
-      id: data['id'] as int,
+      id: data['id'] as String,
       active: data['active'] == null ? null : data['active'] == 1,
       focused: data['focused'] == 1,
       name: data['name'] == null ? null : data['name'] as String?,
@@ -123,7 +123,7 @@ class CategoryAdapter extends OfflineFirstWithSupabaseAdapter<Category> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'active': const RuntimeSqliteColumnDefinition(
       association: false,

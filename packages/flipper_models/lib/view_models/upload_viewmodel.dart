@@ -19,21 +19,21 @@ class UploadViewModel extends ProductViewModel {
   File? selectedImage;
 
   void browsePictureFromGallery(
-      {required int id,
+      {required String id,
       required Function(Product) callBack,
       required URLTYPE urlType}) async {
     await uploadImage(id: id, urlType: urlType, callBack: callBack);
   }
 
   void takePicture(
-      {required int productId,
+      {required String productId,
       required Function(Product) callBack,
       required URLTYPE urlType}) async {
     await uploadImage(id: productId, urlType: urlType, callBack: callBack);
   }
 
   Future<void> uploadImage({
-    required int id,
+    required String id,
     required URLTYPE urlType,
     required Function(Product) callBack,
   }) async {
@@ -140,7 +140,7 @@ class UploadViewModel extends ProductViewModel {
     }
   }
 
-  FutureOr<void> saveAsset({required int productId, required assetName}) async {
+  FutureOr<void> saveAsset({required String productId, required assetName}) async {
     await ProxyService.strategy.addAsset(
       productId: productId,
       assetName: assetName,

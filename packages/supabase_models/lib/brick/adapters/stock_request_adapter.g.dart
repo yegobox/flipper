@@ -5,7 +5,7 @@ Future<StockRequest> _$StockRequestFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return StockRequest(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       mainBranchId: data['main_branch_id'] as int?,
       subBranchId: data['sub_branch_id'] as int?,
       createdAt: data['created_at'] == null
@@ -60,7 +60,7 @@ Future<StockRequest> _$StockRequestFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return StockRequest(
-      id: data['id'] as int,
+      id: data['id'] as String,
       mainBranchId: data['main_branch_id'] == null
           ? null
           : data['main_branch_id'] as int?,
@@ -130,6 +130,7 @@ Future<Map<String, dynamic>> _$StockRequestToSqlite(StockRequest instance,
             ? null
             : (instance.driverRequestDeliveryConfirmation! ? 1 : 0),
     'driver_id': instance.driverId,
+    'items': jsonEncode(instance.items),
     'updated_at': instance.updatedAt?.toIso8601String()
   };
 }
@@ -192,7 +193,7 @@ class StockRequestAdapter
     'items': const RuntimeSupabaseColumnDefinition(
       association: true,
       columnName: 'items',
-      associationType: TransactionItem,
+      associationType: Map,
       associationIsNullable: false,
     ),
     'updatedAt': const RuntimeSupabaseColumnDefinition(
@@ -216,7 +217,7 @@ class StockRequestAdapter
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'mainBranchId': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -282,7 +283,7 @@ class StockRequestAdapter
       association: true,
       columnName: 'items',
       iterable: true,
-      type: TransactionItem,
+      type: Map,
     ),
     'updatedAt': const RuntimeSqliteColumnDefinition(
       association: false,

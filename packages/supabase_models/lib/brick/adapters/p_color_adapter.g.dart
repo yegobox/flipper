@@ -5,7 +5,7 @@ Future<PColor> _$PColorFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return PColor(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       name: data['name'] as String?,
       colors: data['colors']?.toList().cast<String>(),
       branchId: data['branch_id'] as int?,
@@ -36,7 +36,7 @@ Future<PColor> _$PColorFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return PColor(
-      id: data['id'] as int,
+      id: data['id'] as String,
       name: data['name'] == null ? null : data['name'] as String?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       active: data['active'] == 1,
@@ -71,7 +71,7 @@ class PColorAdapter extends OfflineFirstWithSupabaseAdapter<PColor> {
   PColorAdapter();
 
   @override
-  final supabaseTableName = 'Colors';
+  final supabaseTableName = 'colors';
   @override
   final defaultToNull = true;
   @override
@@ -121,7 +121,7 @@ class PColorAdapter extends OfflineFirstWithSupabaseAdapter<PColor> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'name': const RuntimeSqliteColumnDefinition(
       association: false,

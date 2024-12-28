@@ -5,7 +5,7 @@ Future<Configurations> _$ConfigurationsFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Configurations(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       taxType: data['tax_type'] as String?,
       taxPercentage: data['tax_percentage'] as double?,
       businessId: data['business_id'] as int?,
@@ -28,7 +28,7 @@ Future<Configurations> _$ConfigurationsFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Configurations(
-      id: data['id'] as int,
+      id: data['id'] as String,
       taxType: data['tax_type'] == null ? null : data['tax_type'] as String?,
       taxPercentage: data['tax_percentage'] == null
           ? null
@@ -99,7 +99,7 @@ class ConfigurationsAdapter
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'taxType': const RuntimeSqliteColumnDefinition(
       association: false,

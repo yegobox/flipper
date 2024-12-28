@@ -16,7 +16,7 @@ class AddCustomer extends StatefulHookConsumerWidget {
   const AddCustomer({Key? key, required this.transactionId, this.searchedKey})
       : super(key: key);
   static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final int transactionId;
+  final String transactionId;
   final String? searchedKey;
 
   @override

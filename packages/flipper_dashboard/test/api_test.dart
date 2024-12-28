@@ -31,7 +31,6 @@ void main() {
           product: Product(
               name: "Test Product",
               color: "#ccc",
-              id: randomNumber(),
               businessId: 1,
               branchId: 1,
               isComposite: true,
@@ -54,7 +53,7 @@ void main() {
     //           product: Product(
     //               name: "Product $i",
     //               color: "#ccc",
-    //               id: randomNumber(),
+    //
     //               businessId: 1,
     //               branchId: 1,
     //               isComposite: true,

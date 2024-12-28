@@ -5,7 +5,7 @@ Future<Location> _$LocationFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Location(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       serverId: data['server_id'] as int?,
       active: data['active'] as bool?,
       description: data['description'] as String?,
@@ -48,7 +48,7 @@ Future<Location> _$LocationFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Location(
-      id: data['id'] as int,
+      id: data['id'] as String,
       serverId: data['server_id'] == null ? null : data['server_id'] as int?,
       active: data['active'] == null ? null : data['active'] == 1,
       description:
@@ -174,7 +174,7 @@ class LocationAdapter extends OfflineFirstWithSupabaseAdapter<Location> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'serverId': const RuntimeSqliteColumnDefinition(
       association: false,

@@ -5,7 +5,7 @@ Future<ItemCode> _$ItemCodeFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return ItemCode(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       itemCode: data['item_code'] as String,
       createdAt: DateTime.parse(data['created_at'] as String));
 }
@@ -24,7 +24,7 @@ Future<ItemCode> _$ItemCodeFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return ItemCode(
-      id: data['id'] as int,
+      id: data['id'] as String,
       itemCode: data['item_code'] as String,
       createdAt: DateTime.parse(data['created_at'] as String))
     ..primaryKey = data['_brick_id'] as int;
@@ -79,7 +79,7 @@ class ItemCodeAdapter extends OfflineFirstWithSupabaseAdapter<ItemCode> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'itemCode': const RuntimeSqliteColumnDefinition(
       association: false,

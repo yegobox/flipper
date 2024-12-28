@@ -17,7 +17,7 @@ class BottomSheets {
     required WidgetRef ref,
     required TransactionItem transactionItem,
     required Function doneDelete,
-    int? transactionId,
+    String? transactionId,
   }) {
     TextEditingController newQtyController = TextEditingController();
     newQtyController.text = transactionItem.qty.toString();
@@ -104,7 +104,7 @@ class BottomSheets {
     required WidgetRef ref,
     required Function doneDelete,
     required Function onCharge,
-    int? transactionId,
+    String? transactionId,
   }) {
     // Watch the transaction
     final transaction = ref.watch(pendingTransactionProviderNonStream(
@@ -113,7 +113,7 @@ class BottomSheets {
 
     // Watch items as AsyncValue
     final itemsAsync = ref.watch(transactionItemProvider((
-      transactionId: transaction.value?.id ?? 0,
+      transactionId: transaction.value?.id ?? "",
       branchId: ProxyService.box.getBranchId()!
     )));
 
@@ -148,7 +148,7 @@ class BottomSheets {
                   context: context,
                   ref: ref,
                   transactionItem: transactionItem,
-                  transactionId: transactionId,
+                  transactionId: transactionId ?? "",
                 );
               },
             ),

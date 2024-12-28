@@ -2,6 +2,7 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/composite.model.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'products'),
@@ -10,7 +11,7 @@ import 'package:supabase_models/brick/models/composite.model.dart';
 class Product extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   @Supabase(unique: true)
-  final int id;
+  final String id;
 
   String name;
   String? description;
@@ -49,7 +50,7 @@ class Product extends OfflineFirstWithSupabaseModel {
   bool? searchMatch;
 
   Product({
-    required this.id,
+    String? id,
     required this.name,
     this.searchMatch,
     this.description,
@@ -72,5 +73,5 @@ class Product extends OfflineFirstWithSupabaseModel {
     this.spplrNm,
     this.isComposite,
     this.composites = const [], // Initialize as an empty list
-  });
+  }) : id = id ?? const Uuid().v4();
 }

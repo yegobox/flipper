@@ -343,7 +343,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   Future<Customer?> addCustomer(
-      {required Customer customer, required int transactionId}) {
+      {required Customer customer, required String transactionId}) {
     // TODO: implement addCustomer
     throw UnimplementedError();
   }
@@ -375,7 +375,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   void assignCustomerToTransaction(
-      {required int customerId, int? transactionId}) {
+      {required String customerId, String? transactionId}) {
     // TODO: implement assignCustomerToTransaction
   }
 
@@ -386,7 +386,8 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<bool> bindProduct({required int productId, required int tenantId}) {
+  Future<bool> bindProduct(
+      {required String productId, required String tenantId}) {
     // TODO: implement bindProduct
     throw UnimplementedError();
   }
@@ -434,13 +435,13 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Composite composite({required int variantId}) {
+  Composite composite({required String variantId}) {
     // TODO: implement composite
     throw UnimplementedError();
   }
 
   @override
-  List<Composite> composites({required int productId}) {
+  List<Composite> composites({required String productId}) {
     // TODO: implement composites
     throw UnimplementedError();
   }
@@ -492,22 +493,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  void createVariant(
-      {required String barCode,
-      required String sku,
-      required int productId,
-      required int branchId,
-      required double retailPrice,
-      required double supplierPrice,
-      required double qty,
-      required String color,
-      required int tinNumber,
-      required int itemSeq,
-      required String name}) {
-    // TODO: implement createVariant
-  }
-
-  @override
   List<Customer> customers({required int branchId}) {
     // TODO: implement customers
     throw UnimplementedError();
@@ -539,19 +524,19 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<int> deleteFavoriteByIndex({required int favIndex}) {
+  Future<int> deleteFavoriteByIndex({required String favIndex}) {
     // TODO: implement deleteFavoriteByIndex
     throw UnimplementedError();
   }
 
   @override
   void deleteItemFromCart(
-      {required TransactionItem transactionItemId, int? transactionId}) {
+      {required TransactionItem transactionItemId, String? transactionId}) {
     // TODO: implement deleteItemFromCart
   }
 
   @override
-  Future<int> deleteTransactionByIndex({required int transactionIndex}) {
+  Future<int> deleteTransactionByIndex({required String transactionIndex}) {
     // TODO: implement deleteTransactionByIndex
     throw UnimplementedError();
   }
@@ -573,13 +558,14 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<Product?> findProductByTenantId({required int tenantId}) {
+  Future<Product?> findProductByTenantId({required String tenantId}) {
     // TODO: implement findProductByTenantId
     throw UnimplementedError();
   }
 
   @override
-  Stream<List<Variant>> geVariantStreamByProductId({required int productId}) {
+  Stream<List<Variant>> geVariantStreamByProductId(
+      {required String productId}) {
     // TODO: implement geVariantStreamByProductId
     throw UnimplementedError();
   }
@@ -592,7 +578,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<PColor?> getColor({required int id}) {
+  Future<PColor?> getColor({required String id}) {
     // TODO: implement getColor
     throw UnimplementedError();
   }
@@ -645,25 +631,25 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<Favorite?> getFavoriteById({required int favId}) {
+  Future<Favorite?> getFavoriteById({required String favId}) {
     // TODO: implement getFavoriteById
     throw UnimplementedError();
   }
 
   @override
-  Future<Favorite?> getFavoriteByIndex({required int favIndex}) {
+  Future<Favorite?> getFavoriteByIndex({required String favIndex}) {
     // TODO: implement getFavoriteByIndex
     throw UnimplementedError();
   }
 
   @override
-  Stream<Favorite?> getFavoriteByIndexStream({required int favIndex}) {
+  Stream<Favorite?> getFavoriteByIndexStream({required String favIndex}) {
     // TODO: implement getFavoriteByIndexStream
     throw UnimplementedError();
   }
 
   @override
-  Future<Favorite?> getFavoriteByProdId({required int prodId}) {
+  Future<Favorite?> getFavoriteByProdId({required String prodId}) {
     // TODO: implement getFavoriteByProdId
     throw UnimplementedError();
   }
@@ -707,7 +693,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<Receipt?> getReceipt({required int transactionId}) {
+  Future<Receipt?> getReceipt({required String transactionId}) {
     // TODO: implement getReceipt
     throw UnimplementedError();
   }
@@ -727,22 +713,22 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<Stock?> getStock(
       {required int branchId,
-      int? variantId,
+      String? variantId,
       bool nonZeroValue = false,
-      int? id}) {
+      String? id}) {
     // TODO: implement getStock
     throw UnimplementedError();
   }
 
   @override
-  Stock? getStockById({required int id}) {
+  Stock? getStockById({required String id}) {
     // TODO: implement getStockById
     throw UnimplementedError();
   }
 
   @override
   Stream<double> getStockStream(
-      {int? productId, int? variantId, required int branchId}) {
+      {String? productId, String? variantId, required int branchId}) {
     // TODO: implement getStockStream
     throw UnimplementedError();
   }
@@ -767,7 +753,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Variant? getVariantByProductId({required int productId}) {
+  Variant? getVariantByProductId({required String productId}) {
     // TODO: implement getVariantByProductId
     throw UnimplementedError();
   }
@@ -867,7 +853,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Stream<List<Product>> productStreams({int? prodIndex}) {
+  Stream<List<Product>> productStreams({String? prodIndex}) {
     // TODO: implement productStreams
     throw UnimplementedError();
   }
@@ -953,7 +939,7 @@ class Capella with Booting implements RealmInterface {
       required int additionalDevices,
       required bool isYearlyPlan,
       required double totalPrice,
-      required int payStackUserId,
+      required String payStackUserId,
       required String paymentMethod,
       String? customerCode,
       models.Plan? plan,
@@ -1033,7 +1019,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<double> totalStock({int? productId, int? variantId}) {
+  Future<double> totalStock({String? productId, String? variantId}) {
     // TODO: implement totalStock
     throw UnimplementedError();
   }
@@ -1084,7 +1070,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   FutureOr<void> addAsset(
-      {required int productId,
+      {required String productId,
       required assetName,
       required int branchId,
       required int businessId}) {
@@ -1099,7 +1085,7 @@ class Capella with Booting implements RealmInterface {
       required bool active,
       required bool focused,
       required DateTime lastTouched,
-      required int id,
+      String? id,
       required DateTime createdAt,
       required deletedAt}) {
     // TODO: implement addCategory
@@ -1170,7 +1156,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  FutureOr<void> updateAsset({required int assetId, String? assetName}) {
+  FutureOr<void> updateAsset({required String assetId, String? assetName}) {
     // TODO: implement updateAsset
     throw UnimplementedError();
   }
@@ -1184,7 +1170,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   FutureOr<void> updateCategory(
-      {required int categoryId,
+      {required String categoryId,
       String? name,
       bool? active,
       bool? focused,
@@ -1195,14 +1181,14 @@ class Capella with Booting implements RealmInterface {
 
   @override
   FutureOr<void> updateColor(
-      {required int colorId, String? name, bool? active}) {
+      {required String colorId, String? name, bool? active}) {
     // TODO: implement updateColor
     throw UnimplementedError();
   }
 
   @override
   FutureOr<void> updateDrawer(
-      {required int drawerId,
+      {required String drawerId,
       int? cashierId,
       int? nsSaleCount,
       int? trSaleCount,
@@ -1221,7 +1207,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   FutureOr<void> updateNotification(
-      {required int notificationId, bool? completed}) {
+      {required String notificationId, bool? completed}) {
     // TODO: implement updateNotification
     throw UnimplementedError();
   }
@@ -1235,7 +1221,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   FutureOr<void> updateProduct(
-      {int? productId,
+      {String? productId,
       String? name,
       bool? isComposite,
       String? unit,
@@ -1249,21 +1235,21 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  FutureOr<void> updateReport({required int reportId, bool? downloaded}) {
+  FutureOr<void> updateReport({required String reportId, bool? downloaded}) {
     // TODO: implement updateReport
     throw UnimplementedError();
   }
 
   @override
   FutureOr<void> updateStockRequest(
-      {required int stockRequestId, DateTime? updatedAt, String? status}) {
+      {required String stockRequestId, DateTime? updatedAt, String? status}) {
     // TODO: implement updateStockRequest
     throw UnimplementedError();
   }
 
   @override
   FutureOr<void> updateTenant(
-      {required int tenantId,
+      {required String tenantId,
       String? name,
       String? phoneNumber,
       String? email,
@@ -1309,7 +1295,7 @@ class Capella with Booting implements RealmInterface {
   @override
   FutureOr<void> updateTransactionItem(
       {double? qty,
-      required int transactionItemId,
+      required String transactionItemId,
       double? discount,
       bool? active,
       double? taxAmt,
@@ -1333,7 +1319,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   FutureOr<void> updateUnit(
-      {required int unitId, String? name, bool? active, int? branchId}) {
+      {required String unitId, String? name, bool? active, int? branchId}) {
     // TODO: implement updateUnit
     throw UnimplementedError();
   }
@@ -1436,7 +1422,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  FutureOr<Assets?> getAsset({String? assetName, int? productId}) {
+  FutureOr<Assets?> getAsset({String? assetName, String? productId}) {
     // TODO: implement getAsset
     throw UnimplementedError();
   }
@@ -1467,13 +1453,13 @@ class Capella with Booting implements RealmInterface {
 
   @override
   FutureOr<List<TransactionPaymentRecord>> getPaymentType(
-      {required int transactionId}) {
+      {required String transactionId}) {
     // TODO: implement getPaymentType
     throw UnimplementedError();
   }
 
   @override
-  ITransaction? getTransactionById({required int id}) {
+  ITransaction? getTransactionById({required String id}) {
     // TODO: implement getTransactionById
     throw UnimplementedError();
   }
@@ -1514,7 +1500,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   Future<Configurations> saveTax(
-      {required int configId, required double taxPercentage}) {
+      {required String configId, required double taxPercentage}) {
     // TODO: implement saveTax
     throw UnimplementedError();
   }
@@ -1546,7 +1532,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   FutureOr<void> updateStock(
-      {required int stockId,
+      {required String stockId,
       double? qty,
       double? rsdQty,
       double? initialStock,
@@ -1559,14 +1545,14 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Variant? variant({int? variantId, String? name}) {
+  Variant? variant({String? variantId, String? name}) {
     // TODO: implement variant
     throw UnimplementedError();
   }
 
   @override
   Future<bool> delete(
-      {required int id,
+      {required String id,
       String? endPoint,
       HttpClientInterface? flipperHttpClient}) {
     // TODO: implement delete
@@ -1575,13 +1561,13 @@ class Capella with Booting implements RealmInterface {
 
   @override
   Future<TransactionItem?> getTransactionItemByVariantId(
-      {required int variantId, int? transactionId}) {
+      {required String variantId, String? transactionId}) {
     // TODO: implement getTransactionItemByVariantId
     throw UnimplementedError();
   }
 
   @override
-  Future<Variant?> getVariantById({required int id}) {
+  Future<Variant?> getVariantById({required String id}) {
     // TODO: implement getVariantById
     throw UnimplementedError();
   }
@@ -1616,7 +1602,7 @@ class Capella with Booting implements RealmInterface {
   @override
   FutureOr<void> savePaymentType(
       {TransactionPaymentRecord? paymentRecord,
-      int? transactionId,
+      String? transactionId,
       double amount = 0.0,
       String? paymentMethod,
       required bool singlePaymentOnly}) {
@@ -1634,8 +1620,8 @@ class Capella with Booting implements RealmInterface {
   FutureOr<void> saveStock(
       {Variant? variant,
       required double rsdQty,
-      required int productId,
-      required int variantId,
+      required String productId,
+      required String variantId,
       required int branchId,
       required double currentStock,
       required double value}) {
@@ -1644,20 +1630,13 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Stock? stockByVariantId(
-      {required int variantId,
-      required int branchId,
-      bool nonZeroValue = false}) {
-    // TODO: implement stockByVariantId
-    throw UnimplementedError();
-  }
-
-  @override
-  List<TransactionItem> transactionItems(
-      {int? transactionId,
-      bool? doneWithTransaction,
-      required int branchId,
-      bool? active}) {
+  List<TransactionItem> transactionItems({
+    String? transactionId,
+    bool? doneWithTransaction,
+    required int branchId,
+    String? id,
+    bool? active,
+  }) {
     // TODO: implement transactionItems
     throw UnimplementedError();
   }
@@ -1736,7 +1715,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   void updateAccess(
-      {required int accessId,
+      {required String accessId,
       required int userId,
       required String featureName,
       required String accessLevel,
@@ -1756,7 +1735,7 @@ class Capella with Booting implements RealmInterface {
       required brick.Branch branch,
       String? phoneNumber,
       String? name,
-      int? id,
+      String? id,
       String? email,
       int? businessId,
       bool? sessionActive,
@@ -1794,27 +1773,6 @@ class Capella with Booting implements RealmInterface {
       DateTime? deletedAt,
       int? id}) {
     // TODO: implement addBranch
-    throw UnimplementedError();
-  }
-
-  @override
-  FutureOr<void> updateVariant(
-      {required List<brick.Variant> updatables,
-      String? color,
-      String? taxTyCd,
-      int? variantId,
-      double? newRetailPrice,
-      double? retailPrice,
-      Map<int, String>? rates,
-      double? supplyPrice,
-      Map<int, String>? dates,
-      String? selectedProductType,
-      int? productId,
-      String? productName,
-      String? unit,
-      String? pkgUnitCd,
-      bool? ebmSynced}) {
-    // TODO: implement updateVariant
     throw UnimplementedError();
   }
 
@@ -1882,7 +1840,7 @@ class Capella with Booting implements RealmInterface {
       int? branchId,
       bool isCashOut = false,
       bool includePending = false,
-      int? id,
+      String? id,
       FilterType? filterType,
       DateTime? startDate,
       DateTime? endDate}) {
@@ -1898,7 +1856,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   FutureOr<brick.Product?> getProduct(
-      {int? id,
+      {String? id,
       String? barCode,
       required int branchId,
       String? name,
@@ -1916,20 +1874,61 @@ class Capella with Booting implements RealmInterface {
 
   @override
   Future<List<brick.Variant>> variants(
-      {required int branchId, int? productId, int? page, int? itemsPerPage}) {
+      {required int branchId,
+      String? productId,
+      int? page,
+      int? itemsPerPage}) {
     // TODO: implement variants
     throw UnimplementedError();
   }
 
   @override
   Stream<List<brick.TransactionItem>> transactionItemsStreams(
-      {int? transactionId,
+      {String? transactionId,
       required int branchId,
       DateTime? startDate,
       DateTime? endDate,
       bool? doneWithTransaction,
       bool? active}) {
     // TODO: implement transactionItemsStreams
+    throw UnimplementedError();
+  }
+
+  @override
+  void createVariant({
+    required String barCode,
+    required String sku,
+    required String productId,
+    required int branchId,
+    required double retailPrice,
+    required double supplierPrice,
+    required double qty,
+    required String color,
+    required int tinNumber,
+    required int itemSeq,
+    required String name,
+  }) {
+    // TODO: implement createVariant
+  }
+
+  @override
+  FutureOr<void> updateVariant(
+      {required List<brick.Variant> updatables,
+      String? color,
+      String? taxTyCd,
+      String? variantId,
+      double? newRetailPrice,
+      double? retailPrice,
+      Map<String, String>? rates,
+      double? supplyPrice,
+      Map<String, String>? dates,
+      String? selectedProductType,
+      String? productId,
+      String? productName,
+      String? unit,
+      String? pkgUnitCd,
+      bool? ebmSynced}) {
+    // TODO: implement updateVariant
     throw UnimplementedError();
   }
 }

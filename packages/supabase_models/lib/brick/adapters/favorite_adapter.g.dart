@@ -5,9 +5,9 @@ Future<Favorite> _$FavoriteFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Favorite(
-      id: data['id'] as int,
-      favIndex: data['fav_index'] as int?,
-      productId: data['product_id'] as int?,
+      id: data['id'] as String?,
+      favIndex: data['fav_index'] as String?,
+      productId: data['product_id'] as String?,
       branchId: data['branch_id'] as int?,
       lastTouched: data['last_touched'] == null
           ? null
@@ -34,9 +34,10 @@ Future<Favorite> _$FavoriteFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Favorite(
-      id: data['id'] as int,
-      favIndex: data['fav_index'] == null ? null : data['fav_index'] as int?,
-      productId: data['product_id'] == null ? null : data['product_id'] as int?,
+      id: data['id'] as String,
+      favIndex: data['fav_index'] == null ? null : data['fav_index'] as String?,
+      productId:
+          data['product_id'] == null ? null : data['product_id'] as String?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       lastTouched: data['last_touched'] == null
           ? null
@@ -115,19 +116,19 @@ class FavoriteAdapter extends OfflineFirstWithSupabaseAdapter<Favorite> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'favIndex': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'fav_index',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'productId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'product_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,

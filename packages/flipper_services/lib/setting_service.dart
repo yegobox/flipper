@@ -51,7 +51,6 @@ class SettingsService with ListenableServiceMixin {
         kMap[key] = value;
       });
       Setting setting = Setting(
-        id: randomNumber(),
         email: kMap['email'] ?? '',
         userId: userId,
         hasPin: kMap['hasPin'] ?? false,

@@ -38,7 +38,7 @@ class CustomerData {
   final String customerCode;
   @JsonKey(name: 'risk_action')
   final String riskAction;
-  final int id;
+  final String id;
   final int integration;
   @JsonKey(name: 'createdAt')
   final DateTime createdAt;

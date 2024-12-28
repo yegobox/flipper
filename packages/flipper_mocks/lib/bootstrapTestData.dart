@@ -15,7 +15,7 @@ class CreateMockdata {
       // realm.write(() {
       //   realm.add<ITransaction>(ITransaction(
       //     lastTouched: DateTime(2023, 10, 28),
-      //     id: randomNumber(),
+      //
       //     supplierId: 1,
       //     reference: "2333",
       //     transactionNumber: "3333",
@@ -60,7 +60,6 @@ class CreateMockdata {
         product: Product(
             name: "Test Product",
             color: "#ccc",
-            id: randomNumber(),
             businessId: 1,
             branchId: 1,
             isComposite: true,
@@ -74,7 +73,7 @@ class CreateMockdata {
       //   for (var variant in variants) {
       //     // Create Stock for each Variant
       //     Stock stock = Stock(
-      //       id: randomNumber(),
+      //
       //       variantId: variant.id,
       //       currentStock: 100,
       //       branchId: 1,
@@ -85,13 +84,13 @@ class CreateMockdata {
       // });
       // final mockStockRequests = [
       //   StockRequest(
-      //     id: randomNumber(),
+      //
       //     mainBranchId: 1,
       //     subBranchId: 2,
       //     status: 'pending',
       //     items: [
       //       TransactionItem(
-      //         id: randomNumber(),
+      //
       //         itemNm: "itemNm",
       //         price: 100,
       //         discount: 10,
@@ -104,13 +103,13 @@ class CreateMockdata {
       //     ],
       //   ),
       //   StockRequest(
-      //     id: randomNumber(),
+      //
       //     mainBranchId: 1,
       //     subBranchId: 2,
       //     status: 'pending',
       //     items: [
       //       TransactionItem(
-      //         id: randomNumber(),
+      //
       //         itemNm: "itemNm",
       //         price: 100,
       //         discount: 10,

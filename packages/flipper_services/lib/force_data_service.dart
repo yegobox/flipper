@@ -134,7 +134,6 @@ class ForceDataEntryService {
       active: false,
       focused: false,
       lastTouched: DateTime.now(),
-      id: randomNumber(),
       createdAt: DateTime.now(),
       deletedAt: null,
     );

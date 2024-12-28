@@ -5,7 +5,7 @@ Future<Tenant> _$TenantFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Tenant(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       name: data['name'] as String?,
       phoneNumber: data['phone_number'] as String?,
       email: data['email'] as String?,
@@ -52,7 +52,7 @@ Future<Tenant> _$TenantFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Tenant(
-      id: data['id'] as int,
+      id: data['id'] as String,
       name: data['name'] == null ? null : data['name'] as String?,
       phoneNumber:
           data['phone_number'] == null ? null : data['phone_number'] as String?,
@@ -193,7 +193,7 @@ class TenantAdapter extends OfflineFirstWithSupabaseAdapter<Tenant> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'name': const RuntimeSqliteColumnDefinition(
       association: false,

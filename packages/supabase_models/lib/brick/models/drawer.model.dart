@@ -1,13 +1,14 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'drawers'),
 )
 class Drawers extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
-  final int id;
+  final String id;
 
   double? openingBalance;
   double? closingBalance;
@@ -30,7 +31,7 @@ class Drawers extends OfflineFirstWithSupabaseModel {
   int? businessId;
   int? branchId;
   Drawers({
-    required this.id,
+    String? id,
     this.openingBalance,
     this.closingBalance,
     this.openingDateTime,
@@ -51,5 +52,5 @@ class Drawers extends OfflineFirstWithSupabaseModel {
     this.deletedAt,
     this.businessId,
     this.branchId,
-  });
+  }) : id = id ?? const Uuid().v4();
 }

@@ -93,7 +93,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     );
   }
 
-  Future<void> _refreshTransactionItems({required int transactionId}) async {
+  Future<void> _refreshTransactionItems({required String transactionId}) async {
     ref.refresh(freshtransactionItemsProviderByIdProvider(
         (transactionId: transactionId)));
 

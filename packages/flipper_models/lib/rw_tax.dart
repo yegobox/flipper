@@ -6,7 +6,6 @@ import 'package:dio/dio.dart';
 import 'package:flipper_models/NetworkHelper.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
-import 'package:flipper_models/helperModels/ITransactionItem.dart';
 import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart' as api;
@@ -324,8 +323,9 @@ class RWTax with NetworkHelper implements TaxApi {
   }) async {
     // Get business details
     Business? business = await ProxyService.strategy.getBusiness();
-    List<TransactionItem> items = await ProxyService.strategy
-        .transactionItems(transactionId: transaction.id,branchId: ProxyService.box.getBranchId()!);
+    List<TransactionItem> items = await ProxyService.strategy.transactionItems(
+        transactionId: transaction.id,
+        branchId: ProxyService.box.getBranchId()!);
 
     // Get the current date and time in the required format yyyyMMddHHmmss
     String date = timeToUser
@@ -438,8 +438,7 @@ class RWTax with NetworkHelper implements TaxApi {
         (totalAfterDiscount * taxPercentage) / (100 + taxPercentage);
     taxAmount = (taxAmount * 100).round() / 100;
 
-    final itemJson = ITransactionItem(
-      id: item.id,
+    final itemJson = TransactionItem(
       qty: quantity,
       discount: item.discount,
       remainingStock: item.remainingStock!,
@@ -453,7 +452,7 @@ class RWTax with NetworkHelper implements TaxApi {
       dcAmt: totalDiscountAmount,
       totAmt: totalAfterDiscount,
 
-      pkg: quantity.toInt(),
+      pkg: quantity.toString(),
       taxblAmt: totalAfterDiscount,
       taxAmt: taxAmount,
       itemClsCd: item.itemClsCd,
@@ -959,7 +958,6 @@ class RWTax with NetworkHelper implements TaxApi {
           branchId: ProxyService.box.getBranchId()!,
           product: Product(
             color: "#e74c3c",
-            id: randomNumber(),
             name: item.itemNm,
             lastTouched: DateTime.now(),
             branchId: ProxyService.box.getBranchId()!,

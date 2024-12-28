@@ -5,7 +5,7 @@ Future<Conversation> _$ConversationFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Conversation(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       userName: data['user_name'] as String?,
       body: data['body'] as String?,
       avatar: data['avatar'] as String?,
@@ -62,7 +62,7 @@ Future<Conversation> _$ConversationFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Conversation(
-      id: data['id'] as int,
+      id: data['id'] as String,
       userName: data['user_name'] == null ? null : data['user_name'] as String?,
       body: data['body'] == null ? null : data['body'] as String?,
       avatar: data['avatar'] == null ? null : data['avatar'] as String?,
@@ -240,7 +240,7 @@ class ConversationAdapter
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'userName': const RuntimeSqliteColumnDefinition(
       association: false,

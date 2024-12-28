@@ -23,7 +23,7 @@ class FavoriteViewModel extends ProductViewModel {
     return res;
   }
 
-  Future<int> deleteFavoriteByIndex(int favIndex) async {
+  Future<String> deleteFavoriteByIndex(String favIndex) async {
     Favorite? target = await getFavoriteByIndex(favIndex);
     await ProxyService.strategy.deleteFavoriteByIndex(favIndex: favIndex);
     notifyListeners();
@@ -31,21 +31,21 @@ class FavoriteViewModel extends ProductViewModel {
     if (target != null) {
       return target.productId!;
     }
-    return 403;
+    return "403";
   }
 
-  Future<Favorite?> getFavoriteById(int favId) async {
+  Future<Favorite?> getFavoriteById(String favId) async {
     Favorite? res = await ProxyService.strategy.getFavoriteById(favId: favId);
     return res;
   }
 
-  Future<Favorite?> getFavoriteByIndex(int favIndex) async {
+  Future<Favorite?> getFavoriteByIndex(String favIndex) async {
     Favorite? res =
         await ProxyService.strategy.getFavoriteByIndex(favIndex: favIndex);
     return res;
   }
 
-  Future<Product?> getProductById(int prodIndex) async {
+  Future<Product?> getProductById(String prodIndex) async {
     Product? res = await ProxyService.strategy.getProduct(
         id: prodIndex,
         branchId: ProxyService.box.getBranchId()!,

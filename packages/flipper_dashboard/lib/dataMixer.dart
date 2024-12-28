@@ -44,7 +44,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return DeviceType.getDeviceType(context);
   }
 
-  Future<void> deleteFunc(int? productId, ProductViewModel model) async {
+  Future<void> deleteFunc(String? productId, ProductViewModel model) async {
     try {
       /// first if there is image attached delete if first
       Product? product = await ProxyService.strategy.getProduct(
@@ -72,8 +72,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           /// delete assets related to a product
           Assets? asset = await ProxyService.strategy
               .getAsset(assetName: product.imageUrl!);
-          ProxyService.strategy
-              .delete(id: asset?.id ?? 0, flipperHttpClient: ProxyService.http);
+          ProxyService.strategy.delete(
+              id: asset?.id ?? "", flipperHttpClient: ProxyService.http);
         }
       } else {
         await model.deleteProduct(productId: productId);
@@ -95,7 +95,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     if (!isOrdering) {
       product = await ProxyService.strategy.getProduct(
           businessId: ProxyService.box.getBusinessId()!,
-          id: variant.productId ?? 0,
+          id: variant.productId ?? "",
           branchId: ProxyService.box.getBranchId()!);
     }
     Assets? asset =
@@ -109,7 +109,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       model: model,
       variant: variant,
       productName: variant.productName ?? "",
-      variantName: variant.name ?? "",
+      variantName: variant.name,
       imageUrl: asset?.assetName,
       isComposite: !isOrdering
           ? (product != null ? product.isComposite ?? false : false)

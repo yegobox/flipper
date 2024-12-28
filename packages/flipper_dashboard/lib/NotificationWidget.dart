@@ -4,7 +4,7 @@ import 'package:flipper_services/proxy.dart';
 
 class NotificationWidget extends StatefulWidget {
   final List<AppNotification> notifications;
-  final Function(int) onAcknowledge;
+  final Function(String) onAcknowledge;
   final Function() onClearAll;
 
   const NotificationWidget({
@@ -145,8 +145,9 @@ class _NotificationWidgetState extends State<NotificationWidget> {
             ),
             trailing: IconButton(
               icon: const Icon(Icons.close, size: 18),
-              onPressed: () =>
-                  _handleAcknowledge(notification, index, setState),
+              onPressed: () => null,
+              // onPressed: () =>
+              //     _handleAcknowledge(notification, index, setState),
             ),
           );
         },
@@ -168,13 +169,13 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   }
 
   void _handleAcknowledge(
-      AppNotification notification, int index, StateSetter setState) async {
+      AppNotification notification, String index, StateSetter setState) async {
     await ProxyService.strategy
         .updateNotification(notificationId: notification.id, completed: true);
 
     widget.onAcknowledge(notification.id);
     setState(() {
-      widget.notifications.removeAt(index);
+      //widget.notifications.removeAt(index);
     });
 
     // Update the state to hide the parent snackbar if all notifications are cleared

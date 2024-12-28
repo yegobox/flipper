@@ -5,7 +5,7 @@ Future<UnversalProduct> _$UnversalProductFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return UnversalProduct(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       itemClsCd: data['item_cls_cd'] as String?,
       itemClsNm: data['item_cls_nm'] as String?,
       itemClsLvl: data['item_cls_lvl'] as int?,
@@ -37,7 +37,7 @@ Future<UnversalProduct> _$UnversalProductFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return UnversalProduct(
-      id: data['id'] as int,
+      id: data['id'] as String,
       itemClsCd:
           data['item_cls_cd'] == null ? null : data['item_cls_cd'] as String?,
       itemClsNm:
@@ -133,7 +133,7 @@ class UnversalProductAdapter
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'itemClsCd': const RuntimeSqliteColumnDefinition(
       association: false,

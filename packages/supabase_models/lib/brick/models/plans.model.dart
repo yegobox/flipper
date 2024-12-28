@@ -2,6 +2,7 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/plan_addon.model.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'plans'),
@@ -10,7 +11,7 @@ import 'package:supabase_models/brick/models/plan_addon.model.dart';
 class Plan extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   @Supabase(unique: true)
-  final int? id;
+  final String? id;
   @Supabase(name: "business_id")
   final int? businessId;
   @Supabase(name: "selected_plan")
@@ -26,7 +27,7 @@ class Plan extends OfflineFirstWithSupabaseModel {
   @Supabase(name: "payment_completed_by_user")
   bool? paymentCompletedByUser = false;
   @Supabase(name: "paystack_customer_id")
-  final int? payStackCustomerId;
+  final String? payStackCustomerId;
   final String? rule;
   @Supabase(name: "payment_method")
   final String? paymentMethod;
@@ -41,7 +42,7 @@ class Plan extends OfflineFirstWithSupabaseModel {
   final int? numberOfPayments;
 
   Plan({
-    required this.id,
+    String? id,
     this.businessId,
     this.selectedPlan,
     this.additionalDevices,
@@ -55,5 +56,5 @@ class Plan extends OfflineFirstWithSupabaseModel {
     this.nextBillingDate,
     this.numberOfPayments,
     this.addons = const [],
-  });
+  }) : id = id ?? const Uuid().v4();
 }

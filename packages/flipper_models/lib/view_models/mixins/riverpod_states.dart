@@ -105,17 +105,17 @@ final initialStockProvider =
   return ProxyService.strategy.soldStockValue(branchId: branchId);
 });
 final transactionItemsStreamProvider = StreamProvider.autoDispose
-    .family<List<TransactionItem>, int?>((ref, transactionId) {
+    .family<List<TransactionItem>, String?>((ref, transactionId) {
   return ProxyService.strategy.transactionItemsStreams(
     branchId: ProxyService.box.getBranchId()!,
-    transactionId: transactionId ?? 0,
+    transactionId: transactionId ?? "",
     doneWithTransaction: false,
     active: true,
   );
 });
 
 final transactionItemProvider = FutureProvider.autoDispose
-    .family<List<TransactionItem>, ({int branchId, int transactionId})>(
+    .family<List<TransactionItem>, ({int branchId, String transactionId})>(
         (ref, params) async {
   final (:branchId, :transactionId) = params;
 
@@ -127,7 +127,7 @@ final transactionItemProvider = FutureProvider.autoDispose
   );
 });
 final stockByVariantIdProvider =
-    StreamProvider.autoDispose.family<double, int>((ref, variantId) {
+    StreamProvider.autoDispose.family<double, String>((ref, variantId) {
   int branchId = ProxyService.box.getBranchId()!;
   return ProxyService.strategy
       .getStockStream(variantId: variantId, branchId: branchId);
@@ -136,13 +136,13 @@ final stockByVariantIdProvider =
 final paginatedVariantsProvider = StateNotifierProvider.family<
     PaginatedVariantsNotifier,
     AsyncValue<List<Variant>>,
-    int>((ref, productId) {
+    String>((ref, productId) {
   return PaginatedVariantsNotifier(productId);
 });
 
 class PaginatedVariantsNotifier
     extends StateNotifier<AsyncValue<List<Variant>>> {
-  final int productId;
+  final String productId;
   int _page = 1;
   static const int _pageSize = 4;
   bool _hasMore = true;
@@ -186,7 +186,7 @@ class PaginatedVariantsNotifier
     }
   }
 
-  Future<List<Variant>> fetchVariants(int productId) async {
+  Future<List<Variant>> fetchVariants(String productId) async {
     final branchId = ProxyService.box.getBranchId()!;
     return await ProxyService.strategy
         .variants(branchId: branchId, productId: productId);
@@ -227,7 +227,7 @@ final pendingTransactionProvider = StreamProvider.autoDispose
 
 final freshtransactionItemsProviderByIdProvider =
     StateNotifierProvider.autoDispose.family<TransactionItemsNotifier,
-        AsyncValue<List<TransactionItem>>, ({int transactionId})>(
+        AsyncValue<List<TransactionItem>>, ({String transactionId})>(
   (ref, params) {
     final (:transactionId) = params;
 
@@ -255,7 +255,7 @@ final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
 
 class TransactionItemsNotifier
     extends StateNotifier<AsyncValue<List<TransactionItem>>> {
-  final int? transactionId;
+  final String? transactionId;
 
   TransactionItemsNotifier({required this.transactionId})
       : super(const AsyncValue.loading()) {
@@ -263,11 +263,11 @@ class TransactionItemsNotifier
   }
 
   Future<void> _loadItems() async {
-    await loadItems(currentTransaction: transactionId ?? 0);
+    await loadItems(currentTransaction: transactionId ?? "");
   }
 
   Future<List<TransactionItem>> loadItems(
-      {required int currentTransaction}) async {
+      {required String currentTransaction}) async {
     try {
       talker.info(
           "TransactionItemsNotifier:Loading transactionId $currentTransaction");
@@ -384,7 +384,7 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
           ? variants
               // match the variant name
               .where((variant) =>
-                  variant.name!
+                  variant.name
                       .toLowerCase()
                       .contains(searchString.toLowerCase()) ||
                   // match the productName
@@ -630,7 +630,7 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 }
 
 final variantsFutureProvider = FutureProvider.autoDispose
-    .family<AsyncValue<List<Variant>>, int>((ref, productId) async {
+    .family<AsyncValue<List<Variant>>, String>((ref, productId) async {
   final data = await ProxyService.strategy.variants(
       productId: productId, branchId: ProxyService.box.getBranchId()!);
   return AsyncData(data);
@@ -753,7 +753,7 @@ final transactionListProvider =
 });
 
 final currentTransactionsByIdStream =
-    StreamProvider.autoDispose.family<List<ITransaction>, int>((ref, id) {
+    StreamProvider.autoDispose.family<List<ITransaction>, String>((ref, id) {
   // Retrieve the transaction status from the provider container, if needed
 
   // Use ProxyService to get the IsarStream of transactions
@@ -979,9 +979,9 @@ class IsProcessingNotifier extends StateNotifier<bool> {
   }
 }
 
-const int NO_SELECTION = -1;
+const String NO_SELECTION = "-1";
 
-final selectedItemIdProvider = StateProvider<int?>((ref) => NO_SELECTION);
+final selectedItemIdProvider = StateProvider<String?>((ref) => NO_SELECTION);
 
 final tenantProvider = FutureProvider<Tenant?>((ref) async {
   final userId = ProxyService.box.getUserId();
@@ -1224,7 +1224,7 @@ class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
   }
 
   void updatePaymentMethod(int index, Payment payment,
-      {required int transactionId}) {
+      {required String transactionId}) {
     final updatedList = List<Payment>.from(state);
     updatedList[index] = payment;
     state = updatedList;

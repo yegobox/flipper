@@ -7,7 +7,7 @@ part of 'tenant.dart';
 // **************************************************************************
 
 ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
-      id: (json['id'] as num).toInt(),
+      id: (json['id'] as num?)?.toInt(),
       name: json['name'] as String,
       phoneNumber: json['phoneNumber'] as String,
       email: json['email'] as String?,

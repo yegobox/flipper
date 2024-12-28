@@ -2,7 +2,6 @@ import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/permission.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -25,7 +24,6 @@ mixin Booting {
       {required bool usenewVersion}) async {
     final Tenant iTenant = Tenant(
       isDefault: tenant.isDefault,
-      id: tenant.id,
       name: tenant.name,
       businessId: tenant.businessId,
       nfcEnabled: tenant.nfcEnabled,
@@ -66,7 +64,6 @@ mixin Booting {
           branchId: ProxyService.box.getBranchId()!,
           name: iTenant.name,
           userId: int.parse(userId),
-          id: iTenant.id,
           tenantId: iTenant.id,
           sessionActive: (userId == iTenant.userId));
     }
@@ -83,7 +80,6 @@ mixin Booting {
 
       if (exist == null) {
         final perm = LPermission(
-          id: randomNumber(),
           name: permission.name,
           userId: permission.userId,
         );

@@ -1,13 +1,14 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'businesses'),
 )
 class Business extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
-  final int id;
+  final String id;
 
   int serverId;
 
@@ -59,7 +60,7 @@ class Business extends OfflineFirstWithSupabaseModel {
   String? encryptionKey;
 
   Business({
-    required this.id,
+    String? id,
     this.name,
     required this.serverId,
     this.currency,
@@ -102,10 +103,10 @@ class Business extends OfflineFirstWithSupabaseModel {
     this.lastTouched,
     this.deletedAt,
     this.encryptionKey,
-  });
+  }) : id = id ?? const Uuid().v4();
 
   Business copyWith({
-    int? id,
+    String? id,
     String? name,
     int? serverId,
     String? currency,
@@ -186,7 +187,7 @@ class Business extends OfflineFirstWithSupabaseModel {
   // fromMap method
   factory Business.fromMap(Map<String, dynamic> map) {
     return Business(
-      id: map['id'] as int,
+      id: map['id'] as String,
       serverId: map['server_id'] as int,
       name: map['name'] as String?,
       currency: map['currency'] as String?,

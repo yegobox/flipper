@@ -1,15 +1,17 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'stocks'),
 )
 class Stock extends OfflineFirstWithSupabaseModel {
-  @Sqlite(unique: true, index: true)
-  final int id;
+  @Supabase(unique: true)
+  @Sqlite(index: true, unique: true)
+  final String id;
 
-  int? variantId;
+  String? variantId;
 
   int? tin;
   String? bhfId;
@@ -22,7 +24,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
   bool? canTrackingStock;
   @Supabase(defaultValue: "true")
   bool? showLowStockAlert;
-  int? productId;
+  String? productId;
   bool? active;
   double? value;
   double? rsdQty;
@@ -30,11 +32,11 @@ class Stock extends OfflineFirstWithSupabaseModel {
   DateTime? deletedAt;
   @Supabase(defaultValue: "false")
   bool? ebmSynced;
-  @Supabase(defaultValue: "1")
-  int? initialStock;
+  @Supabase(defaultValue: "0.0")
+  double? initialStock;
 
   Stock({
-    required this.id,
+    String? id,
     this.tin,
     this.bhfId,
     this.branchId,
@@ -51,5 +53,5 @@ class Stock extends OfflineFirstWithSupabaseModel {
     this.deletedAt,
     this.ebmSynced,
     this.initialStock,
-  });
+  }) : id = id ?? const Uuid().v4();
 }

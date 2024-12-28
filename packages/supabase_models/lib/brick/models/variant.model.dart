@@ -2,19 +2,20 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'variants'),
 )
 class Variant extends OfflineFirstWithSupabaseModel {
-  @Sqlite(unique: true)
-  final int id;
+  @Supabase(unique: true)
+  @Sqlite(index: true, unique: true)
+  final String id;
 
   @Sqlite(ignore: true)
   @Supabase(ignore: true)
   Stock? stock;
-  int? stockId;
-  DateTime? deletedAt;
+  String? stockId;
   @Sqlite(defaultValue: "18.0", columnType: Column.num)
   @Supabase(defaultValue: "18.0")
   num? taxPercentage;
@@ -22,7 +23,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? color;
   String? sku;
 
-  int? productId;
+  String? productId;
   String? unit;
   String? productName;
   int? branchId;
@@ -79,8 +80,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   double? qty;
 
   Variant({
-    required this.id,
-    this.deletedAt,
+    String? id,
     this.qty,
     this.stock,
     this.stockId,
@@ -130,12 +130,11 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.ebmSynced,
     this.dcRt,
     this.expirationDate,
-  });
+  }) : id = id ?? const Uuid().v4();
   // toJson() method
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'deletedAt': deletedAt,
       'name': name,
       'color': color,
       'sku': sku,

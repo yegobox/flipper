@@ -29,8 +29,8 @@ mixin ProductMixin {
   Future<void> addVariant(
       {List<Variant>? variations,
       required packagingUnit,
-      Map<int, TextEditingController>? rates,
-      Map<int, TextEditingController>? dates,
+      Map<String, TextEditingController>? rates,
+      Map<String, TextEditingController>? dates,
       required String productName,
       required String selectedProductType}) async {
     ///loop variations add pkgUnitCd this come from UI but a lot of

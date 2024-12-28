@@ -35,7 +35,7 @@ class SellState extends ConsumerState<Sell> {
       onViewModelReady: (model) async {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
         model.clearPreviousSaleCounts();
-        model.toggleCheckbox(variantId: -1);
+        model.toggleCheckbox(variantId: "-1");
         await model.getVariants(productId: widget.product.id);
       },
       viewModelBuilder: () => CoreViewModel(),

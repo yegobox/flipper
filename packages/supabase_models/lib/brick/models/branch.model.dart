@@ -1,14 +1,14 @@
-
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'branches'),
 )
 class Branch extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
-  final int id;
+  final String id;
 
   final String? name;
   final int? serverId;
@@ -22,7 +22,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
   bool? isOnline;
 
   Branch({
-    required this.id,
+    String? id,
     this.name,
     this.serverId,
     this.location,
@@ -33,10 +33,10 @@ class Branch extends OfflineFirstWithSupabaseModel {
     this.longitude,
     this.isDefault = false,
     this.isOnline = false,
-  });
+  }) : id = id ?? const Uuid().v4();
   // copyWith method
   Branch copyWith({
-    int? id,
+    String? id,
     String? name,
     int? serverId,
     String? location,

@@ -217,7 +217,7 @@ mixin TransactionMixin {
   }
 
   Future<void> addTransactionItems({
-    required int variationId,
+    required String variationId,
     required ITransaction pendingTransaction,
     required String name,
     required Variant variation,
@@ -257,7 +257,6 @@ mixin TransactionMixin {
 
         TransactionItem newItem = TransactionItem(
           compositePrice: partOfComposite == true ? compositePrice! : 0.0,
-          id: randomNumber(),
           price: variation.retailPrice!,
           variantId: variation.id,
           name: name,

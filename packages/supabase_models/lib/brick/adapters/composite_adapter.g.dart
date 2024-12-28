@@ -5,9 +5,9 @@ Future<Composite> _$CompositeFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Composite(
-      id: data['id'] as int,
-      productId: data['product_id'] as int?,
-      variantId: data['variant_id'] as int?,
+      id: data['id'] as String?,
+      productId: data['product_id'] as String?,
+      variantId: data['variant_id'] as String?,
       qty: data['qty'] as double?,
       branchId: data['branch_id'] as int?,
       businessId: data['business_id'] as int?,
@@ -32,9 +32,11 @@ Future<Composite> _$CompositeFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Composite(
-      id: data['id'] as int,
-      productId: data['product_id'] == null ? null : data['product_id'] as int?,
-      variantId: data['variant_id'] == null ? null : data['variant_id'] as int?,
+      id: data['id'] as String,
+      productId:
+          data['product_id'] == null ? null : data['product_id'] as String?,
+      variantId:
+          data['variant_id'] == null ? null : data['variant_id'] as String?,
       qty: data['qty'] == null ? null : data['qty'] as double?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       businessId:
@@ -113,19 +115,19 @@ class CompositeAdapter extends OfflineFirstWithSupabaseAdapter<Composite> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'productId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'product_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'variantId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'variant_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'qty': const RuntimeSqliteColumnDefinition(
       association: false,

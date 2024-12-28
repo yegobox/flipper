@@ -5,7 +5,7 @@ Future<Receipt> _$ReceiptFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Receipt(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       resultCd: data['result_cd'] as String?,
       resultMsg: data['result_msg'] as String?,
       resultDt: data['result_dt'] as String?,
@@ -60,7 +60,7 @@ Future<Receipt> _$ReceiptFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Receipt(
-      id: data['id'] as int,
+      id: data['id'] as String,
       resultCd: data['result_cd'] == null ? null : data['result_cd'] as String?,
       resultMsg:
           data['result_msg'] == null ? null : data['result_msg'] as String?,
@@ -229,7 +229,7 @@ class ReceiptAdapter extends OfflineFirstWithSupabaseAdapter<Receipt> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'resultCd': const RuntimeSqliteColumnDefinition(
       association: false,

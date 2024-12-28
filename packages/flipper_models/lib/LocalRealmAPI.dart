@@ -110,7 +110,7 @@
 //         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 //     if (ebm.firstOrNull == null) {
 //       final ebm = models.Ebm(
-//         id: randomNumber(),
+//        
 //         bhfId: bhFId,
 //         tinNumber: business.tinNumber!,
 //         dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
@@ -408,7 +408,7 @@
 //       id: pin.userId!,
 //       tenants: [
 //         ITenant(
-//             id: randomNumber(),
+//            
 //             name: pin.ownerName == null ? "DEFAULT" : pin.ownerName!,
 //             phoneNumber: phoneNumber,
 //             permissions: [],
@@ -949,7 +949,7 @@
 //           businesses: jTenant.businesses,
 //           branches: jTenant.branches,
 //           isDefault: jTenant.isDefault,
-//           id: randomNumber(),
+//          
 //           permissions: jTenant.permissions,
 //           name: jTenant.name,
 //           businessId: jTenant.businessId,
@@ -1058,7 +1058,7 @@
 //             nfcEnabled: jTenant.nfcEnabled,
 //             businessId: jTenant.businessId,
 //             userId: jTenant.userId,
-//             id: randomNumber(),
+//            
 //             isDefault: jTenant.isDefault,
 //             pin: jTenant.pin,
 //           );
@@ -1493,7 +1493,7 @@
 
 //         Stock stock = Stock(
 //             lastTouched: DateTime.now(),
-//             id: randomNumber(),
+//            
 //             branchId: branchId,
 //             variantId: variantId,
 //             currentStock: 0.0,
@@ -1743,7 +1743,7 @@
       
 //       taxPercentage: taxPercentage,
 //       taxType: taxtype,
-//       id: randomNumber(),
+//      
 //       branchId: ProxyService.box.getBranchId(),
 //       businessId: ProxyService.box.getBusinessId(),
 //     );
@@ -2014,7 +2014,7 @@
 //   SKU _createNewSku({required int branchId, required int businessId}) {
 //     SKU newSku = SKU(
       
-//       id: randomNumber(),
+//      
 //       sku: _getNextSku(branchId),
 //       branchId: branchId,
 //       businessId: businessId,
@@ -2139,7 +2139,7 @@
 //       // Create a Stock for the Regular Variant
 //       final Stock stock = Stock(
 //           lastTouched: DateTime.now(),
-//           id: randomNumber(),
+//          
 //           branchId: branchId,
 //           variantId: newVariant.id!,
 //           currentStock: qty,
@@ -2491,7 +2491,7 @@
 //             customerCode: customerCode,
 //             totalPrice: totalPrice,
 //             createdAt: DateTime.now(),
-//             id: randomNumber(),
+//            
 //           );
 
 //       // If the paymentPlan already exists, update its fields with the new values
@@ -2680,7 +2680,7 @@
 //     realm!.write(() {
 //       final newStock = Stock(
         
-//         id: randomNumber(),
+//        
 //         lastTouched: DateTime.now(),
 //         branchId: subBranchId,
 //         variantId: variant.id!,
@@ -2998,7 +2998,7 @@
 //   FutureOr<Stock?> addStockToVariant({required Variant variant, Stock? stock}) {
 //     Stock stockObj = stock ??
 //         Stock(
-//             id: randomNumber(),
+//            
 //             productId: variant.productId,
 //             variantId: variant.id,
 //             branchId: variant.branchId);
@@ -3061,7 +3061,7 @@
 //         final unit = IUnit(
 //             active: map['active'],
 //             branchId: branchId,
-//             id: randomNumber(),
+//            
 //             name: map['name'],
 //             lastTouched: DateTime.now(),
 //             value: map['value']);
@@ -3424,7 +3424,7 @@
 //       PColor color = data;
 //       for (String colorName in data.colors) {
 //         colorsToAdd.add(PColor(
-//             id: randomNumber(),
+//            
 //             lastTouched: DateTime.now(),
 //             name: colorName,
 //             active: color.active,
@@ -3502,7 +3502,7 @@
 //     int branchId = ProxyService.box.getBranchId()!;
 
 //     Receipt receipt = Receipt(
-//         id: randomNumber(),
+//        
 //         branchId: branchId,
 //         resultCd: signature.resultCd,
 //         resultMsg: signature.resultMsg,
@@ -3806,7 +3806,7 @@
 //           branchId: branchId,
 //           businessId: businessId,
 //           product: Product(
-//               id: randomNumber(),
+//              
 //               lastTouched: DateTime.now(),
 //               name: CUSTOM_PRODUCT,
 //               businessId: businessId,
@@ -4437,7 +4437,7 @@
 //       final userActivity = Activity(
         
 //         activity,
-//         id: randomNumber(),
+//        
 //         details: RealmValue.from({
 //           'platform': foundation.kIsWeb ? 'Web' : await _getPlatformInfo(),
 //           'meta': [
@@ -4962,7 +4962,7 @@
 //     realm!.write(() {
 //       final stock = Stock(
         
-//         id: randomNumber(),
+//        
 //         lastTouched: DateTime.now(),
 //         branchId: branchId,
 //         variantId: variantId,
@@ -5085,7 +5085,7 @@
 //     } else if (transactionId != 0) {
 //       final transactionPaymentRecord = TransactionPaymentRecord(
         
-//         id: randomNumber(),
+//        
 //         amount: amount,
 //         transactionId: transactionId,
 //         paymentMethod: paymentMethod,
@@ -5730,7 +5730,7 @@
 //         // Create a new product
 //         Product product = Product(
           
-//           id: randomNumber(),
+//          
 //           name: item.name,
 //           barCode: item.barCode,
 //           branchId: branchId,
@@ -5797,7 +5797,7 @@
 //     final itemQuantityIsNonZero = double.tryParse(itemQuantity);
 //     return Stock(
       
-//       id: randomNumber(),
+//      
 //       variantId: randomNumber(),
 //       currentStock: double.parse(quantitis[product.barCode] ?? "1"),
 //       lowStock: 0,
@@ -6100,7 +6100,7 @@
 //       realm!.write(() {
 //         realm!.add<Access>(Access(
           
-//           id: randomNumber(),
+//          
 //           branchId: branchId,
 //           businessId: businessId,
 //           userType: userType,
@@ -6168,7 +6168,7 @@
 //       realm!.write(() {
 //         realm!.add<Assets>(
 //           Assets(
-//               id: randomNumber(),
+//              
 //               assetName: assetName,
 //               productId: productId,
 //               branchId: branchId,

@@ -1,6 +1,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'transaction_items'),
@@ -8,14 +9,14 @@ import 'package:brick_supabase/brick_supabase.dart';
 class TransactionItem extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   @Supabase(unique: true)
-  final int id;
+  final String id;
 
   String name;
   int? quantityRequested;
   int? quantityApproved;
   int? quantityShipped;
-  int? transactionId;
-  int? variantId;
+  String? transactionId;
+  String? variantId;
   // quantity
   double qty;
   double price;
@@ -102,7 +103,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   double? compositePrice;
   TransactionItem({
     this.splyAmt,
-    required this.id,
+    String? id,
     this.taxTyCd,
     this.bcd,
     this.itemClsCd,
@@ -157,5 +158,59 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.isrcRt,
     this.isrcAmt,
     required this.prc,
-  });
+  }) : id = id ?? const Uuid().v4();
+
+  // toJson method
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'id': id,
+        'name': name,
+        'transactionId': transactionId,
+        'variantId': variantId,
+        'qty': qty,
+        'price': price,
+        'discount': discount,
+        'type': type,
+        'remainingStock': remainingStock,
+        'createdAt': createdAt,
+        'updatedAt': updatedAt,
+        'isRefunded': isRefunded,
+        'doneWithTransaction': doneWithTransaction,
+        'active': active,
+        'dcRt': dcRt,
+        'dcAmt': dcAmt,
+        'taxblAmt': taxblAmt,
+        'taxAmt': taxAmt,
+        'totAmt': totAmt,
+        'itemSeq': itemSeq,
+        'isrccCd': isrccCd,
+        'isrccNm': isrccNm,
+        'isrcRt': isrcRt,
+        'isrcAmt': isrcAmt,
+        'taxTyCd': taxTyCd,
+        'bcd': bcd,
+        'itemClsCd': itemClsCd,
+        'itemTyCd': itemTyCd,
+        'itemStdNm': itemStdNm,
+        'orgnNatCd': orgnNatCd,
+        'pkg': pkg,
+        'itemCd': itemCd,
+        'pkgUnitCd': pkgUnitCd,
+        'qtyUnitCd': qtyUnitCd,
+        'itemNm': itemNm,
+        'prc': prc,
+        'splyAmt': splyAmt,
+        'tin': tin,
+        'bhfId': bhfId,
+        'dftPrc': dftPrc,
+        'addInfo': addInfo,
+        'isrcAplcbYn': isrcAplcbYn,
+        'useYn': useYn,
+        'regrId': regrId,
+        'regrNm': regrNm,
+        'modrId': modrId,
+        'modrNm': modrNm,
+        'lastTouched': lastTouched,
+        'deletedAt': deletedAt,
+        'branchId': branchId,
+      };
 }

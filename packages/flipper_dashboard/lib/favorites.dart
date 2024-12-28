@@ -25,7 +25,7 @@ class _FavoritesState extends State<Favorites> {
 
   // Define a boolean to know if we have pressed.
 
-  List<int> favoriteProdIds = [];
+  List<String> favoriteProdIds = [];
 
   @override
   void initState() {
@@ -101,12 +101,13 @@ class _FavoritesState extends State<Favorites> {
                           children: [
                             Expanded(
                                 child: AnimatedRowItem(
-                              item: _buildItem(context, (index), model),
+                              item: _buildItem(
+                                  context, (index.toString()), model),
                             )),
                             Expanded(
                                 child: AnimatedRowItem(
-                                    item: _buildItem(
-                                        context, (index + 1), model))),
+                                    item: _buildItem(context,
+                                        ((index + 1).toString()), model))),
                           ],
                         );
                       } else {
@@ -114,12 +115,12 @@ class _FavoritesState extends State<Favorites> {
                           children: [
                             Expanded(
                                 child: AnimatedRowItem(
-                                    item: _buildItem(
-                                        context, (index - 2), model))),
+                                    item: _buildItem(context,
+                                        ((index - 2).toString()), model))),
                             Expanded(
                                 child: AnimatedRowItem(
-                                    item: _buildItem(
-                                        context, (index - 1), model))),
+                                    item: _buildItem(context,
+                                        ((index - 1).toString()), model))),
                           ],
                         );
                       }
@@ -141,9 +142,8 @@ class _FavoritesState extends State<Favorites> {
                           width: double.infinity,
                           child: OutlinedButton(
                             child: MediaQuery(
-                              data: MediaQuery.of(context).copyWith(
-                                  textScaler: TextScaler.linear(
-                                      MediaQuery.of(context).textScaleFactor)),
+                              data: MediaQuery.of(context)
+                                  .copyWith(textScaler: TextScaler.linear(1.0)),
                               child: Text('Done',
                                   style: primaryTextStyle.copyWith(
                                       color: Colors.white)),
@@ -182,7 +182,7 @@ class _FavoritesState extends State<Favorites> {
   }
 
 //Function to build an empty grid item
-  Widget _favoriteEmpty(int favIndex) {
+  Widget _favoriteEmpty(String favIndex) {
     return GestureDetector(
       onLongPress: () {
         HapticFeedback.lightImpact();
@@ -221,7 +221,7 @@ class _FavoritesState extends State<Favorites> {
 
 //Function to build a populated grid item
   Widget _favoritePopulated(
-      int favIndex, Product favProd, FavoriteViewModel model) {
+      String favIndex, Product favProd, FavoriteViewModel model) {
     if (!favoriteProdIds.contains(favProd.id)) {
       favoriteProdIds.add(favProd.id);
     }
@@ -313,7 +313,7 @@ class _FavoritesState extends State<Favorites> {
   }
 
   Widget _buildItemContent(
-      BuildContext context, int adjustedIndex, FavoriteViewModel model) {
+      BuildContext context, String adjustedIndex, FavoriteViewModel model) {
     return StreamBuilder<Favorite?>(
       initialData: null,
       stream: ProxyService.strategy
@@ -323,7 +323,7 @@ class _FavoritesState extends State<Favorites> {
           return _favoriteEmpty(adjustedIndex);
         } else {
           final favorite = snapshot.data!;
-          int prodId = favorite.productId!;
+          String prodId = favorite.productId!;
 
           return StreamBuilder<List<Product>>(
             stream: ProxyService.strategy.productStreams(prodIndex: prodId),
@@ -345,9 +345,9 @@ class _FavoritesState extends State<Favorites> {
 
   // Builds an item widget with the given label and favorite status
   Widget _buildItem(
-      BuildContext context, int favIndex, FavoriteViewModel model) {
+      BuildContext context, String favIndex, FavoriteViewModel model) {
     // Calculate the adjusted index based on the hasBeenPressed state
-    int adjustedIndex = favIndex;
+    String adjustedIndex = favIndex;
 
     return _buildItemContent(context, adjustedIndex, model);
   }

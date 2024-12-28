@@ -10,7 +10,7 @@ part 'branch.g.dart';
 class IBranch extends IJsonSerializable {
   IBranch({
     required this.isDefault,
-    required this.id,
+    this.id,
     this.active,
     this.description,
     this.name,

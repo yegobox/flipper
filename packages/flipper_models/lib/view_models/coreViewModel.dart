@@ -61,7 +61,7 @@ class CoreViewModel extends FlipperBaseModel
 
   double get amountTotal => keypad.amountTotal;
 
-  int get checked => keypad.check;
+  String get checked => keypad.check;
 
   bool get groupValue => true;
 
@@ -233,7 +233,6 @@ class CoreViewModel extends FlipperBaseModel
 
     if (items.isEmpty) {
       TransactionItem newItem = TransactionItem(
-        id: randomNumber(),
         qty: 1,
         itemNm: name,
         price: amount,
@@ -302,7 +301,6 @@ class CoreViewModel extends FlipperBaseModel
       } else {
         TransactionItem newItem = TransactionItem(
           itemNm: name,
-          id: randomNumber(),
           qty: 1,
           price: amount,
           variantId: variation.id,
@@ -358,11 +356,9 @@ class CoreViewModel extends FlipperBaseModel
   /// but this will be generic for this given transaction saved in a box it is very important to reach to collect cash screen
   /// for the initation of writing this transactionId in a box for later use!.
   Future<void> getTransactionById() async {
-    int? id = ProxyService.box.readInt(key: 'transactionId');
-    if (id != null) {
-      log("id is: $id");
-      await ProxyService.keypad.getTransactionById(id: id);
-    }
+    String? id = ProxyService.box.transactionId();
+
+    await ProxyService.keypad.getTransactionById(id: id);
   }
 
   void setName({String? name}) {
@@ -379,11 +375,11 @@ class CoreViewModel extends FlipperBaseModel
     final int? branchId = ProxyService.box.getBranchId();
     if (categoryName == null) return;
     final Category category = Category(
-        name: categoryName!,
-        active: true,
-        focused: false,
-        branchId: branchId!,
-        id: randomNumber());
+      name: categoryName!,
+      active: true,
+      focused: false,
+      branchId: branchId!,
+    );
 
     await ProxyService.strategy.create(data: category);
     app.loadCategories();
@@ -457,13 +453,13 @@ class CoreViewModel extends FlipperBaseModel
     ProxyService.keypad.setAmount(amount: amount);
   }
 
-  void loadVariantStock({required int variantId}) async {
+  void loadVariantStock({required String variantId}) async {
     int branchId = ProxyService.box.getBranchId()!;
     _currentItemStock = await ProxyService.strategy
         .getStock(branchId: branchId, variantId: variantId);
   }
 
-  Future<List<Variant>> getVariants({required int productId}) async {
+  Future<List<Variant>> getVariants({required String productId}) async {
     int branchId = ProxyService.box.getBranchId()!;
     _variants = await ProxyService.strategy
         .variants(branchId: branchId, productId: productId);
@@ -471,11 +467,11 @@ class CoreViewModel extends FlipperBaseModel
     return _variants;
   }
 
-  Future<Variant?> getVariant({required int variantId}) async {
+  Future<Variant?> getVariant({required String variantId}) async {
     return await ProxyService.strategy.variant(variantId: variantId);
   }
 
-  void toggleCheckbox({required int variantId}) {
+  void toggleCheckbox({required String variantId}) {
     keypad.toggleCheckbox(variantId: variantId);
     rebuildUi();
   }
@@ -531,14 +527,13 @@ class CoreViewModel extends FlipperBaseModel
       {required String email,
       required String phone,
       required String name,
-      required int transactionId,
+      required String transactionId,
       required String customerType,
       required String tinNumber}) async {
     int branchId = ProxyService.box.getBranchId()!;
     ProxyService.strategy.addCustomer(
         customer: Customer(
           custNm: name,
-          id: randomNumber(),
           custTin: tinNumber,
           email: email,
           telNo: phone,
@@ -558,7 +553,7 @@ class CoreViewModel extends FlipperBaseModel
         transactionId: transactionId);
   }
 
-  void assignToSale({required int customerId, required int transactionId}) {
+  void assignToSale({required String customerId, required String transactionId}) {
     ProxyService.strategy.assignCustomerToTransaction(
         customerId: customerId, transactionId: transactionId);
   }
@@ -653,7 +648,7 @@ class CoreViewModel extends FlipperBaseModel
   /// this function also delete the transaction
   /// FIXMEsometime after deleteting transactionItems are not reflecting
   Future<bool> deleteTransactionItem(
-      {required int id, required BuildContext context}) async {
+      {required String id, required BuildContext context}) async {
     await ProxyService.strategy.delete(
         id: id,
         endPoint: 'transactionItem',
@@ -737,7 +732,7 @@ class CoreViewModel extends FlipperBaseModel
 
   // check if the customer is attached to the transaction then can't be deleted
   // transaction need to be deleted or completed first.
-  Future<void> deleteCustomer(int id, Function callback) async {
+  Future<void> deleteCustomer(String id, Function callback) async {
     final transaction = await ProxyService.strategy.manageTransaction(
         branchId: ProxyService.box.getBranchId()!,
         transactionType: TransactionType.sale,
@@ -776,7 +771,8 @@ class CoreViewModel extends FlipperBaseModel
   /// []
 
   Future<void> sellWithCard(
-      {required int tenantId, required ITransaction pendingTransaction}) async {
+      {required String tenantId,
+      required ITransaction pendingTransaction}) async {
     Product? product =
         await ProxyService.strategy.findProductByTenantId(tenantId: tenantId);
 
@@ -812,7 +808,7 @@ class CoreViewModel extends FlipperBaseModel
   List<ListenableServiceMixin> get listenableServices =>
       [keypad, app, productService, settingService];
 
-  Future<int> deleteTransactionByIndex(int transactionIndex) async {
+  Future<String> deleteTransactionByIndex(String transactionIndex) async {
     ITransaction? target = await getTransactionByIndex(transactionIndex);
     await ProxyService.strategy
         .deleteTransactionByIndex(transactionIndex: transactionIndex);
@@ -821,10 +817,10 @@ class CoreViewModel extends FlipperBaseModel
     if (target != null) {
       return target.id;
     }
-    return 403;
+    return "403";
   }
 
-  Future<ITransaction?> getTransactionByIndex(int transactionIndex) async {
+  Future<ITransaction?> getTransactionByIndex(String transactionIndex) async {
     ITransaction? res =
         await ProxyService.strategy.getTransactionById(id: transactionIndex);
     return res;

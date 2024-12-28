@@ -5,7 +5,7 @@ Future<LPermission> _$LPermissionFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return LPermission(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       name: data['name'] as String?,
       userId: data['user_id'] as int?);
 }
@@ -20,7 +20,7 @@ Future<LPermission> _$LPermissionFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return LPermission(
-      id: data['id'] as int,
+      id: data['id'] as String,
       name: data['name'] == null ? null : data['name'] as String?,
       userId: data['user_id'] == null ? null : data['user_id'] as int?)
     ..primaryKey = data['_brick_id'] as int;
@@ -71,7 +71,7 @@ class LPermissionAdapter extends OfflineFirstWithSupabaseAdapter<LPermission> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'name': const RuntimeSqliteColumnDefinition(
       association: false,

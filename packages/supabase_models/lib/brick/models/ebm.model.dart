@@ -1,6 +1,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'ebms'),
@@ -8,7 +9,7 @@ import 'package:brick_supabase/brick_supabase.dart';
 class Ebm extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   @Supabase(unique: true)
-  int? id;
+  final String id;
   @Supabase(name: "bhf_id")
   final String bhfId;
   @Supabase(name: "tin_number")
@@ -26,7 +27,7 @@ class Ebm extends OfflineFirstWithSupabaseModel {
   DateTime? lastTouched;
 
   Ebm({
-    required this.id,
+    String? id,
     required this.bhfId,
     required this.tinNumber,
     required this.dvcSrlNo,
@@ -35,5 +36,5 @@ class Ebm extends OfflineFirstWithSupabaseModel {
     required this.businessId,
     required this.branchId,
     this.lastTouched,
-  });
+  }) : id = id ?? const Uuid().v4();
 }

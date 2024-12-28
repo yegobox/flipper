@@ -5,7 +5,7 @@ Future<Product> _$ProductFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Product(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       name: data['name'] as String,
       description: data['description'] as String?,
       taxId: data['tax_id'] as String?,
@@ -75,7 +75,7 @@ Future<Product> _$ProductFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Product(
-      id: data['id'] as int,
+      id: data['id'] as String,
       name: data['name'] as String,
       description:
           data['description'] == null ? null : data['description'] as String?,
@@ -281,7 +281,7 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'name': const RuntimeSqliteColumnDefinition(
       association: false,

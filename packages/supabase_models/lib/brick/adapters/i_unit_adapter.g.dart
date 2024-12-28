@@ -5,7 +5,7 @@ Future<IUnit> _$IUnitFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return IUnit(
-      id: data['id'] as int,
+      id: data['id'] as String?,
       branchId: data['branch_id'] as int?,
       name: data['name'] as String?,
       value: data['value'] as String?,
@@ -34,7 +34,7 @@ Future<IUnit> _$IUnitFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return IUnit(
-      id: data['id'] as int,
+      id: data['id'] as String,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       name: data['name'] == null ? null : data['name'] as String?,
       value: data['value'] == null ? null : data['value'] as String?,
@@ -118,7 +118,7 @@ class IUnitAdapter extends OfflineFirstWithSupabaseAdapter<IUnit> {
       association: false,
       columnName: 'id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,

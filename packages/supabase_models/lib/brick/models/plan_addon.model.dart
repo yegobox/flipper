@@ -1,6 +1,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'addons'),
@@ -9,7 +10,7 @@ import 'package:brick_supabase/brick_supabase.dart';
 class PlanAddon extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   @Supabase(unique: true)
-  final int? id;
+  final String id;
 
   @Supabase(name: "plan_id")
   final int? planId;
@@ -21,9 +22,9 @@ class PlanAddon extends OfflineFirstWithSupabaseModel {
   final DateTime? createdAt;
 
   PlanAddon({
-    required this.id,
+    String? id,
     this.planId,
     this.addonName,
     this.createdAt,
-  });
+  }) : id = id ?? const Uuid().v4();
 }

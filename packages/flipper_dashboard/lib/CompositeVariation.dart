@@ -7,8 +7,8 @@ final costProvider = StateProvider<double>((ref) => 0.0);
 class VVariant {
   final String productName;
   final String? name;
-  final int id;
-  final int productId;
+  final String id;
+  final String productId;
   final double retailPrice;
 
   VVariant({

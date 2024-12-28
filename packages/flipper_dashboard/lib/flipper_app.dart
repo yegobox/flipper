@@ -160,7 +160,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         String firstPart = parts[0];
 
         await model.sellWithCard(
-          tenantId: int.parse(firstPart),
+          tenantId: firstPart,
           pendingTransaction: pendingTransaction.value!,
         );
 

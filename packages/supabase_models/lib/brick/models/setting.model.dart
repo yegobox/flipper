@@ -1,13 +1,14 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'settings'),
 )
 class Setting extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
-  final int id;
+  final String id;
 
   String? email;
 
@@ -32,7 +33,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
 
   DateTime? deletedAt;
   Setting({
-    required this.id,
+    String? id,
     this.email,
     this.userId,
     this.openReceiptFileOSaleComplete,
@@ -52,5 +53,5 @@ class Setting extends OfflineFirstWithSupabaseModel {
     this.createdAt,
     this.lastTouched,
     this.deletedAt,
-  });
+  }) : id = id ?? const Uuid().v4();
 }

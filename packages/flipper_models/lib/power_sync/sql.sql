@@ -52,117 +52,17 @@ DROP TABLE IF EXISTS public.transaction_items;
 DROP TABLE IF EXISTS public.stocks CASCADE;
 
 
-DROP TABLE IF EXISTS public.customers CASCADE;
-CREATE TABLE public.customers (
-  id bigint PRIMARY KEY,
-  cust_nm text,
-  email text,
-  tel_no text,
-  adrs text,
-  branch_id bigint,
-  updated_at timestamp with time zone,
-  cust_no text,
-  cust_tin text,
-  regn_nm text,
-  regn_id text,
-  modr_nm text,
-  modr_id text,
-  ebm_synced boolean,
-  last_touched timestamp with time zone,
-  action text,
-  deleted_at timestamp with time zone,
-  tin bigint,
-  bhf_id text,
-  use_yn text,
-  customer_type text,
-  created_at timestamp with time zone DEFAULT now()
-);
+SELECT 
+    conname AS constraint_name, 
+    conrelid::regclass AS table_name, 
+    a.attname AS column_name,
+    confrelid::regclass AS foreign_table_name, 
+    af.attname AS foreign_column_name
+FROM pg_constraint
+JOIN pg_attribute a ON a.attnum = ANY(conkey) AND a.attrelid = conrelid
+JOIN pg_attribute af ON af.attnum = ANY(confkey) AND af.attrelid = confrelid
+WHERE conrelid = 'public.variants'::regclass;
 
--- Stock Table
-DROP TABLE IF EXISTS public.stocks CASCADE;
-CREATE TABLE public.stocks (
-  id bigint PRIMARY KEY,
-  tin bigint,
-  bhf_id text,
-  branch_id bigint,
-  variant_id bigint,
-  current_stock double precision DEFAULT 0.0,
-  sold double precision DEFAULT 0.0,
-  low_stock double precision DEFAULT 0.0,
-  can_tracking_stock boolean DEFAULT TRUE,
-  show_low_stock_alert boolean DEFAULT TRUE,
-  product_id bigint,
-  active boolean,
-  value double precision DEFAULT 0.0,
-  rsd_qty double precision DEFAULT 0.0,
-  supply_price double precision DEFAULT 0.0,
-  retail_price double precision DEFAULT 0.0,
-  last_touched timestamp with time zone,
-  deleted_at timestamp with time zone,
-  ebm_synced boolean DEFAULT FALSE,
-  created_at timestamp with time zone DEFAULT now(),
-  initial_stock double precision DEFAULT 0.0
-  
-);
-
--- Variant
-DROP TABLE IF EXISTS public.variants cascade;
-CREATE TABLE public.variants (
-    id bigint PRIMARY KEY,
-    deleted_at timestamp with time zone,
-    name text,
-    color text,
-    sku text,
-    product_id bigint,
-    unit text,
-    product_name text,
-    branch_id bigint,
-    tax_name text DEFAULT '',
-    tax_percentage integer DEFAULT 18,  -- Changed from bigint to integer to match Dart int
-    item_seq integer,  -- Changed from bigint to integer to match Dart int
-    isrcc_cd text DEFAULT '',
-    isrcc_nm text DEFAULT '',
-    isrc_rt integer DEFAULT 0,
-    isrc_amt integer DEFAULT 0,
-    tax_ty_cd text DEFAULT 'B',
-    bcd text DEFAULT '',
-    item_cls_cd text,
-    item_ty_cd text,
-    item_std_nm text DEFAULT '',
-    orgn_nat_cd text DEFAULT '',
-    pkg text DEFAULT '1',
-    item_cd text DEFAULT '',
-    pkg_unit_cd text DEFAULT 'CT',
-    qty_unit_cd text DEFAULT 'BX',
-    item_nm text,
-    prc double precision DEFAULT 0.0,
-    sply_amt double precision DEFAULT 0.0,
-    tin bigint,  -- Keeping as bigint since Dart int can handle it
-    bhf_id text,
-    dft_prc double precision DEFAULT 0.0,
-    add_info text DEFAULT '',
-    isrc_aplcb_yn text DEFAULT '',
-    use_yn text DEFAULT '',
-    regr_id text,
-    regr_nm text,
-    modr_id text,
-    modr_nm text,
-    last_touched timestamp with time zone,
-    supply_price double precision DEFAULT 0.0,
-    retail_price double precision DEFAULT 0.0,
-    spplr_item_cls_cd text,
-    spplr_item_cd text,
-    spplr_item_nm text,
-    ebm_synced boolean DEFAULT false,
-    dc_rt double precision,  -- Changed from numeric(10,2) to double precision to match Dart double
-    expiration_date timestamp with time zone DEFAULT now(),
-    stock_id bigint NULL,
-    CONSTRAINT fk_stock
-        FOREIGN KEY (stock_id)
-        REFERENCES stocks(id)
-        ON DELETE CASCADE
-   
-);
 
 
 -- Then add the foreign key constraint with a new name to avoid conflicts
@@ -263,135 +163,10 @@ ALTER COLUMN value TYPE NUMERIC(20,4);
 ALTER TABLE stocks
 ALTER COLUMN rsd_qty TYPE NUMERIC(20,4);
 
+ALTER TABLE stocks
+ALTER COLUMN initial_stock TYPE NUMERIC(20,4);
 
 
--- Unit Table
-DROP TABLE IF EXISTS public.units;
-CREATE TABLE public.units (
-  id bigint PRIMARY KEY,
-branch_id bigint,
-name text,
-value text,
-active boolean default false,
-last_touched timestamp with time zone,
-created_at text
-);
-
-
--- category Table
-DROP TABLE IF EXISTS public.categories;
-CREATE TABLE public.categories (
-  id bigint PRIMARY KEY,
-  active boolean,
-  focused boolean,
-  name text,
-  branch_id bigint,
-  deleted_at timestamp with time zone,
-  last_touched timestamp with time zone
-);
-
--- SKU Table
-DROP TABLE IF EXISTS public.uni_products;
-CREATE TABLE public.uni_products (
-  id bigint PRIMARY KEY,
-  item_cls_cd text,
-  item_cls_nm text,
-  item_cls_lvl bigint,
-  tax_ty_cd text,
-  mjr_tg_yn text,
-  use_yn text,
-  business_id bigint,
-  branch_id bigint
-);
-
--- SKU Table
-DROP TABLE IF EXISTS public.sku;
-DROP TABLE IF EXISTS public.skus;
-CREATE TABLE public.skus (
-  id bigint PRIMARY KEY,
-  
-  sku bigint,
-  branch_id bigint,
-  business_id bigint,
-  consumed boolean default false
-);
-
---  {"id":830013631346076,"item_code":"RW2BJCT0000001","created_at":"2024-12-24T13:07:18.184525"}, 
--- item_codes
-DROP TABLE IF EXISTS public.codes;
-DROP TABLE IF EXISTS public.itemCodes;
-CREATE TABLE public.codes (
-  id bigint PRIMARY KEY,
-  
-  item_code text,
-  created_at timestamp with time zone);
-
--- accesses
-DROP TABLE IF EXISTS public.accesses;
-CREATE TABLE public.accesses (
-  id bigint PRIMARY KEY,
-  name text,
-  user_id bigint,
-  branch_id bigint,
-  business_id bigint,
-  feature_name text,
-  user_type text,
-  access_level text,
-  created_at timestamp with time zone,
-  expires_at timestamp with time zone,
-  status text);
-
-
--- permission
--- tenants
-DROP TABLE IF EXISTS public.permissions;
-CREATE TABLE public.permissions (
-  id bigint PRIMARY KEY,
-   
-  name text,
-  user_id bigint
-);
-
-
--- tenants
-DROP TABLE IF EXISTS public.tenants;
-CREATE TABLE public.tenants (
-  id bigint PRIMARY KEY,
-  name text,
-    phone_number text,
-    email text,
-    nfc_enabled boolean DEFAULT false,
-    business_id bigint,
-    user_id bigint,
-    image_url text,
-    last_touched timestamp with time zone,
-    deleted_at timestamp with time zone,
-    pin integer,
-    session_active boolean DEFAULT false,
-    is_default boolean DEFAULT false,
-    is_long_pressed boolean DEFAULT false,
-    type text DEFAULT 'Agent'
-  
-);
-
-
--- Pin Table
-DROP TABLE IF EXISTS public.pins;
-CREATE TABLE public.pins (
-  id bigint PRIMARY KEY,
-  user_id bigint,
-  phone_number text,
-  pin bigint,
-  branch_id bigint,
-  business_id bigint,
-  owner_name text,
-  token_uid text,
-  uid text
-);
-
--- alter branch
-ALTER TABLE branches
-ADD COLUMN active boolean DEFAULT false;
 
 -- Alter stock table if needed
 ALTER TABLE stocks
@@ -436,10 +211,258 @@ ALTER COLUMN retail_price TYPE double precision;
 ALTER TABLE variants
 ALTER COLUMN dc_rt TYPE double precision;
 
+
+CREATE TABLE public.favorites (
+   id UUID PRIMARY KEY,
+  fav_index bigint,
+  product_id bigint,
+   branch_id UUID NOT NULL,
+  last_touched timestamp with time zone,
+  action text,
+  deleted_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now()
+);
+DROP TABLE IF EXISTS public.customers CASCADE;
+CREATE TABLE public.customers (
+   id UUID PRIMARY KEY,
+  cust_nm text,
+  email text,
+  tel_no text,
+  adrs text,
+   branch_id UUID NOT NULL,
+  updated_at timestamp with time zone,
+  cust_no text,
+  cust_tin text,
+  regn_nm text,
+  regn_id text,
+  modr_nm text,
+  modr_id text,
+  ebm_synced boolean,
+  last_touched timestamp with time zone,
+  action text,
+  deleted_at timestamp with time zone,
+  tin bigint,
+  bhf_id text,
+  use_yn text,
+  customer_type text,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- Stock Table
+DROP TABLE IF EXISTS public.stocks CASCADE;
+CREATE TABLE public.stocks (
+   id UUID PRIMARY KEY,
+  tin bigint,
+  bhf_id text,
+   branch_id UUID NOT NULL,
+  variant_id UUID NOT NULL,
+  current_stock double precision DEFAULT 0.0,
+  sold double precision DEFAULT 0.0,
+  low_stock double precision DEFAULT 0.0,
+  can_tracking_stock boolean DEFAULT TRUE,
+  show_low_stock_alert boolean DEFAULT TRUE,
+  product_id UUID NOT NULL,
+  active boolean,
+  value double precision DEFAULT 0.0,
+  rsd_qty double precision DEFAULT 0.0,
+  supply_price double precision DEFAULT 0.0,
+  retail_price double precision DEFAULT 0.0,
+  last_touched timestamp with time zone,
+  deleted_at timestamp with time zone,
+  ebm_synced boolean DEFAULT FALSE,
+  created_at timestamp with time zone DEFAULT now(),
+  initial_stock double precision DEFAULT 0.0
+  
+);
+
+
+CREATE TABLE public.variants (
+     id UUID PRIMARY KEY,
+      isrc_amt integer DEFAULT 0,
+    deleted_at timestamp with time zone,
+    name text,
+    color text,
+    sku text,
+    product_id UUID NOT NULL,
+    unit text,
+    product_name text,
+     branch_id UUID NOT NULL,
+    tax_name text DEFAULT '',
+    tax_percentage integer DEFAULT 18,  -- Changed from bigint to integer to match Dart int
+    item_seq integer,  -- Changed from bigint to integer to match Dart int
+    isrcc_cd text DEFAULT '',
+    isrcc_nm text DEFAULT '',
+    isrc_rt integer DEFAULT 0,
+   
+    tax_ty_cd text DEFAULT 'B',
+    bcd text DEFAULT '',
+    item_cls_cd text,
+    item_ty_cd text,
+    item_std_nm text DEFAULT '',
+    orgn_nat_cd text DEFAULT '',
+    pkg text DEFAULT '1',
+    item_cd text DEFAULT '',
+    pkg_unit_cd text DEFAULT 'CT',
+    qty_unit_cd text DEFAULT 'BX',
+    item_nm text,
+    prc double precision DEFAULT 0.0,
+    sply_amt double precision DEFAULT 0.0,
+    tin bigint,  -- Keeping as bigint since Dart int can handle it
+    bhf_id text,
+    dft_prc double precision DEFAULT 0.0,
+    add_info text DEFAULT '',
+    isrc_aplcb_yn text DEFAULT '',
+    use_yn text DEFAULT '',
+    regr_id text,
+    regr_nm text,
+    modr_id text,
+    modr_nm text,
+    last_touched timestamp with time zone,
+    supply_price double precision DEFAULT 0.0,
+    retail_price double precision DEFAULT 0.0,
+    spplr_item_cls_cd text,
+    spplr_item_cd text,
+    spplr_item_nm text,
+    ebm_synced boolean DEFAULT false,
+    dc_rt double precision,  -- Changed from numeric(10,2) to double precision to match Dart double
+    expiration_date timestamp with time zone DEFAULT now(),
+    stock_id UUID NOT NULL,
+    CONSTRAINT fk_stock
+        FOREIGN KEY (stock_id)
+         REFERENCES public.stocks(id)
+        ON DELETE CASCADE
+   
+);
+
+
+-- Unit Table
+CREATE TABLE public.units (
+id UUID PRIMARY KEY,
+ branch_id UUID NOT NULL,
+name text,
+value text,
+active boolean default false,
+last_touched timestamp with time zone,
+created_at text
+);
+
+
+-- category Table
+DROP TABLE IF EXISTS public.categories;
+CREATE TABLE public.categories (
+   id UUID PRIMARY KEY,
+  active boolean,
+  focused boolean,
+  name text,
+   branch_id UUID NOT NULL,
+  deleted_at timestamp with time zone,
+  last_touched timestamp with time zone
+);
+
+-- SKU Table
+DROP TABLE IF EXISTS public.uni_products;
+CREATE TABLE public.uni_products (
+   id UUID PRIMARY KEY,
+  item_cls_cd text,
+  item_cls_nm text,
+  item_cls_lvl bigint,
+  tax_ty_cd text,
+  mjr_tg_yn text,
+  use_yn text,
+   business_id UUID NOT NULL,
+  branch_id bigint
+);
+
+-- SKU Table
+DROP TABLE IF EXISTS public.sku;
+DROP TABLE IF EXISTS public.skus;
+CREATE TABLE public.skus (
+   id UUID PRIMARY KEY,
+  
+  sku bigint,
+   branch_id UUID NOT NULL,
+   business_id UUID NOT NULL,
+  consumed boolean default false
+);
+
+--  {"id":830013631346076,"item_code":"RW2BJCT0000001","created_at":"2024-12-24T13:07:18.184525"}, 
+-- item_codes
+DROP TABLE IF EXISTS public.codes;
+DROP TABLE IF EXISTS public.itemCodes;
+CREATE TABLE public.codes (
+   id UUID PRIMARY KEY,
+  
+  item_code text,
+  created_at timestamp with time zone);
+
+-- accesses
+DROP TABLE IF EXISTS public.accesses;
+CREATE TABLE public.accesses (
+   id UUID PRIMARY KEY,
+  name text,
+  user_id bigint,
+   branch_id UUID NOT NULL,
+   business_id UUID NOT NULL,
+  feature_name text,
+  user_type text,
+  access_level text,
+  created_at timestamp with time zone,
+  expires_at timestamp with time zone,
+  status text);
+
+
+-- permission
+-- tenants
+DROP TABLE IF EXISTS public.permissions;
+CREATE TABLE public.permissions (
+   id UUID PRIMARY KEY,
+   
+  name text,
+  user_id bigint
+);
+
+
+-- tenants
+DROP TABLE IF EXISTS public.tenants;
+CREATE TABLE public.tenants (
+   id UUID PRIMARY KEY,
+  name text,
+    phone_number text,
+    email text,
+    nfc_enabled boolean DEFAULT false,
+     business_id UUID NOT NULL,
+    user_id bigint,
+    image_url text,
+    last_touched timestamp with time zone,
+    deleted_at timestamp with time zone,
+    pin integer,
+    session_active boolean DEFAULT false,
+    is_default boolean DEFAULT false,
+    is_long_pressed boolean DEFAULT false,
+    type text DEFAULT 'Agent'
+  
+);
+
+
+-- Pin Table
+DROP TABLE IF EXISTS public.pins;
+CREATE TABLE public.pins (
+   id UUID PRIMARY KEY,
+  user_id bigint,
+  phone_number text,
+  pin bigint,
+   branch_id UUID NOT NULL,
+   business_id UUID NOT NULL,
+  owner_name text,
+  token_uid text,
+  uid text
+);
+
+
 -- -- Business Table
 DROP TABLE IF EXISTS public.businesses;
 CREATE TABLE public.businesses (
-  id bigint PRIMARY KEY,
+   id UUID PRIMARY KEY,
   server_id bigint,
   name text,
   currency text,
@@ -486,10 +509,10 @@ CREATE TABLE public.businesses (
 -- Branch Table
 DROP TABLE IF EXISTS public.branchs;
 CREATE TABLE public.branches (
-  id bigint PRIMARY KEY,
+   id UUID PRIMARY KEY,
   name text,
   description text,
-  business_id bigint,
+   business_id UUID NOT NULL,
   server_id bigint,
   longitude text,
   latitude text,
@@ -502,7 +525,7 @@ CREATE TABLE public.branches (
 );
 -- TransactionItem Table
 CREATE TABLE public.transaction_items (
-  id bigint PRIMARY KEY,
+   id UUID PRIMARY KEY,
   name text NOT NULL, -- Added NOT NULL constraint (adjust as needed)
   quantity_requested bigint,
   quantity_approved bigint,
@@ -557,7 +580,7 @@ CREATE TABLE public.transaction_items (
   last_touched timestamp with time zone,
   deleted_at timestamp with time zone,
   action text, -- Added to match the SQL table
-  branch_id bigint,
+   branch_id UUID NOT NULL,
   ebm_synced boolean,
   part_of_composite boolean,
   composite_price numeric(15,2), -- Increased precision
@@ -566,11 +589,11 @@ CREATE TABLE public.transaction_items (
 DROP TABLE IF EXISTS public.transactions;
 
 CREATE TABLE public.transactions (
-    id bigint PRIMARY KEY,
+     id UUID PRIMARY KEY,
     reference TEXT,
     category_id TEXT,
     transaction_number TEXT,
-    branch_id bigint,
+     branch_id UUID NOT NULL,
     status TEXT,
     transaction_type TEXT,
     sub_total DOUBLE PRECISION DEFAULT 0.0, --Use DOUBLE PRECISION for double-precision floating-point numbers
@@ -601,64 +624,20 @@ CREATE TABLE public.transactions (
     invoice_number bigint
 );
 
-DROP TABLE IF EXISTS public.stocks CASCADE;
-DROP TABLE IF EXISTS public.variants CASCADE;
 
 
--- Stock Table
-CREATE TABLE public.stocks (
-  id bigint PRIMARY KEY,
-  tin bigint,
-  bhf_id text,
-  branch_id bigint,
-  variant_id bigint,
-  current_stock double precision DEFAULT 0.0,
-  sold double precision DEFAULT 0.0,
-  low_stock double precision DEFAULT 0.0,
-  can_tracking_stock boolean DEFAULT TRUE,
-  show_low_stock_alert boolean DEFAULT TRUE,
-  product_id bigint,
-  active boolean,
-  value double precision DEFAULT 0.0,
-  rsd_qty double precision DEFAULT 0.0,
-  supply_price double precision DEFAULT 0.0,
-  retail_price double precision DEFAULT 0.0,
-  last_touched timestamp with time zone,
-  deleted_at timestamp with time zone,
-  ebm_synced boolean DEFAULT FALSE,
-  created_at timestamp with time zone DEFAULT now(),
-  initial_stock double precision DEFAULT 0.0,
-   CONSTRAINT fk_variant
-        FOREIGN KEY (variant_id)
-        REFERENCES variants(id)
-        ON DELETE CASCADE
-);
 -- later add foreign key reference
 
 -- addons
-CREATE TABLE public.composites (
-  id bigint PRIMARY KEY,
-  product_id bigint,
-  variant_id bigint,
-  qty numeric(10,2),
-  branch_id bigint,
-  business_id bigint,
-  actual_price numeric(10,2),
-  CONSTRAINT fk_product
-    FOREIGN KEY (product_id) 
-    REFERENCES products(id)
-    ON DELETE CASCADE
-)
--- Create the tables
--- Product Table
+
 CREATE TABLE public.products (
-  id bigint PRIMARY KEY,
+   id UUID PRIMARY KEY,
   
   name text,
   description text,
   color text,
-  business_id bigint,
-  branch_id bigint,
+  business_id UUID NOT NULL,
+   branch_id UUID NOT NULL,
   supplier_id text,
   category_id bigint,
   tax_id text,
@@ -675,13 +654,25 @@ CREATE TABLE public.products (
   spplr_nm text,
   is_composite boolean,
   composites jsonb,
-  created_at timestamp with time zone DEFAULT now(),
- 
-  -- constraint products_pkey primary key (id),
-
-   
-  -- constraint products_owner_id_fkey foreign key (owner_id) references auth.users (id) on delete cascade
+  created_at timestamp with time zone DEFAULT now()
 );
+CREATE TABLE public.composites (
+   id UUID PRIMARY KEY,
+  product_id UUID NOT NULL,
+  variant_id UUID NOT NULL,
+  qty numeric(10,2),
+   branch_id UUID NOT NULL,
+   business_id UUID NOT NULL,
+  actual_price numeric(10,2),
+  CONSTRAINT fk_product
+    FOREIGN KEY (product_id) 
+    REFERENCES public.products(id)
+    ON DELETE CASCADE
+);
+-- Create Product
+
+
+
 -- Counter Table
 -- Drop existing trigger and function if they exist
 -- Drop existing trigger and function
@@ -723,23 +714,23 @@ EXECUTE FUNCTION update_all_invc_no();
 
 ALTER PUBLICATION powersync ADD TABLE counters;
 CREATE TABLE public.counters (
-  id bigint PRIMARY KEY,
-  business_id bigint,
-  branch_id bigint,
+   id UUID PRIMARY KEY,
+   business_id UUID NOT NULL,
+   branch_id UUID NOT NULL,
   receipt_type text,
   tot_rcpt_no bigint,
   cur_rcpt_no bigint,
   invc_no bigint,
   last_touched timestamp with time zone,
   action text,
-  created_at timestamp with time zone DEFAULT now(),
+  created_at timestamp with time zone DEFAULT now()
 );
 -- plans
 -- ALTER TABLE plans ADD COLUMN number_of_payments bigint;
 
 CREATE TABLE public.plans (
-  id bigint PRIMARY KEY,
-  business_id bigint,
+   id UUID PRIMARY KEY,
+   business_id UUID NOT NULL,
   selected_plan text,
   additional_devices bigint,
   is_yearly_plan boolean,
@@ -748,25 +739,25 @@ CREATE TABLE public.plans (
   paystack_customer_id bigint,
   rule text,
   payment_method text,
-  created_at timestamp with time zone DEFAULT now(),
+  created_at timestamp with time zone DEFAULT now()
 );
 
 -- ebm table
 -- EBM Table
 CREATE TABLE public.ebms (
-  id bigint PRIMARY KEY,
+   id UUID PRIMARY KEY,
   bhf_id text,
   tin_number bigint,
   dvc_srl_no text,
   user_id bigint,
   tax_server_url text,
-  business_id bigint,
-  branch_id bigint,
+   business_id UUID NOT NULL,
+   branch_id UUID NOT NULL,
   last_touched timestamp with time zone DEFAULT now()
 );
 
 CREATE TABLE addons (
-  id bigint PRIMARY KEY,
+   id UUID PRIMARY KEY,
   plan_id BIGINT NOT NULL,
  
   addon_name TEXT,
@@ -780,98 +771,53 @@ CREATE TABLE addons (
 );
 
 
--- end plans
--- create data_mapper
-CREATE TABLE public.data_mapper (
-  id bigint PRIMARY KEY,
-  object_id bigint,
-  table_name text,
-  device_identifier text,
-  sync_devices bigint,
-  secret_key text,
-  device_downloaded_object bigint
-);
-
-
-
-
-
 
 -- -- Category Table
 CREATE TABLE public.category (
-   id uuid not null default gen_random_uuid (),
+   id UUID PRIMARY KEY,
   active boolean,
   focused boolean,
   name text,
-  branch_id bigint,
+   branch_id UUID NOT NULL,
   deleted_at timestamp with time zone,
   last_touched timestamp with time zone,
   action text,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
 
 
--- Customer Table
-CREATE TABLE public.customer (
-   id uuid not null default gen_random_uuid (),
-  cust_nm text,
-  email text,
-  tel_no text,
-  adrs text,
-  branch_id bigint,
-  updated_at timestamp with time zone,
-  cust_no text,
-  cust_tin text,
-  regn_nm text,
-  regn_id text,
-  modr_nm text,
-  modr_id text,
-  ebm_synced boolean,
-  last_touched timestamp with time zone,
-  action text,
-  deleted_at timestamp with time zone,
-  tin bigint,
-  bhf_id text,
-  use_yn text,
-  customer_type text,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
-);
 
 -- Device Table
-CREATE TABLE public.device (
-   id uuid not null default gen_random_uuid (),
+CREATE TABLE public.devices (
+   id UUID PRIMARY KEY,
   linking_code text,
   device_name text,
   device_version text,
   pub_nub_published boolean,
   phone text,
-  branch_id bigint,
-  business_id bigint,
+   branch_id UUID NOT NULL,
+   business_id UUID NOT NULL,
   user_id bigint,
   default_app text,
   last_touched timestamp with time zone,
   deleted_at timestamp with time zone,
   action text,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
 -- Discount Table
-CREATE TABLE public.discount (
-   id uuid not null default gen_random_uuid (),
+CREATE TABLE public.discounts (
+   id UUID PRIMARY KEY,
   name text,
   amount numeric(10,2),
-  branch_id bigint,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+   branch_id UUID NOT NULL,
+  created_at timestamp with time zone DEFAULT now()
 );
 
 -- Drawers Table
 CREATE TABLE public.drawers (
-   id uuid not null default gen_random_uuid (),
+   id UUID PRIMARY KEY,
   opening_balance numeric(10,2),
   closing_balance numeric(10,2),
   opening_date_time text,
@@ -890,36 +836,24 @@ CREATE TABLE public.drawers (
   cashier_id bigint,
   "open" boolean,
   deleted_at timestamp with time zone,
-  business_id bigint,
-  branch_id bigint,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+   business_id UUID NOT NULL,
+   branch_id UUID NOT NULL,
+  created_at timestamp with time zone DEFAULT now()
 );
 
 
 
--- Favorite Table
-CREATE TABLE public.favorite (
-   id uuid not null default gen_random_uuid (),
-  fav_index bigint,
-  product_id bigint,
-  branch_id bigint,
-  last_touched timestamp with time zone,
-  action text,
-  deleted_at timestamp with time zone,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
-);
+
 
 -- Location Table
-CREATE TABLE public.location (
-   id uuid not null default gen_random_uuid (),
+CREATE TABLE public.locations(
+   id UUID PRIMARY KEY,
   realm_id uuid,
   server_id bigint,
   active boolean,
   description text,
   name text,
-  business_id bigint,
+   business_id UUID NOT NULL,
   longitude text,
   latitude text,
   location text,
@@ -928,27 +862,25 @@ CREATE TABLE public.location (
   action text,
   deleted_at timestamp with time zone,
   is_online boolean,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
 -- PColor Table
-CREATE TABLE public.pcolor (
-   id uuid not null default gen_random_uuid (),
+CREATE TABLE public.colors (
+   id UUID PRIMARY KEY,
   name text,
   colors text[],
-  branch_id bigint,
+   branch_id UUID NOT NULL,
   active boolean,
   last_touched timestamp with time zone,
   action text,
   deleted_at timestamp with time zone,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
 -- Receipt Table
-CREATE TABLE public.receipt (
-  id uuid not null default gen_random_uuid (),
+CREATE TABLE public.receipts (
+  id UUID PRIMARY KEY,
   result_cd text,
   result_msg text,
   result_dt text,
@@ -961,18 +893,17 @@ CREATE TABLE public.receipt (
   mrc_no text,
   qr_code text,
   receipt_type text,
-  branch_id bigint,
+   branch_id UUID NOT NULL,
   transaction_id bigint,
   last_touched timestamp with time zone,
   action text,
   invc_no bigint,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
 -- Setting Table
-CREATE TABLE public.setting (
-   id uuid not null default gen_random_uuid (),
+CREATE TABLE public.settings (
+   id UUID PRIMARY KEY,
   email text,
   user_id bigint,
   open_receipt_file_o_sale_complete boolean,
@@ -988,20 +919,19 @@ CREATE TABLE public.setting (
   auto_respond boolean,
   token text,
   has_pin boolean,
-  business_id bigint,
+   business_id UUID NOT NULL,
   created_at timestamp with time zone,
   last_touched timestamp with time zone,
   deleted_at timestamp with time zone,
-  action text,
-  owner_id uuid not null
+  action text
 );
 
 
 -- StockRequest Table
 CREATE TABLE public.stock_request (
-   id uuid not null default gen_random_uuid (),
-  main_branch_id bigint,
-  sub_branch_id bigint,
+   id UUID PRIMARY KEY,
+  main_ branch_id UUID NOT NULL,
+  sub_ branch_id UUID NOT NULL,
   created_at timestamp with time zone,
   status text,
   delivery_date timestamp with time zone,
@@ -1010,18 +940,17 @@ CREATE TABLE public.stock_request (
   customer_received_order boolean,
   driver_request_delivery_confirmation boolean,
   driver_id bigint,
-  updated_at timestamp with time zone,
-  owner_id uuid not null
+  updated_at timestamp with time zone
 );
 
 
 -- ITransaction Table
-CREATE TABLE public.itransaction (
-   id uuid not null default gen_random_uuid (),
+CREATE TABLE public.itransactions (
+   id UUID PRIMARY KEY,
   reference text,
   category_id text,
   transaction_number text,
-  branch_id bigint,
+   branch_id UUID NOT NULL,
   status text,
   transaction_type text,
   sub_total numeric(10,2),
@@ -1039,43 +968,31 @@ CREATE TABLE public.itransaction (
   deleted_at timestamp with time zone,
   supplier_id bigint,
   ebm_synced boolean,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
 -- IUnit Table
 CREATE TABLE public.iunit (
-   id uuid not null default gen_random_uuid (),
-  branch_id bigint,
+   id UUID PRIMARY KEY,
+   branch_id UUID NOT NULL,
   name text,
   value text,
   active boolean,
   last_touched timestamp with time zone,
   action text,
   created_at timestamp with time zone,
-  deleted_at timestamp with time zone,
-  owner_id uuid not null
+  deleted_at timestamp with time zone
 );
 
--- Voucher Table
-CREATE TABLE public.voucher (
-   id uuid not null default gen_random_uuid (),
-  value bigint,
-  interval bigint,
-  used boolean,
-  used_at bigint,
-  descriptor text,
-  created_at timestamp with time zone DEFAULT now()
-);
 
 -- Tenant Table
-CREATE TABLE public.tenant (
-   id uuid not null default gen_random_uuid (),
+CREATE TABLE public.tenants (
+   id UUID PRIMARY KEY,
   name text,
   phone_number text,
   email text,
   nfc_enabled boolean,
-  business_id bigint,
+   business_id UUID NOT NULL,
   user_id bigint,
   image_url text,
   last_touched timestamp with time zone,
@@ -1083,178 +1000,107 @@ CREATE TABLE public.tenant (
   pin bigint,
   session_active boolean,
   is_default boolean,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
 
 -- LPermission Table
 CREATE TABLE public.lpermission (
-   id uuid not null default gen_random_uuid (),
+   id UUID PRIMARY KEY,
   name text,
   user_id bigint,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
 -- Token Table
-CREATE TABLE public.token (
-   id uuid not null default gen_random_uuid (),
+CREATE TABLE public.tokens (
+   id UUID PRIMARY KEY,
   type text,
   token text,
   valid_from timestamp with time zone,
   valid_until timestamp with time zone,
-  business_id bigint,
+   business_id UUID NOT NULL,
   last_touched timestamp with time zone,
   deleted_at timestamp with time zone,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
--- Conversation Table
-CREATE TABLE public.conversation (
-   id uuid not null default gen_random_uuid (),
-  user_name text,
-  body text,
-  avatar text,
-  channel_type text,
-  from_number text,
-  to_number text,
-  message_type text,
-  phone_number_id text,
-  message_id text,
-  responded_by text,
-  conversation_id text,
-  business_phone_number text,
-  business_id bigint,
-  scheduled_at timestamp with time zone,
-  delivered boolean,
-  last_touched timestamp with time zone,
-  deleted_at timestamp with time zone,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
-);
 
--- Activity Table
-CREATE TABLE public.activity (
-   id uuid not null default gen_random_uuid (),
-  timestamp timestamp with time zone,
-  last_touched timestamp with time zone,
-  user_id bigint,
-  event text,
-  details jsonb,
-  action text,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
-);
 
 -- UnversalProduct Table
-CREATE TABLE public.unversal_product (
-   id uuid not null default gen_random_uuid (),
+CREATE TABLE public.uni_products (
+   id UUID PRIMARY KEY,
   item_cls_cd text,
   item_cls_nm text,
   item_cls_lvl bigint,
   tax_ty_cd text,
   mjr_tg_yn text,
   use_yn text,
-  business_id bigint,
-  branch_id bigint,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+   business_id UUID NOT NULL,
+   branch_id UUID NOT NULL,
+  created_at timestamp with time zone DEFAULT now()
 );
 
 -- Configurations Table
 CREATE TABLE public.configurations (
-   id uuid not null default gen_random_uuid (),
+   id UUID PRIMARY KEY,
   tax_type text,
   tax_percentage numeric(10,2),
-  business_id bigint,
-  branch_id bigint,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+   business_id UUID NOT NULL,
+   branch_id UUID NOT NULL,
+  created_at timestamp with time zone DEFAULT now()
 );
 
 -- AppNotification Table
 CREATE TABLE public.app_notification (
-   id uuid not null default gen_random_uuid (),
+   id UUID PRIMARY KEY,
   completed boolean,
   type text,
   message text,
   identifier bigint,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
 -- Assets Table
 CREATE TABLE public.assets (
-   id uuid not null default gen_random_uuid (),
-  branch_id bigint,
-  business_id bigint,
+   id UUID PRIMARY KEY,
+   branch_id UUID NOT NULL,
+   business_id UUID NOT NULL,
   asset_name text,
   product_id bigint,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
 -- Composite Table
-CREATE TABLE public.composite (
-   id uuid not null default gen_random_uuid (),
+CREATE TABLE public.composites (
+   id UUID PRIMARY KEY,
   product_id bigint,
   variant_id bigint,
   qty numeric(10,2),
-  branch_id bigint,
-  business_id bigint,
+   branch_id UUID NOT NULL,
+   business_id UUID NOT NULL,
   actual_price numeric(10,2),
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
 
 -- Report Table
-CREATE TABLE public.report (
-   id uuid not null default gen_random_uuid (),
-  branch_id bigint,
-  business_id bigint,
+CREATE TABLE public.reports (
+   id UUID PRIMARY KEY,
+   branch_id UUID NOT NULL,
+   business_id UUID NOT NULL,
   filename text,
   s3_url text,
   downloaded boolean,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
--- Computed Table
-CREATE TABLE public.computed (
-   id uuid not null default gen_random_uuid (),
-  branch_id bigint,
-  business_id bigint,
-  gross_profit numeric(10,2),
-  net_profit numeric(10,2),
-  total_stock_value numeric(10,2),
-  total_stock_sold_value numeric(10,2),
-  total_stock_items numeric(10,2),
-  created_at timestamp with time zone,
-  owner_id uuid not null
-);
 
--- Access Table
-CREATE TABLE public.access (
-   id uuid not null default gen_random_uuid (),
-  branch_id bigint,
-  business_id bigint,
-  user_id bigint,
-  feature_name text,
-  user_type text,
-  access_level text,
-  created_at timestamp with time zone,
-  expires_at timestamp with time zone,
-  status text,
-  owner_id uuid not null
-);
 
 -- PaymentPlan Table
-CREATE TABLE public.payment_plan (
-   id uuid not null default gen_random_uuid (),
-  business_id bigint,
+CREATE TABLE public.plans (
+   id UUID PRIMARY KEY,
+   business_id UUID NOT NULL,
   selected_plan text,
   additional_devices bigint,
   is_yearly_plan boolean,
@@ -1265,47 +1111,17 @@ CREATE TABLE public.payment_plan (
   payment_method text,
   customer_code text,
   paystack_plan_id text,
-  created_at timestamp with time zone DEFAULT now(),
-  owner_id uuid not null
+  created_at timestamp with time zone DEFAULT now()
 );
 
 -- FlipperSaleCompaign Table
-CREATE TABLE public.flipper_sale_compaign (
-   id uuid not null default gen_random_uuid (),
+CREATE TABLE public.flipper_sale_compaigns (
+   id UUID PRIMARY KEY,
   compaign_id bigint,
   discount_rate bigint,
   created_at timestamp with time zone,
-  coupon_code text,
-  owner_id uuid not null
+  coupon_code text
 );
-
--- from demo
-create table
-  public.lists (
-    id uuid not null default gen_random_uuid (),
-    created_at timestamp with time zone not null default now(),
-    name text not null,
-    owner_id uuid not null,
-    constraint lists_pkey primary key (id),
-    constraint lists_owner_id_fkey foreign key (owner_id) references auth.users (id) on delete cascade
-  ) tablespace pg_default;
-
-create table
-  public.todos (
-    id uuid not null default gen_random_uuid (),
-    created_at timestamp with time zone not null default now(),
-    completed_at timestamp with time zone null,
-    description text not null,
-    completed boolean not null default false,
-    created_by uuid null,
-    completed_by uuid null,
-    list_id uuid not null,
-    photo_id uuid null,
-    constraint todos_pkey primary key (id),
-    constraint todos_created_by_fkey foreign key (created_by) references auth.users (id) on delete set null,
-    constraint todos_completed_by_fkey foreign key (completed_by) references auth.users (id) on delete set null,
-    constraint todos_list_id_fkey foreign key (list_id) references lists (id) on delete cascade
-  ) tablespace pg_default;
 
 -- end table from demo
 -- Create publication for powersync
@@ -1500,7 +1316,7 @@ CREATE POLICY "Users can only access their own data" ON public.flipper_sale_comp
 -- describe table data_mapper;
 -- DROP TABLE IF EXISTS public.data_mapper
 -- CREATE TABLE public.data_mapper (
---   id uuid not null default gen_random_uuid (),
+--   id UUID PRIMARY KEY,
 --   object_id bigint,
 --   table_name text,
 --   device_identifier text,

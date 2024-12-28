@@ -8,7 +8,7 @@ import 'package:stacked_services/stacked_services.dart';
 class ReceiveStock extends StatefulWidget {
   const ReceiveStock({Key? key, required this.variantId, this.existingStock})
       : super(key: key);
-  final int variantId;
+  final String variantId;
   final String? existingStock;
 
   @override
