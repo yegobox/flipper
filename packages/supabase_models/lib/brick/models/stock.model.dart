@@ -15,7 +15,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
 
   int? tin;
   String? bhfId;
-  int? branchId;
+  String? branchId;
   @Supabase(defaultValue: "0.0")
   double? currentStock;
   @Supabase(defaultValue: "0.0")

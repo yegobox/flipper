@@ -6,8 +6,10 @@ abstract class LocalStorage {
   Future<void> writeInt({required String key, required int value});
   Future<void> writeString({required String key, required String value});
   Future<void> writeBool({required String key, required bool value});
-  int? getBusinessId();
-  int? getBranchId();
+  String? getBusinessId();
+  int? getBusinessServerId();
+  String? getBranchId();
+  int? getBranchServerId();
   bool? getIsTokenRegistered();
   String? getUserPhone();
   int? getUserId();

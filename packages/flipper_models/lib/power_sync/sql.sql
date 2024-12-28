@@ -728,6 +728,7 @@ CREATE TABLE public.counters (
 -- plans
 -- ALTER TABLE plans ADD COLUMN number_of_payments bigint;
 
+DROP TABLE IF EXISTS public.plans CASCADE;
 CREATE TABLE public.plans (
    id UUID PRIMARY KEY,
    business_id UUID NOT NULL,
@@ -737,10 +738,25 @@ CREATE TABLE public.plans (
   total_price bigint,
   payment_completed_by_user boolean,
   paystack_customer_id bigint,
+  next_billing_date timestamp with time zone DEFAULT now(),
   rule text,
   payment_method text,
   created_at timestamp with time zone DEFAULT now()
 );
+DROP TABLE IF EXISTS public.addons CASCADE;
+CREATE TABLE public.addons (
+   id UUID PRIMARY KEY,
+   plan_id UUID,
+      addon_name TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      
+   CONSTRAINT fk_plan
+      FOREIGN KEY (plan_id)
+      REFERENCES plans(id)
+      ON DELETE CASCADE
+);
+
+
 
 -- ebm table
 -- EBM Table
@@ -756,34 +772,8 @@ CREATE TABLE public.ebms (
   last_touched timestamp with time zone DEFAULT now()
 );
 
-CREATE TABLE addons (
-   id UUID PRIMARY KEY,
-  plan_id BIGINT NOT NULL,
- 
-  addon_name TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  
-  -- Establish a relationship with the `plans` table
-  CONSTRAINT fk_plan
-    FOREIGN KEY (plan_id) 
-    REFERENCES plans(id)
-    ON DELETE CASCADE
-);
 
 
-
--- -- Category Table
-CREATE TABLE public.category (
-   id UUID PRIMARY KEY,
-  active boolean,
-  focused boolean,
-  name text,
-   branch_id UUID NOT NULL,
-  deleted_at timestamp with time zone,
-  last_touched timestamp with time zone,
-  action text,
-  created_at timestamp with time zone DEFAULT now()
-);
 
 
 
@@ -834,7 +824,7 @@ CREATE TABLE public.drawers (
   other_transactions bigint,
   payment_mode text,
   cashier_id bigint,
-  "open" boolean,
+  open boolean,
   deleted_at timestamp with time zone,
    business_id UUID NOT NULL,
    branch_id UUID NOT NULL,
@@ -928,10 +918,10 @@ CREATE TABLE public.settings (
 
 
 -- StockRequest Table
-CREATE TABLE public.stock_request (
+CREATE TABLE public.stock_requests (
    id UUID PRIMARY KEY,
-  main_ branch_id UUID NOT NULL,
-  sub_ branch_id UUID NOT NULL,
+  main_branch_id UUID NOT NULL,
+  sub_branch_id UUID NOT NULL,
   created_at timestamp with time zone,
   status text,
   delivery_date timestamp with time zone,
@@ -944,73 +934,14 @@ CREATE TABLE public.stock_request (
 );
 
 
--- ITransaction Table
-CREATE TABLE public.itransactions (
-   id UUID PRIMARY KEY,
-  reference text,
-  category_id text,
-  transaction_number text,
-   branch_id UUID NOT NULL,
-  status text,
-  transaction_type text,
-  sub_total numeric(10,2),
-  payment_type text,
-  cash_received numeric(10,2),
-  customer_change_due numeric(10,2),
-  receipt_type text,
-  updated_at timestamp with time zone,
-  customer_id bigint,
-  customer_type text,
-  note text,
-  last_touched timestamp with time zone,
-  action text,
-  ticket_name text,
-  deleted_at timestamp with time zone,
-  supplier_id bigint,
-  ebm_synced boolean,
-  created_at timestamp with time zone DEFAULT now()
-);
 
 -- IUnit Table
-CREATE TABLE public.iunit (
-   id UUID PRIMARY KEY,
-   branch_id UUID NOT NULL,
-  name text,
-  value text,
-  active boolean,
-  last_touched timestamp with time zone,
-  action text,
-  created_at timestamp with time zone,
-  deleted_at timestamp with time zone
-);
-
 
 -- Tenant Table
-CREATE TABLE public.tenants (
-   id UUID PRIMARY KEY,
-  name text,
-  phone_number text,
-  email text,
-  nfc_enabled boolean,
-   business_id UUID NOT NULL,
-  user_id bigint,
-  image_url text,
-  last_touched timestamp with time zone,
-  deleted_at timestamp with time zone,
-  pin bigint,
-  session_active boolean,
-  is_default boolean,
-  created_at timestamp with time zone DEFAULT now()
-);
 
 
--- LPermission Table
-CREATE TABLE public.lpermission (
-   id UUID PRIMARY KEY,
-  name text,
-  user_id bigint,
-  created_at timestamp with time zone DEFAULT now()
-);
+
+
 
 -- Token Table
 CREATE TABLE public.tokens (
@@ -1028,19 +959,6 @@ CREATE TABLE public.tokens (
 
 
 -- UnversalProduct Table
-CREATE TABLE public.uni_products (
-   id UUID PRIMARY KEY,
-  item_cls_cd text,
-  item_cls_nm text,
-  item_cls_lvl bigint,
-  tax_ty_cd text,
-  mjr_tg_yn text,
-  use_yn text,
-   business_id UUID NOT NULL,
-   branch_id UUID NOT NULL,
-  created_at timestamp with time zone DEFAULT now()
-);
-
 -- Configurations Table
 CREATE TABLE public.configurations (
    id UUID PRIMARY KEY,
@@ -1052,7 +970,7 @@ CREATE TABLE public.configurations (
 );
 
 -- AppNotification Table
-CREATE TABLE public.app_notification (
+CREATE TABLE public.app_notifications (
    id UUID PRIMARY KEY,
   completed boolean,
   type text,
@@ -1072,16 +990,7 @@ CREATE TABLE public.assets (
 );
 
 -- Composite Table
-CREATE TABLE public.composites (
-   id UUID PRIMARY KEY,
-  product_id bigint,
-  variant_id bigint,
-  qty numeric(10,2),
-   branch_id UUID NOT NULL,
-   business_id UUID NOT NULL,
-  actual_price numeric(10,2),
-  created_at timestamp with time zone DEFAULT now()
-);
+
 
 
 -- Report Table
@@ -1095,24 +1004,6 @@ CREATE TABLE public.reports (
   created_at timestamp with time zone DEFAULT now()
 );
 
-
-
--- PaymentPlan Table
-CREATE TABLE public.plans (
-   id UUID PRIMARY KEY,
-   business_id UUID NOT NULL,
-  selected_plan text,
-  additional_devices bigint,
-  is_yearly_plan boolean,
-  total_price numeric(10,2),
-  payment_completed_by_user boolean,
-  paystack_customer_id bigint,
-  rule text,
-  payment_method text,
-  customer_code text,
-  paystack_plan_id text,
-  created_at timestamp with time zone DEFAULT now()
-);
 
 -- FlipperSaleCompaign Table
 CREATE TABLE public.flipper_sale_compaigns (

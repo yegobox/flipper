@@ -1,14 +1,15 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20241228202150.migration.dart';
 part '20241228073514.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
-final migrations = <Migration>{const Migration20241228073514()};
+final migrations = <Migration>{
+  const Migration20241228202150(),const Migration20241228073514()};
 
 /// A consumable database structure including the latest generated migration.
-final schema =
-    Schema(20241228073514, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20241228202150, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -25,7 +26,7 @@ final schema =
     SchemaColumn('variant_id', Column.varchar),
     SchemaColumn('tin', Column.integer),
     SchemaColumn('bhf_id', Column.varchar),
-    SchemaColumn('branch_id', Column.integer),
+    SchemaColumn('branch_id', Column.varchar),
     SchemaColumn('current_stock', Column.Double),
     SchemaColumn('low_stock', Column.Double),
     SchemaColumn('can_tracking_stock', Column.boolean),
@@ -95,7 +96,7 @@ final schema =
     SchemaColumn('responded_by', Column.varchar),
     SchemaColumn('conversation_id', Column.varchar),
     SchemaColumn('business_phone_number', Column.varchar),
-    SchemaColumn('business_id', Column.integer),
+    SchemaColumn('business_id', Column.varchar),
     SchemaColumn('scheduled_at', Column.datetime),
     SchemaColumn('delivered', Column.boolean),
     SchemaColumn('last_touched', Column.datetime),
@@ -259,7 +260,7 @@ final schema =
     SchemaColumn('product_id', Column.varchar),
     SchemaColumn('unit', Column.varchar),
     SchemaColumn('product_name', Column.varchar),
-    SchemaColumn('branch_id', Column.integer),
+    SchemaColumn('branch_id', Column.varchar),
     SchemaColumn('tax_name', Column.varchar),
     SchemaColumn('item_seq', Column.integer),
     SchemaColumn('isrcc_cd', Column.varchar),
@@ -323,7 +324,7 @@ final schema =
     SchemaColumn('id', Column.varchar, unique: true),
     SchemaColumn('fav_index', Column.varchar),
     SchemaColumn('product_id', Column.varchar),
-    SchemaColumn('branch_id', Column.integer),
+    SchemaColumn('branch_id', Column.varchar),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime)
   }, indices: <SchemaIndex>{}),

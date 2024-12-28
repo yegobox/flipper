@@ -13,7 +13,7 @@ class Favorite extends OfflineFirstWithSupabaseModel {
   String? favIndex;
 
   String? productId;
-  int? branchId;
+  String? branchId;
 
   DateTime? lastTouched;
 

@@ -19,7 +19,7 @@ Future<Conversation> _$ConversationFromSupabase(Map<String, dynamic> data,
       respondedBy: data['responded_by'] as String?,
       conversationId: data['conversation_id'] as String?,
       businessPhoneNumber: data['business_phone_number'] as String?,
-      businessId: data['business_id'] as int?,
+      businessId: data['business_id'] as String?,
       scheduledAt: data['scheduled_at'] == null
           ? null
           : DateTime.tryParse(data['scheduled_at'] as String),
@@ -89,7 +89,7 @@ Future<Conversation> _$ConversationFromSqlite(Map<String, dynamic> data,
           ? null
           : data['business_phone_number'] as String?,
       businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
+          data['business_id'] == null ? null : data['business_id'] as String?,
       scheduledAt: data['scheduled_at'] == null
           ? null
           : data['scheduled_at'] == null
@@ -324,7 +324,7 @@ class ConversationAdapter
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'scheduledAt': const RuntimeSqliteColumnDefinition(
       association: false,

@@ -66,7 +66,9 @@ class SharedPreferenceStorage implements LocalStorage {
         'purchaseCode',
         'A4',
         'numberOfPayments',
-        'exportAsPdf'
+        'exportAsPdf',
+        'getBusinessServerId',
+        'getBranchServerId',
       },
     ));
     return this;
@@ -88,13 +90,13 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  int? getBranchId() {
-    return prefs.getInt('branchId');
+  String? getBranchId() {
+    return prefs.getString('branchId');
   }
 
   @override
-  int? getBusinessId() {
-    return prefs.getInt('businessId');
+  String? getBusinessId() {
+    return prefs.getString('businessId');
   }
 
   @override
@@ -393,5 +395,15 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String transactionId() {
     return prefs.getString('transactionId') ?? "";
+  }
+
+  @override
+  int? getBranchServerId() {
+    return prefs.getInt('getBranchServerId');
+  }
+
+  @override
+  int? getBusinessServerId() {
+    return prefs.getInt('getBusinessServerId');
   }
 }
