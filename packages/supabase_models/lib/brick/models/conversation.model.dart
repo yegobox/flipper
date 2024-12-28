@@ -23,7 +23,7 @@ class Conversation extends OfflineFirstWithSupabaseModel {
   String? respondedBy;
   String? conversationId;
   String? businessPhoneNumber;
-  String? businessId;
+  int? businessId;
   DateTime? scheduledAt;
   bool? delivered;
   DateTime? lastTouched;

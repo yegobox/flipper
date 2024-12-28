@@ -211,6 +211,9 @@ ALTER COLUMN retail_price TYPE double precision;
 ALTER TABLE variants
 ALTER COLUMN dc_rt TYPE double precision;
 
+ALTER TABLE plans
+ADD COLUMN number_of_payments BIGINT;
+
 
 CREATE TABLE public.favorites (
    id UUID PRIMARY KEY,

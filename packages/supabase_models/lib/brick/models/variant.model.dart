@@ -26,7 +26,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? productId;
   String? unit;
   String? productName;
-  String? branchId;
+  int? branchId;
   String? taxName;
 
   // add RRA fields

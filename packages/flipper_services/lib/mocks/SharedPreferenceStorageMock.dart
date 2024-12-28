@@ -306,10 +306,22 @@ class SharedPreferenceStorageMock implements LocalStorage {
   bool exportAsPdf() {
     return false;
   }
-  
+
   @override
   String transactionId() {
     // TODO: implement transactionId
+    throw UnimplementedError();
+  }
+
+  @override
+  int? getBranchServerId() {
+    // TODO: implement getBranchServerId
+    throw UnimplementedError();
+  }
+
+  @override
+  int? getBusinessServerId() {
+    // TODO: implement getBusinessServerId
     throw UnimplementedError();
   }
 }

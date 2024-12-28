@@ -90,13 +90,13 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  String? getBranchId() {
-    return prefs.getString('branchId');
+  int? getBranchId() {
+    return prefs.getInt('branchId');
   }
 
   @override
-  String? getBusinessId() {
-    return prefs.getString('businessId');
+  int? getBusinessId() {
+    return prefs.getInt('businessId');
   }
 
   @override

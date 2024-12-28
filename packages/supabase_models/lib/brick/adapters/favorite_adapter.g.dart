@@ -8,7 +8,7 @@ Future<Favorite> _$FavoriteFromSupabase(Map<String, dynamic> data,
       id: data['id'] as String?,
       favIndex: data['fav_index'] as String?,
       productId: data['product_id'] as String?,
-      branchId: data['branch_id'] as String?,
+      branchId: data['branch_id'] as int?,
       lastTouched: data['last_touched'] == null
           ? null
           : DateTime.tryParse(data['last_touched'] as String),
@@ -38,7 +38,7 @@ Future<Favorite> _$FavoriteFromSqlite(Map<String, dynamic> data,
       favIndex: data['fav_index'] == null ? null : data['fav_index'] as String?,
       productId:
           data['product_id'] == null ? null : data['product_id'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       lastTouched: data['last_touched'] == null
           ? null
           : data['last_touched'] == null
@@ -134,7 +134,7 @@ class FavoriteAdapter extends OfflineFirstWithSupabaseAdapter<Favorite> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: String,
+      type: int,
     ),
     'lastTouched': const RuntimeSqliteColumnDefinition(
       association: false,
