@@ -11,14 +11,13 @@ class ItemCode extends OfflineFirstWithSupabaseModel {
   final String id;
 
   @Sqlite(index: true)
-  @Supabase(name: 'item_code')
-  final String itemCode;
-  @Supabase(name: 'created_at')
+  final String code;
+
   final DateTime createdAt;
 
   ItemCode({
     String? id,
-    required this.itemCode,
+    required this.code,
     required this.createdAt,
   }) : id = id ?? const Uuid().v4();
 }

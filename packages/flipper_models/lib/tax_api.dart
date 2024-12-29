@@ -1,6 +1,5 @@
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
-import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart' as api;
@@ -8,7 +7,7 @@ import 'package:supabase_models/brick/models/all_models.dart' as brick;
 
 abstract class TaxApi {
   Future<RwApiResponse> saveStockMaster(
-      {required IStock stock, required IVariant variant, required String URI});
+      {required IStock stock, required Variant variant, required String URI});
   Future<RwApiResponse> savePurchases({
     required SaleList item,
     required String URI,
@@ -51,7 +50,7 @@ abstract class TaxApi {
       required String URI,
       required DateTime timeToUser});
   Future<RwApiResponse> saveItem(
-      {required IVariant variation, required String URI});
+      {required Variant variation, required String URI});
 
   // Future<RwApiResponse> savePurchases(
   //     {required SaleList item, required String URI});

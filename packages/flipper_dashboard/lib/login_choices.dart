@@ -72,7 +72,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
                           child: _isSelectingBranch
                               ? _buildBranchList(branches: branches.value!)
                               : _buildBusinessList(
-                                  businesses: businesses.value!),
+                                  businesses: businesses.value),
                         ),
                       ],
                     )
@@ -95,7 +95,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
     );
   }
 
-  Widget _buildBusinessList({required List<Business> businesses}) {
+  Widget _buildBusinessList({List<Business>? businesses}) {
+    if (businesses == null) return const SizedBox();
     return ListView.separated(
       itemCount: businesses.length,
       separatorBuilder: (_, __) => const SizedBox(height: 24.0),

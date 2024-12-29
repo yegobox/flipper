@@ -6,6 +6,10 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Variant(
       id: data['id'] as String?,
+      stock: data['stock'] == null
+          ? null
+          : await StockAdapter().fromSupabase(data['stock'],
+              provider: provider, repository: repository),
       stockId: data['stock_id'] as String?,
       taxPercentage: data['tax_percentage'] as num? ?? 18.0,
       name: data['name'] as String,
@@ -64,6 +68,10 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
+    'stock': instance.stock != null
+        ? await StockAdapter().toSupabase(instance.stock!,
+            provider: provider, repository: repository)
+        : null,
     'stock_id': instance.stockId,
     'tax_percentage': instance.taxPercentage,
     'name': instance.name,
@@ -119,6 +127,15 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Variant(
       id: data['id'] as String,
+      stock: data['stock_Stock_brick_id'] == null
+          ? null
+          : (data['stock_Stock_brick_id'] > -1
+              ? (await repository?.getAssociation<Stock>(
+                  Query.where('primaryKey', data['stock_Stock_brick_id'] as int,
+                      limit1: true),
+                ))
+                  ?.first
+              : null),
       stockId: data['stock_id'] == null ? null : data['stock_id'] as String?,
       taxPercentage:
           data['tax_percentage'] == null ? null : data['tax_percentage'],
@@ -201,6 +218,11 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
+    'stock_Stock_brick_id': instance.stock != null
+        ? instance.stock!.primaryKey ??
+            await provider.upsert<Stock>(instance.stock!,
+                repository: repository)
+        : null,
     'stock_id': instance.stockId,
     'tax_percentage': instance.taxPercentage,
     'name': instance.name,
@@ -265,6 +287,12 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'id': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'id',
+    ),
+    'stock': const RuntimeSupabaseColumnDefinition(
+      association: true,
+      columnName: 'stock',
+      associationType: Stock,
+      associationIsNullable: true,
     ),
     'stockId': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -472,6 +500,12 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       columnName: 'id',
       iterable: false,
       type: String,
+    ),
+    'stock': const RuntimeSqliteColumnDefinition(
+      association: true,
+      columnName: 'stock_Stock_brick_id',
+      iterable: false,
+      type: Stock,
     ),
     'stockId': const RuntimeSqliteColumnDefinition(
       association: false,

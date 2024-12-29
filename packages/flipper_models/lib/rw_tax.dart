@@ -6,7 +6,6 @@ import 'package:dio/dio.dart';
 import 'package:flipper_models/NetworkHelper.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
-import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart' as api;
 import 'package:flipper_models/helperModels/random.dart';
@@ -175,7 +174,7 @@ class RWTax with NetworkHelper implements TaxApi {
   @override
   Future<RwApiResponse> saveStockMaster(
       {required IStock stock,
-      required IVariant variant,
+      required Variant variant,
       required String URI}) async {
     try {
       final url = Uri.parse(URI)
@@ -255,7 +254,7 @@ class RWTax with NetworkHelper implements TaxApi {
   /// After saving item then we can use items/selectItems endPoint to get the item information. of item saved before
   @override
   Future<RwApiResponse> saveItem(
-      {required IVariant variation, required String URI}) async {
+      {required Variant variation, required String URI}) async {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'items/saveItems')
         .toString();

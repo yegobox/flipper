@@ -6,7 +6,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper_models/firebase_options.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
-import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/helperModels/UniversalProduct.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -29,7 +28,7 @@ mixin VariantPatch {
 
     for (Variant variant in variants) {
       try {
-        IVariant iVariant = IVariant.fromJson(variant.toJson());
+        Variant iVariant = Variant.fromJson(variant.toJson());
 
         final response = await RWTax().saveItem(variation: iVariant, URI: URI);
 
@@ -58,7 +57,7 @@ mixin StockPatch {
           IStock iStock = IStock(
             currentStock: variant.stock!.currentStock!,
           );
-          IVariant iVariant = IVariant.fromJson(variant.toJson());
+          Variant iVariant = Variant.fromJson(variant.toJson());
 
           final response = await RWTax()
               .saveStockMaster(stock: iStock, variant: iVariant, URI: URI);

@@ -416,13 +416,14 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         double totalPrice = _totalPrice;
 
         try {
-          String userIdentifier = ProxyService.box.getUserPhone()!;
+          // String userIdentifier = ProxyService.box.getUserPhone()!;
 
-          PayStackCustomer customer = await ProxyService.payStack
-              .getPayStackCustomer(
-                  business: (await ProxyService.strategy.getBusiness())!,
-                  userIdentifier.toFlipperEmail(),
-                  ProxyService.http);
+          // PayStackCustomer customer = await ProxyService.payStack
+          //     .getPayStackCustomer(
+          //         business: (await ProxyService.strategy.getBusiness(
+          //             businessId: ProxyService.box.getBusinessId()!))!,
+          //         userIdentifier.toFlipperEmail(),
+          //         ProxyService.http);
 
           ProxyService.strategy.saveOrUpdatePaymentPlan(
               businessId: ProxyService.box.getBusinessId()!,
@@ -433,7 +434,8 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
               flipperHttpClient: ProxyService.http,
               additionalDevices: additionalDevices,
               isYearlyPlan: isYearlyPlan,
-              payStackUserId: customer.data.id,
+              // payStackUserId: customer.data.id,
+              payStackUserId: "1",
               totalPrice:
                   totalPrice * (int.tryParse(paymentController.text) ?? 1));
           locator<RouterService>().navigateTo(PaymentFinalizeRoute());

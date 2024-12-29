@@ -1467,7 +1467,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         brick.Where('businessId').isExactly(businessId),
       ]);
       final result = await repository.get<models.Plan>(
-          query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+          query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
       return result.firstOrNull;
     } catch (e) {
       talker.error(e);
@@ -1904,6 +1904,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   List<IBranch> _convertBranches(List<Branch> branches) {
     return branches
         .map((e) => IBranch(
+            id: e.serverId,
             name: e.name,
             businessId: e.businessId,
             longitude: e.longitude,
@@ -1918,7 +1919,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return businesses
         .map((e) => IBusiness(
               id: e.serverId,
-              encryptionKey: e.encryptionKey!,
+              encryptionKey: e.encryptionKey ?? "",
               name: e.name,
               currency: e.currency,
               categoryId: e.categoryId,
@@ -2283,15 +2284,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         additionalDevices: additionalDevices,
         isYearlyPlan: isYearlyPlan,
         totalPrice: totalPrice,
-        payStackUserId: payStackUserId,
+        // payStackUserId: payStackUserId,
         paymentMethod: paymentMethod,
         addons: updatedAddons,
         nextBillingDate: nextBillingDate,
       );
 
       return updatedPlan;
-    } catch (e) {
-      talker.error('Failed to save/update payment plan: $e');
+    } catch (e, s) {
+      talker.error('Failed to save/update payment plan: $e, stack trace: $s');
       rethrow;
     }
   }
@@ -2378,7 +2379,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required int additionalDevices,
     required bool isYearlyPlan,
     required double totalPrice,
-    required String payStackUserId,
+    // required String payStackUserId,
     required String paymentMethod,
     required List<models.PlanAddon> addons,
     required DateTime nextBillingDate,
@@ -2394,7 +2395,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       createdAt: DateTime.now(),
       numberOfPayments: numberOfPayments,
       nextBillingDate: nextBillingDate,
-      payStackCustomerId: payStackUserId,
+      // payStackCustomerId: payStackUserId,
       paymentMethod: paymentMethod,
       addons: addons,
     );
@@ -3864,16 +3865,16 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       required String quantityUnit}) async {
     final repository = Repository();
     final Query = brick.Query(
-      where: [brick.Where('itemCode').isNot(null)],
-      orderBy: [brick.OrderBy('itemCode', ascending: false)],
+      where: [brick.Where('code').isNot(null)],
+      orderBy: [brick.OrderBy('code', ascending: false)],
     );
-    final items = await repository.get<models.ItemCode>(
+    final items = await repository.get<ItemCode>(
         query: Query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
     // Extract the last sequence number and increment it
     int lastSequence = 0;
     if (items.isNotEmpty) {
-      final lastItemCode = items.first.itemCode;
+      final lastItemCode = items.first.code;
       final sequencePart = lastItemCode.substring(lastItemCode.length - 7);
       lastSequence = int.parse(sequencePart);
     }
@@ -3883,7 +3884,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
 
     // Save the new item code in the database
-    final newItem = ItemCode(itemCode: newItemCode, createdAt: DateTime.now());
+    final newItem = ItemCode(code: newItemCode, createdAt: DateTime.now());
     await repository.upsert(newItem);
 
     return newItemCode;

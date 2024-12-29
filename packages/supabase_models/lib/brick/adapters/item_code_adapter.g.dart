@@ -6,7 +6,7 @@ Future<ItemCode> _$ItemCodeFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return ItemCode(
       id: data['id'] as String?,
-      itemCode: data['item_code'] as String,
+      code: data['code'] as String,
       createdAt: DateTime.parse(data['created_at'] as String));
 }
 
@@ -15,7 +15,7 @@ Future<Map<String, dynamic>> _$ItemCodeToSupabase(ItemCode instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
-    'item_code': instance.itemCode,
+    'code': instance.code,
     'created_at': instance.createdAt.toIso8601String()
   };
 }
@@ -25,7 +25,7 @@ Future<ItemCode> _$ItemCodeFromSqlite(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return ItemCode(
       id: data['id'] as String,
-      itemCode: data['item_code'] as String,
+      code: data['code'] as String,
       createdAt: DateTime.parse(data['created_at'] as String))
     ..primaryKey = data['_brick_id'] as int;
 }
@@ -35,7 +35,7 @@ Future<Map<String, dynamic>> _$ItemCodeToSqlite(ItemCode instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
-    'item_code': instance.itemCode,
+    'code': instance.code,
     'created_at': instance.createdAt.toIso8601String()
   };
 }
@@ -54,9 +54,9 @@ class ItemCodeAdapter extends OfflineFirstWithSupabaseAdapter<ItemCode> {
       association: false,
       columnName: 'id',
     ),
-    'itemCode': const RuntimeSupabaseColumnDefinition(
+    'code': const RuntimeSupabaseColumnDefinition(
       association: false,
-      columnName: 'item_code',
+      columnName: 'code',
     ),
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -81,9 +81,9 @@ class ItemCodeAdapter extends OfflineFirstWithSupabaseAdapter<ItemCode> {
       iterable: false,
       type: String,
     ),
-    'itemCode': const RuntimeSqliteColumnDefinition(
+    'code': const RuntimeSqliteColumnDefinition(
       association: false,
-      columnName: 'item_code',
+      columnName: 'code',
       iterable: false,
       type: String,
     ),

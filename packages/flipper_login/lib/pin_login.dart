@@ -113,7 +113,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
       errorMessage = e.toString();
       await Sentry.captureException(e, stackTrace: s);
     }
-
+    print(s);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         width: 250,

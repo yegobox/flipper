@@ -11,9 +11,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
   final String id;
-
-  @Sqlite(ignore: true)
-  @Supabase(ignore: true)
   Stock? stock;
   String? stockId;
   @Sqlite(defaultValue: "18.0", columnType: Column.num)
@@ -78,6 +75,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
   @Sqlite(ignore: true)
   @Supabase(ignore: true)
   double? qty;
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  double? rsdQty;
 
   Variant({
     String? id,
@@ -131,6 +131,60 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.dcRt,
     this.expirationDate,
   }) : id = id ?? const Uuid().v4();
+
+  // fromJson method
+  factory Variant.fromJson(Map<String, dynamic> json) {
+    return Variant(
+      id: json['id'],
+      name: json['name'],
+      color: json['color'],
+      sku: json['sku'],
+      productId: json['productId'],
+      unit: json['unit'],
+      productName: json['productName'],
+      branchId: json['branchId'],
+      taxName: json['taxName'],
+      taxPercentage: json['taxPercentage'],
+      itemSeq: json['itemSeq'],
+      isrccCd: json['isrccCd'],
+      isrccNm: json['isrccNm'],
+      isrcRt: json['isrcRt'],
+      isrcAmt: json['isrcAmt'],
+      taxTyCd: json['taxTyCd'],
+      bcd: json['bcd'],
+      itemClsCd: json['itemClsCd'],
+      itemTyCd: json['itemTyCd'],
+      itemStdNm: json['itemStdNm'],
+      orgnNatCd: json['orgnNatCd'],
+      pkg: json['pkg'],
+      itemCd: json['itemCd'],
+      pkgUnitCd: json['pkgUnitCd'],
+      qtyUnitCd: json['qtyUnitCd'],
+      itemNm: json['itemNm'],
+      prc: json['prc'],
+      splyAmt: json['splyAmt'],
+      tin: json['tin'],
+      bhfId: json['bhfId'],
+      dftPrc: json['dftPrc'],
+      addInfo: json['addInfo'],
+      isrcAplcbYn: json['isrcAplcbYn'],
+      useYn: json['useYn'],
+      regrId: json['regrId'],
+      regrNm: json['regrNm'],
+      modrId: json['modrId'],
+      modrNm: json['modrNm'],
+      lastTouched: json['lastTouched'],
+      supplyPrice: json['supplyPrice'],
+      retailPrice: json['retailPrice'],
+      spplrItemClsCd: json['spplrItemClsCd'],
+      spplrItemCd: json['spplrItemCd'],
+      spplrItemNm: json['spplrItemNm'],
+      ebmSynced: json['ebmSynced'],
+      dcRt: json['dcRt'],
+      expirationDate: json['expirationDate'],
+    );
+  }
+
   // toJson() method
   Map<String, dynamic> toJson() {
     return {
@@ -172,7 +226,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'regrNm': regrNm,
       'modrId': modrId,
       'modrNm': modrNm,
-      'lastTouched': lastTouched,
       'supplyPrice': supplyPrice,
       'retailPrice': retailPrice,
       'spplrItemClsCd': spplrItemClsCd,
@@ -180,7 +233,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'spplrItemNm': spplrItemNm,
       'ebmSynced': ebmSynced,
       'dcRt': dcRt,
-      'expirationDate': expirationDate,
     };
   }
 }
