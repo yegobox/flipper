@@ -371,8 +371,8 @@ class NotificationsCubit {
       tz.TZDateTime.from(scheduledDate, tz.local),
       notificationDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+      // uiLocalNotificationDateInterpretation:
+      //     UILocalNotificationDateInterpretation.absoluteTime,
       payload: payload,
     );
   }
