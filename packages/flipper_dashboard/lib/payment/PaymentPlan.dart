@@ -1,5 +1,5 @@
 import 'package:flipper_models/helperModels/extensions.dart';
-import 'package:flipper_models/helperModels/paystack_customer.dart';
+// import 'package:flipper_models/helperModels/paystack_customer.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -435,7 +435,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
               additionalDevices: additionalDevices,
               isYearlyPlan: isYearlyPlan,
               // payStackUserId: customer.data.id,
-              payStackUserId: "1",
+              // payStackUserId: "1",
               totalPrice:
                   totalPrice * (int.tryParse(paymentController.text) ?? 1));
           locator<RouterService>().navigateTo(PaymentFinalizeRoute());

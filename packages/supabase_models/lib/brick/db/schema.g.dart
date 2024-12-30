@@ -1,15 +1,14 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20241229113009.migration.dart';
-part '20241229105341.migration.dart';
+part '20241230124823.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20241229113009(),const Migration20241229105341()};
+  const Migration20241230124823(),};
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20241229113009, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20241230124823, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -119,7 +118,7 @@ final schema = Schema(20241229113009, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('created_at', Column.varchar),
     SchemaColumn('receipt_type', Column.varchar),
     SchemaColumn('updated_at', Column.varchar),
-    SchemaColumn('customer_id', Column.integer),
+    SchemaColumn('customer_id', Column.varchar),
     SchemaColumn('customer_type', Column.varchar),
     SchemaColumn('note', Column.varchar),
     SchemaColumn('last_touched', Column.datetime),
@@ -431,9 +430,6 @@ final schema = Schema(20241229113009, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('modr_nm', Column.varchar),
     SchemaColumn('modr_id', Column.varchar),
     SchemaColumn('ebm_synced', Column.boolean),
-    SchemaColumn('last_touched', Column.datetime),
-    SchemaColumn('deleted_at', Column.datetime),
-    SchemaColumn('tin', Column.integer),
     SchemaColumn('bhf_id', Column.varchar),
     SchemaColumn('use_yn', Column.varchar),
     SchemaColumn('customer_type', Column.varchar)
@@ -712,7 +708,6 @@ final schema = Schema(20241229113009, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('total_price', Column.integer),
     SchemaColumn('created_at', Column.datetime),
     SchemaColumn('payment_completed_by_user', Column.boolean),
-    SchemaColumn('pay_stack_customer_id', Column.varchar),
     SchemaColumn('rule', Column.varchar),
     SchemaColumn('payment_method', Column.varchar),
     SchemaColumn('next_billing_date', Column.datetime),

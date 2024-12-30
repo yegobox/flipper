@@ -544,7 +544,6 @@ class CoreViewModel extends FlipperBaseModel
           modrId: randomNumber().toString().substring(0, 5),
           regrId: randomNumber().toString().substring(0, 5),
           ebmSynced: false,
-          tin: ProxyService.box.tin(),
           modrNm: randomNumber().toString().substring(0, 5),
           bhfId: await ProxyService.box.bhfId() ?? "00",
           useYn: "N",
@@ -553,7 +552,8 @@ class CoreViewModel extends FlipperBaseModel
         transactionId: transactionId);
   }
 
-  void assignToSale({required String customerId, required String transactionId}) {
+  void assignToSale(
+      {required String customerId, required String transactionId}) {
     ProxyService.strategy.assignCustomerToTransaction(
         customerId: customerId, transactionId: transactionId);
   }

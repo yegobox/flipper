@@ -65,37 +65,37 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   CoreSync({SupabaseClient? client});
 
-  Future<void> _supa({required String tableName, required int id}) async {
-    await ProxyService.supa.init();
-    try {
-      // Attempt to call the RPC function
-      final rpcResult =
-          await ProxyService.supa.client?.rpc('insert_key', params: {
-        'current_secret_key': AppSecrets.insertKey,
-      });
+  // Future<void> _supa({required String tableName, required int id}) async {
+  //   await ProxyService.supa.init();
+  //   try {
+  //     // Attempt to call the RPC function
+  //     final rpcResult =
+  //         await ProxyService.supa.client?.rpc('insert_key', params: {
+  //       'current_secret_key': AppSecrets.insertKey,
+  //     });
 
-      // If RPC call is successful, proceed with the insert operation
-      if (rpcResult != null) {
-        final response =
-            await ProxyService.supa.client?.from(dataMapperTable).upsert({
-          'table_name': tableName,
-          'object_id': id,
-          'device_identifier':
-              await ProxyService.strategy.getPlatformDeviceId(),
+  //     // If RPC call is successful, proceed with the insert operation
+  //     if (rpcResult != null) {
+  //       final response =
+  //           await ProxyService.supa.client?.from(dataMapperTable).upsert({
+  //         'table_name': tableName,
+  //         'object_id': id,
+  //         'device_identifier':
+  //             await ProxyService.strategy.getPlatformDeviceId(),
 
-          /// Tobe done incorporate it into payment wall the device expected to download the object.
-          'sync_devices': 0,
+  //         /// Tobe done incorporate it into payment wall the device expected to download the object.
+  //         'sync_devices': 0,
 
-          /// this exclude the device that is writing the object setting it to 1
-          'device_downloaded_object': 1
-        }).select();
-        talker.warning(response);
-      }
-    } catch (e) {
-      talker.error('Error occurred: $e');
-      // Handle the error appropriately (e.g., show an error message to the user)
-    }
-  }
+  //         /// this exclude the device that is writing the object setting it to 1
+  //         'device_downloaded_object': 1
+  //       }).select();
+  //       talker.warning(response);
+  //     }
+  //   } catch (e) {
+  //     talker.error('Error occurred: $e');
+  //     // Handle the error appropriately (e.g., show an error message to the user)
+  //   }
+  // }
 
   bool compareChanges(Map<String, dynamic> item, Map<String, dynamic> map) {
     for (final key in item.keys) {
@@ -195,9 +195,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<Customer?> addCustomer(
-      {required Customer customer, required String transactionId}) {
-    // TODO: implement addCustomer
-    throw UnimplementedError("addCustomer is not implemented yet");
+      {required Customer customer, String? transactionId}) async {
+    Customer customerin = await repository.upsert(customer);
+    if (transactionId != null) {
+      final transaction = await getTransactionById(id: transactionId);
+      transaction!.customerId = customerin.id;
+      await repository.upsert(transaction);
+    }
   }
 
   @override
@@ -724,12 +728,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // TODO: implement createStockRequest
     throw UnimplementedError(
         "createStockRequest method is not implemented yet");
-  }
-
-  @override
-  List<Customer> customers({required int branchId}) {
-    // TODO: implement customers
-    throw UnimplementedError("customers method is not implemented yet");
   }
 
   @override
@@ -1262,84 +1260,38 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return variant;
   }
 
-  FutureOr<Customer?> getCustomer({String? key, int? id}) async {
-    if (key != null && id != null) {
-      throw ArgumentError(
-          'Cannot provide both a key and an id at the same time');
-    }
-
-    if (id != null) {
-      // Query by ID
-      final query = brick.Query(where: [
-        brick.Where('id', value: id, compare: brick.Compare.exact),
-      ]);
-      final List<Customer> customers =
-          await repository.get<Customer>(query: query);
-      return customers.isNotEmpty ? customers.first : null;
-    } else if (key != null) {
-      // Queries for each field combined with OR logic
-      final queries = [
-        brick.Query(where: [
-          brick.Where('deletedAt', compare: brick.Compare.doesNotContain),
-          brick.Where('custNm', value: key, compare: brick.Compare.contains),
-        ]),
-        brick.Query(where: [
-          brick.Where('deletedAt', compare: brick.Compare.doesNotContain),
-          brick.Where('email', value: key, compare: brick.Compare.contains),
-        ]),
-        brick.Query(where: [
-          brick.Where('deletedAt', compare: brick.Compare.doesNotContain),
-          brick.Where('telNo', value: key, compare: brick.Compare.contains),
-        ]),
-      ];
-
-      for (final query in queries) {
-        final List<Customer> customers = await repository.get<Customer>(
-            query: query,
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-        if (customers.isNotEmpty) return customers.first;
-      }
-    }
-
-    return null;
-  }
-
   @override
-  FutureOr<List<Customer>> getCustomers({String? key, int? id}) async {
-    final List<Customer> customers = [];
+  FutureOr<List<Customer>> customers(
+      {required int branchId, String? key, String? id}) async {
     if (id != null) {
-      // Query by ID
-      final query = brick.Query(where: [
+      return repository.get<Customer>(
+          query: brick.Query(where: [
         brick.Where('id', value: id, compare: brick.Compare.exact),
-      ]);
-      final List<Customer> fetchedCustomers =
-          await repository.get<Customer>(query: query);
-      customers.addAll(fetchedCustomers);
-    } else if (key != null) {
-      // Queries for each field combined with OR logic
-      final queries = [
-        brick.Query(where: [
-          brick.Where('deletedAt', compare: brick.Compare.doesNotContain),
-          brick.Where('custNm', value: key, compare: brick.Compare.contains),
-        ]),
-        brick.Query(where: [
-          brick.Where('deletedAt', compare: brick.Compare.doesNotContain),
-          brick.Where('email', value: key, compare: brick.Compare.contains),
-        ]),
-        brick.Query(where: [
-          brick.Where('deletedAt', compare: brick.Compare.doesNotContain),
-          brick.Where('telNo', value: key, compare: brick.Compare.contains),
-        ]),
-      ];
-
-      for (final query in queries) {
-        final List<Customer> fetchedCustomers = await repository.get<Customer>(
-            query: query,
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-        customers.addAll(fetchedCustomers);
-      }
+      ]));
     }
-    return customers;
+
+    if (key != null) {
+      final searchFields = ['custNm', 'email', 'telNo'];
+      final queries = searchFields.map((field) => brick.Query(where: [
+            brick.Where(field, value: key, compare: brick.Compare.contains),
+            brick.Where('branchId',
+                value: branchId, compare: brick.Compare.exact),
+          ]));
+
+      final results =
+          await Future.wait(queries.map((query) => repository.get<Customer>(
+                query: query,
+                policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+              )));
+
+      return results.expand((customers) => customers).toList();
+    }
+
+    // If only branchId is provided, return all customers for that branch
+    return repository.get<Customer>(
+        query: brick.Query(where: [
+      brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
+    ]));
   }
 
   @override
@@ -2247,7 +2199,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required int additionalDevices,
     required bool isYearlyPlan,
     required double totalPrice,
-    required String payStackUserId,
+    // required String payStackUserId,
     required String paymentMethod,
     String? customerCode,
     models.Plan? plan,
@@ -2557,8 +2509,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
                     body: "Stock Saving " + separator[1]);
               }
               if (separator[2] == "customer") {
-                final customerId = int.tryParse(separator[3]);
-                Customer? customer = await getCustomer(id: customerId);
+                final customerId = separator[3];
+                Customer? customer = (await customers(
+                        id: customerId,
+                        branchId: ProxyService.box.getBranchId()!))
+                    .firstOrNull;
                 if (customer != null) {
                   customer.ebmSynced = true;
                   repository.upsert<Customer>(customer);

@@ -581,7 +581,7 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
     try {
       // await any ongoing database persistance
       List<Customer> customers =
-          ProxyService.strategy.customers(branchId: branchId);
+          await ProxyService.strategy.customers(branchId: branchId);
 
       if (searchString.isNotEmpty) {
         customers = customers

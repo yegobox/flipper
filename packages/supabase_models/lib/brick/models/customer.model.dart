@@ -29,7 +29,8 @@ class Customer extends OfflineFirstWithSupabaseModel {
   // Registrant ID
   String? regrId;
   //Modifier Name
-  String? modrNm = "284746303937";
+  // @Sqlite(defaultValue: "284746303937")
+  String? modrNm;
 
   //Modifier ID
   String? modrId;
@@ -39,12 +40,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
   bool? ebmSynced = false;
-  DateTime? lastTouched;
 
-  DateTime? deletedAt;
-
-  /// this is the tin of the business adding this customer
-  int? tin;
   String? bhfId;
   String? useYn;
   String? customerType;
@@ -63,9 +59,6 @@ class Customer extends OfflineFirstWithSupabaseModel {
     this.regrId,
     this.modrId,
     this.ebmSynced,
-    this.lastTouched,
-    this.deletedAt,
-    this.tin,
     this.bhfId,
     this.useYn,
     this.customerType,
@@ -87,9 +80,6 @@ class Customer extends OfflineFirstWithSupabaseModel {
       'modrNm': modrNm,
       'modrId': modrId,
       'ebmSynced': ebmSynced,
-      'lastTouched': lastTouched,
-      'deletedAt': deletedAt,
-      'tin': tin,
       'bhfId': bhfId,
       'useYn': useYn,
       'customerType': customerType,

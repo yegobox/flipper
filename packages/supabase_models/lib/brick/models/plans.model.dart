@@ -18,8 +18,10 @@ class Plan extends OfflineFirstWithSupabaseModel {
   final bool? isYearlyPlan;
   final int? totalPrice;
   final DateTime? createdAt;
-  bool? paymentCompletedByUser = false;
-  final String? payStackCustomerId;
+  @Sqlite(defaultValue: "false")
+  @Supabase(defaultValue: "false")
+  bool? paymentCompletedByUser;
+
   final String? rule;
   final String? paymentMethod;
 
@@ -38,7 +40,6 @@ class Plan extends OfflineFirstWithSupabaseModel {
     this.totalPrice,
     this.createdAt,
     this.paymentCompletedByUser = false,
-    this.payStackCustomerId,
     this.rule,
     this.paymentMethod,
     this.nextBillingDate,

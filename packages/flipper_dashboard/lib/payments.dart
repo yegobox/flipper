@@ -111,8 +111,10 @@ class PaymentsState extends ConsumerState<Payments> {
         /// check if there is a full customer attached, because there is cases where we don't want to create a user in normal flow
         /// because it might be tedious to fill tin number,name and phone number etc... then it make sense if no customer attached to this transaction
         /// to add extra field to request phone number from a user completing this transaction for the tin to be used as placeholder in this case
-        Customer? customer = await ProxyService.strategy
-            .getCustomer(id: widget.transaction.customerId ?? 0);
+        Customer? customer = (await ProxyService.strategy.customers(
+                id: widget.transaction.customerId ?? "",
+                branchId: ProxyService.box.getBranchId()!))
+            .firstOrNull;
         if (customer == null) {
           /// there is no customer attached to this transaction then enable extra field.
           showCustomerField = true;

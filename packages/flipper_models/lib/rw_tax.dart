@@ -353,8 +353,10 @@ class RWTax with NetworkHelper implements TaxApi {
     Map<String, double> taxTotals = calculateTaxTotals(itemsList);
 
     // Retrieve customer information
-    Customer? customer =
-        await ProxyService.strategy.getCustomer(id: transaction.customerId);
+    Customer? customer = (await ProxyService.strategy.customers(
+            id: transaction.customerId,
+            branchId: ProxyService.box.getBranchId()!))
+        .firstOrNull;
 
     // Build request data
     Map<String, dynamic> requestData = await buildRequestData(
@@ -610,8 +612,10 @@ class RWTax with NetworkHelper implements TaxApi {
     if (transaction.customerId != null) {
       //  it mighbe a copy re-assign a customer
       talker.warning("Overriding customer");
-      Customer? cus =
-          await ProxyService.strategy.getCustomer(id: transaction.customerId!);
+      Customer? cus = (await ProxyService.strategy.customers(
+              id: transaction.customerId!,
+              branchId: ProxyService.box.getBranchId()!))
+          .firstOrNull;
       customer = cus;
       talker.warning(customer);
     }

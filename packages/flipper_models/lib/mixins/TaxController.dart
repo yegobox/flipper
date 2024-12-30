@@ -204,8 +204,10 @@ class TaxController<OBJ> {
           Configurations? taxConfigTaxD =
               await ProxyService.strategy.getByTaxType(taxtype: "D");
 
-          Customer? customer = await ProxyService.strategy
-              .getCustomer(id: transaction.customerId ?? 0);
+          Customer? customer = (await ProxyService.strategy.customers(
+                  id: transaction.customerId ?? "",
+                  branchId: ProxyService.box.getBranchId()!))
+              .firstOrNull;
 
           Print print = Print();
 

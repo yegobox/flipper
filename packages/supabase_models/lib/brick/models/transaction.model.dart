@@ -34,7 +34,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   String? receiptType;
   String? updatedAt;
 
-  int? customerId;
+  String? customerId;
   String? customerType;
   String? note;
 

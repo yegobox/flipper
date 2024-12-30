@@ -14,8 +14,8 @@ Future<Plan> _$PlanFromSupabase(Map<String, dynamic> data,
       createdAt: data['created_at'] == null
           ? null
           : DateTime.tryParse(data['created_at'] as String),
-      paymentCompletedByUser: data['payment_completed_by_user'] as bool?,
-      payStackCustomerId: data['paystack_customer_id'] as String?,
+      paymentCompletedByUser:
+          data['payment_completed_by_user'] as bool? ?? false,
       rule: data['rule'] as String?,
       paymentMethod: data['payment_method'] as String?,
       addons: await Future.wait<PlanAddon>(data['addons']
@@ -42,7 +42,6 @@ Future<Map<String, dynamic>> _$PlanToSupabase(Plan instance,
     'total_price': instance.totalPrice,
     'created_at': instance.createdAt?.toIso8601String(),
     'payment_completed_by_user': instance.paymentCompletedByUser,
-    'paystack_customer_id': instance.payStackCustomerId,
     'rule': instance.rule,
     'payment_method': instance.paymentMethod,
     'addons': await Future.wait<Map<String, dynamic>>(instance.addons
@@ -79,9 +78,6 @@ Future<Plan> _$PlanFromSqlite(Map<String, dynamic> data,
       paymentCompletedByUser: data['payment_completed_by_user'] == null
           ? null
           : data['payment_completed_by_user'] == 1,
-      payStackCustomerId: data['pay_stack_customer_id'] == null
-          ? null
-          : data['pay_stack_customer_id'] as String?,
       rule: data['rule'] == null ? null : data['rule'] as String?,
       paymentMethod: data['payment_method'] == null
           ? null
@@ -126,7 +122,6 @@ Future<Map<String, dynamic>> _$PlanToSqlite(Plan instance,
     'payment_completed_by_user': instance.paymentCompletedByUser == null
         ? null
         : (instance.paymentCompletedByUser! ? 1 : 0),
-    'pay_stack_customer_id': instance.payStackCustomerId,
     'rule': instance.rule,
     'payment_method': instance.paymentMethod,
     'next_billing_date': instance.nextBillingDate?.toIso8601String(),
@@ -175,10 +170,6 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
     'paymentCompletedByUser': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'payment_completed_by_user',
-    ),
-    'payStackCustomerId': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'paystack_customer_id',
     ),
     'rule': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -262,12 +253,6 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
       columnName: 'payment_completed_by_user',
       iterable: false,
       type: bool,
-    ),
-    'payStackCustomerId': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'pay_stack_customer_id',
-      iterable: false,
-      type: String,
     ),
     'rule': const RuntimeSqliteColumnDefinition(
       association: false,

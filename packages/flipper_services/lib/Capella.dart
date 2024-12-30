@@ -342,13 +342,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<Customer?> addCustomer(
-      {required Customer customer, required String transactionId}) {
-    // TODO: implement addCustomer
-    throw UnimplementedError();
-  }
-
-  @override
   Future<int> addFavorite({required Favorite data}) {
     // TODO: implement addFavorite
     throw UnimplementedError();
@@ -493,12 +486,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  List<Customer> customers({required int branchId}) {
-    // TODO: implement customers
-    throw UnimplementedError();
-  }
-
-  @override
   Branch? defaultBranch() {
     // TODO: implement defaultBranch
     throw UnimplementedError();
@@ -590,12 +577,6 @@ class Capella with Booting implements RealmInterface {
       required int tinNumber,
       required String bhFId}) {
     // TODO: implement getCustomVariant
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Customer?> getCustomer({String? key, int? id}) {
-    // TODO: implement getCustomer
     throw UnimplementedError();
   }
 
@@ -939,7 +920,7 @@ class Capella with Booting implements RealmInterface {
       required int additionalDevices,
       required bool isYearlyPlan,
       required double totalPrice,
-      required String payStackUserId,
+      // required String payStackUserId,
       required String paymentMethod,
       String? customerCode,
       models.Plan? plan,
@@ -1107,12 +1088,6 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<List<Business>> getContacts() {
     // TODO: implement getContacts
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Customer?> getCustomerFuture({String? key, int? id}) {
-    // TODO: implement getCustomerFuture
     throw UnimplementedError();
   }
 
@@ -1436,12 +1411,6 @@ class Capella with Booting implements RealmInterface {
   @override
   FutureOr<Business?> getBusinessById({required int businessId}) {
     // TODO: implement getBusinessById
-    throw UnimplementedError();
-  }
-
-  @override
-  FutureOr<List<Customer>> getCustomers({String? key, int? id}) {
-    // TODO: implement getCustomers
     throw UnimplementedError();
   }
 
@@ -1929,6 +1898,20 @@ class Capella with Booting implements RealmInterface {
       String? pkgUnitCd,
       bool? ebmSynced}) {
     // TODO: implement updateVariant
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<List<brick.Customer>> customers(
+      {required int branchId, String? key, String? id}) {
+    // TODO: implement customers
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Customer?> addCustomer(
+      {required brick.Customer customer, String? transactionId}) {
+    // TODO: implement addCustomer
     throw UnimplementedError();
   }
 }

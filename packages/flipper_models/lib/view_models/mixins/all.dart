@@ -39,17 +39,20 @@ mixin Properties {
 }
 
 mixin SharebleMethods {
-  Stream<Customer?> getCustomer({String? key, int? id}) {
-    return Stream.fromFuture(
-            ProxyService.strategy.getCustomerFuture(key: key, id: id))
-        .asyncExpand((customer) async* {
-      // Yield the customer as he become available
+  Stream<Customer?> getCustomer({String? key, String? id}) {
+    // Convert FutureOr<List<Customer>> to Future<List<Customer>>
+    Future<List<Customer>> customersFuture = Future(() async {
+      return await ProxyService.strategy.customers(
+          key: key, id: id, branchId: ProxyService.box.getBranchId()!);
+    });
 
-      yield customer;
+    return Stream.fromFuture(customersFuture).asyncExpand((customers) async* {
+      // If we have a list of customers, yield each one
+      for (var customer in customers) {
+        yield customer;
+      }
     });
   }
-
- 
 
   Stream<List<ITransaction>> getCashInTransactions() {
     final transactions = ProxyService.strategy.transactions(isExpense: false);

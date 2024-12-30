@@ -191,8 +191,10 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       final state = (formKey.currentState?.validate() ?? true);
 
       // Get customer
-      Customer? customer =
-          await ProxyService.strategy.getCustomer(id: transaction.customerId);
+      Customer? customer = (await ProxyService.strategy.customers(
+              id: transaction.customerId,
+              branchId: ProxyService.box.getBranchId()!))
+          .firstOrNull;
 
       // Handle payment based on customer presence
       if (state && customer == null) {

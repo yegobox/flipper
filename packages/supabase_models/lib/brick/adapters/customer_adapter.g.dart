@@ -21,13 +21,6 @@ Future<Customer> _$CustomerFromSupabase(Map<String, dynamic> data,
       modrNm: data['modr_nm'] as String?,
       modrId: data['modr_id'] as String?,
       ebmSynced: data['ebm_synced'] as bool?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : DateTime.tryParse(data['deleted_at'] as String),
-      tin: data['tin'] as int?,
       bhfId: data['bhf_id'] as String?,
       useYn: data['use_yn'] as String?,
       customerType: data['customer_type'] as String?);
@@ -51,9 +44,6 @@ Future<Map<String, dynamic>> _$CustomerToSupabase(Customer instance,
     'modr_nm': instance.modrNm,
     'modr_id': instance.modrId,
     'ebm_synced': instance.ebmSynced,
-    'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String(),
-    'tin': instance.tin,
     'bhf_id': instance.bhfId,
     'use_yn': instance.useYn,
     'customer_type': instance.customerType
@@ -82,17 +72,6 @@ Future<Customer> _$CustomerFromSqlite(Map<String, dynamic> data,
       modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
       modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
       ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String),
-      tin: data['tin'] == null ? null : data['tin'] as int?,
       bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
       useYn: data['use_yn'] == null ? null : data['use_yn'] as String?,
       customerType: data['customer_type'] == null
@@ -120,9 +99,6 @@ Future<Map<String, dynamic>> _$CustomerToSqlite(Customer instance,
     'modr_id': instance.modrId,
     'ebm_synced':
         instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
-    'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String(),
-    'tin': instance.tin,
     'bhf_id': instance.bhfId,
     'use_yn': instance.useYn,
     'customer_type': instance.customerType
@@ -194,18 +170,6 @@ class CustomerAdapter extends OfflineFirstWithSupabaseAdapter<Customer> {
     'ebmSynced': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'ebm_synced',
-    ),
-    'lastTouched': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'last_touched',
-    ),
-    'deletedAt': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
-    ),
-    'tin': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'tin',
     ),
     'bhfId': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -315,24 +279,6 @@ class CustomerAdapter extends OfflineFirstWithSupabaseAdapter<Customer> {
       columnName: 'ebm_synced',
       iterable: false,
       type: bool,
-    ),
-    'lastTouched': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'last_touched',
-      iterable: false,
-      type: DateTime,
-    ),
-    'deletedAt': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
-      iterable: false,
-      type: DateTime,
-    ),
-    'tin': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'tin',
-      iterable: false,
-      type: int,
     ),
     'bhfId': const RuntimeSqliteColumnDefinition(
       association: false,

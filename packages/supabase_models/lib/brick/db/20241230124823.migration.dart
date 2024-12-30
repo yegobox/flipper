@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20241229105341_up = [
+const List<MigrationCommand> _migration_20241230124823_up = [
   InsertTable('ItemCode'),
   InsertTable('Stock'),
   InsertTable('Counter'),
@@ -128,7 +128,7 @@ const List<MigrationCommand> _migration_20241229105341_up = [
   InsertColumn('created_at', Column.varchar, onTable: 'ITransaction'),
   InsertColumn('receipt_type', Column.varchar, onTable: 'ITransaction'),
   InsertColumn('updated_at', Column.varchar, onTable: 'ITransaction'),
-  InsertColumn('customer_id', Column.integer, onTable: 'ITransaction'),
+  InsertColumn('customer_id', Column.varchar, onTable: 'ITransaction'),
   InsertColumn('customer_type', Column.varchar, onTable: 'ITransaction'),
   InsertColumn('note', Column.varchar, onTable: 'ITransaction'),
   InsertColumn('last_touched', Column.datetime, onTable: 'ITransaction'),
@@ -233,6 +233,7 @@ const List<MigrationCommand> _migration_20241229105341_up = [
   InsertColumn('name', Column.varchar, onTable: 'LPermission'),
   InsertColumn('user_id', Column.integer, onTable: 'LPermission'),
   InsertColumn('id', Column.varchar, onTable: 'Variant', unique: true),
+  InsertForeignKey('Variant', 'Stock', foreignKeyColumn: 'stock_Stock_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
   InsertColumn('stock_id', Column.varchar, onTable: 'Variant'),
   InsertColumn('tax_percentage', Column.num, onTable: 'Variant'),
   InsertColumn('name', Column.varchar, onTable: 'Variant'),
@@ -373,9 +374,6 @@ const List<MigrationCommand> _migration_20241229105341_up = [
   InsertColumn('modr_nm', Column.varchar, onTable: 'Customer'),
   InsertColumn('modr_id', Column.varchar, onTable: 'Customer'),
   InsertColumn('ebm_synced', Column.boolean, onTable: 'Customer'),
-  InsertColumn('last_touched', Column.datetime, onTable: 'Customer'),
-  InsertColumn('deleted_at', Column.datetime, onTable: 'Customer'),
-  InsertColumn('tin', Column.integer, onTable: 'Customer'),
   InsertColumn('bhf_id', Column.varchar, onTable: 'Customer'),
   InsertColumn('use_yn', Column.varchar, onTable: 'Customer'),
   InsertColumn('customer_type', Column.varchar, onTable: 'Customer'),
@@ -552,7 +550,6 @@ const List<MigrationCommand> _migration_20241229105341_up = [
   InsertColumn('total_price', Column.integer, onTable: 'Plan'),
   InsertColumn('created_at', Column.datetime, onTable: 'Plan'),
   InsertColumn('payment_completed_by_user', Column.boolean, onTable: 'Plan'),
-  InsertColumn('pay_stack_customer_id', Column.varchar, onTable: 'Plan'),
   InsertColumn('rule', Column.varchar, onTable: 'Plan'),
   InsertColumn('payment_method', Column.varchar, onTable: 'Plan'),
   InsertColumn('next_billing_date', Column.datetime, onTable: 'Plan'),
@@ -586,7 +583,7 @@ const List<MigrationCommand> _migration_20241229105341_up = [
   CreateIndex(columns: ['l_Plan_brick_id', 'f_PlanAddon_brick_id'], onTable: '_brick_Plan_addons', unique: true)
 ];
 
-const List<MigrationCommand> _migration_20241229105341_down = [
+const List<MigrationCommand> _migration_20241230124823_down = [
   DropTable('ItemCode'),
   DropTable('Stock'),
   DropTable('Counter'),
@@ -810,6 +807,7 @@ const List<MigrationCommand> _migration_20241229105341_down = [
   DropColumn('name', onTable: 'LPermission'),
   DropColumn('user_id', onTable: 'LPermission'),
   DropColumn('id', onTable: 'Variant'),
+  DropColumn('stock_Stock_brick_id', onTable: 'Variant'),
   DropColumn('stock_id', onTable: 'Variant'),
   DropColumn('tax_percentage', onTable: 'Variant'),
   DropColumn('name', onTable: 'Variant'),
@@ -950,9 +948,6 @@ const List<MigrationCommand> _migration_20241229105341_down = [
   DropColumn('modr_nm', onTable: 'Customer'),
   DropColumn('modr_id', onTable: 'Customer'),
   DropColumn('ebm_synced', onTable: 'Customer'),
-  DropColumn('last_touched', onTable: 'Customer'),
-  DropColumn('deleted_at', onTable: 'Customer'),
-  DropColumn('tin', onTable: 'Customer'),
   DropColumn('bhf_id', onTable: 'Customer'),
   DropColumn('use_yn', onTable: 'Customer'),
   DropColumn('customer_type', onTable: 'Customer'),
@@ -1129,7 +1124,6 @@ const List<MigrationCommand> _migration_20241229105341_down = [
   DropColumn('total_price', onTable: 'Plan'),
   DropColumn('created_at', onTable: 'Plan'),
   DropColumn('payment_completed_by_user', onTable: 'Plan'),
-  DropColumn('pay_stack_customer_id', onTable: 'Plan'),
   DropColumn('rule', onTable: 'Plan'),
   DropColumn('payment_method', onTable: 'Plan'),
   DropColumn('next_billing_date', onTable: 'Plan'),
@@ -1168,15 +1162,15 @@ const List<MigrationCommand> _migration_20241229105341_down = [
 //
 
 @Migratable(
-  version: '20241229105341',
-  up: _migration_20241229105341_up,
-  down: _migration_20241229105341_down,
+  version: '20241230124823',
+  up: _migration_20241230124823_up,
+  down: _migration_20241230124823_down,
 )
-class Migration20241229105341 extends Migration {
-  const Migration20241229105341()
+class Migration20241230124823 extends Migration {
+  const Migration20241230124823()
     : super(
-        version: 20241229105341,
-        up: _migration_20241229105341_up,
-        down: _migration_20241229105341_down,
+        version: 20241230124823,
+        up: _migration_20241230124823_up,
+        down: _migration_20241230124823_down,
       );
 }

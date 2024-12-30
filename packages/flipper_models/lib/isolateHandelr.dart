@@ -163,7 +163,7 @@ mixin CustomerPatch {
     for (Customer customer in customers) {
       if (!customer.ebmSynced!) {
         try {
-          customer.tin = tinNumber;
+          customer.custTin = tinNumber.toString();
           customer.bhfId = bhfId;
           repository.upsert(customer);
 

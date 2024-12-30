@@ -19,7 +19,7 @@ mixin PaymentHandler {
     ProxyService.strategy.saveOrUpdatePaymentPlan(
       additionalDevices: plan!.additionalDevices!,
       businessId: ProxyService.box.getBusinessId()!,
-      payStackUserId: plan.payStackCustomerId!,
+      // payStackUserId: plan.payStackCustomerId!,
       flipperHttpClient: ProxyService.http,
       isYearlyPlan: plan.isYearlyPlan!,
       paymentMethod: "MTNMOMO",
@@ -61,7 +61,7 @@ mixin PaymentHandler {
     ProxyService.strategy.saveOrUpdatePaymentPlan(
       additionalDevices: plan.additionalDevices!,
       businessId: ProxyService.box.getBusinessId()!,
-      payStackUserId: plan.payStackCustomerId!,
+      // payStackUserId: plan.payStackCustomerId!,
       flipperHttpClient: ProxyService.http,
       isYearlyPlan: plan.isYearlyPlan!,
       paymentMethod: "CARD",
@@ -71,15 +71,16 @@ mixin PaymentHandler {
     );
 
     await ProxyService.strategy.saveOrUpdatePaymentPlan(
-        businessId: paymentPlan.businessId!,
-        selectedPlan: paymentPlan.selectedPlan!,
-        paymentMethod: selectedPaymentMethod,
-        customerCode: customerCode,
-        additionalDevices: paymentPlan.additionalDevices!,
-        isYearlyPlan: paymentPlan.isYearlyPlan!,
-        totalPrice: paymentPlan.totalPrice!.toDouble(),
-        flipperHttpClient: ProxyService.http,
-        payStackUserId: userId.toString());
+      businessId: paymentPlan.businessId!,
+      selectedPlan: paymentPlan.selectedPlan!,
+      paymentMethod: selectedPaymentMethod,
+      customerCode: customerCode,
+      additionalDevices: paymentPlan.additionalDevices!,
+      isYearlyPlan: paymentPlan.isYearlyPlan!,
+      totalPrice: paymentPlan.totalPrice!.toDouble(),
+      flipperHttpClient: ProxyService.http,
+      // payStackUserId: userId.toString(),
+    );
     if (!await launchUrl(Uri.parse(url))) {
       throw Exception('Could not launch $url');
     }

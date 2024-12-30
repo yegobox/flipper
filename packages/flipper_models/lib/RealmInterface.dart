@@ -210,13 +210,16 @@ abstract class RealmInterface {
   Future<Setting?> getSetting({required int businessId});
 
   Future<Customer?> addCustomer(
-      {required Customer customer, required String transactionId});
+      {required Customer customer, String? transactionId});
   void assignCustomerToTransaction(
       {required String customerId, String? transactionId});
   void removeCustomerFromTransaction({required ITransaction transaction});
-  FutureOr<Customer?> getCustomer({String? key, int? id});
-  FutureOr<List<Customer>> getCustomers({String? key, int? id});
-  Future<Customer?> getCustomerFuture({String? key, int? id});
+  // FutureOr<Customer?> getCustomer({String? key, int? id});
+  // FutureOr<List<Customer>> getCustomers({String? key, int? id});
+  // Future<Customer?> getCustomerFuture({String? key, int? id});
+
+  FutureOr<List<Customer>> customers(
+      {required int branchId, String? key, String? id});
 
   ITransaction? getTransactionById({required String id});
   Future<List<ITransaction>> tickets();
@@ -333,8 +336,6 @@ abstract class RealmInterface {
 
   Stream<Tenant?> authState({required int branchId});
 
-  List<Customer> customers({required int branchId});
-
   Future<List<BusinessType>> businessTypes();
   Future<IPin?> getPin(
       {required String pinString,
@@ -432,7 +433,7 @@ abstract class RealmInterface {
     required int additionalDevices,
     required bool isYearlyPlan,
     required double totalPrice,
-    required String payStackUserId,
+    // required String payStackUserId,
     required String paymentMethod,
     String? customerCode,
     models.Plan? plan,

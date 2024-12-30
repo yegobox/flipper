@@ -114,8 +114,10 @@ mixin TransactionMixin {
       discount: discount,
       directlyHandleReceipt: false,
     );
-    Customer? customer =
-        await ProxyService.strategy.getCustomer(id: transaction.customerId);
+    Customer? customer = (await ProxyService.strategy.customers(
+            id: transaction.customerId,
+            branchId: ProxyService.box.getBranchId()!))
+        .firstOrNull;
 
     ProxyService.strategy.updateTransaction(
       transaction: transaction,

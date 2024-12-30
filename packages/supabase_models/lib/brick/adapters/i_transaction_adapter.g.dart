@@ -19,7 +19,7 @@ Future<ITransaction> _$ITransactionFromSupabase(Map<String, dynamic> data,
       createdAt: data['created_at'] as String?,
       receiptType: data['receipt_type'] as String?,
       updatedAt: data['updated_at'] as String?,
-      customerId: data['customer_id'] as int?,
+      customerId: data['customer_id'] as String?,
       customerType: data['customer_type'] as String?,
       note: data['note'] as String?,
       lastTouched: data['last_touched'] == null
@@ -117,7 +117,7 @@ Future<ITransaction> _$ITransactionFromSqlite(Map<String, dynamic> data,
       updatedAt:
           data['updated_at'] == null ? null : data['updated_at'] as String?,
       customerId:
-          data['customer_id'] == null ? null : data['customer_id'] as int?,
+          data['customer_id'] == null ? null : data['customer_id'] as String?,
       customerType: data['customer_type'] == null
           ? null
           : data['customer_type'] as String?,
@@ -450,7 +450,7 @@ class ITransactionAdapter
       association: false,
       columnName: 'customer_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'customerType': const RuntimeSqliteColumnDefinition(
       association: false,

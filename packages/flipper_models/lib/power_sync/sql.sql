@@ -215,10 +215,11 @@ ALTER TABLE plans
 ADD COLUMN number_of_payments BIGINT;
 
 
+DROP TABLE IF EXISTS public.favorites CASCADE;
 CREATE TABLE public.favorites (
    id UUID PRIMARY KEY,
-  fav_index bigint,
-  product_id bigint,
+  fav_index UUID,
+  product_id UUID,
    branch_id BIGINT NOT NULL,
   last_touched timestamp with time zone,
   action text,
@@ -232,18 +233,17 @@ CREATE TABLE public.customers (
   email text,
   tel_no text,
   adrs text,
-   branch_id BIGINT NOT NULL,
+  branch_id BIGINT NOT NULL,
   updated_at timestamp with time zone,
   cust_no text,
   cust_tin text,
-  regn_nm text,
-  regn_id text,
+  regr_id text,
   modr_nm text,
+  regr_nm text,
   modr_id text,
   ebm_synced boolean,
-  last_touched timestamp with time zone,
+ 
   action text,
-  deleted_at timestamp with time zone,
   tin bigint,
   bhf_id text,
   use_yn text,
@@ -739,11 +739,11 @@ CREATE TABLE public.plans (
    id UUID PRIMARY KEY,
    business_id BIGINT NOT NULL,
    selected_plan text,
+   
    additional_devices bigint,
    is_yearly_plan boolean,
    total_price bigint,
    payment_completed_by_user boolean,
-   paystack_customer_id UUID,
    next_billing_date timestamp with time zone DEFAULT now(),
    rule text,
    number_of_payments bigint,
@@ -998,7 +998,7 @@ CREATE TABLE public.assets (
    branch_id BIGINT NOT NULL,
    business_id BIGINT NOT NULL,
   asset_name text,
-  product_id bigint,
+  product_id UUID,
   created_at timestamp with time zone DEFAULT now()
 );
 
