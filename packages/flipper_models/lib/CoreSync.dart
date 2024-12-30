@@ -338,9 +338,31 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  void assignCustomerToTransaction(
-      {required String customerId, String? transactionId}) {
-    // TODO: implement assignCustomerToTransaction
+  Future<void> assignCustomerToTransaction(
+      {required String customerId, String? transactionId}) async {
+    try {
+      final transaction = getTransactionById(id: transactionId!);
+      if (transaction != null) {
+        transaction.customerId = customerId;
+        repository.upsert<ITransaction>(transaction);
+      } else {
+        throw Exception('Transaction with ID $transactionId not found');
+      }
+
+      final customer =
+          (await customers(branchId: transaction.branchId!, id: customerId))
+              .firstOrNull;
+
+      if (customer != null) {
+        customer.updatedAt = DateTime.now();
+        repository.upsert<Customer>(customer);
+      } else {
+        throw Exception('Customer with ID $customerId not found');
+      }
+    } catch (e) {
+      print('Failed to assign customer to transaction: $e');
+      rethrow;
+    }
   }
 
   @override

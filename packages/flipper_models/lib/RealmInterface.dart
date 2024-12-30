@@ -211,7 +211,7 @@ abstract class RealmInterface {
 
   Future<Customer?> addCustomer(
       {required Customer customer, String? transactionId});
-  void assignCustomerToTransaction(
+  FutureOr<void> assignCustomerToTransaction(
       {required String customerId, String? transactionId});
   void removeCustomerFromTransaction({required ITransaction transaction});
   // FutureOr<Customer?> getCustomer({String? key, int? id});
