@@ -5,7 +5,6 @@ import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/previewCart.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';

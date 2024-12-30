@@ -3240,10 +3240,31 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       double? taxblAmt,
       double? totAmt,
       double? dcRt,
-      double? dcAmt}) {
-    // TODO: implement updateTransactionItem
-    throw UnimplementedError(
-        "updateTransactionItem method is not implemented yet");
+      double? dcAmt}) async {
+    TransactionItem? item = (await repository.get<TransactionItem>(
+            query: brick.Query(where: [
+      brick.Where('id', value: transactionItemId, compare: brick.Compare.exact),
+    ])))
+        .firstOrNull;
+    if (item != null) {
+      item.qty = incrementQty == true ? item.qty + 1 : qty ?? item.qty;
+      item.discount = discount ?? item.discount;
+      item.active = active ?? item.active;
+      item.price = price ?? item.price;
+      item.prc = prc ?? item.prc;
+      item.taxAmt = taxAmt ?? item.taxAmt;
+      item.isRefunded = isRefunded ?? item.isRefunded;
+      item.ebmSynced = ebmSynced ?? item.ebmSynced;
+      item.quantityApproved = quantityApproved ?? item.quantityApproved;
+      item.quantityRequested = quantityRequested ?? item.quantityRequested;
+      item.splyAmt = splyAmt ?? item.splyAmt;
+      item.quantityShipped = quantityShipped ?? item.quantityShipped;
+      item.taxblAmt = taxblAmt ?? item.taxblAmt;
+      item.totAmt = totAmt ?? item.totAmt;
+      item.doneWithTransaction =
+          doneWithTransaction ?? item.doneWithTransaction;
+      repository.upsert(item);
+    }
   }
 
   @override
