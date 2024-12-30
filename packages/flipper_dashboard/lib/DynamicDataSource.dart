@@ -6,7 +6,6 @@ abstract class DynamicDataSource<T> extends DataGridSource {
   List<T> data = [];
   bool showPluReport = false;
 
-  // Update the rows getter to dynamically check showPluReport
   @override
   List<DataGridRow> get rows {
     return data.map((item) {
@@ -14,26 +13,23 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         return _buildTransactionItemRow(item);
       } else if (item is ITransaction && !showPluReport) {
         return _buildITransactionRow(item);
-      } else if (item is Stock) {
-        // return _buildStockRow(item);
-        throw UnimplementedError();
+      } else if (item is Variant) {
+        return _buildStockRow(item);
       } else {
-        // Handle other types of items or return an empty row
         return DataGridRow(cells: []);
       }
     }).toList();
   }
 
-  // DataGridRow _buildStockRow(Stock stock) {
-  //   return DataGridRow(cells: [
-  //     DataGridCell<String>(
-  //         columnName: 'Name', value: stock.variant?.productName ?? ''),
-  //     DataGridCell<double>(
-  //         columnName: 'CurrentStock', value: stock.currentStock),
-  //     DataGridCell<double>(
-  //         columnName: 'Price', value: stock.variant?.retailPrice),
-  //   ]);
-  // }
+  DataGridRow _buildStockRow(Variant variant) {
+    return DataGridRow(cells: [
+      DataGridCell<String>(
+          columnName: 'Name', value: variant.productName ?? ''),
+      DataGridCell<double>(
+          columnName: 'CurrentStock', value: variant.stock!.currentStock),
+      DataGridCell<double>(columnName: 'Price', value: variant.retailPrice),
+    ]);
+  }
 
   DataGridRow _buildTransactionItemRow(TransactionItem transactionItem) {
     return DataGridRow(

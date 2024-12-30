@@ -248,18 +248,6 @@ class DataViewState extends ConsumerState<DataView>
         ),
         child: Expanded(
           child: SfDataGrid(
-            // tableSummaryRows: [
-            //   GridTableSummaryRow(
-            //       showSummaryInRow: true,
-            //       title: 'Total:',
-            //       columns: [
-            //         GridSummaryColumn(
-            //             name: 'Sum',
-            //             columnName: 'CashReceived',
-            //             summaryType: GridSummaryType.sum),
-            //       ],
-            //       position: GridTableSummaryRowPosition.top)
-            // ],
             selectionMode: SelectionMode.multiple,
             allowSorting: true,
             allowColumnsResizing: true,
