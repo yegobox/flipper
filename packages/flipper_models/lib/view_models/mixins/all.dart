@@ -54,13 +54,15 @@ mixin SharebleMethods {
     });
   }
 
-  Stream<List<ITransaction>> getCashInTransactions() {
-    final transactions = ProxyService.strategy.transactions(isExpense: false);
+  Future<Stream<List<ITransaction>>> getCashInTransactions() async {
+    final transactions =
+        await ProxyService.strategy.transactions(isExpense: false);
     return Stream.value(transactions);
   }
 
-  Stream<List<ITransaction>> getCashOutTransactions() {
-    final transactions = ProxyService.strategy.transactions(isExpense: true);
+  Future<Stream<List<ITransaction>>> getCashOutTransactions() async {
+    final transactions =
+        await ProxyService.strategy.transactions(isExpense: true);
     return Stream.value(transactions);
   }
 }

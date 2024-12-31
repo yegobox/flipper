@@ -332,14 +332,14 @@ class DataViewState extends ConsumerState<DataView>
     }
 
     /// Expenses these incudes purchases,import and any other type of expenses.
-    final expenses = ProxyService.strategy.transactions(
+    final expenses = await ProxyService.strategy.transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: true,
       branchId: ProxyService.box.getBranchId(),
     );
 
-    final sales = ProxyService.strategy.transactions(
+    final sales = await ProxyService.strategy.transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: false,

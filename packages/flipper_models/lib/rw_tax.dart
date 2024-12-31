@@ -260,6 +260,9 @@ class RWTax with NetworkHelper implements TaxApi {
         .toString();
 
     try {
+      if (variation.tin == null) {
+        return RwApiResponse(resultCd: "000", resultMsg: "Invalid tin");
+      }
       final response = await sendPostRequest(url, variation.toJson());
       if (response.statusCode == 200) {
         final data = RwApiResponse.fromJson(response.data);

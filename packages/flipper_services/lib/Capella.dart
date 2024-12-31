@@ -1487,19 +1487,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  List<ITransaction> transactions(
-      {DateTime? startDate,
-      DateTime? endDate,
-      String? status,
-      String? transactionType,
-      int? branchId,
-      bool isExpense = false,
-      bool includePending = false}) {
-    // TODO: implement transactions
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<void> updateStock(
       {required String stockId,
       double? qty,
@@ -1510,12 +1497,6 @@ class Capella with Booting implements RealmInterface {
       double? value,
       DateTime? lastTouched}) {
     // TODO: implement updateStock
-    throw UnimplementedError();
-  }
-
-  @override
-  Variant? variant({String? variantId, String? name}) {
-    // TODO: implement variant
     throw UnimplementedError();
   }
 
@@ -1842,16 +1823,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<List<brick.Variant>> variants(
-      {required int branchId,
-      String? productId,
-      int? page,
-      int? itemsPerPage}) {
-    // TODO: implement variants
-    throw UnimplementedError();
-  }
-
-  @override
   Stream<List<brick.TransactionItem>> transactionItemsStreams(
       {String? transactionId,
       required int branchId,
@@ -1912,6 +1883,34 @@ class Capella with Booting implements RealmInterface {
   Future<brick.Customer?> addCustomer(
       {required brick.Customer customer, String? transactionId}) {
     // TODO: implement addCustomer
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Variant>> variants(
+      {required int branchId,
+      String? productId,
+      String? variantId,
+      int? page,
+      int? itemsPerPage,
+      String? name}) {
+    // TODO: implement variants
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<List<brick.ITransaction>> transactions(
+      {DateTime? startDate,
+      DateTime? endDate,
+      String? status,
+      String? transactionType,
+      bool isCashOut = false,
+      String? id,
+      FilterType? filterType,
+      int? branchId,
+      bool isExpense = false,
+      bool includePending = false}) {
+    // TODO: implement transactions
     throw UnimplementedError();
   }
 }

@@ -239,8 +239,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   Future<void> _deleteCompositeItems(
       TransactionItem item, bool isOrdering) async {
     try {
-      Variant? variant =
-          ProxyService.strategy.variant(variantId: item.variantId!);
+      Variant? variant = (await ProxyService.strategy.variants(
+              variantId: item.variantId!,
+              branchId: ProxyService.box.getBranchId()!))
+          .firstOrNull;
       final composites =
           ProxyService.strategy.composites(productId: variant!.productId!);
 

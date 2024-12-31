@@ -1302,8 +1302,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
       final results =
           await Future.wait(queries.map((query) => repository.get<Customer>(
+                policy: OfflineFirstGetPolicy.alwaysHydrate,
                 query: query,
-                policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
               )));
 
       return results.expand((customers) => customers).toList();
@@ -1645,17 +1645,42 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<({double expense, double income})> getTransactionsAmountsSum(
-      {required String period}) {
-    // TODO: implement getTransactionsAmountsSum
-    throw UnimplementedError(
-        "getTransactionsAmountsSum method is not implemented yet");
-  }
+      {required String period}) async {
+    DateTime oldDate;
+    DateTime temporaryDate;
 
-  @override
-  Variant? getVariantByProductId({required String productId}) {
-    // TODO: implement getVariantByProductId
-    throw UnimplementedError(
-        "getVariantByProductId method is not implemented yet");
+    if (period == 'Today') {
+      DateTime tempToday = DateTime.now();
+      oldDate = DateTime(tempToday.year, tempToday.month, tempToday.day);
+    } else if (period == 'This Week') {
+      oldDate = DateTime.now().subtract(Duration(days: 7));
+    } else if (period == 'This Month') {
+      oldDate = DateTime.now().subtract(Duration(days: 30));
+    } else {
+      oldDate = DateTime.now().subtract(Duration(days: 365));
+    }
+
+    List<ITransaction> transactionsList = await transactions();
+
+    List<ITransaction> filteredTransactions = [];
+    for (final transaction in transactionsList) {
+      temporaryDate = DateTime.parse(transaction.createdAt!);
+      if (temporaryDate.isAfter(oldDate)) {
+        filteredTransactions.add(transaction);
+      }
+    }
+
+    double sum_cash_in = 0;
+    double sum_cash_out = 0;
+    for (final transaction in filteredTransactions) {
+      if (transaction.transactionType == 'Cash Out') {
+        sum_cash_out = transaction.subTotal! + sum_cash_out;
+      } else {
+        sum_cash_in = transaction.subTotal! + sum_cash_in;
+      }
+    }
+
+    return (income: sum_cash_in, expense: sum_cash_out);
   }
 
   @override
@@ -2511,8 +2536,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               if (separator.length < 3) return;
               if (separator[2] == "variant") {
                 final variantId = separator[3];
-                Variant? variant =
-                    ProxyService.strategy.variant(variantId: variantId);
+                Variant? variant = (await variants(
+                        variantId: variantId,
+                        branchId: ProxyService.box.getBranchId()!))
+                    .firstOrNull;
                 if (variant != null) {
                   variant.ebmSynced = true;
                   repository.upsert<Variant>(variant);
@@ -2760,16 +2787,32 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  List<ITransaction> transactions(
+  FutureOr<List<ITransaction>> transactions(
       {DateTime? startDate,
       DateTime? endDate,
       String? status,
       String? transactionType,
       int? branchId,
+      bool isCashOut = false,
+      String? id,
+      FilterType? filterType,
       bool isExpense = false,
-      bool includePending = false}) {
-    // TODO: implement transactions
-    throw UnimplementedError("transactions method is not implemented yet");
+      bool includePending = false}) async {
+    final List<brick.Where> conditions = [
+      brick.Where('status').isExactly(status ?? COMPLETE),
+      brick.Where('subTotal').isGreaterThan(0),
+      if (id != null) brick.Where('id').isExactly(id),
+      // if (filterType != null) brick.Where('filterType').isExactly(filterType),
+      if (branchId != null) brick.Where('branchId').isExactly(branchId),
+      if (isCashOut) brick.Where('isExpense').isExactly(true),
+      if (startDate != null && endDate != null)
+        brick.Where('lastTouched').isBetween(startDate, endDate),
+    ];
+
+    final queryString = brick.Query(where: conditions);
+    final repository = brick.Repository();
+
+    return await repository.get<ITransaction>(query: queryString);
   }
 
   @override
@@ -2788,7 +2831,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       brick.Where('status').isExactly(status ?? COMPLETE),
       brick.Where('subTotal').isGreaterThan(0),
       if (id != null) brick.Where('id').isExactly(id),
-      if (filterType != null) brick.Where('filterType').isExactly(filterType),
+      // if (filterType != null) brick.Where('filterType').isExactly(filterType),
       if (branchId != null) brick.Where('branchId').isExactly(branchId),
       if (isCashOut) brick.Where('isExpense').isExactly(true),
       if (startDate != null && endDate != null)
@@ -3323,44 +3366,35 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Variant? variant({String? variantId, String? name}) {
-    // TODO: implement variant
-    throw UnimplementedError("variant method is not implemented yet");
-  }
-
-  @override
   Future<List<Variant>> variants(
       {required int branchId,
       String? productId,
       int? page,
+      String? variantId,
+      String? name,
       int? itemsPerPage}) async {
-    List<Variant> variants = [];
-
-    if (productId != null) {
-      variants = await repository.get<Variant>(
-          query: brick.Query(where: [
-        brick.Where('productId').isExactly(productId),
+    // if (variants.isEmpty) {
+    //   variants = await repository.get<Variant>(
+    //       query: brick.Query(where: [
+    //     brick.Where('branchIds').contains(branchId),
+    //     brick.Where('retailPrice').isGreaterThan(0),
+    //     brick.Where('name').isNot(TEMP_PRODUCT),
+    //   ]));
+    // }
+    List<Variant> variants = await repository.get<Variant>(
+        query: brick.Query(where: [
+      if (variantId != null)
+        brick.Where('id').isExactly(variantId)
+      else ...[
         brick.Where('branchId').isExactly(branchId),
-        brick.Where('productName').isNot(CUSTOM_PRODUCT),
-        brick.Where('name').isNot(TEMP_PRODUCT),
-      ]));
-    } else {
-      variants = await repository.get<Variant>(
-          query: brick.Query(where: [
-        brick.Where('branchId').isExactly(branchId),
-        brick.Where('productName').isNot(CUSTOM_PRODUCT),
-        brick.Where('name').isNot(TEMP_PRODUCT),
-      ]));
-    }
-
-    if (variants.isEmpty) {
-      variants = await repository.get<Variant>(
-          query: brick.Query(where: [
-        brick.Where('branchIds').contains(branchId),
         brick.Where('retailPrice').isGreaterThan(0),
         brick.Where('name').isNot(TEMP_PRODUCT),
-      ]));
-    }
+        brick.Where('productName').isNot(CUSTOM_PRODUCT),
+        if (productId != null) brick.Where('productId').isExactly(productId),
+        if (name != null) brick.Where('name').isExactly(name),
+      ]
+    ]));
+    ;
 
     if (page != null && itemsPerPage != null) {
       final offset = page * itemsPerPage;
@@ -3580,7 +3614,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   FutureOr<List<Access>> access(
       {required int userId, String? featureName}) async {
     return await repository.get<Access>(
-        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
+      query: brick.Query(
+        where: [
+          brick.Where('userId').isExactly(userId),
+          if (featureName != null)
+            brick.Where('featureName').isExactly(featureName),
+        ],
+        orderBy: [brick.OrderBy('id', ascending: true)],
+      ),
+    );
   }
 
   @override

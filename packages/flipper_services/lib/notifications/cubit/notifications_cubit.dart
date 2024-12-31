@@ -10,7 +10,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart'
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:intl/intl.dart';
 import 'package:launcher_entry/launcher_entry.dart';
-// import 'package:local_notifier/local_notifier.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:window_manager/window_manager.dart';
@@ -21,10 +20,7 @@ import '../notifications.dart';
 part 'notifications_state.dart';
 part 'notifications_cubit.freezed.dart';
 
-/// Cubit for managing notifications.
-// class NotificationsCubit extends Cubit<NotificationsState> {
 class NotificationsCubit {
-  /// Plugin instance.
   final FlutterLocalNotificationsPlugin _notificationsPlugin;
 
   NotificationsCubit._(
@@ -35,7 +31,6 @@ class NotificationsCubit {
   }
   static late NotificationsCubit instance;
 
-  /// Initialize the cubit.
   static Future<NotificationsCubit> initialize({
     required FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
   }) async {
@@ -54,6 +49,10 @@ class NotificationsCubit {
         android: initSettingsAndroid,
         iOS: initSettingsDarwin,
         macOS: initSettingsDarwin,
+        windows: WindowsInitializationSettings(
+            appName: "flipper",
+            appUserModelId: localTimeZoneName,
+            guid: "0E6A8A0A-B5A6-4E0B-A9B8-D1D5D0D3D4D5"),
         linux: initSettingsLinux);
 
     await flutterLocalNotificationsPlugin.initialize(
@@ -62,10 +61,6 @@ class NotificationsCubit {
           _notificationBackgroundCallback,
       onDidReceiveNotificationResponse: _notificationCallback,
     );
-
-    if (isWindows) {
-      // await localNotifier.setup(appName: kPackageId);
-    }
 
     return NotificationsCubit._(
       flutterLocalNotificationsPlugin,
@@ -107,43 +102,26 @@ class NotificationsCubit {
     urgency: LinuxNotificationUrgency.critical,
   );
 
-  /// Notification timers.
-  ///
-  /// This is a map of task ids to timers. The timers are used to schedule
-  /// notifications for tasks on desktop.
   final _timers = <String, Timer>{};
 
-  /// Cancel a notification.
   Future<void> cancelNotification(int id) async {
     await _notificationsPlugin.cancel(id);
   }
 
-  /// Set the taskbar and system tray icon notification badge.
-  ///
-  /// Only works on Linux and Windows.
   Future<void> setNotificationBadge(int count) async {
-    //if (state.overdueTasksCount == count) return;
-
     if (isLinux) {
       await _setNotificationBadgeLinux(count);
     } else if (isWindows) {
       await _setNotificationBadgeWindows(count);
     }
-
-    //emit(state.copyWith(overdueTasksCount: count));
   }
 
-  /// Schedule a notification for a task.
-  ///
-  /// This will only schedule a notification if notifications are enabled and
-  /// permission has been granted.
   bool permissionGranted = false;
   Future<void> scheduleNotification(Conversation conversation) async {
     if (!(await _requestPermission())!) {
       return;
     }
 
-    // The due date in local time and user-friendly format: 'March 1, 2021 12:00 AM'
     final createdAt = DateTime.parse(
             conversation.createdAt ?? DateTime.now().toIso8601String())
         .toLocal();
@@ -171,21 +149,12 @@ class NotificationsCubit {
     }
   }
 
-  /// Show a notification.
-  ///
-  /// This will only show a notification if notifications are enabled and
-  /// permission has been granted.
-  ///
-  /// [id] is a unique identifier for the notification. If not specified, a
-  /// random id will be generated. The id must fit within a 32-bit integer.
   Future<void> showNotification({
     int? id,
     required String title,
     required String body,
     String? payload,
   }) async {
-    // log.v('Showing notification: $title, $body, $payload');
-
     id ??= _generateNotificationId();
 
     const notificationDetails = NotificationDetails(
@@ -204,25 +173,15 @@ class NotificationsCubit {
     );
   }
 
-  /// Snooze a task's notification.
   Future<void> snoozeTask(Conversation task) async {
-    // log.v('Snoozing notification for task: ${task.id}');
     await cancelNotification(task.id.toString().codeUnitAt(0));
-    // const snoozeDuration = Duration(minutes: 10);
-    // final snoozeTime = DateTime.now().add(snoozeDuration);
-    // final updatedTask = task.copyWith(dueDate: snoozeTime);
-    // await scheduleNotification(updatedTask);
   }
 
-  /// Check if the app was started from a notification.
-  ///
-  /// If so, emit state so we can navigate to the correct screen.
   Future<void> _checkAppStartup() async {
-    // Currently only supported on Android.
     if (defaultTargetPlatform != TargetPlatform.android) return;
 
-    final appLaunchDetails = await _notificationsPlugin //
-        .getNotificationAppLaunchDetails();
+    final appLaunchDetails =
+        await _notificationsPlugin.getNotificationAppLaunchDetails();
 
     final notificationResponse = appLaunchDetails?.notificationResponse;
 
@@ -231,37 +190,26 @@ class NotificationsCubit {
         notificationResponse == null) {
       return;
     }
-
-    // log.i('App started from notification');
   }
 
-  /// Generate a random id for a notification.
-  ///
-  /// The id will fit within a 32-bit integer as required by the plugin.
   int _generateNotificationId() {
     return Random().nextInt(1 << 30);
   }
 
-  /// Request permission to show notifications.
   Future<bool?> _requestPermission() async {
-    // Currently only Android requires permission.
     if (defaultTargetPlatform != TargetPlatform.android) {
       return true;
     }
 
-    final androidPlugin = _notificationsPlugin //
-        .resolvePlatformSpecificImplementation //
-        <AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin =
+        _notificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidPlugin == null) return false;
 
     return await androidPlugin.requestNotificationsPermission();
   }
 
-  /// Schedule a notification on desktop.
-  ///
-  /// This will create a timer that will show the notification when the timer
-  /// expires.
   Future<void> _scheduleNotificationDesktop(Notification notification) async {
     if (isWindows) {
       await _scheduleNotificationWindows(notification);
@@ -270,17 +218,12 @@ class NotificationsCubit {
 
     final task = IConversation.fromJson(jsonDecode(notification.payload!));
 
-    // log.v('Scheduling notification for task: ${task.id}');
-
     final dueDate = task.createdAt;
     if (dueDate == null) {
-      // log.v('Task has no due date. Not scheduling notification.');
       return;
     }
 
-    // If the task is already overdue, show the notification immediately.
     if (DateTime.parse(dueDate).isBefore(DateTime.now())) {
-      // log.v('Task is already overdue. Showing notification immediately.');
       await showNotification(
         id: notification.id,
         title: notification.title,
@@ -293,7 +236,6 @@ class NotificationsCubit {
     final timer = Timer(
       DateTime.parse(dueDate).difference(DateTime.now()),
       () async {
-        // log.v('Showing scheduled notification for task: ${task.id}');
         await showNotification(
           id: notification.id,
           title: notification.title,
@@ -304,19 +246,14 @@ class NotificationsCubit {
     );
 
     _timers[task.id.toString()] = timer;
-    // log.v('Scheduled notification for task: ${task.id}');
   }
 
-  /// Schedule a notification on mobile.
-  ///
-  /// This will register a notification with the OS.
   Future<void> _scheduleNotificationMobile(Notification notification) async {
     final conversation =
         IConversation.fromJson(jsonDecode(notification.payload!));
 
     final createdAt = conversation.createdAt;
     if (createdAt == null) {
-      // log.v('Task has no due date. Not scheduling notification.');
       return;
     }
 
@@ -339,15 +276,6 @@ class NotificationsCubit {
     );
   }
 
-  /// Schedule a notification with the host OS.
-  ///
-  /// [id] is a unique identifier for the notification. If not specified, a
-  /// random id will be generated. The id must fit within a 32-bit integer.
-  ///
-  /// [scheduledDate] is the date and time the notification should be shown.
-  ///
-  /// [payload] is an optional string that will be passed to the app when the
-  /// notification is tapped.
   Future<void> _scheduleNotificationWithSystem({
     required int id,
     required String title,
@@ -355,8 +283,6 @@ class NotificationsCubit {
     required DateTime scheduledDate,
     String? payload,
   }) async {
-    // log.v('Scheduling notification: $title');
-
     const notificationDetails = NotificationDetails(
       android: _androidNotificationDetails,
       iOS: _iOSNotificationDetails,
@@ -371,81 +297,44 @@ class NotificationsCubit {
       tz.TZDateTime.from(scheduledDate, tz.local),
       notificationDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      // uiLocalNotificationDateInterpretation:
-      //     UILocalNotificationDateInterpretation.absoluteTime,
       payload: payload,
     );
   }
 
-  /// Schedule a notification on Windows.
-  ///
-  /// The `flutter_local_notifications` plugin does not support Windows yet.
-  /// See: https://github.com/MaikuB/flutter_local_notifications/issues/746
-  ///
-  /// When the plugin is updated, this method should be removed and
-  /// `_scheduleNotificationDesktop` should be used instead.
   Future<void> _scheduleNotificationWindows(Notification notification) async {
     final conversation =
         IConversation.fromJson(jsonDecode(notification.payload!));
-    // log.v('Scheduling notification for task: ${task.id}');
 
     final createdAt = conversation.createdAt;
 
     if (createdAt == null) {
-      // log.v('Task has no due date. Not scheduling notification.');
       return;
     }
 
-    // final localNotification = LocalNotification(
-    //   identifier: conversation.id.toString(),
-    //   title: conversation.body,
-    //   body: conversation.body,
-    // );
-
-    // localNotification.onClick = () {
-    //   _notificationCallback(NotificationResponse(
-    //     notificationResponseType: NotificationResponseType.selectedNotification,
-    //     id: conversation.id.toString().codeUnitAt(0),
-    //     payload: jsonEncode(conversation.toJson()),
-    //   ));
-    // };
-
-    // If the task is already overdue, show the notification immediately.
     if (DateTime.parse(createdAt).isBefore(DateTime.now())) {
-      // log.v('Task is already overdue. Showing notification immediately.');
-      // localNotification.show();
       return;
     }
 
     final timer = Timer(
       DateTime.parse(createdAt).difference(DateTime.now()),
-      () async {
-        // log.v('Showing scheduled notification for task: ${task.id}');
-        // localNotification.show();
-      },
+      () async {},
     );
 
     _timers[conversation.id.toString()] = timer;
-    // log.v('Scheduled notification for task: ${task.id}');
   }
 
-  /// Set the notification badges on Linux.
   Future<void> _setNotificationBadgeLinux(int count) async {
     await _setNotificationBadgeLinuxTaskbar(count);
     await _setNotificationBadgeLinuxSystemTray(count);
   }
 
-  /// Set the notification badge on the Linux taskbar.
   Future<void> _setNotificationBadgeLinuxTaskbar(int count) async {
-    /// Linux uses the Unity API to set the badge count.
-    /// See: https://wiki.ubuntu.com/Unity/LauncherAPI
     final service = LauncherEntryService(
       appUri: 'application://$kPackageId.desktop',
     );
     await service.update(count: count, countVisible: true);
   }
 
-  /// Set the notification badge on the Linux system tray.
   Future<void> _setNotificationBadgeLinuxSystemTray(int count) async {
     final icon = (count > 0)
         ? AppIcons.linuxSymbolicWithNotificationBadge
@@ -454,22 +343,18 @@ class NotificationsCubit {
     await SystemTrayManager.instance.setIcon(icon);
   }
 
-  /// Set the notification badge on Windows.
   Future<void> _setNotificationBadgeWindows(int count) async {
     await _setNotificationBadgeWindowsTaskbar(count);
     await _setNotificationBadgeWindowsSystemTray(count);
   }
 
-  /// Set the notification badge on the Windows taskbar.
   Future<void> _setNotificationBadgeWindowsTaskbar(int count) async {
     final icon =
         (count > 0) ? AppIcons.windowsWithNotificationBadge : AppIcons.windows;
 
-    // await TaskbarManager.instance.setIcon(icon);
     await windowManager.setIcon(icon);
   }
 
-  /// Set the notification badge on the Windows system tray.
   Future<void> _setNotificationBadgeWindowsSystemTray(int count) async {
     final icon = (count > 0)
         ? AppIcons.windowsSymbolicWithNotificationBadge
@@ -498,16 +383,9 @@ void _notificationBackgroundCallback(NotificationResponse response) {
 Future<void> _notificationCallback(NotificationResponse response) async {
   switch (response.notificationResponseType) {
     case NotificationResponseType.selectedNotification:
-      if (isWindows || isLinux) {
-        // On desktop, the app is already running so we can just show the window.
-        // await AppWindow.instance.show();
-        // await AppWindow.instance.focus();
-      }
-
       notificationResponseStream.add(response);
       break;
     case NotificationResponseType.selectedNotificationAction:
-      // response.actionId will be either `complete` or `snooze`.
       notificationResponseStream.add(response);
       break;
   }

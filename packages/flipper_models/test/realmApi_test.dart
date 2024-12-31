@@ -14,8 +14,8 @@ void main() {
       // CreateMockdata().mockTransactions(realm: ProxyService.strategy.realm!);
     });
 
-    test('Test Query Test Query Transaction By Date', () {
-      final result = ProxyService.strategy.transactions(
+    test('Test Query Test Query Transaction By Date', () async {
+      final result = await ProxyService.strategy.transactions(
         isExpense: false,
         branchId: 1,
         status: COMPLETE,
@@ -23,16 +23,16 @@ void main() {
       );
       expect(result.length, 1000);
     });
-    test('Test Query Transactions Without Dates', () {
-      final result = ProxyService.strategy.transactions(
+    test('Test Query Transactions Without Dates', () async {
+      final result =await ProxyService.strategy.transactions(
         isExpense: false,
         branchId: 1,
         status: COMPLETE,
       );
       expect(result.length, 1000);
     });
-    test('Test Query Transactions With Start Date Only', () {
-      final result = ProxyService.strategy.transactions(
+    test('Test Query Transactions With Start Date Only', () async {
+      final result = await ProxyService.strategy.transactions(
         isExpense: false,
         branchId: 1,
         status: COMPLETE,
@@ -40,8 +40,8 @@ void main() {
       );
       expect(result.length, 1000);
     });
-    test('Test Query Transactions With End Date Only', () {
-      final result = ProxyService.strategy.transactions(
+    test('Test Query Transactions With End Date Only', () async {
+      final result =await ProxyService.strategy.transactions(
         isExpense: false,
         branchId: 1,
         status: COMPLETE,
@@ -49,8 +49,8 @@ void main() {
       );
       expect(result.length, 1000);
     });
-    test('Test Query Transactions With Date Range', () {
-      final result = ProxyService.strategy.transactions(
+    test('Test Query Transactions With Date Range', () async {
+      final result =await ProxyService.strategy.transactions(
         isExpense: false,
         branchId: 1,
         status: COMPLETE,
@@ -60,16 +60,16 @@ void main() {
       expect(result.length, 1000);
     });
 
-    test('Test Query Transactions With isExpense True', () {
-      final result = ProxyService.strategy.transactions(
+    test('Test Query Transactions With isExpense True', () async {
+      final result =await ProxyService.strategy.transactions(
         isExpense: true,
         branchId: 1,
         status: COMPLETE,
       );
       expect(result.length, 0);
     });
-    test('Test Query Transactions With Date Range and isExpense True', () {
-      final result = ProxyService.strategy.transactions(
+    test('Test Query Transactions With Date Range and isExpense True', () async {
+      final result =await ProxyService.strategy.transactions(
         isExpense: true,
         branchId: 1,
         status: COMPLETE,
@@ -78,24 +78,24 @@ void main() {
       );
       expect(result.length, 0);
     });
-    test('Test Query Transactions With No Matching Criteria', () {
-      final result = ProxyService.strategy.transactions(
+    test('Test Query Transactions With No Matching Criteria', () async {
+      final result =await ProxyService.strategy.transactions(
         isExpense: false,
         branchId: 2,
         status: COMPLETE,
       );
       expect(result.isEmpty, true);
     });
-    test('Test Query Transactions With Different Status', () {
-      final result = ProxyService.strategy.transactions(
+    test('Test Query Transactions With Different Status', () async {
+      final result =await ProxyService.strategy.transactions(
         isExpense: false,
         branchId: 1,
         status: PENDING,
       );
       expect(result.length, 0);
     });
-    test('Test Query Transactions Including Pending', () {
-      final result = ProxyService.strategy.transactions(
+    test('Test Query Transactions Including Pending', () async {
+      final result =await ProxyService.strategy.transactions(
         isExpense: false,
         branchId: 1,
         status: COMPLETE,
@@ -103,8 +103,8 @@ void main() {
       );
       expect(result.length, 1000);
     });
-    test('Test Query Transactions With Empty Parameters', () {
-      final result = ProxyService.strategy.transactions();
+    test('Test Query Transactions With Empty Parameters', () async {
+      final result =await ProxyService.strategy.transactions();
       expect(result.length, 0);
     });
   });

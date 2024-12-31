@@ -46,13 +46,13 @@ mixin Booting {
       tenant.permissions,
       usenewVersion: usenewVersion,
     );
-    await addOrUpdateTenantInRealm(
+    await addOrUpdateTenant(
       iTenant,
       userId,
     );
   }
 
-  Future<void> addOrUpdateTenantInRealm(
+  Future<void> addOrUpdateTenant(
     Tenant iTenant,
     String userId,
   ) async {
@@ -92,7 +92,7 @@ mixin Booting {
                 .access(userId: permission.userId, featureName: featureName);
 
             if (existingAccess.isEmpty) {
-              ProxyService.strategy.addAccess(
+              await ProxyService.strategy.addAccess(
                 branchId: ProxyService.box.getBranchId()!,
                 businessId: ProxyService.box.getBusinessId()!,
                 userId: permission.userId,

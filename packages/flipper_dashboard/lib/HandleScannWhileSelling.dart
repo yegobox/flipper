@@ -29,7 +29,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     /// selling mode.
     if (!ref.read(toggleProvider.notifier).state) {
       if (value.isNotEmpty) {
-        Variant? variant = ProxyService.strategy.variant(name: value);
+        Variant? variant = (await ProxyService.strategy.variants(name: value,branchId: ProxyService.box.getBranchId()!)).firstOrNull;
         if (variant != null) {
           ITransaction currentTransaction = await ProxyService.strategy
               .manageTransaction(

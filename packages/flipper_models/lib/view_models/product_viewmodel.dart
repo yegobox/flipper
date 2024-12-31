@@ -1,8 +1,6 @@
 library flipper_models;
 
 import 'dart:developer';
-
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -249,7 +247,9 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   void deleteVariant({required String id}) async {
-    Variant? variant = await ProxyService.strategy.variant(variantId: id);
+    Variant? variant = (await ProxyService.strategy
+            .variants(variantId: id, branchId: ProxyService.box.getBranchId()!))
+        .firstOrNull;
     // can not delete regular variant every product should have a regular variant.
     if (variant!.name != 'Regular') {
       ProxyService.strategy.delete(

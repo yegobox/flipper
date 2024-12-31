@@ -65,11 +65,14 @@ abstract class RealmInterface {
   Future<double> totalStock({String? productId, String? variantId});
   Stream<double> getStockStream(
       {String? productId, String? variantId, required int branchId});
-  List<ITransaction> transactions({
+  FutureOr<List<ITransaction>> transactions({
     DateTime? startDate,
     DateTime? endDate,
     String? status,
     String? transactionType,
+    bool isCashOut = false,
+    String? id,
+    FilterType? filterType,
     int? branchId,
     bool isExpense = false,
     bool includePending = false,
@@ -98,11 +101,12 @@ abstract class RealmInterface {
   Future<List<Variant>> variants({
     required int branchId,
     String? productId,
+    String? variantId,
     int? page,
     int? itemsPerPage,
+    String? name,
   });
   FutureOr<Configurations?> getByTaxType({required String taxtype});
-  Variant? variant({String? variantId, String? name});
 
   FutureOr<void> addAccess({
     required int userId,
@@ -287,7 +291,7 @@ abstract class RealmInterface {
   Future<Receipt?> getReceipt({required String transactionId});
 
   Future<void> refund({required int itemId});
-  Variant? getVariantByProductId({required String productId});
+  // Variant? getVariantByProductId({required String productId});
 
   Future<int> size<T>({required T object});
   Future<Counter?> getCounter(
@@ -317,7 +321,7 @@ abstract class RealmInterface {
   FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});
   Stream<List<Variant>> geVariantStreamByProductId({required String productId});
 
-  Future<({double income, double expense})> getTransactionsAmountsSum(
+  FutureOr<({double income, double expense})> getTransactionsAmountsSum(
       {required String period});
   Future<
       ({

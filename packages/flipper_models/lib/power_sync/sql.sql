@@ -400,7 +400,6 @@ CREATE TABLE public.codes (
 DROP TABLE IF EXISTS public.accesses;
 CREATE TABLE public.accesses (
    id UUID PRIMARY KEY,
-  name text,
   user_id bigint,
    branch_id BIGINT NOT NULL,
    business_id BIGINT NOT NULL,

@@ -210,8 +210,10 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           /// for the API to call the saveItem endpoint
           /// find variant
           talker.warning("Created Product ${product!.id}");
-          brick.Variant? variant = await ProxyService.strategy
-              .getVariantByProductId(productId: product.id);
+          brick.Variant? variant = (await ProxyService.strategy.variants(
+                  productId: product.id,
+                  branchId: ProxyService.box.getBranchId()!))
+              .firstOrNull;
           talker.warning("Variant ${variant?.id}");
           pendingTransaction = await ProxyService.strategy.manageTransaction(
             transactionType: TransactionType.purchase,

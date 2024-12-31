@@ -468,7 +468,9 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<Variant?> getVariant({required String variantId}) async {
-    return await ProxyService.strategy.variant(variantId: variantId);
+    return (await ProxyService.strategy.variants(
+            variantId: variantId, branchId: ProxyService.box.getBranchId()!))
+        .firstOrNull;
   }
 
   void toggleCheckbox({required String variantId}) {
