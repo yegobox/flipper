@@ -12,7 +12,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-
 class CronService {
   final drive = GoogleDrive();
   bool doneInitializingDataPull = false;
@@ -31,6 +30,15 @@ class CronService {
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
     await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
+    Timer.periodic(Duration(seconds: kDebugMode ? 10 : 40), (Timer t) async {
+      if (ProxyService.strategy.sendPort != null) {
+        try {
+          ProxyService.strategy.sendMessageToIsolate();
+        } catch (e) {
+          talker.error(e);
+        }
+      }
+    });
     Timer.periodic(Duration(minutes: 10), (Timer t) async {
       final URI = await ProxyService.box.getServerUrl();
       final tinNumber = ProxyService.box.tin();
@@ -68,15 +76,7 @@ class CronService {
         },
       );
     });
-    Timer.periodic(Duration(seconds: 40), (Timer t) async {
-      if (ProxyService.strategy.sendPort != null) {
-        try {
-          ProxyService.strategy.sendMessageToIsolate();
-        } catch (e) {
-          talker.error(e);
-        }
-      }
-    });
+
     ProxyService.box.remove(key: "customPhoneNumberForPayment");
     List<ConnectivityResult> results = await Connectivity().checkConnectivity();
 
@@ -92,7 +92,7 @@ class CronService {
       ProxyService.setStrategy(Strategy.bricks);
       ProxyService.strategy.whoAmI();
     }
-  
+
     ProxyService.strategy
         .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
     if (results.any((result) => result != ConnectivityResult.none)) {

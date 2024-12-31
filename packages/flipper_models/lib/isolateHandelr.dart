@@ -3,11 +3,11 @@ import 'dart:isolate';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flipper_models/RealmInterface.dart';
 import 'package:flipper_models/firebase_options.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
 import 'package:flipper_models/helperModels/UniversalProduct.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
@@ -194,6 +194,8 @@ class IsolateHandler with StockPatch {
   static Future<void> handler(List<dynamic> args) async {
     final SendPort sendPort = args[0];
     final RootIsolateToken rootIsolateToken = args[1];
+    // final RealmInterface strategy = args[2];
+
     DartPluginRegistrant.ensureInitialized();
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
 
@@ -207,6 +209,8 @@ class IsolateHandler with StockPatch {
     port.listen((message) async {
       if (message is Map<String, dynamic>) {
         if (message['task'] == 'taxService') {
+          // List<Customer> customers = await strategy.customers(branchId: 1);
+          // print("customers from isolate: ${customers.length}");
           int branchId = message['branchId'];
 
           int businessId = message['businessId'];

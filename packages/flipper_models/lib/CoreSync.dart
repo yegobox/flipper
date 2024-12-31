@@ -1095,7 +1095,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             ? [brick.Where('serverId').isExactly(businessId)]
             : [brick.Where('isDefault').isExactly(true)]);
     final result = await repository.get<models.Business>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
     return result.firstOrNull;
   }
 
@@ -1105,7 +1105,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     final query =
         brick.Query(where: [brick.Where('serverId').isExactly(businessId)]);
     final result = await repository.get<models.Business>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
     return result.firstOrNull;
   }
 
@@ -2563,7 +2563,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         await Isolate.spawn(
           isolateHandler,
           // [receivePort!.sendPort, rootIsolateToken, CouchbaseLite.context],
-          [receivePort!.sendPort, rootIsolateToken],
+          [receivePort!.sendPort, rootIsolateToken, ProxyService.strategy],
           debugName: 'backgroundIsolate',
         );
 
