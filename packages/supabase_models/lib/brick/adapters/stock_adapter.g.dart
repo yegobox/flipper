@@ -13,7 +13,6 @@ Future<Stock> _$StockFromSupabase(Map<String, dynamic> data,
       lowStock: data['low_stock'] as double? ?? 0.0,
       canTrackingStock: data['can_tracking_stock'] as bool? ?? true,
       showLowStockAlert: data['show_low_stock_alert'] as bool? ?? true,
-      productId: data['product_id'] as String?,
       active: data['active'] as bool?,
       value: data['value'] as double?,
       rsdQty: data['rsd_qty'] as double?,
@@ -36,7 +35,6 @@ Future<Map<String, dynamic>> _$StockToSupabase(Stock instance,
     'low_stock': instance.lowStock,
     'can_tracking_stock': instance.canTrackingStock,
     'show_low_stock_alert': instance.showLowStockAlert,
-    'product_id': instance.productId,
     'active': instance.active,
     'value': instance.value,
     'rsd_qty': instance.rsdQty,
@@ -64,8 +62,6 @@ Future<Stock> _$StockFromSqlite(Map<String, dynamic> data,
       showLowStockAlert: data['show_low_stock_alert'] == null
           ? null
           : data['show_low_stock_alert'] == 1,
-      productId:
-          data['product_id'] == null ? null : data['product_id'] as String?,
       active: data['active'] == null ? null : data['active'] == 1,
       value: data['value'] == null ? null : data['value'] as double?,
       rsdQty: data['rsd_qty'] == null ? null : data['rsd_qty'] as double?,
@@ -97,7 +93,6 @@ Future<Map<String, dynamic>> _$StockToSqlite(Stock instance,
     'show_low_stock_alert': instance.showLowStockAlert == null
         ? null
         : (instance.showLowStockAlert! ? 1 : 0),
-    'product_id': instance.productId,
     'active': instance.active == null ? null : (instance.active! ? 1 : 0),
     'value': instance.value,
     'rsd_qty': instance.rsdQty,
@@ -149,10 +144,6 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
     'showLowStockAlert': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'show_low_stock_alert',
-    ),
-    'productId': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'product_id',
     ),
     'active': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -238,12 +229,6 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
       columnName: 'show_low_stock_alert',
       iterable: false,
       type: bool,
-    ),
-    'productId': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'product_id',
-      iterable: false,
-      type: String,
     ),
     'active': const RuntimeSqliteColumnDefinition(
       association: false,

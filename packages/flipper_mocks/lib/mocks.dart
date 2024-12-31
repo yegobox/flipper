@@ -255,13 +255,11 @@ final stockMock = Stock(
   branchId: 11,
 
   currentStock: 0.0,
-  productId: "2",
 )
   ..branchId = 11
   ..currentStock = 0.0
   ..canTrackingStock = false
   ..showLowStockAlert = false
-  ..productId = "2"
   ..active = false;
 
 final AppService _appService = getIt<AppService>();

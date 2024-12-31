@@ -1,21 +1,24 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20241231124414.migration.dart';
 part '20241230124823.migration.dart';
 part '20241231092049.migration.dart';
 part '20241231021147.migration.dart';
+part '20241231124414.migration.dart';
+part '20241231180414.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20241231124414(),
   const Migration20241230124823(),
   const Migration20241231092049(),
-  const Migration20241231021147()
+  const Migration20241231021147(),
+  const Migration20241231124414(),
+  const Migration20241231180414()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20241231124414, generatorVersion: 1, tables: <SchemaTable>{
+final schema =
+    Schema(20241231180414, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -36,7 +39,6 @@ final schema = Schema(20241231124414, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('low_stock', Column.Double),
     SchemaColumn('can_tracking_stock', Column.boolean),
     SchemaColumn('show_low_stock_alert', Column.boolean),
-    SchemaColumn('product_id', Column.varchar),
     SchemaColumn('active', Column.boolean),
     SchemaColumn('value', Column.Double),
     SchemaColumn('rsd_qty', Column.Double),

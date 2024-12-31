@@ -81,7 +81,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     );
     final stock = Stock(
       currentStock: 1,
-      productId: product.id,
       branchId: branchId,
       initialStock: 1,
       showLowStockAlert: true,

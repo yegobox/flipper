@@ -187,17 +187,10 @@ class RWTax with NetworkHelper implements TaxApi {
       if (variant.productName == TEMP_PRODUCT) {
         return RwApiResponse(resultCd: "000", resultMsg: "Invalid product");
       }
-      final object = {
-        "tin": variant.tin!,
-        "bhfId": variant.bhfId!,
-        "itemCd": variant.itemCd!,
-        "rsdQty": variant.stock!.currentStock,
-        "modrNm": variant.modrNm!,
-        "regrId": variant.regrId!,
-        "regrNm": variant.regrNm!,
-        "modrId": variant.modrId!,
-      };
-      Response response = await sendPostRequest(url, object);
+
+      variant.rsdQty = variant.stock!.currentStock;
+      talker.warning("RSD QTY: ${variant.toJson()}");
+      Response response = await sendPostRequest(url, variant.toJson());
 
       final data = RwApiResponse.fromJson(
         response.data,

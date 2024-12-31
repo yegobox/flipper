@@ -299,13 +299,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<int> updateNonRealm<T>(
-      {required T data, required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement updateNonRealm
-    throw UnimplementedError();
-  }
-
-  @override
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) {
     // TODO: implement uploadPdfToS3
     throw UnimplementedError();
@@ -414,14 +407,6 @@ class Capella with Booting implements RealmInterface {
   Future<List<PColor>> colors({required int branchId}) {
     // TODO: implement colors
     throw UnimplementedError();
-  }
-
-  @override
-  void createNewStock(
-      {required Variant variant,
-      required TransactionItem item,
-      required int subBranchId}) {
-    // TODO: implement createNewStock
   }
 
   @override
@@ -695,12 +680,6 @@ class Capella with Booting implements RealmInterface {
   Future<({double expense, double income})> getTransactionsAmountsSum(
       {required String period}) {
     // TODO: implement getTransactionsAmountsSum
-    throw UnimplementedError();
-  }
-
-  @override
-  Variant? getVariantByProductId({required String productId}) {
-    // TODO: implement getVariantByProductId
     throw UnimplementedError();
   }
 
@@ -979,24 +958,6 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<List<UnversalProduct>> universalProductNames({required int branchId}) {
     // TODO: implement universalProductNames
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Device>> unpublishedDevices({required int businessId}) {
-    // TODO: implement unpublishedDevices
-    throw UnimplementedError();
-  }
-
-  @override
-  void upSert() {
-    // TODO: implement upSert
-  }
-
-  @override
-  Future<bool> updateContact(
-      {required Map<String, dynamic> contact, required int businessId}) {
-    // TODO: implement updateContact
     throw UnimplementedError();
   }
 
@@ -1800,23 +1761,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  void createVariant({
-    required String barCode,
-    required String sku,
-    required String productId,
-    required int branchId,
-    required double retailPrice,
-    required double supplierPrice,
-    required double qty,
-    required String color,
-    required int tinNumber,
-    required int itemSeq,
-    required String name,
-  }) {
-    // TODO: implement createVariant
-  }
-
-  @override
   FutureOr<void> updateVariant(
       {required List<brick.Variant> updatables,
       String? color,
@@ -1896,6 +1840,32 @@ class Capella with Booting implements RealmInterface {
   Future<void> createOrUpdateBranchOnCloud(
       {required brick.Branch branch, required bool isOnline}) {
     // TODO: implement createOrUpdateBranchOnCloud
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> createNewStock(
+      {required brick.Variant variant,
+      required brick.TransactionItem item,
+      required int subBranchId}) {
+    // TODO: implement createNewStock
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> createVariant(
+      {required String barCode,
+      required String sku,
+      required String productId,
+      required int branchId,
+      required double retailPrice,
+      required double supplierPrice,
+      required double qty,
+      required String color,
+      required int tinNumber,
+      required int itemSeq,
+      required String name}) {
+    // TODO: implement createVariant
     throw UnimplementedError();
   }
 }

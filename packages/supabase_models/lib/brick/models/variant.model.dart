@@ -233,6 +233,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'spplrItemNm': spplrItemNm,
       'ebmSynced': ebmSynced,
       'dcRt': dcRt,
+      'rsdQty': rsdQty,
     };
   }
 }

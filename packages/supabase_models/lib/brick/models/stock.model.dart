@@ -11,9 +11,8 @@ class Stock extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
-  // String? variantId;
-
   int? tin;
+
   String? bhfId;
 
   /// we kee both branchId and businessId as int as we are storing in it
@@ -28,7 +27,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
   bool? canTrackingStock;
   @Supabase(defaultValue: "true")
   bool? showLowStockAlert;
-  String? productId;
+
   bool? active;
   double? value;
   double? rsdQty;
@@ -49,7 +48,6 @@ class Stock extends OfflineFirstWithSupabaseModel {
     this.lowStock,
     this.canTrackingStock,
     this.showLowStockAlert,
-    this.productId,
     this.active,
     this.value,
     this.rsdQty,

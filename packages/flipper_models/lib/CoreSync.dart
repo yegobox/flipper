@@ -299,7 +299,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               rsdQty: stock?.rsdQty ?? 0,
               value: (variation.stock?.rsdQty ?? 0 * (variation.retailPrice!))
                   .toDouble(),
-              productId: variation.productId,
               active: false);
 
           await repository.upsert<Stock>(stock);
@@ -322,16 +321,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         await repository.upsert<Variant>(variant);
       } else {
         final newStock = Stock(
-            lastTouched: DateTime.now(),
-            branchId: branchId,
-            rsdQty: variation.stock?.rsdQty ?? 0,
-            initialStock: variation.stock?.initialStock ?? 0,
-            currentStock: variation.stock?.currentStock ?? 0,
-            value:
-                (variation.stock?.currentStock ?? 0 * (variation.retailPrice!))
-                    .toDouble(),
-            active: true,
-            productId: variation.productId);
+          lastTouched: DateTime.now(),
+          branchId: branchId,
+          rsdQty: variation.stock?.rsdQty ?? 0,
+          initialStock: variation.stock?.initialStock ?? 0,
+          currentStock: variation.stock?.currentStock ?? 0,
+          value: (variation.stock?.currentStock ?? 0 * (variation.retailPrice!))
+              .toDouble(),
+          active: true,
+        );
 
         /// for relationship we save stock first then variant
         await repository.upsert<Stock>(newStock);
@@ -718,8 +716,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           lastTouched: DateTime.now(),
           // variant: newVariant,
           branchId: branchId,
-          currentStock: qty,
-          productId: kProduct!.id);
+          currentStock: qty);
 
       await repository.upsert<Stock>(stock);
     }
@@ -1345,12 +1342,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             qtyUnitCd: "U");
 
         Stock stock = Stock(
-            lastTouched: DateTime.now(),
-            id: stockId,
-            branchId: branchId,
-            // variantId: variantId,
-            currentStock: 0,
-            productId: product.id)
+          lastTouched: DateTime.now(),
+          id: stockId,
+          branchId: branchId,
+          // variantId: variantId,
+          currentStock: 0,
+        )
           ..canTrackingStock = false
           ..showLowStockAlert = false
           ..currentStock = 0
@@ -1360,7 +1357,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           ..canTrackingStock = true
           ..showLowStockAlert = true
           ..active = false
-          ..productId = product.id
           ..rsdQty = 0;
 
         repository.upsert<Variant>(variant);
@@ -3851,7 +3847,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       currentStock: currentStock,
       rsdQty: rsdQty,
       value: value,
-      productId: variant!.productId,
     );
     await repository.upsert<Stock>(stock);
   }
@@ -4563,7 +4558,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       currentStock: item.quantityRequested!.toDouble(),
       rsdQty: item.quantityRequested!.toDouble(),
       value: (item.quantityRequested! * variant.retailPrice!).toDouble(),
-      productId: variant.productId,
       active: false,
     );
     await repository.upsert<Stock>(newStock);
