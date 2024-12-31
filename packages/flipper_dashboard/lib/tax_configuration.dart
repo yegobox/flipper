@@ -78,7 +78,8 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
               isTaxEnabled = true;
             });
           }
-          Business? business = await ProxyService.strategy.getBusiness();
+          Business? business = await ProxyService.strategy
+              .getBusiness(businessId: ProxyService.box.getBusinessId()!);
           model.isEbmActive = business!.tinNumber != null &&
               (await ProxyService.box.bhfId()) != null &&
               business.dvcSrlNo != null &&
