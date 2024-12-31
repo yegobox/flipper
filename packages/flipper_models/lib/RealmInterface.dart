@@ -85,8 +85,6 @@ abstract class RealmInterface {
   Future<List<IUnit>> units({required int branchId});
   T? create<T>({required T data});
   Stream<double> getStockValue({required int branchId});
-  Future<int> updateNonRealm<T>(
-      {required T data, required HttpClientInterface flipperHttpClient});
 
   Future<bool> delete(
       {required String id,
@@ -222,8 +220,6 @@ abstract class RealmInterface {
   FutureOr<List<Customer>> customers(
       {required int branchId, String? key, String? id});
 
-  Future<List<ITransaction>> tickets();
-
   Future<int> deleteTransactionByIndex({required String transactionIndex});
 
   Stream<List<Variant>> getVariantByProductIdStream({int? productId});
@@ -308,7 +304,6 @@ abstract class RealmInterface {
       {required String phone, required String linkingCode});
   Future<Device?> getDeviceById({required int id});
   Future<List<Device>> getDevices({required int businessId});
-  Future<List<Device>> unpublishedDevices({required int businessId});
   Future<void> loadConversations(
       {required int businessId, int? pageSize = 10, String? pk, String? sk});
 
@@ -379,7 +374,7 @@ abstract class RealmInterface {
   FutureOr<List<Composite>> composites({String? productId, String? variantId});
   Stream<SKU?> sku({required int branchId, required int businessId});
   FutureOr<SKU> getSku({required int branchId, required int businessId});
-  void createVariant(
+  Future<void> createVariant(
       {required String barCode,
       required String sku,
       required String productId,
@@ -525,7 +520,7 @@ abstract class RealmInterface {
   SendPort? sendPort;
   ReceivePort? receivePort;
   Future<String> getIdToken();
-  void upSert();
+
   Future<void> sendMessageToIsolate();
   Future<void> spawnIsolate(dynamic isolateHandler);
   void reDownloadAsset();
@@ -660,9 +655,6 @@ abstract class RealmInterface {
     bool? active,
     int? branchId,
   });
-
-  Future<bool> updateContact(
-      {required Map<String, dynamic> contact, required int businessId});
 
   FutureOr<void> updateProduct(
       {String? productId,
@@ -830,7 +822,7 @@ abstract class RealmInterface {
     required String quantityUnit, // e.g., "BJ"
   });
 
-  void createNewStock(
+  Future<void> createNewStock(
       {required Variant variant,
       required TransactionItem item,
       required int subBranchId});

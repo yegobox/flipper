@@ -7,7 +7,7 @@ import 'package:supabase_models/brick/models/all_models.dart' as brick;
 
 abstract class TaxApi {
   Future<RwApiResponse> saveStockMaster(
-      {required IStock stock, required Variant variant, required String URI});
+      {required Variant variant, required String URI});
   Future<RwApiResponse> savePurchases({
     required SaleList item,
     required String URI,

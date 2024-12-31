@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -111,7 +112,31 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             .when(
               data: (variants) {
                 if (variants.isEmpty) {
-                  return const Text('No Products available.');
+                  return Center(
+                      child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 180.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          FluentIcons.box_20_regular,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Products not available',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.w500,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ));
                 }
 
                 return _buildVariantsGrid(context, model, variants: variants);

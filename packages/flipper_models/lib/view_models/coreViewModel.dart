@@ -67,7 +67,7 @@ class CoreViewModel extends FlipperBaseModel
 
   get quantity => keypad.quantity;
 
-  Stock? _currentItemStock;
+  Variant? _currentItemStock;
 
   get currentItemStock => _currentItemStock;
 
@@ -407,30 +407,30 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> handleCustomQtySetBeforeSelectingVariation() async {
     ProxyService.keypad.decreaseQty();
-    Variant? variant = await ProxyService.strategy
-        .getVariantById(id: _currentItemStock!.variantId!);
+
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: (variant?.retailPrice ?? 0) * quantity);
+      keypad.setAmount(
+          amount: (_currentItemStock?.retailPrice ?? 0) * quantity);
     }
   }
 
   /// setAmount is the amount shown on top of product when increasing the quantity
   Future<void> customQtyIncrease(double quantity) async {
     ProxyService.keypad.increaseQty(custom: true, qty: quantity);
-    Variant? variant = await ProxyService.strategy
-        .getVariantById(id: _currentItemStock!.variantId!);
+
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: (variant?.retailPrice ?? 0) * quantity);
+      keypad.setAmount(
+          amount: (_currentItemStock?.retailPrice ?? 0) * quantity);
     }
   }
 
   /// We take _variantsStocks[0] because we know
   Future<void> decreaseQty(Function callback) async {
     ProxyService.keypad.decreaseQty();
-    Variant? variant = await ProxyService.strategy
-        .getVariantById(id: _currentItemStock!.variantId!);
+
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: (variant?.retailPrice ?? 0) * quantity);
+      keypad.setAmount(
+          amount: (_currentItemStock?.retailPrice ?? 0) * quantity);
     }
     callback(quantity);
   }
@@ -441,10 +441,10 @@ class CoreViewModel extends FlipperBaseModel
       {required Function callback, required bool custom}) async {
     ProxyService.keypad.increaseQty(custom: custom);
     ProxyService.keypad.decreaseQty();
-    Variant? variant = await ProxyService.strategy
-        .getVariantById(id: _currentItemStock!.variantId!);
+
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: (variant?.retailPrice ?? 0) * quantity);
+      keypad.setAmount(
+          amount: (_currentItemStock?.retailPrice ?? 0) * quantity);
       rebuildUi();
     }
     callback(keypad.quantity);
@@ -456,9 +456,8 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void loadVariantStock({required String variantId}) async {
-    int branchId = ProxyService.box.getBranchId()!;
-    _currentItemStock = await ProxyService.strategy
-        .getStock(branchId: branchId, variantId: variantId);
+    _currentItemStock =
+        await ProxyService.strategy.getVariantById(id: variantId);
   }
 
   Future<List<Variant>> getVariants({required String productId}) async {

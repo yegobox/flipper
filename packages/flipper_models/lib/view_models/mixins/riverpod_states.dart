@@ -898,6 +898,13 @@ class LoadingState {
   }
 }
 
+
+// final isLoadingProvider = StateProvider<bool>((ref) => false);
+// Define the provider
+final loadingProvider =
+    StateNotifierProvider<LoadingNotifier, LoadingState>((ref) {
+  return LoadingNotifier();
+});
 // Create a notifier to handle loading state changes
 class LoadingNotifier extends StateNotifier<LoadingState> {
   LoadingNotifier() : super(const LoadingState());
@@ -914,12 +921,6 @@ class LoadingNotifier extends StateNotifier<LoadingState> {
     state = state.copyWith(isLoading: false, error: error);
   }
 }
-
-// Define the provider
-final loadingProvider =
-    StateNotifierProvider<LoadingNotifier, LoadingState>((ref) {
-  return LoadingNotifier();
-});
 
 final toggleProvider = StateProvider<bool>((ref) => false);
 final previewingCart = StateProvider<bool>((ref) => false);

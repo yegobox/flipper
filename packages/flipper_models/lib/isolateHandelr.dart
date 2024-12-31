@@ -54,13 +54,8 @@ mixin StockPatch {
     for (Variant variant in variants) {
       if (!variant.ebmSynced!) {
         try {
-          IStock iStock = IStock(
-            currentStock: variant.stock!.currentStock!,
-          );
-          Variant iVariant = Variant.fromJson(variant.toJson());
-
-          final response = await RWTax()
-              .saveStockMaster(stock: iStock, variant: iVariant, URI: URI);
+          final response =
+              await RWTax().saveStockMaster(variant: variant, URI: URI);
           if (response.resultCd == "000") {
             sendPort('${response.resultMsg}');
             variant.ebmSynced = true;
@@ -211,6 +206,7 @@ class IsolateHandler with StockPatch {
         if (message['task'] == 'taxService') {
           // List<Customer> customers = await strategy.customers(branchId: 1);
           // print("customers from isolate: ${customers.length}");
+          print("dealing with isolate");
           int branchId = message['branchId'];
 
           int businessId = message['businessId'];

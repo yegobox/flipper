@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
@@ -80,15 +79,16 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       branchId: branchId,
       lastTouched: DateTime.now(),
     );
-    variant.stock = Stock(
+    final stock = Stock(
       currentStock: 1,
-      variantId: variant.id,
-      // variant: variant,
+      productId: product.id,
       branchId: branchId,
       initialStock: 1,
       showLowStockAlert: true,
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
     );
+    variant.stock = stock;
+    variant.stockId = stock.id;
 
     scannedVariants.add(
       variant,
@@ -152,17 +152,15 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   Future<void> updateVariantQuantity(String id, double newQuantity) async {
     try {
       // Find the variant with the specified id
-      Variant variant =
-          scannedVariants.firstWhere((variant) => variant.id == id);
 
-      Stock? stock = await ProxyService.strategy.getStock(
-          variantId: variant.id, branchId: ProxyService.box.getBranchId()!);
-      ProxyService.strategy.updateStock(
-          stockId: stock!.id,
-          currentStock: newQuantity,
-          rsdQty: newQuantity,
-          initialStock: newQuantity,
-          ebmSynced: false);
+      // from scannedVariants look where id match set the qty
+      scannedVariants.forEach((variant) {
+        if (variant.id == id) {
+          variant.stock!.rsdQty = newQuantity;
+          variant.stock!.currentStock = newQuantity;
+          variant.stock!.initialStock = newQuantity;
+        }
+      });
 
       notifyListeners();
     } catch (e) {

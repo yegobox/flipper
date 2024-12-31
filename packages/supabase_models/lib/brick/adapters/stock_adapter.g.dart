@@ -6,7 +6,6 @@ Future<Stock> _$StockFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Stock(
       id: data['id'] as String?,
-      variantId: data['variant_id'] as String?,
       tin: data['tin'] as int?,
       bhfId: data['bhf_id'] as String?,
       branchId: data['branch_id'] as int?,
@@ -21,9 +20,6 @@ Future<Stock> _$StockFromSupabase(Map<String, dynamic> data,
       lastTouched: data['last_touched'] == null
           ? null
           : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : DateTime.tryParse(data['deleted_at'] as String),
       ebmSynced: data['ebm_synced'] as bool? ?? false,
       initialStock: data['initial_stock'] as double? ?? 0.0);
 }
@@ -33,7 +29,6 @@ Future<Map<String, dynamic>> _$StockToSupabase(Stock instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
-    'variant_id': instance.variantId,
     'tin': instance.tin,
     'bhf_id': instance.bhfId,
     'branch_id': instance.branchId,
@@ -46,7 +41,6 @@ Future<Map<String, dynamic>> _$StockToSupabase(Stock instance,
     'value': instance.value,
     'rsd_qty': instance.rsdQty,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String(),
     'ebm_synced': instance.ebmSynced,
     'initial_stock': instance.initialStock
   };
@@ -57,8 +51,6 @@ Future<Stock> _$StockFromSqlite(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Stock(
       id: data['id'] as String,
-      variantId:
-          data['variant_id'] == null ? null : data['variant_id'] as String?,
       tin: data['tin'] == null ? null : data['tin'] as int?,
       bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
@@ -82,11 +74,6 @@ Future<Stock> _$StockFromSqlite(Map<String, dynamic> data,
           : data['last_touched'] == null
               ? null
               : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String),
       ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
       initialStock: data['initial_stock'] == null
           ? null
@@ -99,7 +86,6 @@ Future<Map<String, dynamic>> _$StockToSqlite(Stock instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
-    'variant_id': instance.variantId,
     'tin': instance.tin,
     'bhf_id': instance.bhfId,
     'branch_id': instance.branchId,
@@ -116,7 +102,6 @@ Future<Map<String, dynamic>> _$StockToSqlite(Stock instance,
     'value': instance.value,
     'rsd_qty': instance.rsdQty,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String(),
     'ebm_synced':
         instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
     'initial_stock': instance.initialStock
@@ -136,10 +121,6 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
     'id': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'id',
-    ),
-    'variantId': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'variant_id',
     ),
     'tin': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -189,10 +170,6 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
       association: false,
       columnName: 'last_touched',
     ),
-    'deletedAt': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
-    ),
     'ebmSynced': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'ebm_synced',
@@ -217,12 +194,6 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
     'id': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'id',
-      iterable: false,
-      type: String,
-    ),
-    'variantId': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'variant_id',
       iterable: false,
       type: String,
     ),
@@ -295,12 +266,6 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
     'lastTouched': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'last_touched',
-      iterable: false,
-      type: DateTime,
-    ),
-    'deletedAt': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
       iterable: false,
       type: DateTime,
     ),

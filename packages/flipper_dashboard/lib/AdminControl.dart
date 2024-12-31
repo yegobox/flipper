@@ -116,7 +116,7 @@ class _AdminControlState extends State<AdminControl> {
         // variant: v,
         id: Uuid().v4(),
         currentStock: 110,
-        variantId: "1",
+
         branchId: ProxyService.box.getBranchId()!,
         active: true,
         value: 0,

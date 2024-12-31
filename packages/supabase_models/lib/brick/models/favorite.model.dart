@@ -12,6 +12,7 @@ class Favorite extends OfflineFirstWithSupabaseModel {
 
   String? favIndex;
 
+  // @Sqlite(unique: true)
   String? productId;
   int? branchId;
 

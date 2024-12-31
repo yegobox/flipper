@@ -44,6 +44,7 @@ import '../brick/models/variant.model.dart';
 import '../brick/models/device.model.dart';
 import '../brick/models/favorite.model.dart';
 import '../brick/models/composite.model.dart';
+import '../brick/models/transaction_payment_record.model.dart';
 import '../brick/models/setting.model.dart';
 import '../brick/models/tenant.model.dart';
 import '../brick/models/pin.model.dart';
@@ -64,7 +65,6 @@ import '../brick/models/product.model.dart';
 import '../brick/models/asset.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/drawer.model.dart';
-import '../brick/models/transaction_payment_record.model.dart';
 
 part 'adapters/item_code_adapter.g.dart';
 part 'adapters/stock_adapter.g.dart';
@@ -83,6 +83,7 @@ part 'adapters/variant_adapter.g.dart';
 part 'adapters/device_adapter.g.dart';
 part 'adapters/favorite_adapter.g.dart';
 part 'adapters/composite_adapter.g.dart';
+part 'adapters/transaction_payment_record_adapter.g.dart';
 part 'adapters/setting_adapter.g.dart';
 part 'adapters/tenant_adapter.g.dart';
 part 'adapters/pin_adapter.g.dart';
@@ -103,7 +104,6 @@ part 'adapters/product_adapter.g.dart';
 part 'adapters/assets_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 part 'adapters/drawers_adapter.g.dart';
-part 'adapters/transaction_payment_record_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
@@ -124,6 +124,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Device: DeviceAdapter(),
   Favorite: FavoriteAdapter(),
   Composite: CompositeAdapter(),
+  TransactionPaymentRecord: TransactionPaymentRecordAdapter(),
   Setting: SettingAdapter(),
   Tenant: TenantAdapter(),
   Pin: PinAdapter(),
@@ -143,8 +144,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter(),
-  TransactionPaymentRecord: TransactionPaymentRecordAdapter()
+  Drawers: DrawersAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -167,6 +167,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Device: DeviceAdapter(),
   Favorite: FavoriteAdapter(),
   Composite: CompositeAdapter(),
+  TransactionPaymentRecord: TransactionPaymentRecordAdapter(),
   Setting: SettingAdapter(),
   Tenant: TenantAdapter(),
   Pin: PinAdapter(),
@@ -186,7 +187,6 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter(),
-  TransactionPaymentRecord: TransactionPaymentRecordAdapter()
+  Drawers: DrawersAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

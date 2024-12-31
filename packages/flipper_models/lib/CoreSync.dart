@@ -293,7 +293,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         if (stock == null) {
           stock = Stock(
               id: variant.stockId!,
-              variantId: variation.id,
               lastTouched: DateTime.now(),
               branchId: branchId,
               currentStock: stock?.rsdQty ?? 0,
@@ -325,10 +324,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         final newStock = Stock(
             lastTouched: DateTime.now(),
             branchId: branchId,
-            rsdQty: variation.qty ?? 0,
-            initialStock: variation.qty ?? 0,
-            currentStock: variation.qty ?? 0,
-            value: (variation.qty ?? 0 * (variation.retailPrice!)).toDouble(),
+            rsdQty: variation.stock?.rsdQty ?? 0,
+            initialStock: variation.stock?.initialStock ?? 0,
+            currentStock: variation.stock?.currentStock ?? 0,
+            value:
+                (variation.stock?.currentStock ?? 0 * (variation.retailPrice!))
+                    .toDouble(),
             active: true,
             productId: variation.productId);
 
@@ -715,7 +716,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
       final Stock stock = Stock(
           lastTouched: DateTime.now(),
-          variantId: newVariant.id,
           // variant: newVariant,
           branchId: branchId,
           currentStock: qty,
@@ -839,14 +839,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         final stock = await getStockById(id: variant!.stockId!);
         if (stock != null) {
           try {
+            await repository.delete<Variant>(
+              variant,
+            );
             await repository.delete<Stock>(
               stock,
-              query: brick.Query(
-                  where: [brick.Where('id').isExactly(variant.stockId)]),
             );
-            await repository.delete<Variant>(variant,
-                query: brick.Query(
-                    where: [brick.Where('id').isExactly(stock.variantId)]));
           } catch (e) {}
         }
         break;
@@ -1029,9 +1027,64 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<Stream<double>> downloadAssetSave(
-      {String? assetName, String? subPath = "branch"}) {
-    // TODO: implement downloadAssetSave
-    throw UnimplementedError("downloadAssetSave method is not implemented yet");
+      {String? assetName, String? subPath = "branch"}) async {
+    try {
+      talker.info("About to call downloadAssetSave");
+      int branchId = ProxyService.box.getBranchId()!;
+
+      if (assetName != null) {
+        return downloadAsset(
+            branchId: branchId, assetName: assetName, subPath: subPath!);
+      }
+
+      List<Assets> assets = await repository.get(
+          query: brick.Query(
+              where: [brick.Where('branchId').isExactly(branchId)]));
+
+      StreamController<double> progressController = StreamController<double>();
+
+      for (Assets asset in assets) {
+        if (asset.assetName != null) {
+          // Get the download stream
+          Stream<double> downloadStream = await downloadAsset(
+              branchId: branchId,
+              assetName: asset.assetName!,
+              subPath: subPath!);
+
+          // Listen to the download stream and add its events to the main controller
+          downloadStream.listen((progress) {
+            print('Download progress for ${asset.assetName}: $progress');
+            progressController.add(progress);
+          }, onError: (error) {
+            // Handle errors in the download stream
+            talker.error(
+                'Error in download stream for ${asset.assetName}: $error');
+            progressController.addError(error);
+          });
+        } else {
+          talker.warning('Asset name is null for asset: ${asset.id}');
+        }
+      }
+
+      // Close the stream controller when all downloads are finished
+      Future.wait(assets.map((asset) => asset.assetName != null
+          ? downloadAsset(
+              branchId: branchId,
+              assetName: asset.assetName!,
+              subPath: subPath!)
+          : Future.value(Stream.empty()))).then((_) {
+        progressController.close();
+      }).catchError((error) {
+        talker.error('Error in downloading assets: $error');
+        progressController.close();
+      });
+
+      return progressController.stream;
+    } catch (e, s) {
+      talker.error('Error in downloading assets: $e');
+      talker.error('Error in downloading assets: $s');
+      rethrow;
+    }
   }
 
   @override
@@ -1292,8 +1345,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             qtyUnitCd: "U");
 
         Stock stock = Stock(
-            // variant: variant,
-            variantId: variant.id,
             lastTouched: DateTime.now(),
             id: stockId,
             branchId: branchId,
@@ -2563,7 +2614,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         await Isolate.spawn(
           isolateHandler,
           // [receivePort!.sendPort, rootIsolateToken, CouchbaseLite.context],
-          [receivePort!.sendPort, rootIsolateToken, ProxyService.strategy],
+          [receivePort!.sendPort, rootIsolateToken],
           debugName: 'backgroundIsolate',
         );
 
@@ -2668,10 +2719,54 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<void> syncUserWithAwsIncognito({required String identifier}) {
-    // TODO: implement syncUserWithAwsIncognito
-    throw UnimplementedError(
-        "syncUserWithAwsIncognito method is not implemented yet");
+  Future<void> syncUserWithAwsIncognito({required String identifier}) async {
+    try {
+      final result = await amplify.Amplify.Auth.fetchAuthSession();
+      if (!result.isSignedIn) {
+        final signInResult = await amplify.Amplify.Auth.signIn(
+          username: identifier,
+          password: identifier,
+        );
+        if (signInResult.isSignedIn) {
+          talker.warning('User logged in successfully');
+        } else {
+          talker.warning('Login not complete. Additional steps required.');
+        }
+      }
+
+//       /// TODO: once I enable for a user to auth using his creds maybe I will enable this
+//       /// but we have one user we keep using for auth uploads
+//       // final Map<cognito.AuthUserAttributeKey, String> userAttributes = {
+//       //   if (identifier.contains('@'))
+//       //     cognito.AuthUserAttributeKey.email: identifier,
+//       //   if (!identifier.contains('@')) ...{
+//       //     cognito.AuthUserAttributeKey.phoneNumber: identifier,
+//       //     // Provide a default email to satisfy the schema requirement
+//       //     cognito.AuthUserAttributeKey.email: 'yegobox@gmail.com',
+//       //   }
+//       // };
+
+//       // final signUpResult = await amplify.Amplify.Auth.signUp(
+//       //   username: identifier,
+//       //   password:
+//       //       identifier, // Using the identifier as the password for simplicity
+//       //   options: cognito.SignUpOptions(
+//       //     userAttributes: userAttributes,
+//       //   ),
+//       // );
+
+//       // if (signUpResult.isSignUpComplete) {
+//       //   talker.warning('User signed up successfully!');
+//       // } else {
+//       //   talker.warning('Sign up not complete. Additional steps required.');
+//       // }
+//     } on cognito.AuthException catch (e) {
+//       talker.error('Unexpected error: $e');
+//       // rethrow;
+    } catch (e) {
+      talker.error('Unexpected error: $e');
+      // rethrow;
+    }
   }
 
   @override
@@ -2828,15 +2923,22 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<List<ITransaction>> tickets() {
-    // TODO: implement tickets
-    throw UnimplementedError("tickets method is not implemented yet");
-  }
-
-  @override
-  Future<double> totalStock({String? productId, String? variantId}) {
-    // TODO: implement totalStock
-    throw UnimplementedError("totalStock method is not implemented yet");
+  Future<double> totalStock({String? productId, String? variantId}) async {
+    double totalStock = 0.0;
+    if (productId != null) {
+      List<Stock> stocksIn = await repository.get<Stock>(
+          query: brick.Query(
+              where: [brick.Where('productId').isExactly(productId)]));
+      totalStock =
+          stocksIn.fold(0.0, (sum, stock) => sum + (stock.currentStock!));
+    } else if (variantId != null) {
+      List<Stock> stocksIn = await repository.get<Stock>(
+          query: brick.Query(
+              where: [brick.Where('variantId').isExactly(variantId)]));
+      totalStock =
+          stocksIn.fold(0.0, (sum, stock) => sum + (stock.currentStock!));
+    }
+    return totalStock;
   }
 
   @override
@@ -2921,25 +3023,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<List<Device>> unpublishedDevices({required int businessId}) {
-    // TODO: implement unpublishedDevices
-    throw UnimplementedError(
-        "unpublishedDevices method is not implemented yet");
-  }
-
-  @override
-  void upSert() {
-    // TODO: implement upSert
-  }
-
-  @override
-  Future<bool> updateContact(
-      {required Map<String, dynamic> contact, required int businessId}) {
-    // TODO: implement updateContact
-    throw UnimplementedError("updateContact method is not implemented yet");
-  }
-
-  @override
   void updateCounters(
       {required List<Counter> counters, RwApiResponse? receiptSignature}) {
     final repository = brick.Repository();
@@ -2962,23 +3045,38 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<int> updateNonRealm<T>(
-      {required T data, required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement updateNonRealm
-    throw UnimplementedError("updateNonRealm method is not implemented yet");
-  }
+  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) async {
+    try {
+      int branchId = ProxyService.box.getBranchId()!;
+      final filePath = 'public/invoices-${branchId}/$fileName.pdf';
 
-  @override
-  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) {
-    // TODO: implement uploadPdfToS3
-    throw UnimplementedError("uploadPdfToS3 method is not implemented yet");
+      final result = await amplify.Amplify.Storage
+          .uploadFile(
+            localFile: amplify.AWSFile.fromStream(
+              Stream.value(pdfData),
+              size: pdfData.length,
+            ),
+            path: amplify.StoragePath.fromString(filePath),
+            onProgress: (progress) {
+              talker
+                  .warning('Fraction completed: ${progress.fractionCompleted}');
+            },
+          )
+          .result;
+      return result.uploadedItem.path;
+    } catch (e) {
+      talker.error("Error uploading file to S3: $e");
+      rethrow;
+    }
   }
 
   @override
   Future<int> userNameAvailable(
-      {required String name, required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement userNameAvailable
-    throw UnimplementedError("userNameAvailable method is not implemented yet");
+      {required String name,
+      required HttpClientInterface flipperHttpClient}) async {
+    final response =
+        await flipperHttpClient.get(Uri.parse("$apihub/search?name=$name"));
+    return response.statusCode;
   }
 
   @override
@@ -3102,7 +3200,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     if (stock == null) return;
 
     final finalStock = (stock.currentStock! - item.qty);
-    final variant = await getVariantById(id: stock.variantId!);
+    final variant = await getVariantById(id: item.variantId!);
     final stockValue = finalStock * (variant?.retailPrice ?? 0);
     final bhfId = await ProxyService.box.bhfId();
 
@@ -3678,7 +3776,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             .firstOrNull;
     if (transactionPaymentRecordWithAmount0 != null) {
       await repository.delete<TransactionPaymentRecord>(
-          transactionPaymentRecordWithAmount0);
+          transactionPaymentRecordWithAmount0,
+          query: brick.Query(
+            action: QueryAction.delete,
+          ));
     }
 
     /// if is single payment delete any other payments, this is to handle case where a user switched from one payment method to another
@@ -3692,7 +3793,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       ])));
 
       for (TransactionPaymentRecord record in transactionPaymentRecords) {
-        await repository.delete<TransactionPaymentRecord>(record);
+        await repository.delete<TransactionPaymentRecord>(record,
+            query: brick.Query(
+              action: QueryAction.delete,
+            ));
       }
     }
 
@@ -3707,8 +3811,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     if (transactionPaymentRecord != null) {
       transactionPaymentRecord.paymentMethod = paymentMethod;
       transactionPaymentRecord.amount = amount;
-      await repository
-          .upsert<TransactionPaymentRecord>(transactionPaymentRecord);
+      await repository.upsert<TransactionPaymentRecord>(
+          transactionPaymentRecord,
+          query: brick.Query(
+            action: QueryAction.insert,
+          ));
     } else if (transactionId != 0) {
       final transactionPaymentRecord = TransactionPaymentRecord(
         createdAt: DateTime.now(),
@@ -3717,8 +3824,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         paymentMethod: paymentMethod,
       );
 
-      await repository
-          .upsert<TransactionPaymentRecord>(transactionPaymentRecord);
+      await repository.upsert<TransactionPaymentRecord>(
+          transactionPaymentRecord,
+          query: brick.Query(
+            action: QueryAction.insert,
+          ));
     }
     if (paymentRecord != null) {
       await repository.upsert<TransactionPaymentRecord>(paymentRecord);
@@ -3737,7 +3847,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     final stock = Stock(
       lastTouched: DateTime.now(),
       branchId: branchId,
-      variantId: variantId,
       // variant: variant!,
       currentStock: currentStock,
       rsdQty: rsdQty,
@@ -3757,8 +3866,16 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       double? currentStock,
       double? value,
       DateTime? lastTouched}) async {
-    // TODO: implement updateStock
-    throw UnimplementedError("updateStock method is not implemented yet");
+    Stock? stock = await getStockById(id: stockId);
+    if (stock != null) {
+      stock.currentStock = currentStock ?? qty ?? stock.currentStock;
+      stock.rsdQty = rsdQty ?? stock.rsdQty;
+      stock.initialStock = initialStock ?? qty ?? stock.initialStock;
+      stock.ebmSynced = ebmSynced ?? stock.ebmSynced;
+      stock.value = value ?? stock.value;
+      stock.lastTouched = lastTouched ?? stock.lastTouched;
+      repository.upsert(stock);
+    }
   }
 
   @override
@@ -4099,9 +4216,171 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       int? pin,
       bool? isDefault,
       required HttpClientInterface flipperHttpClient,
-      required String userType}) {
-    // TODO: implement saveTenant
-    throw UnimplementedError("saveTenant method is not implemented yet");
+      required String userType}) async {
+    throw UnimplementedError();
+    // final data = jsonEncode({
+    //   "phoneNumber": phoneNumber,
+    //   "name": name,
+    //   "businessId": business.serverId,
+    //   "permissions": [
+    //     {"name": userType.toLowerCase()}
+    //   ],
+    //   "businesses": [business.toJson()],
+    //   "branches": [branch.toJson()]
+    // });
+
+    // final http.Response response = await flipperHttpClient
+    //     .post(Uri.parse("$apihub/v2/api/tenant"), body: data);
+
+    // if (response.statusCode == 200) {
+    //   try {
+    //     ITenant jTenant = ITenant.fromRawJson(response.body);
+    //     await _createPin(
+    //       flipperHttpClient: flipperHttpClient,
+    //       phoneNumber: phoneNumber,
+    //       pin: jTenant.userId,
+    //       branchId: business.serverId!,
+    //       businessId: branch.serverId!,
+    //       defaultApp: 1,
+    //     );
+    //     ITenant iTenant = ITenant(
+    //       businesses: jTenant.businesses,
+    //       branches: jTenant.branches,
+    //       isDefault: jTenant.isDefault,
+
+    //       permissions: jTenant.permissions,
+    //       name: jTenant.name,
+    //       businessId: jTenant.businessId,
+    //       email: jTenant.email,
+    //       userId: jTenant.userId,
+    //       nfcEnabled: jTenant.nfcEnabled,
+    //       phoneNumber: jTenant.phoneNumber,
+    //     );
+    //     final branchToAdd = <Branch>[];
+    //     final permissionToAdd = <LPermission>[];
+    //     final businessToAdd = <Business>[];
+
+    //     for (var business in jTenant.businesses) {
+    //       Business? existingBusiness = realm!
+    //           .query<Business>(r'serverId == $0', [business.id]).firstOrNull;
+    //       if (existingBusiness == null) {
+    //         businessToAdd.add(Business(
+
+    //           serverId: business.serverId!,
+    //           userId: business.userId,
+    //           name: business.name,
+    //           currency: business.currency,
+    //           categoryId: business.categoryId,
+    //           latitude: business.latitude,
+    //           longitude: business.longitude,
+    //           timeZone: business.timeZone,
+    //           country: business.country,
+    //           businessUrl: business.businessUrl,
+    //           hexColor: business.hexColor,
+    //           imageUrl: business.imageUrl,
+    //           type: business.type,
+    //           active: business.active,
+    //           chatUid: business.chatUid,
+    //           metadata: business.metadata,
+    //           role: business.role,
+    //           lastSeen: business.lastSeen,
+    //           firstName: business.firstName,
+    //           lastName: business.lastName,
+    //           createdAt: business.createdAt,
+    //           deviceToken: business.deviceToken,
+    //           backUpEnabled: business.backUpEnabled,
+    //           subscriptionPlan: business.subscriptionPlan,
+    //           nextBillingDate: business.nextBillingDate,
+    //           previousBillingDate: business.previousBillingDate,
+    //           isLastSubscriptionPaymentSucceeded:
+    //               business.isLastSubscriptionPaymentSucceeded,
+    //           backupFileId: business.backupFileId,
+    //           email: business.email,
+    //           lastDbBackup: business.lastDbBackup,
+    //           fullName: business.fullName,
+    //           tinNumber: business.tinNumber,
+    //           bhfId: business.bhfId,
+    //           dvcSrlNo: business.dvcSrlNo,
+    //           adrs: business.adrs,
+    //           taxEnabled: business.taxEnabled,
+    //           taxServerUrl: business.taxServerUrl,
+    //           isDefault: business.isDefault,
+    //           businessTypeId: business.businessTypeId,
+    //           lastTouched: business.lastTouched,
+    //           deletedAt: business.deletedAt,
+    //           encryptionKey: business.encryptionKey,
+    //         ));
+    //       }
+    //     }
+
+    //     for (var branch in jTenant.branches) {
+    //       final existingBranch =
+    //           realm!.query<Branch>(r'serverId==$0', [branch.id]).firstOrNull;
+    //       if (existingBranch == null) {
+    //         Branch br = Branch(
+
+    //           serverId: branch.id,
+    //           name: branch.name,
+    //           businessId: branch.businessId,
+    //           active: branch.active,
+    //           lastTouched: branch.lastTouched,
+    //           latitude: branch.latitude,
+    //           longitude: branch.longitude,
+    //         );
+    //         branchToAdd.add(br);
+    //       }
+    //     }
+
+    //     for (var permission in jTenant.permissions) {
+    //       LPermission? existingPermission = realm!
+    //           .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
+    //       if (existingPermission == null) {
+    //         permissionToAdd.add(LPermission(
+
+    //           name: permission.name,
+    //           id: permission.id,
+    //           userId: permission.userId,
+    //         ));
+    //       }
+    //     }
+
+    //     Tenant? tenantToAdd;
+    //     Tenant? tenant =
+    //         realm!.query<Tenant>(r'userId==$0', [iTenant.userId]).firstOrNull;
+    //     if (tenant == null) {
+    //       tenantToAdd = Tenant(
+
+    //         name: jTenant.name,
+    //         phoneNumber: jTenant.phoneNumber,
+    //         email: jTenant.email,
+    //         nfcEnabled: jTenant.nfcEnabled,
+    //         businessId: jTenant.businessId,
+    //         userId: jTenant.userId,
+
+    //         isDefault: jTenant.isDefault,
+    //         pin: jTenant.pin,
+    //       );
+    //       realm!.write(() {
+    //         realm!.add<Tenant>(tenantToAdd!);
+    //       });
+    //     }
+
+    //     realm!.write(() {
+    //       realm!.addAll<Business>(businessToAdd);
+    //       realm!.addAll<Branch>(branchToAdd);
+    //       realm!.write(() {
+    //         realm!.addAll<LPermission>(permissionToAdd);
+    //       });
+    //     });
+
+    //     return tenantToAdd;
+    //   } catch (e) {
+    //     talker.error(e);
+    //     rethrow;
+    //   }
+    // } else {
+    //   throw InternalServerError(term: "internal server error");
+    // }
   }
 
   @override
@@ -4187,31 +4466,22 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Stream<SKU?> sku({required int branchId, required int businessId}) {
-    // TODO: implement sku
-    throw UnimplementedError("sku method is not implemented yet");
-  }
-
-  @override
   FutureOr<SKU> getSku({required int branchId, required int businessId}) async {
     final query = brick.Query(
       where: [
         brick.Where('branchId').isExactly(branchId),
         brick.Where('businessId').isExactly(businessId),
       ],
+      orderBy: [brick.OrderBy('sku', ascending: true)],
     );
+
     final skus = await repository.get<SKU>(
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
-    // Extract the last sequence number and increment it
-    int lastSequence = 0;
-    if (skus.isNotEmpty) {
-      final lastSku = skus.first;
-      lastSequence = lastSku.sku!;
-    }
+    // Get highest sequence number
+    int lastSequence = skus.isEmpty ? 0 : skus.first.sku ?? 0;
     final newSequence = lastSequence + 1;
 
-    // Create and save the new SKU
     final newSku = SKU(
       sku: newSequence,
       branchId: branchId,
@@ -4223,7 +4493,25 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  void createVariant(
+  Stream<SKU?> sku({required int branchId, required int businessId}) {
+    final query = brick.Query(
+      where: [
+        brick.Where('branchId').isExactly(branchId),
+        brick.Where('businessId').isExactly(businessId),
+      ],
+      orderBy: [brick.OrderBy('sku', ascending: true)],
+    );
+
+    return repository
+        .subscribe<SKU>(
+          query: query,
+          policy: OfflineFirstGetPolicy.alwaysHydrate,
+        )
+        .map((skus) => skus.isNotEmpty ? skus.first : null);
+  }
+
+  @override
+  Future<void> createVariant(
       {required String barCode,
       required String sku,
       required String productId,
@@ -4234,22 +4522,50 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       required String color,
       required int tinNumber,
       required int itemSeq,
-      required String name}) {
-    // TODO: implement createVariant
+      required String name}) async {
+    await _createRegularVariant(branchId, tinNumber,
+        qty: qty,
+        supplierPrice: supplierPrice,
+        retailPrice: retailPrice,
+        itemSeq: itemSeq,
+        name: name,
+        sku: sku,
+        ebmSynced: false,
+        productId: productId);
   }
 
   @override
-  FutureOr<void> updateStockRequest(
-      {required String stockRequestId, DateTime? updatedAt, String? status}) {
-    // TODO: implement updateStockRequest
-    throw UnimplementedError();
+  Future<void> updateStockRequest(
+      {required String stockRequestId,
+      DateTime? updatedAt,
+      String? status}) async {
+    final stockRequest = (await repository.get<StockRequest>(
+      query: brick.Query(where: [
+        brick.Where('id').isExactly(stockRequestId),
+      ]),
+    ))
+        .firstOrNull;
+    if (stockRequest != null) {
+      stockRequest.updatedAt = updatedAt ?? stockRequest.updatedAt;
+      stockRequest.status = status ?? stockRequest.status;
+      repository.upsert<StockRequest>(stockRequest);
+    }
   }
 
   @override
-  void createNewStock(
+  Future<void> createNewStock(
       {required Variant variant,
       required TransactionItem item,
-      required int subBranchId}) {
-    // TODO: implement createNewStock
+      required int subBranchId}) async {
+    final newStock = Stock(
+      lastTouched: DateTime.now(),
+      branchId: subBranchId,
+      currentStock: item.quantityRequested!.toDouble(),
+      rsdQty: item.quantityRequested!.toDouble(),
+      value: (item.quantityRequested! * variant.retailPrice!).toDouble(),
+      productId: variant.productId,
+      active: false,
+    );
+    await repository.upsert<Stock>(newStock);
   }
 }

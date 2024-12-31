@@ -389,7 +389,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         .loadProducts(searchString: searchKeyword, scanMode: scanMode);
 
     /// end of reloading
-
+    ///
     /// attempt to see newly created product
     ref.read(searchStringProvider.notifier).emitString(value: "search");
     ref.read(searchStringProvider.notifier).emitString(value: "");
@@ -398,6 +398,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
         .loadProducts(searchString: model.kProductName ?? "", scanMode: true);
     toast("Product Saved");
+    ref.read(loadingProvider.notifier).stopLoading();
     Navigator.maybePop(context);
   }
 
@@ -539,59 +540,85 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         model.initialize();
       },
       builder: (context, model, child) {
-        return Padding(
-          padding: const EdgeInsets.only(left: 18, right: 18),
-          child: SizedBox(
-            width: double.infinity,
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  topButtons(context, model, productRef),
+        return Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 18, right: 18),
+              child: SizedBox(
+                width: double.infinity,
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      topButtons(context, model, productRef),
 
-                  /// toggle between is composite vs non-composite product
-                  ToggleButtonWidget(),
+                      /// toggle between is composite vs non-composite product
+                      ToggleButtonWidget(),
 
-                  /// End of toggle
-                  productNameField(model),
-                  retailPrice(model),
-                  supplyPrice(model),
-                  // Add the product type dropdown here
+                      /// End of toggle
+                      productNameField(model),
+                      retailPrice(model),
+                      supplyPrice(model),
+                      // Add the product type dropdown here
 
-                  !ref.watch(isCompositeProvider)
-                      ? scanField(model, productRef: productRef)
-                      : SizedBox.shrink(),
-                  packagingDropDown(model),
+                      !ref.watch(isCompositeProvider)
+                          ? scanField(model, productRef: productRef)
+                          : SizedBox.shrink(),
+                      packagingDropDown(model),
 
-                  _productTypeDropDown(context),
-                  // previewName(model),
-                  !ref.watch(isCompositeProvider)
-                      ? TableVariants(model, context)
-                      : SizedBox.shrink(),
-                  ref.watch(isCompositeProvider)
-                      ? Fieldcompositeactivated(
-                          formKey: _fieldComposite,
-                          skuController: skuController,
-                          barCodeController: barCodeController,
-                        )
-                      : SizedBox.shrink(),
-                  ref.watch(isCompositeProvider)
-                      ? SearchProduct()
-                      : SizedBox.shrink(),
-                  ref.watch(isCompositeProvider)
-                      ? Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text("Components"),
-                        )
-                      : SizedBox.shrink(),
-                  ref.watch(isCompositeProvider)
-                      ? CompositeVariation(
-                          supplyPriceController: supplyPriceController)
-                      : SizedBox.shrink(),
-                ],
+                      _productTypeDropDown(context),
+                      // previewName(model),
+                      !ref.watch(isCompositeProvider)
+                          ? TableVariants(model, context)
+                          : SizedBox.shrink(),
+                      ref.watch(isCompositeProvider)
+                          ? Fieldcompositeactivated(
+                              formKey: _fieldComposite,
+                              skuController: skuController,
+                              barCodeController: barCodeController,
+                            )
+                          : SizedBox.shrink(),
+                      ref.watch(isCompositeProvider)
+                          ? SearchProduct()
+                          : SizedBox.shrink(),
+                      ref.watch(isCompositeProvider)
+                          ? Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text("Components"),
+                            )
+                          : SizedBox.shrink(),
+                      ref.watch(isCompositeProvider)
+                          ? CompositeVariation(
+                              supplyPriceController: supplyPriceController)
+                          : SizedBox.shrink(),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
+            Consumer(
+              builder: (context, ref, child) {
+                final loadingState = ref.watch(loadingProvider);
+                return loadingState.isLoading
+                    ? Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: .5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                              strokeWidth: 3,
+                            ),
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink();
+              },
+            ),
+          ],
         );
       },
     );
@@ -659,6 +686,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               Navigator.maybePop(context);
                               return;
                             }
+                            ref.read(loadingProvider.notifier).startLoading();
                             _onSaveButtonPressed(
                               selectedProductType: selectedProductType,
                               productModel,

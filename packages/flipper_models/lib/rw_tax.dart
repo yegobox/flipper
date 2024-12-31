@@ -5,7 +5,6 @@ import 'package:supabase_models/brick/models/all_models.dart' as odm;
 import 'package:dio/dio.dart';
 import 'package:flipper_models/NetworkHelper.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
-import 'package:flipper_models/helperModels/IStock.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart' as api;
 import 'package:flipper_models/helperModels/random.dart';
@@ -174,9 +173,7 @@ class RWTax with NetworkHelper implements TaxApi {
   /// we just borrow properties to simplify the accesibility
   @override
   Future<RwApiResponse> saveStockMaster(
-      {required IStock stock,
-      required Variant variant,
-      required String URI}) async {
+      {required Variant variant, required String URI}) async {
     try {
       final url = Uri.parse(URI)
           .replace(path: Uri.parse(URI).path + 'stockMaster/saveStockMaster')
@@ -190,7 +187,17 @@ class RWTax with NetworkHelper implements TaxApi {
       if (variant.productName == TEMP_PRODUCT) {
         return RwApiResponse(resultCd: "000", resultMsg: "Invalid product");
       }
-      Response response = await sendPostRequest(url, variant.toJson());
+      final object = {
+        "tin": variant.tin!,
+        "bhfId": variant.bhfId!,
+        "itemCd": variant.itemCd!,
+        "rsdQty": variant.stock!.currentStock,
+        "modrNm": variant.modrNm!,
+        "regrId": variant.regrId!,
+        "regrNm": variant.regrNm!,
+        "modrId": variant.modrId!,
+      };
+      Response response = await sendPostRequest(url, object);
 
       final data = RwApiResponse.fromJson(
         response.data,

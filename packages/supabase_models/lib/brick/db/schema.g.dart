@@ -1,19 +1,21 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20241231092049.migration.dart';
+part '20241231124414.migration.dart';
 part '20241230124823.migration.dart';
+part '20241231092049.migration.dart';
 part '20241231021147.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20241231092049(),
+  const Migration20241231124414(),
   const Migration20241230124823(),
+  const Migration20241231092049(),
   const Migration20241231021147()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20241231092049, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20241231124414, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -27,7 +29,6 @@ final schema = Schema(20241231092049, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
     SchemaColumn('id', Column.varchar, unique: true),
-    SchemaColumn('variant_id', Column.varchar),
     SchemaColumn('tin', Column.integer),
     SchemaColumn('bhf_id', Column.varchar),
     SchemaColumn('branch_id', Column.integer),
@@ -40,7 +41,6 @@ final schema = Schema(20241231092049, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('value', Column.Double),
     SchemaColumn('rsd_qty', Column.Double),
     SchemaColumn('last_touched', Column.datetime),
-    SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('ebm_synced', Column.boolean),
     SchemaColumn('initial_stock', Column.Double)
   }, indices: <SchemaIndex>{
@@ -347,6 +347,15 @@ final schema = Schema(20241231092049, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('actual_price', Column.Double)
+  }, indices: <SchemaIndex>{}),
+  SchemaTable('TransactionPaymentRecord', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('transaction_id', Column.varchar),
+    SchemaColumn('amount', Column.Double),
+    SchemaColumn('payment_method', Column.varchar),
+    SchemaColumn('created_at', Column.datetime)
   }, indices: <SchemaIndex>{}),
   SchemaTable('Setting', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
@@ -742,14 +751,5 @@ final schema = Schema(20241231092049, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer)
-  }, indices: <SchemaIndex>{}),
-  SchemaTable('TransactionPaymentRecord', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('id', Column.varchar, unique: true),
-    SchemaColumn('transaction_id', Column.varchar),
-    SchemaColumn('amount', Column.Double),
-    SchemaColumn('payment_method', Column.varchar),
-    SchemaColumn('created_at', Column.datetime)
   }, indices: <SchemaIndex>{})
 });

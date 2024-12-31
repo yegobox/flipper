@@ -11,7 +11,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
-  String? variantId;
+  // String? variantId;
 
   int? tin;
   String? bhfId;
@@ -23,6 +23,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
   double? currentStock;
   @Supabase(defaultValue: "0.0")
   double? lowStock;
+  @Sqlite(defaultValue: "true")
   @Supabase(defaultValue: "true")
   bool? canTrackingStock;
   @Supabase(defaultValue: "true")
@@ -32,7 +33,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
   double? value;
   double? rsdQty;
   DateTime? lastTouched;
-  DateTime? deletedAt;
+  @Sqlite(defaultValue: "false")
   @Supabase(defaultValue: "false")
   bool? ebmSynced;
   @Supabase(defaultValue: "0.0")
@@ -43,7 +44,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
     this.tin,
     this.bhfId,
     this.branchId,
-    this.variantId,
+    // this.variantId,
     this.currentStock,
     this.lowStock,
     this.canTrackingStock,
@@ -53,7 +54,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
     this.value,
     this.rsdQty,
     this.lastTouched,
-    this.deletedAt,
+    // this.deletedAt,
     this.ebmSynced,
     this.initialStock,
   }) : id = id ?? const Uuid().v4();

@@ -190,27 +190,27 @@ class EventService
   @override
   Future<void> keepTryingPublishDevice() async {
     if (ProxyService.box.getBusinessId() == null) return;
-    List<Device> devices = await ProxyService.strategy
-        .unpublishedDevices(businessId: ProxyService.box.getBusinessId()!);
-    for (Device device in devices) {
-      nub.PublishResult result = await publish(
-        loginDetails: {
-          'channel': ProxyService.box.getUserPhone()!.replaceAll("+", ""),
-          'deviceName': device.deviceName,
-          'deviceVersion': device.deviceVersion,
-          'linkingCode': device.linkingCode,
-          'userId': device.userId,
-          'businessId': device.businessId,
-          'branchId': device.branchId,
-          'phone': device.phone,
-          'defaultApp': device.defaultApp,
-        },
-      );
-      if (result.description == 'Sent') {
-        // ProxyService.strategy.realm!.writeAsync(() async {
-        //   device.pubNubPublished = true;
-        // });
-      }
-    }
+    // List<Device> devices = await ProxyService.strategy
+    //     .unpublishedDevices(businessId: ProxyService.box.getBusinessId()!);
+    // for (Device device in devices) {
+    //   nub.PublishResult result = await publish(
+    //     loginDetails: {
+    //       'channel': ProxyService.box.getUserPhone()!.replaceAll("+", ""),
+    //       'deviceName': device.deviceName,
+    //       'deviceVersion': device.deviceVersion,
+    //       'linkingCode': device.linkingCode,
+    //       'userId': device.userId,
+    //       'businessId': device.businessId,
+    //       'branchId': device.branchId,
+    //       'phone': device.phone,
+    //       'defaultApp': device.defaultApp,
+    //     },
+    //   );
+    //   if (result.description == 'Sent') {
+    //     // ProxyService.strategy.realm!.writeAsync(() async {
+    //     //   device.pubNubPublished = true;
+    //     // });
+    //   }
+    // }
   }
 }

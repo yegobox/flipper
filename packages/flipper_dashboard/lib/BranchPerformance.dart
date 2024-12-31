@@ -72,7 +72,7 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (context, index) => ItemDetailCard(
-                            item: data[index],
+                            variant: data[index],
                             isSelected: data[index].id == selectedItemId,
                             onTap: () {
                               ref.read(selectedItemProvider.notifier).state =
@@ -278,13 +278,13 @@ class StockBarChartPainter extends CustomPainter {
 }
 
 class ItemDetailCard extends StatelessWidget {
-  final Variant item;
+  final Variant variant;
   final bool isSelected;
   final VoidCallback onTap;
 
   const ItemDetailCard({
     Key? key,
-    required this.item,
+    required this.variant,
     required this.isSelected,
     required this.onTap,
   }) : super(key: key);
@@ -308,8 +308,8 @@ class ItemDetailCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     FutureBuilder<Variant?>(
-                      future: ProxyService.strategy
-                          .getVariantById(id: item.stock!.variantId!),
+                      future:
+                          ProxyService.strategy.getVariantById(id: variant.id),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -329,15 +329,15 @@ class ItemDetailCard extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
                     Text(
-                        'Sold: ${item.stock!.initialStock ?? 0 - item.stock!.currentStock!}',
+                        'Sold: ${variant.stock!.initialStock ?? 0 - variant.stock!.currentStock!}',
                         style: Theme.of(context).textTheme.bodyMedium),
-                    Text('In Stock: ${item.stock!.currentStock}',
+                    Text('In Stock: ${variant.stock!.currentStock}',
                         style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
               ),
               CircularStockIndicator(
-                stock: item.stock!.currentStock!.toInt(),
+                stock: variant.stock!.currentStock!.toInt(),
                 maxStock: 150,
               ),
             ],
@@ -388,7 +388,7 @@ class BestSellingItemCard extends StatelessWidget {
                   children: [
                     FutureBuilder(
                       future: ProxyService.strategy
-                          .getVariantById(id: bestSeller.stock!.variantId!),
+                          .getVariantById(id: bestSeller.id),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
