@@ -150,11 +150,6 @@ class Capella with Booting implements RealmInterface {
   // }
 
   @override
-  void consumePoints({required int userId, required int points}) {
-    // TODO: implement consumePoints
-  }
-
-  @override
   Future<List<Counter>> getCounters({required int branchId}) async {
     throw UnimplementedError();
     // try {
@@ -330,12 +325,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<Business?> activeBusiness({required int userId}) {
-    // TODO: implement activeBusinesses
-    throw UnimplementedError();
-  }
-
-  @override
   Category? activeCategory({required int branchId}) {
     // TODO: implement activeCategory
     throw UnimplementedError();
@@ -428,35 +417,11 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Composite composite({required String variantId}) {
-    // TODO: implement composite
-    throw UnimplementedError();
-  }
-
-  @override
-  List<Composite> composites({required String productId}) {
-    // TODO: implement composites
-    throw UnimplementedError();
-  }
-
-  @override
-  List<Composite> compositesByVariantId({required int variantId}) {
-    // TODO: implement compositesByVariantId
-    throw UnimplementedError();
-  }
-
-  @override
   void createNewStock(
       {required Variant variant,
       required TransactionItem item,
       required int subBranchId}) {
     // TODO: implement createNewStock
-  }
-
-  @override
-  void createOrUpdateBranchOnCloud(
-      {required Branch branch, required bool isOnline}) {
-    // TODO: implement createOrUpdateBranchOnCloud
   }
 
   @override
@@ -1246,7 +1211,7 @@ class Capella with Booting implements RealmInterface {
       double? subTotal,
       String? note,
       String? status,
-      int? customerId,
+      String? customerId,
       bool? ebmSynced,
       String? sarTyCd,
       String? reference,
@@ -1911,6 +1876,26 @@ class Capella with Booting implements RealmInterface {
       bool isExpense = false,
       bool includePending = false}) {
     // TODO: implement transactions
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Business?> activeBusiness({int? userId}) {
+    // TODO: implement activeBusiness
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<List<brick.Composite>> composites(
+      {String? productId, String? variantId}) {
+    // TODO: implement composites
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> createOrUpdateBranchOnCloud(
+      {required brick.Branch branch, required bool isOnline}) {
+    // TODO: implement createOrUpdateBranchOnCloud
     throw UnimplementedError();
   }
 }

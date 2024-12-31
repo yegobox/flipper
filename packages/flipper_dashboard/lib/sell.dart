@@ -40,9 +40,10 @@ class SellState extends ConsumerState<Sell> {
       },
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
+        final branchId = ProxyService.box.getBranchId()!;
         final pendingTransaction = ref.watch(pendingTransactionProvider(
           /// defind this is an income by setting isExpense to false
-          (mode: TransactionType.sale, isExpense: false),
+          (mode: TransactionType.sale, isExpense: false,branchId: branchId),
         ));
         return Scaffold(
           backgroundColor: Colors.white,
@@ -75,13 +76,13 @@ class SellState extends ConsumerState<Sell> {
                 showSimpleNotification(const Text('No item selected'),
                     background: Colors.red);
               }
-
+final branchId = ProxyService.box.getBranchId()!;
               /// when we are ordering transaction type is cashOut
               ref.refresh(pendingTransactionProvider(
-                (mode: TransactionType.cashOut, isExpense: true),
+                (mode: TransactionType.cashOut, isExpense: true,branchId: branchId),
               ));
               ref.refresh(pendingTransactionProvider(
-                (mode: TransactionType.sale, isExpense: false),
+                (mode: TransactionType.sale, isExpense: false,branchId: branchId),
               ));
               _routerService.pop();
             },

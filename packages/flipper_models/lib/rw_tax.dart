@@ -24,6 +24,7 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
 
 class RWTax with NetworkHelper implements TaxApi {
   String itemPrefix = "flip-";
@@ -180,12 +181,15 @@ class RWTax with NetworkHelper implements TaxApi {
       final url = Uri.parse(URI)
           .replace(path: Uri.parse(URI).path + 'stockMaster/saveStockMaster')
           .toString();
-      if (variant.productName == TEMP_PRODUCT) {
-        throw Exception("Invalid product");
-      }
 
       /// update the remaining stock of this item in rra
-      variant.rsdQty = stock.currentStock;
+      variant.rsdQty = variant.stock!.currentStock;
+      if (variant.tin == null || variant.rsdQty == null) {
+        return RwApiResponse(resultCd: "000", resultMsg: "Invalid tin");
+      }
+      if (variant.productName == TEMP_PRODUCT) {
+        return RwApiResponse(resultCd: "000", resultMsg: "Invalid product");
+      }
       Response response = await sendPostRequest(url, variant.toJson());
 
       final data = RwApiResponse.fromJson(
@@ -416,10 +420,11 @@ class RWTax with NetworkHelper implements TaxApi {
     final repository = Repository();
 
     List<Configurations> taxConfigs = await repository.get<Configurations>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
         query: Query(where: [
-      Where('taxType').isExactly(item.taxTyCd!),
-      Where('branchId').isExactly(ProxyService.box.getBranchId()!),
-    ]));
+          Where('taxType').isExactly(item.taxTyCd!),
+          Where('branchId').isExactly(ProxyService.box.getBranchId()!),
+        ]));
     Configurations taxConfig = taxConfigs.first;
 
     // Base calculations
@@ -679,10 +684,10 @@ class RWTax with NetworkHelper implements TaxApi {
       "totTaxAmt": double.parse(totalTax.toStringAsFixed(2)),
       "totAmt": totalTaxable,
 
-      "regrId": transaction.id,
-      "regrNm": transaction.id,
-      "modrId": transaction.id,
-      "modrNm": transaction.id,
+      "regrId": transaction.id.substring(0, 5),
+      "regrNm": transaction.id.substring(0, 5),
+      "modrId": transaction.id.substring(0, 5),
+      "modrNm": transaction.id.substring(0, 5),
       "custNm": customer?.custNm ?? ProxyService.box.customerName() ?? "N/A",
       "remark": "",
       "prchrAcptcYn": "Y",

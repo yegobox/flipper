@@ -186,9 +186,6 @@ abstract class RealmInterface {
       required bool isExpense,
       required int branchId});
 
-  Future<List<ITransaction>> completedTransactions(
-      {required int branchId, String? status = COMPLETE});
-
   Future<Variant?> getCustomVariant({
     required int businessId,
     required int branchId,
@@ -225,7 +222,6 @@ abstract class RealmInterface {
   FutureOr<List<Customer>> customers(
       {required int branchId, String? key, String? id});
 
-  ITransaction? getTransactionById({required String id});
   Future<List<ITransaction>> tickets();
 
   Future<int> deleteTransactionByIndex({required String transactionIndex});
@@ -253,8 +249,6 @@ abstract class RealmInterface {
   Future<List<Tenant>> tenants({int? businessId, int? excludeUserId});
 
   bool isSubscribed({required String feature, required int businessId});
-
-  void consumePoints({required int userId, required int points});
 
   Future<List<Product>> productsFuture({required int branchId});
 
@@ -382,9 +376,7 @@ abstract class RealmInterface {
   List<Variant> getVariants({String? key});
 
   void saveComposite({required Composite composite});
-  List<Composite> composites({required String productId});
-  List<Composite> compositesByVariantId({required int variantId});
-  Composite? composite({required String variantId});
+  FutureOr<List<Composite>> composites({String? productId, String? variantId});
   Stream<SKU?> sku({required int branchId, required int businessId});
   FutureOr<SKU> getSku({required int branchId, required int businessId});
   void createVariant(
@@ -451,11 +443,7 @@ abstract class RealmInterface {
   void deleteItemFromCart(
       {required TransactionItem transactionItemId, String? transactionId});
 
-  void createNewStock(
-      {required Variant variant,
-      required TransactionItem item,
-      required int subBranchId});
-  void createOrUpdateBranchOnCloud(
+  Future<void> createOrUpdateBranchOnCloud(
       {required Branch branch, required bool isOnline});
 
   Future<void> refreshSession({required int branchId, int? refreshRate = 5});
@@ -477,7 +465,7 @@ abstract class RealmInterface {
       required HttpClientInterface flipperHttpClient});
 
   Future<List<Business>> businesses({required int userId});
-  Future<Business?> activeBusiness({required int userId});
+  Future<Business?> activeBusiness({int? userId});
 
   Future<List<Branch>> branches(
       {required int businessId, bool? includeSelf = false});
@@ -513,7 +501,8 @@ abstract class RealmInterface {
 
   void clearData({required ClearData data});
 
-  Drawers? closeDrawer({required Drawers drawer, required double eod});
+  FutureOr<Drawers?> closeDrawer(
+      {required Drawers drawer, required double eod});
   FutureOr<void> saveStock({
     Variant? variant,
     required double rsdQty,
@@ -588,7 +577,7 @@ abstract class RealmInterface {
       double? subTotal,
       String? note,
       String? status,
-      int? customerId,
+      String? customerId,
       bool? ebmSynced,
       String? sarTyCd,
       String? reference,
@@ -840,4 +829,9 @@ abstract class RealmInterface {
     required String packagingUnit, // e.g., "NT"
     required String quantityUnit, // e.g., "BJ"
   });
+
+  void createNewStock(
+      {required Variant variant,
+      required TransactionItem item,
+      required int subBranchId});
 }

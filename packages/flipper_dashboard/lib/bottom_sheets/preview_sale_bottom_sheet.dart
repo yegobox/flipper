@@ -5,6 +5,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -122,8 +123,9 @@ class PreviewSaleBottomSheetState
 
   @override
   Widget build(BuildContext context) {
+    final branchId = ProxyService.box.getBranchId()!;
     final transaction = ref.watch(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false)));
+        (mode: TransactionType.sale, isExpense: false,branchId: branchId)));
     final transactionItemsNotifier =
         ref.watch(transactionItemsProvider((isExpense: false)).notifier);
 
@@ -190,9 +192,11 @@ class PreviewSaleBottomSheetState
   }
 
   Padding buildPayable(double totalPayable, {required WidgetRef ref}) {
+    final branchId = ProxyService.box.getBranchId()!;
     final transactionAsyncValue = ref.watch(pendingTransactionProvider((
       mode: TransactionType.sale,
       isExpense: false,
+      branchId: branchId,
     )));
 
     return Padding(

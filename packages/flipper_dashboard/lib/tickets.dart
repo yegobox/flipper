@@ -52,7 +52,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
             if (confirm == true) {
               ITransaction? _transaction =
-                  await ProxyService.strategy.getTransactionById(id: ticket.id);
+                  (await ProxyService.strategy.transactions(id: ticket.id))
+                      .firstOrNull;
 
               await ProxyService.strategy.updateTransaction(
                 transaction: _transaction!,
@@ -138,6 +139,7 @@ class _TicketsListState extends ConsumerState<TicketsList>
     with TicketsListMixin {
   @override
   Widget build(BuildContext context) {
+    final branchId = ProxyService.box.getBranchId()!;
     return Scaffold(
       appBar: widget.showAppBar
           ? AppBar(
@@ -146,8 +148,11 @@ class _TicketsListState extends ConsumerState<TicketsList>
               leading: IconButton(
                 onPressed: () {
                   ref.refresh(
-                    pendingTransactionProvider(
-                        (mode: TransactionType.sale, isExpense: false)),
+                    pendingTransactionProvider((
+                      mode: TransactionType.sale,
+                      isExpense: false,
+                      branchId: branchId
+                    )),
                   );
                   _routerService.back();
                 },

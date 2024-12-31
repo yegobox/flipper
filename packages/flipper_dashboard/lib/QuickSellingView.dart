@@ -111,8 +111,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final isOrdering = ProxyService.box.isOrdering() ?? false;
     final transactionItemsAsyncValue =
         ref.watch(transactionItemsProvider((isExpense: isOrdering)));
+    final branchId = ProxyService.box.getBranchId() ?? 0;
     final transactionAsyncValue = ref.watch(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false)));
+        (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
 
     transactionItemsAsyncValue.whenData((items) {
       try {
@@ -607,9 +608,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildFooter(AsyncValue<ITransaction> transactionAsyncValue) {
+    final branchId = ProxyService.box.getBranchId() ?? 0;
     final pendingTransaction = ref.watch(pendingTransactionProvider((
       mode: TransactionType.sale,
       isExpense: false,
+      branchId: branchId,
     )));
 
     final transaction = pendingTransaction.asData?.value;

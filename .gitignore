@@ -32,7 +32,7 @@
 **/apps/main_app/build/
 
 # Web related
-
+*.sql
 # Symbolication related
 app.*.symbols
 

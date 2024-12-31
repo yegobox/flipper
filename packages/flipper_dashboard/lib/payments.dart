@@ -125,15 +125,17 @@ class PaymentsState extends ConsumerState<Payments> {
   }
 
   PreferredSizeWidget _buildCustomAppBar() {
+    final branchId = ProxyService.box.getBranchId()!;
     return CustomAppBar(
       onPop: () {
         ref.refresh(pendingTransactionProvider(
-            (mode: TransactionType.sale, isExpense: false)));
+            (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
         _routerService.back();
       },
       onActionButtonClicked: () {
+        
         ref.refresh(pendingTransactionProvider(
-            (mode: TransactionType.sale, isExpense: false)));
+            (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
         _routerService.back();
       },
       rightActionButtonName: 'Split payment',
@@ -641,7 +643,7 @@ class PaymentsState extends ConsumerState<Payments> {
 
     /// refresh and go home
     ref.refresh(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false)));
+        (mode: TransactionType.sale, isExpense: false, branchId: ProxyService.box.getBranchId()!)));
     _routerService.back;
     model.handlingConfirm = false;
   }

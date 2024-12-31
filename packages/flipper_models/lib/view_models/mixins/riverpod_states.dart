@@ -199,7 +199,7 @@ final pendingTransactionProviderNonStream = FutureProvider.autoDispose
     final (:mode, :isExpense) = params;
 
     // Access ProxyService to get the branch ID
-    final branchId = ProxyService.box.getBranchId()!;
+    final branchId = ProxyService.box.getBranchId() ?? 0;
 
     // Return the result of manageTransaction directly
     return await ProxyService.strategy.manageTransaction(
@@ -210,11 +210,9 @@ final pendingTransactionProviderNonStream = FutureProvider.autoDispose
   },
 );
 final pendingTransactionProvider = StreamProvider.autoDispose
-    .family<ITransaction, ({String mode, bool isExpense})>(
+    .family<ITransaction, ({String mode, bool isExpense, int branchId})>(
   (ref, params) {
-    final (:mode, :isExpense) = params;
-    // Access ProxyService to get the branch ID
-    final branchId = ProxyService.box.getBranchId()!;
+    final (:mode, :isExpense, :branchId) = params;
 
     // Return a stream from the manageTransaction method
     return ProxyService.strategy.manageTransactionStream(
@@ -224,7 +222,6 @@ final pendingTransactionProvider = StreamProvider.autoDispose
     );
   },
 );
-
 final freshtransactionItemsProviderByIdProvider =
     StateNotifierProvider.autoDispose.family<TransactionItemsNotifier,
         AsyncValue<List<TransactionItem>>, ({String transactionId})>(
@@ -233,6 +230,7 @@ final freshtransactionItemsProviderByIdProvider =
 
     return TransactionItemsNotifier(
       transactionId: transactionId,
+      ref: ref,
     );
   },
 );
@@ -240,26 +238,40 @@ final freshtransactionItemsProviderByIdProvider =
 final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
     TransactionItemsNotifier,
     AsyncValue<List<TransactionItem>>,
-    ({bool isExpense})>(
-  (ref, params) {
-    final (:isExpense) = params;
-    final transaction = ref.watch(pendingTransactionProviderNonStream((isExpense
-        ? (mode: TransactionType.cashOut, isExpense: true)
-        : (mode: TransactionType.sale, isExpense: false))));
+    ({bool isExpense})>((ref, params) {
+  final (:isExpense) = params;
+  final transaction = ref.watch(pendingTransactionProviderNonStream((isExpense
+      ? (mode: TransactionType.cashOut, isExpense: true)
+      : (mode: TransactionType.sale, isExpense: false))));
 
-    return TransactionItemsNotifier(
-      transactionId: transaction.value?.id,
-    );
-  },
-);
+  // Cancel any ongoing operations when the provider is disposed
+  ref.onDispose(() {
+    // talker.info("TransactionItemsProvider disposed");
+  });
+
+  return TransactionItemsNotifier(
+    transactionId: transaction.value?.id,
+    ref: ref,
+  );
+});
 
 class TransactionItemsNotifier
     extends StateNotifier<AsyncValue<List<TransactionItem>>> {
   final String? transactionId;
+  final Ref ref;
+  bool _mounted = true;
 
-  TransactionItemsNotifier({required this.transactionId})
-      : super(const AsyncValue.loading()) {
+  TransactionItemsNotifier({
+    required this.transactionId,
+    required this.ref,
+  }) : super(const AsyncValue.loading()) {
     _loadItems();
+  }
+
+  @override
+  void dispose() {
+    _mounted = false;
+    super.dispose();
   }
 
   Future<void> _loadItems() async {
@@ -268,10 +280,10 @@ class TransactionItemsNotifier
 
   Future<List<TransactionItem>> loadItems(
       {required String currentTransaction}) async {
+    if (!_mounted) return [];
+
     try {
-      // TODO: this load many time, fix it when I get time.
-      // talker.info(
-      //     "TransactionItemsNotifier:Loading transactionId $currentTransaction");
+      if (!mounted) return [];
       state = const AsyncValue.loading();
 
       final items = await ProxyService.strategy.transactionItems(
@@ -279,10 +291,13 @@ class TransactionItemsNotifier
           transactionId: currentTransaction,
           doneWithTransaction: false,
           active: true);
+
+      if (!_mounted) return items;
       state = AsyncValue.data(items);
 
       return items;
     } catch (error, stackTrace) {
+      if (!_mounted) return [];
       talker.error("Error loading transaction items: $error");
       state = AsyncValue.error(error, stackTrace);
       rethrow;
@@ -290,6 +305,8 @@ class TransactionItemsNotifier
   }
 
   Future<void> updatePendingTransaction() async {
+    if (!_mounted) return;
+
     try {
       final branchId = ProxyService.box.getBranchId()!;
       final stream = ProxyService.strategy.manageTransactionStream(
@@ -298,19 +315,19 @@ class TransactionItemsNotifier
         isExpense: false,
       );
 
-      // Listen to the stream and process the transaction
       await for (final transaction in stream) {
-        // Assuming realm.write is synchronous, process the transaction here
+        if (!_mounted) break;
 
-        ProxyService.strategy.updateTransaction(
+        await ProxyService.strategy.updateTransaction(
           transaction: transaction,
           subTotal: totalPayable,
         );
-        // Optionally break the loop if only one transaction needs to be updated
         break;
       }
     } catch (error) {
-      talker.error("Error updating pending transaction: $error");
+      if (_mounted) {
+        talker.error("Error updating pending transaction: $error");
+      }
     }
   }
 

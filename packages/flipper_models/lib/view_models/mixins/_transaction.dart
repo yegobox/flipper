@@ -1,5 +1,4 @@
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -233,6 +232,12 @@ mixin TransactionMixin {
     try {
       if (item != null && !isCustom) {
         // Update existing non-custom item
+        item.doneWithTransaction = false;
+
+        ProxyService.strategy.updateTransactionItem(
+          transactionItemId: item.id,
+          doneWithTransaction: false,
+        );
 
         ProxyService.strategy.updateTransactionItem(
           transactionItemId: item.id,
@@ -247,13 +252,15 @@ mixin TransactionMixin {
           quantityRequested: ((item.qty) + quantity).toInt(),
           quantityShipped: 0,
         );
+
         updatePendingTransactionTotals(pendingTransaction);
       } else {
         // Add new item (for both custom and new non-custom items)
         double computedQty = isCustom ? 1.0 : quantity;
         if (partOfComposite) {
           Composite? composite =
-              ProxyService.strategy.composite(variantId: variation.id);
+              (await ProxyService.strategy.composites(variantId: variation.id))
+                  .firstOrNull;
           computedQty = composite?.qty ?? 0.0;
         }
 
@@ -373,6 +380,9 @@ mixin TransactionMixin {
       subTotal: newSubTotal,
       updatedAt: newUpdatedAt,
       lastTouched: newLastTouched,
+      receiptType: "NS",
+      isProformaMode: false,
+      isTrainingMode: false,
     );
   }
 }

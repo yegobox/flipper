@@ -202,8 +202,9 @@ class CoreViewModel extends FlipperBaseModel
         transaction: pendingTransaction,
         subTotal: updatedItems.fold(0, (a, b) => a! + (b.price * b.qty)),
       );
-      ITransaction? updatedTransaction = await ProxyService.strategy
-          .getTransactionById(id: pendingTransaction.id);
+      ITransaction? updatedTransaction =
+          (await ProxyService.strategy.transactions(id: pendingTransaction.id))
+              .firstOrNull;
       keypad.setTransaction(updatedTransaction);
     } catch (e, s) {
       talker.error(e);
@@ -345,8 +346,9 @@ class CoreViewModel extends FlipperBaseModel
         transaction: pendingTransaction,
         subTotal: items.fold(0, (a, b) => a! + (b.price * b.qty)),
       );
-      ITransaction? updatedTransaction = await ProxyService.strategy
-          .getTransactionById(id: pendingTransaction.id);
+      ITransaction? updatedTransaction =
+          (await ProxyService.strategy.transactions(id: pendingTransaction.id))
+              .firstOrNull;
       keypad.setTransaction(updatedTransaction);
     }
   }
@@ -580,8 +582,9 @@ class CoreViewModel extends FlipperBaseModel
         branchId: ProxyService.box.getBranchId()!,
         transactionType: TransactionType.sale,
         isExpense: false);
-    ITransaction? transaction = await ProxyService.strategy
-        .getTransactionById(id: currentTransaction.id);
+    ITransaction? transaction =
+        (await ProxyService.strategy.transactions(id: currentTransaction.id))
+            .firstOrNull;
 
     ProxyService.strategy.updateTransaction(
       transaction: transaction!,
@@ -690,8 +693,8 @@ class CoreViewModel extends FlipperBaseModel
 
   void loadReport() async {
     int branchId = ProxyService.box.getBranchId()!;
-    List<ITransaction> completedTransactions =
-        await ProxyService.strategy.completedTransactions(branchId: branchId);
+    List<ITransaction> completedTransactions = await ProxyService.strategy
+        .transactions(branchId: branchId, status: COMPLETE);
     Set<TransactionItem> allItems = {};
     for (ITransaction completedTransaction in completedTransactions) {
       List<TransactionItem> transactionItems = await ProxyService.strategy
@@ -824,7 +827,8 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<ITransaction?> getTransactionByIndex(String transactionIndex) async {
     ITransaction? res =
-        await ProxyService.strategy.getTransactionById(id: transactionIndex);
+        (await ProxyService.strategy.transactions(id: transactionIndex))
+            .firstOrNull;
     return res;
   }
 

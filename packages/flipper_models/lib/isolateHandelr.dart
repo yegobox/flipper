@@ -310,9 +310,6 @@ class IsolateHandler with StockPatch {
       } else {
         print('Failed to load data. Status code: ${response.statusCode}');
       }
-    } catch (e, s) {
-      print(e);
-      print(s);
-    }
+    } catch (e) {}
   }
 }

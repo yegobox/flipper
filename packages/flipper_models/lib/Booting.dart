@@ -73,35 +73,53 @@ mixin Booting {
       {required bool usenewVersion}) async {
     final List<LPermission> permissionToAdd = [];
     final List<String> features = ['Sales', 'Inventory', 'Reports', 'Settings'];
-
+    // permissions = permissions.isEmpty? await ProxyService.strategy.permissions(userId: ProxyService.box.getUserId()!): permissions;
+    /// check that all features above are saved with admin access
+    /// TODO: improve this, because permission might be empty and the user logging in is not admin
+    if (permissions.isEmpty) {
+      /// if permissions are empty this means if it is not the first time we are logging in
+      /// in this case we just need to check if all permission for admin were saved corectly
+      for (String feature in features) {
+        talker.warning(
+            "Permission with userId: ${ProxyService.box.getUserId()!}");
+        List<Access> hasAccess = await ProxyService.strategy.access(
+            userId: ProxyService.box.getUserId()!, featureName: feature);
+        if (hasAccess.isEmpty) {
+          await ProxyService.strategy.addAccess(
+            branchId: ProxyService.box.getBranchId()!,
+            businessId: ProxyService.box.getBusinessId()!,
+            userId: ProxyService.box.getUserId()!,
+            featureName: feature,
+            accessLevel: 'Admin'.toLowerCase(),
+            status: 'active',
+            userType: "Admin",
+          );
+        }
+      }
+    }
     for (IPermission permission in permissions) {
-      LPermission? exist =
-          await ProxyService.strategy.permission(userId: permission.userId);
+      final perm = LPermission(
+        name: permission.name,
+        userId: permission.userId,
+      );
+      permissionToAdd.add(perm);
 
-      if (exist == null) {
-        final perm = LPermission(
-          name: permission.name,
-          userId: permission.userId,
-        );
-        permissionToAdd.add(perm);
+      // Check if the permission is "admin" and handle access creation
+      if (permission.name.toLowerCase() == 'admin') {
+        for (String featureName in features) {
+          final List<Access> existingAccess = await ProxyService.strategy
+              .access(userId: permission.userId, featureName: featureName);
 
-        // Check if the permission is "admin" and handle access creation
-        if (permission.name.toLowerCase() == 'admin') {
-          for (String featureName in features) {
-            final List<Access> existingAccess = await ProxyService.strategy
-                .access(userId: permission.userId, featureName: featureName);
-
-            if (existingAccess.isEmpty) {
-              await ProxyService.strategy.addAccess(
-                branchId: ProxyService.box.getBranchId()!,
-                businessId: ProxyService.box.getBusinessId()!,
-                userId: permission.userId,
-                featureName: featureName,
-                accessLevel: 'Admin'.toLowerCase(),
-                status: 'active',
-                userType: "Admin",
-              );
-            }
+          if (existingAccess.isEmpty) {
+            await ProxyService.strategy.addAccess(
+              branchId: ProxyService.box.getBranchId()!,
+              businessId: ProxyService.box.getBusinessId()!,
+              userId: permission.userId,
+              featureName: featureName,
+              accessLevel: 'Admin'.toLowerCase(),
+              status: 'active',
+              userType: "Admin",
+            );
           }
         }
       }
@@ -242,16 +260,24 @@ mixin Booting {
             value: user.tenants.first.permissions.first.name);
       }
     }
+    int? branchId = user.tenants.first.branches.first.id;
+    int? businessId = user.tenants.first.businesses.first.id;
+    if (branchId == null) {
+      // get any local saved branch
+      Branch branch = await ProxyService.strategy.activeBranch();
+      branchId = branch.serverId!;
+    }
+    if (businessId == null) {
+      // get any local saved business
+      Business? business = await ProxyService.strategy.activeBusiness();
+      businessId = business!.serverId;
+    }
+
+    await ProxyService.box
+        .writeInt(key: 'branchId', value: user.tenants.isEmpty ? 0 : branchId);
 
     await ProxyService.box.writeInt(
-        key: 'branchId',
-        value:
-            user.tenants.isEmpty ? 0 : user.tenants.first.branches.first.id!);
-
-    await ProxyService.box.writeInt(
-        key: 'businessId',
-        value:
-            user.tenants.isEmpty ? 0 : user.tenants.first.businesses.first.id!);
+        key: 'businessId', value: user.tenants.isEmpty ? 0 : businessId);
     await ProxyService.box.writeString(
         key: 'encryptionKey',
         value: user.tenants.first.businesses.first.encryptionKey);

@@ -1,14 +1,19 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20241231092049.migration.dart';
 part '20241230124823.migration.dart';
+part '20241231021147.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20241230124823(),};
+  const Migration20241231092049(),
+  const Migration20241230124823(),
+  const Migration20241231021147()
+};
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20241230124823, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20241231092049, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -597,7 +602,7 @@ final schema = Schema(20241230124823, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('qr_code', Column.varchar),
     SchemaColumn('receipt_type', Column.varchar),
     SchemaColumn('branch_id', Column.integer),
-    SchemaColumn('transaction_id', Column.integer),
+    SchemaColumn('transaction_id', Column.varchar),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('invc_no', Column.integer),
     SchemaColumn('when_created', Column.datetime),
@@ -737,5 +742,14 @@ final schema = Schema(20241230124823, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer)
+  }, indices: <SchemaIndex>{}),
+  SchemaTable('TransactionPaymentRecord', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('transaction_id', Column.varchar),
+    SchemaColumn('amount', Column.Double),
+    SchemaColumn('payment_method', Column.varchar),
+    SchemaColumn('created_at', Column.datetime)
   }, indices: <SchemaIndex>{})
 });

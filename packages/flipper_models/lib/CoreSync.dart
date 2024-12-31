@@ -14,6 +14,7 @@ import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
+import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:flipper_models/helper_models.dart' as ext;
@@ -168,16 +169,27 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   Future<Branch> activeBranch() async {
     return (await repository.get<Branch>(
-            query:
-                brick.Query(where: [brick.Where('isDefault').isExactly(true)])))
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: brick.Query(
+        where: [
+          brick.Where('isDefault').isExactly(true),
+        ],
+      ),
+    ))
         .first;
   }
 
   @override
-  Future<Business?> activeBusiness({required int userId}) async {
+  Future<Business?> activeBusiness({int? userId}) async {
     return (await repository.get<Business>(
-            query:
-                brick.Query(where: [brick.Where('userId').isExactly(userId)])))
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: brick.Query(
+        where: [
+          if (userId != null) brick.Where('userId').isExactly(userId),
+          brick.Where('isDefault').isExactly(true),
+        ],
+      ),
+    ))
         .firstOrNull;
   }
 
@@ -198,10 +210,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       {required Customer customer, String? transactionId}) async {
     Customer customerin = await repository.upsert(customer);
     if (transactionId != null) {
-      final transaction = await getTransactionById(id: transactionId);
+      ITransaction? transaction =
+          (await transactions(id: transactionId)).firstOrNull;
       transaction!.customerId = customerin.id;
-      await repository.upsert(transaction);
+      await repository.upsert<ITransaction>(transaction);
+      return (await customers(
+              id: transaction.customerId, branchId: transaction.branchId!))
+          .firstOrNull;
     }
+    return null;
   }
 
   @override
@@ -341,7 +358,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<void> assignCustomerToTransaction(
       {required String customerId, String? transactionId}) async {
     try {
-      final transaction = getTransactionById(id: transactionId!);
+      final transaction = (await transactions(id: transactionId!)).firstOrNull;
       if (transaction != null) {
         transaction.customerId = customerId;
         repository.upsert<ITransaction>(transaction);
@@ -499,42 +516,33 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Drawers? closeDrawer({required Drawers drawer, required double eod}) {
-    // TODO: implement closeDrawer
-    throw UnimplementedError("closeDrawer method is not implemented yet");
+  Future<Drawers?> closeDrawer(
+      {required Drawers drawer, required double eod}) async {
+    drawer.open = false;
+    drawer.cashierId = ProxyService.box.getUserId()!;
+    // drawer.closingBalance = double.parse(_controller.text);
+    drawer.closingBalance = eod;
+    drawer.closingDateTime = DateTime.now().toIso8601String();
+    return await repository.upsert(drawer);
   }
 
   @override
-  Future<List<PColor>> colors({required int branchId}) {
-    // TODO: implement colors
-    throw UnimplementedError("colors method is not implemented yet");
+  Future<List<PColor>> colors({required int branchId}) async {
+    return await repository.get<PColor>(
+        query:
+            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
   }
 
   @override
-  Future<List<ITransaction>> completedTransactions(
-      {required int branchId, String? status = COMPLETE}) {
-    // TODO: implement completedTransactions
-    throw UnimplementedError(
-        "completedTransactions method is not implemented yet");
-  }
-
-  @override
-  Composite composite({required String variantId}) {
-    // TODO: implement composite
-    throw UnimplementedError("composite method is not implemented yet");
-  }
-
-  @override
-  List<Composite> composites({required String productId}) {
-    // TODO: implement composites
-    throw UnimplementedError("composites method is not implemented yet");
-  }
-
-  @override
-  List<Composite> compositesByVariantId({required int variantId}) {
-    // TODO: implement compositesByVariantId
-    throw UnimplementedError(
-        "compositesByVariantId method is not implemented yet");
+  FutureOr<List<Composite>> composites(
+      {String? productId, String? variantId}) async {
+    return await repository.get<Composite>(
+        query: brick.Query(
+      where: [
+        if (productId != null) brick.Where('productId').isExactly(productId),
+        if (variantId != null) brick.Where('variantId').isExactly(variantId),
+      ],
+    ));
   }
 
   @override
@@ -572,25 +580,16 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  void consumePoints({required int userId, required int points}) {
-    // TODO: implement consumePoints
-  }
-
-  @override
-  void createNewStock(
-      {required Variant variant,
-      required TransactionItem item,
-      required int subBranchId}) {
-    // TODO: implement createNewStock
-    throw UnimplementedError("createNewStock method is not implemented yet");
-  }
-
-  @override
-  void createOrUpdateBranchOnCloud(
-      {required Branch branch, required bool isOnline}) {
-    // TODO: implement createOrUpdateBranchOnCloud
-    throw UnimplementedError(
-        "createOrUpdateBranchOnCloud method is not implemented yet");
+  Future<void> createOrUpdateBranchOnCloud(
+      {required Branch branch, required bool isOnline}) async {
+    Branch? branchSaved = (await repository.get<Branch>(
+            query: brick.Query(where: [
+      brick.Where('id').isExactly(branch.id),
+    ])))
+        .firstOrNull;
+    if (branchSaved == null) {
+      await repository.upsert<Branch>(branch);
+    }
   }
 
   Future<models.Variant> _createRegularVariant(int branchId, int? tinNumber,
@@ -737,9 +736,60 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       required String qrCode,
       required String receiptType,
       required Counter counter,
-      required int invoiceNumber}) {
-    // TODO: implement createReceipt
-    throw UnimplementedError("createReceipt method is not implemented yet");
+      required int invoiceNumber}) async {
+    int branchId = ProxyService.box.getBranchId()!;
+
+    Receipt receipt = Receipt(
+        branchId: branchId,
+        resultCd: signature.resultCd,
+        resultMsg: signature.resultMsg,
+        rcptNo: signature.data?.rcptNo ?? 0,
+        intrlData: signature.data?.intrlData ?? "",
+        rcptSign: signature.data?.rcptSign ?? "",
+        qrCode: qrCode,
+        receiptType: receiptType,
+        invoiceNumber: invoiceNumber,
+        vsdcRcptPbctDate: signature.data?.vsdcRcptPbctDate ?? "",
+        sdcId: signature.data?.sdcId ?? "",
+        totRcptNo: signature.data?.totRcptNo ?? 0,
+        mrcNo: signature.data?.mrcNo ?? "",
+        transactionId: transaction.id,
+        invcNo: counter.invcNo,
+        whenCreated: whenCreated,
+        resultDt: signature.resultDt ?? "");
+    Receipt? existingReceipt = (await repository.get<Receipt>(
+            query: brick.Query(where: [
+      brick.Where('transactionId').isExactly(transaction.id),
+    ])))
+        .firstOrNull;
+
+    if (existingReceipt != null) {
+      existingReceipt
+        ..resultCd = receipt.resultCd
+        ..resultMsg = receipt.resultMsg
+        ..rcptNo = receipt.rcptNo
+        ..intrlData = receipt.intrlData
+        ..rcptSign = receipt.rcptSign
+        ..qrCode = receipt.qrCode
+        ..receiptType = receipt.receiptType
+        ..invoiceNumber = receipt.invoiceNumber
+        ..vsdcRcptPbctDate = receipt.vsdcRcptPbctDate
+        ..sdcId = receipt.sdcId
+        ..totRcptNo = receipt.totRcptNo
+        ..mrcNo = receipt.mrcNo
+        ..invcNo = receipt.invcNo
+        ..whenCreated = receipt.whenCreated
+        ..resultDt = receipt.resultDt;
+      return await repository.upsert(existingReceipt,
+          query: brick.Query(
+            action: QueryAction.update,
+          ));
+    } else {
+      return await repository.upsert(receipt,
+          query: brick.Query(
+            action: QueryAction.insert,
+          ));
+    }
   }
 
   @override
@@ -1127,7 +1177,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     final query =
         brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
     final counters = await repository.get<models.Counter>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
 
     return counters;
   }
@@ -1560,9 +1610,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Receipt?> getReceipt({required String transactionId}) {
-    // TODO: implement getReceipt
-    throw UnimplementedError("getReceipt method is not implemented yet");
+  Future<Receipt?> getReceipt({required String transactionId}) async {
+    return (await repository.get<Receipt>(
+            query: brick.Query(where: [
+      brick.Where('transactionId').isExactly(transactionId)
+    ])))
+        .firstOrNull;
   }
 
   @override
@@ -2573,7 +2626,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               if (separator[2] == "transaction") {
                 final transactionId = separator[3];
                 ITransaction? transaction =
-                    getTransactionById(id: transactionId);
+                    (await transactions(id: transactionId)).firstOrNull;
                 if (transaction != null) {
                   transaction.ebmSynced = true;
                   repository.upsert<ITransaction>(transaction);
@@ -2929,21 +2982,139 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<ITransaction> collectPayment(
-      {required double cashReceived,
-      required ITransaction transaction,
-      required String paymentType,
-      required double discount,
-      required int branchId,
-      required String bhfId,
-      required bool isProformaMode,
-      required bool isTrainingMode,
-      required String transactionType,
-      String? categoryId,
-      bool directlyHandleReceipt = false,
-      required bool isIncome}) {
-    // TODO: implement collectPayment
-    throw UnimplementedError("collectPayment method is not implemented yet");
+  Future<ITransaction> collectPayment({
+    required double cashReceived,
+    required ITransaction transaction,
+    required String paymentType,
+    required double discount,
+    required int branchId,
+    required String bhfId,
+    required bool isProformaMode,
+    required bool isTrainingMode,
+    required String transactionType,
+    String? categoryId,
+    bool directlyHandleReceipt = false,
+    required bool isIncome,
+  }) async {
+    try {
+      // Fetch transaction items
+      List<TransactionItem> items = await transactionItems(
+        branchId: branchId,
+        transactionId: transaction.id,
+      );
+
+      // Update transaction details
+      final double subTotal =
+          items.fold(0, (num a, b) => a + (b.price * b.qty));
+      final double subTotalFinalized = !isIncome ? cashReceived : subTotal;
+
+      _updateTransactionDetails(
+        transaction: transaction,
+        isIncome: isIncome,
+        cashReceived: cashReceived,
+        subTotalFinalized: subTotalFinalized,
+        paymentType: paymentType,
+        isProformaMode: isProformaMode,
+        isTrainingMode: isTrainingMode,
+        transactionType: transactionType,
+        categoryId: categoryId,
+      );
+
+      // Save transaction
+      repository.upsert(transaction);
+
+      // Update stock and transaction items
+      await _updateStockAndItems(items: items, branchId: branchId);
+
+      // Handle receipt if required
+      if (directlyHandleReceipt) {
+        TaxController(object: transaction)
+            .handleReceipt(filterType: FilterType.NS);
+      }
+
+      return transaction;
+    } catch (e, s) {
+      talker.error(s);
+      rethrow;
+    }
+  }
+
+  void _updateTransactionDetails({
+    required ITransaction transaction,
+    required bool isIncome,
+    required double cashReceived,
+    required double subTotalFinalized,
+    required String paymentType,
+    required bool isProformaMode,
+    required bool isTrainingMode,
+    required String transactionType,
+    String? categoryId,
+  }) {
+    final now = DateTime.now().toUtc().toLocal();
+
+    transaction
+      ..status = COMPLETE
+      ..isIncome = isIncome
+      ..isExpense = !isIncome
+      ..customerChangeDue = (cashReceived - subTotalFinalized)
+      ..paymentType = paymentType
+      ..cashReceived = cashReceived
+      ..subTotal = subTotalFinalized
+      ..receiptType = _determineReceiptType(isProformaMode, isTrainingMode)
+      ..updatedAt = now.toIso8601String()
+      ..createdAt = now.toIso8601String()
+      ..transactionType = transactionType
+      ..categoryId = categoryId ?? "0"
+      ..lastTouched = now;
+  }
+
+  String _determineReceiptType(bool isProformaMode, bool isTrainingMode) {
+    if (isProformaMode) return TransactionReceptType.PS;
+    if (isTrainingMode) return TransactionReceptType.TS;
+    return TransactionReceptType.NS;
+  }
+
+  Future<void> _updateStockAndItems({
+    required List<TransactionItem> items,
+    required int branchId,
+  }) async {
+    for (TransactionItem item in items) {
+      if (!item.active!) {
+        repository.delete(item);
+        continue;
+      }
+
+      await _updateStockForItem(item: item, branchId: branchId);
+
+      item
+        ..doneWithTransaction = true
+        ..updatedAt = DateTime.now().toUtc().toLocal().toIso8601String();
+      repository.upsert(item);
+    }
+  }
+
+  Future<void> _updateStockForItem({
+    required TransactionItem item,
+    required int branchId,
+  }) async {
+    final stock =
+        await getStock(variantId: item.variantId!, branchId: branchId);
+    if (stock == null) return;
+
+    final finalStock = (stock.currentStock! - item.qty);
+    final variant = await getVariantById(id: stock.variantId!);
+    final stockValue = finalStock * (variant?.retailPrice ?? 0);
+    final bhfId = await ProxyService.box.bhfId();
+
+    stock
+      ..rsdQty = finalStock
+      ..currentStock = finalStock
+      ..value = stockValue
+      ..ebmSynced = false
+      ..bhfId = stock.bhfId ?? bhfId
+      ..tin = stock.tin ?? ProxyService.box.tin();
+
+    repository.upsert(stock);
   }
 
   @override
@@ -3264,7 +3435,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       double? subTotal,
       String? note,
       String? status,
-      int? customerId,
+      String? customerId,
       bool? ebmSynced,
       String? sarTyCd,
       String? reference,
@@ -3280,9 +3451,45 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       int? receiptNumber,
       int? totalReceiptNumber,
       bool? isProformaMode,
-      bool? isTrainingMode}) {
-    // TODO: implement updateTransaction
-    throw UnimplementedError("updateTransaction method is not implemented yet");
+      bool? isTrainingMode}) async {
+    if (receiptType != null) {
+      transaction.ebmSynced = true;
+      transaction.isRefunded = receiptType == "R";
+
+      if (isProformaMode != null && isTrainingMode != null) {
+        String receiptType = TransactionReceptType.NS;
+        if (isProformaMode) {
+          receiptType = TransactionReceptType.PS;
+        }
+        if (isTrainingMode) {
+          receiptType = TransactionReceptType.TS;
+        }
+        transaction.receiptType = receiptType;
+        transaction.subTotal = subTotal ?? transaction.subTotal;
+        transaction.note = note ?? transaction.note;
+        transaction.status = status ?? transaction.status;
+        transaction.ticketName = ticketName ?? transaction.ticketName;
+        transaction.updatedAt = updatedAt ?? transaction.updatedAt;
+        transaction.customerId = customerId ?? transaction.customerId;
+        transaction.isRefunded = isRefunded ?? transaction.isRefunded;
+        transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
+        transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
+        transaction.receiptNumber = receiptNumber ?? transaction.receiptNumber;
+        transaction.totalReceiptNumber =
+            totalReceiptNumber ?? transaction.totalReceiptNumber;
+        transaction.sarTyCd = sarTyCd ?? transaction.sarTyCd;
+        transaction.reference = reference ?? transaction.reference;
+        transaction.customerTin = customerTin ?? transaction.customerTin;
+        transaction.customerBhfId = customerBhfId ?? transaction.customerBhfId;
+        transaction.cashReceived = cashReceived ?? transaction.cashReceived;
+        transaction.customerName = customerName ?? transaction.customerName;
+        transaction.lastTouched = lastTouched ?? transaction.lastTouched;
+        await repository.upsert<ITransaction>(transaction,
+            query: brick.Query(
+              action: QueryAction.update,
+            ));
+      }
+    }
   }
 
   @override
@@ -3328,7 +3535,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       item.totAmt = totAmt ?? item.totAmt;
       item.doneWithTransaction =
           doneWithTransaction ?? item.doneWithTransaction;
-      repository.upsert(item);
+      repository.upsert(item, query: brick.Query(action: QueryAction.update));
     }
   }
 
@@ -3405,12 +3612,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  ITransaction? getTransactionById({required String id}) {
-    // TODO: implement getTransactionById
-    throw UnimplementedError("getTransactionById is not implemented yet");
-  }
-
-  @override
   Future<models.TransactionItem?> getTransactionItemByVariantId(
       {required String variantId, String? transactionId}) async {
     return (await repository.get<TransactionItem>(
@@ -3464,9 +3665,64 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? transactionId,
       double amount = 0.0,
       String? paymentMethod,
-      required bool singlePaymentOnly}) {
-    // TODO: implement savePaymentType
-    throw UnimplementedError("savePaymentType method is not implemented yet");
+      required bool singlePaymentOnly}) async {
+    /// check if there is TransactionPaymentRecord with amount 0 delete it as we might not need it
+    /// by default we add payment method with 0.0 amount if this method was not updated with real money they we need to delete it to avoid confusion.
+
+    final transactionPaymentRecordWithAmount0 =
+        (await repository.get<TransactionPaymentRecord>(
+                query: brick.Query(where: [
+      brick.Where('transactionId').isExactly(transactionId),
+      brick.Where('amount').isExactly(0.0),
+    ])))
+            .firstOrNull;
+    if (transactionPaymentRecordWithAmount0 != null) {
+      await repository.delete<TransactionPaymentRecord>(
+          transactionPaymentRecordWithAmount0);
+    }
+
+    /// if is single payment delete any other payments, this is to handle case where a user switched from one payment method to another
+    /// but he ended up one payment method choosen, in this case we delete other and save the one he is at.
+    /// if multiple payment is choosen this is not applied.
+    if (singlePaymentOnly) {
+      final transactionPaymentRecords =
+          (await repository.get<TransactionPaymentRecord>(
+              query: brick.Query(where: [
+        brick.Where('transactionId').isExactly(transactionId),
+      ])));
+
+      for (TransactionPaymentRecord record in transactionPaymentRecords) {
+        await repository.delete<TransactionPaymentRecord>(record);
+      }
+    }
+
+    final transactionPaymentRecord =
+        (await repository.get<TransactionPaymentRecord>(
+                query: brick.Query(where: [
+      brick.Where('transactionId').isExactly(transactionId),
+      brick.Where('paymentMethod').isExactly(paymentMethod),
+    ])))
+            .firstOrNull;
+
+    if (transactionPaymentRecord != null) {
+      transactionPaymentRecord.paymentMethod = paymentMethod;
+      transactionPaymentRecord.amount = amount;
+      await repository
+          .upsert<TransactionPaymentRecord>(transactionPaymentRecord);
+    } else if (transactionId != 0) {
+      final transactionPaymentRecord = TransactionPaymentRecord(
+        createdAt: DateTime.now(),
+        amount: amount,
+        transactionId: transactionId,
+        paymentMethod: paymentMethod,
+      );
+
+      await repository
+          .upsert<TransactionPaymentRecord>(transactionPaymentRecord);
+    }
+    if (paymentRecord != null) {
+      await repository.upsert<TransactionPaymentRecord>(paymentRecord);
+    }
   }
 
   @override
@@ -3987,5 +4243,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       {required String stockRequestId, DateTime? updatedAt, String? status}) {
     // TODO: implement updateStockRequest
     throw UnimplementedError();
+  }
+
+  @override
+  void createNewStock(
+      {required Variant variant,
+      required TransactionItem item,
+      required int subBranchId}) {
+    // TODO: implement createNewStock
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 
@@ -32,8 +33,8 @@ class MessageService with ReactiveServiceMixin {
   //load orders from Objectbox and update the orders list
   void loadTransactions() {
     int branchId = ProxyService.box.getBranchId()!;
-    _orders.value =
-        ProxyService.strategy.completedTransactions(branchId: branchId);
+    _orders.value = ProxyService.strategy
+        .transactions(branchId: branchId, status: COMPLETE);
   }
 
   MessageService() {

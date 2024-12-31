@@ -24,7 +24,7 @@ class Receipt extends OfflineFirstWithSupabaseModel {
   String? receiptType;
   int? branchId;
 
-  int? transactionId;
+  String? transactionId;
 
   DateTime? lastTouched;
 

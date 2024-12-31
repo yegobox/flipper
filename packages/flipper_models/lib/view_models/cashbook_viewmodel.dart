@@ -30,7 +30,8 @@ class CashbookViewModel extends ProductViewModel with SharebleMethods {
 
   Future<ITransaction?> getTransactionByIndex(String transactionIndex) async {
     ITransaction? res =
-        await ProxyService.strategy.getTransactionById(id: transactionIndex);
+        (await ProxyService.strategy.transactions(id: transactionIndex))
+            .firstOrNull;
     return res;
   }
 }

@@ -16,10 +16,10 @@ mixin Refresh<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
       ref.refresh(pendingTransactionProviderNonStream(
           (isExpense: isOrdering, mode: TransactionType.sale)));
-
+final branchId = ProxyService.box.getBranchId()!;
       /// get new transaction id
       ref.refresh(pendingTransactionProvider(
-          (mode: TransactionType.sale, isExpense: isOrdering)));
+          (mode: TransactionType.sale, isExpense: isOrdering,branchId: branchId)));
 
       ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
       ref.read(loadingProvider.notifier).stopLoading();
@@ -31,10 +31,10 @@ mixin Refresh<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     ref.refresh(pendingTransactionProviderNonStream(
         (isExpense: true, mode: TransactionType.cashOut)));
-
+final branchId = ProxyService.box.getBranchId()!;
     /// get new transaction id
     ref.refresh(pendingTransactionProvider(
-        (mode: TransactionType.cashOut, isExpense: true)));
+        (mode: TransactionType.cashOut, isExpense: true,branchId: branchId)));
 
     ref.refresh(transactionItemsProvider((isExpense: true)));
   }

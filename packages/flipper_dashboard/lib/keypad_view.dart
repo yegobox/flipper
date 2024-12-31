@@ -206,10 +206,12 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
   }
 
   Future<void> _handleSpecialKey(String key) async {
+    final branchId = ProxyService.box.getBranchId()!;
     final transaction = ref.read(pendingTransactionProvider((
       mode: widget.transactionType,
       isExpense:
-          widget.transactionType == TransactionType.cashOut ? true : false
+          widget.transactionType == TransactionType.cashOut ? true : false,
+          branchId: branchId,
     )));
 
     if (key == 'C') {

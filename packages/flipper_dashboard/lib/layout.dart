@@ -59,20 +59,24 @@ class TransactionWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final branchId = ProxyService.box.getBranchId() ?? 0;
     return ref.watch(
-      pendingTransactionProvider((mode: TransactionType.sale, isExpense: false))
-          .select((value) => value.when(
-                data: (transaction) {
-                  return Expanded(
-                    child: TicketsList(
-                      showAppBar: false,
-                      transaction: transaction,
-                    ),
-                  ).shouldSeeTheApp(ref, AppFeature.Tickets);
-                },
-                error: (_, __) => const SizedBox.shrink(),
-                loading: () => const SizedBox.shrink(),
-              )),
+      pendingTransactionProvider((
+        mode: TransactionType.sale,
+        isExpense: false,
+        branchId: branchId
+      )).select((value) => value.when(
+            data: (transaction) {
+              return Expanded(
+                child: TicketsList(
+                  showAppBar: false,
+                  transaction: transaction,
+                ),
+              ).shouldSeeTheApp(ref, AppFeature.Tickets);
+            },
+            error: (_, __) => const SizedBox.shrink(),
+            loading: () => const SizedBox.shrink(),
+          )),
     );
   }
 }

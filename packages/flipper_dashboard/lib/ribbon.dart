@@ -154,8 +154,8 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
         _routerService
             .navigateTo(DrawerScreenRoute(open: "close", drawer: drawer));
       } else {
-        await logOut();
         _routerService.navigateTo(LoginRoute());
+        await logOut();
       }
     }
   }

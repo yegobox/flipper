@@ -54,7 +54,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (product?.isComposite ?? false) {
         /// search composite and delete them as well
         List<Composite> composites =
-            ProxyService.strategy.composites(productId: productId);
+            await ProxyService.strategy.composites(productId: productId);
 
         for (Composite composite in composites) {
           ProxyService.strategy.delete(

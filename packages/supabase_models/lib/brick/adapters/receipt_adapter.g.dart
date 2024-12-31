@@ -19,7 +19,7 @@ Future<Receipt> _$ReceiptFromSupabase(Map<String, dynamic> data,
       qrCode: data['qr_code'] as String?,
       receiptType: data['receipt_type'] as String?,
       branchId: data['branch_id'] as int?,
-      transactionId: data['transaction_id'] as int?,
+      transactionId: data['transaction_id'] as String?,
       lastTouched: data['last_touched'] == null
           ? null
           : DateTime.tryParse(data['last_touched'] as String),
@@ -82,7 +82,7 @@ Future<Receipt> _$ReceiptFromSqlite(Map<String, dynamic> data,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       transactionId: data['transaction_id'] == null
           ? null
-          : data['transaction_id'] as int?,
+          : data['transaction_id'] as String?,
       lastTouched: data['last_touched'] == null
           ? null
           : data['last_touched'] == null
@@ -313,7 +313,7 @@ class ReceiptAdapter extends OfflineFirstWithSupabaseAdapter<Receipt> {
       association: false,
       columnName: 'transaction_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'lastTouched': const RuntimeSqliteColumnDefinition(
       association: false,

@@ -243,8 +243,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
               variantId: item.variantId!,
               branchId: ProxyService.box.getBranchId()!))
           .firstOrNull;
-      final composites =
-          ProxyService.strategy.composites(productId: variant!.productId!);
+      final composites = await ProxyService.strategy
+          .composites(productId: variant!.productId!);
 
       for (final composite in composites) {
         final deletableItem = await ProxyService.strategy

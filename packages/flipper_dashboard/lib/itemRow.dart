@@ -218,7 +218,7 @@ class _RowItemState extends ConsumerState<RowItem>
           product.isComposite!) {
         /// get items of this composite
         List<Composite> composites =
-            ProxyService.strategy.composites(productId: product.id);
+            await ProxyService.strategy.composites(productId: product.id);
         for (Composite composite in composites) {
           /// find a stock for a given variant
           Variant? variant = await ProxyService.strategy
@@ -238,19 +238,11 @@ class _RowItemState extends ConsumerState<RowItem>
         await Future.delayed(Duration(microseconds: 1000));
         ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
       } else {
-        double stockQty = 0;
-        if (!widget.isOrdering) {
-          Stock? stock = await ProxyService.strategy.getStock(
-              variantId: widget.variant?.id ?? "",
-              branchId: ProxyService.box.getBranchId()!);
-          stockQty = stock?.currentStock ?? 0.0;
-        }
-
         model.saveTransaction(
           variation: widget.variant!,
           amountTotal: widget.variant?.retailPrice ?? 0,
           customItem: false,
-          currentStock: stockQty,
+          currentStock: widget.variant!.stock!.currentStock!,
           pendingTransaction: pendingTransaction,
           partOfComposite: false,
         );

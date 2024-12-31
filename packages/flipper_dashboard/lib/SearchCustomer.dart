@@ -110,6 +110,8 @@ class _SearchInputWithDropdownState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (ProxyService.box.getBranchId() == null)
+                      SizedBox.shrink(),
                     TextFormField(
                       readOnly: attachedCustomer != null,
                       controller: _searchController,

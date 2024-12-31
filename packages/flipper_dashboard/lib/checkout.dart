@@ -85,8 +85,9 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildMainContent() {
+    final branchId = ProxyService.box.getBranchId() ?? 0;
     final transactionAsyncValue = ref.watch(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false)));
+        (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
 
     return transactionAsyncValue.when(
       data: (transaction) => _buildDataWidget(transaction),
@@ -96,10 +97,11 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildDataWidget(ITransaction transaction) {
+    final branchId = ProxyService.box.getBranchId() ?? 0;
     // Defer the refresh until after the build phase
     Future.microtask(() {
       ref.refresh(pendingTransactionProvider(
-          (mode: TransactionType.sale, isExpense: false)));
+          (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
     });
 
     return widget.isBigScreen
@@ -286,7 +288,7 @@ class CheckOutState extends ConsumerState<CheckOut>
           padding: const EdgeInsets.all(8.0),
           child: PayableView(
             mode: SellingMode.forSelling,
-            completeTransaction: () {
+            completeTransaction: () async {
               /// update a transaction with customer name and tin
               if (customerNameController.text.isEmpty) {
                 /// remove old customer added maybe from previous sale
@@ -298,16 +300,20 @@ class CheckOutState extends ConsumerState<CheckOut>
               }
               try {
                 applyDiscount(transaction);
-                startCompleteTransactionFlow(
-                    completeTransaction: () {
-                      ref.read(loadingProvider.notifier).stopLoading();
-                    },
-                    transaction: transaction,
-                    paymentMethods: ref.watch(paymentMethodsProvider));
-
+                await startCompleteTransactionFlow(
+                  completeTransaction: () {
+                    ref.read(loadingProvider.notifier).stopLoading();
+                  },
+                  transaction: transaction,
+                  paymentMethods: ref.watch(paymentMethodsProvider),
+                );
+                final branchId = ProxyService.box.getBranchId()!;
                 ref.read(isProcessingProvider.notifier).stopProcessing();
-                ref.refresh(pendingTransactionProvider(
-                    (mode: TransactionType.sale, isExpense: false)));
+                ref.refresh(pendingTransactionProvider((
+                  mode: TransactionType.sale,
+                  isExpense: false,
+                  branchId: branchId
+                )));
               } catch (e) {
                 ref.read(loadingProvider.notifier).stopLoading();
                 rethrow;

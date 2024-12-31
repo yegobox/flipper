@@ -99,10 +99,11 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
 
     ref.refresh(pendingTransactionProviderNonStream(
         (isExpense: false, mode: TransactionType.sale)));
+    final branchId = ProxyService.box.getBranchId()!;
 
     /// get new transaction id
     ref.refresh(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false)));
+        (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
 
     ref.refresh(transactionItemsProvider((isExpense: false)));
   }
@@ -161,7 +162,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  void startCompleteTransactionFlow({
+  Future<void> startCompleteTransactionFlow({
     required ITransaction transaction,
     required Function completeTransaction,
     required List<Payment> paymentMethods,
@@ -172,7 +173,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
 
       // Save payment methods
       for (var payment in paymentMethods) {
-        ProxyService.strategy.savePaymentType(
+        await ProxyService.strategy.savePaymentType(
           singlePaymentOnly: paymentMethods.length == 1,
           amount: payment.amount,
           transactionId: transactionId,
@@ -192,7 +193,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
 
       // Get customer
       Customer? customer = (await ProxyService.strategy.customers(
-              id: transaction.customerId,
+              id: transaction.customerId ?? "0",
               branchId: ProxyService.box.getBranchId()!))
           .firstOrNull;
 
@@ -346,9 +347,13 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                             _refreshTransactionItems(
                                 transactionId: transaction.id);
                             Navigator.of(context).pop();
-
+                            final branchId = ProxyService.box.getBranchId()!;
                             ref.refresh(pendingTransactionProvider(
-                              (mode: TransactionType.sale, isExpense: false),
+                              (
+                                mode: TransactionType.sale,
+                                isExpense: false,
+                                branchId: branchId
+                              ),
                             ));
                           },
                           onFailure: (context, state) {

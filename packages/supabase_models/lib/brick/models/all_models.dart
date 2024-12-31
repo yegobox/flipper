@@ -31,7 +31,7 @@ export 'item.dart';
 export 'transactionItem.model.dart';
 // export 'access.model.dart';
 export 'stockRequest.model.dart';
-export 'transactionPaymentRecord.dart';
+export 'transaction_payment_record.model.dart';
 export 'flipperSaleCompagin.dart';
 export 'discount.model.dart';
 export 'token.model.dart';

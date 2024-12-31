@@ -152,9 +152,10 @@ class FlipperAppState extends ConsumerState<FlipperApp>
           );
 
       AppService.cleanedData.listen((data) async {
+        final branchId = ProxyService.box.getBranchId()!;
         log("listened to data");
         final pendingTransaction = ref.watch(pendingTransactionProvider(
-            (mode: TransactionType.sale, isExpense: false)));
+            (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
         log(data);
         List<String> parts = data.split(':');
         String firstPart = parts[0];

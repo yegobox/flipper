@@ -4,14 +4,17 @@ import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(),
+  supabaseConfig:
+      SupabaseSerializable(tableName: 'transaction_payment_records'),
 )
 class TransactionPaymentRecord extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   final String id;
 
-  int? transactionId;
-  double? amount = 0.0;
+  String? transactionId;
+  @Sqlite(defaultValue: "0.0")
+  @Supabase(defaultValue: "0.0")
+  double? amount;
   String? paymentMethod;
   DateTime? createdAt;
   TransactionPaymentRecord({
