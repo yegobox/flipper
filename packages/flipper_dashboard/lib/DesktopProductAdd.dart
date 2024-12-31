@@ -672,7 +672,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                 : Colors.black),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: pickerColor,
-                          shadowColor: pickerColor.withOpacity(1),
+                          shadowColor: pickerColor.withValues(alpha: 1),
                           elevation: 0,
                         )),
                     SizedBox(width: 10),

@@ -14,6 +14,7 @@ import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
+import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
@@ -697,8 +698,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     await repository.upsert(product);
 
     if (!skipRegularVariant) {
-      Product? kProduct = await getProduct(
-          id: product.id, branchId: branchId, businessId: businessId);
       Variant newVariant = await _createRegularVariant(branchId, tinNumber,
           qty: qty,
           product: product,
@@ -3336,27 +3335,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Customer?> getCustomerFuture({String? key, int? id}) {
-    // TODO: implement getCustomerFuture
-    throw UnimplementedError("getCustomerFuture method is not implemented yet");
-  }
-
-  @override
-  Future<
-      ({
-        List<Device> devices,
-        List<Favorite> favorites,
-        List<Product> products,
-        List<Stock> stocks,
-        List<TransactionItem> transactionItems,
-        List<ITransaction> transactions,
-        List<Variant> variants
-      })> getUnSyncedData() {
-    // TODO: implement getUnSyncedData
-    throw UnimplementedError("getUnSyncedData method is not implemented yet");
-  }
-
-  @override
   Stream<double> initialStock({required branchId}) {
     // TODO: implement initialStock
     throw UnimplementedError("initialStock method is not implemented yet");
@@ -4191,8 +4169,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       updatables[i].stock?.rsdQty = (updatables[i].stock?.rsdQty ?? 0);
       updatables[i].stock?.currentStock = (updatables[i].stock?.rsdQty ?? 0);
       updatables[i].lastTouched = DateTime.now().toLocal();
-      // realm!.add<Variant>(updatables[i]);
-      await repository.upsert(updatables[i]);
+
+      await repository.upsert<Variant>(updatables[i]);
+      await repository.upsert<Stock>(updatables[i].stock!);
+      StockPatch.patchStock(
+        URI: (await ProxyService.box.getServerUrl())!,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
     }
   }
 

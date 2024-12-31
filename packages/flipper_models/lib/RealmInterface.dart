@@ -312,16 +312,6 @@ abstract class RealmInterface {
 
   FutureOr<({double income, double expense})> getTransactionsAmountsSum(
       {required String period});
-  Future<
-      ({
-        List<Stock> stocks,
-        List<Variant> variants,
-        List<Product> products,
-        List<Favorite> favorites,
-        List<Device> devices,
-        List<ITransaction> transactions,
-        List<TransactionItem> transactionItems
-      })> getUnSyncedData();
 
   Future<models.Ebm?> ebm({required int branchId});
   Future<void> saveEbm(
