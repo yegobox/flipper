@@ -308,7 +308,8 @@ class CheckOutState extends ConsumerState<CheckOut>
                   paymentMethods: ref.watch(paymentMethodsProvider),
                 );
                 final branchId = ProxyService.box.getBranchId()!;
-                ref.read(isProcessingProvider.notifier).stopProcessing();
+
+                ref.read(loadingProvider.notifier).stopLoading();
                 ref.refresh(pendingTransactionProvider((
                   mode: TransactionType.sale,
                   isExpense: false,
