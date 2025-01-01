@@ -43,7 +43,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   // int categoryId;
 
   String? ticketName;
-  DateTime? deletedAt;
+
 
   // fields when a transaction is created for ordering system
   int? supplierId;
@@ -72,7 +72,6 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   int? invoiceNumber;
   ITransaction({
     this.ticketName,
-    this.deletedAt,
     String? id,
     this.categoryId,
     this.transactionNumber,

@@ -73,6 +73,78 @@ class _SearchInputWithDropdownState
     }
   }
 
+  void showPlayfulAlert(
+    BuildContext context, {
+    required String title,
+    required VoidCallback onPressedOk,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) => TweenAnimationBuilder(
+        duration: const Duration(milliseconds: 200),
+        tween: Tween<double>(begin: 0, end: 1),
+        builder: (context, double value, child) {
+          return Transform.scale(
+            scale: value,
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.celebration,
+                    color: Colors.amber,
+                    size: 30 * value,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                height: 100,
+                child: Column(
+                  children: [
+                    const Text('🎉 Success! 🎉'),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        onPressedOk();
+                      },
+                      child: const Text(
+                        'Awesome!',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final transaction = ref.watch(pendingTransactionProviderNonStream((
@@ -106,7 +178,6 @@ class _SearchInputWithDropdownState
                     key: searchKey,
                     branchId: ProxyService.box.getBranchId()!,
                   );
-                  talker.warning(customers);
 
                   setState(() {
                     _searchResults = customers;
@@ -176,7 +247,7 @@ class _SearchInputWithDropdownState
                               .assignCustomerToTransaction(
                                   customerId: _searchResults[index].id,
                                   transactionId: transaction.value!.id);
-                          showAlert(
+                          showPlayfulAlert(
                             context,
                             title: "Customer added to the sale!",
                             onPressedOk: () {
@@ -187,6 +258,7 @@ class _SearchInputWithDropdownState
                               )));
                             },
                           );
+
                           setState(() {
                             _searchResults = [];
                           });

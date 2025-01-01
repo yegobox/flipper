@@ -26,9 +26,6 @@ Future<ITransaction> _$ITransactionFromSupabase(Map<String, dynamic> data,
           ? null
           : DateTime.tryParse(data['last_touched'] as String),
       ticketName: data['ticket_name'] as String?,
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : DateTime.tryParse(data['deleted_at'] as String),
       supplierId: data['supplier_id'] as int?,
       ebmSynced: data['ebm_synced'] as bool? ?? false,
       isIncome: data['is_income'] as bool? ?? true,
@@ -67,7 +64,6 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(ITransaction instance,
     'note': instance.note,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'ticket_name': instance.ticketName,
-    'deleted_at': instance.deletedAt?.toIso8601String(),
     'supplier_id': instance.supplierId,
     'ebm_synced': instance.ebmSynced,
     'is_income': instance.isIncome,
@@ -129,11 +125,6 @@ Future<ITransaction> _$ITransactionFromSqlite(Map<String, dynamic> data,
               : DateTime.tryParse(data['last_touched'] as String),
       ticketName:
           data['ticket_name'] == null ? null : data['ticket_name'] as String?,
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String),
       supplierId:
           data['supplier_id'] == null ? null : data['supplier_id'] as int?,
       ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
@@ -185,7 +176,6 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(ITransaction instance,
     'note': instance.note,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'ticket_name': instance.ticketName,
-    'deleted_at': instance.deletedAt?.toIso8601String(),
     'supplier_id': instance.supplierId,
     'ebm_synced':
         instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
@@ -292,10 +282,6 @@ class ITransactionAdapter
     'ticketName': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'ticket_name',
-    ),
-    'deletedAt': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
     ),
     'supplierId': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -475,12 +461,6 @@ class ITransactionAdapter
       columnName: 'ticket_name',
       iterable: false,
       type: String,
-    ),
-    'deletedAt': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
-      iterable: false,
-      type: DateTime,
     ),
     'supplierId': const RuntimeSqliteColumnDefinition(
       association: false,

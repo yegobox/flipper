@@ -209,17 +209,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   Future<Customer?> addCustomer(
       {required Customer customer, String? transactionId}) async {
-    Customer customerin = await repository.upsert(customer);
-    if (transactionId != null) {
-      ITransaction? transaction =
-          (await transactions(id: transactionId)).firstOrNull;
-      transaction!.customerId = customerin.id;
-      await repository.upsert<ITransaction>(transaction);
-      return (await customers(
-              id: transaction.customerId, branchId: transaction.branchId!))
-          .firstOrNull;
-    }
-    return null;
+    return await repository.upsert(customer);
   }
 
   @override

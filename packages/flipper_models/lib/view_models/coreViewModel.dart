@@ -542,7 +542,7 @@ class CoreViewModel extends FlipperBaseModel
           telNo: phone,
           updatedAt: DateTime.now(),
           branchId: branchId,
-          custNo: randomNumber().toString().substring(0, 9),
+          custNo: phone,
           regrNm: randomNumber().toString().substring(0, 5),
           modrId: randomNumber().toString().substring(0, 5),
           regrId: randomNumber().toString().substring(0, 5),

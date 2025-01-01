@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250101080457_up = [
+const List<MigrationCommand> _migration_20250101092622_up = [
   InsertTable('ItemCode'),
   InsertTable('Stock'),
   InsertTable('Counter'),
@@ -131,7 +131,6 @@ const List<MigrationCommand> _migration_20250101080457_up = [
   InsertColumn('note', Column.varchar, onTable: 'ITransaction'),
   InsertColumn('last_touched', Column.datetime, onTable: 'ITransaction'),
   InsertColumn('ticket_name', Column.varchar, onTable: 'ITransaction'),
-  InsertColumn('deleted_at', Column.datetime, onTable: 'ITransaction'),
   InsertColumn('supplier_id', Column.integer, onTable: 'ITransaction'),
   InsertColumn('ebm_synced', Column.boolean, onTable: 'ITransaction'),
   InsertColumn('is_income', Column.boolean, onTable: 'ITransaction'),
@@ -222,7 +221,6 @@ const List<MigrationCommand> _migration_20250101080457_up = [
   InsertColumn('modr_id', Column.varchar, onTable: 'TransactionItem'),
   InsertColumn('modr_nm', Column.varchar, onTable: 'TransactionItem'),
   InsertColumn('last_touched', Column.datetime, onTable: 'TransactionItem'),
-  InsertColumn('deleted_at', Column.datetime, onTable: 'TransactionItem'),
   InsertColumn('branch_id', Column.integer, onTable: 'TransactionItem'),
   InsertColumn('ebm_synced', Column.boolean, onTable: 'TransactionItem'),
   InsertColumn('part_of_composite', Column.boolean, onTable: 'TransactionItem'),
@@ -534,7 +532,6 @@ const List<MigrationCommand> _migration_20250101080457_up = [
   InsertColumn('binded_to_tenant_id', Column.integer, onTable: 'Product'),
   InsertColumn('is_favorite', Column.boolean, onTable: 'Product'),
   InsertColumn('last_touched', Column.datetime, onTable: 'Product'),
-  InsertColumn('deleted_at', Column.datetime, onTable: 'Product'),
   InsertColumn('spplr_nm', Column.varchar, onTable: 'Product'),
   InsertColumn('is_composite', Column.boolean, onTable: 'Product'),
   InsertColumn('search_match', Column.boolean, onTable: 'Product'),
@@ -622,7 +619,7 @@ const List<MigrationCommand> _migration_20250101080457_up = [
   CreateIndex(columns: ['id'], onTable: 'Drawers', unique: true)
 ];
 
-const List<MigrationCommand> _migration_20250101080457_down = [
+const List<MigrationCommand> _migration_20250101092622_down = [
   DropTable('ItemCode'),
   DropTable('Stock'),
   DropTable('Counter'),
@@ -744,7 +741,6 @@ const List<MigrationCommand> _migration_20250101080457_down = [
   DropColumn('note', onTable: 'ITransaction'),
   DropColumn('last_touched', onTable: 'ITransaction'),
   DropColumn('ticket_name', onTable: 'ITransaction'),
-  DropColumn('deleted_at', onTable: 'ITransaction'),
   DropColumn('supplier_id', onTable: 'ITransaction'),
   DropColumn('ebm_synced', onTable: 'ITransaction'),
   DropColumn('is_income', onTable: 'ITransaction'),
@@ -835,7 +831,6 @@ const List<MigrationCommand> _migration_20250101080457_down = [
   DropColumn('modr_id', onTable: 'TransactionItem'),
   DropColumn('modr_nm', onTable: 'TransactionItem'),
   DropColumn('last_touched', onTable: 'TransactionItem'),
-  DropColumn('deleted_at', onTable: 'TransactionItem'),
   DropColumn('branch_id', onTable: 'TransactionItem'),
   DropColumn('ebm_synced', onTable: 'TransactionItem'),
   DropColumn('part_of_composite', onTable: 'TransactionItem'),
@@ -1147,7 +1142,6 @@ const List<MigrationCommand> _migration_20250101080457_down = [
   DropColumn('binded_to_tenant_id', onTable: 'Product'),
   DropColumn('is_favorite', onTable: 'Product'),
   DropColumn('last_touched', onTable: 'Product'),
-  DropColumn('deleted_at', onTable: 'Product'),
   DropColumn('spplr_nm', onTable: 'Product'),
   DropColumn('is_composite', onTable: 'Product'),
   DropColumn('search_match', onTable: 'Product'),
@@ -1240,15 +1234,15 @@ const List<MigrationCommand> _migration_20250101080457_down = [
 //
 
 @Migratable(
-  version: '20250101080457',
-  up: _migration_20250101080457_up,
-  down: _migration_20250101080457_down,
+  version: '20250101092622',
+  up: _migration_20250101092622_up,
+  down: _migration_20250101092622_down,
 )
-class Migration20250101080457 extends Migration {
-  const Migration20250101080457()
+class Migration20250101092622 extends Migration {
+  const Migration20250101092622()
     : super(
-        version: 20250101080457,
-        up: _migration_20250101080457_up,
-        down: _migration_20250101080457_down,
+        version: 20250101092622,
+        up: _migration_20250101092622_up,
+        down: _migration_20250101092622_down,
       );
 }

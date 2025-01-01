@@ -25,9 +25,6 @@ Future<Product> _$ProductFromSupabase(Map<String, dynamic> data,
       lastTouched: data['last_touched'] == null
           ? null
           : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : DateTime.tryParse(data['deleted_at'] as String),
       spplrNm: data['spplr_nm'] as String?,
       isComposite: data['is_composite'] as bool? ?? false,
       composites: await Future.wait<Composite>(data['composites']
@@ -60,7 +57,6 @@ Future<Map<String, dynamic>> _$ProductToSupabase(Product instance,
     'binded_to_tenant_id': instance.bindedToTenantId,
     'is_favorite': instance.isFavorite,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String(),
     'spplr_nm': instance.spplrNm,
     'is_composite': instance.isComposite,
     'composites': await Future.wait<Map<String, dynamic>>(instance.composites
@@ -104,11 +100,6 @@ Future<Product> _$ProductFromSqlite(Map<String, dynamic> data,
           : data['last_touched'] == null
               ? null
               : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String),
       spplrNm: data['spplr_nm'] == null ? null : data['spplr_nm'] as String?,
       isComposite:
           data['is_composite'] == null ? null : data['is_composite'] == 1,
@@ -155,7 +146,6 @@ Future<Map<String, dynamic>> _$ProductToSqlite(Product instance,
     'is_favorite':
         instance.isFavorite == null ? null : (instance.isFavorite! ? 1 : 0),
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String(),
     'spplr_nm': instance.spplrNm,
     'is_composite':
         instance.isComposite == null ? null : (instance.isComposite! ? 1 : 0),
@@ -245,10 +235,6 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
     'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'last_touched',
-    ),
-    'deletedAt': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
     ),
     'spplrNm': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -382,12 +368,6 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
     'lastTouched': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'last_touched',
-      iterable: false,
-      type: DateTime,
-    ),
-    'deletedAt': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
       iterable: false,
       type: DateTime,
     ),

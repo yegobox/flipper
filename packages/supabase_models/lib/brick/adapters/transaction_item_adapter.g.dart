@@ -58,9 +58,6 @@ Future<TransactionItem> _$TransactionItemFromSupabase(Map<String, dynamic> data,
       lastTouched: data['last_touched'] == null
           ? null
           : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : DateTime.tryParse(data['deleted_at'] as String),
       branchId: data['branch_id'] as int?,
       ebmSynced: data['ebm_synced'] as bool?,
       partOfComposite: data['part_of_composite'] as bool?,
@@ -123,7 +120,6 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
     'modr_id': instance.modrId,
     'modr_nm': instance.modrNm,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String(),
     'branch_id': instance.branchId,
     'ebm_synced': instance.ebmSynced,
     'part_of_composite': instance.partOfComposite,
@@ -213,11 +209,6 @@ Future<TransactionItem> _$TransactionItemFromSqlite(Map<String, dynamic> data,
           : data['last_touched'] == null
               ? null
               : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String),
       branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
       partOfComposite: data['part_of_composite'] == null
@@ -287,7 +278,6 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(TransactionItem instance,
     'modr_id': instance.modrId,
     'modr_nm': instance.modrNm,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String(),
     'branch_id': instance.branchId,
     'ebm_synced':
         instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
@@ -512,10 +502,6 @@ class TransactionItemAdapter
     'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'last_touched',
-    ),
-    'deletedAt': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
     ),
     'branchId': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -849,12 +835,6 @@ class TransactionItemAdapter
     'lastTouched': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'last_touched',
-      iterable: false,
-      type: DateTime,
-    ),
-    'deletedAt': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
       iterable: false,
       type: DateTime,
     ),

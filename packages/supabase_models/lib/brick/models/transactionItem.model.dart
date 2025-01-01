@@ -95,7 +95,6 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   String? modrNm;
 
   DateTime? lastTouched;
-  DateTime? deletedAt;
 
   int? branchId;
   bool? ebmSynced;
@@ -126,7 +125,6 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.modrId,
     this.modrNm,
     this.lastTouched,
-    this.deletedAt,
     this.branchId,
     this.ebmSynced,
     this.partOfComposite,
@@ -210,7 +208,6 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
         'modrId': modrId,
         'modrNm': modrNm,
         'lastTouched': lastTouched,
-        'deletedAt': deletedAt,
         'branchId': branchId,
       };
 }

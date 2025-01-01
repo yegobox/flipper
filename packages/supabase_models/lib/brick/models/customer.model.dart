@@ -40,7 +40,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
   /// and this operation might fail at time of us making the call and our software can work offline
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
-  bool? ebmSynced = false;
+  bool? ebmSynced;
 
   String? bhfId;
   String? useYn;

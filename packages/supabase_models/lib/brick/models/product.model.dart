@@ -37,8 +37,6 @@ class Product extends OfflineFirstWithSupabaseModel {
 
   DateTime? lastTouched;
 
-  DateTime? deletedAt;
-
   String? spplrNm;
   @Supabase(defaultValue: "false")
   bool? isComposite;
@@ -69,7 +67,6 @@ class Product extends OfflineFirstWithSupabaseModel {
     this.bindedToTenantId,
     this.isFavorite,
     this.lastTouched,
-    this.deletedAt,
     this.spplrNm,
     this.isComposite,
     this.composites = const [], // Initialize as an empty list

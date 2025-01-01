@@ -1,14 +1,14 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250101080457.migration.dart';
+part '20250101092622.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250101080457(),};
+  const Migration20250101092622(),};
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250101080457, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250101092622, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -129,7 +129,6 @@ final schema = Schema(20250101080457, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('note', Column.varchar),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('ticket_name', Column.varchar),
-    SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('supplier_id', Column.integer),
     SchemaColumn('ebm_synced', Column.boolean),
     SchemaColumn('is_income', Column.boolean),
@@ -250,7 +249,6 @@ final schema = Schema(20250101080457, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('modr_id', Column.varchar),
     SchemaColumn('modr_nm', Column.varchar),
     SchemaColumn('last_touched', Column.datetime),
-    SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('ebm_synced', Column.boolean),
     SchemaColumn('part_of_composite', Column.boolean),
@@ -735,7 +733,6 @@ final schema = Schema(20250101080457, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('binded_to_tenant_id', Column.integer),
     SchemaColumn('is_favorite', Column.boolean),
     SchemaColumn('last_touched', Column.datetime),
-    SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('spplr_nm', Column.varchar),
     SchemaColumn('is_composite', Column.boolean),
     SchemaColumn('search_match', Column.boolean)

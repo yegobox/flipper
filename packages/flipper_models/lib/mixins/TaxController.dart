@@ -1,4 +1,3 @@
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
@@ -357,7 +356,7 @@ class TaxController<OBJ> {
             note: transaction.note,
             lastTouched: transaction.lastTouched,
             ticketName: transaction.ticketName,
-            deletedAt: transaction.deletedAt,
+
             supplierId: transaction.supplierId,
             ebmSynced: transaction.ebmSynced,
             isIncome: transaction.isIncome,
@@ -429,7 +428,6 @@ class TaxController<OBJ> {
               isrcAplcbYn: item.isrcAplcbYn,
               useYn: item.useYn,
               lastTouched: item.lastTouched,
-              deletedAt: item.deletedAt,
               branchId: item.branchId,
               ebmSynced: item.ebmSynced,
               partOfComposite: item.partOfComposite,
