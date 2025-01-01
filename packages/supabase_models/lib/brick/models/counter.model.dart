@@ -8,7 +8,7 @@ import 'package:uuid/uuid.dart';
 )
 class Counter extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
-  @Sqlite(unique: true)
+  @Sqlite(index: true, unique: true)
   final String id;
 
   // @Supabase(foreignKey: 'branch_id')

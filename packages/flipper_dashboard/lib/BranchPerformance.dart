@@ -231,8 +231,8 @@ class StockBarChartPainter extends CustomPainter {
       );
 
       paint.color = item.id.toString() == selectedItemId
-          ? Colors.red.withOpacity(animationValue)
-          : Colors.indigo.withOpacity(animationValue);
+          ? Colors.red.withValues(red: animationValue)
+          : Colors.indigo.withValues(blue: animationValue);
       canvas.drawRect(rect, paint);
       item.id.toString() == selectedItemId
           ? _drawText(
@@ -499,7 +499,4 @@ class CircularStockPainter extends CustomPainter {
   }
 }
 
-// ... (rest of the previous code remains the same)
-
-// Add this provider at the top of your file or in a separate providers file
 final selectedItemProvider = StateProvider<String?>((ref) => null);

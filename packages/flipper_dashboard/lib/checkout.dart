@@ -249,10 +249,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                 color: Colors.white,
                 surfaceTintColor: Colors.white,
                 child: Column(
-                  children: [
-                    _buildIconRow(),
-                    SearchInputWithDropdown(transaction: transaction)
-                  ],
+                  children: [_buildIconRow(), SearchInputWithDropdown()],
                 ),
               ),
             ),

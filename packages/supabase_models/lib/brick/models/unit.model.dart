@@ -7,8 +7,8 @@ import 'package:uuid/uuid.dart';
   supabaseConfig: SupabaseSerializable(tableName: 'units'),
 )
 class IUnit extends OfflineFirstWithSupabaseModel {
-  @Sqlite(unique: true)
   @Supabase(unique: true)
+  @Sqlite(index: true, unique: true)
   final String id;
 
   int? branchId;

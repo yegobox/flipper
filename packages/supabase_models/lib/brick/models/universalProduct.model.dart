@@ -7,7 +7,8 @@ import 'package:uuid/uuid.dart';
   supabaseConfig: SupabaseSerializable(tableName: 'uni_products'),
 )
 class UnversalProduct extends OfflineFirstWithSupabaseModel {
-  @Sqlite(unique: true)
+  @Supabase(unique: true)
+  @Sqlite(index: true, unique: true)
   final String id;
 
   String? itemClsCd;

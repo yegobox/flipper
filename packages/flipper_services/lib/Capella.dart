@@ -1389,7 +1389,8 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  void removeCustomerFromTransaction({required ITransaction transaction}) {
+  FutureOr<void> removeCustomerFromTransaction(
+      {required ITransaction transaction}) {
     // TODO: implement removeCustomerFromTransaction
   }
 
@@ -1866,6 +1867,13 @@ class Capella with Booting implements RealmInterface {
       required int itemSeq,
       required String name}) {
     // TODO: implement createVariant
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<brick.Customer>> customersStream(
+      {required int branchId, String? key, String? id}) {
+    // TODO: implement customersStream
     throw UnimplementedError();
   }
 }

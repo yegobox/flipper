@@ -735,3 +735,5 @@ class App {}
 // https://github.com/GetDutchie/brick/issues/493
 // https://supabase.com/blog/offline-first-flutter-apps
 // 50482
+// brick only update
+// https://github.com/GetDutchie/brick/blob/main/packages/brick_supabase/lib/src/supabase_provider.dart#L119-L136

@@ -8,7 +8,7 @@ import 'package:uuid/uuid.dart';
 )
 class ITransaction extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
-  @Sqlite(unique: true)
+  @Sqlite(index: true, unique: true)
   final String id;
 
   String? reference;
@@ -104,5 +104,5 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.receiptNumber,
     this.totalReceiptNumber,
     this.invoiceNumber,
- }) : id = id ?? const Uuid().v4();
+  }) : id = id ?? const Uuid().v4();
 }

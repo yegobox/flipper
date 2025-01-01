@@ -212,12 +212,16 @@ abstract class RealmInterface {
       {required Customer customer, String? transactionId});
   FutureOr<void> assignCustomerToTransaction(
       {required String customerId, String? transactionId});
-  void removeCustomerFromTransaction({required ITransaction transaction});
+  FutureOr<void> removeCustomerFromTransaction(
+      {required ITransaction transaction});
   // FutureOr<Customer?> getCustomer({String? key, int? id});
   // FutureOr<List<Customer>> getCustomers({String? key, int? id});
   // Future<Customer?> getCustomerFuture({String? key, int? id});
 
   FutureOr<List<Customer>> customers(
+      {required int branchId, String? key, String? id});
+
+Stream<List<Customer>> customersStream(
       {required int branchId, String? key, String? id});
 
   Future<int> deleteTransactionByIndex({required String transactionIndex});

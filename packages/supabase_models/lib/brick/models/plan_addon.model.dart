@@ -8,8 +8,8 @@ import 'package:uuid/uuid.dart';
   sqliteConfig: SqliteSerializable(),
 )
 class PlanAddon extends OfflineFirstWithSupabaseModel {
-  @Sqlite(unique: true)
   @Supabase(unique: true)
+  @Sqlite(index: true, unique: true)
   final String id;
 
   @Supabase(name: "plan_id")

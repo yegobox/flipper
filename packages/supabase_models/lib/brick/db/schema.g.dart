@@ -1,24 +1,14 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20241230124823.migration.dart';
-part '20241231092049.migration.dart';
-part '20241231021147.migration.dart';
-part '20241231124414.migration.dart';
-part '20241231180414.migration.dart';
+part '20250101080457.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20241230124823(),
-  const Migration20241231092049(),
-  const Migration20241231021147(),
-  const Migration20241231124414(),
-  const Migration20241231180414()
-};
+  const Migration20250101080457(),};
 
 /// A consumable database structure including the latest generated migration.
-final schema =
-    Schema(20241231180414, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250101080457, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -26,6 +16,7 @@ final schema =
     SchemaColumn('code', Column.varchar),
     SchemaColumn('created_at', Column.datetime)
   }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true),
     SchemaIndex(columns: ['code'], unique: false)
   }),
   SchemaTable('Stock', columns: <SchemaColumn>{
@@ -60,7 +51,9 @@ final schema =
     SchemaColumn('invc_no', Column.integer),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('created_at', Column.datetime)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Category', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -71,7 +64,9 @@ final schema =
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('last_touched', Column.datetime)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('UnversalProduct', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -84,7 +79,9 @@ final schema =
     SchemaColumn('use_yn', Column.varchar),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Conversation', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -107,7 +104,9 @@ final schema =
     SchemaColumn('delivered', Column.boolean),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('ITransaction', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -144,7 +143,9 @@ final schema =
     SchemaColumn('receipt_number', Column.integer),
     SchemaColumn('total_receipt_number', Column.integer),
     SchemaColumn('invoice_number', Column.integer)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Configurations', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -153,7 +154,9 @@ final schema =
     SchemaColumn('tax_percentage', Column.Double),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Branch', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -168,7 +171,9 @@ final schema =
     SchemaColumn('longitude', Column.varchar),
     SchemaColumn('is_default', Column.boolean),
     SchemaColumn('is_online', Column.boolean)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('PlanAddon', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -176,7 +181,9 @@ final schema =
     SchemaColumn('plan_id', Column.integer),
     SchemaColumn('addon_name', Column.varchar),
     SchemaColumn('created_at', Column.datetime)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('PColor', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -186,7 +193,9 @@ final schema =
     SchemaColumn('active', Column.boolean),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('TransactionItem', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -246,14 +255,18 @@ final schema =
     SchemaColumn('ebm_synced', Column.boolean),
     SchemaColumn('part_of_composite', Column.boolean),
     SchemaColumn('composite_price', Column.Double)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('LPermission', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
     SchemaColumn('id', Column.varchar, unique: true),
     SchemaColumn('name', Column.varchar),
     SchemaColumn('user_id', Column.integer)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Variant', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -328,7 +341,9 @@ final schema =
     SchemaColumn('default_app', Column.varchar),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Favorite', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -338,7 +353,9 @@ final schema =
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Composite', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -349,7 +366,9 @@ final schema =
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('actual_price', Column.Double)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('TransactionPaymentRecord', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -358,7 +377,9 @@ final schema =
     SchemaColumn('amount', Column.Double),
     SchemaColumn('payment_method', Column.varchar),
     SchemaColumn('created_at', Column.datetime)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Setting', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -382,7 +403,9 @@ final schema =
     SchemaColumn('created_at', Column.varchar),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Tenant', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -401,7 +424,9 @@ final schema =
     SchemaColumn('is_default', Column.boolean),
     SchemaColumn('is_long_pressed', Column.boolean),
     SchemaColumn('type', Column.varchar)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Pin', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -414,7 +439,9 @@ final schema =
     SchemaColumn('owner_name', Column.varchar),
     SchemaColumn('token_uid', Column.varchar),
     SchemaColumn('uid', Column.varchar)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Access', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -428,7 +455,9 @@ final schema =
     SchemaColumn('created_at', Column.datetime),
     SchemaColumn('expires_at', Column.datetime),
     SchemaColumn('status', Column.varchar)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Customer', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -449,7 +478,9 @@ final schema =
     SchemaColumn('bhf_id', Column.varchar),
     SchemaColumn('use_yn', Column.varchar),
     SchemaColumn('customer_type', Column.varchar)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Report', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -459,7 +490,9 @@ final schema =
     SchemaColumn('filename', Column.varchar),
     SchemaColumn('s3_url', Column.varchar),
     SchemaColumn('downloaded', Column.boolean)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('_brick_StockRequest_items', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -494,7 +527,9 @@ final schema =
     SchemaColumn('driver_id', Column.integer),
     SchemaColumn('items', Column.varchar),
     SchemaColumn('updated_at', Column.datetime)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('AppNotification', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -503,7 +538,9 @@ final schema =
     SchemaColumn('message', Column.varchar),
     SchemaColumn('identifier', Column.integer),
     SchemaColumn('completed', Column.boolean)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Discount', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -511,7 +548,9 @@ final schema =
     SchemaColumn('name', Column.varchar),
     SchemaColumn('amount', Column.Double),
     SchemaColumn('branch_id', Column.integer)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Business', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -558,7 +597,9 @@ final schema =
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('encryption_key', Column.varchar)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('SKU', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -567,7 +608,9 @@ final schema =
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('consumed', Column.boolean)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('IUnit', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -578,7 +621,9 @@ final schema =
     SchemaColumn('active', Column.boolean),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('created_at', Column.varchar)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Location', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -595,7 +640,9 @@ final schema =
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('is_online', Column.boolean)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Receipt', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -618,7 +665,9 @@ final schema =
     SchemaColumn('invc_no', Column.integer),
     SchemaColumn('when_created', Column.datetime),
     SchemaColumn('invoice_number', Column.integer)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Token', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -630,7 +679,9 @@ final schema =
     SchemaColumn('valid_until', Column.datetime),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('last_touched', Column.datetime)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Ebm', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -643,7 +694,9 @@ final schema =
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('last_touched', Column.datetime)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('_brick_Product_composites', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -686,7 +739,9 @@ final schema =
     SchemaColumn('spplr_nm', Column.varchar),
     SchemaColumn('is_composite', Column.boolean),
     SchemaColumn('search_match', Column.boolean)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Assets', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -695,7 +750,9 @@ final schema =
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('asset_name', Column.varchar),
     SchemaColumn('product_id', Column.varchar)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('_brick_Plan_addons', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -728,7 +785,9 @@ final schema =
     SchemaColumn('payment_method', Column.varchar),
     SchemaColumn('next_billing_date', Column.datetime),
     SchemaColumn('number_of_payments', Column.integer)
-  }, indices: <SchemaIndex>{}),
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Drawers', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -753,5 +812,7 @@ final schema =
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer)
-  }, indices: <SchemaIndex>{})
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  })
 });

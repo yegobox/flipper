@@ -358,7 +358,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<void> assignCustomerToTransaction(
       {required String customerId, String? transactionId}) async {
     try {
-      final transaction = (await transactions(id: transactionId!)).firstOrNull;
+      final transaction =
+          (await transactions(id: transactionId!, status: PENDING)).firstOrNull;
       if (transaction != null) {
         transaction.customerId = customerId;
         repository.upsert<ITransaction>(transaction);
@@ -837,9 +838,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           try {
             await repository.delete<Variant>(
               variant,
+              query: brick.Query(
+                  action: QueryAction.delete,
+                  where: [brick.Where('id').isExactly(id)]),
             );
             await repository.delete<Stock>(
               stock,
+              query: brick.Query(
+                  action: QueryAction.delete,
+                  where: [brick.Where('id').isExactly(id)]),
             );
           } catch (e) {}
         }
@@ -849,8 +856,26 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         final transactionItem = await transactionItems(
             id: id, branchId: ProxyService.box.getBranchId()!);
 
-        await repository.delete<TransactionItem>(transactionItem.first);
+        await repository.delete<TransactionItem>(
+          transactionItem.first,
+          query: brick.Query(
+              action: QueryAction.delete,
+              where: [brick.Where('id').isExactly(id)]),
+        );
 
+        break;
+      case 'customer':
+        final customer =
+            (await customers(id: id, branchId: ProxyService.box.getBranchId()!))
+                .firstOrNull;
+        if (customer != null) {
+          await repository.delete<Customer>(
+            customer,
+            query: brick.Query(
+                action: QueryAction.delete,
+                where: [brick.Where('id').isExactly(id)]),
+          );
+        }
         break;
       // case 'discount':
       //   final discount = await getDiscount(id: id, branchId: ProxyService.box.getBranchId()!);
@@ -1383,9 +1408,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       {required int branchId, String? key, String? id}) async {
     if (id != null) {
       return repository.get<Customer>(
+          policy: OfflineFirstGetPolicy.alwaysHydrate,
           query: brick.Query(where: [
-        brick.Where('id', value: id, compare: brick.Compare.exact),
-      ]));
+            brick.Where('id', value: id, compare: brick.Compare.exact),
+          ]));
     }
 
     if (key != null) {
@@ -1407,9 +1433,63 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
     // If only branchId is provided, return all customers for that branch
     return repository.get<Customer>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
         query: brick.Query(where: [
-      brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
-    ]));
+          brick.Where('branchId',
+              value: branchId, compare: brick.Compare.exact),
+        ]));
+  }
+
+  @override
+  Stream<List<Customer>> customersStream({
+    required int branchId,
+    String? key,
+    String? id,
+  }) async* {
+    if (id != null) {
+      // Yield results for a specific customer by ID
+      yield* repository.subscribe<Customer>(
+        query: brick.Query(
+          where: [
+            brick.Where('id', value: id, compare: brick.Compare.exact),
+          ],
+        ),
+      );
+      return;
+    }
+
+    if (key != null) {
+      // Fetch customers matching the search key asynchronously
+      final searchFields = ['custNm', 'email', 'telNo'];
+      final queries = searchFields.map((field) => brick.Query(
+            where: [
+              brick.Where(field, value: key, compare: brick.Compare.contains),
+              brick.Where('branchId',
+                  value: branchId, compare: brick.Compare.exact),
+            ],
+          ));
+
+      final results = await Future.wait(
+        queries.map((query) => repository.get<Customer>(
+              policy: OfflineFirstGetPolicy.alwaysHydrate,
+              query: query,
+            )),
+      );
+
+      // Yield combined results from all queries
+      yield results.expand((customers) => customers).toList();
+      return;
+    }
+
+    // Yield all customers for a specific branch if no other filters are applied
+    yield* repository.subscribe<Customer>(
+      query: brick.Query(
+        where: [
+          brick.Where('branchId',
+              value: branchId, compare: brick.Compare.exact),
+        ],
+      ),
+    );
   }
 
   @override
@@ -2263,8 +2343,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  void removeCustomerFromTransaction({required ITransaction transaction}) {
-    // TODO: implement removeCustomerFromTransaction
+  FutureOr<void> removeCustomerFromTransaction(
+      {required ITransaction transaction}) {
+    transaction.customerId = null;
+    repository.upsert(transaction);
   }
 
   @override
@@ -2525,9 +2607,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<RwApiResponse> selectImportItems(
-      {required int tin, required String bhfId, required String lastReqDt}) {
-    // TODO: implement selectImportItems
-    throw UnimplementedError("selectImportItems is not implemented yet");
+      {required int tin,
+      required String bhfId,
+      required String lastReqDt}) async {
+    return ProxyService.tax.selectImportItems(
+      tin: tin,
+      bhfId: bhfId,
+      lastReqDt: lastReqDt,
+      URI: await ProxyService.box.getServerUrl() ?? "",
+    );
   }
 
   @override
@@ -3542,7 +3630,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         transaction.status = status ?? transaction.status;
         transaction.ticketName = ticketName ?? transaction.ticketName;
         transaction.updatedAt = updatedAt ?? transaction.updatedAt;
-        transaction.customerId = customerId ?? transaction.customerId;
+        transaction.customerId = customerId;
         transaction.isRefunded = isRefunded ?? transaction.isRefunded;
         transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
         transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;

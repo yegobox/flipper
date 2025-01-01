@@ -32,6 +32,20 @@ final connectivityStreamProvider = StreamProvider<bool>((ref) {
   });
 });
 
+final customersStreamProvider = StreamProvider.autoDispose
+    .family<List<Customer>, ({int? branchId, String? id})>((ref, params) {
+  final (:branchId, :id) = params;
+  return ProxyService.strategy.customersStream(branchId: branchId ?? 0, id: id);
+});
+
+final customerProvider = FutureProvider.autoDispose
+    .family<Customer?, ({String? id})>((ref, params) async {
+  final (:id) = params;
+  return (await ProxyService.strategy
+          .customers(id: id, branchId: ProxyService.box.getBranchId()!))
+      .firstOrNull;
+});
+
 class ProductNotifier extends StateNotifier<Product?> {
   ProductNotifier() : super(null);
 
@@ -898,13 +912,13 @@ class LoadingState {
   }
 }
 
-
 // final isLoadingProvider = StateProvider<bool>((ref) => false);
 // Define the provider
 final loadingProvider =
     StateNotifierProvider<LoadingNotifier, LoadingState>((ref) {
   return LoadingNotifier();
 });
+
 // Create a notifier to handle loading state changes
 class LoadingNotifier extends StateNotifier<LoadingState> {
   LoadingNotifier() : super(const LoadingState());

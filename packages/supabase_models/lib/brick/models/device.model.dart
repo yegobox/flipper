@@ -7,7 +7,8 @@ import 'package:uuid/uuid.dart';
   supabaseConfig: SupabaseSerializable(tableName: 'devices'),
 )
 class Device extends OfflineFirstWithSupabaseModel {
-  @Sqlite(unique: true)
+  @Supabase(unique: true)
+  @Sqlite(index: true, unique: true)
   final String id;
 
   String? linkingCode;
@@ -38,5 +39,5 @@ class Device extends OfflineFirstWithSupabaseModel {
     this.defaultApp,
     this.lastTouched,
     this.deletedAt,
- }) : id = id ?? const Uuid().v4();
+  }) : id = id ?? const Uuid().v4();
 }

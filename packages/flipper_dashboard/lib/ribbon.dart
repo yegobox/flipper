@@ -207,17 +207,18 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
       builder: (_) => Dialog(
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
+            maxHeight: MediaQuery.of(context).size.height * 0.9,
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
-                  width: double.infinity,
-                  height: 800,
-                  child: BranchPerformance(),
+                Flexible(
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: BranchPerformance(),
+                  ),
                 ),
               ],
             ),

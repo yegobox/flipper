@@ -8,7 +8,8 @@ import 'package:uuid/uuid.dart';
       SupabaseSerializable(tableName: 'transaction_payment_records'),
 )
 class TransactionPaymentRecord extends OfflineFirstWithSupabaseModel {
-  @Sqlite(unique: true)
+  @Supabase(unique: true)
+  @Sqlite(index: true, unique: true)
   final String id;
 
   String? transactionId;
