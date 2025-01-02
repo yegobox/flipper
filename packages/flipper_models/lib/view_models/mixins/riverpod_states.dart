@@ -318,33 +318,6 @@ class TransactionItemsNotifier
     }
   }
 
-  Future<void> updatePendingTransaction() async {
-    if (!_mounted) return;
-
-    try {
-      final branchId = ProxyService.box.getBranchId()!;
-      final stream = ProxyService.strategy.manageTransactionStream(
-        branchId: branchId,
-        transactionType: TransactionType.sale,
-        isExpense: false,
-      );
-
-      await for (final transaction in stream) {
-        if (!_mounted) break;
-
-        await ProxyService.strategy.updateTransaction(
-          transaction: transaction,
-          subTotal: totalPayable,
-        );
-        break;
-      }
-    } catch (error) {
-      if (_mounted) {
-        talker.error("Error updating pending transaction: $error");
-      }
-    }
-  }
-
   int get counts {
     return state.maybeWhen(
       data: (items) => items.length,
@@ -768,6 +741,7 @@ final transactionListProvider =
       startDate: startDate,
       endDate: endDate,
       branchId: ProxyService.box.getBranchId(),
+      status: COMPLETE,
     );
 
     // Use `switchMap` to handle potential changes in dateRangeProvider

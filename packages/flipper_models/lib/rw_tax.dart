@@ -740,17 +740,7 @@ class RWTax with NetworkHelper implements TaxApi {
         stockId: stock!.id,
         ebmSynced: false,
       );
-      ProxyService.strategy.updateTransactionItem(
-        transactionItemId: item.id,
-        isRefunded: receiptType == "R",
-        ebmSynced: false,
-      );
     }
-    ProxyService.strategy.updateTransaction(
-      transaction: transaction,
-      isRefunded: receiptType == "R",
-      ebmSynced: true,
-    );
   }
 
   // Define these constants at the top level of your file

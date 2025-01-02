@@ -17,11 +17,6 @@ class SetingsBottomSheet extends StatefulHookConsumerWidget {
 class SetingsBottomSheetState extends ConsumerState<SetingsBottomSheet> {
   @override
   Widget build(BuildContext context) {
-    final transactionItemsNotifier =
-        ref.watch(transactionItemsProvider((isExpense: false)).notifier);
-
-    transactionItemsNotifier.updatePendingTransaction();
-
     return ViewModelBuilder<SettingViewModel>.nonReactive(
       viewModelBuilder: () => SettingViewModel(),
       builder: (context, model, child) {

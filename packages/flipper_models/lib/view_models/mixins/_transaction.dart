@@ -41,10 +41,7 @@ mixin TransactionMixin {
       final isTaxServiceStoped = ProxyService.box.stopTaxService();
 
       /// update transaction type
-      ProxyService.strategy.updateTransaction(
-          transaction: transaction,
-          isProformaMode: ProxyService.box.isProformaMode(),
-          isTrainingMode: ProxyService.box.isTrainingMode());
+
       if (taxExanbled && hasServerUrl && hasUser && !isTaxServiceStoped!) {
         response = await handleReceiptGeneration(
             formKey: formKey,

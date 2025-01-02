@@ -810,4 +810,6 @@ abstract class RealmInterface {
       {required Variant variant,
       required TransactionItem item,
       required int subBranchId});
+
+  FutureOr<void> addTransaction({required ITransaction transaction});
 }

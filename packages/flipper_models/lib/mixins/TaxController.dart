@@ -333,7 +333,7 @@ class TaxController<OBJ> {
             receiptType == "NR" ||
             receiptType == "TR" ||
             receiptType == "CS") {
-          final tran = ITransaction(
+          final newTransactionId = ITransaction(
             receiptNumber: receiptSignature.data?.rcptNo,
             totalReceiptNumber: receiptSignature.data?.totRcptNo,
             invoiceNumber: counter.invcNo,
@@ -348,7 +348,7 @@ class TaxController<OBJ> {
             transactionType: transaction.transactionType,
             cashReceived: transaction.cashReceived,
             customerChangeDue: transaction.customerChangeDue,
-            createdAt: transaction.createdAt??DateTime.now(),
+            createdAt: transaction.createdAt ?? DateTime.now(),
             receiptType: receiptType,
             updatedAt: transaction.updatedAt,
             customerId: transaction.customerId,
@@ -368,6 +368,7 @@ class TaxController<OBJ> {
             customerBhfId: transaction.customerBhfId,
             sarTyCd: transaction.sarTyCd,
           );
+          ProxyService.strategy.addTransaction(transaction: newTransactionId);
           //query item and re-assign
           final List<TransactionItem> items =
               await ProxyService.strategy.transactionItems(
@@ -382,7 +383,7 @@ class TaxController<OBJ> {
               discount: item.discount,
               remainingStock: item.remainingStock,
               itemCd: item.itemCd,
-              transactionId: tran.id,
+              transactionId: newTransactionId.id,
               variantId: transaction.id,
               qtyUnitCd: item.qtyUnitCd,
               prc: item.prc,
@@ -434,7 +435,7 @@ class TaxController<OBJ> {
             );
 
             await ProxyService.strategy.addTransactionItem(
-              transaction: tran,
+              transaction: newTransactionId,
               item: copy,
               partOfComposite: item.partOfComposite ?? false,
             );
@@ -446,9 +447,12 @@ class TaxController<OBJ> {
             receiptType == "PS") {
           ProxyService.strategy.updateTransaction(
             transaction: transaction,
+            receiptType: receiptType,
             receiptNumber: receiptSignature.data?.rcptNo,
             totalReceiptNumber: receiptSignature.data?.totRcptNo,
             invoiceNumber: counter.invcNo,
+            isProformaMode: ProxyService.box.isProformaMode(),
+            isTrainingMode: ProxyService.box.isTrainingMode(),
           );
         }
 

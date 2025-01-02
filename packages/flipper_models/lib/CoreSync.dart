@@ -2967,10 +2967,24 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       // if (filterType != null) brick.Where('filterType').isExactly(filterType),
       if (branchId != null) brick.Where('branchId').isExactly(branchId),
       if (isCashOut) brick.Where('isExpense').isExactly(true),
-      if (startDate != null && endDate != null)
-        brick.Where('lastTouched').isBetween(startDate, endDate),
     ];
-
+    if (startDate != null && endDate != null) {
+      if (startDate == endDate) {
+        conditions.add(
+          brick.Where('lastTouched').isBetween(
+            startDate.toIso8601String(),
+            startDate.add(Duration(days: 1)).toIso8601String(),
+          ),
+        );
+      } else {
+        conditions.add(
+          brick.Where('lastTouched').isBetween(
+            startDate.toIso8601String(),
+            endDate.toIso8601String(),
+          ),
+        );
+      }
+    }
     final queryString = brick.Query(where: conditions);
     final repository = brick.Repository();
 
@@ -2995,15 +3009,29 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (id != null) brick.Where('id').isExactly(id),
       if (branchId != null) brick.Where('branchId').isExactly(branchId),
       if (isCashOut) brick.Where('isExpense').isExactly(true),
-      if (startDate != null && endDate != null)
-        brick.Where('lastTouched').isBetween(startDate, endDate),
     ];
-
-    final queryString = brick.Query(where: conditions);
-    final repository = brick.Repository();
+    // talker.warning(conditions.toString());
+    if (startDate != null && endDate != null) {
+      if (startDate == endDate) {
+        conditions.add(
+          brick.Where('lastTouched').isBetween(
+            startDate.toIso8601String(),
+            startDate.add(Duration(days: 1)).toIso8601String(),
+          ),
+        );
+      } else {
+        conditions.add(
+          brick.Where('lastTouched').isBetween(
+            startDate.toIso8601String(),
+            endDate.toIso8601String(),
+          ),
+        );
+      }
+    }
 
     // Directly return the stream from the repository
-    return repository.subscribe<ITransaction>(query: queryString);
+    return repository.subscribe<ITransaction>(
+        query: brick.Query(where: conditions));
   }
 
   @override
@@ -3539,9 +3567,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       bool? isProformaMode,
       bool? isTrainingMode}) async {
     if (receiptType != null) {
-      transaction.ebmSynced = true;
-      transaction.isRefunded = receiptType == "R";
-
       if (isProformaMode != null && isTrainingMode != null) {
         String receiptType = TransactionReceptType.NS;
         if (isProformaMode) {
@@ -3550,6 +3575,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         if (isTrainingMode) {
           receiptType = TransactionReceptType.TS;
         }
+        transaction.ebmSynced = true;
+
         transaction.receiptType = receiptType;
         transaction.subTotal = subTotal ?? transaction.subTotal;
         transaction.note = note ?? transaction.note;
@@ -3557,7 +3584,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         transaction.ticketName = ticketName ?? transaction.ticketName;
         transaction.updatedAt = updatedAt ?? transaction.updatedAt;
         transaction.customerId = customerId;
-        transaction.isRefunded = isRefunded ?? transaction.isRefunded;
+        transaction.isRefunded = receiptType == "NR";
         transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
         transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
         transaction.receiptNumber = receiptNumber ?? transaction.receiptNumber;
@@ -3571,10 +3598,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         transaction.customerName = customerName ?? transaction.customerName;
         transaction.lastTouched = lastTouched ?? transaction.lastTouched;
 
-        await repository.upsert<ITransaction>(transaction,
-            query: brick.Query(
-              action: QueryAction.update,
-            ));
+        await repository.upsert<ITransaction>(transaction);
       }
     }
   }
@@ -4015,24 +4039,36 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Stream<List<TransactionItem>> transactionItemsStreams(
-      {String? transactionId,
-      required int branchId,
-      DateTime? startDate,
-      DateTime? endDate,
-      bool? doneWithTransaction,
-      bool? active}) {
+  Stream<List<TransactionItem>> transactionItemsStreams({
+    String? transactionId,
+    required int branchId,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool? doneWithTransaction,
+    bool? active,
+  }) {
     return repository.subscribe<TransactionItem>(
-        query: brick.Query(where: [
-      if (transactionId != null)
-        brick.Where('transactionId').isExactly(transactionId),
-      brick.Where('branchId').isExactly(branchId),
-      if (startDate != null && endDate != null)
-        brick.Where('lastTouched').isBetween(startDate, endDate),
-      if (doneWithTransaction != null)
-        brick.Where('doneWithTransaction').isExactly(doneWithTransaction),
-      if (active != null) brick.Where('active').isExactly(active),
-    ]));
+      query: brick.Query(where: [
+        if (transactionId != null)
+          brick.Where('transactionId').isExactly(transactionId),
+        brick.Where('branchId').isExactly(branchId),
+        if (startDate != null && endDate != null)
+          if (startDate == endDate)
+            // Include the entire day when startDate and endDate are the same
+            brick.Where('lastTouched').isBetween(
+              startDate.toIso8601String(),
+              startDate.add(const Duration(days: 1)).toIso8601String(),
+            )
+          else
+            brick.Where('lastTouched').isBetween(
+              startDate.toIso8601String(),
+              endDate.toIso8601String(),
+            ),
+        if (doneWithTransaction != null)
+          brick.Where('doneWithTransaction').isExactly(doneWithTransaction),
+        if (active != null) brick.Where('active').isExactly(active),
+      ]),
+    );
   }
 
   @override
@@ -4566,5 +4602,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       active: false,
     );
     await repository.upsert<Stock>(newStock);
+  }
+
+  @override
+  FutureOr<void> addTransaction({required models.ITransaction transaction}) {
+    repository.upsert(transaction);
   }
 }

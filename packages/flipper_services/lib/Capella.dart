@@ -1829,4 +1829,10 @@ class Capella with Booting implements RealmInterface {
     // TODO: implement customersStream
     throw UnimplementedError();
   }
+  
+  @override
+  FutureOr<void> addTransaction({required brick.ITransaction transaction}) {
+    // TODO: implement addTransaction
+    throw UnimplementedError();
+  }
 }

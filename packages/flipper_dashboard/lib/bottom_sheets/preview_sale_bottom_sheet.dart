@@ -88,9 +88,7 @@ class PreviewSaleBottomSheetState
           leading: Container(
             width: 100,
             child: Text(
-              items.name.length > 10
-                  ? items.name.substring(0, 10)
-                  : items.name,
+              items.name.length > 10 ? items.name.substring(0, 10) : items.name,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w400,
@@ -125,13 +123,11 @@ class PreviewSaleBottomSheetState
   Widget build(BuildContext context) {
     final branchId = ProxyService.box.getBranchId()!;
     final transaction = ref.watch(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false,branchId: branchId)));
+        (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
     final transactionItemsNotifier =
         ref.watch(transactionItemsProvider((isExpense: false)).notifier);
 
     final totalPayable = transactionItemsNotifier.totalPayable;
-
-    transactionItemsNotifier.updatePendingTransaction();
 
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
