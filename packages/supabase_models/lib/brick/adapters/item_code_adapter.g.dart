@@ -7,7 +7,8 @@ Future<ItemCode> _$ItemCodeFromSupabase(Map<String, dynamic> data,
   return ItemCode(
       id: data['id'] as String?,
       code: data['code'] as String,
-      createdAt: DateTime.parse(data['created_at'] as String));
+      createdAt: DateTime.parse(data['created_at'] as String),
+      branchId: data['branch_id'] as int);
 }
 
 Future<Map<String, dynamic>> _$ItemCodeToSupabase(ItemCode instance,
@@ -16,7 +17,8 @@ Future<Map<String, dynamic>> _$ItemCodeToSupabase(ItemCode instance,
   return {
     'id': instance.id,
     'code': instance.code,
-    'created_at': instance.createdAt.toIso8601String()
+    'created_at': instance.createdAt.toIso8601String(),
+    'branch_id': instance.branchId
   };
 }
 
@@ -26,7 +28,8 @@ Future<ItemCode> _$ItemCodeFromSqlite(Map<String, dynamic> data,
   return ItemCode(
       id: data['id'] as String,
       code: data['code'] as String,
-      createdAt: DateTime.parse(data['created_at'] as String))
+      createdAt: DateTime.parse(data['created_at'] as String),
+      branchId: data['branch_id'] as int)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -36,7 +39,8 @@ Future<Map<String, dynamic>> _$ItemCodeToSqlite(ItemCode instance,
   return {
     'id': instance.id,
     'code': instance.code,
-    'created_at': instance.createdAt.toIso8601String()
+    'created_at': instance.createdAt.toIso8601String(),
+    'branch_id': instance.branchId
   };
 }
 
@@ -61,6 +65,10 @@ class ItemCodeAdapter extends OfflineFirstWithSupabaseAdapter<ItemCode> {
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'created_at',
+    ),
+    'branchId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'branch_id',
     )
   };
   @override
@@ -92,6 +100,12 @@ class ItemCodeAdapter extends OfflineFirstWithSupabaseAdapter<ItemCode> {
       columnName: 'created_at',
       iterable: false,
       type: DateTime,
+    ),
+    'branchId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'branch_id',
+      iterable: false,
+      type: int,
     )
   };
   @override

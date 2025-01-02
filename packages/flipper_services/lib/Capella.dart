@@ -1657,6 +1657,7 @@ class Capella with Booting implements RealmInterface {
       {required String countryCode,
       required String productType,
       required packagingUnit,
+      required int branchId,
       required String quantityUnit}) {
     // TODO: implement itemCode
     throw UnimplementedError();

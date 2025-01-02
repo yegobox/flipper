@@ -71,6 +71,7 @@ mixin ProductMixin {
         variations[i].itemCd = await ProxyService.strategy.itemCode(
             countryCode: "RW",
             productType: "2",
+            branchId: ProxyService.box.getBranchId()!,
             packagingUnit: packagingUnit,
             quantityUnit: "CT");
         variations[i].modrNm = number;

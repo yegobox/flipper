@@ -767,6 +767,7 @@ final transactionListProvider =
     final stream = ProxyService.strategy.transactionsStream(
       startDate: startDate,
       endDate: endDate,
+      branchId: ProxyService.box.getBranchId(),
     );
 
     // Use `switchMap` to handle potential changes in dateRangeProvider

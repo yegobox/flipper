@@ -585,6 +585,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           productType: "2",
           packagingUnit: "CT",
           quantityUnit: "BJ",
+          branchId: branchId,
         ),
         modrNm: number,
         modrId: number,
@@ -4431,14 +4432,18 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       {required String countryCode,
       required String productType,
       required packagingUnit,
+      required int branchId,
       required String quantityUnit}) async {
     final repository = Repository();
     final Query = brick.Query(
-      where: [brick.Where('code').isNot(null)],
+      where: [
+        brick.Where('code').isNot(null),
+        brick.Where('branchId').isExactly(branchId),
+      ],
       orderBy: [brick.OrderBy('code', ascending: false)],
     );
     final items = await repository.get<ItemCode>(
-        query: Query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        query: Query, policy: OfflineFirstGetPolicy.alwaysHydrate);
 
     // Extract the last sequence number and increment it
     int lastSequence = 0;
@@ -4453,7 +4458,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
 
     // Save the new item code in the database
-    final newItem = ItemCode(code: newItemCode, createdAt: DateTime.now());
+    final newItem = ItemCode(
+        code: newItemCode, createdAt: DateTime.now(), branchId: branchId);
     await repository.upsert(newItem);
 
     return newItemCode;
@@ -4473,7 +4479,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
     // Get highest sequence number
-    int lastSequence = skus.isEmpty ? 0 : skus.first.sku ?? 0;
+    int lastSequence = skus.isEmpty ? 0 : skus.last.sku ?? 0;
     final newSequence = lastSequence + 1;
 
     final newSku = SKU(
