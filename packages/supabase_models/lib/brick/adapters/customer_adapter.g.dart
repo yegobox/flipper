@@ -15,7 +15,7 @@ Future<Customer> _$CustomerFromSupabase(Map<String, dynamic> data,
           ? null
           : DateTime.tryParse(data['updated_at'] as String),
       custNo: data['cust_no'] as String?,
-      custTin: data['cust_tin'] as String?,
+      custTin: data['cust_tin'] == null ? null : data['cust_tin'] as String?,
       regrNm: data['regr_nm'] as String?,
       regrId: data['regr_id'] as String?,
       modrNm: data['modr_nm'] as String?,

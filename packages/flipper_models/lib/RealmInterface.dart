@@ -221,7 +221,7 @@ abstract class RealmInterface {
   FutureOr<List<Customer>> customers(
       {required int branchId, String? key, String? id});
 
-Stream<List<Customer>> customersStream(
+  Stream<List<Customer>> customersStream(
       {required int branchId, String? key, String? id});
 
   Future<int> deleteTransactionByIndex({required String transactionIndex});
@@ -232,8 +232,6 @@ Stream<List<Customer>> customersStream(
 
   Future<TransactionItem?> getTransactionItemByVariantId(
       {required String variantId, String? transactionId});
-
-  int lifeTimeCustomersForbranch({required String branchId});
 
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount});
@@ -299,9 +297,6 @@ Stream<List<Customer>> customersStream(
   Future<void> deleteAllProducts();
   FutureOr<Stock?> getStockById({required String id});
 
-  Future<bool> isTokenValid(
-      {required String tokenType, required int businessId});
-
   Future<void> patchSocialSetting({required Setting setting});
 
   Future<Device?> getDevice(
@@ -338,8 +333,6 @@ Stream<List<Customer>> customersStream(
       DateTime? endDate,
       bool? doneWithTransaction,
       bool? active});
-
-  bool isRealmClosed();
 
   Stream<double> stockValue({required branchId});
 
@@ -397,7 +390,7 @@ Stream<List<Customer>> customersStream(
   FutureOr<List<Access>> access({required int userId, String? featureName});
   Stream<List<StockRequest>> requestsStream(
       {required int branchId, required String filter});
-  List<StockRequest> requests({required int branchId});
+  FutureOr<List<StockRequest>> requests({required int branchId});
   FutureOr<Tenant?> getTenant({int? userId, int? pin});
 
   Future<({String url, int userId, String customerCode})> subscribe(

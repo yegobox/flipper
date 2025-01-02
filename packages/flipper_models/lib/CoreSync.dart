@@ -356,17 +356,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       } else {
         throw Exception('Transaction with ID $transactionId not found');
       }
-
-      final customer =
-          (await customers(branchId: transaction.branchId!, id: customerId))
-              .firstOrNull;
-
-      if (customer != null) {
-        customer.updatedAt = DateTime.now();
-        repository.upsert<Customer>(customer);
-      } else {
-        throw Exception('Customer with ID $customerId not found');
-      }
     } catch (e) {
       print('Failed to assign customer to transaction: $e');
       rethrow;
@@ -1920,26 +1909,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     throw UnimplementedError("isDrawerOpen method is not implemented yet");
   }
 
-  @override
-  bool isRealmClosed() {
-    // TODO: implement isRealmClosed
-    throw UnimplementedError("isRealmClosed method is not implemented yet");
-  }
-
-  @override
-  Future<bool> isTokenValid(
-      {required String tokenType, required int businessId}) {
-    // TODO: implement isTokenValid
-    throw UnimplementedError("isTokenValid method is not implemented yet");
-  }
-
-  @override
-  int lifeTimeCustomersForbranch({required String branchId}) {
-    // TODO: implement lifeTimeCustomersForbranch
-    throw UnimplementedError(
-        "lifeTimeCustomersForbranch method is not implemented yet");
-  }
-
   bool isEmail(String input) {
     // Implement your logic to check if input is an email
     // You can use regular expressions or any other email validation mechanism
@@ -2340,9 +2309,22 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<bool> removeS3File({required String fileName}) {
-    // TODO: implement removeS3File
-    throw UnimplementedError("removeS3File method is not implemented yet");
+  Future<bool> removeS3File({required String fileName}) async {
+    await syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
+    int branchId = ProxyService.box.getBranchId()!;
+    try {
+      final result = await amplify.Amplify.Storage
+          .remove(
+            path: amplify.StoragePath.fromString(
+                'public/branch-$branchId/$fileName'),
+          )
+          .result;
+      talker.warning('Removed file: ${result.removedItem.path}');
+      return true; // Return true if the file is successfully removed
+    } on amplify.StorageException catch (e) {
+      talker.warning(e.message);
+      return false; // Return false if an exception occurs during the removal process
+    }
   }
 
   @override
@@ -2353,14 +2335,19 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Stream<List<Report>> reports({required int branchId}) {
-    // TODO: implement reports
-    throw UnimplementedError("reports method is not implemented yet");
+    return repository.subscribe(
+        query:
+            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
   }
 
   @override
-  List<StockRequest> requests({required int branchId}) {
-    // TODO: implement requests
-    throw UnimplementedError("requests is not implemented yet");
+  FutureOr<List<models.StockRequest>> requests({required int branchId}) async {
+    return await repository.get<StockRequest>(
+        query: brick.Query(where: [
+      brick.Where('branchId').isExactly(branchId),
+      brick.Or('status').isExactly(RequestStatus.pending),
+      brick.Or('status').isExactly(RequestStatus.partiallyApproved),
+    ]));
   }
 
   @override

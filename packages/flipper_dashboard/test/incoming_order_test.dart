@@ -47,7 +47,8 @@ void main() {
           ),
         ),
       );
-      List<StockRequest> requests = ProxyService.strategy.requests(branchId: 1);
+      List<StockRequest> requests =
+          await ProxyService.strategy.requests(branchId: 1);
       talker.warning("We have Stock Request generated ${requests.length}");
 
       // Allow the stream to emit values and the widget to rebuild

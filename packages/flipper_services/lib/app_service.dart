@@ -159,8 +159,8 @@ class AppService with ListenableServiceMixin {
   Future<bool> isSocialLoggedin() async {
     if (ProxyService.box.getDefaultApp() == "2") {
       int businessId = ProxyService.box.getBusinessId()!;
-      return await ProxyService.strategy
-          .isTokenValid(businessId: businessId, tokenType: socialApp);
+      // return await ProxyService.strategy
+      //     .isTokenValid(businessId: businessId, tokenType: socialApp);
     }
 
     /// should return true if the app is not 2 by default this is because otherwise it will keep pinging the server to log in
