@@ -737,3 +737,5 @@ class App {}
 // 50482
 // brick only update
 // https://github.com/GetDutchie/brick/blob/main/packages/brick_supabase/lib/src/supabase_provider.dart#L119-L136
+
+// https://github.com/MaikuB/flutter_local_notifications/issues/2512
