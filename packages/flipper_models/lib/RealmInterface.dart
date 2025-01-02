@@ -91,11 +91,7 @@ abstract class RealmInterface {
       String? endPoint,
       HttpClientInterface? flipperHttpClient});
   Future<PColor?> getColor({required String id});
-  Future<Stock?> getStock(
-      {required int branchId,
-      String? variantId,
-      bool nonZeroValue = false,
-      String? id});
+
   Future<List<Variant>> variants({
     required int branchId,
     String? productId,

@@ -30,6 +30,11 @@ class CronService {
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
     await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
+
+    Timer.periodic(Duration(minutes: 1), (Timer t) async {
+      ProxyService.strategy
+          .getCounters(branchId: ProxyService.box.getBranchId()!);
+    });
     Timer.periodic(Duration(seconds: kDebugMode ? 40 : 40), (Timer t) async {
       if (ProxyService.strategy.sendPort != null) {
         try {

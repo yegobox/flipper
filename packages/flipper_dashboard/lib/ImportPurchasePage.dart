@@ -48,8 +48,10 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       setState(() {
         isLoading = true;
       });
+      brick.Business? business = await ProxyService.strategy
+          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
       final data = await ProxyService.strategy.selectImportItems(
-        tin: ProxyService.box.tin(),
+        tin: business?.tinNumber ?? ProxyService.box.tin(),
         bhfId: (await ProxyService.box.bhfId()) ?? "00",
         lastReqDt: convertedDate,
       );

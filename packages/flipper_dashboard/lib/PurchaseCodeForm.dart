@@ -44,7 +44,6 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
         customerNameController: customerNameController,
         transactionType: TransactionType.sale,
         context: context,
-        categoryId: "0",
         paymentType: paymentType,
         transaction: transaction,
         amount: amount,

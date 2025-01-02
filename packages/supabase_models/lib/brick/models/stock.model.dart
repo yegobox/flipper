@@ -43,7 +43,6 @@ class Stock extends OfflineFirstWithSupabaseModel {
     this.tin,
     this.bhfId,
     this.branchId,
-    // this.variantId,
     this.currentStock,
     this.lowStock,
     this.canTrackingStock,
@@ -51,9 +50,9 @@ class Stock extends OfflineFirstWithSupabaseModel {
     this.active,
     this.value,
     this.rsdQty,
-    this.lastTouched,
-    // this.deletedAt,
+    DateTime? lastTouched,
     this.ebmSynced,
     this.initialStock,
-  }) : id = id ?? const Uuid().v4();
+  })  : id = id ?? const Uuid().v4(),
+        lastTouched = DateTime.now();
 }

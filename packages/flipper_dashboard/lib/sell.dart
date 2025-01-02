@@ -43,7 +43,7 @@ class SellState extends ConsumerState<Sell> {
         final branchId = ProxyService.box.getBranchId()!;
         final pendingTransaction = ref.watch(pendingTransactionProvider(
           /// defind this is an income by setting isExpense to false
-          (mode: TransactionType.sale, isExpense: false,branchId: branchId),
+          (mode: TransactionType.sale, isExpense: false, branchId: branchId),
         ));
         return Scaffold(
           backgroundColor: Colors.white,
@@ -59,9 +59,6 @@ class SellState extends ConsumerState<Sell> {
             disableButton: false,
             showActionButton: true,
             onActionButtonClicked: () async {
-              Stock? stock = await ProxyService.strategy.getStock(
-                  variantId: model.checked,
-                  branchId: ProxyService.box.getBranchId()!);
               Variant? variant =
                   await ProxyService.strategy.getVariantById(id: model.checked);
 
@@ -70,19 +67,28 @@ class SellState extends ConsumerState<Sell> {
                   variation: variant!,
                   amountTotal: model.amountTotal,
                   customItem: false,
-                  currentStock: stock!.currentStock!,
+                  currentStock: variant.stock!.currentStock!,
                   pendingTransaction: pendingTransaction.value!);
               if (!saved) {
                 showSimpleNotification(const Text('No item selected'),
                     background: Colors.red);
               }
-final branchId = ProxyService.box.getBranchId()!;
+              final branchId = ProxyService.box.getBranchId()!;
+
               /// when we are ordering transaction type is cashOut
               ref.refresh(pendingTransactionProvider(
-                (mode: TransactionType.cashOut, isExpense: true,branchId: branchId),
+                (
+                  mode: TransactionType.cashOut,
+                  isExpense: true,
+                  branchId: branchId
+                ),
               ));
               ref.refresh(pendingTransactionProvider(
-                (mode: TransactionType.sale, isExpense: false,branchId: branchId),
+                (
+                  mode: TransactionType.sale,
+                  isExpense: false,
+                  branchId: branchId
+                ),
               ));
               _routerService.pop();
             },

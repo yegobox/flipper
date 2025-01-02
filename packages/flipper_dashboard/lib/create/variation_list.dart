@@ -1,7 +1,6 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -40,43 +39,29 @@ class VariationList extends StatelessWidget {
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    FutureBuilder<Stock?>(
-                      future: Future.value(ProxyService.strategy.getStock(
-                        variantId: variant.id,
-                        branchId: ProxyService.box.getBranchId()!,
-                      )),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return CircularProgressIndicator(); // Show a loading indicator.
-                        }
-                        if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        }
-                        final Stock? stock = snapshot.data;
-                        return TextButton(
-                          child: Text(
-                            stock == null || stock.currentStock == 0.0
-                                ? 'Receive Stock'
-                                : '${stock.currentStock} in stock',
-                            style: GoogleFonts.poppins(
-                              color: Colors.black,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w400,
-                            ),
+                  children: [
+                    TextButton(
+                      child: Text(
+                        variant.stock == null ||
+                                variant.stock!.currentStock == 0.0
+                            ? 'Receive Stock'
+                            : '${variant.stock!.currentStock} in stock',
+                        style: GoogleFonts.poppins(
+                          color: Colors.black,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      onPressed: () {
+                        _routerService.navigateTo(
+                          ReceiveStockRoute(
+                            variantId: variant.id,
+                            existingStock:
+                                variant.stock!.currentStock.toString(),
                           ),
-                          onPressed: () {
-                            _routerService.navigateTo(
-                              ReceiveStockRoute(
-                                variantId: variant.id,
-                                existingStock: stock!.currentStock.toString(),
-                              ),
-                            );
-                          },
                         );
                       },
-                    ),
+                    )
                   ],
                 ),
                 dense: true,

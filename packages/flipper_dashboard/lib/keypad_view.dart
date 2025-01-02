@@ -18,14 +18,14 @@ class KeyPadView extends StatefulHookConsumerWidget {
   final bool isBigScreen;
   final bool accountingMode;
   final String transactionType;
-  final String categoryId;
+  final String? categoryId;
 
   const KeyPadView({
     Key? key,
     required this.model,
     this.isBigScreen = false,
     this.accountingMode = false,
-    this.categoryId = "0",
+    this.categoryId,
     this.transactionType = TransactionType.cashOut,
   }) : super(key: key);
 
@@ -33,7 +33,7 @@ class KeyPadView extends StatefulHookConsumerWidget {
     Key? key,
     required this.model,
     this.isBigScreen = false,
-    this.categoryId = "0",
+    this.categoryId,
     required this.accountingMode,
     required this.transactionType,
   }) : super(key: key);
@@ -211,7 +211,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       mode: widget.transactionType,
       isExpense:
           widget.transactionType == TransactionType.cashOut ? true : false,
-          branchId: branchId,
+      branchId: branchId,
     )));
 
     if (key == 'C') {
@@ -356,7 +356,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             paymentType: paymentType,
             discount: discount.toDouble(),
             transactionType: TransactionType.sale,
-            categoryId: "0",
+            directlyHandleReceipt: false,
             isIncome: isIncome)
         : ProxyService.strategy.collectPayment(
             branchId: ProxyService.box.getBranchId()!,
@@ -365,6 +365,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             isTrainingMode: ProxyService.box.isTrainingMode(),
             cashReceived: cashReceived,
             transaction: transaction,
+            directlyHandleReceipt: false,
             paymentType: paymentType,
             discount: discount.toDouble(),
             categoryId: category?.id.toString(),

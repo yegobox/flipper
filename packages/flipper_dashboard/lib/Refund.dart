@@ -281,13 +281,10 @@ class _RefundState extends ConsumerState<Refund> {
                 branchId: ProxyService.box.getBranchId()!))
             .firstOrNull;
         if (variant != null) {
-          Stock? stock = await ProxyService.strategy
-              .getStock(variantId: variant.id, branchId: variant.branchId!);
-
-          if (stock != null) {
+          if (variant.stock != null) {
             ProxyService.strategy.updateStock(
-                stockId: stock.id,
-                currentStock: stock.currentStock! + item.qty,
+                stockId: variant.stock!.id,
+                currentStock: variant.stock!.currentStock! + item.qty,
                 ebmSynced: false);
 
             ProxyService.strategy.updateVariant(

@@ -17,8 +17,12 @@ Future<TransactionItem> _$TransactionItemFromSupabase(Map<String, dynamic> data,
       discount: data['discount'] as double,
       type: data['type'] as String?,
       remainingStock: data['remaining_stock'] as double?,
-      createdAt: data['created_at'] as String?,
-      updatedAt: data['updated_at'] as String?,
+      createdAt: data['created_at'] == null
+          ? null
+          : DateTime.tryParse(data['created_at'] as String),
+      updatedAt: data['updated_at'] == null
+          ? null
+          : DateTime.tryParse(data['updated_at'] as String),
       isRefunded: data['is_refunded'] as bool?,
       doneWithTransaction: data['done_with_transaction'] as bool?,
       active: data['active'] as bool?,
@@ -81,8 +85,8 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
     'discount': instance.discount,
     'type': instance.type,
     'remaining_stock': instance.remainingStock,
-    'created_at': instance.createdAt,
-    'updated_at': instance.updatedAt,
+    'created_at': instance.createdAt?.toIso8601String(),
+    'updated_at': instance.updatedAt?.toIso8601String(),
     'is_refunded': instance.isRefunded,
     'done_with_transaction': instance.doneWithTransaction,
     'active': instance.active,
@@ -154,10 +158,16 @@ Future<TransactionItem> _$TransactionItemFromSqlite(Map<String, dynamic> data,
       remainingStock: data['remaining_stock'] == null
           ? null
           : data['remaining_stock'] as double?,
-      createdAt:
-          data['created_at'] == null ? null : data['created_at'] as String?,
-      updatedAt:
-          data['updated_at'] == null ? null : data['updated_at'] as String?,
+      createdAt: data['created_at'] == null
+          ? null
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String),
+      updatedAt: data['updated_at'] == null
+          ? null
+          : data['updated_at'] == null
+              ? null
+              : DateTime.tryParse(data['updated_at'] as String),
       isRefunded: data['is_refunded'] == null ? null : data['is_refunded'] == 1,
       doneWithTransaction: data['done_with_transaction'] == null
           ? null
@@ -236,8 +246,8 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(TransactionItem instance,
     'discount': instance.discount,
     'type': instance.type,
     'remaining_stock': instance.remainingStock,
-    'created_at': instance.createdAt,
-    'updated_at': instance.updatedAt,
+    'created_at': instance.createdAt?.toIso8601String(),
+    'updated_at': instance.updatedAt?.toIso8601String(),
     'is_refunded':
         instance.isRefunded == null ? null : (instance.isRefunded! ? 1 : 0),
     'done_with_transaction': instance.doneWithTransaction == null
@@ -608,13 +618,13 @@ class TransactionItemAdapter
       association: false,
       columnName: 'created_at',
       iterable: false,
-      type: String,
+      type: DateTime,
     ),
     'updatedAt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'updated_at',
       iterable: false,
-      type: String,
+      type: DateTime,
     ),
     'isRefunded': const RuntimeSqliteColumnDefinition(
       association: false,

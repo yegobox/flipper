@@ -733,9 +733,8 @@ class RWTax with NetworkHelper implements TaxApi {
   Future<void> updateTransactionAndItems(ITransaction transaction,
       List<TransactionItem> items, String? receiptType) async {
     for (TransactionItem item in items) {
-      Stock? stock = await ProxyService.strategy.getStock(
-        variantId: item.variantId!,
-        branchId: ProxyService.box.getBranchId()!,
+      Variant? stock = await ProxyService.strategy.getVariantById(
+        id: item.variantId!,
       );
       ProxyService.strategy.updateStock(
         stockId: stock!.id,

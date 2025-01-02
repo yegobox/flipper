@@ -1758,8 +1758,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       final stock = await repository.get<Stock>(
           query: brick.Query(where: [
         brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
-        brick.Where('variantId',
-            value: variantId, compare: brick.Compare.exact),
       ]));
       return stock.firstOrNull;
     }
@@ -3222,7 +3220,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       ..updatedAt = now.toIso8601String()
       ..createdAt = now.toIso8601String()
       ..transactionType = transactionType
-      ..categoryId = categoryId ?? "0"
       ..lastTouched = now;
   }
 
@@ -3236,18 +3233,23 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required List<TransactionItem> items,
     required int branchId,
   }) async {
-    for (TransactionItem item in items) {
-      if (!item.active!) {
-        repository.delete(item);
-        continue;
+    try {
+      for (TransactionItem item in items) {
+        if (!item.active!) {
+          repository.delete(item);
+          continue;
+        }
+
+        await _updateStockForItem(item: item, branchId: branchId);
+
+        item
+          ..doneWithTransaction = true
+          ..updatedAt = DateTime.now().toUtc().toLocal();
+        repository.upsert<TransactionItem>(item);
       }
-
-      await _updateStockForItem(item: item, branchId: branchId);
-
-      item
-        ..doneWithTransaction = true
-        ..updatedAt = DateTime.now().toUtc().toLocal().toIso8601String();
-      repository.upsert(item);
+    } catch (e, s) {
+      talker.error(s);
+      talker.warning(e);
     }
   }
 
@@ -3255,24 +3257,29 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required TransactionItem item,
     required int branchId,
   }) async {
-    final stock =
-        await getStock(variantId: item.variantId!, branchId: branchId);
-    if (stock == null) return;
+    try {
+      final stock =
+          await getStock(variantId: item.variantId!, branchId: branchId);
+      if (stock == null) return;
 
-    final finalStock = (stock.currentStock! - item.qty);
-    final variant = await getVariantById(id: item.variantId!);
-    final stockValue = finalStock * (variant?.retailPrice ?? 0);
-    final bhfId = await ProxyService.box.bhfId();
+      final finalStock = (stock.currentStock! - item.qty);
+      final variant = await getVariantById(id: item.variantId!);
+      final stockValue = finalStock * (variant?.retailPrice ?? 0);
+      final bhfId = await ProxyService.box.bhfId();
 
-    stock
-      ..rsdQty = finalStock
-      ..currentStock = finalStock
-      ..value = stockValue
-      ..ebmSynced = false
-      ..bhfId = stock.bhfId ?? bhfId
-      ..tin = stock.tin ?? ProxyService.box.tin();
+      stock
+        ..rsdQty = finalStock
+        ..currentStock = finalStock
+        ..value = stockValue
+        ..ebmSynced = false
+        ..bhfId = stock.bhfId ?? bhfId
+        ..tin = stock.tin ?? ProxyService.box.tin();
 
-    repository.upsert(stock);
+      repository.upsert<Stock>(stock);
+    } catch (e, s) {
+      talker.error(s);
+      talker.warning(e);
+    }
   }
 
   @override

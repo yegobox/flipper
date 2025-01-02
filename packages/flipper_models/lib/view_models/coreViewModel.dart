@@ -225,9 +225,6 @@ class CoreViewModel extends FlipperBaseModel
         branchId: ProxyService.box.getBranchId()!);
     if (variation == null) return;
 
-    Stock? stock = await ProxyService.strategy.getStock(
-        variantId: variation.id, branchId: ProxyService.box.getBranchId()!);
-
     String name = variation.productName != 'Custom Amount'
         ? '${variation.productName}(${variation.name})'
         : variation.productName!;
@@ -245,9 +242,8 @@ class CoreViewModel extends FlipperBaseModel
         doneWithTransaction: false,
         active: false,
         transactionId: pendingTransaction.id,
-        createdAt: DateTime.now().toString(),
-        updatedAt: DateTime.now().toString(),
-        remainingStock: stock?.currentStock ?? 0 - 1,
+        updatedAt: DateTime.now(),
+        remainingStock: variation.stock?.currentStock ?? 0 - 1,
       );
 
       ProxyService.strategy.addTransactionItem(
@@ -270,9 +266,6 @@ class CoreViewModel extends FlipperBaseModel
     if (variation == null) return;
 
     if (items.isEmpty) {
-      Stock? stock = await ProxyService.strategy.getStock(
-          variantId: variation.id, branchId: ProxyService.box.getBranchId()!);
-
       String name = variation.productName != 'Custom Amount'
           ? '${variation.productName}(${variation.name})'
           : variation.productName!;
@@ -312,9 +305,8 @@ class CoreViewModel extends FlipperBaseModel
           doneWithTransaction: false,
           active: false,
           transactionId: pendingTransaction.id,
-          createdAt: DateTime.now().toString(),
-          updatedAt: DateTime.now().toString(),
-          remainingStock: stock?.currentStock ?? 0 - 1,
+          updatedAt: DateTime.now(),
+          remainingStock: variation.stock?.currentStock ?? 0 - 1,
         );
 
         List<TransactionItem> items = await ProxyService.strategy
@@ -790,14 +782,13 @@ class CoreViewModel extends FlipperBaseModel
     toggleCheckbox(variantId: variants.first.id);
     increaseQty(callback: (quantity) {}, custom: true);
     Variant? variant = await ProxyService.strategy.getVariantById(id: checked);
-    Stock? stock = await ProxyService.strategy.getStock(
-        variantId: checked, branchId: ProxyService.box.getBranchId()!);
+
     await saveTransaction(
         partOfComposite: false,
         variation: variant!,
         amountTotal: amountTotal,
         customItem: false,
-        currentStock: stock!.currentStock!,
+        currentStock: variant.stock!.currentStock!,
         pendingTransaction: pendingTransaction);
   }
 

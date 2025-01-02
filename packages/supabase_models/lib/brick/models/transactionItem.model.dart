@@ -23,8 +23,8 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   double discount;
   String? type;
   double? remainingStock;
-  String? createdAt;
-  String? updatedAt;
+  DateTime? createdAt;
+  DateTime? updatedAt;
   bool? isRefunded;
 
   /// property to help us adding new item to transaction
@@ -140,8 +140,8 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     required this.discount,
     this.type,
     this.remainingStock,
-    this.createdAt,
-    this.updatedAt,
+    DateTime? createdAt,
+    DateTime? updatedAt,
     this.isRefunded,
     this.doneWithTransaction,
     this.active,
@@ -156,7 +156,9 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.isrcRt,
     this.isrcAmt,
     required this.prc,
-  }) : id = id ?? const Uuid().v4();
+  })  : id = id ?? const Uuid().v4(),
+        createdAt = DateTime.now(),
+        updatedAt = DateTime.now();
 
   // toJson method
   Map<String, dynamic> toJson() => <String, dynamic>{
