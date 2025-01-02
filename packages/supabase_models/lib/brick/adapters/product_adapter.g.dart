@@ -14,7 +14,9 @@ Future<Product> _$ProductFromSupabase(Map<String, dynamic> data,
       branchId: data['branch_id'] as int,
       supplierId: data['supplier_id'] as String?,
       categoryId: data['category_id'] as int?,
-      createdAt: data['created_at'] as String?,
+      createdAt: data['created_at'] == null
+          ? null
+          : DateTime.tryParse(data['created_at'] as String),
       unit: data['unit'] as String?,
       imageUrl: data['image_url'] as String?,
       expiryDate: data['expiry_date'] as String?,
@@ -48,7 +50,7 @@ Future<Map<String, dynamic>> _$ProductToSupabase(Product instance,
     'branch_id': instance.branchId,
     'supplier_id': instance.supplierId,
     'category_id': instance.categoryId,
-    'created_at': instance.createdAt,
+    'created_at': instance.createdAt?.toIso8601String(),
     'unit': instance.unit,
     'image_url': instance.imageUrl,
     'expiry_date': instance.expiryDate,
@@ -83,8 +85,11 @@ Future<Product> _$ProductFromSqlite(Map<String, dynamic> data,
           data['supplier_id'] == null ? null : data['supplier_id'] as String?,
       categoryId:
           data['category_id'] == null ? null : data['category_id'] as int?,
-      createdAt:
-          data['created_at'] == null ? null : data['created_at'] as String?,
+      createdAt: data['created_at'] == null
+          ? null
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String),
       unit: data['unit'] == null ? null : data['unit'] as String?,
       imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
       expiryDate:
@@ -135,7 +140,7 @@ Future<Map<String, dynamic>> _$ProductToSqlite(Product instance,
     'branch_id': instance.branchId,
     'supplier_id': instance.supplierId,
     'category_id': instance.categoryId,
-    'created_at': instance.createdAt,
+    'created_at': instance.createdAt?.toIso8601String(),
     'unit': instance.unit,
     'image_url': instance.imageUrl,
     'expiry_date': instance.expiryDate,
@@ -321,7 +326,7 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
       association: false,
       columnName: 'created_at',
       iterable: false,
-      type: String,
+      type: DateTime,
     ),
     'unit': const RuntimeSqliteColumnDefinition(
       association: false,

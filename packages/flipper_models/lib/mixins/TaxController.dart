@@ -348,7 +348,7 @@ class TaxController<OBJ> {
             transactionType: transaction.transactionType,
             cashReceived: transaction.cashReceived,
             customerChangeDue: transaction.customerChangeDue,
-            createdAt: transaction.createdAt,
+            createdAt: transaction.createdAt??DateTime.now(),
             receiptType: receiptType,
             updatedAt: transaction.updatedAt,
             customerId: transaction.customerId,
@@ -504,7 +504,7 @@ class TaxController<OBJ> {
       totalNsSaleIncome: receiptType == "NS"
           ? drawer.totalNsSaleIncome ?? 0 + transaction.subTotal!
           : drawer.totalNsSaleIncome ?? 0,
-      openingDateTime: DateTime.now().toIso8601String(),
+      openingDateTime: DateTime.now(),
       open: true,
     );
   }

@@ -4,7 +4,7 @@ import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(),
+  supabaseConfig: SupabaseSerializable(tableName: 'conversations'),
 )
 class Conversation extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
@@ -17,7 +17,7 @@ class Conversation extends OfflineFirstWithSupabaseModel {
   String? channelType;
   String? fromNumber;
   String? toNumber;
-  String? createdAt;
+  DateTime? createdAt;
   String? messageType;
   String? phoneNumberId;
   String? messageId;

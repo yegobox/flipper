@@ -17,7 +17,7 @@ class IConversation extends IJsonSerializable {
   String? fromNumber;
   String? toNumber;
 
-  String? createdAt;
+  DateTime? createdAt;
   String? messageType;
   String? phoneNumberId;
 

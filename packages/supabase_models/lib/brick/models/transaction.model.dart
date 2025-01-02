@@ -18,7 +18,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   int? branchId;
 
   String? status;
-
+  
   String? transactionType;
   @Supabase(defaultValue: "0.0")
   double? subTotal;
@@ -28,11 +28,11 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   @Supabase(defaultValue: "0.0")
   double? customerChangeDue;
 
-  String? createdAt;
+  DateTime? createdAt;
   // add receipt type offerered on this transaction
   /// remember we also have receipt model where each receipt generated is saved.
   String? receiptType;
-  String? updatedAt;
+  DateTime? updatedAt;
 
   String? customerId;
   String? customerType;
@@ -43,7 +43,6 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   // int categoryId;
 
   String? ticketName;
-
 
   // fields when a transaction is created for ordering system
   int? supplierId;
@@ -83,7 +82,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     required this.paymentType,
     required this.cashReceived,
     required this.customerChangeDue,
-    required this.createdAt,
+    DateTime? createdAt,
     this.receiptType,
     required this.updatedAt,
     this.customerId,
@@ -103,5 +102,6 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.receiptNumber,
     this.totalReceiptNumber,
     this.invoiceNumber,
-  }) : id = id ?? const Uuid().v4();
+  })  : id = id ?? const Uuid().v4(),
+        createdAt = createdAt ?? DateTime.now();
 }

@@ -642,16 +642,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<Stock?> getStock(
-      {required int branchId,
-      String? variantId,
-      bool nonZeroValue = false,
-      String? id}) {
-    // TODO: implement getStock
-    throw UnimplementedError();
-  }
-
-  @override
   Stock? getStockById({required String id}) {
     // TODO: implement getStockById
     throw UnimplementedError();
@@ -712,25 +702,6 @@ class Capella with Booting implements RealmInterface {
   @override
   bool isDrawerOpen({required int cashierId, required int branchId}) {
     // TODO: implement isDrawerOpen
-    throw UnimplementedError();
-  }
-
-  @override
-  bool isRealmClosed() {
-    // TODO: implement isRealmClosed
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<bool> isTokenValid(
-      {required String tokenType, required int businessId}) {
-    // TODO: implement isTokenValid
-    throw UnimplementedError();
-  }
-
-  @override
-  int lifeTimeCustomersForbranch({required String branchId}) {
-    // TODO: implement lifeTimeCustomersForbranch
     throw UnimplementedError();
   }
 
@@ -1099,7 +1070,7 @@ class Capella with Booting implements RealmInterface {
       int? incompleteSale,
       double? totalCsSaleIncome,
       double? totalNsSaleIncome,
-      String? openingDateTime,
+      DateTime? openingDateTime,
       double? closingBalance,
       bool? open}) {
     // TODO: implement updateDrawer
@@ -1182,7 +1153,7 @@ class Capella with Booting implements RealmInterface {
       bool? isRefunded,
       String? customerName,
       String? ticketName,
-      String? updatedAt,
+      DateTime? updatedAt,
       int? invoiceNumber,
       DateTime? lastTouched,
       int? receiptNumber,
@@ -1262,13 +1233,6 @@ class Capella with Booting implements RealmInterface {
       bool directlyHandleReceipt = false,
       required bool isIncome}) {
     // TODO: implement collectPayment
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<ITransaction>> completedTransactions(
-      {required int branchId, String? status = COMPLETE}) {
-    // TODO: implement completedTransactions
     throw UnimplementedError();
   }
 
@@ -1354,12 +1318,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  ITransaction? getTransactionById({required String id}) {
-    // TODO: implement getTransactionById
-    throw UnimplementedError();
-  }
-
-  @override
   Future<ITransaction> manageCashInOutTransaction(
       {required String transactionType,
       required bool isExpense,
@@ -1404,12 +1362,6 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<List<Configurations>> taxes({required int branchId}) {
     // TODO: implement taxes
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<ITransaction>> tickets() {
-    // TODO: implement tickets
     throw UnimplementedError();
   }
 

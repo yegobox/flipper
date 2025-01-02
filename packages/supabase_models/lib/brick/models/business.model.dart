@@ -33,7 +33,7 @@ class Business extends OfflineFirstWithSupabaseModel {
   int? lastSeen;
   String? firstName;
   String? lastName;
-  String? createdAt;
+  DateTime? createdAt;
   String? deviceToken;
   bool? backUpEnabled;
   String? subscriptionPlan;
@@ -82,7 +82,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     this.lastSeen,
     this.firstName,
     this.lastName,
-    this.createdAt,
+    DateTime? createdAt,
     this.deviceToken,
     this.backUpEnabled,
     this.subscriptionPlan,
@@ -104,7 +104,8 @@ class Business extends OfflineFirstWithSupabaseModel {
     this.lastTouched,
     this.deletedAt,
     this.encryptionKey,
-  }) : id = id ?? const Uuid().v4();
+  })  : id = id ?? const Uuid().v4(),
+        createdAt = createdAt ?? DateTime.now();
 
   Business copyWith({
     String? id,
@@ -173,7 +174,6 @@ class Business extends OfflineFirstWithSupabaseModel {
       lastSeen: lastSeen ?? this.lastSeen,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
-      createdAt: createdAt ?? this.createdAt,
       deviceToken: deviceToken ?? this.deviceToken,
       backUpEnabled: backUpEnabled ?? this.backUpEnabled,
       subscriptionPlan: subscriptionPlan ?? this.subscriptionPlan,
@@ -209,7 +209,7 @@ class Business extends OfflineFirstWithSupabaseModel {
       lastSeen: map['last_seen'] as int?,
       firstName: map['first_name'] as String?,
       lastName: map['last_name'] as String?,
-      createdAt: map['created_at'] as String?,
+
       deviceToken: map['deviceToken'] as String?,
       // backUpEnabled: map['back_up_enabled'] as bool?,
       subscriptionPlan: map['subscription_plan'] as String?,

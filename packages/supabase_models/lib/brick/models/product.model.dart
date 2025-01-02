@@ -22,7 +22,7 @@ class Product extends OfflineFirstWithSupabaseModel {
   final int branchId;
   String? supplierId;
   int? categoryId;
-  String? createdAt;
+  DateTime? createdAt;
   String? unit;
   String? imageUrl;
   String? expiryDate;

@@ -286,8 +286,7 @@ class _AppsState extends ConsumerState<Apps> {
     log(transactions.length.toString(), name: 'render transactions on gauge');
     DateTime startingDate = _calculateStartingDate(transactionPeriod);
     return transactions
-        .where((transaction) =>
-            DateTime.parse(transaction.createdAt!).isAfter(startingDate))
+        .where((transaction) => transaction.createdAt!.isAfter(startingDate))
         .toList();
   }
 
@@ -310,8 +309,7 @@ class _AppsState extends ConsumerState<Apps> {
   double _calculateCashIn(List<ITransaction> transactions, String period) {
     DateTime oldDate = _calculateStartingDate(transactionPeriod);
     List<ITransaction> filteredTransactions = transactions
-        .where((transaction) =>
-            DateTime.parse(transaction.createdAt!).isAfter(oldDate))
+        .where((transaction) => transaction.createdAt!.isAfter(oldDate))
         .toList();
     double sumCashIn = 0;
     for (final transaction in filteredTransactions) {
@@ -325,8 +323,7 @@ class _AppsState extends ConsumerState<Apps> {
   double _calculateCashOut(List<ITransaction> transactions, String period) {
     DateTime oldDate = _calculateStartingDate(transactionPeriod);
     List<ITransaction> filteredTransactions = transactions
-        .where((transaction) =>
-            DateTime.parse(transaction.createdAt!).isAfter(oldDate))
+        .where((transaction) => transaction.createdAt!.isAfter(oldDate))
         .toList();
     double sumCashOut = 0;
     for (final transaction in filteredTransactions) {

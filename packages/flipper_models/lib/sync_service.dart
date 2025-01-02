@@ -70,7 +70,7 @@ abstract class IJsonSerializable {
 
 //       if (json['action'] == AppActions.updated) {
 //         log('Start sending data to server updated action', name: 'sync');
-//         final lastTouched = DateTime.now().toIso8601String();
+//         final lastTouched = DateTime.now();
 
 //         json['lastTouched'] = lastTouched;
 //         json['action'] = AppActions.synchronized;
@@ -78,7 +78,7 @@ abstract class IJsonSerializable {
 //             .update(data: json, collectionName: endpoint, recordId: json['id']);
 //       } else if (json['action'] == AppActions.deleted) {
 //         log('Start sending data to server deleted action', name: 'sync');
-//         final lastTouched = DateTime.now().toIso8601String();
+//         final lastTouched = DateTime.now();
 
 //         json['lastTouched'] = lastTouched;
 
@@ -89,7 +89,7 @@ abstract class IJsonSerializable {
 //         //change action when sending to remote to avoid pulling it next time with create
 //         // this means we won't perform unnecessary action on item that is neither updated,deleted or created.
 
-//         final lastTouched = DateTime.now().toIso8601String();
+//         final lastTouched = DateTime.now();
 
 //         json['lastTouched'] = lastTouched;
 //         result = await ProxyService.remote
@@ -98,7 +98,7 @@ abstract class IJsonSerializable {
 //       if (result != null) {
 //         Map<String, dynamic> updatedJson = Map.from(result.toJson());
 //         updatedJson['action'] = AppActions.synchronized;
-//         final lastTouched = DateTime.now().toIso8601String();
+//         final lastTouched = DateTime.now();
 
 //         updatedJson['lastTouched'] = lastTouched;
 //         return updatedJson;
@@ -115,8 +115,8 @@ abstract class IJsonSerializable {
 //   // The extracted function for updating and reporting transactions
 //   Future<void> _pushTransactions(ITransaction transaction) async {
 //     /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
-//     transaction.updatedAt = DateTime.now().toIso8601String();
-//     transaction.createdAt = DateTime.now().toIso8601String();
+//     transaction.updatedAt = DateTime.now();
+//     transaction.createdAt = DateTime.now();
 //     if (transaction.action != AppActions.synchronized) {
 //       Map<String, dynamic>? variantRecord = await _push(transaction as M);
 //       if (variantRecord != null && variantRecord.isNotEmpty) {

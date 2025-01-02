@@ -185,8 +185,9 @@ class TransactionsState extends ConsumerState<Transactions>
 
       String typeOfTransaction =
           transaction.isExpense == true ? "Expense" : "Income";
-      if (lastSeen != transaction.createdAt!.substring(0, 10)) {
-        lastSeen = transaction.createdAt!.substring(0, 10);
+      if (lastSeen !=
+          transaction.createdAt!.toIso8601String().substring(0, 10)) {
+        lastSeen = transaction.createdAt!.toIso8601String().substring(0, 10);
 
         list.add(
           Container(
@@ -197,7 +198,9 @@ class TransactionsState extends ConsumerState<Transactions>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text(isEquivalentToToday(transaction.createdAt!),
+                    Text(
+                        isEquivalentToToday(
+                            transaction.createdAt!.toIso8601String()),
                         style: GoogleFonts.poppins(
                             fontSize: 17,
                             fontWeight: FontWeight.w400,

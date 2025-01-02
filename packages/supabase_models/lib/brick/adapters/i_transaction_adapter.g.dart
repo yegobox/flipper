@@ -16,9 +16,13 @@ Future<ITransaction> _$ITransactionFromSupabase(Map<String, dynamic> data,
       paymentType: data['payment_type'] as String?,
       cashReceived: data['cash_received'] as double? ?? 0.0,
       customerChangeDue: data['customer_change_due'] as double? ?? 0.0,
-      createdAt: data['created_at'] as String?,
+      createdAt: data['created_at'] == null
+          ? null
+          : DateTime.tryParse(data['created_at'] as String),
       receiptType: data['receipt_type'] as String?,
-      updatedAt: data['updated_at'] as String?,
+      updatedAt: data['updated_at'] == null
+          ? null
+          : DateTime.tryParse(data['updated_at'] as String),
       customerId: data['customer_id'] as String?,
       customerType: data['customer_type'] as String?,
       note: data['note'] as String?,
@@ -56,9 +60,9 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(ITransaction instance,
     'payment_type': instance.paymentType,
     'cash_received': instance.cashReceived,
     'customer_change_due': instance.customerChangeDue,
-    'created_at': instance.createdAt,
+    'created_at': instance.createdAt?.toIso8601String(),
     'receipt_type': instance.receiptType,
-    'updated_at': instance.updatedAt,
+    'updated_at': instance.updatedAt?.toIso8601String(),
     'customer_id': instance.customerId,
     'customer_type': instance.customerType,
     'note': instance.note,
@@ -106,12 +110,18 @@ Future<ITransaction> _$ITransactionFromSqlite(Map<String, dynamic> data,
       customerChangeDue: data['customer_change_due'] == null
           ? null
           : data['customer_change_due'] as double?,
-      createdAt:
-          data['created_at'] == null ? null : data['created_at'] as String?,
+      createdAt: data['created_at'] == null
+          ? null
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String),
       receiptType:
           data['receipt_type'] == null ? null : data['receipt_type'] as String?,
-      updatedAt:
-          data['updated_at'] == null ? null : data['updated_at'] as String?,
+      updatedAt: data['updated_at'] == null
+          ? null
+          : data['updated_at'] == null
+              ? null
+              : DateTime.tryParse(data['updated_at'] as String),
       customerId:
           data['customer_id'] == null ? null : data['customer_id'] as String?,
       customerType: data['customer_type'] == null
@@ -168,9 +178,9 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(ITransaction instance,
     'payment_type': instance.paymentType,
     'cash_received': instance.cashReceived,
     'customer_change_due': instance.customerChangeDue,
-    'created_at': instance.createdAt,
+    'created_at': instance.createdAt?.toIso8601String(),
     'receipt_type': instance.receiptType,
-    'updated_at': instance.updatedAt,
+    'updated_at': instance.updatedAt?.toIso8601String(),
     'customer_id': instance.customerId,
     'customer_type': instance.customerType,
     'note': instance.note,
@@ -418,7 +428,7 @@ class ITransactionAdapter
       association: false,
       columnName: 'created_at',
       iterable: false,
-      type: String,
+      type: DateTime,
     ),
     'receiptType': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -430,7 +440,7 @@ class ITransactionAdapter
       association: false,
       columnName: 'updated_at',
       iterable: false,
-      type: String,
+      type: DateTime,
     ),
     'customerId': const RuntimeSqliteColumnDefinition(
       association: false,

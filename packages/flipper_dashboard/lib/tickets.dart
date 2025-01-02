@@ -58,7 +58,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               await ProxyService.strategy.updateTransaction(
                 transaction: _transaction!,
                 status: PENDING,
-                updatedAt: DateTime.now().toIso8601String(),
+                updatedAt: DateTime.now(),
               );
 
               await Future.delayed(Duration(microseconds: 800));
@@ -271,7 +271,7 @@ class TicketTile extends StatelessWidget {
                 ),
               ),
               Text(
-                timeago.format(DateTime.parse(ticket.updatedAt!)),
+                timeago.format(ticket.updatedAt!),
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w400,
                   fontSize: 17,

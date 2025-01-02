@@ -26,7 +26,9 @@ Future<Business> _$BusinessFromSupabase(Map<String, dynamic> data,
       lastSeen: data['last_seen'] as int?,
       firstName: data['first_name'] as String?,
       lastName: data['last_name'] as String?,
-      createdAt: data['created_at'] as String?,
+      createdAt: data['created_at'] == null
+          ? null
+          : DateTime.tryParse(data['created_at'] as String),
       deviceToken: data['device_token'] as String?,
       backUpEnabled: data['back_up_enabled'] as bool?,
       subscriptionPlan: data['subscription_plan'] as String?,
@@ -80,7 +82,7 @@ Future<Map<String, dynamic>> _$BusinessToSupabase(Business instance,
     'last_seen': instance.lastSeen,
     'first_name': instance.firstName,
     'last_name': instance.lastName,
-    'created_at': instance.createdAt,
+    'created_at': instance.createdAt?.toIso8601String(),
     'device_token': instance.deviceToken,
     'back_up_enabled': instance.backUpEnabled,
     'subscription_plan': instance.subscriptionPlan,
@@ -135,8 +137,11 @@ Future<Business> _$BusinessFromSqlite(Map<String, dynamic> data,
       firstName:
           data['first_name'] == null ? null : data['first_name'] as String?,
       lastName: data['last_name'] == null ? null : data['last_name'] as String?,
-      createdAt:
-          data['created_at'] == null ? null : data['created_at'] as String?,
+      createdAt: data['created_at'] == null
+          ? null
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String),
       deviceToken:
           data['device_token'] == null ? null : data['device_token'] as String?,
       backUpEnabled:
@@ -216,7 +221,7 @@ Future<Map<String, dynamic>> _$BusinessToSqlite(Business instance,
     'last_seen': instance.lastSeen,
     'first_name': instance.firstName,
     'last_name': instance.lastName,
-    'created_at': instance.createdAt,
+    'created_at': instance.createdAt?.toIso8601String(),
     'device_token': instance.deviceToken,
     'back_up_enabled': instance.backUpEnabled == null
         ? null
@@ -573,7 +578,7 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
       association: false,
       columnName: 'created_at',
       iterable: false,
-      type: String,
+      type: DateTime,
     ),
     'deviceToken': const RuntimeSqliteColumnDefinition(
       association: false,

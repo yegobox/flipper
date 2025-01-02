@@ -857,10 +857,10 @@
 //                 ? 0.0
 //                 : data['customer_change_due'];
 //             transaction.createdAt = data['created_at'] == null
-//                 ? DateTime.now().toIso8601String()
+//                 ? DateTime.now()
 //                 : data['created_at'];
 //             transaction.updatedAt = data['updated_at'] == null
-//                 ? DateTime.now().toIso8601String()
+//                 ? DateTime.now()
 //                 : data['updated_at'];
 //             transaction.customerId =
 //                 data['customer_id'] == null ? 0 : data['customer_id'];
@@ -1064,7 +1064,7 @@
 //           supplierId: data['supplier_id'] == null ? "" : data['supplier_id'],
 //           categoryId: data['category_id'] == null ? 0 : data['category_id'],
 //           createdAt: data['created_at'] == null
-//               ? DateTime.now().toIso8601String()
+//               ? DateTime.now()
 //               : data['created_at'],
 //           unit: data['unit'] == null ? "" : data['unit'],
 //           imageUrl: data['image_url'] == null ? "" : data['image_url'],
@@ -1103,7 +1103,7 @@
 //             product.categoryId =
 //                 data['category_id'] == null ? 0 : data['category_id'];
 //             product.createdAt = data['created_at'] == null
-//                 ? DateTime.now().toIso8601String()
+//                 ? DateTime.now()
 //                 : data['created_at'];
 
 //             product.unit = data['unit'] ?? product.unit;

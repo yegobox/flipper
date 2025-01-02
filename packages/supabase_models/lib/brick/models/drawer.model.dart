@@ -13,8 +13,8 @@ class Drawers extends OfflineFirstWithSupabaseModel {
 
   double? openingBalance;
   double? closingBalance;
-  String? openingDateTime;
-  String? closingDateTime;
+  DateTime? openingDateTime;
+  DateTime? closingDateTime;
   int? csSaleCount;
   String? tradeName;
   double? totalNsSaleIncome;

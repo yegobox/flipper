@@ -597,7 +597,7 @@ class CoreViewModel extends FlipperBaseModel
       status: PARKED,
       note: ticketNote,
       ticketName: ticketName,
-      updatedAt: DateTime.now().toIso8601String(),
+      updatedAt: DateTime.now(),
     );
   }
 
@@ -863,7 +863,7 @@ class CoreViewModel extends FlipperBaseModel
     //           avatar: "",
     //           channelType: "",
     //           messageId: randomNumber().toString(),
-    //           createdAt: DateTime.now().toIso8601String(),
+    //           createdAt: DateTime.now(),
     //           fromNumber: tenant.phoneNumber,
     //           toNumber: tenant.phoneNumber,
     //           businessId: tenant.businessId));

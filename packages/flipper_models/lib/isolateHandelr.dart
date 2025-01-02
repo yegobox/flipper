@@ -120,8 +120,7 @@ mixin PatchTransactionItem {
             totalvat: totalvat,
             totalAmount: transaction.subTotal!,
             remark: transaction.remark ?? "",
-            ocrnDt: DateTime.parse(
-                transaction.updatedAt ?? DateTime.now().toString()),
+            ocrnDt: transaction.updatedAt ?? DateTime.now(),
             URI: URI);
 
         if (response.resultCd == "000") {

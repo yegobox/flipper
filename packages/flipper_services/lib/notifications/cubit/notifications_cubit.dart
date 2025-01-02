@@ -122,9 +122,7 @@ class NotificationsCubit {
       return;
     }
 
-    final createdAt = DateTime.parse(
-            conversation.createdAt ?? DateTime.now().toIso8601String())
-        .toLocal();
+    final createdAt = conversation.createdAt ?? DateTime.now().toLocal();
     final String? dueDateFormatted;
 
     final iConversation = IConversation(
@@ -223,7 +221,7 @@ class NotificationsCubit {
       return;
     }
 
-    if (DateTime.parse(dueDate).isBefore(DateTime.now())) {
+    if (dueDate.isBefore(DateTime.now())) {
       await showNotification(
         id: notification.id,
         title: notification.title,
@@ -234,7 +232,7 @@ class NotificationsCubit {
     }
 
     final timer = Timer(
-      DateTime.parse(dueDate).difference(DateTime.now()),
+      dueDate.difference(DateTime.now()),
       () async {
         await showNotification(
           id: notification.id,
@@ -257,7 +255,7 @@ class NotificationsCubit {
       return;
     }
 
-    if (DateTime.parse(createdAt).isBefore(DateTime.now())) {
+    if (createdAt.isBefore(DateTime.now())) {
       await showNotification(
         id: notification.id,
         title: notification.title,
@@ -271,7 +269,7 @@ class NotificationsCubit {
       id: notification.id,
       title: notification.title,
       body: notification.body,
-      scheduledDate: DateTime.parse(createdAt),
+      scheduledDate: createdAt,
       payload: notification.payload,
     );
   }
@@ -311,12 +309,12 @@ class NotificationsCubit {
       return;
     }
 
-    if (DateTime.parse(createdAt).isBefore(DateTime.now())) {
+    if (createdAt.isBefore(DateTime.now())) {
       return;
     }
 
     final timer = Timer(
-      DateTime.parse(createdAt).difference(DateTime.now()),
+      createdAt.difference(DateTime.now()),
       () async {},
     );
 

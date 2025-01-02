@@ -12,7 +12,9 @@ Future<Conversation> _$ConversationFromSupabase(Map<String, dynamic> data,
       channelType: data['channel_type'] as String?,
       fromNumber: data['from_number'] as String?,
       toNumber: data['to_number'] as String?,
-      createdAt: data['created_at'] as String?,
+      createdAt: data['created_at'] == null
+          ? null
+          : DateTime.tryParse(data['created_at'] as String),
       messageType: data['message_type'] as String?,
       phoneNumberId: data['phone_number_id'] as String?,
       messageId: data['message_id'] as String?,
@@ -43,7 +45,7 @@ Future<Map<String, dynamic>> _$ConversationToSupabase(Conversation instance,
     'channel_type': instance.channelType,
     'from_number': instance.fromNumber,
     'to_number': instance.toNumber,
-    'created_at': instance.createdAt,
+    'created_at': instance.createdAt?.toIso8601String(),
     'message_type': instance.messageType,
     'phone_number_id': instance.phoneNumberId,
     'message_id': instance.messageId,
@@ -71,8 +73,11 @@ Future<Conversation> _$ConversationFromSqlite(Map<String, dynamic> data,
       fromNumber:
           data['from_number'] == null ? null : data['from_number'] as String?,
       toNumber: data['to_number'] == null ? null : data['to_number'] as String?,
-      createdAt:
-          data['created_at'] == null ? null : data['created_at'] as String?,
+      createdAt: data['created_at'] == null
+          ? null
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String),
       messageType:
           data['message_type'] == null ? null : data['message_type'] as String?,
       phoneNumberId: data['phone_number_id'] == null
@@ -120,7 +125,7 @@ Future<Map<String, dynamic>> _$ConversationToSqlite(Conversation instance,
     'channel_type': instance.channelType,
     'from_number': instance.fromNumber,
     'to_number': instance.toNumber,
-    'created_at': instance.createdAt,
+    'created_at': instance.createdAt?.toIso8601String(),
     'message_type': instance.messageType,
     'phone_number_id': instance.phoneNumberId,
     'message_id': instance.messageId,
@@ -282,7 +287,7 @@ class ConversationAdapter
       association: false,
       columnName: 'created_at',
       iterable: false,
-      type: String,
+      type: DateTime,
     ),
     'messageType': const RuntimeSqliteColumnDefinition(
       association: false,

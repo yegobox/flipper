@@ -867,7 +867,7 @@
 //           serverId: iBusiness.id,
 //           name: iBusiness.name,
 //           userId: iBusiness.userId,
-//           createdAt: DateTime.now().toIso8601String());
+//           createdAt: DateTime.now());
 
 //       business.serverId = id;
 //       realm!.write(() {
@@ -1238,7 +1238,7 @@
 //       drawer.cashierId = ProxyService.box.getUserId()!;
 //       // drawer.closingBalance = double.parse(_controller.text);
 //       drawer.closingBalance = eod;
-//       drawer.closingDateTime = DateTime.now().toIso8601String();
+//       drawer.closingDateTime = DateTime.now();
 //     });
 //     return drawer;
 //   }
@@ -3811,7 +3811,7 @@
 //               name: CUSTOM_PRODUCT,
 //               businessId: businessId,
 //               color: "#e74c3c",
-//               createdAt: DateTime.now().toIso8601String(),
+//               createdAt: DateTime.now(),
 //               branchId: branchId));
 //     }
 
@@ -4216,11 +4216,11 @@
 //           transactionType: transactionType,
 //           subTotal: 0,
 //           cashReceived: 0,
-//           updatedAt: DateTime.now().toIso8601String(),
+//           updatedAt: DateTime.now(),
 //           customerChangeDue: 0.0,
 //           paymentType: ProxyService.box.paymentType() ?? "Cash",
 //           branchId: branchId,
-//           createdAt: DateTime.now().toIso8601String());
+//           createdAt: DateTime.now());
 
 //       // save transaction to isar
 //       realm!.write(() {
@@ -4259,11 +4259,11 @@
 //         transactionType: transactionType,
 //         subTotal: 0,
 //         cashReceived: 0,
-//         updatedAt: DateTime.now().toIso8601String(),
+//         updatedAt: DateTime.now(),
 //         customerChangeDue: 0.0,
 //         paymentType: ProxyService.box.paymentType() ?? "Cash",
 //         branchId: branchId,
-//         createdAt: DateTime.now().toIso8601String(),
+//         createdAt: DateTime.now(),
 //       );
 
 //       realm!.write(() {
@@ -4305,11 +4305,11 @@
 //           transactionType: transactionType,
 //           subTotal: 0,
 //           cashReceived: 0,
-//           updatedAt: DateTime.now().toIso8601String(),
+//           updatedAt: DateTime.now(),
 //           customerChangeDue: 0.0,
 //           paymentType: ProxyService.box.paymentType() ?? "Cash",
 //           branchId: branchId,
-//           createdAt: DateTime.now().toIso8601String());
+//           createdAt: DateTime.now());
 
 //       // save transaction to isar
 //       realm!.put<ITransaction>(transaction, tableName: 'transactions');

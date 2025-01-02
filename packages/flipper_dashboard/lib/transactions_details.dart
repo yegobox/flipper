@@ -258,15 +258,14 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
   List<TransactionStatus> _getTransactionStatuses() {
     List<TransactionStatus> statuses = [];
     statuses.add(TransactionStatus(
-        status: PENDING,
-        dateTime: DateTime.parse(widget.transaction.createdAt!)));
+        status: PENDING, dateTime: widget.transaction.createdAt!));
 
     String currentStatus = widget.transaction.status!;
     if (currentStatus != PENDING) {
       statuses.add(TransactionStatus(
         status:
             "${currentStatus.toUpperCase()}: ${widget.transaction.paymentType!.toUpperCase()}",
-        dateTime: DateTime.parse(widget.transaction.updatedAt!),
+        dateTime: widget.transaction.updatedAt!,
       ));
     }
     return statuses;

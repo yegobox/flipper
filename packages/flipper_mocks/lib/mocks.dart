@@ -277,7 +277,7 @@ final customProductMock = Product(
   ..supplierId = "XXX"
   ..categoryId = 1
   ..unit = "kg"
-  ..createdAt = DateTime.now().toIso8601String();
+  ..createdAt = DateTime.now();
 
 final productMock = Product(
     lastTouched: DateTime.now(),
@@ -292,7 +292,7 @@ final productMock = Product(
   ..supplierId = "XXX"
   ..categoryId = 1
   ..unit = "kg"
-  ..createdAt = DateTime.now().toIso8601String();
+  ..createdAt = DateTime.now();
 
 final branchMock = Branch(
   serverId: randomNumber(),

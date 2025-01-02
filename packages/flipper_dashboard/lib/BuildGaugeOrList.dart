@@ -140,16 +140,14 @@ Widget BuildGaugeOrList({
                             fontSize: 17, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        DateFormat('dd/MM/yyyy')
-                            .format(DateTime.parse(transaction.createdAt!)),
+                        DateFormat('dd/MM/yyyy').format(transaction.createdAt!),
                         style: GoogleFonts.poppins(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
                             color: Colors.grey),
                       ),
                       trailing: Text(
-                        DateFormat('HH:mm')
-                            .format(DateTime.parse(transaction.createdAt!)),
+                        DateFormat('HH:mm').format(transaction.createdAt!),
                         style: GoogleFonts.poppins(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
@@ -195,22 +193,22 @@ List<ITransaction> filterTransactionsByPeriod({
   switch (period) {
     case 'Today':
       return transactions.where((transaction) {
-        final transactionDate = DateTime.parse(transaction.createdAt!);
+        final transactionDate = transaction.createdAt!;
         return transactionDate.isAfter(today);
       }).toList();
     case 'This Week':
       return transactions.where((transaction) {
-        final transactionDate = DateTime.parse(transaction.createdAt!);
+        final transactionDate = transaction.createdAt!;
         return transactionDate.isAfter(thisWeek);
       }).toList();
     case 'This Month':
       return transactions.where((transaction) {
-        final transactionDate = DateTime.parse(transaction.createdAt!);
+        final transactionDate = transaction.createdAt!;
         return transactionDate.isAfter(thisMonth);
       }).toList();
     case 'This Year':
       return transactions.where((transaction) {
-        final transactionDate = DateTime.parse(transaction.createdAt!);
+        final transactionDate = transaction.createdAt!;
         return transactionDate.isAfter(thisYear);
       }).toList();
     default:

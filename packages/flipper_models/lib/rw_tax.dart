@@ -972,7 +972,7 @@ class RWTax with NetworkHelper implements TaxApi {
             lastTouched: DateTime.now(),
             branchId: ProxyService.box.getBranchId()!,
             businessId: ProxyService.box.getBusinessId()!,
-            createdAt: DateTime.now().toIso8601String(),
+            createdAt: DateTime.now(),
             spplrNm: item.spplrNm,
           ),
           supplyPrice: item.supplyPrice!,

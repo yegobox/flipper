@@ -565,7 +565,7 @@ abstract class RealmInterface {
       bool? isRefunded,
       String? customerName,
       String? ticketName,
-      String? updatedAt,
+      DateTime? updatedAt,
       int? invoiceNumber,
       DateTime? lastTouched,
       int? receiptNumber,
@@ -588,7 +588,7 @@ abstract class RealmInterface {
     int? incompleteSale,
     double? totalCsSaleIncome,
     double? totalNsSaleIncome,
-    String? openingDateTime,
+    DateTime? openingDateTime,
     double? closingBalance,
     bool? open,
   });

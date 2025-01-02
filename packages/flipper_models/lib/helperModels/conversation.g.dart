@@ -15,7 +15,9 @@ IConversation _$IConversationFromJson(Map<String, dynamic> json) =>
       fromNumber: json['fromNumber'] as String?,
       toNumber: json['toNumber'] as String?,
       businessId: (json['businessId'] as num?)?.toInt(),
-      createdAt: json['createdAt'] as String?,
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
       respondedBy: json['respondedBy'] as String?,
       messageType: json['messageType'] as String?,
       phoneNumberId: json['phoneNumberId'] as String?,
@@ -46,7 +48,7 @@ Map<String, dynamic> _$IConversationToJson(IConversation instance) =>
       'channelType': instance.channelType,
       'fromNumber': instance.fromNumber,
       'toNumber': instance.toNumber,
-      'createdAt': instance.createdAt,
+      'createdAt': instance.createdAt?.toIso8601String(),
       'messageType': instance.messageType,
       'phoneNumberId': instance.phoneNumberId,
       'messageId': instance.messageId,

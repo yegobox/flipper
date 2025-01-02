@@ -82,7 +82,7 @@ extension CblExtension on Database {
 //         ? data!.toFlipperJson()
 //         : data.toFlipperJson();
 //     final id = map['id'];
-//     map['deleted_at'] = DateTime.now().toIso8601String();
+//     map['deleted_at'] = DateTime.now();
 //     ProxyService.backUp.deleteRecord(
 //       tableName: tableName,
 //       idField: tableName.singularize() + "_id",

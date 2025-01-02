@@ -58,7 +58,8 @@ IBusiness _$IBusinessFromJson(Map<String, dynamic> json) => IBusiness(
       ..createdAt = json['createdAt'] as String?
       ..lastTouched = json['lastTouched'] == null
           ? null
-          : DateTime.parse(json['lastTouched'] as String);
+          : DateTime.parse(json['lastTouched'] as String)
+      ..serverId = (json['serverId'] as num?)?.toInt();
 
 Map<String, dynamic> _$IBusinessToJson(IBusiness instance) => <String, dynamic>{
       'action': instance.action,
@@ -106,4 +107,5 @@ Map<String, dynamic> _$IBusinessToJson(IBusiness instance) => <String, dynamic>{
       'lastTouched': instance.lastTouched?.toIso8601String(),
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'encryptionKey': instance.encryptionKey,
+      'serverId': instance.serverId,
     };

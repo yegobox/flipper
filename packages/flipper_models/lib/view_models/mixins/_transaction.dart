@@ -367,7 +367,7 @@ mixin TransactionMixin {
 
     // Calculate the new values
     double newSubTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
-    String newUpdatedAt = DateTime.now().toIso8601String();
+    DateTime newUpdatedAt = DateTime.now();
     DateTime newLastTouched = DateTime.now();
 
     // Check if we're already in a write transaction

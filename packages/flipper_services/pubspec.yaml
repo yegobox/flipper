@@ -60,7 +60,7 @@ dependencies:
   google_fonts: ^6.1.0
   shared_preferences: ^2.3.2
   newrelic_mobile: ^1.0.5
-  flutter_local_notifications: ^19.0.0-dev.3
+  flutter_local_notifications: ^19.0.0-dev.4
  
   window_manager: ^0.4.0
   launcher_entry: ^0.1.1

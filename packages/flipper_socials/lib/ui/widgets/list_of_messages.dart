@@ -121,7 +121,7 @@ class MessageDisplayMobile extends StatelessWidget {
             final Conversation? lastConversation =
                 conversations.isNotEmpty ? conversations.last : null;
             return Text(
-              timeago.format(DateTime.parse(lastConversation!.createdAt!)),
+              timeago.format(lastConversation!.createdAt!),
               style: GoogleFonts.poppins(
                 fontSize: 17.0,
                 fontWeight: FontWeight.w300,
@@ -188,8 +188,7 @@ class MessagesDisplayDesktop extends StatelessWidget {
           ),
           title: Text(chat.userName!),
           subtitle: Text(conversations[index].body!),
-          trailing: Text(
-              timeago.format(DateTime.parse(conversations[index].createdAt!))),
+          trailing: Text(timeago.format(conversations[index].createdAt!)),
           onTap: () {
             if (isDesktopOrWeb) {
               viewModel.focusedConversation = true;

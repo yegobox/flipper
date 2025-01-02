@@ -123,7 +123,7 @@ class SignupViewModel extends ReactiveViewModel {
         'longitude': longitude,
         'phoneNumber': phoneNumber,
         'currency': 'RWF',
-        'createdAt': DateTime.now().toIso8601String(),
+        'createdAt': DateTime.now(),
         'userId': userId,
         "tinNumber": tin != null ? int.parse(tin!) : 1111,
         'businessTypeId': "1", //businessType.id, // default to 1 for now

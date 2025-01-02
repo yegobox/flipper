@@ -327,7 +327,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
     //     closingBalance: 0.0,
     //     cashierId: ProxyService.box.getUserId()!,
     //     tradeName: ProxyService.app.business.name,
-    //     openingDateTime: DateTime.now().toIso8601String(),
+    //     openingDateTime: DateTime.now(),
     //     open: true,
     //     businessId: ProxyService.box.getBusinessId(),
     //     branchId: ProxyService.box.getBranchId(),

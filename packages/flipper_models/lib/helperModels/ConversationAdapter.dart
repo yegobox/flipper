@@ -12,8 +12,7 @@ class ConversationAdapter implements types.Message {
         author: types.User(
             id: conversation.fromNumber ?? "", imageUrl: conversation.avatar),
         text: conversation.body!,
-        createdAt:
-            DateTime.parse(conversation.createdAt!).millisecondsSinceEpoch,
+        createdAt: conversation.createdAt!.millisecondsSinceEpoch,
         roomId: conversation.fromNumber);
   }
 
@@ -23,7 +22,7 @@ class ConversationAdapter implements types.Message {
   @override
   int? get createdAt {
     if (conversation.createdAt != null) {
-      final dateTime = DateTime.parse(conversation.createdAt!);
+      final dateTime = conversation.createdAt!;
       return dateTime.millisecondsSinceEpoch;
     }
     return null;

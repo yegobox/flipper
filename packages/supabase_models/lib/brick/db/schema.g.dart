@@ -1,21 +1,28 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250102110336.migration.dart';
 part '20250101092622.migration.dart';
 part '20250102092703.migration.dart';
 part '20250102092919.migration.dart';
+part '20250102110336.migration.dart';
+part '20250102124844.migration.dart';
+part '20250102125905.migration.dart';
+part '20250102130727.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250102110336(),
   const Migration20250101092622(),
   const Migration20250102092703(),
-  const Migration20250102092919()
+  const Migration20250102092919(),
+  const Migration20250102110336(),
+  const Migration20250102124844(),
+  const Migration20250102125905(),
+  const Migration20250102130727()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250102110336, generatorVersion: 1, tables: <SchemaTable>{
+final schema =
+    Schema(20250102130727, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -99,7 +106,7 @@ final schema = Schema(20250102110336, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('channel_type', Column.varchar),
     SchemaColumn('from_number', Column.varchar),
     SchemaColumn('to_number', Column.varchar),
-    SchemaColumn('created_at', Column.varchar),
+    SchemaColumn('created_at', Column.datetime),
     SchemaColumn('message_type', Column.varchar),
     SchemaColumn('phone_number_id', Column.varchar),
     SchemaColumn('message_id', Column.varchar),
@@ -128,9 +135,9 @@ final schema = Schema(20250102110336, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('payment_type', Column.varchar),
     SchemaColumn('cash_received', Column.Double),
     SchemaColumn('customer_change_due', Column.Double),
-    SchemaColumn('created_at', Column.varchar),
+    SchemaColumn('created_at', Column.datetime),
     SchemaColumn('receipt_type', Column.varchar),
-    SchemaColumn('updated_at', Column.varchar),
+    SchemaColumn('updated_at', Column.datetime),
     SchemaColumn('customer_id', Column.varchar),
     SchemaColumn('customer_type', Column.varchar),
     SchemaColumn('note', Column.varchar),
@@ -579,7 +586,7 @@ final schema = Schema(20250102110336, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('last_seen', Column.integer),
     SchemaColumn('first_name', Column.varchar),
     SchemaColumn('last_name', Column.varchar),
-    SchemaColumn('created_at', Column.varchar),
+    SchemaColumn('created_at', Column.datetime),
     SchemaColumn('device_token', Column.varchar),
     SchemaColumn('back_up_enabled', Column.boolean),
     SchemaColumn('subscription_plan', Column.varchar),
@@ -730,7 +737,7 @@ final schema = Schema(20250102110336, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('supplier_id', Column.varchar),
     SchemaColumn('category_id', Column.integer),
-    SchemaColumn('created_at', Column.varchar),
+    SchemaColumn('created_at', Column.datetime),
     SchemaColumn('unit', Column.varchar),
     SchemaColumn('image_url', Column.varchar),
     SchemaColumn('expiry_date', Column.varchar),
@@ -797,8 +804,8 @@ final schema = Schema(20250102110336, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('id', Column.varchar, unique: true),
     SchemaColumn('opening_balance', Column.Double),
     SchemaColumn('closing_balance', Column.Double),
-    SchemaColumn('opening_date_time', Column.varchar),
-    SchemaColumn('closing_date_time', Column.varchar),
+    SchemaColumn('opening_date_time', Column.datetime),
+    SchemaColumn('closing_date_time', Column.datetime),
     SchemaColumn('cs_sale_count', Column.integer),
     SchemaColumn('trade_name', Column.varchar),
     SchemaColumn('total_ns_sale_income', Column.Double),

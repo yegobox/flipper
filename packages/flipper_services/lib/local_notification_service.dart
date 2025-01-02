@@ -45,7 +45,7 @@ class LocalNotificationService implements LNotification {
       Conversation? conversation = Conversation(
         body: body,
         phoneNumberId: randomNumber().toString().substring(0, 5),
-        createdAt: DateTime.now().add(Duration(seconds: 10)).toIso8601String(),
+        createdAt: DateTime.now().add(Duration(seconds: 10)),
         userName: userName,
         businessId: ProxyService.box.getBusinessId(),
       );

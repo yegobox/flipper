@@ -39,7 +39,7 @@ class Social extends IJsonSerializable {
 
     json['lastTouched'] =
         json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
-            ? DateTime.now().toIso8601String()
+            ? DateTime.now()
             : DateTime.parse(json['lastTouched'] ?? DateTime.now())
                 .toIso8601String();
 

@@ -478,7 +478,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     drawer.cashierId = ProxyService.box.getUserId()!;
     // drawer.closingBalance = double.parse(_controller.text);
     drawer.closingBalance = eod;
-    drawer.closingDateTime = DateTime.now().toIso8601String();
+    drawer.closingDateTime = DateTime.now();
     return await repository.upsert(drawer);
   }
 
@@ -1157,7 +1157,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           serverId: iBusiness.id!,
           name: iBusiness.name,
           userId: iBusiness.userId,
-          createdAt: DateTime.now().toIso8601String());
+          createdAt: DateTime.now());
 
       business.serverId = id;
       await repository.upsert<models.Business>(business);
@@ -1239,7 +1239,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               name: CUSTOM_PRODUCT,
               businessId: businessId,
               color: "#e74c3c",
-              createdAt: DateTime.now().toIso8601String(),
+              createdAt: DateTime.now(),
               branchId: branchId));
     }
 
@@ -1768,7 +1768,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
     List<ITransaction> filteredTransactions = [];
     for (final transaction in transactionsList) {
-      temporaryDate = DateTime.parse(transaction.createdAt!);
+      temporaryDate = transaction.createdAt!;
       if (temporaryDate.isAfter(oldDate)) {
         filteredTransactions.add(transaction);
       }
@@ -2125,11 +2125,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           transactionType: transactionType,
           subTotal: 0.0,
           cashReceived: 0.0,
-          updatedAt: DateTime.now().toIso8601String(),
+          updatedAt: DateTime.now(),
           customerChangeDue: 0.0,
           paymentType: ProxyService.box.paymentType() ?? "Cash",
           branchId: branchId,
-          createdAt: DateTime.now().toIso8601String());
+          createdAt: DateTime.now());
 
       // save transaction to isar
       repository.upsert<ITransaction>(transaction);
@@ -2163,11 +2163,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           transactionType: transactionType,
           subTotal: 0.0,
           cashReceived: 0.0,
-          updatedAt: DateTime.now().toIso8601String(),
+          updatedAt: DateTime.now(),
           customerChangeDue: 0.0,
           paymentType: ProxyService.box.paymentType() ?? "Cash",
           branchId: branchId,
-          createdAt: DateTime.now().toIso8601String());
+          createdAt: DateTime.now());
 
       // save transaction to isar
       repository.upsert<ITransaction>(transaction);
@@ -2841,7 +2841,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               lastSeen: business.lastSeen,
               firstName: business.firstName,
               lastName: business.lastName,
-              createdAt: business.createdAt,
               deviceToken: business.deviceToken,
               backUpEnabled: business.backUpEnabled,
               subscriptionPlan: business.subscriptionPlan,
@@ -2993,7 +2992,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       brick.Where('status').isExactly(status ?? COMPLETE),
       brick.Where('subTotal').isGreaterThan(0),
       if (id != null) brick.Where('id').isExactly(id),
-      // if (filterType != null) brick.Where('filterType').isExactly(filterType),
       if (branchId != null) brick.Where('branchId').isExactly(branchId),
       if (isCashOut) brick.Where('isExpense').isExactly(true),
       if (startDate != null && endDate != null)
@@ -3166,8 +3164,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       ..cashReceived = cashReceived
       ..subTotal = subTotalFinalized
       ..receiptType = _determineReceiptType(isProformaMode, isTrainingMode)
-      ..updatedAt = now.toIso8601String()
-      ..createdAt = now.toIso8601String()
+      ..updatedAt = now
+      ..createdAt = now
       ..transactionType = transactionType
       ..lastTouched = now;
   }
@@ -3430,7 +3428,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       int? incompleteSale,
       double? totalCsSaleIncome,
       double? totalNsSaleIncome,
-      String? openingDateTime,
+      DateTime? openingDateTime,
       double? closingBalance,
       bool? open}) {
     // TODO: implement updateDrawer
@@ -3532,7 +3530,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       bool? isRefunded,
       String? customerName,
       String? ticketName,
-      String? updatedAt,
+      DateTime? updatedAt,
       int? invoiceNumber,
       DateTime? lastTouched,
       int? receiptNumber,
@@ -3933,7 +3931,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       lastSeen: lastSeen,
       firstName: firstName,
       lastName: lastName,
-      createdAt: createdAt,
       deviceToken: deviceToken,
       backUpEnabled: backUpEnabled,
       subscriptionPlan: subscriptionPlan,

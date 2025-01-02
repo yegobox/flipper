@@ -8,8 +8,12 @@ Future<Drawers> _$DrawersFromSupabase(Map<String, dynamic> data,
       id: data['id'] as String?,
       openingBalance: data['opening_balance'] as double?,
       closingBalance: data['closing_balance'] as double?,
-      openingDateTime: data['opening_date_time'] as String?,
-      closingDateTime: data['closing_date_time'] as String?,
+      openingDateTime: data['opening_date_time'] == null
+          ? null
+          : DateTime.tryParse(data['opening_date_time'] as String),
+      closingDateTime: data['closing_date_time'] == null
+          ? null
+          : DateTime.tryParse(data['closing_date_time'] as String),
       csSaleCount: data['cs_sale_count'] as int?,
       tradeName: data['trade_name'] as String?,
       totalNsSaleIncome: data['total_ns_sale_income'] as double?,
@@ -37,8 +41,8 @@ Future<Map<String, dynamic>> _$DrawersToSupabase(Drawers instance,
     'id': instance.id,
     'opening_balance': instance.openingBalance,
     'closing_balance': instance.closingBalance,
-    'opening_date_time': instance.openingDateTime,
-    'closing_date_time': instance.closingDateTime,
+    'opening_date_time': instance.openingDateTime?.toIso8601String(),
+    'closing_date_time': instance.closingDateTime?.toIso8601String(),
     'cs_sale_count': instance.csSaleCount,
     'trade_name': instance.tradeName,
     'total_ns_sale_income': instance.totalNsSaleIncome,
@@ -71,10 +75,14 @@ Future<Drawers> _$DrawersFromSqlite(Map<String, dynamic> data,
           : data['closing_balance'] as double?,
       openingDateTime: data['opening_date_time'] == null
           ? null
-          : data['opening_date_time'] as String?,
+          : data['opening_date_time'] == null
+              ? null
+              : DateTime.tryParse(data['opening_date_time'] as String),
       closingDateTime: data['closing_date_time'] == null
           ? null
-          : data['closing_date_time'] as String?,
+          : data['closing_date_time'] == null
+              ? null
+              : DateTime.tryParse(data['closing_date_time'] as String),
       csSaleCount:
           data['cs_sale_count'] == null ? null : data['cs_sale_count'] as int?,
       tradeName:
@@ -121,8 +129,8 @@ Future<Map<String, dynamic>> _$DrawersToSqlite(Drawers instance,
     'id': instance.id,
     'opening_balance': instance.openingBalance,
     'closing_balance': instance.closingBalance,
-    'opening_date_time': instance.openingDateTime,
-    'closing_date_time': instance.closingDateTime,
+    'opening_date_time': instance.openingDateTime?.toIso8601String(),
+    'closing_date_time': instance.closingDateTime?.toIso8601String(),
     'cs_sale_count': instance.csSaleCount,
     'trade_name': instance.tradeName,
     'total_ns_sale_income': instance.totalNsSaleIncome,
@@ -271,13 +279,13 @@ class DrawersAdapter extends OfflineFirstWithSupabaseAdapter<Drawers> {
       association: false,
       columnName: 'opening_date_time',
       iterable: false,
-      type: String,
+      type: DateTime,
     ),
     'closingDateTime': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'closing_date_time',
       iterable: false,
-      type: String,
+      type: DateTime,
     ),
     'csSaleCount': const RuntimeSqliteColumnDefinition(
       association: false,

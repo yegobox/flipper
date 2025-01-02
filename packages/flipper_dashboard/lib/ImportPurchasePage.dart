@@ -199,7 +199,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               lastTouched: DateTime.now(),
               branchId: ProxyService.box.getBranchId()!,
               businessId: ProxyService.box.getBusinessId()!,
-              createdAt: DateTime.now().toIso8601String(),
+              createdAt: DateTime.now(),
               spplrNm: supplier.spplrNm,
             ),
             supplyPrice: item.splyAmt,
