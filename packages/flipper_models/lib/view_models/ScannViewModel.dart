@@ -165,7 +165,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           variant.stock!.rsdQty = newQuantity;
           variant.stock!.currentStock = newQuantity;
           variant.stock!.initialStock = newQuantity;
-          variant.stock!.value = newQuantity * retailPrice;
+          variant.stock!.value = newQuantity * variant.retailPrice!;
         }
       });
 
