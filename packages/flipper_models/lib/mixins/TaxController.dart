@@ -395,7 +395,6 @@ class TaxController<OBJ> {
               quantityApproved: item.quantityApproved,
               quantityShipped: item.quantityShipped,
               price: item.price,
-              type: item.type,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt,
               isRefunded: item.isRefunded,

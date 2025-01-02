@@ -21,7 +21,6 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   double qty;
   double price;
   double discount;
-  String? type;
   double? remainingStock;
   DateTime? createdAt;
   DateTime? updatedAt;
@@ -138,7 +137,6 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     required this.qty,
     required this.price,
     required this.discount,
-    this.type,
     this.remainingStock,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -169,7 +167,6 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
         'qty': qty,
         'price': price,
         'discount': discount,
-        'type': type,
         'remainingStock': remainingStock,
         'createdAt': createdAt,
         'updatedAt': updatedAt,

@@ -44,6 +44,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       required double supplyPrice,
       required bool editmode}) async {
     int branchId = ProxyService.box.getBranchId()!;
+    Business? business = await ProxyService.strategy
+        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
     /// scan item if the same item is scanned more than once
     /// then its quantity will be incremented otherwise if the item is not found
@@ -53,7 +55,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         // If found, update it
         variant.retailPrice = retailPrice;
         variant.supplyPrice = supplyPrice;
-
+        variant.rsdQty = (variant.qty!) + 1;
         variant.qty = (variant.qty!) + 1; // Increment the quantity safely
         notifyListeners();
         return;
@@ -83,6 +85,11 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       currentStock: 1,
       branchId: branchId,
       initialStock: 1,
+      rsdQty: 1,
+      tin: business?.tinNumber ?? ProxyService.box.tin(),
+      value: 1 * retailPrice,
+      ebmSynced: false,
+      active: false,
       showLowStockAlert: true,
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
     );
@@ -158,6 +165,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           variant.stock!.rsdQty = newQuantity;
           variant.stock!.currentStock = newQuantity;
           variant.stock!.initialStock = newQuantity;
+          variant.stock!.value = newQuantity * retailPrice;
         }
       });
 

@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flipper_dashboard/refresh.dart';
+import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -19,6 +20,7 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:path/path.dart' as path;
+import 'package:flutter/foundation.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -108,7 +110,11 @@ class _RowItemState extends ConsumerState<RowItem>
             if (isSelected) {
               ref.read(selectedItemIdProvider.notifier).state = NO_SELECTION;
             } else {
+              final flipperWatch? w =
+                  kDebugMode ? flipperWatch("onAddingItemToQuickSell") : null;
+              w?.start();
               await onTapItem(model: model, isOrdering: widget.isOrdering);
+              w?.log("Item Added to Quick Sell");
             }
           },
           onLongPress: () {
@@ -235,10 +241,9 @@ class _RowItemState extends ConsumerState<RowItem>
           refreshTransactionItems(transactionId: pendingTransaction.id);
         }
 
-        await Future.delayed(Duration(microseconds: 1000));
         ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
       } else {
-        model.saveTransaction(
+        await model.saveTransaction(
           variation: widget.variant!,
           amountTotal: widget.variant?.retailPrice ?? 0,
           customItem: false,

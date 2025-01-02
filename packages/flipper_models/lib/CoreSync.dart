@@ -281,21 +281,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (variant != null) {
         Stock? stock = await getStockById(id: variant.stockId!);
 
-        if (stock == null) {
-          stock = Stock(
-              id: variant.stockId!,
-              lastTouched: DateTime.now(),
-              branchId: branchId,
-              currentStock: stock?.rsdQty ?? 0,
-              rsdQty: stock?.rsdQty ?? 0,
-              value: (variation.stock?.rsdQty ?? 0 * (variation.retailPrice!))
-                  .toDouble(),
-              active: false);
-
-          await repository.upsert<Stock>(stock);
-        }
-
-        stock.currentStock = stock.currentStock! +
+        stock!.currentStock = stock.currentStock! +
             (variation.stock?.rsdQty ?? variation.qty ?? 0);
         stock.rsdQty = stock.currentStock! + (stock.rsdQty!);
         stock.lastTouched = DateTime.now().toLocal();
@@ -303,6 +289,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             .toDouble();
 
         variant.stock?.rsdQty = variation.stock?.rsdQty ?? variation.qty ?? 0;
+        variant.stock?.initialStock =
+            variation.stock?.rsdQty ?? variation.qty ?? 0;
         variant.retailPrice = variation.retailPrice;
         variant.supplyPrice = variation.supplyPrice;
         variant.taxPercentage = variation.taxPercentage!.toDouble();
@@ -311,23 +299,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         variant.stockId = stock.id;
         await repository.upsert<Variant>(variant);
       } else {
-        final newStock = Stock(
-          lastTouched: DateTime.now(),
-          branchId: branchId,
-          rsdQty: variation.stock?.rsdQty ?? 0,
-          initialStock: variation.stock?.initialStock ?? 0,
-          currentStock: variation.stock?.currentStock ?? 0,
-          value: (variation.stock?.currentStock ?? 0 * (variation.retailPrice!))
-              .toDouble(),
-          active: true,
-        );
-
         /// for relationship we save stock first then variant
-        await repository.upsert<Stock>(newStock);
+        await repository.upsert<Stock>(variation.stock!);
         Variant variant = await repository.upsert<Variant>(variation);
-        variant.stock = newStock;
 
-        variant.stockId = newStock.id;
+        variant.stockId = variation.stock!.id;
         await repository.upsert<Variant>(variant);
       }
     } catch (e, s) {
@@ -1736,34 +1712,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Stock?> getStock(
-      {required int branchId,
-      String? variantId,
-      bool nonZeroValue = false,
-      String? id}) async {
-    if (variantId == null) {
-      final stock = await repository.get<Stock>(
-          query: brick.Query(where: [
-        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
-      ]));
-      return stock.firstOrNull;
-    } else if (id != null) {
-      final stock = await repository.get<Stock>(
-          query: brick.Query(where: [
-        brick.Where('id', value: id, compare: brick.Compare.exact),
-        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
-      ]));
-      return stock.firstOrNull;
-    } else {
-      final stock = await repository.get<Stock>(
-          query: brick.Query(where: [
-        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
-      ]));
-      return stock.firstOrNull;
-    }
-  }
-
-  @override
   FutureOr<Stock?> getStockById({required String id}) async {
     final query = brick.Query(where: [
       brick.Where('id', value: id, compare: brick.Compare.exact),
@@ -2119,7 +2067,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
       // Fetch transactions
       final List<ITransaction> transactions =
-          await repository.get<ITransaction>(query: query);
+          await repository.get<ITransaction>(
+              query: query, policy: OfflineFirstGetPolicy.localOnly);
 
       // Check for transactions with items
       for (final transaction in transactions) {
@@ -3258,24 +3207,18 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required int branchId,
   }) async {
     try {
-      final stock =
-          await getStock(variantId: item.variantId!, branchId: branchId);
-      if (stock == null) return;
-
-      final finalStock = (stock.currentStock! - item.qty);
       final variant = await getVariantById(id: item.variantId!);
-      final stockValue = finalStock * (variant?.retailPrice ?? 0);
-      final bhfId = await ProxyService.box.bhfId();
 
-      stock
-        ..rsdQty = finalStock
-        ..currentStock = finalStock
-        ..value = stockValue
-        ..ebmSynced = false
-        ..bhfId = stock.bhfId ?? bhfId
-        ..tin = stock.tin ?? ProxyService.box.tin();
+      final finalStock = (variant!.stock!.currentStock! - item.qty);
 
-      repository.upsert<Stock>(stock);
+      final stockValue = finalStock * (variant.retailPrice ?? 0);
+
+      variant.stock!.rsdQty = finalStock;
+      variant.stock!.currentStock = finalStock;
+      variant.stock!.value = stockValue;
+      variant.stock!.ebmSynced = false;
+
+      repository.upsert<Stock>(variant.stock!);
     } catch (e, s) {
       talker.error(s);
       talker.warning(e);
@@ -3628,6 +3571,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         transaction.cashReceived = cashReceived ?? transaction.cashReceived;
         transaction.customerName = customerName ?? transaction.customerName;
         transaction.lastTouched = lastTouched ?? transaction.lastTouched;
+
         await repository.upsert<ITransaction>(transaction,
             query: brick.Query(
               action: QueryAction.update,
@@ -4102,15 +4046,16 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     bool? active,
   }) async {
     return repository.get(
+        policy: OfflineFirstGetPolicy.localOnly,
         query: brick.Query(where: [
-      if (transactionId != null)
-        brick.Where('transactionId').isExactly(transactionId),
-      brick.Where('branchId').isExactly(branchId),
-      if (id != null) brick.Where('id').isExactly(id),
-      if (doneWithTransaction != null)
-        brick.Where('doneWithTransaction').isExactly(doneWithTransaction),
-      if (active != null) brick.Where('active').isExactly(active),
-    ]));
+          if (transactionId != null)
+            brick.Where('transactionId').isExactly(transactionId),
+          brick.Where('branchId').isExactly(branchId),
+          if (id != null) brick.Where('id').isExactly(id),
+          if (doneWithTransaction != null)
+            brick.Where('doneWithTransaction').isExactly(doneWithTransaction),
+          if (active != null) brick.Where('active').isExactly(active),
+        ]));
   }
 
   @override

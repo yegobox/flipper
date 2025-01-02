@@ -1,19 +1,21 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250102092919.migration.dart';
+part '20250102110336.migration.dart';
 part '20250101092622.migration.dart';
 part '20250102092703.migration.dart';
+part '20250102092919.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250102092919(),
+  const Migration20250102110336(),
   const Migration20250101092622(),
-  const Migration20250102092703()
+  const Migration20250102092703(),
+  const Migration20250102092919()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250102092919, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250102110336, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -213,7 +215,6 @@ final schema = Schema(20250102092919, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('qty', Column.Double),
     SchemaColumn('price', Column.Double),
     SchemaColumn('discount', Column.Double),
-    SchemaColumn('type', Column.varchar),
     SchemaColumn('remaining_stock', Column.Double),
     SchemaColumn('created_at', Column.datetime),
     SchemaColumn('updated_at', Column.datetime),

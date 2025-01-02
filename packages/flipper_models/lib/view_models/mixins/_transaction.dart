@@ -234,13 +234,9 @@ mixin TransactionMixin {
         // Update existing non-custom item
         item.doneWithTransaction = false;
 
-        ProxyService.strategy.updateTransactionItem(
+        await ProxyService.strategy.updateTransactionItem(
           transactionItemId: item.id,
           doneWithTransaction: false,
-        );
-
-        ProxyService.strategy.updateTransactionItem(
-          transactionItemId: item.id,
           qty: item.qty + quantity,
           taxblAmt: variation.retailPrice! * quantity,
           price: amountTotal / quantity,
@@ -253,7 +249,7 @@ mixin TransactionMixin {
           quantityShipped: 0,
         );
 
-        updatePendingTransactionTotals(pendingTransaction);
+        await updatePendingTransactionTotals(pendingTransaction);
       } else {
         // Add new item (for both custom and new non-custom items)
         double computedQty = isCustom ? 1.0 : quantity;
@@ -319,7 +315,7 @@ mixin TransactionMixin {
               variation.dcRt!,
         );
 
-        ProxyService.strategy.addTransactionItem(
+        await ProxyService.strategy.addTransactionItem(
             transaction: pendingTransaction,
             item: newItem,
             partOfComposite: partOfComposite);

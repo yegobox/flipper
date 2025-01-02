@@ -15,7 +15,6 @@ Future<TransactionItem> _$TransactionItemFromSupabase(Map<String, dynamic> data,
       qty: data['qty'] as double,
       price: data['price'] as double,
       discount: data['discount'] as double,
-      type: data['type'] as String?,
       remainingStock: data['remaining_stock'] as double?,
       createdAt: data['created_at'] == null
           ? null
@@ -83,7 +82,6 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
     'qty': instance.qty,
     'price': instance.price,
     'discount': instance.discount,
-    'type': instance.type,
     'remaining_stock': instance.remainingStock,
     'created_at': instance.createdAt?.toIso8601String(),
     'updated_at': instance.updatedAt?.toIso8601String(),
@@ -154,7 +152,6 @@ Future<TransactionItem> _$TransactionItemFromSqlite(Map<String, dynamic> data,
       qty: data['qty'] as double,
       price: data['price'] as double,
       discount: data['discount'] as double,
-      type: data['type'] == null ? null : data['type'] as String?,
       remainingStock: data['remaining_stock'] == null
           ? null
           : data['remaining_stock'] as double?,
@@ -244,7 +241,6 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(TransactionItem instance,
     'qty': instance.qty,
     'price': instance.price,
     'discount': instance.discount,
-    'type': instance.type,
     'remaining_stock': instance.remainingStock,
     'created_at': instance.createdAt?.toIso8601String(),
     'updated_at': instance.updatedAt?.toIso8601String(),
@@ -348,10 +344,6 @@ class TransactionItemAdapter
     'discount': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'discount',
-    ),
-    'type': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'type',
     ),
     'remainingStock': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -601,12 +593,6 @@ class TransactionItemAdapter
       columnName: 'discount',
       iterable: false,
       type: double,
-    ),
-    'type': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'type',
-      iterable: false,
-      type: String,
     ),
     'remainingStock': const RuntimeSqliteColumnDefinition(
       association: false,
