@@ -22,8 +22,8 @@ class IPin {
   late int pin;
   late int branchId;
   late int businessId;
-  late String ownerName;
-  late String tokenUid;
+  String? ownerName;
+  String? tokenUid;
 
   factory IPin.fromJson(Map<String, dynamic> json) {
     return _$IPinFromJson(json);

@@ -21,13 +21,12 @@ part 'business.g.dart';
 class IBusiness extends IJsonSerializable {
   IBusiness({
     required this.id,
-    required this.encryptionKey,
     this.name,
     this.currency,
-    this.categoryId = "1",
+    this.categoryId,
     this.latitude,
     this.longitude,
-    this.userId,
+    required this.userId,
     this.timeZone,
     this.channels,
     this.country,
@@ -35,14 +34,19 @@ class IBusiness extends IJsonSerializable {
     this.hexColor,
     this.imageUrl,
     this.type,
-    this.active = false,
+    this.referredBy,
+    this.createdAt,
+    this.updatedAt,
     this.metadata,
+    this.role,
     this.lastSeen,
     this.firstName,
     this.lastName,
+    this.reported,
+    this.phoneNumber,
     this.deviceToken,
     this.chatUid,
-    this.backUpEnabled = false,
+    this.backUpEnabled,
     this.subscriptionPlan,
     this.nextBillingDate,
     this.previousBillingDate,
@@ -51,16 +55,19 @@ class IBusiness extends IJsonSerializable {
     this.email,
     this.lastDbBackup,
     this.fullName,
-    this.role,
+    this.referralCode,
+    this.authId,
     this.tinNumber,
-    this.bhfId,
     this.dvcSrlNo,
+    this.bhfId,
     this.adrs,
     this.taxEnabled,
-    this.taxServerUrl,
     this.isDefault,
     this.businessTypeId,
-    this.deletedAt,
+    this.encryptionKey,
+    this.businessDefault,
+    this.lastSubscriptionPaymentSucceeded,
+    this.validCurrency,
   });
 
   IBusiness.copy(IBusiness original,
@@ -68,58 +75,76 @@ class IBusiness extends IJsonSerializable {
       : id = original.id,
         name = name ?? original.name,
         encryptionKey = encryptionKey ?? original.encryptionKey,
-        active = active ?? original.active;
-  int? id;
+        backUpEnabled = original.backUpEnabled,
+        businessDefault = original.businessDefault,
+        businessTypeId = original.businessTypeId,
+        country = original.country,
+        createdAt = original.createdAt,
+        currency = original.currency,
+        fullName = original.fullName,
+        isDefault = original.isDefault,
+        isLastSubscriptionPaymentSucceeded =
+            original.isLastSubscriptionPaymentSucceeded,
+        lastSeen = original.lastSeen,
+        lastSubscriptionPaymentSucceeded =
+            original.lastSubscriptionPaymentSucceeded,
+        latitude = original.latitude,
+        longitude = original.longitude,
+        phoneNumber = original.phoneNumber,
+        referredBy = original.referredBy,
+        taxEnabled = original.taxEnabled,
+        tinNumber = original.tinNumber,
+        type = original.type,
+        userId = original.userId,
+        validCurrency = original.validCurrency;
+  int id;
   String? name;
   String? currency;
-  String? categoryId;
+  dynamic categoryId;
   String? latitude;
   String? longitude;
-
-  int? userId;
-  String? timeZone;
-  List<String>? channels;
+  dynamic userId;
+  dynamic timeZone;
+  dynamic channels;
   String? country;
-  String? businessUrl;
-  String? hexColor;
-  String? imageUrl;
+  dynamic businessUrl;
+  dynamic hexColor;
+  dynamic imageUrl;
   String? type;
-  bool? active;
-  String? chatUid;
-  String? metadata;
-  String? role;
+  String? referredBy;
+  DateTime? createdAt;
+  dynamic updatedAt;
+  dynamic metadata;
+  dynamic role;
   int? lastSeen;
-  String? firstName;
-  String? lastName;
-  String? createdAt;
-  String? deviceToken;
+  dynamic firstName;
+  dynamic lastName;
+  dynamic reported;
+  String? phoneNumber;
+  dynamic deviceToken;
+  dynamic chatUid;
   bool? backUpEnabled;
-  String? subscriptionPlan;
-  String? nextBillingDate;
-  String? previousBillingDate;
+  dynamic subscriptionPlan;
+  dynamic nextBillingDate;
+  dynamic previousBillingDate;
   bool? isLastSubscriptionPaymentSucceeded;
-  String? backupFileId;
-  String? email;
-  String? lastDbBackup;
+  dynamic backupFileId;
+  dynamic email;
+  dynamic lastDbBackup;
   String? fullName;
+  dynamic referralCode;
+  dynamic authId;
   int? tinNumber;
-  String? bhfId;
-  String? dvcSrlNo;
-  // address
-  String? adrs;
+  dynamic dvcSrlNo;
+  dynamic bhfId;
+  dynamic adrs;
   bool? taxEnabled;
-  String? taxServerUrl;
   bool? isDefault;
   int? businessTypeId;
-
-  @JsonKey(includeIfNull: true)
-  DateTime? lastTouched;
-
-  DateTime? deletedAt;
-
-  String encryptionKey;
-
-  int? serverId;
+  String? encryptionKey;
+  bool? businessDefault;
+  bool? lastSubscriptionPaymentSucceeded;
+  bool? validCurrency;
 
   factory IBusiness.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode

@@ -16,6 +16,7 @@ import 'package:sizer/sizer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 
+// net info: billers
 //1.1.13
 Future<void> main() async {
   await initializeDependencies();

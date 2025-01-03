@@ -17,12 +17,6 @@ _$BranchImpl _$$BranchImplFromJson(Map<String, dynamic> json) => _$BranchImpl(
       latitude: json['latitude'] as String?,
       location: json['location'] as String?,
       isDefault: json['isDefault'] as bool? ?? false,
-      lastTouched: json['lastTouched'] == null
-          ? null
-          : DateTime.parse(json['lastTouched'] as String),
-      deletedAt: json['deletedAt'] == null
-          ? null
-          : DateTime.parse(json['deletedAt'] as String),
       isOnline: json['isOnline'] as bool? ?? false,
     );
 
@@ -37,8 +31,6 @@ const _$$BranchImplFieldMap = <String, String>{
   'latitude': 'latitude',
   'location': 'location',
   'isDefault': 'isDefault',
-  'lastTouched': 'lastTouched',
-  'deletedAt': 'deletedAt',
   'isOnline': 'isOnline',
 };
 
@@ -65,10 +57,6 @@ abstract class _$$BranchImplPerFieldToJson {
   // ignore: unused_element
   static Object? isDefault(bool instance) => instance;
   // ignore: unused_element
-  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
-  // ignore: unused_element
-  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
-  // ignore: unused_element
   static Object? isOnline(bool instance) => instance;
 }
 
@@ -84,7 +72,5 @@ Map<String, dynamic> _$$BranchImplToJson(_$BranchImpl instance) =>
       'latitude': instance.latitude,
       'location': instance.location,
       'isDefault': instance.isDefault,
-      'lastTouched': instance.lastTouched?.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
       'isOnline': instance.isOnline,
     };

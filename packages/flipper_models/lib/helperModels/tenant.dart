@@ -6,41 +6,35 @@ part 'tenant.g.dart';
 
 @JsonSerializable()
 class ITenant {
-   int? id;
+  int? id;
   String name;
-  String phoneNumber;
-  String? email; // Make email nullable
+  String? phoneNumber;
+  dynamic email;
+  dynamic imageUrl;
   List<IPermission> permissions;
   List<IBranch> branches;
   List<IBusiness> businesses;
-  int businessId;
-  bool nfcEnabled;
-
-  int userId;
-
+  int? businessId;
+  bool? nfcEnabled;
+  int? userId;
   int? pin;
+  bool? isDefault;
 
-  bool isDefault;
-
-  ///helper property, these are property that are not peristed
-  ///but used in ui to achieve some functionality
-
-  bool isLongPressed;
-
-  ITenant(
-      { this.id,
-      required this.name,
-      required this.phoneNumber,
-      this.email, // Allow nullable email
-      required this.permissions,
-      required this.branches,
-      required this.businesses,
-      required this.businessId,
-      required this.nfcEnabled,
-      required this.userId,
-      required this.isDefault,
-      this.isLongPressed = false,
-      this.pin});
+  ITenant({
+    this.id,
+    required this.name,
+    this.phoneNumber,
+    this.email,
+    this.imageUrl,
+    required this.permissions,
+    required this.branches,
+    required this.businesses,
+    this.businessId,
+    this.nfcEnabled,
+    this.userId,
+    this.pin,
+    this.isDefault,
+  });
   factory ITenant.fromRawJson(String str) => ITenant.fromJson(json.decode(str));
 
   factory ITenant.fromJson(Map<String, dynamic> json) =>

@@ -9,7 +9,6 @@ part 'branch.g.dart';
 @JsonSerializable()
 class IBranch extends IJsonSerializable {
   IBranch({
-    required this.isDefault,
     this.id,
     this.active,
     this.description,
@@ -17,31 +16,37 @@ class IBranch extends IJsonSerializable {
     this.businessId,
     this.longitude,
     this.latitude,
-    this.deletedAt,
+    this.createdAt,
+    this.updatedAt,
     this.location,
+    this.isDefault,
+    this.branchDefault,
   });
   IBranch.copy(IBranch other, {bool? active, String? name})
       : isDefault = other.isDefault,
         name = name ?? other.name,
         id = other.id,
         location = other.location,
-        active = active ?? other.active;
+        active = active ?? other.active,
+        branchDefault = other.branchDefault,
+        businessId = other.businessId,
+        createdAt = other.createdAt,
+        description = other.description,
+        latitude = other.latitude,
+        longitude = other.longitude,
+        updatedAt = other.updatedAt;
   int? id;
   bool? active;
-
   String? description;
   String? name;
   int? businessId;
   String? longitude;
   String? latitude;
-  String? location;
-
-  late bool isDefault;
-
-  @JsonKey(includeIfNull: true)
-  DateTime? lastTouched;
-
-  DateTime? deletedAt;
+  DateTime? createdAt;
+  dynamic updatedAt;
+  dynamic location;
+  bool? isDefault;
+  bool? branchDefault;
 
   factory IBranch.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode
@@ -49,7 +54,7 @@ class IBranch extends IJsonSerializable {
 
     json['lastTouched'] =
         json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
-            ? DateTime.now()
+            ? DateTime.now().toIso8601String()
             : DateTime.parse(json['lastTouched'] ?? DateTime.now())
                 .toIso8601String();
 

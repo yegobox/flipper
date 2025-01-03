@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
@@ -103,6 +102,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     try {
       showSimpleNotification(const Text("Signup in progress"),
           background: Colors.green, position: NotificationPosition.bottom);
+      signupViewModel.startRegistering();
       // If the form is valid, display a snackbar. In the real world,
       // you'd often call a server or save the information in a database.
       signupViewModel.setName(name: username.value);
@@ -127,7 +127,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
 }
 
 class SignUpView extends StatefulWidget {
-  SignUpView({Key? key, this.countryNm = "Rwanda"}) : super(key: key);
+  const SignUpView({Key? key, this.countryNm = "Rwanda"}) : super(key: key);
   final String? countryNm;
 
   @override
@@ -136,8 +136,143 @@ class SignUpView extends StatefulWidget {
 
 class _SignUpViewState extends State<SignUpView> {
   bool _showTinField = false;
-
   final _formKey = GlobalKey<FormState>();
+
+  Widget _buildHeaderSection() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 30),
+          child: Image.asset(
+            'assets/icon.png', // Make sure to add your logo
+            height: 80,
+          ),
+        ),
+        Text(
+          'Create Your Account',
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF1A1F36),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'Join Flipper to manage your business better',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            color: const Color(0xFF4F566B),
+          ),
+        ),
+        const SizedBox(height: 30),
+      ],
+    );
+  }
+
+  Widget _buildInputField({
+    required TextFieldBloc fieldBloc,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    String? hint,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      child: TextFieldBlocBuilder(
+        textFieldBloc: fieldBloc,
+        suffixButton: SuffixButton.asyncValidating,
+        keyboardType: keyboardType ?? TextInputType.text,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          prefixIcon: Icon(icon, color: const Color(0xFF006AFE)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFE3E8EF)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFE3E8EF)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF006AFE), width: 2),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdownField<T>({
+    required SelectFieldBloc<T, dynamic> fieldBloc,
+    required String label,
+    required IconData icon,
+    required FieldItemBuilder<T> itemBuilder,
+    Function(T?)? onChanged,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      child: DropdownFieldBlocBuilder<T>(
+        showEmptyItem: false,
+        selectFieldBloc: fieldBloc,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon, color: const Color(0xFF006AFE)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFE3E8EF)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFE3E8EF)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF006AFE), width: 2),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        ),
+        itemBuilder: itemBuilder,
+        onChanged: onChanged,
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton(
+      AsyncFieldValidationFormBloc formBloc, bool isLoading) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 30),
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : formBloc.submit,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF006AFE),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+        ),
+        child: isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : Text(
+                'Create Account',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,193 +285,120 @@ class _SignUpViewState extends State<SignUpView> {
       builder: (context, model, child) {
         return BlocProvider(
           create: (context) => AsyncFieldValidationFormBloc(
-              signupViewModel: model, country: widget.countryNm ?? "Rwanda"),
-          child: Builder(builder: (context) {
-            final formBloc = context.read<AsyncFieldValidationFormBloc>();
-            return Scaffold(
-              body: Padding(
-                padding: const EdgeInsets.all(0.0).copyWith(top: 80, bottom: 0),
-                child: SingleChildScrollView(
-                  child: Form(
-                    key: _formKey,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                      ),
-                      child: Column(
-                        children: [
-                          Text('Welcome to flipper, please signup.',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                              )),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                left: 0.0, right: 0.0, top: 20.0),
-                            child: TextFieldBlocBuilder(
-                              textFieldBloc: formBloc.username,
-                              suffixButton: SuffixButton.asyncValidating,
-                              keyboardType: TextInputType.text,
-                              decoration: const InputDecoration(
-                                labelText: 'Username',
-                                prefixIcon: Icon(Icons.person),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.zero,
-                            child: TextFieldBlocBuilder(
-                              textFieldBloc: formBloc.fullName,
-                              suffixButton: SuffixButton.asyncValidating,
-                              keyboardType: TextInputType.text,
-                              decoration: const InputDecoration(
-                                labelText: 'First name, Last name',
-                                prefixIcon: Icon(Icons.person),
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.zero,
-                            child: DropdownFieldBlocBuilder<BusinessType>(
-                              showEmptyItem: false,
-                              padding: EdgeInsets.zero,
-                              isExpanded: false,
-                              selectFieldBloc: formBloc.businessTypes,
-                              itemBuilder: (context, value) => FieldItem(
-                                alignment: AlignmentDirectional.topStart,
-                                child: Text(
-                                  value.typeName,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black,
+            signupViewModel: model,
+            country: widget.countryNm ?? "Rwanda",
+          ),
+          child: Builder(
+            builder: (context) {
+              final formBloc = context.read<AsyncFieldValidationFormBloc>();
+              return Scaffold(
+                backgroundColor: const Color(0xFFF7FAFC),
+                body: SafeArea(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: Container(
+                        constraints: const BoxConstraints(maxWidth: 460),
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              _buildHeaderSection(),
+                              Card(
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Column(
+                                    children: [
+                                      _buildInputField(
+                                        fieldBloc: formBloc.username,
+                                        label: 'Username',
+                                        icon: Icons.person_outline,
+                                        hint: 'Enter your username',
+                                      ),
+                                      _buildInputField(
+                                        fieldBloc: formBloc.fullName,
+                                        label: 'Full Name',
+                                        icon: Icons.badge_outlined,
+                                        hint: 'First name, Last name',
+                                      ),
+                                      _buildDropdownField<BusinessType>(
+                                        fieldBloc: formBloc.businessTypes,
+                                        label: 'Business Type',
+                                        icon: Icons.business_outlined,
+                                        itemBuilder: (context, value) =>
+                                            FieldItem(
+                                          child: Text(
+                                            value.typeName,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              color: const Color(0xFF1A1F36),
+                                            ),
+                                          ),
+                                        ),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _showTinField = value?.id != "2";
+                                          });
+                                        },
+                                      ),
+                                      if (_showTinField)
+                                        _buildInputField(
+                                          fieldBloc: formBloc.tinNumber,
+                                          label: 'TIN Number',
+                                          icon: Icons.numbers_outlined,
+                                          keyboardType: TextInputType.number,
+                                          hint: 'Enter your TIN number',
+                                        ),
+                                      _buildDropdownField<String>(
+                                        fieldBloc: formBloc.countryName,
+                                        label: 'Country',
+                                        icon: Icons.public_outlined,
+                                        itemBuilder: (context, value) =>
+                                            FieldItem(
+                                          child: Text(
+                                            value,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              color: const Color(0xFF1A1F36),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      _buildSubmitButton(
+                                          formBloc, model.registerStart),
+                                    ],
                                   ),
                                 ),
                               ),
-                              decoration: InputDecoration(
-                                labelText: 'Apps',
-                                prefixIcon: Icon(Icons.business),
+                              const SizedBox(height: 20),
+                              TextButton(
+                                onPressed: () {
+                                  // Add navigation to login page
+                                },
+                                child: Text(
+                                  'Already have an account? Sign in',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    color: const Color(0xFF006AFE),
+                                  ),
+                                ),
                               ),
-                              onChanged: (value) {
-                                if (value != null && value.id != "2") {
-                                  log('setting choosen business type',
-                                      name: 'onChanged');
-                                  setState(() {
-                                    _showTinField = true;
-                                  });
-                                } else {
-                                  setState(() {
-                                    _showTinField = false;
-                                  });
-                                }
-                              },
-                            ),
+                            ],
                           ),
-                          _showTinField
-                              ? Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 0.0, right: 0.0, top: 0.0),
-                                  child: TextFieldBlocBuilder(
-                                    textFieldBloc: formBloc.tinNumber,
-                                    suffixButton: SuffixButton.asyncValidating,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Tin number',
-                                      prefixIcon: Icon(Icons.person),
-                                    ),
-                                  ),
-                                )
-                              : SizedBox.shrink(),
-                          SizedBox(height: 15),
-                          Padding(
-                            padding: EdgeInsets.zero,
-                            child: DropdownFieldBlocBuilder<String>(
-                              showEmptyItem: false,
-                              padding: EdgeInsets.zero,
-                              selectFieldBloc: formBloc.countryName,
-                              decoration: InputDecoration(
-                                labelText: 'Country',
-                                // border: OutlineInputBorder(),
-                              ),
-                              itemBuilder: (context, value) => FieldItem(
-                                child: Text(value,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16.0,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black,
-                                    )),
-                              ),
-                            ),
-                          ),
-                          !model.registerStart
-                              ? Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 0, right: 0, top: 20),
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    height: 50,
-                                    child: OutlinedButton(
-                                      child: Text('Register',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16.0,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.white,
-                                          )),
-                                      style: ButtonStyle(
-                                        shape: WidgetStateProperty.resolveWith<
-                                            OutlinedBorder>(
-                                          (states) => RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                        ),
-                                        backgroundColor:
-                                            WidgetStateProperty.all<Color>(
-                                                const Color(0xff006AFE)),
-                                        overlayColor: WidgetStateProperty
-                                            .resolveWith<Color?>(
-                                          (Set<WidgetState> states) {
-                                            if (states.contains(
-                                                WidgetState.hovered)) {
-                                              return Colors.blue
-                                                  .withOpacity(0.04);
-                                            }
-                                            if (states.contains(
-                                                    WidgetState.focused) ||
-                                                states.contains(
-                                                    WidgetState.pressed)) {
-                                              return Colors.blue
-                                                  .withOpacity(0.12);
-                                            }
-                                            return null; // Defer to the widget's default.
-                                          },
-                                        ),
-                                      ),
-                                      onPressed: formBloc.submit,
-                                    ),
-                                  ),
-                                )
-                              : const Padding(
-                                  key: Key('busyButton'),
-                                  padding: EdgeInsets.only(left: 0, right: 0),
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    height: 50,
-                                    child: BoxButton(
-                                      title: 'Log in',
-                                      busy: true,
-                                    ),
-                                  ),
-                                )
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
-          }),
+              );
+            },
+          ),
         );
       },
     );

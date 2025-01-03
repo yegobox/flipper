@@ -27,9 +27,9 @@ mixin _$Tenant {
   bool? get nfcEnabled => throw _privateConstructorUsedError;
   int? get businessId => throw _privateConstructorUsedError;
   int? get userId => throw _privateConstructorUsedError;
-  String? get imageUrl => throw _privateConstructorUsedError;
-  DateTime? get lastTouched => throw _privateConstructorUsedError;
-  DateTime? get deletedAt => throw _privateConstructorUsedError;
+  String? get imageUrl =>
+      throw _privateConstructorUsedError; // DateTime? lastTouched,
+// DateTime? deletedAt,
   int? get pin => throw _privateConstructorUsedError;
   bool? get sessionActive => throw _privateConstructorUsedError;
   bool? get isDefault =>
@@ -60,8 +60,6 @@ abstract class $TenantCopyWith<$Res> {
       int? businessId,
       int? userId,
       String? imageUrl,
-      DateTime? lastTouched,
-      DateTime? deletedAt,
       int? pin,
       bool? sessionActive,
       bool? isDefault,
@@ -92,8 +90,6 @@ class _$TenantCopyWithImpl<$Res, $Val extends Tenant>
     Object? businessId = freezed,
     Object? userId = freezed,
     Object? imageUrl = freezed,
-    Object? lastTouched = freezed,
-    Object? deletedAt = freezed,
     Object? pin = freezed,
     Object? sessionActive = freezed,
     Object? isDefault = freezed,
@@ -133,14 +129,6 @@ class _$TenantCopyWithImpl<$Res, $Val extends Tenant>
           ? _value.imageUrl
           : imageUrl // ignore: cast_nullable_to_non_nullable
               as String?,
-      lastTouched: freezed == lastTouched
-          ? _value.lastTouched
-          : lastTouched // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       pin: freezed == pin
           ? _value.pin
           : pin // ignore: cast_nullable_to_non_nullable
@@ -181,8 +169,6 @@ abstract class _$$TenantImplCopyWith<$Res> implements $TenantCopyWith<$Res> {
       int? businessId,
       int? userId,
       String? imageUrl,
-      DateTime? lastTouched,
-      DateTime? deletedAt,
       int? pin,
       bool? sessionActive,
       bool? isDefault,
@@ -211,8 +197,6 @@ class __$$TenantImplCopyWithImpl<$Res>
     Object? businessId = freezed,
     Object? userId = freezed,
     Object? imageUrl = freezed,
-    Object? lastTouched = freezed,
-    Object? deletedAt = freezed,
     Object? pin = freezed,
     Object? sessionActive = freezed,
     Object? isDefault = freezed,
@@ -252,14 +236,6 @@ class __$$TenantImplCopyWithImpl<$Res>
           ? _value.imageUrl
           : imageUrl // ignore: cast_nullable_to_non_nullable
               as String?,
-      lastTouched: freezed == lastTouched
-          ? _value.lastTouched
-          : lastTouched // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       pin: freezed == pin
           ? _value.pin
           : pin // ignore: cast_nullable_to_non_nullable
@@ -296,8 +272,6 @@ class _$TenantImpl implements _Tenant {
       this.businessId,
       this.userId,
       this.imageUrl,
-      this.lastTouched,
-      this.deletedAt,
       this.pin,
       this.sessionActive,
       this.isDefault,
@@ -323,10 +297,8 @@ class _$TenantImpl implements _Tenant {
   final int? userId;
   @override
   final String? imageUrl;
-  @override
-  final DateTime? lastTouched;
-  @override
-  final DateTime? deletedAt;
+// DateTime? lastTouched,
+// DateTime? deletedAt,
   @override
   final int? pin;
   @override
@@ -341,7 +313,7 @@ class _$TenantImpl implements _Tenant {
 
   @override
   String toString() {
-    return 'Tenant(id: $id, name: $name, phoneNumber: $phoneNumber, email: $email, nfcEnabled: $nfcEnabled, businessId: $businessId, userId: $userId, imageUrl: $imageUrl, lastTouched: $lastTouched, deletedAt: $deletedAt, pin: $pin, sessionActive: $sessionActive, isDefault: $isDefault, isLongPressed: $isLongPressed, type: $type)';
+    return 'Tenant(id: $id, name: $name, phoneNumber: $phoneNumber, email: $email, nfcEnabled: $nfcEnabled, businessId: $businessId, userId: $userId, imageUrl: $imageUrl, pin: $pin, sessionActive: $sessionActive, isDefault: $isDefault, isLongPressed: $isLongPressed, type: $type)';
   }
 
   @override
@@ -361,10 +333,6 @@ class _$TenantImpl implements _Tenant {
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.imageUrl, imageUrl) ||
                 other.imageUrl == imageUrl) &&
-            (identical(other.lastTouched, lastTouched) ||
-                other.lastTouched == lastTouched) &&
-            (identical(other.deletedAt, deletedAt) ||
-                other.deletedAt == deletedAt) &&
             (identical(other.pin, pin) || other.pin == pin) &&
             (identical(other.sessionActive, sessionActive) ||
                 other.sessionActive == sessionActive) &&
@@ -387,8 +355,6 @@ class _$TenantImpl implements _Tenant {
       businessId,
       userId,
       imageUrl,
-      lastTouched,
-      deletedAt,
       pin,
       sessionActive,
       isDefault,
@@ -421,8 +387,6 @@ abstract class _Tenant implements Tenant {
       final int? businessId,
       final int? userId,
       final String? imageUrl,
-      final DateTime? lastTouched,
-      final DateTime? deletedAt,
       final int? pin,
       final bool? sessionActive,
       final bool? isDefault,
@@ -446,11 +410,8 @@ abstract class _Tenant implements Tenant {
   @override
   int? get userId;
   @override
-  String? get imageUrl;
-  @override
-  DateTime? get lastTouched;
-  @override
-  DateTime? get deletedAt;
+  String? get imageUrl; // DateTime? lastTouched,
+// DateTime? deletedAt,
   @override
   int? get pin;
   @override

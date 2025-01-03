@@ -15,12 +15,6 @@ _$TenantImpl _$$TenantImplFromJson(Map<String, dynamic> json) => _$TenantImpl(
       businessId: (json['businessId'] as num?)?.toInt(),
       userId: (json['userId'] as num?)?.toInt(),
       imageUrl: json['imageUrl'] as String?,
-      lastTouched: json['lastTouched'] == null
-          ? null
-          : DateTime.parse(json['lastTouched'] as String),
-      deletedAt: json['deletedAt'] == null
-          ? null
-          : DateTime.parse(json['deletedAt'] as String),
       pin: (json['pin'] as num?)?.toInt(),
       sessionActive: json['sessionActive'] as bool?,
       isDefault: json['isDefault'] as bool?,
@@ -37,8 +31,6 @@ const _$$TenantImplFieldMap = <String, String>{
   'businessId': 'businessId',
   'userId': 'userId',
   'imageUrl': 'imageUrl',
-  'lastTouched': 'lastTouched',
-  'deletedAt': 'deletedAt',
   'pin': 'pin',
   'sessionActive': 'sessionActive',
   'isDefault': 'isDefault',
@@ -65,10 +57,6 @@ abstract class _$$TenantImplPerFieldToJson {
   // ignore: unused_element
   static Object? imageUrl(String? instance) => instance;
   // ignore: unused_element
-  static Object? lastTouched(DateTime? instance) => instance?.toIso8601String();
-  // ignore: unused_element
-  static Object? deletedAt(DateTime? instance) => instance?.toIso8601String();
-  // ignore: unused_element
   static Object? pin(int? instance) => instance;
   // ignore: unused_element
   static Object? sessionActive(bool? instance) => instance;
@@ -90,8 +78,6 @@ Map<String, dynamic> _$$TenantImplToJson(_$TenantImpl instance) =>
       'businessId': instance.businessId,
       'userId': instance.userId,
       'imageUrl': instance.imageUrl,
-      'lastTouched': instance.lastTouched?.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
       'pin': instance.pin,
       'sessionActive': instance.sessionActive,
       'isDefault': instance.isDefault,

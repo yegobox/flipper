@@ -9,8 +9,9 @@ part of 'tenant.dart';
 ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
       id: (json['id'] as num?)?.toInt(),
       name: json['name'] as String,
-      phoneNumber: json['phoneNumber'] as String,
-      email: json['email'] as String?,
+      phoneNumber: json['phoneNumber'] as String?,
+      email: json['email'],
+      imageUrl: json['imageUrl'],
       permissions: (json['permissions'] as List<dynamic>)
           .map((e) => IPermission.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -20,12 +21,11 @@ ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
       businesses: (json['businesses'] as List<dynamic>)
           .map((e) => IBusiness.fromJson(e as Map<String, dynamic>))
           .toList(),
-      businessId: (json['businessId'] as num).toInt(),
-      nfcEnabled: json['nfcEnabled'] as bool,
-      userId: (json['userId'] as num).toInt(),
-      isDefault: json['isDefault'] as bool,
-      isLongPressed: json['isLongPressed'] as bool? ?? false,
+      businessId: (json['businessId'] as num?)?.toInt(),
+      nfcEnabled: json['nfcEnabled'] as bool?,
+      userId: (json['userId'] as num?)?.toInt(),
       pin: (json['pin'] as num?)?.toInt(),
+      isDefault: json['isDefault'] as bool?,
     );
 
 Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{
@@ -33,6 +33,7 @@ Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{
       'name': instance.name,
       'phoneNumber': instance.phoneNumber,
       'email': instance.email,
+      'imageUrl': instance.imageUrl,
       'permissions': instance.permissions,
       'branches': instance.branches,
       'businesses': instance.businesses,
@@ -41,5 +42,4 @@ Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{
       'userId': instance.userId,
       'pin': instance.pin,
       'isDefault': instance.isDefault,
-      'isLongPressed': instance.isLongPressed,
     };

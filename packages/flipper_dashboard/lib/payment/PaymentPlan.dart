@@ -79,14 +79,14 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: !_isYearlyPlan ? Colors.black : Colors.transparent,
+                  color: !_isYearlyPlan ? Colors.blue : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   'Monthly',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: !_isYearlyPlan ? Colors.white : Colors.black,
+                    color: !_isYearlyPlan ? Colors.white : Colors.blue,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -104,14 +104,14 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: _isYearlyPlan ? Colors.black : Colors.transparent,
+                  color: _isYearlyPlan ? Colors.blue : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   'Yearly (20% off)',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: _isYearlyPlan ? Colors.white : Colors.black,
+                    color: _isYearlyPlan ? Colors.white : Colors.blue,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -164,7 +164,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: isSelected ? Colors.black : Colors.white,
+          color: isSelected ? Colors.blue : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
               color: isSelected ? Colors.transparent : Colors.grey.shade300),
@@ -174,7 +174,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           child: Row(
             children: [
               Icon(icon,
-                  size: 24, color: isSelected ? Colors.white : Colors.black),
+                  size: 24, color: isSelected ? Colors.white : Colors.blue),
               SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -189,8 +189,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
                     Text(price,
                         style: TextStyle(
                             fontSize: 14,
-                            color:
-                                isSelected ? Colors.white70 : Colors.black54)),
+                            color: isSelected ? Colors.white70 : Colors.black)),
                   ],
                 ),
               ),
@@ -249,7 +248,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         padding: EdgeInsets.all(6),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: onPressed != null ? Colors.black : Colors.grey.shade300,
+          color: onPressed != null ? Colors.blue : Colors.grey.shade300,
         ),
         child: Icon(icon, color: Colors.white, size: 16),
       ),
@@ -377,7 +376,8 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: Colors.black,
+            activeColor: Colors.blue,
+            inactiveThumbColor: Colors.blue.shade600,
           ),
         ],
       ),
@@ -449,7 +449,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
       style: ElevatedButton.styleFrom(
         splashFactory: InkSparkle.splashFactory,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: EdgeInsets.symmetric(vertical: 16),
@@ -465,7 +465,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text('Payment Plan'),
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(

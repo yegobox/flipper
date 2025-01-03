@@ -16,8 +16,8 @@ class Branch with _$Branch {
     String? latitude,
     String? location,
     @Default(false) bool isDefault,
-    DateTime? lastTouched,
-    DateTime? deletedAt,
+    // DateTime? lastTouched,
+    // DateTime? deletedAt,
     @Default(false) bool isOnline,
   }) = _Branch;
 

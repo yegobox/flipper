@@ -7,7 +7,6 @@ part of 'branch.dart';
 // **************************************************************************
 
 IBranch _$IBranchFromJson(Map<String, dynamic> json) => IBranch(
-      isDefault: json['isDefault'] as bool,
       id: (json['id'] as num?)?.toInt(),
       active: json['active'] as bool?,
       description: json['description'] as String?,
@@ -15,17 +14,25 @@ IBranch _$IBranchFromJson(Map<String, dynamic> json) => IBranch(
       businessId: (json['businessId'] as num?)?.toInt(),
       longitude: json['longitude'] as String?,
       latitude: json['latitude'] as String?,
-      deletedAt: json['deletedAt'] == null
+      createdAt: json['createdAt'] == null
           ? null
-          : DateTime.parse(json['deletedAt'] as String),
-      location: json['location'] as String?,
+          : DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'],
+      location: json['location'],
+      isDefault: json['isDefault'] as bool?,
+      branchDefault: json['branchDefault'] as bool?,
     )
-      ..action = json['action'] as String
       ..lastTouched = json['lastTouched'] == null
           ? null
-          : DateTime.parse(json['lastTouched'] as String);
+          : DateTime.parse(json['lastTouched'] as String)
+      ..deletedAt = json['deletedAt'] == null
+          ? null
+          : DateTime.parse(json['deletedAt'] as String)
+      ..action = json['action'] as String;
 
 Map<String, dynamic> _$IBranchToJson(IBranch instance) => <String, dynamic>{
+      'lastTouched': instance.lastTouched?.toIso8601String(),
+      'deletedAt': instance.deletedAt?.toIso8601String(),
       'action': instance.action,
       'id': instance.id,
       'active': instance.active,
@@ -34,8 +41,9 @@ Map<String, dynamic> _$IBranchToJson(IBranch instance) => <String, dynamic>{
       'businessId': instance.businessId,
       'longitude': instance.longitude,
       'latitude': instance.latitude,
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt,
       'location': instance.location,
       'isDefault': instance.isDefault,
-      'lastTouched': instance.lastTouched?.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'branchDefault': instance.branchDefault,
     };

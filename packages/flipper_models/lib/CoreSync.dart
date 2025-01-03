@@ -1155,9 +1155,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       int id = randomNumber();
       IBusiness iBusiness = IBusiness.fromJson(json.decode(response.body));
       Business business = Business(
-          serverId: iBusiness.id!,
+          serverId: iBusiness.id,
           name: iBusiness.name,
-          userId: iBusiness.userId,
+          userId: int.parse(iBusiness.userId),
           createdAt: DateTime.now());
 
       business.serverId = id;
@@ -2007,14 +2007,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               categoryId: e.categoryId,
               latitude: e.latitude,
               longitude: e.longitude,
-              userId: e.userId,
+              userId: e.userId.toString(),
               timeZone: e.timeZone,
               country: e.country,
               businessUrl: e.businessUrl,
               hexColor: e.hexColor,
               imageUrl: e.imageUrl,
               type: e.type,
-              active: e.active,
               metadata: e.metadata,
               lastSeen: e.lastSeen,
               firstName: e.firstName,
@@ -2037,10 +2036,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               dvcSrlNo: e.dvcSrlNo,
               adrs: e.adrs,
               taxEnabled: e.taxEnabled,
-              taxServerUrl: e.taxServerUrl,
               isDefault: e.isDefault,
               businessTypeId: e.businessTypeId,
-              deletedAt: e.deletedAt,
             ))
         .toList();
   }
@@ -2551,6 +2548,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       body:
           jsonEncode(<String, String?>{'phoneNumber': phoneNumber, 'uid': uid}),
     );
+    final responseBody = jsonDecode(response.body);
+    talker.warning("sendLoginRequest:UserId:${responseBody['id']}");
+    talker.warning("sendLoginRequest:token:${responseBody['token']}");
+    ProxyService.box.writeInt(key: 'userId', value: responseBody['id']);
+    ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
+    await ProxyService.box
+        .writeString(key: 'bearerToken', value: responseBody['token']);
     return response;
   }
 
@@ -2595,9 +2599,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       /// because we want to close the inMemory realm db
       /// as soon as possible so I can be able to save real data into realm
       /// then I call login in here after signup as login handle configuring
+      final userId = ProxyService.box.getUserId();
       IPin? pin = await ProxyService.strategy.getPin(
-          pinString: ProxyService.box.getUserId().toString(),
-          flipperHttpClient: ProxyService.http);
+          pinString: userId.toString(), flipperHttpClient: ProxyService.http);
 
       ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
       Pin? savedPin = await savePin(
@@ -2846,14 +2850,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             name: jTenant.name,
             userId: jTenant.userId,
             businessId: jTenant.businessId,
-            nfcEnabled: jTenant.nfcEnabled,
+            nfcEnabled: jTenant.nfcEnabled ?? false,
             email: jTenant.email,
             phoneNumber: jTenant.phoneNumber);
 
         for (IBusiness business in jTenant.businesses) {
           Business biz = Business(
-              serverId: business.id!,
-              userId: business.userId,
+              serverId: business.id,
+              userId: int.parse(business.userId),
               name: business.name,
               currency: business.currency,
               categoryId: business.categoryId,
@@ -2865,7 +2869,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               hexColor: business.hexColor,
               imageUrl: business.imageUrl,
               type: business.type,
-              active: business.active,
+              active: false,
               chatUid: business.chatUid,
               metadata: business.metadata,
               role: business.role,
@@ -2888,7 +2892,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               dvcSrlNo: business.dvcSrlNo,
               adrs: business.adrs,
               taxEnabled: business.taxEnabled,
-              taxServerUrl: business.taxServerUrl,
               isDefault: business.isDefault,
               businessTypeId: business.businessTypeId,
               lastTouched: business.lastTouched,
@@ -3702,9 +3705,55 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  T? create<T>({required T data}) {
-    // TODO: implement create
-    throw UnimplementedError("create method is not implemented yet");
+  FutureOr<T?> create<T>({required T data}) async {
+
+    if (data is Counter) {
+      repository.upsert<Counter>(data);
+    }
+
+    if (data is PColor) {
+      PColor color = data;
+      for (String colorName in data.colors!) {
+       await repository.upsert<PColor>(PColor(
+            name: colorName, active: color.active, branchId: color.branchId));
+      }
+    }
+    if (data is Device) {
+      repository.upsert<Device>(data);
+    }
+
+    if (data is Category) {
+      repository.upsert<Category>(data);
+    }
+    if (data is Product) {
+      repository.upsert<Product>(data);
+    }
+    if (data is Variant) {
+      repository.upsert<Variant>(data);
+    }
+    if (data is Favorite) {
+      repository.upsert<Favorite>(data);
+    }
+    if (data is Stock) {
+      repository.upsert<Stock>(data);
+    }
+
+    if (data is Token) {
+      repository.upsert<Token>(data);
+    }
+    if (data is Setting) {
+      repository.upsert<Setting>(data);
+    }
+    if (data is Ebm) {
+      repository.upsert<Ebm>(data);
+    }
+    if (data is ITransaction) {
+      repository.upsert<ITransaction>(data);
+    }
+    if (data is TransactionItem) {
+      repository.upsert<TransactionItem>(data);
+    }
+    return null;
   }
 
   @override

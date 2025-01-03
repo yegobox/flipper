@@ -26,7 +26,7 @@ mixin Booting {
       isDefault: tenant.isDefault,
       name: tenant.name,
       businessId: tenant.businessId,
-      nfcEnabled: tenant.nfcEnabled,
+      nfcEnabled: tenant.nfcEnabled ?? false,
       email: tenant.email,
       userId: int.tryParse(userId),
       phoneNumber: tenant.phoneNumber,
@@ -155,10 +155,12 @@ mixin Booting {
           await ProxyService.strategy.getBusiness(businessId: business.id);
       if (exist == null) {
         await ProxyService.strategy.addBusiness(
-          id: business.id!,
-          userId: business.userId!,
-          encryptionKey: business.encryptionKey,
-          serverId: business.id!,
+          id: business.id,
+          userId: business.userId is String
+              ? int.parse(business.userId)
+              : business.userId,
+          encryptionKey: business.encryptionKey!,
+          serverId: business.id,
           name: business.name,
           currency: business.currency,
           categoryId: business.categoryId,
@@ -170,14 +172,14 @@ mixin Booting {
           hexColor: business.hexColor,
           imageUrl: business.imageUrl,
           type: business.type,
-          active: business.active,
+          active: false,
           chatUid: business.chatUid,
           metadata: business.metadata,
           role: business.role,
           lastSeen: business.lastSeen,
           firstName: business.firstName,
           lastName: business.lastName,
-          createdAt: business.createdAt,
+          createdAt: DateTime.now().toIso8601String(),
           deviceToken: business.deviceToken,
           backUpEnabled: business.backUpEnabled,
           subscriptionPlan: business.subscriptionPlan,
@@ -194,7 +196,7 @@ mixin Booting {
           dvcSrlNo: business.dvcSrlNo,
           adrs: business.adrs,
           taxEnabled: business.taxEnabled,
-          taxServerUrl: business.taxServerUrl,
+          taxServerUrl: "",
           isDefault: business.isDefault,
           businessTypeId: business.businessTypeId,
           lastTouched: business.lastTouched,
@@ -267,11 +269,8 @@ mixin Booting {
       Branch branch = await ProxyService.strategy.activeBranch();
       branchId = branch.serverId!;
     }
-    if (businessId == null) {
-      // get any local saved business
-      Business? business = await ProxyService.strategy.activeBusiness();
-      businessId = business!.serverId;
-    }
+
+    // get any local saved business
 
     await ProxyService.box
         .writeInt(key: 'branchId', value: user.tenants.isEmpty ? 0 : branchId);
@@ -280,6 +279,6 @@ mixin Booting {
         key: 'businessId', value: user.tenants.isEmpty ? 0 : businessId);
     await ProxyService.box.writeString(
         key: 'encryptionKey',
-        value: user.tenants.first.businesses.first.encryptionKey);
+        value: user.tenants.first.businesses.first.encryptionKey!);
   }
 }

@@ -11,6 +11,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
+// import 'package:flipper_models/helperModels/iuser.dart';
 
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
@@ -83,7 +84,7 @@ abstract class RealmInterface {
   Future<List<Category>> categories({required int branchId});
   FutureOr<Category?> activeCategory({required int branchId});
   Future<List<IUnit>> units({required int branchId});
-  T? create<T>({required T data});
+  FutureOr<T?> create<T>({required T data});
   Stream<double> getStockValue({required int branchId});
 
   Future<bool> delete(

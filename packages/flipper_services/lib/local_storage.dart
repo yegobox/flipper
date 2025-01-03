@@ -69,6 +69,7 @@ class SharedPreferenceStorage implements LocalStorage {
         'exportAsPdf',
         'getBusinessServerId',
         'getBranchServerId',
+        'referralCode'
       },
     ));
     return this;

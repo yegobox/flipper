@@ -29,9 +29,9 @@ mixin _$Branch {
   String? get longitude => throw _privateConstructorUsedError;
   String? get latitude => throw _privateConstructorUsedError;
   String? get location => throw _privateConstructorUsedError;
-  bool get isDefault => throw _privateConstructorUsedError;
-  DateTime? get lastTouched => throw _privateConstructorUsedError;
-  DateTime? get deletedAt => throw _privateConstructorUsedError;
+  bool get isDefault =>
+      throw _privateConstructorUsedError; // DateTime? lastTouched,
+// DateTime? deletedAt,
   bool get isOnline => throw _privateConstructorUsedError;
 
   /// Serializes this Branch to a JSON map.
@@ -59,8 +59,6 @@ abstract class $BranchCopyWith<$Res> {
       String? latitude,
       String? location,
       bool isDefault,
-      DateTime? lastTouched,
-      DateTime? deletedAt,
       bool isOnline});
 }
 
@@ -89,8 +87,6 @@ class _$BranchCopyWithImpl<$Res, $Val extends Branch>
     Object? latitude = freezed,
     Object? location = freezed,
     Object? isDefault = null,
-    Object? lastTouched = freezed,
-    Object? deletedAt = freezed,
     Object? isOnline = null,
   }) {
     return _then(_value.copyWith(
@@ -134,14 +130,6 @@ class _$BranchCopyWithImpl<$Res, $Val extends Branch>
           ? _value.isDefault
           : isDefault // ignore: cast_nullable_to_non_nullable
               as bool,
-      lastTouched: freezed == lastTouched
-          ? _value.lastTouched
-          : lastTouched // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       isOnline: null == isOnline
           ? _value.isOnline
           : isOnline // ignore: cast_nullable_to_non_nullable
@@ -168,8 +156,6 @@ abstract class _$$BranchImplCopyWith<$Res> implements $BranchCopyWith<$Res> {
       String? latitude,
       String? location,
       bool isDefault,
-      DateTime? lastTouched,
-      DateTime? deletedAt,
       bool isOnline});
 }
 
@@ -196,8 +182,6 @@ class __$$BranchImplCopyWithImpl<$Res>
     Object? latitude = freezed,
     Object? location = freezed,
     Object? isDefault = null,
-    Object? lastTouched = freezed,
-    Object? deletedAt = freezed,
     Object? isOnline = null,
   }) {
     return _then(_$BranchImpl(
@@ -241,14 +225,6 @@ class __$$BranchImplCopyWithImpl<$Res>
           ? _value.isDefault
           : isDefault // ignore: cast_nullable_to_non_nullable
               as bool,
-      lastTouched: freezed == lastTouched
-          ? _value.lastTouched
-          : lastTouched // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       isOnline: null == isOnline
           ? _value.isOnline
           : isOnline // ignore: cast_nullable_to_non_nullable
@@ -271,8 +247,6 @@ class _$BranchImpl implements _Branch {
       this.latitude,
       this.location,
       this.isDefault = false,
-      this.lastTouched,
-      this.deletedAt,
       this.isOnline = false});
 
   factory _$BranchImpl.fromJson(Map<String, dynamic> json) =>
@@ -299,17 +273,15 @@ class _$BranchImpl implements _Branch {
   @override
   @JsonKey()
   final bool isDefault;
-  @override
-  final DateTime? lastTouched;
-  @override
-  final DateTime? deletedAt;
+// DateTime? lastTouched,
+// DateTime? deletedAt,
   @override
   @JsonKey()
   final bool isOnline;
 
   @override
   String toString() {
-    return 'Branch(id: $id, serverId: $serverId, active: $active, description: $description, name: $name, businessId: $businessId, longitude: $longitude, latitude: $latitude, location: $location, isDefault: $isDefault, lastTouched: $lastTouched, deletedAt: $deletedAt, isOnline: $isOnline)';
+    return 'Branch(id: $id, serverId: $serverId, active: $active, description: $description, name: $name, businessId: $businessId, longitude: $longitude, latitude: $latitude, location: $location, isDefault: $isDefault, isOnline: $isOnline)';
   }
 
   @override
@@ -334,10 +306,6 @@ class _$BranchImpl implements _Branch {
                 other.location == location) &&
             (identical(other.isDefault, isDefault) ||
                 other.isDefault == isDefault) &&
-            (identical(other.lastTouched, lastTouched) ||
-                other.lastTouched == lastTouched) &&
-            (identical(other.deletedAt, deletedAt) ||
-                other.deletedAt == deletedAt) &&
             (identical(other.isOnline, isOnline) ||
                 other.isOnline == isOnline));
   }
@@ -356,8 +324,6 @@ class _$BranchImpl implements _Branch {
       latitude,
       location,
       isDefault,
-      lastTouched,
-      deletedAt,
       isOnline);
 
   /// Create a copy of Branch
@@ -388,8 +354,6 @@ abstract class _Branch implements Branch {
       final String? latitude,
       final String? location,
       final bool isDefault,
-      final DateTime? lastTouched,
-      final DateTime? deletedAt,
       final bool isOnline}) = _$BranchImpl;
 
   factory _Branch.fromJson(Map<String, dynamic> json) = _$BranchImpl.fromJson;
@@ -413,11 +377,8 @@ abstract class _Branch implements Branch {
   @override
   String? get location;
   @override
-  bool get isDefault;
-  @override
-  DateTime? get lastTouched;
-  @override
-  DateTime? get deletedAt;
+  bool get isDefault; // DateTime? lastTouched,
+// DateTime? deletedAt,
   @override
   bool get isOnline;
 

@@ -44,7 +44,7 @@ mixin CoreMiscellaneous {
           'linkingCode': randomNumber().toString()
         });
       }
-      ProxyService.box.remove(key: 'userId');
+      // ProxyService.box.remove(key: 'userId');
       ProxyService.box.remove(key: 'branchId');
       ProxyService.box.remove(key: 'getIsTokenRegistered');
       ProxyService.box.remove(key: 'defaultApp');

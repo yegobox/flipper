@@ -26,7 +26,6 @@ export 'favorite.dart';
 export 'stock.dart';
 export 'variant.dart';
 export 'voucher.dart';
-export 'pin.dart';
 export 'assets.dart';
 export 'sku.dart';
 export 'payment_plan.dart';

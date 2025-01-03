@@ -1256,7 +1256,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  T? create<T>({required T data}) {
+  FutureOr<T?> create<T>({required T data}) {
     // TODO: implement create
     throw UnimplementedError();
   }
