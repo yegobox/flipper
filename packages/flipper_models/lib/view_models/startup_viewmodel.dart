@@ -88,7 +88,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       log(stackTrace.toString(), name: 'runStartupLogic');
       await logOut();
       _routerService.clearStackAndShow(LoginRoute());
-    } else if (e is BusinessNotFoundException) {
+    } else if (e is BusinessNotFoundException || e == NeedSignUpException) {
       if (Platform.isWindows) {
         // Handle BusinessNotFoundException for desktop.
         _handleBusinessNotFoundForDesktop();

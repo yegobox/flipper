@@ -740,3 +740,5 @@ class App {}
 // https://github.com/GetDutchie/brick/blob/main/packages/brick_supabase/lib/src/supabase_provider.dart#L119-L136
 
 // https://github.com/MaikuB/flutter_local_notifications/issues/2512
+
+// https://medium.com/team-rockstars-it/the-easiest-way-to-build-a-flutter-ios-app-using-github-actions-plus-a-key-takeaway-for-developers-48cf2ad7c72a

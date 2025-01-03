@@ -38,6 +38,14 @@ class PinError implements Exception {
   PinError({required this.term});
 }
 
+class NeedSignUpException implements Exception {
+  String term;
+
+  String errMsg() => 'NeedSignUpException: $term';
+
+  NeedSignUpException({required this.term});
+}
+
 class BranchLoadingException implements Exception {
   String term;
 

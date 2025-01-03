@@ -1633,14 +1633,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (response.statusCode == 200) {
         return IPin.fromJson(json.decode(response.body));
       } else if (response.statusCode == 404) {
-        throw PinError(term: "Not found");
+        throw NeedSignUpException(term: "User does not exist needs signup.");
       } else {
         throw PinError(term: "Not found");
       }
-    } catch (e, s) {
-      talker.warning(e, s);
-
-      throw UnknownError(term: e.toString());
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -2589,9 +2587,41 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<List<ext.ITenant>> signup(
-      {required Map business, required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement signup
-    throw UnimplementedError("signup method is not implemented yet");
+      {required Map business,
+      required HttpClientInterface flipperHttpClient}) async {
+    final http.Response response = await flipperHttpClient
+        .post(Uri.parse("$apihub/v2/api/business"), body: jsonEncode(business));
+    if (response.statusCode == 200) {
+      /// because we want to close the inMemory realm db
+      /// as soon as possible so I can be able to save real data into realm
+      /// then I call login in here after signup as login handle configuring
+      IPin? pin = await ProxyService.strategy.getPin(
+          pinString: ProxyService.box.getUserId().toString(),
+          flipperHttpClient: ProxyService.http);
+
+      ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
+      Pin? savedPin = await savePin(
+          pin: Pin(
+              userId: int.parse(pin!.userId),
+              id: pin.userId,
+              branchId: pin.branchId,
+              businessId: pin.businessId,
+              ownerName: pin.ownerName,
+              tokenUid: pin.tokenUid,
+              phoneNumber: pin.phoneNumber));
+      await login(
+          pin: savedPin!,
+          userPhone: business['phoneNumber'],
+          skipDefaultAppSetup: true,
+          flipperHttpClient: flipperHttpClient);
+
+      await configureLocal(useInMemory: false, box: ProxyService.box);
+
+      return ITenant.fromJsonList(response.body);
+    } else {
+      talker.error(response.body.toString());
+      throw InternalServerError(term: response.body.toString());
+    }
   }
 
   @override

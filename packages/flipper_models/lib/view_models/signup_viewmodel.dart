@@ -6,7 +6,6 @@ import 'dart:developer';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart' as loc;
@@ -141,10 +140,6 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<void> postRegistrationTasks(List<ITenant> tenants) async {
-    // if (businessType.id == "2") {
-    //   await registerOnSocial();
-    // }
-
     await saveBusinessId(tenants);
     Business? business = await getBusiness(tenants);
     List<Branch> branches = await getBranches(business!);
