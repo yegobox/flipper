@@ -1644,8 +1644,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               phoneNumber: localPin.firstOrNull!.phoneNumber!,
               branchId: localPin.firstOrNull!.branchId!,
               businessId: localPin.firstOrNull!.businessId!,
-              ownerName: localPin.firstOrNull!.ownerName!,
-              tokenUid: localPin.firstOrNull!.tokenUid!);
+              ownerName: localPin.firstOrNull!.ownerName ?? "N/A",
+              tokenUid: localPin.firstOrNull!.tokenUid ?? "N/A");
         } else {
           clearData(data: ClearData.Branch, identifier: branchE!.serverId!);
           clearData(data: ClearData.Business, identifier: business!.serverId);

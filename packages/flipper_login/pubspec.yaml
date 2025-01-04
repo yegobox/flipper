@@ -16,7 +16,6 @@ dependencies:
   flipper_services: any
   flipper_dashboard: any
   universal_platform: ^1.0.0+1
-  flutter_carousel_slider: ^1.0.9
   country_code_picker: ^3.0.0
   overlay_support: ^2.1.0
   flutter_settings_ui: ^3.0.1
