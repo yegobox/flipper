@@ -68,7 +68,7 @@ mixin CoreMiscellaneous {
       /// get all business and unset default
       if (ProxyService.box.getBranchId() != null) {
         List<Business> businesses = await ProxyService.strategy
-            .businesses(userId: ProxyService.box.getUserId()!);
+            .businesses(userId: ProxyService.box.getUserId() ?? 0);
         for (Business business in businesses) {
           ProxyService.strategy.updateBusiness(
             businessId: business.serverId,
@@ -77,7 +77,7 @@ mixin CoreMiscellaneous {
           );
         }
         List<Branch> branches = await ProxyService.strategy
-            .branches(businessId: ProxyService.box.getBusinessId()!);
+            .branches(businessId: ProxyService.box.getBusinessId() ?? 0);
         for (Branch branch in branches) {
           ProxyService.strategy.updateBranch(
             branchId: branch.serverId!,

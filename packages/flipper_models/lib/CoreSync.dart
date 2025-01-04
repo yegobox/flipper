@@ -1650,14 +1650,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           clearData(data: ClearData.Branch, identifier: branchE!.serverId!);
           clearData(data: ClearData.Business, identifier: business!.serverId);
         }
-      } else {
-        /// case where a different user log in on same machine.
-        clearData(
-            data: ClearData.Branch,
-            identifier: ProxyService.box.getBranchId()!);
-        clearData(
-            data: ClearData.Business,
-            identifier: ProxyService.box.getBusinessId()!);
       }
       final response = await flipperHttpClient.get(uri);
 

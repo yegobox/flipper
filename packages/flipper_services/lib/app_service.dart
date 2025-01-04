@@ -58,21 +58,11 @@ class AppService with ListenableServiceMixin {
   /// before we log to other apps as the business portal
   /// is the mother of all apps
   ///
-  Future<bool>  isLoggedIn() async {
-    if (ProxyService.box.getUserId() == null ||
-        ProxyService.box.getBranchId() == null ||
-        ProxyService.box.getBusinessId() == null) {
+  Future<bool> isLoggedIn() async {
+    if (ProxyService.box.getUserId() == null) {
       throw Exception();
     }
-
-    bool value = await isSocialLoggedin();
-
-    if (!value) {
-      log("should not come here more often", name: "isLoggedIn()");
-      await logSocial();
-    }
-    return ProxyService.box.getUserId() != null &&
-        ProxyService.box.getBusinessId() != null;
+    return true;
   }
 
   Future<void> logSocial() async {
