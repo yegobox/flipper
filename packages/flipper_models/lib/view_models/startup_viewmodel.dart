@@ -23,7 +23,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   Future<void> runStartupLogic({
     required bool refreshCredentials,
   }) async {
-    await logOut();
+    // await logOut();
     try {
       // await appService.isLoggedIn();
 

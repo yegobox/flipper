@@ -405,23 +405,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<Product?> createProduct(
-      {required Product product,
-      required int businessId,
-      required int branchId,
-      required int tinNumber,
-      required String bhFId,
-      bool skipRegularVariant = false,
-      double qty = 1,
-      double supplyPrice = 0,
-      double retailPrice = 0,
-      int itemSeq = 1,
-      bool ebmSynced = false}) {
-    // TODO: implement createProduct
-    throw UnimplementedError();
-  }
-
-  @override
   int createStockRequest(List<TransactionItem> items,
       {required String deliveryNote,
       DateTime? deliveryDate,
@@ -1834,5 +1817,40 @@ class Capella with Booting implements RealmInterface {
   @override
   void clearData({required ClearData data, required int identifier}) {
     // TODO: implement clearData
+  }
+
+  @override
+  Future<brick.Product?> createProduct(
+      {required brick.Product product,
+      String? modrId,
+      String? orgnNatCd,
+      String? exptNatCd,
+      int? pkg,
+      String? pkgUnitCd,
+      String? qtyUnitCd,
+      int? totWt,
+      int? netWt,
+      String? spplrNm,
+      String? agntNm,
+      int? invcFcurAmt,
+      String? invcFcurCd,
+      double? invcFcurExcrt,
+      String? dclNo,
+      String? taskCd,
+      String? dclDe,
+      String? hsCd,
+      String? imptItemsttsCd,
+      required int businessId,
+      required int branchId,
+      required int tinNumber,
+      required String bhFId,
+      bool skipRegularVariant = false,
+      double qty = 1,
+      double supplyPrice = 0,
+      double retailPrice = 0,
+      int itemSeq = 1,
+      bool ebmSynced = false}) {
+    // TODO: implement createProduct
+    throw UnimplementedError();
   }
 }

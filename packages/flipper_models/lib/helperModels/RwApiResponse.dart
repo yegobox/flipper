@@ -63,6 +63,8 @@ class Item {
   final String orgnNatCd;
   final String exptNatCd;
   final int pkg;
+  String? modrId;
+  int? tin;
   final dynamic pkgUnitCd;
   final int qty;
   final String qtyUnitCd;
@@ -75,6 +77,9 @@ class Item {
   final double invcFcurExcrt;
   double? supplyPrice;
   double? retailPrice;
+  String? bhfId;
+  String? modrNm;
+  String? imptItemSttsCd;
 
   Item({
     required this.taskCd,
@@ -92,6 +97,11 @@ class Item {
     required this.qtyUnitCd,
     required this.totWt,
     required this.netWt,
+    this.modrId,
+    this.tin,
+    this.bhfId,
+    this.modrNm,
+    this.imptItemSttsCd,
     required this.spplrNm,
     required this.agntNm,
     required this.invcFcurAmt,

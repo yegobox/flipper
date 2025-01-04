@@ -563,72 +563,103 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       Product? product,
       required String productId,
       required String name,
+      String? modrId,
+      String? orgnNatCd,
+      String? exptNatCd,
+      int? pkg,
+      String? pkgUnitCd,
+      String? qtyUnitCd,
+      int? totWt,
+      int? netWt,
+      String? spplrNm,
+      String? agntNm,
+      int? invcFcurAmt,
+      String? invcFcurCd,
+      double? invcFcurExcrt,
+      String? dclNo,
+      String? taskCd,
+      String? dclDe,
+      String? hsCd,
+      String? imptItemsttsCd,
       required String sku}) async {
     final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
 
     return Variant(
-        lastTouched: DateTime.now(),
-        name: product?.name ?? name,
-        sku: sku,
-        productId: product?.id ?? productId,
-        color: product?.color,
-        unit: 'Per Item',
-        productName: product?.name ?? name,
+      spplrNm: spplrNm ?? "",
+      agntNm: agntNm ?? "",
+      netWt: netWt ?? 0,
+      totWt: totWt ?? 0,
+      invcFcurAmt: invcFcurAmt ?? 0,
+      invcFcurCd: invcFcurCd ?? "",
+      exptNatCd: exptNatCd ?? "",
+      dclNo: dclNo ?? "",
+      taskCd: taskCd ?? "",
+      dclDe: dclDe ?? "",
+      hsCd: hsCd ?? "",
+      imptItemsttsCd: imptItemsttsCd ?? "",
+      lastTouched: DateTime.now(),
+      name: product?.name ?? name,
+      sku: sku,
+      productId: product?.id ?? productId,
+      color: product?.color,
+      unit: 'Per Item',
+      productName: product?.name ?? name,
+      branchId: branchId,
+      supplyPrice: supplierPrice,
+      retailPrice: retailPrice,
+      id: variantId,
+      bhfId: bhFId ?? '00',
+      itemStdNm: "Regular",
+      addInfo: "A",
+      pkg: pkg?.toString() ?? "1",
+      splyAmt: supplierPrice,
+      itemClsCd: "5020230602",
+      itemCd: await itemCode(
+        countryCode: 'RW',
+        productType: "2",
+        packagingUnit: "CT",
+        quantityUnit: "BJ",
         branchId: branchId,
-        supplyPrice: supplierPrice,
-        retailPrice: retailPrice,
-        id: variantId,
-        bhfId: bhFId ?? '00',
-        itemStdNm: "Regular",
-        addInfo: "A",
-        pkg: "1",
-        splyAmt: supplierPrice,
-        itemClsCd: "5020230602",
-        itemCd: await itemCode(
-          countryCode: 'RW',
-          productType: "2",
-          packagingUnit: "CT",
-          quantityUnit: "BJ",
-          branchId: branchId,
-        ),
-        modrNm: number,
-        modrId: number,
-        pkgUnitCd: "BJ",
-        regrId: randomNumber().toString().substring(0, 5),
-        itemTyCd: "2", // this is a finished product
-        /// available type for itemTyCd are 1 for raw material and 3 for service
-        /// is insurance applicable default is not applicable
-        isrcAplcbYn: "N",
-        useYn: "N",
-        itemSeq: itemSeq,
-        itemNm: product?.name ?? name,
-        taxPercentage: 18.0,
-        tin: tinNumber,
-        bcd: product?.name ?? name,
+      ),
+      modrNm: name,
+      modrId: modrId ?? number,
+      pkgUnitCd: pkgUnitCd ?? "BJ",
+      regrId: randomNumber().toString().substring(0, 5),
+      itemTyCd: "2", // this is a finished product
+      /// available type for itemTyCd are 1 for raw material and 3 for service
+      /// is insurance applicable default is not applicable
+      isrcAplcbYn: "N",
+      useYn: "N",
+      itemSeq: itemSeq,
+      itemNm: product?.name ?? name,
+      taxPercentage: 18.0,
+      tin: tinNumber,
+      bcd: product?.name ?? name,
 
-        /// country of origin for this item we default until we support something different
-        /// and this will happen when we do import.
-        orgnNatCd: "RW",
+      /// country of origin for this item we default until we support something different
+      /// and this will happen when we do import.
+      orgnNatCd: orgnNatCd ?? "RW",
 
-        /// registration name
-        regrNm: product?.name ?? name,
+      /// registration name
+      regrNm: product?.name ?? name,
 
-        /// taxation type code
-        taxTyCd: "B", // available types A(A-EX),B(B-18.00%),C,D
-        // default unit price
-        dftPrc: retailPrice,
-        prc: retailPrice,
+      /// taxation type code
+      taxTyCd: "B", // available types A(A-EX),B(B-18.00%),C,D
+      // default unit price
+      dftPrc: retailPrice,
+      prc: retailPrice,
 
-        // NOTE: I believe bellow item are required when saving purchase
-        ///but I wonder how to get them when saving an item.
-        spplrItemCd: "",
-        spplrItemClsCd: "",
-        spplrItemNm: product?.name ?? name,
+      // NOTE: I believe bellow item are required when saving purchase
+      ///but I wonder how to get them when saving an item.
+      spplrItemCd: "",
+      spplrItemClsCd: "",
+      spplrItemNm: product?.name ?? name,
 
-        /// Packaging Unit
-        qtyUnitCd: "U", // see 4.6 in doc
-        ebmSynced: ebmSynced);
+      /// Packaging Unit
+      qtyUnitCd: "U", // see 4.6 in doc
+      ebmSynced: ebmSynced,
+    );
   }
 
   @override
@@ -638,6 +669,24 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       required int branchId,
       required int tinNumber,
       required String bhFId,
+      String? modrId,
+      String? orgnNatCd,
+      String? exptNatCd,
+      int? pkg,
+      String? pkgUnitCd,
+      String? qtyUnitCd,
+      int? totWt,
+      int? netWt,
+      String? spplrNm,
+      String? agntNm,
+      int? invcFcurAmt,
+      String? invcFcurCd,
+      double? invcFcurExcrt,
+      String? dclNo,
+      String? taskCd,
+      String? dclDe,
+      String? hsCd,
+      String? imptItemsttsCd,
       bool skipRegularVariant = false,
       double qty = 1,
       double supplyPrice = 0,
@@ -657,33 +706,55 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
     sku.consumed = true;
     await repository.upsert(sku);
-    await repository.upsert(product);
+    final createdProduct = await repository.upsert<Product>(product);
 
     if (!skipRegularVariant) {
-      Variant newVariant = await _createRegularVariant(branchId, tinNumber,
-          qty: qty,
-          product: product,
-          bhFId: bhFId,
-          supplierPrice: supplyPrice,
-          retailPrice: retailPrice,
-          name: product.name,
-          sku: sku.sku.toString(),
-          productId: product.id,
-          itemSeq: itemSeq,
-          ebmSynced: ebmSynced);
-      await repository.upsert<Variant>(newVariant);
+      Variant newVariant = await _createRegularVariant(
+        branchId,
+        tinNumber,
+        modrId: modrId,
+        orgnNatCd: orgnNatCd,
+        exptNatCd: exptNatCd,
+        pkg: pkg,
+        pkgUnitCd: pkgUnitCd,
+        qtyUnitCd: qtyUnitCd,
+        totWt: totWt,
+        netWt: netWt,
+        spplrNm: spplrNm,
+        agntNm: agntNm,
+        invcFcurAmt: invcFcurAmt,
+        invcFcurExcrt: invcFcurExcrt,
+        invcFcurCd: invcFcurCd,
+        qty: qty,
+        dclNo: dclNo,
+        taskCd: taskCd,
+        dclDe: dclDe,
+        hsCd: hsCd,
+        imptItemsttsCd: imptItemsttsCd,
+        product: createdProduct,
+        bhFId: bhFId,
+        supplierPrice: supplyPrice,
+        retailPrice: retailPrice,
+        name: createdProduct.name,
+        sku: sku.sku.toString(),
+        productId: product.id,
+        itemSeq: itemSeq,
+        ebmSynced: ebmSynced,
+      );
 
       final Stock stock = Stock(
           lastTouched: DateTime.now(),
-          // variant: newVariant,
+          rsdQty: qty,
+          initialStock: qty,
+          value: (qty * newVariant.retailPrice!).toDouble(),
           branchId: branchId,
           currentStock: qty);
-
-      await repository.upsert<Stock>(stock);
+      final createdStock = await repository.upsert<Stock>(stock);
+      newVariant.stock = createdStock;
+      newVariant.stockId = createdStock.id;
+      await repository.upsert<Variant>(newVariant);
     }
-    return (await repository.get<Product>(
-            query: brick.Query.where('id', product.id)))
-        .first;
+    return createdProduct;
   }
 
   @override
@@ -2198,14 +2269,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<void> markModelForEbmUpdate<T>(
-      {required T model, bool updated = true}) {
-    // TODO: implement markModelForEbmUpdate
-    throw UnimplementedError(
-        "markModelForEbmUpdate method is not implemented yet");
-  }
-
-  @override
   Drawers? openDrawer({required Drawers drawer}) {
     // TODO: implement openDrawer
     throw UnimplementedError("openDrawer method is not implemented yet");
@@ -2619,7 +2682,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     final http.Response response = await flipperHttpClient
         .post(Uri.parse("$apihub/v2/api/business"), body: jsonEncode(business));
     if (response.statusCode == 200) {
-      /// because we want to close the inMemory realm db
       /// as soon as possible so I can be able to save real data into realm
       /// then I call login in here after signup as login handle configuring
       final userId = ProxyService.box.getUserId();
@@ -2643,7 +2705,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           flipperHttpClient: flipperHttpClient);
 
       configureLocal(useInMemory: false, box: ProxyService.box);
-
+      try {
+        /// when signup, save the businessId on fly, this can be overriden later.
+        ProxyService.box.writeInt(
+            key: 'businessId',
+            value: ITenant.fromJsonList(response.body).first.id!);
+      } catch (e) {}
       return ITenant.fromJsonList(response.body);
     } else {
       talker.error(response.body.toString());

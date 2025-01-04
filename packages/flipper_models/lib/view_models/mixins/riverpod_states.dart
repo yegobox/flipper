@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import '_transaction.dart';
 import 'package:http/http.dart' as http;
 
+final coreViewModelProvider = ChangeNotifierProvider((ref) => CoreViewModel());
 final unsavedProductProvider =
     StateNotifierProvider<ProductNotifier, Product?>((ref) {
   return ProductNotifier();

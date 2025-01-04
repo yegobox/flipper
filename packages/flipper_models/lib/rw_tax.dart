@@ -267,7 +267,28 @@ class RWTax with NetworkHelper implements TaxApi {
       if (variation.tin == null) {
         return RwApiResponse(resultCd: "000", resultMsg: "Invalid tin");
       }
-      final response = await sendPostRequest(url, variation.toJson());
+
+      /// first remove fields for imports
+      final itemJson = variation.toJson();
+      itemJson.removeWhere((key, value) =>
+          [
+            "totWt",
+            "netWt",
+            "spplrNm",
+            "agntNm",
+            "invcFcurAmt",
+            "invcFcurCd",
+            "invcFcurExcrt",
+            "exptNatCd",
+            "dclNo",
+            "taskCd",
+            "dclDe",
+            "hsCd",
+            "imptItemsttsCd"
+          ].contains(key) ||
+          value == null ||
+          value == "");
+      final response = await sendPostRequest(url, itemJson);
       if (response.statusCode == 200) {
         final data = RwApiResponse.fromJson(response.data);
 
@@ -942,7 +963,9 @@ class RWTax with NetworkHelper implements TaxApi {
       if (response.statusCode == 200) {
         final jsonResponse = response.data;
         final respond = RwApiResponse.fromJson(jsonResponse);
-        if (respond.resultCd == "894" || respond.resultCd != "000") {
+        if (respond.resultCd == "894" ||
+            respond.resultCd != "000" ||
+            respond.resultCd == "910") {
           throw Exception(respond.resultMsg);
         }
 
@@ -956,6 +979,23 @@ class RWTax with NetworkHelper implements TaxApi {
           tinNumber: ProxyService.box.tin(),
           businessId: ProxyService.box.getBusinessId()!,
           branchId: ProxyService.box.getBranchId()!,
+          modrId: item.modrId,
+          totWt: item.totWt,
+          netWt: item.netWt,
+          spplrNm: item.spplrNm,
+          agntNm: item.agntNm,
+          invcFcurAmt: item.invcFcurAmt,
+          invcFcurCd: item.invcFcurCd,
+          invcFcurExcrt: item.invcFcurExcrt,
+          exptNatCd: item.exptNatCd,
+          pkg: item.pkg,
+          pkgUnitCd: item.pkgUnitCd,
+          dclNo: item.dclNo,
+          taskCd: item.taskCd,
+          dclDe: item.dclDe,
+
+          hsCd: item.hsCd,
+          imptItemsttsCd: item.imptItemsttsCd,
           product: Product(
             color: "#e74c3c",
             name: item.itemNm,
@@ -969,7 +1009,7 @@ class RWTax with NetworkHelper implements TaxApi {
           retailPrice: item.retailPrice!,
           itemSeq: item.itemSeq,
           // since this is import we do not need to sync back the same item back to RRA
-          ebmSynced: true,
+          ebmSynced: false,
         );
 
         /// I need to also receive both retail and supply price from user

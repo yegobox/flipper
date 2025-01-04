@@ -60,7 +60,20 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       dcRt: data['dc_rt'] as double?,
       expirationDate: data['expiration_date'] == null
           ? null
-          : DateTime.tryParse(data['expiration_date'] as String));
+          : DateTime.tryParse(data['expiration_date'] as String),
+      totWt: data['tot_wt'] as int?,
+      netWt: data['net_wt'] as int?,
+      spplrNm: data['spplr_nm'] as String?,
+      agntNm: data['agnt_nm'] as String?,
+      invcFcurAmt: data['invc_fcur_amt'] as int?,
+      invcFcurCd: data['invc_fcur_cd'] as String?,
+      invcFcurExcrt: data['invc_fcur_excrt'] as double?,
+      exptNatCd: data['expt_nat_cd'] as String?,
+      dclNo: data['dcl_no'] as String?,
+      taskCd: data['task_cd'] as String?,
+      dclDe: data['dcl_de'] as String?,
+      hsCd: data['hs_cd'] as String?,
+      imptItemsttsCd: data['impt_itemstts_cd'] as String?);
 }
 
 Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
@@ -118,7 +131,20 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'spplr_item_nm': instance.spplrItemNm,
     'ebm_synced': instance.ebmSynced,
     'dc_rt': instance.dcRt,
-    'expiration_date': instance.expirationDate?.toIso8601String()
+    'expiration_date': instance.expirationDate?.toIso8601String(),
+    'tot_wt': instance.totWt,
+    'net_wt': instance.netWt,
+    'spplr_nm': instance.spplrNm,
+    'agnt_nm': instance.agntNm,
+    'invc_fcur_amt': instance.invcFcurAmt,
+    'invc_fcur_cd': instance.invcFcurCd,
+    'invc_fcur_excrt': instance.invcFcurExcrt,
+    'expt_nat_cd': instance.exptNatCd,
+    'dcl_no': instance.dclNo,
+    'task_cd': instance.taskCd,
+    'dcl_de': instance.dclDe,
+    'hs_cd': instance.hsCd,
+    'impt_itemstts_cd': instance.imptItemsttsCd
   };
 }
 
@@ -209,7 +235,27 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
           ? null
           : data['expiration_date'] == null
               ? null
-              : DateTime.tryParse(data['expiration_date'] as String))
+              : DateTime.tryParse(data['expiration_date'] as String),
+      totWt: data['tot_wt'] == null ? null : data['tot_wt'] as int?,
+      netWt: data['net_wt'] == null ? null : data['net_wt'] as int?,
+      spplrNm: data['spplr_nm'] == null ? null : data['spplr_nm'] as String?,
+      agntNm: data['agnt_nm'] == null ? null : data['agnt_nm'] as String?,
+      invcFcurAmt:
+          data['invc_fcur_amt'] == null ? null : data['invc_fcur_amt'] as int?,
+      invcFcurCd:
+          data['invc_fcur_cd'] == null ? null : data['invc_fcur_cd'] as String?,
+      invcFcurExcrt: data['invc_fcur_excrt'] == null
+          ? null
+          : data['invc_fcur_excrt'] as double?,
+      exptNatCd:
+          data['expt_nat_cd'] == null ? null : data['expt_nat_cd'] as String?,
+      dclNo: data['dcl_no'] == null ? null : data['dcl_no'] as String?,
+      taskCd: data['task_cd'] == null ? null : data['task_cd'] as String?,
+      dclDe: data['dcl_de'] == null ? null : data['dcl_de'] as String?,
+      hsCd: data['hs_cd'] == null ? null : data['hs_cd'] as String?,
+      imptItemsttsCd: data['impt_itemstts_cd'] == null
+          ? null
+          : data['impt_itemstts_cd'] as String?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -270,7 +316,20 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'ebm_synced':
         instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
     'dc_rt': instance.dcRt,
-    'expiration_date': instance.expirationDate?.toIso8601String()
+    'expiration_date': instance.expirationDate?.toIso8601String(),
+    'tot_wt': instance.totWt,
+    'net_wt': instance.netWt,
+    'spplr_nm': instance.spplrNm,
+    'agnt_nm': instance.agntNm,
+    'invc_fcur_amt': instance.invcFcurAmt,
+    'invc_fcur_cd': instance.invcFcurCd,
+    'invc_fcur_excrt': instance.invcFcurExcrt,
+    'expt_nat_cd': instance.exptNatCd,
+    'dcl_no': instance.dclNo,
+    'task_cd': instance.taskCd,
+    'dcl_de': instance.dclDe,
+    'hs_cd': instance.hsCd,
+    'impt_itemstts_cd': instance.imptItemsttsCd
   };
 }
 
@@ -481,6 +540,58 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'expirationDate': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'expiration_date',
+    ),
+    'totWt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'tot_wt',
+    ),
+    'netWt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'net_wt',
+    ),
+    'spplrNm': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'spplr_nm',
+    ),
+    'agntNm': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'agnt_nm',
+    ),
+    'invcFcurAmt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'invc_fcur_amt',
+    ),
+    'invcFcurCd': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'invc_fcur_cd',
+    ),
+    'invcFcurExcrt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'invc_fcur_excrt',
+    ),
+    'exptNatCd': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'expt_nat_cd',
+    ),
+    'dclNo': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'dcl_no',
+    ),
+    'taskCd': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'task_cd',
+    ),
+    'dclDe': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'dcl_de',
+    ),
+    'hsCd': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'hs_cd',
+    ),
+    'imptItemsttsCd': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'impt_itemstts_cd',
     )
   };
   @override
@@ -788,6 +899,84 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       columnName: 'expiration_date',
       iterable: false,
       type: DateTime,
+    ),
+    'totWt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'tot_wt',
+      iterable: false,
+      type: int,
+    ),
+    'netWt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'net_wt',
+      iterable: false,
+      type: int,
+    ),
+    'spplrNm': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'spplr_nm',
+      iterable: false,
+      type: String,
+    ),
+    'agntNm': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'agnt_nm',
+      iterable: false,
+      type: String,
+    ),
+    'invcFcurAmt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'invc_fcur_amt',
+      iterable: false,
+      type: int,
+    ),
+    'invcFcurCd': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'invc_fcur_cd',
+      iterable: false,
+      type: String,
+    ),
+    'invcFcurExcrt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'invc_fcur_excrt',
+      iterable: false,
+      type: double,
+    ),
+    'exptNatCd': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'expt_nat_cd',
+      iterable: false,
+      type: String,
+    ),
+    'dclNo': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'dcl_no',
+      iterable: false,
+      type: String,
+    ),
+    'taskCd': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'task_cd',
+      iterable: false,
+      type: String,
+    ),
+    'dclDe': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'dcl_de',
+      iterable: false,
+      type: String,
+    ),
+    'hsCd': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'hs_cd',
+      iterable: false,
+      type: String,
+    ),
+    'imptItemsttsCd': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'impt_itemstts_cd',
+      iterable: false,
+      type: String,
     )
   };
   @override

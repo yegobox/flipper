@@ -153,6 +153,24 @@ abstract class RealmInterface {
 
   Future<Product?> createProduct(
       {required Product product,
+      String? modrId,
+      String? orgnNatCd,
+      String? exptNatCd,
+      int? pkg,
+      String? pkgUnitCd,
+      String? qtyUnitCd,
+      int? totWt,
+      int? netWt,
+      String? spplrNm,
+      String? agntNm,
+      int? invcFcurAmt,
+      String? invcFcurCd,
+      double? invcFcurExcrt,
+      String? dclNo,
+      String? taskCd,
+      String? dclDe,
+      String? hsCd,
+      String? imptItemsttsCd,
       required int businessId,
       required int branchId,
       required int tinNumber,
@@ -335,8 +353,7 @@ abstract class RealmInterface {
 
   Stream<double> soldStockValue({required branchId});
   Stream<double> initialStock({required branchId});
-  Future<void> markModelForEbmUpdate<T>(
-      {required T model, bool updated = true});
+
   Stream<List<Category>> categoryStream();
   Future<RwApiResponse> selectImportItems({
     required int tin,

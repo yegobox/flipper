@@ -68,6 +68,11 @@ Item _$ItemFromJson(Map<String, dynamic> json) => Item(
       qtyUnitCd: json['qtyUnitCd'] as String,
       totWt: (json['totWt'] as num).toInt(),
       netWt: (json['netWt'] as num).toInt(),
+      modrId: json['modrId'] as String?,
+      tin: (json['tin'] as num?)?.toInt(),
+      bhfId: json['bhfId'] as String?,
+      modrNm: json['modrNm'] as String?,
+      imptItemSttsCd: json['imptItemSttsCd'] as String?,
       spplrNm: json['spplrNm'] as String,
       agntNm: json['agntNm'] as String,
       invcFcurAmt: (json['invcFcurAmt'] as num).toInt(),
@@ -88,6 +93,8 @@ Map<String, dynamic> _$ItemToJson(Item instance) => <String, dynamic>{
       'orgnNatCd': instance.orgnNatCd,
       'exptNatCd': instance.exptNatCd,
       'pkg': instance.pkg,
+      'modrId': instance.modrId,
+      'tin': instance.tin,
       'pkgUnitCd': instance.pkgUnitCd,
       'qty': instance.qty,
       'qtyUnitCd': instance.qtyUnitCd,
@@ -100,6 +107,9 @@ Map<String, dynamic> _$ItemToJson(Item instance) => <String, dynamic>{
       'invcFcurExcrt': instance.invcFcurExcrt,
       'supplyPrice': instance.supplyPrice,
       'retailPrice': instance.retailPrice,
+      'bhfId': instance.bhfId,
+      'modrNm': instance.modrNm,
+      'imptItemSttsCd': instance.imptItemSttsCd,
     };
 
 SaleList _$SaleListFromJson(Map<String, dynamic> json) => SaleList(

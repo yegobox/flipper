@@ -135,7 +135,7 @@ class _ImportSalesWidgetState extends State<ImportSalesWidget> {
                             padding: EdgeInsets.symmetric(
                                 horizontal: 16.0, vertical: 12.0),
                             child: Text(
-                              'Save Name',
+                              'Save Changes',
                               style: TextStyle(
                                 fontSize: 16.0,
                                 fontWeight: FontWeight.w500,

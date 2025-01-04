@@ -79,6 +79,22 @@ class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(ignore: true)
   double? rsdQty;
 
+  /// add more field to support importing
+
+  int? totWt;
+  int? netWt;
+  String? spplrNm;
+  String? agntNm;
+  int? invcFcurAmt;
+  String? invcFcurCd;
+  double? invcFcurExcrt;
+  String? exptNatCd;
+  String? dclNo;
+  String? taskCd;
+  String? dclDe;
+  String? hsCd;
+  String? imptItemsttsCd;
+
   Variant({
     String? id,
     this.qty,
@@ -130,6 +146,19 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.ebmSynced,
     this.dcRt,
     this.expirationDate,
+    this.totWt,
+    this.netWt,
+    this.spplrNm,
+    this.agntNm,
+    this.invcFcurAmt,
+    this.invcFcurCd,
+    this.invcFcurExcrt,
+    this.exptNatCd,
+    this.dclNo,
+    this.taskCd,
+    this.dclDe,
+    this.hsCd,
+    this.imptItemsttsCd,
   }) : id = id ?? const Uuid().v4();
 
   // fromJson method
@@ -182,6 +211,19 @@ class Variant extends OfflineFirstWithSupabaseModel {
       ebmSynced: json['ebmSynced'],
       dcRt: json['dcRt'],
       expirationDate: json['expirationDate'],
+      totWt: json['totWt'],
+      netWt: json['netWt'],
+      spplrNm: json['spplrNm'],
+      agntNm: json['agntNm'],
+      invcFcurAmt: json['invcFcurAmt'],
+      invcFcurCd: json['invcFcurCd'],
+      invcFcurExcrt: json['invcFcurExcrt'],
+      exptNatCd: json['exptNatCd'],
+      dclNo: json['dclNo'],
+      taskCd: json['taskCd'],
+      dclDe: json['dclDe'],
+      hsCd: json['hsCd'],
+      imptItemsttsCd: json['imptItemsttsCd'],
     );
   }
 
@@ -234,6 +276,19 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'ebmSynced': ebmSynced,
       'dcRt': dcRt,
       'rsdQty': rsdQty,
+      'totWt': totWt,
+      'netWt': netWt,
+      'spplrNm': spplrNm,
+      'agntNm': agntNm,
+      'invcFcurAmt': invcFcurAmt,
+      'invcFcurCd': invcFcurCd,
+      'invcFcurExcrt': invcFcurExcrt,
+      'exptNatCd': exptNatCd,
+      'dclNo': dclNo,
+      'taskCd': taskCd,
+      'dclDe': dclDe,
+      'hsCd': hsCd,
+      'imptItemsttsCd': imptItemsttsCd,
     };
   }
 }

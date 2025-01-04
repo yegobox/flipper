@@ -285,11 +285,23 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   }
 
   Future<void> _acceptAllImport() async {
+    brick.Business? business = await ProxyService.strategy
+        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     try {
       setState(() {
         isLoading = true;
       });
       for (Item item in finalItemList) {
+        // for now skip those with no supply, retail price set
+        if (item.supplyPrice == null || item.retailPrice == null) continue;
+
+        item.modrId = item.modrId ?? randomNumber().toString().substring(0, 5);
+        item.bhfId = item.bhfId ?? "00";
+        item.modrNm = item.modrNm ?? item.itemNm;
+        item.tin = item.tin ?? business?.tinNumber ?? ProxyService.box.tin();
+
+        /// 2 is approved, we are approving this import.
+        item.imptItemSttsCd = "2";
         await ProxyService.tax.updateImportItems(
             item: item, URI: await ProxyService.box.getServerUrl() ?? "");
       }

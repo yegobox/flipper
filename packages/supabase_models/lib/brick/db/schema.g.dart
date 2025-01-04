@@ -1,29 +1,31 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250102144742.migration.dart';
-part '20250101092622.migration.dart';
+part '20250104131208.migration.dart';
 part '20250102092703.migration.dart';
 part '20250102092919.migration.dart';
-part '20250102110336.migration.dart';
-part '20250102124844.migration.dart';
 part '20250102125905.migration.dart';
+part '20250101092622.migration.dart';
 part '20250102130727.migration.dart';
+part '20250102124844.migration.dart';
+part '20250102110336.migration.dart';
+part '20250102144742.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250102144742(),
-  const Migration20250101092622(),
+  const Migration20250104131208(),
   const Migration20250102092703(),
   const Migration20250102092919(),
-  const Migration20250102110336(),
-  const Migration20250102124844(),
   const Migration20250102125905(),
-  const Migration20250102130727()
+  const Migration20250101092622(),
+  const Migration20250102130727(),
+  const Migration20250102124844(),
+  const Migration20250102110336(),
+  const Migration20250102144742()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250102144742, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250104131208, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -335,7 +337,20 @@ final schema = Schema(20250102144742, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('spplr_item_nm', Column.varchar),
     SchemaColumn('ebm_synced', Column.boolean),
     SchemaColumn('dc_rt', Column.Double),
-    SchemaColumn('expiration_date', Column.datetime)
+    SchemaColumn('expiration_date', Column.datetime),
+    SchemaColumn('tot_wt', Column.integer),
+    SchemaColumn('net_wt', Column.integer),
+    SchemaColumn('spplr_nm', Column.varchar),
+    SchemaColumn('agnt_nm', Column.varchar),
+    SchemaColumn('invc_fcur_amt', Column.integer),
+    SchemaColumn('invc_fcur_cd', Column.varchar),
+    SchemaColumn('invc_fcur_excrt', Column.Double),
+    SchemaColumn('expt_nat_cd', Column.varchar),
+    SchemaColumn('dcl_no', Column.varchar),
+    SchemaColumn('task_cd', Column.varchar),
+    SchemaColumn('dcl_de', Column.varchar),
+    SchemaColumn('hs_cd', Column.varchar),
+    SchemaColumn('impt_itemstts_cd', Column.varchar)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),

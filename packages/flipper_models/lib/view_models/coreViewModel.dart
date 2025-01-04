@@ -5,6 +5,8 @@ library flipper_models;
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:flipper_models/helperModels/RwApiResponse.dart';
+import 'package:flipper_models/helperModels/RwApiResponse.dart' as api;
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -12,9 +14,10 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'package:stacked/stacked.dart';
-
+import 'package:flipper_models/realm_model_export.dart' as brick;
 import 'mixins/all.dart';
 
 class CoreViewModel extends FlipperBaseModel
@@ -871,5 +874,177 @@ class CoreViewModel extends FlipperBaseModel
     // return response;
 
     return 0;
+  }
+
+  DateTime selectedDate = DateTime.now();
+  Future<RwApiResponse>? futureImportResponse;
+  Future<RwApiResponse>? futurePurchaseResponse;
+  bool isLoading = false;
+  List<SaleList> salesList = [];
+  RwApiResponse? rwResponse;
+
+  String convertDateToString(DateTime date) {
+    final outputFormat = DateFormat('yyyyMMddHHmmss');
+    return outputFormat.format(date);
+  }
+
+  Future<RwApiResponse> fetchData({
+    required DateTime selectedDate,
+    required bool isImport,
+  }) async {
+    isLoading = true;
+    notifyListeners();
+    
+    if (isImport) {
+      brick.Business? business = await ProxyService.strategy
+          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+      final data = await ProxyService.strategy.selectImportItems(
+        tin: business?.tinNumber ?? ProxyService.box.tin(),
+        bhfId: (await ProxyService.box.bhfId()) ?? "00",
+        lastReqDt: convertDateToString(selectedDate),
+      );
+      
+      rwResponse = data;
+      salesList = data.data?.saleList ?? [];
+      
+      isLoading = false;
+      notifyListeners();
+      return data;
+    } else {
+      final url = await ProxyService.box.getServerUrl();
+      final rwResponse = await ProxyService.tax.selectTrnsPurchaseSales(
+        URI: url!,
+        tin: ProxyService.box.tin(),
+        bhfId: (await ProxyService.box.bhfId()) ?? "00",
+        lastReqDt: convertDateToString(selectedDate),
+      );
+      
+      salesList = rwResponse.data?.saleList ?? [];
+      isLoading = false;
+      notifyListeners();
+      return rwResponse;
+    }
+  }
+
+  Future<void> acceptPurchase() async {
+    brick.ITransaction? pendingTransaction = null;
+    try {
+      isLoading = true;
+      notifyListeners();
+      
+      talker.warning("salesListLenghts" + salesList.length.toString());
+      final ref = randomNumber();
+      
+      for (SaleList supplier in salesList) {
+        for (ItemList item in supplier.itemList!) {
+          item.retailPrice ??= item.prc;
+          talker.warning(
+              "Retail Prices while saving item in our DB:: ${item.retailPrice}");
+          
+          brick.Product? product = await ProxyService.strategy.createProduct(
+            businessId: ProxyService.box.getBusinessId()!,
+            branchId: ProxyService.box.getBranchId()!,
+            tinNumber: ProxyService.box.tin(),
+            bhFId: (await ProxyService.box.bhfId()) ?? "00",
+            product: brick.Product(
+              color: "#e74c3c",
+              name: item.itemNm,
+              lastTouched: DateTime.now(),
+              branchId: ProxyService.box.getBranchId()!,
+              businessId: ProxyService.box.getBusinessId()!,
+              createdAt: DateTime.now(),
+              spplrNm: supplier.spplrNm,
+            ),
+            supplyPrice: item.splyAmt,
+            retailPrice: item.retailPrice ?? item.prc,
+            itemSeq: item.itemSeq,
+            ebmSynced: false,
+          );
+
+          talker.warning("Created Product ${product!.id}");
+          brick.Variant? variant = (await ProxyService.strategy.variants(
+                  productId: product.id,
+                  branchId: ProxyService.box.getBranchId()!))
+              .firstOrNull;
+          
+          talker.warning("Variant ${variant?.id}");
+          pendingTransaction = await ProxyService.strategy.manageTransaction(
+            transactionType: TransactionType.purchase,
+            isExpense: true,
+            branchId: ProxyService.box.getBranchId()!,
+          );
+          
+          if (variant != null) {
+            saveTransaction(
+              variation: variant,
+              amountTotal: variant.retailPrice!,
+              customItem: false,
+              currentStock: variant.stock!.currentStock!,
+              pendingTransaction: pendingTransaction,
+              partOfComposite: false,
+              compositePrice: 0,
+            );
+            
+            final bhfId = await ProxyService.box.bhfId() ?? "00";
+
+            ProxyService.strategy.updateTransaction(
+              transaction: pendingTransaction,
+              status: PARKED,
+              sarTyCd: "6",
+              receiptNumber: ref,
+              reference: ref.toString(),
+              invoiceNumber: ref,
+              receiptType: TransactionType.purchase,
+              customerTin: ProxyService.box.tin().toString(),
+              customerBhfId: bhfId,
+              subTotal: pendingTransaction.subTotal! + item.splyAmt,
+              cashReceived: -(pendingTransaction.subTotal! + item.splyAmt),
+              customerName: (await ProxyService.strategy.getBusiness())!.name,
+            );
+          }
+
+          await ProxyService.tax.savePurchases(
+              item: supplier,
+              bhfId: (await ProxyService.box.bhfId()) ?? "00",
+              rcptTyCd: "P",
+              URI: await ProxyService.box.getServerUrl() ?? "");
+        }
+
+        ProxyService.strategy.updateTransaction(
+          transaction: pendingTransaction!,
+          status: COMPLETE,
+        );
+        // refreshTransactionItems(transactionId: pendingTransaction.id);
+      }
+      
+      isLoading = false;
+      notifyListeners();
+      return Future.value();
+    } catch (e, s) {
+      talker.error(e);
+      talker.error(s);
+      isLoading = false;
+      notifyListeners();
+      throw Exception("Internal error, could not save purchases");
+    }
+  }
+
+  Future<void> acceptAllImport(List<api.Item> finalItemList) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+      
+      for (api.Item item in finalItemList) {
+        await ProxyService.tax.updateImportItems(
+            item: item, URI: await ProxyService.box.getServerUrl() ?? "");
+      }
+      
+      isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      isLoading = false;
+      notifyListeners();
+      throw Exception("Internal error, could not save import items");
+    }
   }
 }
