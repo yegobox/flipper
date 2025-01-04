@@ -11,9 +11,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_services/proxy.dart';
 import 'drawerB.dart';
-import 'widgets/dropdown.dart';
+// TODO: delete this widgets
+// import 'widgets/dropdown.dart';
+// import 'widgets/mini_app_icon.dart';
 import 'customappbar.dart';
-import 'widgets/mini_app_icon.dart';
+
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -59,34 +61,40 @@ class _AppsState extends ConsumerState<Apps> {
         isDividerVisible: false,
         bottomSpacer: 48.99,
         closeButton: CLOSEBUTTON.WIDGET,
-        customTrailingWidget: _buildProfileWidget(),
+        customTrailingWidget: ProfileFutureWidget(),
         customLeadingWidget: _buildDrawerButton(),
+        // elevation: 2,
       ),
-      body: Column(
-        children: [
-          _buildFilterRow(),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 40.0),
-                    child: _buildGauge(context, ref),
+      body: Container(
+        color: Colors.grey[50], // Light background for better contrast
+        child: Column(
+          // spacing: 4,
+          children: [
+            _buildFilterRow(),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  // Refresh data
+                  await ref.refresh(transactionsStreamProvider);
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    children: [
+                      _buildGauge(context, ref),
+                      _buildAppIconsGrid(),
+                      const SizedBox(height: 24),
+                      _buildFooter(),
+                      const SizedBox(height: 16),
+                    ],
                   ),
-                  _buildAppIconsGrid(),
-                  const SizedBox(height: 20),
-                ],
+                ),
               ),
             ),
-          ),
-          _buildFooter(),
-        ],
+          ],
+        ),
       ),
     );
-  }
-
-  StatelessWidget? _buildProfileWidget() {
-    return const ProfileFutureWidget();
   }
 
   StatelessWidget? _buildDrawerButton() {
@@ -105,28 +113,75 @@ class _AppsState extends ConsumerState<Apps> {
   }
 
   Widget _buildFilterRow() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(1),
+            offset: const Offset(0, 2),
+            blurRadius: 4,
+          ),
+        ],
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          ReusableDropdown(
-            options: transactionPeriodOptions,
-            selectedOption: transactionPeriod,
-            onChanged: (String? newPeriod) {
-              setState(() {
-                transactionPeriod = newPeriod!;
-              });
-            },
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: ButtonTheme(
+                  alignedDropdown: true,
+                  child: DropdownButton<String>(
+                    value: transactionPeriod,
+                    items: transactionPeriodOptions.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        setState(() => transactionPeriod = newValue);
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ),
           ),
-          ReusableDropdown(
-            options: profitTypeOptions,
-            selectedOption: profitType,
-            onChanged: (String? newProfitType) {
-              setState(() {
-                profitType = newProfitType!;
-              });
-            },
+          const SizedBox(width: 16),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: ButtonTheme(
+                  alignedDropdown: true,
+                  child: DropdownButton<String>(
+                    value: profitType,
+                    items: profitTypeOptions.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        setState(() => profitType = newValue);
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -134,119 +189,109 @@ class _AppsState extends ConsumerState<Apps> {
   }
 
   Widget _buildAppIconsGrid() {
-    return GridView.count(
-      crossAxisCount: 3,
-      crossAxisSpacing: 8,
-      mainAxisSpacing: 8,
-      padding: const EdgeInsets.all(16),
+    final List<Map<String, dynamic>> apps = [
+      {
+        'icon': FluentIcons.calculator_24_regular,
+        'color': const Color(0xff006AFE),
+        'page': "POS",
+        'label': "Point of Sale"
+      },
+      {
+        'icon': FluentIcons.book_48_regular,
+        'color': const Color(0xFF66AAFF),
+        'page': "Cashbook",
+        'label': "Cash Book"
+      },
+      {
+        'icon': FluentIcons.arrow_swap_20_regular,
+        'color': const Color(0xFFFF0331),
+        'page': "Transactions",
+        'label': "Transactions"
+      },
+      {
+        'icon': FluentIcons.people_32_regular,
+        'color': Colors.cyan,
+        'page': "Contacts",
+        'label': "Contacts"
+      },
+      {
+        'icon': Icons.call,
+        'color': Colors.lightBlue,
+        'page': "Support",
+        'label': "Support"
+      },
+    ];
+
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 1,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      children: [
-        _buildCustomPaintWithIcon(
-          iconData: FluentIcons.calculator_24_regular,
-          color: const Color(0xff006AFE),
-          page: "POS",
-        ),
-        _buildCustomPaintWithIcon(
-          iconData: FluentIcons.book_48_regular,
-          color: const Color(0xFF66AAFF),
-          page: "Cashbook",
-        ),
-        _buildCustomPaintWithIcon(
-          iconData: FluentIcons.arrow_swap_20_regular,
-          color: const Color(0xFFFF0331),
-          page: "Transactions",
-        ),
-        _buildCustomPaintWithIcon(
-          iconData: FluentIcons.people_32_regular,
-          color: Colors.cyan,
-          page: "Contacts",
-        ),
-        _buildCustomPaintWithIcon(
-          iconData: Icons.call,
-          color: Colors.lightBlue,
-          page: "Support",
-        ),
-      ],
+      itemCount: apps.length,
+      itemBuilder: (context, index) {
+        final app = apps[index];
+        return Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () async {
+              HapticFeedback.lightImpact();
+              await _navigateToPage(app['page']);
+            },
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: app['color'].withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    app['icon'],
+                    color: app['color'],
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  app['label'],
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildFooter() {
     return Column(
       children: [
-        const SizedBox(height: 8.0),
         Text(
           'FROM YEGOBOX',
           style: GoogleFonts.poppins(
-            fontSize: 16,
-            color: Colors.black.withOpacity(0.7),
-            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.2,
           ),
         ),
       ],
     );
-  }
-
-  Widget _buildCustomPaintWithIcon({
-    required dynamic iconData,
-    required Color color,
-    required String page,
-  }) {
-    return GestureDetector(
-      onTap: () async {
-        HapticFeedback.lightImpact();
-        await _navigateToPage(page);
-      },
-      child: MiniAppIcon(
-        icon: iconData,
-        color: color,
-        page: page,
-        showPageName: true,
-      ),
-    );
-  }
-
-  Future<void> _navigateToPage(String page) async {
-    switch (page) {
-      case "POS":
-        await _routerService.navigateTo(CheckOutRoute(
-          isBigScreen: widget.isBigScreen,
-        ));
-        break;
-      case "Cashbook":
-        await _routerService.navigateTo(CashbookRoute(
-          isBigScreen: widget.isBigScreen,
-        ));
-        break;
-      case "Settings":
-        await _routerService.navigateTo(SettingPageRoute());
-        break;
-      case "Support":
-        final Uri whatsappUri = Uri.parse('https://wa.me/250788360058');
-        if (await canLaunchUrl(whatsappUri)) {
-          await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-        } else {
-          throw 'Could not launch $whatsappUri';
-        }
-        break;
-      case "Connecta":
-        ProxyService.box.writeString(key: 'defaultApp', value: "2");
-        await _routerService.navigateTo(SocialHomeViewRoute());
-        break;
-      case "Transactions":
-        await _routerService.navigateTo(TransactionsRoute());
-        break;
-      case "Contacts":
-        await _routerService.navigateTo(CustomersRoute());
-        break;
-      case "Orders":
-        await _routerService.navigateTo(OrdersRoute());
-        break;
-      default:
-        await _routerService.navigateTo(CheckOutRoute(
-          isBigScreen: widget.isBigScreen,
-        ));
-    }
   }
 
   Widget _buildGauge(BuildContext context, WidgetRef ref) {
@@ -271,16 +316,26 @@ class _AppsState extends ConsumerState<Apps> {
       },
       error: (err, stack) {
         log('error: $err stack: $stack');
-        return const Center(child: Text('An error occurred'));
-      },
-      loading: () {
         return const Center(
-          child: CircularProgressIndicator(),
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'An error occurred while loading data',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
         );
       },
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: CircularProgressIndicator(),
+        ),
+      ),
     );
   }
 
+  // Keep existing helper methods unchanged
   List<ITransaction> _filterTransactionsByPeriod(
       List<ITransaction> transactions, String period) {
     log(transactions.length.toString(), name: 'render transactions on gauge');
@@ -332,5 +387,48 @@ class _AppsState extends ConsumerState<Apps> {
       }
     }
     return sumCashOut;
+  }
+
+  Future<void> _navigateToPage(String page) async {
+    switch (page) {
+      case "POS":
+        await _routerService.navigateTo(CheckOutRoute(
+          isBigScreen: widget.isBigScreen,
+        ));
+        break;
+      case "Cashbook":
+        await _routerService.navigateTo(CashbookRoute(
+          isBigScreen: widget.isBigScreen,
+        ));
+        break;
+      case "Settings":
+        await _routerService.navigateTo(SettingPageRoute());
+        break;
+      case "Support":
+        final Uri whatsappUri = Uri.parse('https://wa.me/250788360058');
+        if (await canLaunchUrl(whatsappUri)) {
+          await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+        } else {
+          throw 'Could not launch $whatsappUri';
+        }
+        break;
+      case "Connecta":
+        ProxyService.box.writeString(key: 'defaultApp', value: "2");
+        await _routerService.navigateTo(SocialHomeViewRoute());
+        break;
+      case "Transactions":
+        await _routerService.navigateTo(TransactionsRoute());
+        break;
+      case "Contacts":
+        await _routerService.navigateTo(CustomersRoute());
+        break;
+      case "Orders":
+        await _routerService.navigateTo(OrdersRoute());
+        break;
+      default:
+        await _routerService.navigateTo(CheckOutRoute(
+          isBigScreen: widget.isBigScreen,
+        ));
+    }
   }
 }

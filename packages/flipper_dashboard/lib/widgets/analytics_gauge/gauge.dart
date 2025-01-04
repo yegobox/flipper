@@ -18,7 +18,7 @@ class SemiCircleGauge extends StatefulWidget {
     required this.dataOnRedSide,
     required this.profitType,
     this.startPadding = 0.0,
-    this.areValueColumnsVisible = true, // Default startPadding value is 0.0
+    this.areValueColumnsVisible = true,
   })  : maxDataValue = math.max(dataOnGreenSide, dataOnRedSide),
         super(key: key);
 
@@ -26,18 +26,46 @@ class SemiCircleGauge extends StatefulWidget {
   State<SemiCircleGauge> createState() => _SemiCircleGaugeState();
 }
 
-class _SemiCircleGaugeState extends State<SemiCircleGauge> {
+class _SemiCircleGaugeState extends State<SemiCircleGauge>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOutCubic,
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    double radius = widget.areValueColumnsVisible
-        ? MediaQuery.of(context).size.width / 3
-        : MediaQuery.of(context).size.width / 3.5;
+    final size = MediaQuery.of(context).size;
+    double radius =
+        widget.areValueColumnsVisible ? size.width / 3.2 : size.width / 3.8;
+
+    // Ensure minimum radius
+    radius = math.max(radius, 20.0);
+
     double totalData = widget.dataOnGreenSide + widget.dataOnRedSide;
     double greenAngle = 0;
     double redAngle = 0;
     double greyAngle = math.pi;
 
-    if ((widget.dataOnGreenSide == 0) && (widget.dataOnRedSide == 0)) {
+    if (totalData == 0) {
       greenAngle = math.pi / 30;
       redAngle = math.pi / 30;
     } else {
@@ -45,118 +73,172 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
       redAngle = (widget.dataOnRedSide / totalData) * math.pi;
     }
 
-    Widget resultText;
-    double profitOrLoss = 0;
-    if (widget.dataOnGreenSide > widget.dataOnRedSide) {
-      resultText = Text(widget.profitType,
-          style: GoogleFonts.poppins(
-              fontSize: widget.areValueColumnsVisible ? 18 : 15,
-              color: Colors.grey));
-      if (widget.profitType == "Gross Profit") {
-        profitOrLoss = widget.dataOnGreenSide;
-      } else {
-        profitOrLoss = widget.dataOnGreenSide - widget.dataOnRedSide;
-      }
-    } else if (widget.dataOnRedSide > widget.dataOnGreenSide) {
-      resultText = Text('Loss',
-          style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
-      profitOrLoss = widget.dataOnRedSide - widget.dataOnGreenSide;
-    } else if ((widget.dataOnRedSide == widget.dataOnGreenSide) &&
-        (widget.dataOnRedSide > 0)) {
-      resultText = Text('Balanced',
-          style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
-      profitOrLoss = widget.dataOnRedSide - widget.dataOnGreenSide;
-    } else {
-      resultText = Text('No transactions',
-          style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
-    }
-    return SizedBox(
-      height: (widget.areValueColumnsVisible) ? radius * 1.6 : radius * 1.25,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CustomPaint(
-            painter: _GaugePainter(
-                greenAngle, redAngle, radius, widget.maxDataValue, greyAngle),
-            child: Padding(
-              padding: EdgeInsets.only(
-                  top:
-                      widget.startPadding), // Adjust the top padding as desired
-              child: Column(
-                children: [
-                  Text(
-                      NumberFormat('#,###')
-                              .format(double.parse(profitOrLoss.toString())) +
-                          ' RWF',
-                      style: GoogleFonts.poppins(
-                          fontSize: widget.areValueColumnsVisible ? 28 : 24,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w600)),
-                  SizedBox(height: 10),
-                  resultText,
-                ],
+    // Calculate profit/loss and determine display text
+    final (resultText, profitOrLoss, color) = _calculateResults();
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: radius * 2, // Added extra space for the gauge
+              child: AnimatedBuilder(
+                animation: _animation,
+                builder: (context, child) {
+                  return CustomPaint(
+                    size: Size(double.infinity, radius * 1.2),
+                    painter: _GaugePainter(
+                      greenAngle: greenAngle * _animation.value,
+                      redAngle: redAngle * _animation.value,
+                      radius: radius,
+                      maxDataValue: widget.maxDataValue,
+                      greyAngle: greyAngle,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          NumberFormat('#,###').format(profitOrLoss) + ' RWF',
+                          style: GoogleFonts.poppins(
+                            fontSize: widget.areValueColumnsVisible ? 28 : 24,
+                            color: color,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        resultText,
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
-          ),
-          if (widget.areValueColumnsVisible)
-            Padding(
-              padding: const EdgeInsets.only(left: 41.0, right: 41.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    children: [
-                      Text(
-                          NumberFormat('#,###').format(double.parse(
-                                  widget.dataOnGreenSide.toString())) +
-                              " RWF",
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(
-                              fontSize: 20,
-                              height: 3,
-                              color:
-                                  Colors.black.withOpacity(0.4099999964237213),
-                              fontWeight: FontWeight.w600)),
-                      widget.profitType == "Net Profit"
-                          ? Text("Gross Profit",
-                              style: GoogleFonts.poppins(
-                                  fontSize: 20,
-                                  color: Colors.lightBlue.shade200,
-                                  fontWeight: FontWeight.w600))
-                          : Text("Total Sales",
-                              style: GoogleFonts.poppins(
-                                  fontSize: 20,
-                                  color: Colors.lightBlue.shade200,
-                                  fontWeight: FontWeight.w600))
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      Text(
-                          textAlign: TextAlign.center,
-                          NumberFormat('#,###').format(double.parse(
-                                  widget.dataOnRedSide.toString())) +
-                              " RWF",
-                          style: GoogleFonts.poppins(
-                              fontSize: 20,
-                              height: 3,
-                              color:
-                                  Colors.black.withOpacity(0.4099999964237213),
-                              fontWeight: FontWeight.w600)),
-                      Text("Expenses",
-                          style: GoogleFonts.poppins(
-                              fontSize: 20,
-                              color: Colors.lightBlue.shade200,
-                              fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                ],
+            if (widget.areValueColumnsVisible) ...[
+              Divider(
+                color: Colors.grey.withValues(alpha: 0.2),
               ),
-            ),
-        ],
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildValueColumn(
+                      amount: widget.dataOnGreenSide,
+                      label: widget.profitType == "Net Profit"
+                          ? "Gross Profit"
+                          : "Total Sales",
+                      color: Colors.green,
+                    ),
+                    Container(
+                      height: 50,
+                      width: 1,
+                      color: Colors.grey.withValues(alpha: 0.2),
+                    ),
+                    _buildValueColumn(
+                      amount: widget.dataOnRedSide,
+                      label: "Expenses",
+                      color: Colors.red,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildValueColumn({
+    required double amount,
+    required String label,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Text(
+          NumberFormat('#,###').format(amount) + " RWF",
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: color.withValues(alpha: 0.8),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  (Widget, double, Color) _calculateResults() {
+    Widget resultText;
+    double profitOrLoss;
+    Color valueColor;
+
+    if (widget.dataOnGreenSide > widget.dataOnRedSide) {
+      resultText = Text(
+        widget.profitType,
+        style: GoogleFonts.poppins(
+          fontSize: widget.areValueColumnsVisible ? 16 : 14,
+          color: Colors.green.withValues(alpha: 0.7),
+          fontWeight: FontWeight.w500,
+        ),
+      );
+      profitOrLoss = widget.profitType == "Gross Profit"
+          ? widget.dataOnGreenSide
+          : widget.dataOnGreenSide - widget.dataOnRedSide;
+      valueColor = Colors.green;
+    } else if (widget.dataOnRedSide > widget.dataOnGreenSide) {
+      resultText = Text(
+        'Loss',
+        style: GoogleFonts.poppins(
+          fontSize: widget.areValueColumnsVisible ? 16 : 14,
+          color: Colors.red.withValues(alpha: 0.7),
+          fontWeight: FontWeight.w500,
+        ),
+      );
+      profitOrLoss = widget.dataOnRedSide - widget.dataOnGreenSide;
+      valueColor = Colors.red;
+    } else if (widget.dataOnRedSide == widget.dataOnGreenSide &&
+        widget.dataOnRedSide > 0) {
+      resultText = Text(
+        'Balanced',
+        style: GoogleFonts.poppins(
+          fontSize: widget.areValueColumnsVisible ? 16 : 14,
+          color: Colors.grey,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+      profitOrLoss = 0;
+      valueColor = Colors.grey;
+    } else {
+      resultText = Text(
+        'No transactions',
+        style: GoogleFonts.poppins(
+          fontSize: widget.areValueColumnsVisible ? 16 : 14,
+          color: Colors.grey,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+      profitOrLoss = 0;
+      valueColor = Colors.grey;
+    }
+
+    return (resultText, profitOrLoss, valueColor);
   }
 }
 
@@ -167,18 +249,27 @@ class _GaugePainter extends CustomPainter {
   final double maxDataValue;
   final double greyAngle;
 
-  _GaugePainter(this.greenAngle, this.redAngle, this.radius, this.maxDataValue,
-      this.greyAngle);
+  _GaugePainter({
+    required this.greenAngle,
+    required this.redAngle,
+    required this.radius,
+    required this.maxDataValue,
+    required this.greyAngle,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
+    // Move the center point down to show full semi-circle
+    final center = Offset(size.width / 2, size.height - (size.height / 3));
+    const strokeWidth = 12.0;
 
+    // Draw background arc
     final greyPaint = Paint()
-      ..color = Colors.grey
+      ..color = Colors.grey.withValues(alpha: 0.15)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 10.0
+      ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
+
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       math.pi,
@@ -186,11 +277,12 @@ class _GaugePainter extends CustomPainter {
       false,
       greyPaint,
     );
-    // Draw the green semi-circle
+
+    // Draw the green arc
     final greenPaint = Paint()
-      ..color = Colors.green
+      ..color = Colors.green.withValues(alpha: 0.8)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 10.0
+      ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
 
     canvas.drawArc(
@@ -201,11 +293,11 @@ class _GaugePainter extends CustomPainter {
       greenPaint,
     );
 
-    // Draw the red semi-circle
+    // Draw the red arc
     final redPaint = Paint()
-      ..color = Colors.red
+      ..color = Colors.red.withValues(alpha: 0.8)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 10.0
+      ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
 
     canvas.drawArc(
@@ -218,7 +310,5 @@ class _GaugePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
