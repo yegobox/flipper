@@ -24,6 +24,20 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
   final Color lightBlue = const Color(0xFFE3F2FD);
   final Color darkBlue = const Color(0xFF1565C0);
 
+  String? _getPhoneNumberError(String value) {
+    String digitsOnly = value.replaceAll(' ', '');
+    if (digitsOnly.isEmpty) return null;
+    if (!digitsOnly.startsWith('250'))
+      return 'Phone number must start with 250';
+    if (digitsOnly.length < 12) return 'Phone number must be 12 digits';
+    if (digitsOnly.length > 12) return 'Phone number cannot exceed 12 digits';
+    String prefix = digitsOnly.substring(3, 5);
+    if (!['78', '79'].contains(prefix)) {
+      return 'Invalid MTN number prefix (must start with 78 or 79)';
+    }
+    return null;
+  }
+
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
@@ -39,18 +53,50 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
     );
   }
 
-  String? _getPhoneNumberError(String value) {
-    String digitsOnly = value.replaceAll(' ', '');
-    if (digitsOnly.isEmpty) return null;
-    if (!digitsOnly.startsWith('250'))
-      return 'Phone number must start with 250';
-    if (digitsOnly.length < 12) return 'Phone number must be 12 digits';
-    if (digitsOnly.length > 12) return 'Phone number cannot exceed 12 digits';
-    String prefix = digitsOnly.substring(3, 5);
-    if (!['78', '79'].contains(prefix)) {
-      return 'Invalid MTN number prefix (must start with 78 or 79)';
-    }
-    return null;
+  Widget _buildSegmentedButton({
+    required List<ButtonSegment<String>> segments,
+    required String selected,
+    required Function(Set<String>) onSelectionChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: primaryBlue.withValues(alpha: 0.2)),
+        color: Colors.white,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: SegmentedButton<String>(
+          segments: segments,
+          selected: {selected},
+          onSelectionChanged: onSelectionChanged,
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.resolveWith<Color>(
+              (Set<WidgetState> states) {
+                if (states.contains(WidgetState.selected)) {
+                  return primaryBlue;
+                }
+                return Colors.transparent;
+              },
+            ),
+            foregroundColor: WidgetStateProperty.resolveWith<Color>(
+              (Set<WidgetState> states) {
+                if (states.contains(WidgetState.selected)) {
+                  return Colors.white;
+                }
+                return primaryBlue;
+              },
+            ),
+            side: WidgetStateProperty.all(BorderSide.none),
+            shape: WidgetStateProperty.all(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -78,7 +124,8 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [lightBlue, Colors.white],
+                  colors: [primaryBlue.withValues(alpha: .1), Colors.white],
+                  stops: const [0.0, 0.3],
                 ),
               ),
               child: SingleChildScrollView(
@@ -99,116 +146,59 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                         children: [
                           _buildSectionTitle(context, 'Select Country'),
                           const SizedBox(height: 16),
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: primaryBlue.withValues(alpha: .2)),
-                            ),
-                            child: SegmentedButton<String>(
-                              segments: const [
-                                ButtonSegment(
-                                  value: 'Rwanda',
-                                  label: Text('Rwanda'),
-                                  icon: Icon(Icons.flag, size: 20),
-                                ),
-                                ButtonSegment(
-                                  value: 'Other',
-                                  label: Text('Other'),
-                                  icon: Icon(Icons.public, size: 20),
-                                ),
-                              ],
-                              selected: {selectedCountry},
-                              onSelectionChanged: (Set<String> newSelection) {
-                                setState(() {
-                                  selectedCountry = newSelection.first;
-                                  if (selectedCountry == 'Other') {
-                                    selectedPaymentMethod = 'Card';
-                                  }
-                                });
-                              },
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.resolveWith<Color>(
-                                  (Set<MaterialState> states) {
-                                    if (states
-                                        .contains(MaterialState.selected)) {
-                                      return primaryBlue;
-                                    }
-                                    return Colors.transparent;
-                                  },
-                                ),
-                                foregroundColor:
-                                    MaterialStateProperty.resolveWith<Color>(
-                                  (Set<MaterialState> states) {
-                                    if (states
-                                        .contains(MaterialState.selected)) {
-                                      return Colors.white;
-                                    }
-                                    return primaryBlue;
-                                  },
-                                ),
+                          _buildSegmentedButton(
+                            segments: const [
+                              ButtonSegment(
+                                value: 'Rwanda',
+                                label: Text('Rwanda'),
+                                icon: Icon(Icons.flag, size: 20),
                               ),
-                            ),
+                              ButtonSegment(
+                                value: 'Other',
+                                label: Text('Other'),
+                                icon: Icon(Icons.public, size: 20),
+                              ),
+                            ],
+                            selected: selectedCountry,
+                            onSelectionChanged: (Set<String> newSelection) {
+                              setState(() {
+                                selectedCountry = newSelection.first;
+                                if (selectedCountry == 'Other') {
+                                  selectedPaymentMethod = 'Card';
+                                }
+                              });
+                            },
                           ),
                           const SizedBox(height: 32),
                           _buildSectionTitle(context, 'Payment Method'),
                           const SizedBox(height: 16),
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: primaryBlue.withValues(alpha: .2)),
-                            ),
-                            child: SegmentedButton<String>(
-                              segments: selectedCountry == 'Rwanda'
-                                  ? const [
-                                      ButtonSegment(
-                                        value: 'Mobile Money',
-                                        label: Text('Mobile Money'),
-                                        icon:
-                                            Icon(Icons.phone_android, size: 20),
-                                      ),
-                                      ButtonSegment(
-                                        value: 'Card',
-                                        label: Text('Card'),
-                                        icon: Icon(Icons.credit_card, size: 20),
-                                      ),
-                                    ]
-                                  : const [
-                                      ButtonSegment(
-                                        value: 'Card',
-                                        label: Text('Card'),
-                                        icon: Icon(Icons.credit_card, size: 20),
-                                      ),
-                                    ],
-                              selected: {selectedPaymentMethod},
-                              onSelectionChanged: (Set<String> newSelection) {
-                                setState(() {
-                                  selectedPaymentMethod = newSelection.first;
-                                });
-                              },
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    WidgetStateProperty.resolveWith<Color>(
-                                  (Set<WidgetState> states) {
-                                    if (states.contains(WidgetState.selected)) {
-                                      return primaryBlue;
-                                    }
-                                    return Colors.transparent;
-                                  },
-                                ),
-                                foregroundColor:
-                                    WidgetStateProperty.resolveWith<Color>(
-                                  (Set<WidgetState> states) {
-                                    if (states.contains(WidgetState.selected)) {
-                                      return Colors.white;
-                                    }
-                                    return primaryBlue;
-                                  },
-                                ),
-                              ),
-                            ),
+                          _buildSegmentedButton(
+                            segments: selectedCountry == 'Rwanda'
+                                ? const [
+                                    ButtonSegment(
+                                      value: 'Mobile Money',
+                                      label: Text('Mobile Money'),
+                                      icon: Icon(Icons.phone_android, size: 20),
+                                    ),
+                                    ButtonSegment(
+                                      value: 'Card',
+                                      label: Text('Card'),
+                                      icon: Icon(Icons.credit_card, size: 20),
+                                    ),
+                                  ]
+                                : const [
+                                    ButtonSegment(
+                                      value: 'Card',
+                                      label: Text('Card'),
+                                      icon: Icon(Icons.credit_card, size: 20),
+                                    ),
+                                  ],
+                            selected: selectedPaymentMethod,
+                            onSelectionChanged: (Set<String> newSelection) {
+                              setState(() {
+                                selectedPaymentMethod = newSelection.first;
+                              });
+                            },
                           ),
                           if (selectedPaymentMethod == 'Mobile Money') ...[
                             const SizedBox(height: 32),
@@ -216,7 +206,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                             const SizedBox(height: 16),
                             Container(
                               decoration: BoxDecoration(
-                                color: lightBlue.withValues(alpha: .3),
+                                color: lightBlue.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: SwitchListTile(
@@ -292,7 +282,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide(
                                         color:
-                                            primaryBlue.withValues(alpha: .3)),
+                                            primaryBlue.withValues(alpha: 0.3)),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
@@ -300,12 +290,12 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                         color: primaryBlue, width: 2),
                                   ),
                                   filled: true,
-                                  fillColor: lightBlue.withValues(alpha: .1),
+                                  fillColor: lightBlue.withValues(alpha: 0.1),
                                   errorText: _getPhoneNumberError(
                                       phoneNumberController.text),
                                   helperText: 'Rwanda phone number (12 digits)',
                                   helperStyle: TextStyle(
-                                      color: darkBlue.withValues(alpha: .7)),
+                                      color: darkBlue.withValues(alpha: 0.7)),
                                   suffixIcon:
                                       phoneNumberController.text.isNotEmpty
                                           ? IconButton(
@@ -349,7 +339,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: primaryBlue.withValues(alpha: .3),
+                                  color: primaryBlue.withValues(alpha: 0.3),
                                   blurRadius: 8,
                                   offset: const Offset(0, 4),
                                 ),
