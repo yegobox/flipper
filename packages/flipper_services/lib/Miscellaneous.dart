@@ -44,9 +44,6 @@ mixin CoreMiscellaneous {
           'linkingCode': randomNumber().toString()
         });
       }
-      ProxyService.box.remove(key: 'userId');
-      ProxyService.box.remove(key: 'getIsTokenRegistered');
-      ProxyService.box.remove(key: 'defaultApp');
 
       // but for shared preference we can just clear them all
       /// We do not clear all variable, this is because even on logout
@@ -89,6 +86,9 @@ mixin CoreMiscellaneous {
           );
         }
       }
+      ProxyService.box.remove(key: 'userId');
+      ProxyService.box.remove(key: 'getIsTokenRegistered');
+      ProxyService.box.remove(key: 'defaultApp');
       return Future.value(true);
     } catch (e, s) {
       log(e.toString());
