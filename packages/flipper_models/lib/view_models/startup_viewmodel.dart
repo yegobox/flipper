@@ -23,9 +23,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   Future<void> runStartupLogic({
     required bool refreshCredentials,
   }) async {
-    // await logOut();
+    await logOut();
     try {
-      await appService.isLoggedIn();
+      // await appService.isLoggedIn();
 
       // Ensure realm is initialized before proceeding.
 
@@ -88,24 +88,30 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       log(stackTrace.toString(), name: 'runStartupLogic');
       await logOut();
       _routerService.clearStackAndShow(LoginRoute());
+      return;
     } else if (e is BusinessNotFoundException || e == NeedSignUpException) {
       if (Platform.isWindows) {
         // Handle BusinessNotFoundException for desktop.
         _handleBusinessNotFoundForDesktop();
+        return;
       } else {
         // Handle BusinessNotFoundException for mobile.
         _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
+        return;
       }
     } else if (e is SubscriptionError) {
       _routerService.navigateTo(PaymentPlanUIRoute());
+      return;
     } else if (e is FailedPaymentException) {
       _routerService.navigateTo(FailedPaymentRoute());
     } else if (e is NoPaymentPlanFound) {
       _routerService.navigateTo(PaymentPlanUIRoute());
+      return;
     } else {
       // Handle other unexpected errors.
       await logOut();
       _routerService.clearStackAndShow(LoginRoute());
+      return;
     }
   }
 

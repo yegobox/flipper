@@ -141,8 +141,9 @@ class _LoginState extends State<Login> {
 
     if (e is NeedSignUpException || e is BusinessNotFoundException) {
       locator<RouterService>().navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
-    }else if(e is NoPaymentPlanFound){
+    } else if (e is NoPaymentPlanFound) {
       locator<RouterService>().navigateTo(PaymentPlanUIRoute());
+      return;
     }
     throw e;
   }

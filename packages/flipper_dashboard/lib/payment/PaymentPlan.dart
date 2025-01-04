@@ -377,7 +377,15 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
             value: value,
             onChanged: onChanged,
             activeColor: Colors.blue,
-            inactiveThumbColor: Colors.blue.shade600,
+            inactiveThumbColor: Colors.grey,
+            inactiveTrackColor: Colors.grey.shade300,
+            trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states) {
+              if (states.contains(WidgetState.selected)) {
+                return Colors.blue;
+              }
+              return Colors.grey;
+            }),
           ),
         ],
       ),

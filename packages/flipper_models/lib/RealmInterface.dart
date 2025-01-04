@@ -291,7 +291,7 @@ abstract class RealmInterface {
       {required String productId, required String tenantId});
   Future<Product?> findProductByTenantId({required String tenantId});
 
-  Future<void> deleteAllProducts();
+  // Future<void> deleteAllProducts();
   FutureOr<Stock?> getStockById({required String id});
 
   Future<void> patchSocialSetting({required Setting setting});
@@ -478,7 +478,7 @@ abstract class RealmInterface {
 
   Drawers? openDrawer({required Drawers drawer});
 
-  void clearData({required ClearData data});
+  void clearData({required ClearData data, required int identifier});
 
   FutureOr<Drawers?> closeDrawer(
       {required Drawers drawer, required double eod});

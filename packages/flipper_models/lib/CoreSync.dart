@@ -444,21 +444,26 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  void clearData({required ClearData data}) async {
+  void clearData({required ClearData data, required int identifier}) async {
     try {
       if (data == ClearData.Branch) {
         // Retrieve the list of Branches to delete based on the query
         // final query = brick.Query();
-        final List<Branch> branches = await repository.get<Branch>();
+        final List<Branch> branches = await repository.get<Branch>(
+            query: brick.Query(
+                where: [brick.Where('serverId').isExactly(identifier)]));
 
         for (final branch in branches) {
-          await repository.delete<Branch>(branch);
+          await repository.delete<Branch>(branch,
+              policy: OfflineFirstDeletePolicy.optimisticLocal);
         }
       }
 
       if (data == ClearData.Business) {
         // Retrieve the list of Businesses to delete
-        final List<Business> businesses = await repository.get<Business>();
+        final List<Business> businesses = await repository.get<Business>(
+            query: brick.Query(
+                where: [brick.Where('serverId').isExactly(identifier)]));
 
         for (final business in businesses) {
           await repository.delete<Business>(business);
@@ -916,36 +921,57 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<void> deleteAllProducts() {
-    // TODO: implement deleteAllProducts
-    throw UnimplementedError("deleteAllProducts method is not implemented yet");
-  }
-
-  @override
   Future<void> deleteBranch(
-      {required int branchId, required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement deleteBranch
-    throw UnimplementedError("deleteBranch method is not implemented yet");
+      {required int branchId,
+      required HttpClientInterface flipperHttpClient}) async {
+    try {
+      await flipperHttpClient
+          .delete(Uri.parse(apihub + '/v2/api/branch/${branchId}'));
+
+      Branch? branch = (await repository.get<Branch>(
+              query: brick.Query(
+                  where: [brick.Where('serverId').isExactly(branchId)])))
+          .firstOrNull;
+      if (branch != null) {
+        await repository.delete<Branch>(branch);
+      }
+    } catch (e, s) {
+      talker.error(e);
+      talker.error(s);
+      rethrow;
+    }
   }
 
   @override
-  Future<int> deleteFavoriteByIndex({required String favIndex}) {
-    // TODO: implement deleteFavoriteByIndex
-    throw UnimplementedError(
-        "deleteFavoriteByIndex method is not implemented yet");
+  Future<int> deleteFavoriteByIndex({required String favIndex}) async {
+    Favorite? favorite = (await repository.get<Favorite>(
+            query: brick.Query(where: [
+      brick.Where('favIndex').isExactly(favIndex),
+    ])))
+        .firstOrNull;
+
+    repository.delete(favorite!);
+    return Future.value(200);
   }
 
   @override
-  void deleteItemFromCart(
-      {required TransactionItem transactionItemId, String? transactionId}) {
-    // TODO: implement deleteItemFromCart
+  Future<void> deleteItemFromCart(
+      {required TransactionItem transactionItemId,
+      String? transactionId}) async {
+    TransactionItem item = (await transactionItems(
+            id: transactionItemId.id,
+            transactionId: transactionId,
+            branchId: ProxyService.box.getBranchId()!))
+        .first;
+    await repository.delete(item);
   }
 
   @override
-  Future<int> deleteTransactionByIndex({required String transactionIndex}) {
-    // TODO: implement deleteTransactionByIndex
-    throw UnimplementedError(
-        "deleteTransactionByIndex method is not implemented yet");
+  Future<int> deleteTransactionByIndex(
+      {required String transactionIndex}) async {
+    final transaction = await transactions(id: transactionIndex);
+    repository.delete(transaction.first);
+    return Future.value(200);
   }
 
   final sessionManager = SessionManager();
@@ -1621,12 +1647,17 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               ownerName: localPin.firstOrNull!.ownerName!,
               tokenUid: localPin.firstOrNull!.tokenUid!);
         } else {
-          clearData(data: ClearData.Branch);
-          clearData(data: ClearData.Business);
+          clearData(data: ClearData.Branch, identifier: branchE!.serverId!);
+          clearData(data: ClearData.Business, identifier: business!.serverId);
         }
       } else {
-        clearData(data: ClearData.Branch);
-        clearData(data: ClearData.Business);
+        /// case where a different user log in on same machine.
+        clearData(
+            data: ClearData.Branch,
+            identifier: ProxyService.box.getBranchId()!);
+        clearData(
+            data: ClearData.Business,
+            identifier: ProxyService.box.getBusinessId()!);
       }
       final response = await flipperHttpClient.get(uri);
 
@@ -2619,7 +2650,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           skipDefaultAppSetup: true,
           flipperHttpClient: flipperHttpClient);
 
-      await configureLocal(useInMemory: false, box: ProxyService.box);
+      configureLocal(useInMemory: false, box: ProxyService.box);
 
       return ITenant.fromJsonList(response.body);
     } else {
@@ -3706,7 +3737,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   FutureOr<T?> create<T>({required T data}) async {
-
     if (data is Counter) {
       repository.upsert<Counter>(data);
     }
@@ -3714,7 +3744,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     if (data is PColor) {
       PColor color = data;
       for (String colorName in data.colors!) {
-       await repository.upsert<PColor>(PColor(
+        await repository.upsert<PColor>(PColor(
             name: colorName, active: color.active, branchId: color.branchId));
       }
     }

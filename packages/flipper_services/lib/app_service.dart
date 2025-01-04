@@ -58,7 +58,7 @@ class AppService with ListenableServiceMixin {
   /// before we log to other apps as the business portal
   /// is the mother of all apps
   ///
-  Future<bool> isLoggedIn() async {
+  Future<bool>  isLoggedIn() async {
     if (ProxyService.box.getUserId() == null ||
         ProxyService.box.getBranchId() == null ||
         ProxyService.box.getBusinessId() == null) {

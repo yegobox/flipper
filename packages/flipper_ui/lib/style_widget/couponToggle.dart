@@ -40,7 +40,17 @@ class NumberOfPaymentsToggle extends HookConsumerWidget {
             Switch(
               value: isToggled.value,
               onChanged: _toggleSwitch,
-            ),
+              activeColor: Colors.blue,
+              inactiveThumbColor: Colors.grey,
+              inactiveTrackColor: Colors.grey.shade300,
+              trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
+                  (Set<WidgetState> states) {
+                if (states.contains(WidgetState.selected)) {
+                  return Colors.blue;
+                }
+                return Colors.grey;
+              }),
+            )
           ],
         ),
         if (isToggled.value)
@@ -88,7 +98,17 @@ class CouponToggle extends HookConsumerWidget {
             Switch(
               value: isToggled.value,
               onChanged: _toggleSwitch,
-            ),
+              activeColor: Colors.blue,
+              inactiveThumbColor: Colors.grey,
+              inactiveTrackColor: Colors.grey.shade300,
+              trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
+                  (Set<WidgetState> states) {
+                if (states.contains(WidgetState.selected)) {
+                  return Colors.blue;
+                }
+                return Colors.grey;
+              }),
+            )
           ],
         ),
         if (isToggled.value)

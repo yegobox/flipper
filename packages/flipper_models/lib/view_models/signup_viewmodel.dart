@@ -161,7 +161,7 @@ class SignupViewModel extends ReactiveViewModel {
   Future<void> saveBusinessId(List<ITenant> tenants) {
     return ProxyService.box.writeInt(
       key: 'businessId',
-      value: tenants.first.businesses.first.id!,
+      value: tenants.first.businesses.first.id,
     );
   }
 

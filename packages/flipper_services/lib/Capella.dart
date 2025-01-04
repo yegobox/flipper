@@ -393,11 +393,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  void clearData({required ClearData data}) {
-    // TODO: implement clearData
-  }
-
-  @override
   Drawers? closeDrawer({required Drawers drawer, required double eod}) {
     // TODO: implement closeDrawer
     throw UnimplementedError();
@@ -1829,10 +1824,15 @@ class Capella with Booting implements RealmInterface {
     // TODO: implement customersStream
     throw UnimplementedError();
   }
-  
+
   @override
   FutureOr<void> addTransaction({required brick.ITransaction transaction}) {
     // TODO: implement addTransaction
     throw UnimplementedError();
+  }
+
+  @override
+  void clearData({required ClearData data, required int identifier}) {
+    // TODO: implement clearData
   }
 }

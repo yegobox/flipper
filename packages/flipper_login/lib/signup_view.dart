@@ -5,6 +5,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:overlay_support/overlay_support.dart';
 
@@ -100,8 +101,6 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   @override
   void onSubmitting() async {
     try {
-      showSimpleNotification(const Text("Signup in progress"),
-          background: Colors.green, position: NotificationPosition.bottom);
       signupViewModel.startRegistering();
       // If the form is valid, display a snackbar. In the real world,
       // you'd often call a server or save the information in a database.
@@ -113,9 +112,10 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       signupViewModel.businessType = businessTypes.value!;
       await signupViewModel.signup();
 
-      _routerService.navigateTo(StartUpViewRoute(invokeLogin: true));
+      // _routerService.navigateTo(StartUpViewRoute(invokeLogin: true));
       emitSuccess();
     } catch (e) {
+      signupViewModel.stopRegistering();
       showSimpleNotification(
           const Text("Error while signing up try again later"),
           background: Colors.red,
@@ -126,15 +126,15 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   }
 }
 
-class SignUpView extends StatefulWidget {
+class SignUpView extends StatefulHookConsumerWidget {
   const SignUpView({Key? key, this.countryNm = "Rwanda"}) : super(key: key);
   final String? countryNm;
 
   @override
-  State<SignUpView> createState() => _SignUpViewState();
+  _SignUpViewState createState() => _SignUpViewState();
 }
 
-class _SignUpViewState extends State<SignUpView> {
+class _SignUpViewState extends ConsumerState<SignUpView> {
   bool _showTinField = false;
   final _formKey = GlobalKey<FormState>();
 
@@ -276,7 +276,7 @@ class _SignUpViewState extends State<SignUpView> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<SignupViewModel>.nonReactive(
+    return ViewModelBuilder<SignupViewModel>.reactive(
       onViewModelReady: (model) {
         model.context = context;
         model.registerLocation();
