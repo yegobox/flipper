@@ -309,7 +309,7 @@ mixin TransactionMixin {
           partOfComposite: partOfComposite,
           dcRt: variation.dcRt,
           dcAmt: (variation.retailPrice! * (variation.qty ?? 1.0)) *
-              variation.dcRt!,
+              (variation.dcRt ?? 0.0),
         );
 
         await ProxyService.strategy.addTransactionItem(

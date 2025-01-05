@@ -299,6 +299,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
         item.bhfId = item.bhfId ?? "00";
         item.modrNm = item.modrNm ?? item.itemNm;
         item.tin = item.tin ?? business?.tinNumber ?? ProxyService.box.tin();
+        
 
         /// 2 is approved, we are approving this import.
         item.imptItemSttsCd = "2";

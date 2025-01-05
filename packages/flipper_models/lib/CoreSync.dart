@@ -601,6 +601,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       lastTouched: DateTime.now(),
       name: product?.name ?? name,
       sku: sku,
+      dcRt: 0.0,
       productId: product?.id ?? productId,
       color: product?.color,
       unit: 'Per Item',
