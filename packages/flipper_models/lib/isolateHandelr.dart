@@ -208,15 +208,15 @@ class IsolateHandler with StockPatch {
           int businessId = message['businessId'];
           String dbPath = message['dbPath'];
 
-          String URI = message['URI'];
-          String bhfId = message['bhfId'];
+          String? URI = message['URI'];
+          String? bhfId = message['bhfId'];
 
           localData(args,
               dbPath: dbPath,
               branchId: branchId,
               businessId: businessId,
-              bhfid: bhfId,
-              URI: URI);
+              bhfid: bhfId ?? "00",
+              URI: URI ?? "");
         }
       }
     });

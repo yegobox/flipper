@@ -3110,7 +3110,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       }
     }
     final queryString = brick.Query(where: conditions);
-    final repository = brick.Repository();
 
     return await repository.get<ITransaction>(query: queryString);
   }
@@ -3127,6 +3126,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     DateTime? startDate,
     DateTime? endDate,
   }) {
+    talker.warning("Loading transaction with $status && branchId $branchId");
     final List<brick.Where> conditions = [
       brick.Where('status').isExactly(status ?? COMPLETE),
       brick.Where('subTotal').isGreaterThan(0),
@@ -3152,10 +3152,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         );
       }
     }
-
+    final queryString = brick.Query(where: conditions);
     // Directly return the stream from the repository
-    return repository.subscribe<ITransaction>(
-        query: brick.Query(where: conditions));
+    return repository
+        .subscribe<ITransaction>(
+            query: queryString, policy: OfflineFirstGetPolicy.alwaysHydrate)
+        .map((data) {
+      print('Transaction stream data: ${data.length} records');
+      return data;
+    });
   }
 
   @override

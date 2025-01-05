@@ -788,8 +788,8 @@ final transactionsStreamProvider =
   // Retrieve the transaction status from the provider container, if needed
 
   // Use ProxyService to get the IsarStream of transactions
-  final transactionsStream = ProxyService.strategy
-      .transactionsStream(branchId: ProxyService.box.getBranchId());
+  final transactionsStream = ProxyService.strategy.transactionsStream(
+      branchId: ProxyService.box.getBranchId()!, status: COMPLETE);
 
   // Return the stream
   return transactionsStream;
