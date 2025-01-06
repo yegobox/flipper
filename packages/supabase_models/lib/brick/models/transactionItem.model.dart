@@ -2,7 +2,8 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
-
+// Date,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count
+// https://aistudio.google.com/app/prompts/1vt4fnINIbiy_qmgSIHQHxa5YoNGXEjM9
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'transaction_items'),
 )

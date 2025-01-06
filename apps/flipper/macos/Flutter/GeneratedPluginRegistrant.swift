@@ -8,7 +8,6 @@ import Foundation
 import amplify_auth_cognito
 import amplify_secure_storage
 import app_links
-import cbl_flutter_ce
 import cloud_firestore
 import connectivity_plus
 import desktop_webview_auth
@@ -46,7 +45,6 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   AmplifyAuthCognitoPlugin.register(with: registry.registrar(forPlugin: "AmplifyAuthCognitoPlugin"))
   AmplifySecureStoragePlugin.register(with: registry.registrar(forPlugin: "AmplifySecureStoragePlugin"))
   AppLinksMacosPlugin.register(with: registry.registrar(forPlugin: "AppLinksMacosPlugin"))
-  CblFlutterCe.register(with: registry.registrar(forPlugin: "CblFlutterCe"))
   FLTFirebaseFirestorePlugin.register(with: registry.registrar(forPlugin: "FLTFirebaseFirestorePlugin"))
   ConnectivityPlusPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlusPlugin"))
   DesktopWebviewAuthPlugin.register(with: registry.registrar(forPlugin: "DesktopWebviewAuthPlugin"))
