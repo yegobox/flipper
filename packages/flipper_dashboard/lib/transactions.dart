@@ -24,11 +24,6 @@ class Transactions extends StatefulHookConsumerWidget {
 
 class TransactionsState extends ConsumerState<Transactions>
     with DateCoreWidget {
-  @override
-  void initState() {
-    super.initState();
-  }
-
   final _routerService = locator<RouterService>();
   String lastSeen = "";
   bool defaultTransactions = true;
@@ -36,124 +31,89 @@ class TransactionsState extends ConsumerState<Transactions>
   List<String> transactionTypeOptions = ["All", "Sales", "Purchases"];
   List<Widget> list = [];
   List<Widget> zlist = [];
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   List<Widget> _zTransactions({required Drawers drawer}) {
-    zlist.add(Column(children: [
-      Text('Trade Name: ${drawer.tradeName}'),
-      const Text('Daily report for Today'),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    zlist = []; // Clear existing items
+    zlist.add(
+      Card(
+        margin: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Opening Deposit'),
-            Text('${drawer.openingBalance} RWF'),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Trade Name: ${drawer.tradeName}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Daily report for Today',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            _buildZReportRow('Opening Deposit', '${drawer.openingBalance} RWF'),
+            _buildZReportRow('Total NS', drawer.nsSaleCount.toString()),
+            _buildZReportRow('Total NR', drawer.nrSaleCount.toString()),
+            _buildZReportRow(
+              'Total Taxes',
+              ((drawer.totalNsSaleIncome ?? 0) -
+                      (drawer.totalCsSaleIncome ?? 0))
+                  .toString(),
+            ),
+            _buildZReportRow('Total CS', drawer.csSaleCount.toString()),
+            _buildZReportRow('Total TS', drawer.trSaleCount.toString()),
+            _buildZReportRow('Total PS', drawer.psSaleCount.toString()),
+            _buildZReportRow('Total Sales per payment mode', '100% cash'),
+            _buildZReportRow('All Discounts', '0'),
+            _buildZReportRow('Incomplete sales', '0'),
+            _buildZReportRow('Other Transactions', '0'),
           ],
         ),
       ),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Total NS'),
-            Text(drawer.nsSaleCount.toString()),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Total NR'),
-            Text(drawer.nrSaleCount.toString()),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Total Taxes'),
-            Text(((drawer.totalNsSaleIncome ?? 0) -
-                    (drawer.totalCsSaleIncome ?? 0))
-                .toString()),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Total CS'),
-            Text(drawer.csSaleCount.toString()),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Total TS'),
-            Text(drawer.trSaleCount.toString()),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Total PS'),
-            Text(drawer.psSaleCount.toString())
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('Total Sales per payment mode'),
-            Text('100% cash'),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('All Discounts'),
-            Text('0'),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('Incomplete sales'),
-            Text('0'),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('Other Transactions'),
-            Text('0'),
-          ],
-        ),
-      )
-    ]));
+    );
     return zlist;
+  }
+
+  Widget _buildZReportRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   String isEquivalentToToday(String isoString) {
@@ -171,6 +131,7 @@ class TransactionsState extends ConsumerState<Transactions>
 
   List<Widget> _normalTransactions(
       {required List<ITransaction> completedTransaction}) {
+    list.clear(); // Clear existing items
     for (ITransaction transaction in completedTransaction) {
       if (displayedTransactionType == 1 &&
           transaction.transactionType == TransactionType.cashOut) {
@@ -180,94 +141,91 @@ class TransactionsState extends ConsumerState<Transactions>
           transaction.transactionType != TransactionType.cashOut) {
         continue;
       }
-      Color gradientColorOne =
-          transaction.isExpense == true ? Colors.red : Colors.greenAccent;
 
-      String typeOfTransaction =
-          transaction.isExpense == true ? "Expense" : "Income";
       if (lastSeen !=
           transaction.createdAt!.toIso8601String().substring(0, 10)) {
         lastSeen = transaction.createdAt!.toIso8601String().substring(0, 10);
+        list.add(_buildDateHeader(transaction));
+      }
 
-        list.add(
-          Container(
-            margin: const EdgeInsets.fromLTRB(30, 0, 0, 0),
-            child: Column(
-              children: [
-                SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+      list.add(_buildTransactionItem(transaction));
+    }
+    return list;
+  }
+
+  Widget _buildDateHeader(ITransaction transaction) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(30, 10, 0, 10),
+      child: Text(
+        isEquivalentToToday(transaction.createdAt!.toIso8601String()),
+        style: GoogleFonts.poppins(
+          fontSize: 17,
+          fontWeight: FontWeight.w500,
+          color: const Color(0xFF006AFE),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionItem(ITransaction transaction) {
+    Color gradientColorOne =
+        transaction.isExpense == true ? Colors.red : Colors.blue;
+    String typeOfTransaction =
+        transaction.isExpense == true ? "Expense" : "Income";
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      child: InkWell(
+        onTap: () => _routerService
+            .navigateTo(TransactionDetailRoute(transaction: transaction)),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              MiniAppIcon(
+                icon: 'assets/flipper_transaction_icon.svg',
+                color: gradientColorOne,
+                page: "Transaction",
+                showPageName: false,
+                sideSize: 50,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                        isEquivalentToToday(
-                            transaction.createdAt!.toIso8601String()),
-                        style: GoogleFonts.poppins(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w400,
-                            color: Color(0xFF006AFE))),
-                  ],
-                ),
-                SizedBox(height: 10),
-              ],
-            ),
-          ),
-        );
-      }
-      list.add(
-        Container(
-          margin: const EdgeInsets.all(4),
-          child: GestureDetector(
-            onTap: () => _routerService
-                .navigateTo(TransactionDetailRoute(transaction: transaction)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                SizedBox(width: 5),
-                Column(
-                  children: [
-                    Center(
-                      child: MiniAppIcon(
-                        icon: 'assets/flipper_transaction_icon.svg',
-                        color: gradientColorOne,
-                        page: "Transaction",
-                        showPageName: false,
-                        sideSize: 50,
+                      transaction.subTotal!.toRwf(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      typeOfTransaction,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(width: 10),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(transaction.subTotal!.toRwf(),
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        )),
-                    Text(typeOfTransaction,
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey,
-                        )),
-                  ],
+              ),
+              Text(
+                transaction.createdAt.toString().substring(11, 16),
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.grey,
                 ),
-                const Spacer(),
-                Text(transaction.createdAt.toString().substring(11, 16),
-                    style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey)),
-                const Icon(FluentIcons.chevron_right_20_regular),
-              ],
-            ),
+              ),
+              const Icon(FluentIcons.chevron_right_20_regular),
+            ],
           ),
         ),
-      );
-    }
-    return list;
+      ),
+    );
   }
 
   @override
@@ -277,17 +235,18 @@ class TransactionsState extends ConsumerState<Transactions>
         Drawers? drawer = await ProxyService.strategy
             .getDrawer(cashierId: ProxyService.box.getUserId()!);
 
-        // for rra z report
-        setState(() {
-          zlist = _zTransactions(drawer: drawer!);
-        });
+        if (drawer != null) {
+          setState(() {
+            zlist = _zTransactions(drawer: drawer);
+          });
+        }
       },
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         return Scaffold(
           appBar: AppBar(
             actions: [datePicker()],
-            title: Text('Transactions'),
+            title: const Text('Transactions'),
           ),
           body: defaultTransactions
               ? Column(
@@ -328,7 +287,10 @@ class TransactionsState extends ConsumerState<Transactions>
                         ),
                       ),
                     )
-                  : ListView(children: zlist),
+                  : RefreshIndicator(
+                      onRefresh: () async => setState(() {}),
+                      child: ListView(children: zlist),
+                    ),
         );
       },
     );
@@ -336,16 +298,23 @@ class TransactionsState extends ConsumerState<Transactions>
 
   Widget buildList(BuildContext context, CoreViewModel model) {
     final transactionsData = ref.watch(transactionsStreamProvider);
-    list.clear();
     return transactionsData.when(
       data: (value) {
-        list = _normalTransactions(completedTransaction: value);
-        return ListView(
-          children: list,
+        final transactions = _normalTransactions(completedTransaction: value);
+        return RefreshIndicator(
+          onRefresh: () async => setState(() {}),
+          child: ListView(
+            children: transactions,
+          ),
         );
       },
       error: (error, stackTrace) {
-        return Text(error.toString());
+        return Center(
+          child: Text(
+            error.toString(),
+            style: GoogleFonts.poppins(color: Colors.red),
+          ),
+        );
       },
       loading: () {
         return const Center(child: CircularProgressIndicator());
