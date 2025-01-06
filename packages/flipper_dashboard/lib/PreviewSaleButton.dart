@@ -55,7 +55,7 @@ class PreviewSaleButton extends ConsumerWidget {
 
     return SizedBox(
       height: 64,
-      width: 64,
+      width: 160,
       child: TextButton(
         key: const Key("PaymentButton"),
         style: _getButtonStyle(),

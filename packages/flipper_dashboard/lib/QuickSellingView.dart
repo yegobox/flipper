@@ -167,7 +167,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 });
                 ref.read(previewingCart.notifier).state = false;
               },
-              ref: ref,
               model: model,
               ticketHandler: () {
                 talker.warning("We are about to complete a ticket");

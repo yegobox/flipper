@@ -16,7 +16,7 @@ dependencies:
   build_runner: ^2.4.14
   riverpod_lint: ^2.3.7
   dart_mappable_builder: ^4.2.1
-  custom_lint: ^0.6.4
+  # custom_lint: ^0.6.4
   mockito: ^5.4.4
   json_serializable: ^6.8.0 
   cloud_firestore_odm_generator: ^1.0.0-dev.89

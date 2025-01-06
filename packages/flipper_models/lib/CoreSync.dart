@@ -3865,28 +3865,21 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? variantId,
       String? name,
       int? itemsPerPage}) async {
-    // if (variants.isEmpty) {
-    //   variants = await repository.get<Variant>(
-    //       query: brick.Query(where: [
-    //     brick.Where('branchIds').contains(branchId),
-    //     brick.Where('retailPrice').isGreaterThan(0),
-    //     brick.Where('name').isNot(TEMP_PRODUCT),
-    //   ]));
-    // }
     List<Variant> variants = await repository.get<Variant>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
         query: brick.Query(where: [
-      if (variantId != null)
-        brick.Where('id').isExactly(variantId)
-      else ...[
-        brick.Where('branchId').isExactly(branchId),
-        brick.Where('retailPrice').isGreaterThan(0),
-        brick.Where('name').isNot(TEMP_PRODUCT),
-        brick.Where('productName').isNot(CUSTOM_PRODUCT),
-        if (productId != null) brick.Where('productId').isExactly(productId),
-        if (name != null) brick.Where('name').isExactly(name),
-      ]
-    ]));
-    ;
+          if (variantId != null)
+            brick.Where('id').isExactly(variantId)
+          else ...[
+            brick.Where('branchId').isExactly(branchId),
+            brick.Where('retailPrice').isGreaterThan(0),
+            brick.Where('name').isNot(TEMP_PRODUCT),
+            brick.Where('productName').isNot(CUSTOM_PRODUCT),
+            if (productId != null)
+              brick.Where('productId').isExactly(productId),
+            if (name != null) brick.Where('name').isExactly(name),
+          ]
+        ]));
 
     if (page != null && itemsPerPage != null) {
       final offset = page * itemsPerPage;
@@ -4221,7 +4214,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     bool? doneWithTransaction,
     bool? active,
   }) {
-    return repository.subscribe<TransactionItem>(
+    final item = repository.subscribe<TransactionItem>(
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
       query: brick.Query(where: [
         if (transactionId != null)
           brick.Where('transactionId').isExactly(transactionId),
@@ -4243,6 +4237,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         if (active != null) brick.Where('active').isExactly(active),
       ]),
     );
+
+    return item.map((data) {
+      print('Transaction Item stream data: ${data.length} records');
+      return data;
+    });
   }
 
   @override
@@ -4253,8 +4252,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     String? id,
     bool? active,
   }) async {
-    return repository.get(
-        policy: OfflineFirstGetPolicy.localOnly,
+    final items = await repository.get<TransactionItem>(
+        // TODO: switch to local only when in prod.
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
         query: brick.Query(where: [
           if (transactionId != null)
             brick.Where('transactionId').isExactly(transactionId),
@@ -4264,6 +4264,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             brick.Where('doneWithTransaction').isExactly(doneWithTransaction),
           if (active != null) brick.Where('active').isExactly(active),
         ]));
+    return items;
   }
 
   @override

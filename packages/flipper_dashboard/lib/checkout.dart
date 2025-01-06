@@ -9,6 +9,7 @@ import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/previewCart.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/search_field.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
@@ -155,7 +156,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                                 borderRadius: BorderRadius.circular(30),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha: 0.1),
                                     spreadRadius: 1,
                                     blurRadius: 10,
                                     offset: const Offset(0, 2),
@@ -317,7 +318,6 @@ class CheckOutState extends ConsumerState<CheckOut>
                 rethrow;
               }
             },
-            ref: ref,
             model: model,
             ticketHandler: () => handleTicketNavigation(transaction),
           ),
@@ -375,14 +375,13 @@ class CheckOutState extends ConsumerState<CheckOut>
                       child: Container(
                         color: Colors.white,
                         child: PayableView(
-                          mode: SellingMode.forSelling,
+                          mode: SellingMode.forOrdering,
                           wording: getCartText(),
-                          ref: ref,
                           model: model,
                           ticketHandler: () =>
                               handleTicketNavigation(transaction),
                           previewCart: () {
-                            talker.warning("Show Quick Sell: ${showCart}");
+                            // talker.warning("Show Quick Sell: ${showCart}");
                             if (Platform.isAndroid || Platform.isIOS) {
                               BottomSheets.showBottom(
                                   context: context,
@@ -412,13 +411,15 @@ class CheckOutState extends ConsumerState<CheckOut>
                                   },
                                   doneDelete: () {
                                     print("done delete");
-                                    final isOrdering =
-                                        ProxyService.box.isOrdering() ?? false;
+                                    // final isOrdering =
+                                    //     ProxyService.box.isOrdering() ?? false;
 
-                                    ref.refresh(transactionItemsProvider(
-                                        (isExpense: isOrdering)));
+                                    // ref.refresh(transactionItemsProvider(
+                                    //     (isExpense: isOrdering)));
                                     ref.refresh(transactionItemsStreamProvider(
-                                        transaction.id));
+                                        branchId:
+                                            ProxyService.box.getBranchId()!,
+                                        transactionId: transaction.id));
 
                                     /// force closing the modal, this is because we have no way to update the item on bottomsheet
                                     /// since bottom sheet is called on button click and we have no way to update it without another trigger

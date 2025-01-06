@@ -119,28 +119,7 @@ final initialStockProvider =
     StreamProvider.autoDispose.family<double, int>((ref, branchId) {
   return ProxyService.strategy.soldStockValue(branchId: branchId);
 });
-final transactionItemsStreamProvider = StreamProvider.autoDispose
-    .family<List<TransactionItem>, String?>((ref, transactionId) {
-  return ProxyService.strategy.transactionItemsStreams(
-    branchId: ProxyService.box.getBranchId()!,
-    transactionId: transactionId ?? "",
-    doneWithTransaction: false,
-    active: true,
-  );
-});
 
-final transactionItemProvider = FutureProvider.autoDispose
-    .family<List<TransactionItem>, ({int branchId, String transactionId})>(
-        (ref, params) async {
-  final (:branchId, :transactionId) = params;
-
-  return await ProxyService.strategy.transactionItems(
-    transactionId: transactionId,
-    doneWithTransaction: false,
-    branchId: branchId,
-    active: true,
-  );
-});
 final stockByVariantIdProvider =
     StreamProvider.autoDispose.family<double, String>((ref, variantId) {
   int branchId = ProxyService.box.getBranchId()!;

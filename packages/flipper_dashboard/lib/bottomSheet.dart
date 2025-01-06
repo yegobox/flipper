@@ -2,22 +2,76 @@
 
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/src/consumer.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flipper_services/constants.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
+    as oldProvider;
 
 class BottomSheets {
+  static void showBottom({
+    required BuildContext context,
+    required WidgetRef ref,
+    required Function doneDelete,
+    required Function onCharge,
+    String? transactionId,
+  }) {
+    if (transactionId == null) {
+      return; // Handle null case
+    }
+
+    // Parse to int
+
+    WoltModalSheet.show<void>(
+      onModalDismissedWithBarrierTap: () {
+        ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+        // dismiss the modal
+        Navigator.of(context).pop();
+      },
+      context: context,
+      pageListBuilder: (BuildContext context) {
+        return [
+          WoltModalSheetPage(
+            hasSabGradient: false,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: _BottomSheetContent(
+                transactionIdInt: transactionId,
+                doneDelete: doneDelete,
+                onCharge: onCharge,
+              ),
+            ),
+          ),
+        ];
+      },
+    );
+  }
+}
+
+class _BottomSheetContent extends ConsumerStatefulWidget {
+  const _BottomSheetContent(
+      {required this.transactionIdInt,
+      required this.doneDelete,
+      required this.onCharge});
+  final String transactionIdInt;
+  final Function doneDelete;
+  final Function onCharge;
+
+  @override
+  ConsumerState<_BottomSheetContent> createState() =>
+      _BottomSheetContentState();
+}
+
+class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
   static void edit({
     required BuildContext context,
     required WidgetRef ref,
     required TransactionItem transactionItem,
     required Function doneDelete,
-    String? transactionId,
+    required String transactionId,
   }) {
     TextEditingController newQtyController = TextEditingController();
     newQtyController.text = transactionItem.qty.toString();
@@ -65,11 +119,9 @@ class BottomSheets {
                             qty: double.tryParse(newQtyController.text),
                             transactionItemId: transactionItem.id);
 
-                        ref.refresh(transactionItemProvider((
-                          transactionId: transactionId!,
-                          branchId: ProxyService.box.getBranchId()!
-                        )));
-
+                        ref.invalidate(transactionItemsProvider(
+                            transactionId: transactionId,
+                            branchId: ProxyService.box.getBranchId()!));
                         Navigator.of(context).pop();
                         Navigator.of(context).pop();
                       }
@@ -99,23 +151,11 @@ class BottomSheets {
     );
   }
 
-  static void showBottom({
-    required BuildContext context,
-    required WidgetRef ref,
-    required Function doneDelete,
-    required Function onCharge,
-    String? transactionId,
-  }) {
-    // Watch the transaction
-    final transaction = ref.watch(pendingTransactionProviderNonStream(
-      (mode: TransactionType.sale, isExpense: false),
-    ));
-
-    // Watch items as AsyncValue
-    final itemsAsync = ref.watch(transactionItemProvider((
-      transactionId: transaction.value?.id ?? "",
-      branchId: ProxyService.box.getBranchId()!
-    )));
+  @override
+  Widget build(BuildContext context) {
+    final itemsAsync = ref.watch(transactionItemsProvider(
+        transactionId: widget.transactionIdInt,
+        branchId: ProxyService.box.getBranchId()!));
 
     double calculateTotal(List<TransactionItem> items) {
       return items.fold(0, (sum, item) => sum + item.price);
@@ -144,11 +184,11 @@ class BottomSheets {
               icon: Icon(Icons.edit),
               onPressed: () {
                 edit(
-                  doneDelete: doneDelete,
+                  doneDelete: widget.doneDelete,
                   context: context,
                   ref: ref,
                   transactionItem: transactionItem,
-                  transactionId: transactionId ?? "",
+                  transactionId: widget.transactionIdInt.toString(),
                 );
               },
             ),
@@ -176,10 +216,13 @@ class BottomSheets {
                   for (TransactionItem item in items) {
                     ProxyService.strategy.deleteItemFromCart(
                       transactionItemId: item,
-                      transactionId: transactionId,
+                      transactionId: widget.transactionIdInt.toString(),
                     );
                   }
-                  doneDelete();
+                  ref.invalidate(transactionItemsProvider(
+                      transactionId: widget.transactionIdInt,
+                      branchId: ProxyService.box.getBranchId()!));
+                  widget.doneDelete();
                 },
                 text: 'Clear All',
               ),
@@ -198,35 +241,23 @@ class BottomSheets {
             width: double.infinity,
             text: 'Charge ${calculateTotal(items).toRwf()}',
             onPressed: () {
-              onCharge(transactionId, calculateTotal(items));
+              widget.onCharge(
+                  widget.transactionIdInt.toString(), calculateTotal(items));
             },
           ),
         ],
       );
     }
 
-    WoltModalSheet.show<void>(
-      context: context,
-      pageListBuilder: (BuildContext context) {
-        return [
-          WoltModalSheetPage(
-            hasSabGradient: false,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: itemsAsync.when(
-                data: (items) => _buildContent(items),
-                loading: () => Center(child: CircularProgressIndicator()),
-                error: (error, stack) => Center(
-                  child: Text(
-                    'Error loading items: ${error.toString()}',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ];
-      },
+    return itemsAsync.when(
+      data: (items) => _buildContent(items),
+      loading: () => Center(child: Text("Loading...")),
+      error: (error, stack) => Center(
+        child: Text(
+          'Error loading items: ${error.toString()}',
+          style: TextStyle(color: Colors.red),
+        ),
+      ),
     );
   }
 }
