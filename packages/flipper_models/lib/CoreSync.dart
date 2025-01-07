@@ -3795,9 +3795,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<RealmInterface> configureCapella(
-      {required bool useInMemory, required storage.LocalStorage box}) {
-    // TODO: implement configureCapella
-    throw UnimplementedError("configureCapella method is not implemented yet");
+      {required bool useInMemory, required storage.LocalStorage box}) async {
+    return this as RealmInterface;
   }
 
   @override
