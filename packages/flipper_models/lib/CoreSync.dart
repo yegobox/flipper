@@ -3911,8 +3911,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   RealmInterface instance() {
-    // TODO: implement instance
-    throw UnimplementedError("instance is not implemented yet");
+    return this;
   }
 
   @override
