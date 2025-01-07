@@ -3851,9 +3851,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<List<Configurations>> taxes({required int branchId}) {
-    // TODO: implement taxes
-    throw UnimplementedError("taxes method is not implemented yet");
+  Future<List<Configurations>> taxes({required int branchId}) async {
+    return await repository.get<Configurations>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        query:
+            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
   }
 
   @override

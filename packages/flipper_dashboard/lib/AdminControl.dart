@@ -178,21 +178,8 @@ class _AdminControlState extends State<AdminControl> {
     });
   }
 
-  void enableSyncStrategyFunc(bool value) async {
-    await ProxyService.box.writeBool(
-        key: 'switchToCloudSync',
-        value: !ProxyService.box.switchToCloudSync()!);
-
-    setState(() {
-      switchToCloudSync = ProxyService.box.switchToCloudSync()!;
-    });
-    if (switchToCloudSync) {
-      // ProxyService.setStrategy(Strategy.cloudSync);
-      ProxyService.strategy.whoAmI();
-    } else {
-      // ProxyService.setStrategy(Strategy.capella);
-      ProxyService.strategy.whoAmI();
-    }
+  void reInitializeEbm(bool value) async {
+    // show modal
   }
 
   void enableDebugFunc(bool value) async {
@@ -205,12 +192,13 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -219,212 +207,263 @@ class _AdminControlState extends State<AdminControl> {
           tooltip: 'Back',
         ),
         title: Text(
-          'Management',
+          'Management Dashboard',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.black87,
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
         ),
-        // actions: actions,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
           child: Container(
-            color: Colors.grey[300],
+            color: Colors.white.withValues(alpha: 0.2),
             height: 1.0,
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 24),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: SettingsSection(
-                      title: 'Account',
-                      children: [
-                        const SizedBox(height: 16),
-                        SettingsCard(
-                          title: 'User Management',
-                          subtitle: 'Manage users and permissions',
-                          icon: Icons.people,
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return TenantManagement();
-                              },
-                            );
-                          },
-                        ),
-                        SettingsCard(
-                          title: 'Branch Management',
-                          subtitle: 'Manage Branch (Locations)',
-                          icon: Icons.people,
-                          onTap: () {
-                            locator<RouterService>()
-                                .navigateTo(AddBranchRoute());
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: SettingsSection(
-                      title: 'Financial',
-                      children: [
-                        SettingsCard(
-                          title: 'Tax Control',
-                          subtitle: 'Manage tax settings',
-                          icon: Icons.attach_money,
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => TaxSettingsModal(
-                                  branchId: ProxyService.box.getBranchId()!),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        SettingsCard(
-                          title: 'Payment Methods',
-                          subtitle: 'Manage your payment options',
-                          icon: Icons.credit_card,
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              SettingsSection(
-                title: 'Preferences',
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SwitchSettingsCard(
-                          title: 'POS',
-                          subtitle: 'Make POS default app',
-                          icon: Icons.shopping_cart,
-                          value: isPosDefault,
-                          onChanged: togglePos,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: SwitchSettingsCard(
-                          title: 'Orders',
-                          subtitle: 'Make Orders default app',
-                          icon: Icons.receipt,
-                          value: isOrdersDefault,
-                          onChanged: toggleOrders,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              SettingsSection(
-                title: 'Debugging',
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SwitchSettingsCard(
-                          title: 'Enable Debug',
-                          subtitle: 'Enable Debug mode',
-                          icon: Icons.bug_report,
-                          value: enableDebug,
-                          onChanged: enableDebugFunc,
-                        ),
-                      )
-                    ],
-                  ),
-                ],
-              ),
-              SettingsSection(
-                title: 'Sync Strategy',
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SwitchSettingsCard(
-                          title: 'Switch to Cloud Sync',
-                          subtitle: 'Switch to Cloud Sync',
-                          icon: Icons.sync,
-                          value: switchToCloudSync,
-                          onChanged: enableSyncStrategyFunc,
-                        ),
-                      )
-                    ],
-                  ),
-                ],
-              ),
-              SettingsSection(
-                title: 'Tax Service',
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SwitchSettingsCard(
-                          title: 'Tax Service',
-                          subtitle: 'Stop Tax Service',
-                          icon: Icons.sync,
-                          value: stopTaxService,
-                          onChanged: toggleTaxService,
-                        ),
-                      )
-                    ],
-                  ),
-                ],
-              ),
-              SettingsSection(
-                title: 'Sync',
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SwitchSettingsCard(
-                          title: 'Synchronize',
-                          subtitle: 'Force upsert',
-                          icon: Icons.sync,
-                          value: forceUPSERT,
-                          onChanged: toggleForceUPSERT,
-                        ),
-                      )
-                    ],
-                  ),
-                ],
-              ),
-              SettingsSection(
-                title: 'Downloads',
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SwitchSettingsCard(
-                          title: 'Images',
-                          subtitle: 'Force Download images',
-                          icon: Icons.download,
-                          value: filesDownloaded,
-                          onChanged: toggleDownload,
-                        ),
-                      )
-                    ],
-                  ),
-                ],
-              )
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Theme.of(context).primaryColor.withValues(alpha: 0.05),
+              Colors.white,
             ],
           ),
         ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildQuickActions(context),
+                const SizedBox(height: 32),
+                _buildMainSections(context),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4.0, bottom: 16.0),
+          child: Text(
+            'Quick Actions',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: SwitchSettingsCard(
+                title: 'POS Default',
+                subtitle: 'Set POS as default app',
+                icon: Icons.point_of_sale,
+                value: isPosDefault,
+                onChanged: togglePos,
+                color: Colors.blue,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: SwitchSettingsCard(
+                title: 'Orders Default',
+                subtitle: 'Set Orders as default app',
+                icon: Icons.receipt_long,
+                value: isOrdersDefault,
+                onChanged: toggleOrders,
+                color: Colors.green,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMainSections(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildSection(
+                context,
+                'Account Management',
+                [
+                  SettingsCard(
+                    title: 'User Management',
+                    subtitle: 'Manage users and permissions',
+                    icon: Icons.people,
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) => TenantManagement(),
+                      );
+                    },
+                    color: Colors.indigo,
+                  ),
+                  const SizedBox(height: 16),
+                  SettingsCard(
+                    title: 'Branch Management',
+                    subtitle: 'Manage Branch (Locations)',
+                    icon: Icons.business,
+                    onTap: () {
+                      locator<RouterService>().navigateTo(AddBranchRoute());
+                    },
+                    color: Colors.teal,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: _buildSection(
+                context,
+                'Financial Controls',
+                [
+                  SettingsCard(
+                    title: 'Tax Settings',
+                    subtitle: 'Configure tax rules and rates',
+                    icon: Icons.account_balance,
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => TaxSettingsModal(
+                          branchId: ProxyService.box.getBranchId()!,
+                        ),
+                      );
+                    },
+                    color: Colors.amber,
+                  ),
+                  const SizedBox(height: 16),
+                  SettingsCard(
+                    title: 'Payment Methods',
+                    subtitle: 'Manage payment options',
+                    icon: Icons.payments,
+                    onTap: () {},
+                    color: Colors.purple,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        _buildSystemSettings(context),
+      ],
+    );
+  }
+
+  Widget _buildSystemSettings(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4.0, bottom: 16.0),
+          child: Text(
+            'System Settings',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 3,
+          childAspectRatio: 2.5,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          children: [
+            SwitchSettingsCard(
+              title: 'Debug Mode',
+              subtitle: 'Enable debugging features',
+              icon: Icons.bug_report,
+              value: enableDebug,
+              onChanged: enableDebugFunc,
+              color: Colors.orange,
+            ),
+            SwitchSettingsCard(
+              title: 'EBM',
+              subtitle: 'Re-initialize',
+              icon: Icons.cloud_sync,
+              value: switchToCloudSync,
+              onChanged: reInitializeEbm,
+              color: Colors.cyan,
+            ),
+            SwitchSettingsCard(
+              title: 'Tax Service',
+              subtitle: 'Manage tax service status',
+              icon: Icons.receipt,
+              value: stopTaxService,
+              onChanged: toggleTaxService,
+              color: Colors.deepPurple,
+            ),
+            SwitchSettingsCard(
+              title: 'Force Upsert',
+              subtitle: 'Enable force upsert mode',
+              icon: Icons.sync_problem,
+              value: forceUPSERT,
+              onChanged: toggleForceUPSERT,
+              color: Colors.brown,
+            ),
+            SwitchSettingsCard(
+              title: 'Asset Download',
+              subtitle: 'Manage image downloads',
+              icon: Icons.cloud_download,
+              value: filesDownloaded,
+              onChanged: toggleDownload,
+              color: Colors.blueGrey,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSection(
+      BuildContext context, String title, List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Theme.of(context).primaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 20),
+          ...children,
+        ],
       ),
     );
   }
@@ -464,39 +503,72 @@ class SettingsCard extends StatelessWidget {
   final String subtitle;
   final IconData icon;
   final VoidCallback onTap;
+  final Color color;
 
   const SettingsCard({
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.onTap,
+    required this.color,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.grey.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(icon, size: 32, color: Theme.of(context).primaryColor),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  size: 24,
+                  color: color,
+                ),
+              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
                     const SizedBox(height: 4),
-                    Text(subtitle,
-                        style: Theme.of(context).textTheme.bodyMedium),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey[600],
+                          ),
+                    ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: Colors.grey[600]),
+              Icon(
+                Icons.chevron_right,
+                color: color.withValues(alpha: 0.5),
+              ),
             ],
           ),
         ),
@@ -511,6 +583,7 @@ class SwitchSettingsCard extends StatelessWidget {
   final IconData icon;
   final bool value;
   final ValueChanged<bool> onChanged;
+  final Color color;
 
   const SwitchSettingsCard({
     required this.title,
@@ -518,32 +591,62 @@ class SwitchSettingsCard extends StatelessWidget {
     required this.icon,
     required this.value,
     required this.onChanged,
+    required this.color,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.grey.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(icon, size: 32, color: Theme.of(context).primaryColor),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                size: 24,
+                color: color,
+              ),
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                  ),
                 ],
               ),
             ),
             Switch(
               value: value,
               onChanged: onChanged,
-              activeColor: Theme.of(context).primaryColor,
+              activeColor: color,
             ),
           ],
         ),
