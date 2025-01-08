@@ -1,5 +1,6 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,11 +12,11 @@ mixin PaymentHandler {
   Future<void> handleMomoPayment(int finalPrice, {Plan? plan}) async {
     /// given  plan.selectedPlan compute time in seconds
     int timeInSeconds = 120;
-    if (plan!.selectedPlan == "Monthly") {
-      timeInSeconds = 2628000;
+    if (plan!.selectedPlan == "monthly") {
+      timeInSeconds = kDebugMode ? 120 : 2628000;
     }
-    if (plan.selectedPlan == "Yearly") {
-      timeInSeconds = 31536000;
+    if (plan.selectedPlan == "yearly") {
+      timeInSeconds = kDebugMode ? 120 : 31536000;
     }
     final subscribed = await ProxyService.ht.subscribe(
       businessId: ProxyService.box.getBusinessId()!,

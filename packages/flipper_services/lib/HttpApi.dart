@@ -178,7 +178,7 @@ class HttpApi implements RealmViaHttp {
           'api-key': AppSecrets.apikey,
           'Content-Type': 'application/json'
         },
-        Uri.parse('${AppSecrets.coreApi}/v2/api/payNow'),
+        Uri.parse('${AppSecrets.coreApi}/v2/api/preApprove'),
         body: json.encode({
           "payer": {"partyIdType": "MSISDN", "partyId": phone},
           "payerCurrency": "RWF",
