@@ -3932,9 +3932,29 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<void> saveEbm(
       {required int branchId,
       required String severUrl,
-      required String bhFId}) {
-    // TODO: implement saveEbm
-    throw UnimplementedError("  saveEbm method is not implemented yet");
+      required String bhFId}) async {
+    Business? business =
+        await getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    final query =
+        brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
+    final ebm = await repository.get<models.Ebm>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    if (ebm.firstOrNull == null) {
+      final ebm = models.Ebm(
+        bhfId: bhFId,
+        tinNumber: business!.tinNumber!,
+        dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
+        userId: ProxyService.box.getUserId()!,
+        taxServerUrl: severUrl,
+        businessId: business.serverId,
+        branchId: branchId,
+      );
+      repository.upsert(ebm);
+    } else {
+      final ebms = ebm.firstOrNull;
+      ebms!.taxServerUrl = severUrl;
+      repository.upsert(ebms);
+    }
   }
 
   @override

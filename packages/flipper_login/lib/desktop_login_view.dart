@@ -12,6 +12,9 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+// Once open time someone else solved issue: https://github.com/ente-io/ente/commit/be7f4b71073c8a1086d654c01f61925ffbf6abe5#diff-5ca3a4f36b6e5b25b9776be6945ade02382219f8f0a7c8ec1ecd1ccc018c73aaR19
+//
+
 class DesktopLoginView extends StatefulHookConsumerWidget {
   const DesktopLoginView({Key? key}) : super(key: key);
 
@@ -133,21 +136,21 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                 borderRadius: BorderRadius.circular(0))),
                         side: WidgetStateProperty.resolveWith<BorderSide>(
                             (states) => BorderSide(
-                                  color:
-                                      const Color(0xff006AFE).withOpacity(0.1),
+                                  color: const Color(0xff006AFE)
+                                      .withValues(alpha: 0.1),
                                 )),
                         backgroundColor: WidgetStateProperty.all<Color>(
-                            const Color(0xff006AFE).withOpacity(0.1)),
+                            const Color(0xff006AFE).withValues(alpha: 0.1)),
                         overlayColor: WidgetStateProperty.resolveWith<Color?>(
                           (Set<WidgetState> states) {
                             if (states.contains(WidgetState.hovered)) {
-                              return Color(0xff006AFE).withOpacity(0.5);
+                              return Color(0xff006AFE).withValues(alpha: 0.5);
                             }
                             if (states.contains(WidgetState.focused) ||
                                 states.contains(WidgetState.pressed)) {
-                              return Color(0xff006AFE).withOpacity(0.5);
+                              return Color(0xff006AFE).withValues(alpha: 0.5);
                             }
-                            return Color(0xff006AFE).withOpacity(0.5);
+                            return Color(0xff006AFE).withValues(alpha: 0.5);
                           },
                         ),
                       ),
