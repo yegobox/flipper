@@ -24,6 +24,8 @@ mixin PaymentHandler {
       flipperHttpClient: ProxyService.http,
       timeInSeconds: timeInSeconds,
     );
+    // delay for 20 seconds
+    await Future.delayed(const Duration(seconds: 20));
     if (subscribed) {
       /// if subscribed, this means the user will not be prompted for PIN again,
       /// if he has not subscribed he will be prompted for PIN.
