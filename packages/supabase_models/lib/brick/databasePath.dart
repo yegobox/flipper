@@ -8,7 +8,7 @@ import 'package:sqflite_common/sqflite.dart';
 mixin DatabasePath {
   static Future<String> getDatabaseDirectory() async {
     if (Platform.isWindows) {
-      final appDir = await getApplicationDocumentsDirectory();
+      final appDir = await getApplicationSupportDirectory();
       return join(appDir.path, '_db');
     } else if (Platform.isAndroid) {
       return await getDatabasesPath();
