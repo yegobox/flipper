@@ -8,16 +8,34 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 mixin PaymentHandler {
-  void handleMomoPayment(int finalPrice, {Plan? plan}) {
-    ProxyService.ht.makePayment(
+  Future<void> handleMomoPayment(int finalPrice, {Plan? plan}) async {
+    /// given  plan.selectedPlan compute time in seconds
+    int timeInSeconds = 120;
+    if (plan!.selectedPlan == "Monthly") {
+      timeInSeconds = 2628000;
+    }
+    if (plan.selectedPlan == "Yearly") {
+      timeInSeconds = 31536000;
+    }
+    final subscribed = await ProxyService.ht.subscribe(
       businessId: ProxyService.box.getBusinessId()!,
       amount: finalPrice,
       flipperHttpClient: ProxyService.http,
+      timeInSeconds: timeInSeconds,
     );
+    if (subscribed) {
+      /// if subscribed, this means the user will not be prompted for PIN again,
+      /// if he has not subscribed he will be prompted for PIN.
+      ProxyService.ht.makePayment(
+        businessId: ProxyService.box.getBusinessId()!,
+        amount: finalPrice,
+        flipperHttpClient: ProxyService.http,
+      );
+    }
     // upsert plan with new payment method
 
     ProxyService.strategy.saveOrUpdatePaymentPlan(
-      additionalDevices: plan!.additionalDevices!,
+      additionalDevices: plan.additionalDevices!,
       businessId: ProxyService.box.getBusinessId()!,
       // payStackUserId: plan.payStackCustomerId!,
       flipperHttpClient: ProxyService.http,
