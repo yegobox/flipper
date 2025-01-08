@@ -175,7 +175,7 @@ dependencies:
   location: ^6.0.2
   google_sign_in: ^6.2.1
   http: ">=0.13.0 <2.0.0"
-  path_provider: ^2.1.4
+  path_provider: ^2.1.5
   path: ^1.8.1
   googleapis: ^11.2.0
   googleapis_auth: ^1.4.1
