@@ -212,11 +212,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return await repository.upsert(customer);
   }
 
-  @override
-  Future<int> addFavorite({required Favorite data}) {
-    // TODO: implement addFavorite
-    throw UnimplementedError("addFavorite is not implemented yet");
-  }
+  
 
   @override
   Future<void> addTransactionItem(
@@ -364,12 +360,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     controller.close();
   }
 
-  @override
-  Future<bool> bindProduct(
-      {required String productId, required String tenantId}) {
-    // TODO: implement bindProduct
-    throw UnimplementedError('addVariant method is not implemented yet');
-  }
+  
 
   @override
   Future<List<Branch>> branches(
@@ -822,15 +813,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  int createStockRequest(List<TransactionItem> items,
-      {required String deliveryNote,
-      DateTime? deliveryDate,
-      required int mainBranchId}) {
-    // TODO: implement createStockRequest
-    throw UnimplementedError(
-        "createStockRequest method is not implemented yet");
-  }
+ 
 
   @override
   Future<Branch?> defaultBranch() async {
@@ -910,84 +893,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           );
         }
         break;
-      // case 'discount':
-      //   final discount = await getDiscount(id: id, branchId: ProxyService.box.getBranchId()!);
-      //   if (discount != null) {
-      //     await repository.delete<Discount>(discount);
-      //   }
-      //   break;
-      // case 'category':
-      //   final category = await getCategory(id: id, branchId: ProxyService.box.getBranchId()!);
-      //   if (category != null) {
-      //     await repository.delete<Category>(category);
-      //   }
-      //   break;
-      // case 'unit':
-      //   final unit = await getUnit(id: id, branchId: ProxyService.box.getBranchId()!);
-      //   if (unit != null) {
-      //     await repository.delete<IUnit>(unit);
-      //   }
-      //   break;
-      // case 'setting':
-      //   final setting = await getSetting(id: id, branchId: ProxyService.box.getBranchId()!);
-      //   if (setting != null) {
-      //     await repository.delete<Setting>(setting);
-      //   }
-      //   break;
-      // case 'token':
-      //   final token = await getToken(id: id, branchId: ProxyService.box.getBranchId()!);
-      //   if (token != null) {
-      //     await repository.delete<Token>(token);
-      //   }
-      //   break;
-      // case 'device':
-      //   final device = await getDevice(id: id, branchId: ProxyService.box.getBranchId()!);
-      //   if (device != null) {
-      //     await repository.delete<Device>(device);
-      //   }
-      //   break;
-      // case 'favorite':
-      //   final favorite = await getFavoriteByIndex(id: id, branchId: ProxyService.box.getBranchId()!);
-      //   if (favorite != null) {
-      //     await repository.delete<Favorite>(favorite);
-      //   }
-      //   break;
-      // case 'composite':
-      //   final composite = await getComposite(id: id, branchId: ProxyService.box.getBranchId()!);
-      //   if (composite != null) {
-      //     await repository.delete<Composite>(composite);
-      //   }
-      //   break;
-      // case 'setting':
-      //   final setting = await getSetting(id: id, branchId: ProxyService.box.getBranchId()!);
-      //   if (setting != null) {
-      //     await repository.delete<Setting>(setting);
-      //   }
-      //   break;
-      // case 'team':
-      //   final team = await getTeam(id: id, branchId: ProxyService.box.getBranchId()!);
-      //   if (team != null) {
-      //     await repository.delete<Team>(team);
-      //   }
-      //   break;
-      // case 'plan':
-      //   final plan = await getPlan(id: id, branchId: ProxyService.box.getBranchId()!);
-      //   if (plan != null) {
-      //     await repository.delete<Plan>(plan);
-      //   }
-      //   break;
-      // case 'planAddon':
-      //   final planAddon = await getPlanAddon(id: id, branchId: ProxyService.box.getBranchId()!);
-      //   if (planAddon != null) {
-      //     await repository.delete<PlanAddon>(planAddon);
-      //   }
-      //   break;
-      // case 'planAddon':
-      //   final planAddon = await getPlanAddon(id: id, branchId: ProxyService.box.getBranchId()!);
-      //   if (planAddon != null) {
-      //     await repository.delete<PlanAddon>(planAddon);
-      //   }
-      //   break;
+      
     }
     return true;
   }
@@ -1793,38 +1699,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         .firstOrNull;
   }
 
-  @override
-  Future<({double grossProfit, double netProfit})> getReportData() {
-    // TODO: implement getReportData
-    throw UnimplementedError("getReportData method is not implemented yet");
-  }
-
-  @override
-  Future<Setting?> getSetting({required int businessId}) {
-    // TODO: implement getSetting
-    throw UnimplementedError("getSetting method is not implemented yet");
-  }
-
-  @override
-  FutureOr<Stock?> getStockById({required String id}) async {
-    final query = brick.Query(where: [
-      brick.Where('id', value: id, compare: brick.Compare.exact),
-    ]);
-    return (await repository.get<Stock>(query: query)).firstOrNull;
-  }
-
-  @override
-  Stream<double> getStockStream(
-      {String? productId, String? variantId, required int branchId}) {
-    // TODO: implement getStockStream
-    throw UnimplementedError("getStockStream method is not implemented yet");
-  }
-
-  @override
-  Stream<double> getStockValue({required int branchId}) {
-    // TODO: implement getStockValue
-    throw UnimplementedError("getStockValue method is not implemented yet");
-  }
 
   @override
   FutureOr<Tenant?> getTenant({int? userId, int? pin}) async {
@@ -1881,18 +1755,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return (income: sum_cash_in, expense: sum_cash_out);
   }
 
-  @override
-  Stream<List<Variant>> getVariantByProductIdStream({int? productId}) {
-    // TODO: implement getVariantByProductIdStream
-    throw UnimplementedError(
-        "getVariantByProductIdStream method is not implemented yet");
-  }
-
-  @override
-  List<Variant> getVariants({String? key}) {
-    // TODO: implement getVariants
-    throw UnimplementedError("getVariants is not implemented yet");
-  }
 
   @override
   Future<bool> hasActiveSubscription(
@@ -1918,11 +1780,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return true;
   }
 
-  @override
-  Future<void> initCollections() {
-    // TODO: implement initCollections
-    throw UnimplementedError("initCollections method is not implemented yet");
-  }
 
   @override
   FutureOr<bool> isAdmin(
@@ -1943,11 +1800,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return accesses.firstOrNull != null;
   }
 
-  @override
-  bool isDrawerOpen({required int cashierId, required int branchId}) {
-    // TODO: implement isDrawerOpen
-    throw UnimplementedError("isDrawerOpen method is not implemented yet");
-  }
+ 
 
   bool isEmail(String input) {
     // Implement your logic to check if input is an email
@@ -1956,12 +1809,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return input.contains('@');
   }
 
-  @override
-  Future<void> loadConversations(
-      {required int businessId, int? pageSize = 10, String? pk, String? sk}) {
-    // TODO: implement loadConversations
-    throw UnimplementedError("loadConversations is not implemented yet");
-  }
+  
 
   String _formatPhoneNumber(String userPhone) {
     if (!isEmail(userPhone) && !userPhone.startsWith('+')) {
@@ -2188,15 +2036,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<ITransaction> manageCashInOutTransaction(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId}) async {
-    throw UnimplementedError(
-        "manageCashInOutTransaction is not implemented yet");
-  }
-
-  @override
   FutureOr<ITransaction> manageTransaction(
       {required String transactionType,
       required bool isExpense,
@@ -2271,67 +2110,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  Drawers? openDrawer({required Drawers drawer}) {
-    // TODO: implement openDrawer
-    throw UnimplementedError("openDrawer method is not implemented yet");
-  }
-
-  @override
-  Future<void> patchSocialSetting({required Setting setting}) {
-    // TODO: implement patchSocialSetting
-    throw UnimplementedError(
-        "patchSocialSetting method is not implemented yet");
-  }
-
-  @override
-  Stream<Plan?> paymentPlanStream({required int businessId}) {
-    // TODO: implement paymentPlanStream
-    throw UnimplementedError("paymentPlanStream method is not implemented yet");
-  }
-
-  @override
-  Stream<List<Product>> productStreams({String? prodIndex}) {
-    // final products = productsRef
-    //     .whereId(isEqualTo: prodIndex)
-    //     .whereBranchId(isEqualTo: ProxyService.box.getBranchId()!);
-    // return products
-    //     .snapshots()
-    //     .map((snapshot) => snapshot.docs.map((doc) => doc.data).toList());
-    throw UnimplementedError("productStreams method is not implemented yet");
-  }
-
-  @override
-  Future<List<Product>> products({required int branchId}) async {
-    // final products = await productsRef.whereBranchId(isEqualTo: branchId).get();
-    // return products.docs.map((doc) => doc.data).toList();
-    throw UnimplementedError("products method is not implemented yet");
-  }
-
-  @override
-  Future<List<Product>> productsFuture({required int branchId}) async {
-    // final products = await productsRef.whereBranchId(isEqualTo: branchId).get();
-    // return products.docs.map((doc) => doc.data).toList();
-    throw UnimplementedError("productsFuture method is not implemented yet");
-  }
-
-  @override
-  void reDownloadAsset() {
-    // TODO: implement reDownloadAsset
-    throw UnimplementedError("reDownloadAsset method is not implemented yet");
-  }
-
-  @override
-  Future<void> refreshSession({required int branchId, int? refreshRate = 5}) {
-    // TODO: implement refreshSession
-    throw UnimplementedError("refreshSession method is not implemented yet");
-  }
-
-  @override
-  Future<void> refund({required int itemId}) {
-    // TODO: implement refund
-    throw UnimplementedError("refund method is not implemented yet");
-  }
 
   @override
   FutureOr<void> removeCustomerFromTransaction(
@@ -2359,11 +2137,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  Report report({required int id}) {
-    // TODO: implement report
-    throw UnimplementedError("report method is not implemented yet");
-  }
+
 
   @override
   Stream<List<Report>> reports({required int branchId}) {
@@ -2409,24 +2183,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  void saveComposite({required Composite composite}) {
-    // updateRecord(
-    //   tableName: compositesTable,
-    //   idField: "${compositesTable.singularize()}_id",
-    //   map: composite.toJson(),
-    //   id: composite.id!,
-    //   syncProviders: [SyncProvider.FIRESTORE, SyncProvider.SUPABASE],
-    // );
-    throw UnimplementedError("saveComposite method is not implemented yet");
-  }
-
-  @override
-  Future<void> saveDiscount(
-      {required int branchId, required name, double? amount}) {
-    // TODO: implement saveDiscount
-    throw UnimplementedError("saveDiscount method is not implemented yet");
-  }
 
   @override
   FutureOr<Plan?> saveOrUpdatePaymentPlan({
@@ -2672,11 +2428,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  Future<int> sendReport({required List<TransactionItem> transactionItems}) {
-    // TODO: implement sendReport
-    throw UnimplementedError("sendReport method is not implemented yet");
-  }
+  
 
   @override
   Future<List<ext.ITenant>> signup(
@@ -2721,17 +2473,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  Future<int> size<T>({required T object}) {
-    // TODO: implement size
-    throw UnimplementedError("size method is not implemented yet");
-  }
-
-  @override
-  Stream<double> soldStockValue({required branchId}) {
-    // TODO: implement soldStockValue
-    throw UnimplementedError("soldStockValue method is not implemented yet");
-  }
 
   @override
   Future<void> spawnIsolate(isolateHandler) async {
@@ -2830,28 +2571,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  Future<void> startReplicator() {
-    // TODO: implement startReplicator
-    throw UnimplementedError("startReplicator method is not implemented yet");
-  }
-
-  @override
-  Stream<double> stockValue({required branchId}) {
-    // TODO: implement stockValue
-    throw UnimplementedError("stockValue method is not implemented yet");
-  }
-
-  @override
-  Future<({String customerCode, String url, int userId})> subscribe(
-      {required int businessId,
-      required Business business,
-      required int agentCode,
-      required HttpClientInterface flipperHttpClient,
-      required int amount}) {
-    // TODO: implement subscribe
-    throw UnimplementedError("subscribe is not implemented yet");
-  }
 
   @override
   Future<void> syncUserWithAwsIncognito({required String identifier}) async {
@@ -3383,12 +3102,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  Future<Configurations> saveTax(
-      {required String configId, required double taxPercentage}) {
-    // TODO: implement saveTax
-    throw UnimplementedError("saveTax method is not implemented yet");
-  }
 
   @override
   FutureOr<void> addAccess(
@@ -3501,52 +3214,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  Future<List<Business>> getContacts() {
-    // TODO: implement getContacts
-    throw UnimplementedError("getContacts method is not implemented yet");
-  }
 
-  @override
-  Stream<double> initialStock({required branchId}) {
-    // TODO: implement initialStock
-    throw UnimplementedError("initialStock method is not implemented yet");
-  }
-
-  @override
-  Future<ext.SocialToken?> loginOnSocial(
-      {String? phoneNumberOrEmail, String? password}) {
-    // TODO: implement loginOnSocial
-    throw UnimplementedError("loginOnSocial method is not implemented yet");
-  }
-
-  @override
-  Future<void> processItem(
-      {required old.Item item,
-      required Map<String, String> quantitis,
-      required Map<String, String> taxTypes,
-      required Map<String, String> itemClasses,
-      required Map<String, String> itemTypes}) {
-    // TODO: implement processItem
-    throw UnimplementedError("processItem method is not implemented yet");
-  }
-
-  @override
-  FutureOr<void> updateAcess(
-      {required int userId,
-      String? featureName,
-      String? status,
-      String? accessLevel,
-      String? userType}) {
-    // TODO: implement updateAcess
-    throw UnimplementedError("updateAcess method is not implemented yet");
-  }
-
-  @override
-  FutureOr<void> updateAsset({required String assetId, String? assetName}) {
-    // TODO: implement updateAsset
-    throw UnimplementedError("updateAsset method is not implemented yet");
-  }
 
   @override
   FutureOr<void> updateCategory(
@@ -3569,46 +3237,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  FutureOr<void> updateColor(
-      {required String colorId, String? name, bool? active}) {
-    // TODO: implement updateColor
-    throw UnimplementedError("  updateColor method is not implemented yet");
-  }
 
-  @override
-  FutureOr<void> updateDrawer(
-      {required String drawerId,
-      int? cashierId,
-      int? nsSaleCount,
-      int? trSaleCount,
-      int? psSaleCount,
-      int? csSaleCount,
-      int? nrSaleCount,
-      int? incompleteSale,
-      double? totalCsSaleIncome,
-      double? totalNsSaleIncome,
-      DateTime? openingDateTime,
-      double? closingBalance,
-      bool? open}) {
-    // TODO: implement updateDrawer
-    throw UnimplementedError("updateDrawer method is not implemented yet");
-  }
-
-  @override
-  FutureOr<void> updateNotification(
-      {required String notificationId, bool? completed}) {
-    // TODO: implement updateNotification
-    throw UnimplementedError(
-        "updateNotification method is not implemented yet");
-  }
-
-  @override
-  FutureOr<void> updatePin(
-      {required int userId, String? phoneNumber, String? tokenUid}) {
-    // TODO: implement updatePin
-    throw UnimplementedError("updatePin method is not implemented yet");
-  }
+  
 
   @override
   FutureOr<void> updateProduct(
@@ -3634,12 +3264,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  FutureOr<void> updateReport(
-      {required String reportId, bool? downloaded}) async {
-    // TODO: implement updateReport
-    throw UnimplementedError("updateReport method is not implemented yet");
-  }
+ 
 
   @override
   Future<void> updateTenant(
@@ -3781,12 +3406,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  FutureOr<void> updateUnit(
-      {required String unitId, String? name, bool? active, int? branchId}) {
-    // TODO: implement updateUnit
-    throw UnimplementedError("updateUnit method is not implemented yet");
-  }
+
 
   @override
   FutureOr<Variant> addStockToVariant(
@@ -3918,11 +3538,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return this;
   }
 
-  @override
-  bool isSubscribed({required String feature, required int businessId}) {
-    // TODO: implement isSubscribed
-    throw UnimplementedError("isSubscribed method is not implemented yet");
-  }
+ 
 
   @override
   Future<bool> isTaxEnabled({required int businessId}) async {
@@ -4328,11 +3944,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return items;
   }
 
-  @override
-  FutureOr<List<LPermission>> permissions({required int userId}) {
-    // TODO: implement permissions
-    throw UnimplementedError("permissions method is not implemented yet");
-  }
+  
 
   @override
   void updateAccess(
@@ -4650,29 +4262,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // }
   }
 
-  @override
-  Future<List<Discount>> getDiscounts({required int branchId}) {
-    // TODO: implement getDiscounts
-    throw UnimplementedError("getDiscounts method is not implemented yet");
-  }
 
-  @override
-  void notify({required AppNotification notification}) {
-    // TODO: implement notify
-  }
-
-  @override
-  conversations({int? conversationId}) {
-    // TODO: implement conversations
-    throw UnimplementedError("conversations method is not implemented yet");
-  }
-
-  @override
-  getTop5RecentConversations() {
-    // TODO: implement getTop5RecentConversations
-    throw UnimplementedError(
-        "getTop5RecentConversations is not implemented yet");
-  }
 
   @override
   Future<RealmInterface> configureLocal(
