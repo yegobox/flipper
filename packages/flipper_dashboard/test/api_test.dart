@@ -1,5 +1,4 @@
 import 'package:flipper_models/CoreSync.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 
 import 'package:test/test.dart';

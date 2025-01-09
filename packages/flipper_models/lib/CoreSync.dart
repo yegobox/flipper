@@ -2010,7 +2010,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     List<Business> businessesE = await businesses(userId: pin.userId!);
     List<Branch> branchesE = await branches(businessId: pin.businessId!);
 
-    if (businessesE.isNotEmpty && branchesE.isNotEmpty) {
+    if (businessesE.isNotEmpty &&
+        branchesE.isNotEmpty &&
+        !foundation.kDebugMode) {
       offlineLogin = true;
 
       return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
@@ -3929,32 +3931,46 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<void> saveEbm(
-      {required int branchId,
-      required String severUrl,
-      required String bhFId}) async {
-    Business? business =
+  Future<void> saveEbm({
+    required int branchId,
+    required String severUrl,
+    required String bhFId,
+  }) async {
+    final business =
         await getBusiness(businessId: ProxyService.box.getBusinessId()!);
-    final query =
-        brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
-    final ebm = await repository.get<models.Ebm>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-    if (ebm.firstOrNull == null) {
-      final ebm = models.Ebm(
-        bhfId: bhFId,
-        tinNumber: business!.tinNumber!,
-        dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
-        userId: ProxyService.box.getUserId()!,
-        taxServerUrl: severUrl,
-        businessId: business.serverId,
-        branchId: branchId,
-      );
-      repository.upsert(ebm);
-    } else {
-      final ebms = ebm.firstOrNull;
-      ebms!.taxServerUrl = severUrl;
-      repository.upsert(ebms);
+
+    if (business == null) {
+      throw Exception("Business not found");
     }
+
+    final query = brick.Query(where: [
+      brick.Where('branchId').isExactly(branchId),
+      brick.Where('bhfId').isExactly(bhFId),
+    ]);
+
+    final ebm = await repository.get<models.Ebm>(
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
+
+    final existingEbm = ebm.firstOrNull;
+
+    final updatedEbm = existingEbm ??
+        models.Ebm(
+          bhfId: bhFId,
+          tinNumber: business.tinNumber!,
+          dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
+          userId: ProxyService.box.getUserId()!,
+          taxServerUrl: severUrl,
+          businessId: business.serverId,
+          branchId: branchId,
+        );
+
+    if (existingEbm != null) {
+      updatedEbm.taxServerUrl = severUrl;
+    }
+
+    await repository.upsert(updatedEbm);
   }
 
   @override
@@ -4212,17 +4228,42 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       DateTime? lastTouched,
       DateTime? deletedAt,
       int? id}) async {
-    return await repository.upsert<Branch>(Branch(
-      serverId: serverId,
-      location: location,
-      description: description,
-      name: name,
-      businessId: businessId,
-      longitude: longitude,
-      latitude: latitude,
-      isDefault: isDefault,
-      active: active,
-    ));
+    if (flipperHttpClient == null) {
+      return await repository.upsert<Branch>(Branch(
+        serverId: serverId,
+        location: location,
+        description: description,
+        name: name,
+        businessId: businessId,
+        longitude: longitude,
+        latitude: latitude,
+        isDefault: isDefault,
+        active: active,
+      ));
+    }
+    final response = await flipperHttpClient.post(
+      Uri.parse(apihub + '/v2/api/branch/${userOwnerPhoneNumber}'),
+      body: jsonEncode(<String, dynamic>{
+        "name": name,
+        "businessId": businessId,
+        "location": location
+      }),
+    );
+    if (response.statusCode == 201) {
+      IBranch remoteBranch = IBranch.fromJson(json.decode(response.body));
+      return await repository.upsert<Branch>(Branch(
+        serverId: remoteBranch.id,
+        location: location,
+        description: description,
+        name: name,
+        businessId: businessId,
+        longitude: longitude,
+        latitude: latitude,
+        isDefault: isDefault,
+        active: active,
+      ));
+    }
+    throw Exception('Failed to create branch');
   }
 
   @override

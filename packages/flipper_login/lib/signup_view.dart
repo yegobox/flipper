@@ -2,7 +2,6 @@ import 'dart:developer';
 import 'dart:convert';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,12 +11,9 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
 
-import 'package:flipper_routing/app.locator.dart';
-
-import 'package:stacked_services/stacked_services.dart';
 
 class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
-  final _routerService = locator<RouterService>();
+  
   final username = TextFieldBloc(
     validators: [
       FieldBlocValidators.required,

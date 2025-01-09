@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_dashboard/profile.dart';

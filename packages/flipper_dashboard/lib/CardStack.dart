@@ -66,7 +66,7 @@ class _CardStackState extends State<CardStack> {
                       ),
                       child: Center(
                         child: Text(
-                          widget.products[displayIndex].name!,
+                          widget.products[displayIndex].name,
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),

@@ -607,7 +607,7 @@ class SellState extends ConsumerState<Sell> {
                             return snapshot.hasData
                                 ? Expanded(
                                     child: Text(
-                                      snapshot.data!.name!,
+                                      snapshot.data!.name,
                                       style: GoogleFonts.lato(
                                         textStyle: TextStyle(
                                             fontWeight: FontWeight.w700,

@@ -1,4 +1,3 @@
-import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
