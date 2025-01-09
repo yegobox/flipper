@@ -232,17 +232,8 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
           .last
           .replaceAll("Exception: ", "");
 
-      ///TODO: this is not nice rmeove it ASAP.
-      if (v == "Invoice number already exists.") {
-        // talker.error("IIIII");
-        // A Quick fix increment counter for now.
-        List<brick.Counter> counters = await ProxyService.strategy
-            .getCounters(branchId: ProxyService.box.getBranchId()!);
-
-        ProxyService.strategy.updateCounters(counters: counters);
-      }
       // Handle general errors
-      _handlePaymentError(e, s, context);
+      _handlePaymentError(v, s, context);
       rethrow; // Rethrow the error if needed for upper level handling
     }
   }

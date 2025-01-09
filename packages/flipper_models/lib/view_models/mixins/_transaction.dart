@@ -42,7 +42,7 @@ mixin TransactionMixin {
 
       /// update transaction type
 
-      if (taxExanbled && hasServerUrl && hasUser && !isTaxServiceStoped!) {
+      if ( taxExanbled && hasServerUrl && hasUser && !isTaxServiceStoped!) {
         response = await handleReceiptGeneration(
             formKey: formKey,
             context: context,

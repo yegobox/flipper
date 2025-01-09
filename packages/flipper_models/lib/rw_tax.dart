@@ -663,7 +663,7 @@ class RWTax with NetworkHelper implements TaxApi {
     Map<String, dynamic> json = {
       "tin": business?.tinNumber.toString() ?? "999909695",
       "bhfId": bhFId,
-      "invcNo": counter.invcNo,
+      "invcNo": 1399,
       "orgInvcNo": 0,
       "salesTyCd": receiptCodes['salesTyCd'],
       "rcptTyCd": receiptCodes['rcptTyCd'],

@@ -2894,7 +2894,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   void updateCounters(
       {required List<Counter> counters, RwApiResponse? receiptSignature}) {
-    final repository = brick.Repository();
     // build brick Counter to pass in to upsert
     for (Counter counter in counters) {
       final upCounter = models.Counter(
