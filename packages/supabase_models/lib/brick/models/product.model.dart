@@ -31,7 +31,7 @@ class Product extends OfflineFirstWithSupabaseModel {
   @Supabase(defaultValue: "false")
   bool? nfcEnabled;
 
-  int? bindedToTenantId;
+  String? bindedToTenantId;
   @Supabase(defaultValue: "false")
   bool? isFavorite;
 

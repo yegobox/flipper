@@ -41,15 +41,17 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
             children: [
               TextFormField(
                 controller: _searchController,
-                onChanged: (searchKey) {
+                onChanged: (searchKey) async {
                   if (searchKey.isEmpty) {
                     setState(() {
                       _searchResults = [];
                     });
                     return;
                   }
-                  List<Variant> variants =
-                      ProxyService.strategy.getVariants(key: searchKey);
+                  List<Variant> variants = await ProxyService.strategy.variants(
+                    name: searchKey,
+                    branchId: ProxyService.box.getBranchId()!,
+                  );
                   setState(() {
                     _searchResults = variants.isNotEmpty ? variants : [];
                   });

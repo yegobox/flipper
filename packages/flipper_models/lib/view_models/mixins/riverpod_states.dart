@@ -120,13 +120,6 @@ final initialStockProvider =
   return ProxyService.strategy.soldStockValue(branchId: branchId);
 });
 
-final stockByVariantIdProvider =
-    StreamProvider.autoDispose.family<double, String>((ref, variantId) {
-  int branchId = ProxyService.box.getBranchId()!;
-  return ProxyService.strategy
-      .getStockStream(variantId: variantId, branchId: branchId);
-});
-
 final paginatedVariantsProvider = StateNotifierProvider.family<
     PaginatedVariantsNotifier,
     AsyncValue<List<Variant>>,
@@ -778,15 +771,6 @@ final ordersStreamProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
   int branchId = ProxyService.box.getBranchId() ?? 0;
   return ProxyService.strategy.transactionsStream(branchId: branchId);
-});
-final variantStreamProvider =
-    StreamProvider.autoDispose.family<List<Variant>, int>((ref, id) {
-  return ProxyService.strategy
-      .getVariantByProductIdStream(productId: id)
-      .distinct((prev, next) =>
-          prev.map((e) => e.retailPrice).join() ==
-          next.map((e) => e.retailPrice).join())
-      .handleError((error) => []);
 });
 
 final universalProductsNames =

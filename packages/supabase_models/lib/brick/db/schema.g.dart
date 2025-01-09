@@ -1,6 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20250109125327.migration.dart';
 part '20250104131208.migration.dart';
 part '20250102092703.migration.dart';
 part '20250102092919.migration.dart';
@@ -13,6 +14,7 @@ part '20250102144742.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
+  const Migration20250109125327(),
   const Migration20250104131208(),
   const Migration20250102092703(),
   const Migration20250102092919(),
@@ -25,7 +27,7 @@ final migrations = <Migration>{
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250104131208, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250109125327, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -760,7 +762,7 @@ final schema = Schema(20250104131208, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('expiry_date', Column.varchar),
     SchemaColumn('bar_code', Column.varchar),
     SchemaColumn('nfc_enabled', Column.boolean),
-    SchemaColumn('binded_to_tenant_id', Column.integer),
+    SchemaColumn('binded_to_tenant_id', Column.varchar),
     SchemaColumn('is_favorite', Column.boolean),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('spplr_nm', Column.varchar),

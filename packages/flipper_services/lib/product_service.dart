@@ -26,12 +26,6 @@ class ProductService with ListenableServiceMixin {
     _currentUnit = unit;
   }
 
-  /// discount streams
-  Stream<List<Discount>> discountStream({required int branchId}) async* {
-    yield* Stream.fromFuture(
-        ProxyService.strategy.getDiscounts(branchId: branchId));
-  }
-
   Stream<List<Product>> productStream({required int branchId}) {
     return Stream.fromFuture(ProxyService.strategy
             .getProducts(branchId: ProxyService.box.getBranchId()!))

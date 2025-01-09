@@ -64,8 +64,7 @@ abstract class RealmInterface {
       {required String configId, required double taxPercentage});
 
   Future<double> totalStock({String? productId, String? variantId});
-  Stream<double> getStockStream(
-      {String? productId, String? variantId, required int branchId});
+
   FutureOr<List<ITransaction>> transactions({
     DateTime? startDate,
     DateTime? endDate,
@@ -241,8 +240,6 @@ abstract class RealmInterface {
 
   Future<int> deleteTransactionByIndex({required String transactionIndex});
 
-  Stream<List<Variant>> getVariantByProductIdStream({int? productId});
-
   Future<int> sendReport({required List<TransactionItem> transactionItems});
 
   Future<TransactionItem?> getTransactionItemByVariantId(
@@ -284,8 +281,9 @@ abstract class RealmInterface {
     String? id,
     bool? active,
   });
+  Future<Stock> getStockById({required String id});
 
-  Future<Variant?> getVariantById({required String id});
+  Future<Variant?> getVariantById({String? id, String? modrId});
   Future<bool> isTaxEnabled({required int businessId});
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
@@ -310,7 +308,6 @@ abstract class RealmInterface {
   Future<Product?> findProductByTenantId({required String tenantId});
 
   // Future<void> deleteAllProducts();
-  FutureOr<Stock?> getStockById({required String id});
 
   Future<void> patchSocialSetting({required Setting setting});
 
@@ -352,7 +349,6 @@ abstract class RealmInterface {
   Stream<double> stockValue({required branchId});
 
   Stream<double> soldStockValue({required branchId});
-  Stream<double> initialStock({required branchId});
 
   Stream<List<Category>> categoryStream();
   Future<RwApiResponse> selectImportItems({
@@ -369,36 +365,33 @@ abstract class RealmInterface {
   Future<void> amplifyLogout();
   Future<List<Product>> getProducts(
       {String? key, int? prodIndex, required int branchId});
-  List<Variant> getVariants({String? key});
 
   void saveComposite({required Composite composite});
   FutureOr<List<Composite>> composites({String? productId, String? variantId});
   Stream<SKU?> sku({required int branchId, required int businessId});
   FutureOr<SKU> getSku({required int branchId, required int businessId});
-  Future<void> createVariant(
+  Future<Variant> createVariant(
       {required String barCode,
-      required String sku,
+      required int sku,
       required String productId,
       required int branchId,
       required double retailPrice,
       required double supplierPrice,
       required double qty,
+      Map<String, String>? taxTypes,
+      Map<String, String>? itemClasses,
+      Map<String, String>? itemTypes,
       required String color,
       required int tinNumber,
       required int itemSeq,
-      required String name});
+      required String name,
+      models.Configurations? taxType});
 
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName);
   RealmInterface instance();
   FutureOr<Tenant?> tenant({int? businessId, int? userId});
   Stream<List<Report>> reports({required int branchId});
   Report report({required int id});
-
-  Future<
-      ({
-        double grossProfit,
-        double netProfit,
-      })> getReportData();
 
   FutureOr<bool> isAdmin({required int userId, required String appFeature});
   FutureOr<List<Access>> access({required int userId, String? featureName});
@@ -443,7 +436,7 @@ abstract class RealmInterface {
       {required Branch branch, required bool isOnline});
 
   Future<void> refreshSession({required int branchId, int? refreshRate = 5});
-  int createStockRequest(List<TransactionItem> items,
+  String createStockRequest(List<TransactionItem> items,
       {required String deliveryNote,
       DateTime? deliveryDate,
       required int mainBranchId});
@@ -807,8 +800,6 @@ abstract class RealmInterface {
   FutureOr<List<LPermission>> permissions({required int userId});
 
   getCounters({required int branchId}) {}
-
-  Future<List<Discount>> getDiscounts({required int branchId});
 
   void notify({required AppNotification notification}) {}
 

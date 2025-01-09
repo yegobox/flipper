@@ -57,7 +57,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       }
 
       // ignore: unused_local_variable
-      int orderId = ProxyService.strategy.createStockRequest(items,
+      String orderId = ProxyService.strategy.createStockRequest(items,
           deliveryNote: deliveryNote,
           deliveryDate: startDate,
           mainBranchId: ref.read(selectedSupplierProvider).value!.serverId!);

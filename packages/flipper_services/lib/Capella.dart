@@ -405,7 +405,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  int createStockRequest(List<TransactionItem> items,
+  String createStockRequest(List<TransactionItem> items,
       {required String deliveryNote,
       DateTime? deliveryDate,
       required int mainBranchId}) {
@@ -422,12 +422,6 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<Business?> defaultBusiness() {
     // TODO: implement defaultBusiness
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> deleteAllProducts() {
-    // TODO: implement deleteAllProducts
     throw UnimplementedError();
   }
 
@@ -608,27 +602,8 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<({double grossProfit, double netProfit})> getReportData() {
-    // TODO: implement getReportData
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Setting?> getSetting({required int businessId}) {
     // TODO: implement getSetting
-    throw UnimplementedError();
-  }
-
-  @override
-  Stock? getStockById({required String id}) {
-    // TODO: implement getStockById
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<double> getStockStream(
-      {String? productId, String? variantId, required int branchId}) {
-    // TODO: implement getStockStream
     throw UnimplementedError();
   }
 
@@ -648,18 +623,6 @@ class Capella with Booting implements RealmInterface {
   Future<({double expense, double income})> getTransactionsAmountsSum(
       {required String period}) {
     // TODO: implement getTransactionsAmountsSum
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Variant>> getVariantByProductIdStream({int? productId}) {
-    // TODO: implement getVariantByProductIdStream
-    throw UnimplementedError();
-  }
-
-  @override
-  List<Variant> getVariants({String? key}) {
-    // TODO: implement getVariants
     throw UnimplementedError();
   }
 
@@ -698,13 +661,6 @@ class Capella with Booting implements RealmInterface {
       required Pin pin,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement login
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> markModelForEbmUpdate<T>(
-      {required T model, bool updated = true}) {
-    // TODO: implement markModelForEbmUpdate
     throw UnimplementedError();
   }
 
@@ -963,27 +919,6 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<List<Business>> getContacts() {
     // TODO: implement getContacts
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<
-      ({
-        List<Device> devices,
-        List<Favorite> favorites,
-        List<Product> products,
-        List<Stock> stocks,
-        List<TransactionItem> transactionItems,
-        List<ITransaction> transactions,
-        List<Variant> variants
-      })> getUnSyncedData() {
-    // TODO: implement getUnSyncedData
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<double> initialStock({required branchId}) {
-    // TODO: implement initialStock
     throw UnimplementedError();
   }
 
@@ -1374,12 +1309,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<Variant?> getVariantById({required String id}) {
-    // TODO: implement getVariantById
-    throw UnimplementedError();
-  }
-
-  @override
   RealmInterface instance() {
     // TODO: implement instance
     throw UnimplementedError();
@@ -1595,12 +1524,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<List<brick.Discount>> getDiscounts({required int branchId}) {
-    // TODO: implement getDiscounts
-    throw UnimplementedError();
-  }
-
-  @override
   void notify({required brick.AppNotification notification}) {
     // TODO: implement notify
   }
@@ -1785,23 +1708,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<void> createVariant(
-      {required String barCode,
-      required String sku,
-      required String productId,
-      required int branchId,
-      required double retailPrice,
-      required double supplierPrice,
-      required double qty,
-      required String color,
-      required int tinNumber,
-      required int itemSeq,
-      required String name}) {
-    // TODO: implement createVariant
-    throw UnimplementedError();
-  }
-
-  @override
   Stream<List<brick.Customer>> customersStream(
       {required int branchId, String? key, String? id}) {
     // TODO: implement customersStream
@@ -1851,6 +1757,39 @@ class Capella with Booting implements RealmInterface {
       int itemSeq = 1,
       bool ebmSynced = false}) {
     // TODO: implement createProduct
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Stock> getStockById({required String id}) {
+    // TODO: implement getStockById
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Variant?> getVariantById({String? id, String? modrId}) {
+    // TODO: implement getVariantById
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Variant> createVariant(
+      {required String barCode,
+      required int sku,
+      required String productId,
+      required int branchId,
+      required double retailPrice,
+      required double supplierPrice,
+      required double qty,
+      Map<String, String>? taxTypes,
+      Map<String, String>? itemClasses,
+      Map<String, String>? itemTypes,
+      required String color,
+      required int tinNumber,
+      required int itemSeq,
+      required String name,
+      brick.Configurations? taxType}) {
+    // TODO: implement createVariant
     throw UnimplementedError();
   }
 }

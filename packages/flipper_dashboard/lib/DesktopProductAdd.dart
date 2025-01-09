@@ -760,7 +760,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               /// but for composite, stock is managed to the level of the composites item not the default item on product
                               qty: 1,
                               barCode: barCode,
-                              sku: sku,
+                              sku: int.tryParse(sku) ?? 1,
                               retailPrice:
                                   double.tryParse(retailPriceController.text) ??
                                       0,

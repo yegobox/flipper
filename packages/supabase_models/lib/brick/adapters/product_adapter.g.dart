@@ -22,7 +22,7 @@ Future<Product> _$ProductFromSupabase(Map<String, dynamic> data,
       expiryDate: data['expiry_date'] as String?,
       barCode: data['bar_code'] as String?,
       nfcEnabled: data['nfc_enabled'] as bool? ?? false,
-      bindedToTenantId: data['binded_to_tenant_id'] as int?,
+      bindedToTenantId: data['binded_to_tenant_id'] as String?,
       isFavorite: data['is_favorite'] as bool? ?? false,
       lastTouched: data['last_touched'] == null
           ? null
@@ -98,7 +98,7 @@ Future<Product> _$ProductFromSqlite(Map<String, dynamic> data,
       nfcEnabled: data['nfc_enabled'] == null ? null : data['nfc_enabled'] == 1,
       bindedToTenantId: data['binded_to_tenant_id'] == null
           ? null
-          : data['binded_to_tenant_id'] as int?,
+          : data['binded_to_tenant_id'] as String?,
       isFavorite: data['is_favorite'] == null ? null : data['is_favorite'] == 1,
       lastTouched: data['last_touched'] == null
           ? null
@@ -362,7 +362,7 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
       association: false,
       columnName: 'binded_to_tenant_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'isFavorite': const RuntimeSqliteColumnDefinition(
       association: false,

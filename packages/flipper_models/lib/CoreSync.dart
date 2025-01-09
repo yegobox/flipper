@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:isolate';
 import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
@@ -212,8 +213,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return await repository.upsert(customer);
   }
 
-  
-
   @override
   Future<void> addTransactionItem(
       {required ITransaction transaction,
@@ -359,8 +358,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // Close the StreamController after the stream is finishe
     controller.close();
   }
-
-  
 
   @override
   Future<List<Branch>> branches(
@@ -572,7 +569,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? dclDe,
       String? hsCd,
       String? imptItemsttsCd,
-      required String sku}) async {
+      Map<String, String>? taxTypes,
+      Map<String, String>? itemClasses,
+      Map<String, String>? itemTypes,
+      required int sku,
+      models.Configurations? taxType}) async {
     final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
 
@@ -587,11 +588,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       dclNo: dclNo ?? "",
       taskCd: taskCd ?? "",
       dclDe: dclDe ?? "",
+
       hsCd: hsCd ?? "",
       imptItemsttsCd: imptItemsttsCd ?? "",
       lastTouched: DateTime.now(),
       name: product?.name ?? name,
-      sku: sku,
+      sku: sku.toString(),
       dcRt: 0.0,
       productId: product?.id ?? productId,
       color: product?.color,
@@ -618,14 +620,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       modrId: modrId ?? number,
       pkgUnitCd: pkgUnitCd ?? "BJ",
       regrId: randomNumber().toString().substring(0, 5),
-      itemTyCd: "2", // this is a finished product
+      itemTyCd:
+          itemTypes?[product?.barCode] ?? "2", // this is a finished product
       /// available type for itemTyCd are 1 for raw material and 3 for service
       /// is insurance applicable default is not applicable
       isrcAplcbYn: "N",
       useYn: "N",
       itemSeq: itemSeq,
       itemNm: product?.name ?? name,
-      taxPercentage: 18.0,
+      taxPercentage: taxType?.taxPercentage ?? 18.0,
       tin: tinNumber,
       bcd: product?.name ?? name,
 
@@ -637,7 +640,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       regrNm: product?.name ?? name,
 
       /// taxation type code
-      taxTyCd: "B", // available types A(A-EX),B(B-18.00%),C,D
+      taxTyCd: taxTypes?[product?.barCode] ?? "B",
       // default unit price
       dftPrc: retailPrice,
       prc: retailPrice,
@@ -645,7 +648,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       // NOTE: I believe bellow item are required when saving purchase
       ///but I wonder how to get them when saving an item.
       spplrItemCd: "",
-      spplrItemClsCd: "",
+      spplrItemClsCd: itemClasses?[product?.barCode] ?? "5020230602",
       spplrItemNm: product?.name ?? name,
 
       /// Packaging Unit
@@ -728,7 +731,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         supplierPrice: supplyPrice,
         retailPrice: retailPrice,
         name: createdProduct.name,
-        sku: sku.sku.toString(),
+        sku: sku.sku!,
         productId: product.id,
         itemSeq: itemSeq,
         ebmSynced: ebmSynced,
@@ -813,8 +816,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
- 
-
   @override
   Future<Branch?> defaultBranch() async {
     return (await repository.get<Branch>(
@@ -893,7 +894,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           );
         }
         break;
-      
     }
     return true;
   }
@@ -1699,7 +1699,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         .firstOrNull;
   }
 
-
   @override
   FutureOr<Tenant?> getTenant({int? userId, int? pin}) async {
     if (userId != null) {
@@ -1755,7 +1754,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return (income: sum_cash_in, expense: sum_cash_out);
   }
 
-
   @override
   Future<bool> hasActiveSubscription(
       {required int businessId,
@@ -1780,7 +1778,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return true;
   }
 
-
   @override
   FutureOr<bool> isAdmin(
       {required int userId, required String appFeature}) async {
@@ -1800,16 +1797,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return accesses.firstOrNull != null;
   }
 
- 
-
   bool isEmail(String input) {
     // Implement your logic to check if input is an email
     // You can use regular expressions or any other email validation mechanism
     // For simplicity, this example checks if the input contains '@'
     return input.contains('@');
   }
-
-  
 
   String _formatPhoneNumber(String userPhone) {
     if (!isEmail(userPhone) && !userPhone.startsWith('+')) {
@@ -2110,7 +2103,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-
   @override
   FutureOr<void> removeCustomerFromTransaction(
       {required ITransaction transaction}) {
@@ -2136,8 +2128,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       return false; // Return false if an exception occurs during the removal process
     }
   }
-
-
 
   @override
   Stream<List<Report>> reports({required int branchId}) {
@@ -2182,7 +2172,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           .debounceTime(Duration(milliseconds: 100));
     }
   }
-
 
   @override
   FutureOr<Plan?> saveOrUpdatePaymentPlan({
@@ -2428,8 +2417,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  
-
   @override
   Future<List<ext.ITenant>> signup(
       {required Map business,
@@ -2472,7 +2459,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       throw InternalServerError(term: response.body.toString());
     }
   }
-
 
   @override
   Future<void> spawnIsolate(isolateHandler) async {
@@ -2570,7 +2556,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       talker.warning('Error managing isolates: $s');
     }
   }
-
 
   @override
   Future<void> syncUserWithAwsIncognito({required String identifier}) async {
@@ -3102,7 +3087,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-
   @override
   FutureOr<void> addAccess(
       {required int userId,
@@ -3214,8 +3198,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-
-
   @override
   FutureOr<void> updateCategory(
       {required String categoryId,
@@ -3236,9 +3218,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       await repository.upsert<Category>(category);
     }
   }
-
-
-  
 
   @override
   FutureOr<void> updateProduct(
@@ -3263,8 +3242,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       await repository.upsert(product);
     }
   }
-
- 
 
   @override
   Future<void> updateTenant(
@@ -3406,8 +3383,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-
-
   @override
   FutureOr<Variant> addStockToVariant(
       {required Variant variant, Stock? stock}) async {
@@ -3526,9 +3501,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Variant?> getVariantById({required String id}) async {
+  Future<Variant?> getVariantById({String? id, String? modrId}) async {
     final query = brick.Query(where: [
-      brick.Where('id', value: id, compare: brick.Compare.exact),
+      if (id != null)
+        brick.Where('id', value: id, compare: brick.Compare.exact),
+      if (modrId != null)
+        brick.Where('modrId', value: modrId, compare: brick.Compare.exact),
     ]);
     return (await repository.get<Variant>(query: query)).firstOrNull;
   }
@@ -3537,8 +3515,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   RealmInterface instance() {
     return this;
   }
-
- 
 
   @override
   Future<bool> isTaxEnabled({required int businessId}) async {
@@ -3944,8 +3920,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return items;
   }
 
-  
-
   @override
   void updateAccess(
       {required String accessId,
@@ -4262,8 +4236,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // }
   }
 
-
-
   @override
   Future<RealmInterface> configureLocal(
       {required bool useInMemory, required storage.LocalStorage box}) async {
@@ -4373,27 +4345,38 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<void> createVariant(
+  Future<Variant> createVariant(
       {required String barCode,
-      required String sku,
+      required int sku,
       required String productId,
       required int branchId,
       required double retailPrice,
       required double supplierPrice,
       required double qty,
+      Map<String, String>? taxTypes,
+      Map<String, String>? itemClasses,
+      Map<String, String>? itemTypes,
       required String color,
       required int tinNumber,
       required int itemSeq,
-      required String name}) async {
-    await _createRegularVariant(branchId, tinNumber,
-        qty: qty,
-        supplierPrice: supplierPrice,
-        retailPrice: retailPrice,
-        itemSeq: itemSeq,
-        name: name,
-        sku: sku,
-        ebmSynced: false,
-        productId: productId);
+      required String name,
+      models.Configurations? taxType}) async {
+    return await _createRegularVariant(
+      branchId,
+      tinNumber,
+      qty: qty,
+      supplierPrice: supplierPrice,
+      retailPrice: retailPrice,
+      itemSeq: itemSeq,
+      name: name,
+      sku: sku,
+      taxType: taxType,
+      ebmSynced: false,
+      productId: productId,
+      taxTypes: taxTypes,
+      itemClasses: itemClasses,
+      itemTypes: itemTypes,
+    );
   }
 
   @override
@@ -4433,5 +4416,482 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   FutureOr<void> addTransaction({required models.ITransaction transaction}) {
     repository.upsert(transaction);
+  }
+
+  @override
+  Future<int> addFavorite({required models.Favorite data}) async {
+    try {
+      Favorite? fav = (await repository.get<Favorite>(
+              query: brick.Query(
+                  where: [brick.Where('favIndex').isExactly(data.favIndex)])))
+          .firstOrNull;
+
+      if (fav == null) {
+        await repository.upsert(data);
+
+        return 200;
+      } else {
+        fav.productId = data.productId;
+        repository.upsert(fav);
+        return 200;
+      }
+    } catch (e) {
+      print('Error adding favorite: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<bool> bindProduct(
+      {required String productId, required String tenantId}) async {
+    try {
+      final product = await getProduct(
+          id: productId,
+          branchId: ProxyService.box.getBranchId()!,
+          businessId: ProxyService.box.getBusinessId()!);
+
+      if (product == null) {
+        return false;
+      }
+
+      product.nfcEnabled = true;
+      product.bindedToTenantId = tenantId;
+
+      repository.upsert(product);
+
+      return true;
+    } catch (error) {
+      // Handle error during binding process
+      return false;
+    }
+  }
+
+  @override
+  String createStockRequest(List<models.TransactionItem> items,
+      {required String deliveryNote,
+      DateTime? deliveryDate,
+      required int mainBranchId}) {
+    String orderId = const Uuid().v4();
+    for (TransactionItem item in items) {
+      repository.upsert<TransactionItem>(item);
+    }
+
+    final stockRequest = StockRequest(
+      id: orderId,
+      deliveryDate: deliveryDate,
+      deliveryNote: deliveryNote,
+      mainBranchId: mainBranchId,
+      subBranchId: ProxyService.box.getBranchId(),
+      status: RequestStatus.pending,
+      items: items,
+      updatedAt: DateTime.now().toUtc().toLocal(),
+      createdAt: DateTime.now().toUtc().toLocal(),
+    );
+    repository.upsert(stockRequest);
+    return orderId;
+  }
+
+  @override
+  conversations({int? conversationId}) {
+    // TODO: implement conversations
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<models.Business>> getContacts() {
+    // TODO: implement getContacts
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<models.Setting?> getSetting({required int businessId}) {
+    // TODO: implement getSetting
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<double> getStockValue({required int branchId}) {
+    return repository
+        .subscribe<Stock>(
+            query: brick.Query(
+                where: [brick.Where('branchId').isExactly(branchId)]))
+        .map(
+            (changes) => changes.fold(0.0, (sum, stock) => sum + stock.value!));
+  }
+
+//TODO: check if we are setting modrId same as barcode in other places
+  @override
+  Future<void> processItem({
+    required models.Item item,
+    required Map<String, String> quantitis,
+    required Map<String, String> taxTypes,
+    required Map<String, String> itemClasses,
+    required Map<String, String> itemTypes,
+  }) async {
+    try {
+      ///
+      if (item.bcdU != null && item.bcdU!.isNotEmpty) {
+        print('Searching for variant with modrId: ${item.barCode}');
+        // Variant? variant =
+        //     realm!.query<Variant>(r'modrId == $0', [item.barCode]).firstOrNull;
+        Variant? variant = await getVariantById(modrId: item.barCode);
+        print('Found variant: ${variant?.bcd}, ${variant?.name}');
+        if (variant != null) {
+          variant.bcd = item.bcdU!.endsWith('.0')
+              ? item.bcdU!.substring(0, item.bcdU!.length - 2)
+              : item.bcdU;
+          variant.name = item.name;
+          repository.upsert(variant);
+
+          print('Updated variant bcd: ${variant.bcd}, name: ${variant.name}');
+        } else {
+          print('no variant found with modrId:${item.barCode}');
+        }
+      } else {
+        final branchId = await ProxyService.box.getBranchId()!;
+        final businessId = await ProxyService.box.getBusinessId()!;
+        // TO DO: fix this when sql is fixed.
+        // final bhfId = await ProxyService.box.bhfId();
+        final bhfId = "00";
+        final int variantId = randomNumber();
+        // Create a new product
+        Product product = Product(
+          color: randomizeColor(),
+          name: item.name,
+          barCode: item.barCode,
+          branchId: branchId,
+          businessId: businessId,
+        );
+
+        // Get tax type configuration
+        Configurations? taxType = await ProxyService.strategy
+            .getByTaxType(taxtype: taxTypes[product.barCode] ?? "B");
+
+        Business? business = await getBusiness(businessId: businessId);
+
+        talker.warning(
+            "ItemClass${itemClasses[product.barCode] ?? "5020230602"}");
+
+        repository.upsert(product);
+
+        // Create stock for the variant
+        Stock stock = _createStock(
+            product: product,
+            branchId: branchId,
+            bhfId: bhfId,
+            itemQuantity: item.quantity,
+            quantitis: quantitis);
+
+        // Create variant for the product
+        Variant variant = await createVariant(
+            retailPrice: double.parse(item.price),
+            supplierPrice: double.parse(item.price),
+            barCode: item.barCode,
+            itemSeq: 1,
+            qty: item.quantity ?? 1,
+            color: randomizeColor(),
+            tinNumber: business?.tinNumber ?? ProxyService.box.tin(),
+            name: item.name,
+            sku:
+                (await getSku(branchId: branchId, businessId: businessId)).sku!,
+            productId: product.id,
+            taxType: taxType,
+            branchId: branchId,
+            taxTypes: taxTypes,
+            itemClasses: itemClasses,
+            itemTypes: itemTypes);
+
+        repository.upsert(stock);
+        variant.stock = stock;
+        variant.stockId = stock.id;
+
+        repository.upsert(variant);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  String randomizeColor() {
+    return '#${(Random().nextInt(0x1000000) | 0x800000).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+  }
+
+  Stock _createStock({
+    required Product product,
+    required int branchId,
+    required String? bhfId,
+    double? itemQuantity,
+    required Map<String, String> quantitis,
+  }) {
+    final itemQuantityIsNonZero = itemQuantity;
+    return Stock(
+      currentStock: double.parse(quantitis[product.barCode] ?? "1"),
+      lowStock: 0,
+      canTrackingStock: false,
+      showLowStockAlert: true,
+      bhfId: bhfId,
+      active: true,
+      value: itemQuantityIsNonZero ??
+          double.parse(quantitis[product.barCode] ?? "1"),
+      rsdQty: itemQuantityIsNonZero ??
+          double.parse(quantitis[product.barCode] ?? "1"),
+      lastTouched: DateTime.now(),
+      branchId: branchId,
+      ebmSynced: false,
+    );
+  }
+
+  @override
+  getTop5RecentConversations() {
+    // TODO: implement getTop5RecentConversations
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> initCollections() {
+    // TODO: implement initCollections
+    throw UnimplementedError();
+  }
+
+  @override
+  bool isDrawerOpen({required int cashierId, required int branchId}) {
+    // TODO: implement isDrawerOpen
+    throw UnimplementedError();
+  }
+
+  @override
+  bool isSubscribed({required String feature, required int businessId}) {
+    // TODO: implement isSubscribed
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> loadConversations(
+      {required int businessId, int? pageSize = 10, String? pk, String? sk}) {
+    // TODO: implement loadConversations
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ext.SocialToken?> loginOnSocial(
+      {String? phoneNumberOrEmail, String? password}) {
+    // TODO: implement loginOnSocial
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<models.ITransaction> manageCashInOutTransaction(
+      {required String transactionType,
+      required bool isExpense,
+      required int branchId}) {
+    // TODO: implement manageCashInOutTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  void notify({required models.AppNotification notification}) {
+    // TODO: implement notify
+  }
+
+  @override
+  models.Drawers? openDrawer({required models.Drawers drawer}) {
+    // TODO: implement openDrawer
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> patchSocialSetting({required models.Setting setting}) {
+    // TODO: implement patchSocialSetting
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<models.Plan?> paymentPlanStream({required int businessId}) {
+    // TODO: implement paymentPlanStream
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<List<models.LPermission>> permissions({required int userId}) {
+    // TODO: implement permissions
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<models.Product>> productStreams({String? prodIndex}) {
+    // TODO: implement productStreams
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<models.Product>> products({required int branchId}) {
+    // TODO: implement products
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<models.Product>> productsFuture({required int branchId}) {
+    // TODO: implement productsFuture
+    throw UnimplementedError();
+  }
+
+  @override
+  void reDownloadAsset() {
+    // TODO: implement reDownloadAsset
+  }
+
+  @override
+  Future<void> refreshSession({required int branchId, int? refreshRate = 5}) {
+    // TODO: implement refreshSession
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> refund({required int itemId}) {
+    // TODO: implement refund
+    throw UnimplementedError();
+  }
+
+  @override
+  models.Report report({required int id}) {
+    // TODO: implement report
+    throw UnimplementedError();
+  }
+
+  @override
+  void saveComposite({required models.Composite composite}) {
+    // TODO: implement saveComposite
+  }
+
+  @override
+  Future<void> saveDiscount(
+      {required int branchId, required name, double? amount}) {
+    // TODO: implement saveDiscount
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<models.Configurations> saveTax(
+      {required String configId, required double taxPercentage}) {
+    // TODO: implement saveTax
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> sendReport(
+      {required List<models.TransactionItem> transactionItems}) {
+    // TODO: implement sendReport
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> size<T>({required T object}) {
+    // TODO: implement size
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<double> soldStockValue({required branchId}) {
+    // TODO: implement soldStockValue
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> startReplicator() {
+    // TODO: implement startReplicator
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<double> stockValue({required branchId}) {
+    // TODO: implement stockValue
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<({String customerCode, String url, int userId})> subscribe(
+      {required int businessId,
+      required models.Business business,
+      required int agentCode,
+      required HttpClientInterface flipperHttpClient,
+      required int amount}) {
+    // TODO: implement subscribe
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateAcess(
+      {required int userId,
+      String? featureName,
+      String? status,
+      String? accessLevel,
+      String? userType}) {
+    // TODO: implement updateAcess
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateAsset({required String assetId, String? assetName}) {
+    // TODO: implement updateAsset
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateColor(
+      {required String colorId, String? name, bool? active}) {
+    // TODO: implement updateColor
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateDrawer(
+      {required String drawerId,
+      int? cashierId,
+      int? nsSaleCount,
+      int? trSaleCount,
+      int? psSaleCount,
+      int? csSaleCount,
+      int? nrSaleCount,
+      int? incompleteSale,
+      double? totalCsSaleIncome,
+      double? totalNsSaleIncome,
+      DateTime? openingDateTime,
+      double? closingBalance,
+      bool? open}) {
+    // TODO: implement updateDrawer
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateNotification(
+      {required String notificationId, bool? completed}) {
+    // TODO: implement updateNotification
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updatePin(
+      {required int userId, String? phoneNumber, String? tokenUid}) {
+    // TODO: implement updatePin
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateReport({required String reportId, bool? downloaded}) {
+    // TODO: implement updateReport
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateUnit(
+      {required String unitId, String? name, bool? active, int? branchId}) {
+    // TODO: implement updateUnit
+    throw UnimplementedError();
+  }
+
+  Future<Stock> getStockById({required String id}) async {
+    return (await repository.get<Stock>(
+            query: brick.Query(where: [brick.Where('id').isExactly(id)])))
+        .first;
   }
 }
