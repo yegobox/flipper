@@ -6,6 +6,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 
+///TODO: use https://pub.dev/packages/internet_connection_checker_plus to check if we have internet
 abstract class Status {
   Future<void> appBarColor(Color color);
   void updateStatusColor();

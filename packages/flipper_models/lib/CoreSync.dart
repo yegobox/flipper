@@ -1851,11 +1851,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     List<Business> businessesE = await businesses(userId: pin.userId!);
     List<Branch> branchesE = await branches(businessId: pin.businessId!);
 
-    if (businessesE.isNotEmpty &&
+    final bool shouldEnableOfflineLogin = businessesE.isNotEmpty &&
         branchesE.isNotEmpty &&
-        !foundation.kDebugMode) {
-      offlineLogin = true;
+        !foundation.kDebugMode &&
+        !(await ProxyService.status.isInternetAvailable());
 
+    if (shouldEnableOfflineLogin) {
+      offlineLogin = true;
       return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
     }
 

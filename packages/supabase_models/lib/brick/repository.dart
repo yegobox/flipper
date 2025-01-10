@@ -52,6 +52,11 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       databaseFactory:
           Platform.isWindows ? databaseFactoryFfi : databaseFactory,
       databasePath: queuePath,
+      onRequestException: (request, object) {
+        // Deal with failed requests see https://github.com/GetDutchie/brick/issues/527
+        print("Offline request exception: $request");
+        print(object);
+      },
     );
 
     final supabase = await Supabase.initialize(
