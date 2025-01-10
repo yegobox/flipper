@@ -69,14 +69,15 @@ class HttpApi implements RealmViaHttp {
     required int businessId,
   }) async {
     var headers = {
-      'api-key': AppSecrets.apikey,
-      'Content-Type': 'application/json'
+      'api-key': AppSecrets.supabaseAnonKey,
+      'Content-Type': 'application/json',
     };
 
     try {
       final response = await flipperHttpClient.get(
         headers: headers,
-        Uri.parse('${AppSecrets.coreApi}/api/plan/$businessId'),
+        Uri.parse(
+            '${AppSecrets.superbaseurl}/rest/v1/plans?business_id=eq.$businessId'),
       );
 
       if (response.statusCode == 200) {
@@ -87,8 +88,8 @@ class HttpApi implements RealmViaHttp {
           // Get the first item from the array
           final Map<String, dynamic> planData = responseData.first;
 
-          // Return the payment completion status
-          return planData['paymentCompletedByUser'] ?? false;
+          // Use the correct field name from the API response
+          return planData['payment_completed_by_user'] ?? false;
         }
       }
 

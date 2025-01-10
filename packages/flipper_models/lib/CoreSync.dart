@@ -1755,21 +1755,27 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<bool> hasActiveSubscription(
-      {required int businessId,
-      required HttpClientInterface flipperHttpClient}) async {
-    models.Plan? plan = await getPaymentPlan(businessId: businessId);
+  Future<bool> hasActiveSubscription({
+    required int businessId,
+    required HttpClientInterface flipperHttpClient,
+  }) async {
+    final models.Plan? plan = await getPaymentPlan(businessId: businessId);
 
     if (plan == null) {
       throw NoPaymentPlanFound(
           "No payment plan found for businessId: $businessId");
     }
 
-    // If paymentCompletedByUser is false, sync again and check
-    if (!(plan.paymentCompletedByUser ?? false)) {
-      final isPaymentComplete = await ProxyService.realmHttp.isPaymentComplete(
-          flipperHttpClient: flipperHttpClient, businessId: businessId);
+    final isPaymentCompletedLocally = plan.paymentCompletedByUser ?? false;
 
+    // Avoid unnecessary sync if payment is already marked as complete
+    if (!isPaymentCompletedLocally) {
+      final isPaymentComplete = await ProxyService.realmHttp.isPaymentComplete(
+        flipperHttpClient: flipperHttpClient,
+        businessId: businessId,
+      );
+
+      // Update the plan's state or handle syncing logic here if necessary
       if (!isPaymentComplete) {
         throw FailedPaymentException(PAYMENT_REACTIVATION_REQUIRED);
       }
