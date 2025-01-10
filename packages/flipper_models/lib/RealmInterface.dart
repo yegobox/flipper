@@ -427,7 +427,6 @@ abstract class RealmInterface {
   });
   Future<models.Plan?> getPaymentPlan({required int businessId});
   FutureOr<FlipperSaleCompaign?> getLatestCompaign();
-  Stream<Plan?> paymentPlanStream({required int businessId});
 
   void deleteItemFromCart(
       {required TransactionItem transactionItemId, String? transactionId});

@@ -1577,7 +1577,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         brick.Where('businessId').isExactly(businessId),
       ]);
       final result = await repository.get<models.Plan>(
-          query: query, policy: OfflineFirstGetPolicy.localOnly);
+          query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
       return result.firstOrNull;
     } catch (e) {
       talker.error(e);
@@ -4707,12 +4707,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   Future<void> patchSocialSetting({required models.Setting setting}) {
     // TODO: implement patchSocialSetting
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<models.Plan?> paymentPlanStream({required int businessId}) {
-    // TODO: implement paymentPlanStream
     throw UnimplementedError();
   }
 
