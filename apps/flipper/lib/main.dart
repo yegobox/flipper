@@ -17,7 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 
 // net info: billers
-//1.1.13
+//1.1.1
 Future<void> main() async {
   await initializeDependencies();
   await SentryFlutter.init(
