@@ -1129,7 +1129,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             ? [brick.Where('serverId').isExactly(businessId)]
             : [brick.Where('isDefault').isExactly(true)]);
     final result = await repository.get<models.Business>(
-        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
+        query: query, policy: OfflineFirstGetPolicy.localOnly);
     return result.firstOrNull;
   }
 
@@ -1139,7 +1139,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     final query =
         brick.Query(where: [brick.Where('serverId').isExactly(businessId)]);
     final result = await repository.get<models.Business>(
-        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
+        query: query, policy: OfflineFirstGetPolicy.localOnly);
     return result.firstOrNull;
   }
 
@@ -1211,7 +1211,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     final query =
         brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
     final counters = await repository.get<models.Counter>(
-        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
+        query: query, policy: OfflineFirstGetPolicy.localOnly);
 
     return counters;
   }
@@ -1368,7 +1368,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       {required int branchId, String? key, String? id}) async {
     if (id != null) {
       return repository.get<Customer>(
-          policy: OfflineFirstGetPolicy.alwaysHydrate,
+          policy: OfflineFirstGetPolicy.localOnly,
           query: brick.Query(where: [
             brick.Where('id', value: id, compare: brick.Compare.exact),
           ]));
@@ -1384,7 +1384,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
       final results =
           await Future.wait(queries.map((query) => repository.get<Customer>(
-                policy: OfflineFirstGetPolicy.alwaysHydrate,
+                policy: OfflineFirstGetPolicy.localOnly,
                 query: query,
               )));
 
@@ -1393,7 +1393,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
     // If only branchId is provided, return all customers for that branch
     return repository.get<Customer>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        policy: OfflineFirstGetPolicy.localOnly,
         query: brick.Query(where: [
           brick.Where('branchId',
               value: branchId, compare: brick.Compare.exact),
@@ -1431,7 +1431,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
       final results = await Future.wait(
         queries.map((query) => repository.get<Customer>(
-              policy: OfflineFirstGetPolicy.alwaysHydrate,
+              policy: OfflineFirstGetPolicy.localOnly,
               query: query,
             )),
       );
@@ -1577,7 +1577,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         brick.Where('businessId').isExactly(businessId),
       ]);
       final result = await repository.get<models.Plan>(
-          query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
+          query: query, policy: OfflineFirstGetPolicy.localOnly);
       return result.firstOrNull;
     } catch (e) {
       talker.error(e);
@@ -2862,7 +2862,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // Directly return the stream from the repository
     return repository
         .subscribe<ITransaction>(
-            query: queryString, policy: OfflineFirstGetPolicy.alwaysHydrate)
+            query: queryString, policy: OfflineFirstGetPolicy.localOnly)
         .map((data) {
       print('Transaction stream data: ${data.length} records');
       return data;
@@ -3449,7 +3449,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   Future<List<Configurations>> taxes({required int branchId}) async {
     return await repository.get<Configurations>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        policy: OfflineFirstGetPolicy.localOnly,
         query:
             brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
   }
@@ -3463,7 +3463,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? name,
       int? itemsPerPage}) async {
     List<Variant> variants = await repository.get<Variant>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        policy: OfflineFirstGetPolicy.localOnly,
         query: brick.Query(where: [
           if (variantId != null)
             brick.Where('id').isExactly(variantId)
@@ -3867,7 +3867,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     bool? active,
   }) {
     final item = repository.subscribe<TransactionItem>(
-      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      policy: OfflineFirstGetPolicy.localOnly,
       query: brick.Query(where: [
         if (transactionId != null)
           brick.Where('transactionId').isExactly(transactionId),
@@ -3906,7 +3906,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }) async {
     final items = await repository.get<TransactionItem>(
         // TODO: switch to local only when in prod.
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        policy: OfflineFirstGetPolicy.localOnly,
         query: brick.Query(where: [
           if (transactionId != null)
             brick.Where('transactionId').isExactly(transactionId),
@@ -4020,7 +4020,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (color != null) {
         updatables[i].color = color;
       }
-
+      updatables[i].bhfId = updatables[i].bhfId ?? "00";
       updatables[i].itemNm = updatables[i].name;
       updatables[i].ebmSynced = false;
       updatables[i].retailPrice =
@@ -4273,17 +4273,21 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         brick.Where('code').isNot(null),
         brick.Where('branchId').isExactly(branchId),
       ],
-      orderBy: [brick.OrderBy('code', ascending: false)],
+      orderBy: [brick.OrderBy('createdAt', ascending: false)],
     );
     final items = await repository.get<ItemCode>(
-        query: Query, policy: OfflineFirstGetPolicy.alwaysHydrate);
+        query: Query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
     // Extract the last sequence number and increment it
     int lastSequence = 0;
     if (items.isNotEmpty) {
       final lastItemCode = items.first.code;
       final sequencePart = lastItemCode.substring(lastItemCode.length - 7);
-      lastSequence = int.parse(sequencePart);
+      try {
+        lastSequence = int.parse(sequencePart);
+      } catch (e) {
+        lastSequence = 0;
+      }
     }
     final newSequence = (lastSequence + 1).toString().padLeft(7, '0');
     // Construct the new item code
@@ -4338,7 +4342,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return repository
         .subscribe<SKU>(
           query: query,
-          policy: OfflineFirstGetPolicy.alwaysHydrate,
+          policy: OfflineFirstGetPolicy.localOnly,
         )
         .map((skus) => skus.isNotEmpty ? skus.first : null);
   }

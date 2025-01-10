@@ -10,6 +10,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'dart:async';
@@ -27,6 +28,14 @@ mixin VariantPatch {
     for (Variant variant in variants) {
       try {
         Variant iVariant = Variant.fromJson(variant.toJson());
+        if (iVariant.bhfId == null) {
+          Business? business = await ProxyService.strategy
+              .getBusiness(businessId: ProxyService.box.getBusinessId());
+          iVariant.bhfId = business!.bhfId ?? "00";
+          iVariant.tin = business.tinNumber ?? 999909695;
+
+          ProxyService.strategy.updateVariant(updatables: [iVariant]);
+        }
 
         final response = await RWTax().saveItem(variation: iVariant, URI: URI);
 
@@ -52,6 +61,10 @@ mixin StockPatch {
     for (Variant variant in variants) {
       if (!variant.ebmSynced!) {
         try {
+          Business? business = await ProxyService.strategy
+              .getBusiness(businessId: ProxyService.box.getBusinessId());
+          variant.bhfId = business!.bhfId ?? "00";
+          variant.tin = business.tinNumber ?? 999909695;
           final response =
               await RWTax().saveStockMaster(variant: variant, URI: URI);
           if (response.resultCd == "000") {

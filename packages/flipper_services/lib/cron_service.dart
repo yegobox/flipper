@@ -49,13 +49,23 @@ class CronService {
       final tinNumber = ProxyService.box.tin();
       final bhfId = await ProxyService.box.bhfId();
       final branchId = ProxyService.box.getBranchId()!;
-      PatchTransactionItem.patchTransactionItem(
+
+      CustomerPatch.patchCustomer(
         URI: URI!,
+        tinNumber: tinNumber,
+        bhfId: bhfId!,
+        branchId: branchId,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
+      PatchTransactionItem.patchTransactionItem(
+        URI: URI,
         sendPort: (message) {
           ProxyService.notification.sendLocalNotification(body: message);
         },
         tinNumber: tinNumber,
-        bhfId: bhfId!,
+        bhfId: bhfId,
       );
       StockPatch.patchStock(
         URI: URI,
@@ -66,16 +76,6 @@ class CronService {
 
       VariantPatch.patchVariant(
         URI: URI,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-
-      CustomerPatch.patchCustomer(
-        URI: URI,
-        tinNumber: tinNumber,
-        bhfId: bhfId,
-        branchId: branchId,
         sendPort: (message) {
           ProxyService.notification.sendLocalNotification(body: message);
         },

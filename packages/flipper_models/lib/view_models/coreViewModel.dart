@@ -527,12 +527,12 @@ class CoreViewModel extends FlipperBaseModel
       required String name,
       required String transactionId,
       required String customerType,
-      required String tinNumber}) async {
+      String? tinNumber}) async {
     int branchId = ProxyService.box.getBranchId()!;
     ProxyService.strategy.addCustomer(
         customer: Customer(
           custNm: name,
-          custTin: tinNumber,
+          custTin: tinNumber ?? phone,
           email: email,
           telNo: phone,
           updatedAt: DateTime.now(),
@@ -894,7 +894,7 @@ class CoreViewModel extends FlipperBaseModel
   }) async {
     isLoading = true;
     notifyListeners();
-    
+
     if (isImport) {
       brick.Business? business = await ProxyService.strategy
           .getBusiness(businessId: ProxyService.box.getBusinessId()!);
@@ -903,10 +903,10 @@ class CoreViewModel extends FlipperBaseModel
         bhfId: (await ProxyService.box.bhfId()) ?? "00",
         lastReqDt: convertDateToString(selectedDate),
       );
-      
+
       rwResponse = data;
       salesList = data.data?.saleList ?? [];
-      
+
       isLoading = false;
       notifyListeners();
       return data;
@@ -918,7 +918,7 @@ class CoreViewModel extends FlipperBaseModel
         bhfId: (await ProxyService.box.bhfId()) ?? "00",
         lastReqDt: convertDateToString(selectedDate),
       );
-      
+
       salesList = rwResponse.data?.saleList ?? [];
       isLoading = false;
       notifyListeners();
@@ -931,16 +931,16 @@ class CoreViewModel extends FlipperBaseModel
     try {
       isLoading = true;
       notifyListeners();
-      
+
       talker.warning("salesListLenghts" + salesList.length.toString());
       final ref = randomNumber();
-      
+
       for (SaleList supplier in salesList) {
         for (ItemList item in supplier.itemList!) {
           item.retailPrice ??= item.prc;
           talker.warning(
               "Retail Prices while saving item in our DB:: ${item.retailPrice}");
-          
+
           brick.Product? product = await ProxyService.strategy.createProduct(
             businessId: ProxyService.box.getBusinessId()!,
             branchId: ProxyService.box.getBranchId()!,
@@ -966,14 +966,14 @@ class CoreViewModel extends FlipperBaseModel
                   productId: product.id,
                   branchId: ProxyService.box.getBranchId()!))
               .firstOrNull;
-          
+
           talker.warning("Variant ${variant?.id}");
           pendingTransaction = await ProxyService.strategy.manageTransaction(
             transactionType: TransactionType.purchase,
             isExpense: true,
             branchId: ProxyService.box.getBranchId()!,
           );
-          
+
           if (variant != null) {
             saveTransaction(
               variation: variant,
@@ -984,7 +984,7 @@ class CoreViewModel extends FlipperBaseModel
               partOfComposite: false,
               compositePrice: 0,
             );
-            
+
             final bhfId = await ProxyService.box.bhfId() ?? "00";
 
             ProxyService.strategy.updateTransaction(
@@ -1016,7 +1016,7 @@ class CoreViewModel extends FlipperBaseModel
         );
         // refreshTransactionItems(transactionId: pendingTransaction.id);
       }
-      
+
       isLoading = false;
       notifyListeners();
       return Future.value();
@@ -1033,12 +1033,12 @@ class CoreViewModel extends FlipperBaseModel
     try {
       isLoading = true;
       notifyListeners();
-      
+
       for (api.Item item in finalItemList) {
         await ProxyService.tax.updateImportItems(
             item: item, URI: await ProxyService.box.getServerUrl() ?? "");
       }
-      
+
       isLoading = false;
       notifyListeners();
     } catch (e) {

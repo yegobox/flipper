@@ -299,7 +299,18 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
         item.bhfId = item.bhfId ?? "00";
         item.modrNm = item.modrNm ?? item.itemNm;
         item.tin = item.tin ?? business?.tinNumber ?? ProxyService.box.tin();
-        
+
+        /// Iyo baduhaye import
+        /// 1 (kuzibona)
+        /// Last request date
+        /// to approve to accept we send 3,
+        /// to receive we send 2,
+        /// to reject we send 4.
+        /// we use last request date, better we save this date. we use it to validate it.
+        /// after receiving nibintu wongera kuri stock yawe cg ibishya.
+        /// Assign stock, wari ufitemo umuceri, increase qty of same item or create new item.
+        /// 6/01/2025 (we save them)
+        /// Show those status,waiting, rejected, approved, received
 
         /// 2 is approved, we are approving this import.
         item.imptItemSttsCd = "2";
