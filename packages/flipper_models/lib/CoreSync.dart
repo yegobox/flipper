@@ -4905,4 +4905,55 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             query: brick.Query(where: [brick.Where('id').isExactly(id)])))
         .first;
   }
+
+  @override
+  Future<bool> isBranchEnableForPayment(
+      {required String currentBranchId}) async {
+    final payment_status = await repository.get<BranchPaymentIntegration>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        query: brick.Query(where: [
+          brick.Where('branchId').isExactly(currentBranchId),
+          brick.Where('isEnabled').isExactly(true),
+        ]));
+    return payment_status.isNotEmpty;
+  }
+
+  @override
+  Future<void> setBranchPaymentStatus(
+      {required String currentBranchId, required bool status}) async {
+    final payment_status = (await repository.get<BranchPaymentIntegration>(
+            policy: OfflineFirstGetPolicy.alwaysHydrate,
+            query: brick.Query(where: [
+              brick.Where('branchId').isExactly(currentBranchId),
+            ])))
+        .firstOrNull;
+    if (payment_status != null) {
+      payment_status.isEnabled = status;
+      await repository.upsert<BranchPaymentIntegration>(payment_status);
+    }
+  }
+
+  @override
+  Future<void> deletePaymentById(String id) {
+    // TODO: implement deletePaymentById
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<models.CustomerPayments>> getAllPayments() {
+    // TODO: implement getAllPayments
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<models.CustomerPayments?> getPaymentById(String id) {
+    // TODO: implement getPaymentById
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<models.CustomerPayments> upsertPayment(
+      models.CustomerPayments payment) async {
+    return await repository.upsert<CustomerPayments>(payment);
+  }
 }

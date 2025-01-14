@@ -3,7 +3,7 @@ import 'package:flipper_dashboard/PreviewSaleButton.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
-import 'package:flipper_dashboard/previewCart.dart';
+import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';

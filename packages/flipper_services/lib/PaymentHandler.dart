@@ -20,16 +20,24 @@ mixin PaymentHandler {
     }
     final subscribed = await ProxyService.ht.subscribe(
       businessId: ProxyService.box.getBusinessId()!,
-      amount: finalPrice, 
+      amount: finalPrice,
       flipperHttpClient: ProxyService.http,
       timeInSeconds: timeInSeconds,
     );
     // delay for 20 seconds
     await Future.delayed(const Duration(seconds: 20));
     if (subscribed) {
+      final phone =
+          ProxyService.box.customPhoneNumberForPayment()?.replaceAll("+", "") ??
+              ProxyService.box.getUserPhone()!.replaceAll("+", "");
+
       /// if subscribed, this means the user will not be prompted for PIN again,
       /// if he has not subscribed he will be prompted for PIN.
       ProxyService.ht.makePayment(
+        phoneNumber: phone,
+        paymentType: "Subscription",
+        payeemessage: "Flipper Subscription",
+        branchId: "2f83b8b1-6d41-4d80-b0e7-de8ab36910af",
         businessId: ProxyService.box.getBusinessId()!,
         amount: finalPrice,
         flipperHttpClient: ProxyService.http,

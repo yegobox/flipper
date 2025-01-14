@@ -69,6 +69,8 @@ import '../brick/models/plans.model.dart';
 import '../brick/models/drawer.model.dart';
 import '../brick/models/import_purchase_dates.model.dart';
 import '../brick/models/purchases.model.dart';
+import '../brick/models/BranchPaymentIntegration.model.dart';
+import '../brick/models/customer_payments.model.dart';
 
 part 'adapters/item_code_adapter.g.dart';
 part 'adapters/stock_adapter.g.dart';
@@ -110,6 +112,8 @@ part 'adapters/plan_adapter.g.dart';
 part 'adapters/drawers_adapter.g.dart';
 part 'adapters/import_purchase_dates_adapter.g.dart';
 part 'adapters/sale_list_adapter.g.dart';
+part 'adapters/branch_payment_integration_adapter.g.dart';
+part 'adapters/customer_payments_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
@@ -152,7 +156,9 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Plan: PlanAdapter(),
   Drawers: DrawersAdapter(),
   ImportPurchaseDates: ImportPurchaseDatesAdapter(),
-  SaleList: SaleListAdapter()
+  SaleList: SaleListAdapter(),
+  BranchPaymentIntegration: BranchPaymentIntegrationAdapter(),
+  CustomerPayments: CustomerPaymentsAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -197,6 +203,8 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Plan: PlanAdapter(),
   Drawers: DrawersAdapter(),
   ImportPurchaseDates: ImportPurchaseDatesAdapter(),
-  SaleList: SaleListAdapter()
+  SaleList: SaleListAdapter(),
+  BranchPaymentIntegration: BranchPaymentIntegrationAdapter(),
+  CustomerPayments: CustomerPaymentsAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

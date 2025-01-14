@@ -1,6 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20250114144814.migration.dart';
 part '20250104131208.migration.dart';
 part '20250102092703.migration.dart';
 part '20250102092919.migration.dart';
@@ -13,9 +14,12 @@ part '20250102144742.migration.dart';
 part '20250109125327.migration.dart';
 part '20250110094310.migration.dart';
 part '20250111130254.migration.dart';
+part '20250114092913.migration.dart';
+part '20250114114345.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
+  const Migration20250114144814(),
   const Migration20250104131208(),
   const Migration20250102092703(),
   const Migration20250102092919(),
@@ -27,12 +31,13 @@ final migrations = <Migration>{
   const Migration20250102144742(),
   const Migration20250109125327(),
   const Migration20250110094310(),
-  const Migration20250111130254()
+  const Migration20250111130254(),
+  const Migration20250114092913(),
+  const Migration20250114114345()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema =
-    Schema(20250111130254, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250114144814, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -890,6 +895,27 @@ final schema =
     SchemaColumn('tot_tax_amt', Column.Double),
     SchemaColumn('tot_amt', Column.Double),
     SchemaColumn('remark', Column.varchar)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
+  SchemaTable('BranchPaymentIntegration', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('branch_id', Column.varchar),
+    SchemaColumn('is_enabled', Column.boolean)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
+  SchemaTable('CustomerPayments', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('customer_id', Column.varchar),
+    SchemaColumn('phone_number', Column.varchar),
+    SchemaColumn('payment_status', Column.varchar),
+    SchemaColumn('transaction_id', Column.varchar),
+    SchemaColumn('amount_payable', Column.Double)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   })

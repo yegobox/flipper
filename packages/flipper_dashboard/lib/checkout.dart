@@ -6,7 +6,7 @@ import 'package:flipper_dashboard/IncomingOrders.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/bottomSheet.dart';
 import 'package:flipper_dashboard/payable_view.dart';
-import 'package:flipper_dashboard/previewCart.dart';
+import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
@@ -305,14 +305,6 @@ class CheckOutState extends ConsumerState<CheckOut>
                   transaction: transaction,
                   paymentMethods: ref.watch(paymentMethodsProvider),
                 );
-                final branchId = ProxyService.box.getBranchId()!;
-
-                ref.read(loadingProvider.notifier).stopLoading();
-                ref.refresh(pendingTransactionProvider((
-                  mode: TransactionType.sale,
-                  isExpense: false,
-                  branchId: branchId
-                )));
               } catch (e) {
                 ref.read(loadingProvider.notifier).stopLoading();
                 rethrow;

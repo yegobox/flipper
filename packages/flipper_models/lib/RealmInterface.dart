@@ -824,4 +824,20 @@ abstract class RealmInterface {
       required int subBranchId});
 
   FutureOr<void> addTransaction({required ITransaction transaction});
+  FutureOr<bool> isBranchEnableForPayment({required String currentBranchId});
+  FutureOr<void> setBranchPaymentStatus(
+      {required String currentBranchId, required bool status});
+
+  /// Upserts a CustomerPayment. If a payment with the same ID already exists,
+  /// it will be updated, otherwise a new payment will be created.
+  Future<CustomerPayments> upsertPayment(CustomerPayments payment);
+
+  /// Fetches a CustomerPayment by its ID.
+  Future<CustomerPayments?> getPaymentById(String id);
+
+  /// Fetches all CustomerPayments.
+  Future<List<CustomerPayments>> getAllPayments();
+
+  /// Deletes a CustomerPayment by its ID
+  Future<void> deletePaymentById(String id);
 }

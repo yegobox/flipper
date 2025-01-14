@@ -17,6 +17,11 @@ abstract class RealmViaHttp {
   Future<bool> makePayment(
       {required HttpClientInterface flipperHttpClient,
       required int businessId,
+      required String phoneNumber,
+      String? externalId,
+      required String branchId,
+      required String paymentType,
+      required String payeemessage,
       required int amount});
   Future<bool> subscribe(
       {required HttpClientInterface flipperHttpClient,
@@ -139,10 +144,12 @@ class HttpApi implements RealmViaHttp {
   Future<bool> makePayment(
       {required HttpClientInterface flipperHttpClient,
       required int businessId,
-      required int amount}) async {
-    final phone =
-        ProxyService.box.customPhoneNumberForPayment()?.replaceAll("+", "") ??
-            ProxyService.box.getUserPhone()!.replaceAll("+", "");
+      required String branchId,
+      required String paymentType,
+      String? externalId,
+      required String payeemessage,
+      required int amount,
+      required String phoneNumber}) async {
     final response = await flipperHttpClient.post(
         headers: {
           'api-key': AppSecrets.apikey,
@@ -154,12 +161,14 @@ class HttpApi implements RealmViaHttp {
           "currency": "RWF",
           "payer": {
             "partyIdType": "MSISDN",
-            "partyId": phone,
+            "partyId": phoneNumber,
           },
           "payerMessage": "Flipper Subscription",
-          "payeeNote": "Flipper Subscription",
+          "payeeNote": payeemessage,
           "businessId": ProxyService.box.getBusinessId()!,
-          "branchId": "2f83b8b1-6d41-4d80-b0e7-de8ab36910af"
+          "branchId": branchId,
+          "paymentType": paymentType,
+          "externalId": externalId
         }));
     return response.statusCode == 200;
   }
@@ -215,15 +224,6 @@ class RealmViaHttpServiceMock implements RealmViaHttp {
   }
 
   @override
-  Future<bool> makePayment(
-      {required HttpClientInterface flipperHttpClient,
-      required int businessId,
-      required int amount}) {
-    // TODO: implement makePayment
-    throw UnimplementedError();
-  }
-
-  @override
   Future<bool> subscribe(
       {required HttpClientInterface flipperHttpClient,
       required int businessId,
@@ -231,6 +231,20 @@ class RealmViaHttpServiceMock implements RealmViaHttp {
       int? agentCode,
       required int amount}) {
     // TODO: implement subscribe
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> makePayment(
+      {required HttpClientInterface flipperHttpClient,
+      required int businessId,
+      required String paymentType,
+      required String phoneNumber,
+      String? externalId,
+      required String branchId,
+      required String payeemessage,
+      required int amount}) {
+    // TODO: implement makePayment
     throw UnimplementedError();
   }
 }

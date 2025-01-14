@@ -40,3 +40,5 @@ export 'permission.model.dart';
 export 'itemCode.model.dart';
 export 'purchases.model.dart';
 export 'import_purchase_dates.model.dart';
+export 'BranchPaymentIntegration.model.dart';
+export 'customer_payments.model.dart';

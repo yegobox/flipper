@@ -1795,4 +1795,40 @@ class Capella with Booting implements RealmInterface {
     // TODO: implement createProduct
     throw UnimplementedError();
   }
+  
+  @override
+  FutureOr<bool> isBranchEnableForPayment({required String currentBranchId}) {
+    // TODO: implement isBranchEnableForPayment
+    throw UnimplementedError();
+  }
+  
+  @override
+  FutureOr<void> setBranchPaymentStatus({required String currentBranchId, required bool status}) {
+    // TODO: implement setBranchPaymentStatus
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> deletePaymentById(String id) {
+    // TODO: implement deletePaymentById
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<List<brick.CustomerPayments>> getAllPayments() {
+    // TODO: implement getAllPayments
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<brick.CustomerPayments?> getPaymentById(String id) {
+    // TODO: implement getPaymentById
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<brick.CustomerPayments> upsertPayment(brick.CustomerPayments payment) {
+    // TODO: implement upsertPayment
+    throw UnimplementedError();
+  }
 }

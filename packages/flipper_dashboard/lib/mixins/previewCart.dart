@@ -17,8 +17,8 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:supabase_models/brick/repository.dart';
 
 mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixin, TextEditingControllersMixin {
@@ -168,74 +168,219 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     required List<Payment> paymentMethods,
   }) async {
     try {
-      // Validate transaction ID
-      final transactionId = transaction.id;
-
       // Save payment methods
       for (var payment in paymentMethods) {
         await ProxyService.strategy.savePaymentType(
           singlePaymentOnly: paymentMethods.length == 1,
           amount: payment.amount,
-          transactionId: transactionId,
+          transactionId: transaction.id,
           paymentMethod: payment.method,
         );
       }
 
-      // Check subtotal
+      // Validate transaction
       if (transaction.subTotal == 0) {
         throw Exception("No Payable");
       }
 
-      // Parse amounts
       final amount = double.tryParse(receivedAmountController.text) ?? 0;
       final discount = double.tryParse(discountController.text) ?? 0;
-      final state = (formKey.currentState?.validate() ?? true);
+      final isValid = formKey.currentState?.validate() ?? true;
+      final String branchId = (await ProxyService.strategy.activeBranch()).id;
+      final paymentType = ProxyService.box.paymentType() ?? "Cash";
 
-      // Get customer
-      Customer? customer = (await ProxyService.strategy.customers(
-              id: transaction.customerId ?? "0",
-              branchId: ProxyService.box.getBranchId()!))
-          .firstOrNull;
+      // Get customer if exists
+      final customer = await _getCustomer(transaction.customerId);
 
-      // Handle payment based on customer presence
-      if (state && customer == null) {
-        await finalizePayment(
-          formKey: formKey,
-          customerNameController: customerNameController,
-          context: context,
-          paymentType: ProxyService.box.paymentType() ?? "Cash",
-          transactionType: TransactionType.sale,
+      if (!isValid) return;
+
+      final isDigitalPaymentEnabled = await ProxyService.strategy
+          .isBranchEnableForPayment(currentBranchId: branchId);
+
+      if (isDigitalPaymentEnabled) {
+        await _processDigitalPayment(
+          customer: customer,
           transaction: transaction,
           amount: amount,
-          onComplete: completeTransaction,
           discount: discount,
+          branchId: branchId,
+          completeTransaction: completeTransaction,
+          paymentType: paymentType,
         );
-      } else if (state && customer != null) {
-        await additionalInformationIsRequiredToCompleteTransaction(
-          amount: amount,
-          onComplete: completeTransaction,
-          discount: discount,
-          paymentType: paymentTypeController.text,
+      } else {
+        await _processCashPayment(
+          customer: customer,
           transaction: transaction,
-          context: context,
+          amount: amount,
+          discount: discount,
+          paymentType: paymentType,
+          completeTransaction: completeTransaction,
         );
       }
 
-      // Refresh transaction items only if payment was successful
-      await _refreshTransactionItems(transactionId: transactionId);
+      await _refreshTransactionItems(transactionId: transaction.id);
     } catch (e, s) {
-      talker.error(e, s);
       ref.read(loadingProvider.notifier).stopLoading();
-      String v = e
+      String errorMessage = e
           .toString()
           .split('Caught Exception: ')
           .last
           .replaceAll("Exception: ", "");
-
-      // Handle general errors
-      _handlePaymentError(v, s, context);
-      rethrow; // Rethrow the error if needed for upper level handling
+      _handlePaymentError(errorMessage, s, context);
+      rethrow;
     }
+  }
+
+  Future<Customer?> _getCustomer(String? customerId) async {
+    if (customerId == null) return null;
+
+    final customers = await ProxyService.strategy.customers(
+      id: customerId,
+      branchId: ProxyService.box.getBranchId()!,
+    );
+    return customers.firstOrNull;
+  }
+
+  Future<void> _processDigitalPayment({
+    required Customer? customer,
+    required ITransaction transaction,
+    required double amount,
+    required double discount,
+    required String branchId,
+    required Function completeTransaction,
+    required String paymentType,
+  }) async {
+    final phoneNumber = customer?.telNo?.replaceAll("+", "") ??
+        "250${ProxyService.box.currentSaleCustomerPhoneNumber()}";
+
+    await _sendpaymentRequest(
+      phoneNumber: phoneNumber,
+      branchId: branchId,
+      externalId: transaction.id,
+      finalPrice: amount.toInt(),
+    );
+
+    await ProxyService.strategy.upsertPayment(CustomerPayments(
+      phoneNumber: phoneNumber,
+      paymentStatus: "pending",
+      amountPayable: transaction.subTotal!,
+      transactionId: transaction.id,
+    ));
+
+    final query = Query(where: [
+      Where('transactionId').isExactly(transaction.id),
+      Where('paymentStatus').isExactly('completed'),
+    ]);
+
+    Repository().subscribeToRealtime<CustomerPayments>(query: query).listen(
+      (data) async {
+        if (data.isEmpty) return;
+        talker.warning(data);
+
+        if (customer != null) {
+          await additionalInformationIsRequiredToCompleteTransaction(
+            amount: amount,
+            onComplete: completeTransaction,
+            discount: discount,
+            paymentType: paymentTypeController.text,
+            transaction: transaction,
+            context: context,
+          );
+          final branchId = ProxyService.box.getBranchId()!;
+
+          ref.read(loadingProvider.notifier).stopLoading();
+          ref.refresh(pendingTransactionProvider((
+            mode: TransactionType.sale,
+            isExpense: false,
+            branchId: branchId
+          )));
+        } else {
+          await finalizePayment(
+            formKey: formKey,
+            customerNameController: customerNameController,
+            context: context,
+            paymentType: paymentType,
+            transactionType: TransactionType.sale,
+            transaction: transaction,
+            amount: amount,
+            onComplete: completeTransaction,
+            discount: discount,
+          );
+          final branchId = ProxyService.box.getBranchId()!;
+
+          ref.read(loadingProvider.notifier).stopLoading();
+          ref.refresh(pendingTransactionProvider((
+            mode: TransactionType.sale,
+            isExpense: false,
+            branchId: branchId
+          )));
+        }
+      },
+      onError: (error) => talker.warning(error),
+    );
+  }
+
+  Future<void> _processCashPayment({
+    required Customer? customer,
+    required ITransaction transaction,
+    required double amount,
+    required double discount,
+    required String paymentType,
+    required Function completeTransaction,
+  }) async {
+    if (customer != null) {
+      await additionalInformationIsRequiredToCompleteTransaction(
+        amount: amount,
+        onComplete: completeTransaction,
+        discount: discount,
+        paymentType: paymentTypeController.text,
+        transaction: transaction,
+        context: context,
+      );
+      final branchId = ProxyService.box.getBranchId()!;
+
+      ref.read(loadingProvider.notifier).stopLoading();
+      ref.refresh(pendingTransactionProvider(
+          (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
+    } else {
+      await finalizePayment(
+        formKey: formKey,
+        customerNameController: customerNameController,
+        context: context,
+        paymentType: paymentType,
+        transactionType: TransactionType.sale,
+        transaction: transaction,
+        amount: amount,
+        onComplete: completeTransaction,
+        discount: discount,
+      );
+      final branchId = ProxyService.box.getBranchId()!;
+
+      ref.read(loadingProvider.notifier).stopLoading();
+      ref.refresh(pendingTransactionProvider(
+          (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
+    }
+  }
+
+  /// a method to send payment request
+  Future<bool> _sendpaymentRequest({
+    required String phoneNumber,
+    required int finalPrice,
+    required String branchId,
+    required String externalId,
+  }) async {
+    final response = await ProxyService.ht.makePayment(
+      payeemessage: "Pay for Goods",
+      paymentType: "PaymentNormal",
+      externalId: externalId,
+      phoneNumber: phoneNumber.replaceAll("+", ""),
+      branchId: branchId,
+      businessId: ProxyService.box.getBusinessId()!,
+      amount: finalPrice,
+      flipperHttpClient: ProxyService.http,
+    );
+    print(response);
+    return true;
   }
 
 // Helper method to handle payment errors

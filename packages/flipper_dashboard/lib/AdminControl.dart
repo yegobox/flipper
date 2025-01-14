@@ -13,6 +13,8 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:uuid/uuid.dart';
 
+import 'modals/_isBranchEnableForPayment.dart';
+
 class AdminControl extends StatefulWidget {
   const AdminControl({super.key});
 
@@ -354,7 +356,9 @@ class _AdminControlState extends State<AdminControl> {
                     title: 'Payment Methods',
                     subtitle: 'Manage payment options',
                     icon: Icons.payments,
-                    onTap: () {},
+                    onTap: () {
+                      showPaymentSettingsModal(context);
+                    },
                     color: Colors.purple,
                   ),
                 ],
