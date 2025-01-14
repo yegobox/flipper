@@ -21,9 +21,17 @@ import 'package:sqlite3/sqlite3.dart';
 final repository = Repository();
 mixin VariantPatch {
   static Future<void> patchVariant(
-      {required String URI, required Function(String) sendPort}) async {
-    final variants = await repository.get<Variant>(
-        query: brick.Query(where: [Where('ebmSynced').isExactly(false)]));
+      {required String URI,
+      required Function(String) sendPort,
+      String? identifier}) async {
+    List<Variant> variants = [];
+    if (identifier != null) {
+      variants = await repository.get<Variant>(
+          query: brick.Query(where: [Where('id').isExactly(identifier)]));
+    } else {
+      variants = await repository.get<Variant>(
+          query: brick.Query(where: [Where('ebmSynced').isExactly(false)]));
+    }
 
     for (Variant variant in variants) {
       try {
@@ -41,8 +49,8 @@ mixin VariantPatch {
 
         if (response.resultCd == "000") {
           sendPort('${response.resultMsg}:variant:${variant.id.toString()}');
-
-          variant.ebmSynced = true;
+          // we set ebmSynced when stock is done updating on rra side.
+          // variant.ebmSynced = true;
           repository.upsert(variant);
         }
       } catch (e, s) {
@@ -54,9 +62,17 @@ mixin VariantPatch {
 }
 mixin StockPatch {
   static Future<void> patchStock(
-      {required String URI, required Function(String) sendPort}) async {
-    final variants = await repository.get<Variant>(
-        query: brick.Query(where: [Where('ebmSynced').isExactly(false)]));
+      {required String URI,
+      required Function(String) sendPort,
+      String? identifier}) async {
+    List<Variant> variants = [];
+    if (identifier != null) {
+      variants = await repository.get<Variant>(
+          query: brick.Query(where: [Where('id').isExactly(identifier)]));
+    } else {
+      variants = await repository.get<Variant>(
+          query: brick.Query(where: [Where('ebmSynced').isExactly(false)]));
+    }
 
     for (Variant variant in variants) {
       if (!variant.ebmSynced!) {

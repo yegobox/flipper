@@ -6,7 +6,6 @@ import 'package:dio/dio.dart';
 import 'package:flipper_models/NetworkHelper.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/helperModels/RwApiResponse.dart' as api;
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/mail_log.dart';
@@ -284,7 +283,12 @@ class RWTax with NetworkHelper implements TaxApi {
             "taskCd",
             "dclDe",
             "hsCd",
-            "imptItemsttsCd"
+            "imptItemSttsCd",
+            "purchaseId",
+            "totAmt",
+            "taxblAmt",
+            "taxAmt",
+            "dcAmt"
           ].contains(key) ||
           value == null ||
           value == "");
@@ -834,8 +838,7 @@ class RWTax with NetworkHelper implements TaxApi {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'trnsPurchase/savePurchases')
         .toString();
-    // Business? business =
-    //     realm.query<Business>(r'isDefault == $0', [true]).firstOrNull;
+    
     final repository = Repository();
     List<Business> businesses =
         await repository.get<Business>(query: Query.where('isDefault', true));
@@ -913,7 +916,7 @@ class RWTax with NetworkHelper implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> selectTrnsPurchaseSales(
+  Future<List<SaleList>> selectTrnsPurchaseSales(
       {required int tin,
       required String bhfId,
       required String URI,
@@ -937,7 +940,7 @@ class RWTax with NetworkHelper implements TaxApi {
         if (respond.resultCd == "894") {
           throw Exception(respond.resultMsg);
         }
-        return respond;
+        return respond.data?.saleList ?? [];
       } else {
         throw Exception(
             'Failed to fetch import items. Status code: ${response.statusCode}');
@@ -950,7 +953,7 @@ class RWTax with NetworkHelper implements TaxApi {
 
   @override
   Future<RwApiResponse> updateImportItems(
-      {required api.Item item, required String URI}) async {
+      {required Variant item, required String URI}) async {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'imports/updateImportItems')
         .toString();
@@ -968,49 +971,6 @@ class RWTax with NetworkHelper implements TaxApi {
             respond.resultCd == "910") {
           throw Exception(respond.resultMsg);
         }
-
-        /// save the item in our system, rely on the name as when user
-        /// typed to edit a name we helped a user to search through
-        /// existing product and use the name that exist,
-        /// that way we will be updating the product's variant with no question
-        /// otherwise then create a complete new product.
-        ProxyService.strategy.createProduct(
-          bhFId: (await ProxyService.box.bhfId()) ?? "00",
-          tinNumber: ProxyService.box.tin(),
-          businessId: ProxyService.box.getBusinessId()!,
-          branchId: ProxyService.box.getBranchId()!,
-          modrId: item.modrId,
-          totWt: item.totWt,
-          netWt: item.netWt,
-          spplrNm: item.spplrNm,
-          agntNm: item.agntNm,
-          invcFcurAmt: item.invcFcurAmt,
-          invcFcurCd: item.invcFcurCd,
-          invcFcurExcrt: item.invcFcurExcrt,
-          exptNatCd: item.exptNatCd,
-          pkg: item.pkg,
-          pkgUnitCd: item.pkgUnitCd,
-          dclNo: item.dclNo,
-          taskCd: item.taskCd,
-          dclDe: item.dclDe,
-
-          hsCd: item.hsCd,
-          imptItemsttsCd: item.imptItemsttsCd,
-          product: Product(
-            color: "#e74c3c",
-            name: item.itemNm,
-            lastTouched: DateTime.now(),
-            branchId: ProxyService.box.getBranchId()!,
-            businessId: ProxyService.box.getBusinessId()!,
-            createdAt: DateTime.now(),
-            spplrNm: item.spplrNm,
-          ),
-          supplyPrice: item.supplyPrice!,
-          retailPrice: item.retailPrice!,
-          itemSeq: item.itemSeq,
-          // since this is import we do not need to sync back the same item back to RRA
-          ebmSynced: false,
-        );
 
         /// I need to also receive both retail and supply price from user
         return respond;

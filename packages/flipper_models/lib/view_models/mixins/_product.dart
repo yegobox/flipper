@@ -67,7 +67,7 @@ mixin ProductMixin {
             : DateTime.tryParse(dates![variations[i].id]!.text);
 
         variations[i].color = currentColor;
-        variations[i].pkg = "1";
+        variations[i].pkg = 1;
         variations[i].itemCd = await ProxyService.strategy.itemCode(
             countryCode: "RW",
             productType: "2",

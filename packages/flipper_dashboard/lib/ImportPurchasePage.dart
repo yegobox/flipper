@@ -1,7 +1,6 @@
 import 'package:flipper_dashboard/ImportWidget.dart';
 import 'package:flipper_dashboard/PurchaseSalesWidget.dart';
 import 'package:flipper_dashboard/refresh.dart';
-import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart' as brick;
@@ -12,6 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
+import 'package:supabase_models/brick/models/all_models.dart';
 
 class ImportPurchasePage extends StatefulHookConsumerWidget {
   @override
@@ -21,16 +21,17 @@ class ImportPurchasePage extends StatefulHookConsumerWidget {
 class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     with Refresh {
   DateTime _selectedDate = DateTime.now();
-  Future<RwApiResponse>? _futureImportResponse;
-  Future<RwApiResponse>? _futurePurchaseResponse;
-  Item? _selectedItem;
-  ItemList? _selectedPurchaseItem; // Track selected purchase item
+  Future<List<Variant>>? _futureImportResponse;
+  Future<List<SaleList>>? _futurePurchaseResponse;
+  Variant? _selectedItem;
+  SaleList? _selectedPurchaseItem; // Track selected purchase item
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _supplyPriceController = TextEditingController();
   final TextEditingController _retailPriceController = TextEditingController();
-  List<Item> finalItemList = [];
-  RwApiResponse? rwResponse;
+  List<Variant> finalItemList = [];
+
   List<SaleList> salesList = []; // New list to store all sales
+  List<Variant> importList = []; // New list to store all sales
 
   GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
   bool isLoading = false;
@@ -39,45 +40,46 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   @override
   void initState() {
     super.initState();
-    _futureImportResponse = _fetchData(selectedDate: _selectedDate);
   }
 
-  Future<RwApiResponse> _fetchData({required DateTime selectedDate}) async {
+  Future<List<Variant>> _fetchDataImport(
+      {required DateTime selectedDate}) async {
     String convertedDate = convertDateToString(selectedDate);
-    if (isImport) {
-      setState(() {
-        isLoading = true;
-      });
-      brick.Business? business = await ProxyService.strategy
-          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-      final data = await ProxyService.strategy.selectImportItems(
-        tin: business?.tinNumber ?? ProxyService.box.tin(),
-        bhfId: (await ProxyService.box.bhfId()) ?? "00",
-        lastReqDt: convertedDate,
-      );
-      setState(() {
-        isLoading = false;
-        this.rwResponse = rwResponse;
-        salesList = rwResponse?.data?.saleList ?? [];
-      });
-      return data;
-    } else {
-      setState(() {
-        isLoading = true;
-      });
-      final url = await ProxyService.box.getServerUrl();
-      final rwResponse = await ProxyService.tax.selectTrnsPurchaseSales(
-        URI: url!,
-        tin: ProxyService.box.tin(),
-        bhfId: (await ProxyService.box.bhfId()) ?? "00",
-        lastReqDt: convertedDate,
-      );
-      setState(() {
-        isLoading = false;
-        salesList = rwResponse.data?.saleList ?? [];
-      });
-      return rwResponse;
-    }
+
+    setState(() {
+      isLoading = true;
+    });
+    brick.Business? business = await ProxyService.strategy
+        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    final data = await ProxyService.strategy.selectImportItems(
+      tin: business?.tinNumber ?? ProxyService.box.tin(),
+      bhfId: (await ProxyService.box.bhfId()) ?? "00",
+      lastReqDt: convertedDate,
+    );
+    setState(() {
+      isLoading = false;
+      this.importList = data;
+      importList = data;
+    });
+    return data;
+  }
+
+  Future<List<SaleList>> _fetchDataPurchase(
+      {required DateTime selectedDate}) async {
+    String convertedDate = convertDateToString(selectedDate);
+
+    final url = await ProxyService.box.getServerUrl();
+    final rwResponse = await ProxyService.tax.selectTrnsPurchaseSales(
+      URI: url!,
+      tin: ProxyService.box.tin(),
+      bhfId: (await ProxyService.box.bhfId()) ?? "00",
+      lastReqDt: convertedDate,
+    );
+    setState(() {
+      isLoading = false;
+      salesList = rwResponse;
+    });
+    return rwResponse;
   }
 
   String convertDateToString(DateTime date) {
@@ -97,10 +99,11 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       setState(() {
         _selectedDate = pickedDate;
         if (isImport) {
-          _futureImportResponse = _fetchData(selectedDate: _selectedDate);
+          _futureImportResponse = _fetchDataImport(selectedDate: _selectedDate);
           _selectedItem = null;
         } else {
-          _futurePurchaseResponse = _fetchData(selectedDate: _selectedDate);
+          _futurePurchaseResponse =
+              _fetchDataPurchase(selectedDate: _selectedDate);
           // Clear selection and reset text fields when switching modes
           _selectedPurchaseItem = null;
         }
@@ -111,11 +114,11 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     }
   }
 
-  void _selectItem(Item? item) {
+  void _selectItem(Variant? item) {
     setState(() {
       _selectedItem = item;
       if (item != null) {
-        _nameController.text = item.itemNm;
+        _nameController.text = item.itemNm ?? item.name;
         _supplyPriceController.text = item.supplyPrice?.toString() ?? "";
         _retailPriceController.text = item.retailPrice?.toString() ?? "";
       } else {
@@ -126,12 +129,13 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     });
   }
 
-  void _selectItemPurchase(ItemList? item, {required SaleList saleList}) {
+  void _selectItemPurchase(SaleList? item, {required SaleList saleList}) {
     setState(() {
       _selectedPurchaseItem = item;
       if (item != null) {
-        _nameController.text = item.itemNm;
-        _supplyPriceController.text = item.prc.toString();
+        _nameController.text =
+            item.itemList?.first.itemNm ?? item.itemList?.first.name ?? '';
+        _supplyPriceController.text = item.itemList?.first.prc.toString() ?? '';
       } else {
         _nameController.clear();
         _supplyPriceController.clear();
@@ -156,17 +160,16 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           finalItemList[index] = _selectedItem!; // Update the item in the list
         }
       } else if (!isImport && _selectedPurchaseItem != null) {
-        for (var saleList in salesList) {
-          int itemIndex = saleList.itemList
-                  ?.indexWhere((item) => item == _selectedPurchaseItem) ??
-              -1;
-          if (itemIndex != -1) {
-            /// update retailPrice of the item
-            _selectedPurchaseItem?.retailPrice =
-                double.tryParse(_retailPriceController.text) ?? 0;
-            saleList.itemList![itemIndex] = _selectedPurchaseItem!;
-            break;
-          }
+        // for (var saleList in salesList) {
+
+        // }
+        int itemIndex =
+            salesList.indexWhere((item) => item == _selectedPurchaseItem);
+        if (itemIndex != -1) {
+          /// update retailPrice of the item
+          _selectedPurchaseItem?.itemList?[itemIndex].retailPrice =
+              double.tryParse(_retailPriceController.text) ?? 0;
+          salesList[itemIndex] = _selectedPurchaseItem!;
         }
       }
       _nameController.clear();
@@ -184,7 +187,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       talker.warning("salesListLenghts" + salesList.length.toString());
       final ref = randomNumber();
       for (SaleList supplier in salesList) {
-        for (ItemList item in supplier.itemList!) {
+        for (Variant item in supplier.itemList!) {
           item.retailPrice ??= item.prc;
           talker.warning(
               "Retail Prices while saving item in our DB:: ${item.retailPrice}");
@@ -195,16 +198,16 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
             bhFId: (await ProxyService.box.bhfId()) ?? "00",
             product: brick.Product(
               color: "#e74c3c",
-              name: item.itemNm,
+              name: item.itemNm ?? item.name,
               lastTouched: DateTime.now(),
               branchId: ProxyService.box.getBranchId()!,
               businessId: ProxyService.box.getBusinessId()!,
               createdAt: DateTime.now(),
               spplrNm: supplier.spplrNm,
             ),
-            supplyPrice: item.splyAmt,
-            retailPrice: item.retailPrice ?? item.prc,
-            itemSeq: item.itemSeq,
+            supplyPrice: item.splyAmt ?? 0,
+            retailPrice: item.retailPrice ?? item.prc ?? 0.0,
+            itemSeq: item.itemSeq ?? 1,
             ebmSynced: false,
           );
 
@@ -245,8 +248,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               receiptType: TransactionType.purchase,
               customerTin: ProxyService.box.tin().toString(),
               customerBhfId: bhfId,
-              subTotal: pendingTransaction.subTotal! + item.splyAmt,
-              cashReceived: -(pendingTransaction.subTotal! + item.splyAmt),
+              subTotal: pendingTransaction.subTotal! + (item.splyAmt ?? 0),
+              cashReceived:
+                  -(pendingTransaction.subTotal! + (item.splyAmt ?? 0)),
 
               customerName: (await ProxyService.strategy.getBusiness())!.name,
             );
@@ -291,7 +295,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       setState(() {
         isLoading = true;
       });
-      for (Item item in finalItemList) {
+      for (Variant item in finalItemList) {
         // for now skip those with no supply, retail price set
         if (item.supplyPrice == null || item.retailPrice == null) continue;
 
@@ -313,9 +317,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
         /// Show those status,waiting, rejected, approved, received
 
         /// 2 is approved, we are approving this import.
-        item.imptItemSttsCd = "2";
-        await ProxyService.tax.updateImportItems(
-            item: item, URI: await ProxyService.box.getServerUrl() ?? "");
+        item.imptItemSttsCd = "3";
+        // await ProxyService.tax.updateImportItems(
+        //     item: item, URI: await ProxyService.box.getServerUrl() ?? "");
       }
       setState(() {
         isLoading = false;
@@ -361,11 +365,12 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                   isImport = value;
                                   // Fetch data for the selected mode
                                   if (isImport) {
-                                    _futureImportResponse =
-                                        _fetchData(selectedDate: _selectedDate);
+                                    _futureImportResponse = _fetchDataImport(
+                                        selectedDate: _selectedDate);
                                   } else {
                                     _futurePurchaseResponse =
-                                        _fetchData(selectedDate: _selectedDate);
+                                        _fetchDataPurchase(
+                                            selectedDate: _selectedDate);
                                   }
                                 });
                               },
@@ -395,7 +400,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                               retailPriceController: _retailPriceController,
                               saveItemName: _saveItemName,
                               acceptAllImport: _acceptAllImport,
-                              selectItem: (Item? selectedItem) {
+                              selectItem: (Variant? selectedItem) {
                                 _selectItem(selectedItem);
                               },
                               selectedItem: _selectedItem,
@@ -412,13 +417,11 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                 _acceptPurchase(model: model);
                               },
                               selectSale:
-                                  (ItemList? selectedItem, SaleList saleList) {
-                                _selectItemPurchase(selectedItem,
+                                  (Variant? selectedItem, SaleList saleList) {
+                                _selectItemPurchase(saleList,
                                     saleList: saleList);
                               },
-                              finalSalesList:
-                                  rwResponse?.data!.saleList!.first.itemList ??
-                                      [],
+                              finalSalesList: importList,
                             )
                     ],
                   ),

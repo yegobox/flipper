@@ -84,7 +84,7 @@ class _AdminControlState extends State<AdminControl> {
         itemTyCd: '1',
         itemStdNm: 'Custom Amount',
         orgnNatCd: 'RW',
-        pkg: '1',
+        pkg: 1,
         itemCd: '00',
         pkgUnitCd: 'CT',
         qtyUnitCd: 'BX',

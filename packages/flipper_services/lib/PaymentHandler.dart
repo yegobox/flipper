@@ -20,7 +20,7 @@ mixin PaymentHandler {
     }
     final subscribed = await ProxyService.ht.subscribe(
       businessId: ProxyService.box.getBusinessId()!,
-      amount: finalPrice,
+      amount: finalPrice, 
       flipperHttpClient: ProxyService.http,
       timeInSeconds: timeInSeconds,
     );

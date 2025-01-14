@@ -779,13 +779,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<RwApiResponse> selectImportItems(
-      {required int tin, required String bhfId, required String lastReqDt}) {
-    // TODO: implement selectImportItems
-    throw UnimplementedError();
-  }
-
-  @override
   Future<http.Response> sendLoginRequest(
       String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
       {String? uid}) {
@@ -1378,17 +1371,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<void> processItem(
-      {required brick.Item item,
-      required Map<String, String> quantitis,
-      required Map<String, String> taxTypes,
-      required Map<String, String> itemClasses,
-      required Map<String, String> itemTypes}) {
-    // TODO: implement processItem
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<void> addBusiness(
       {required int id,
       required int userId,
@@ -1651,18 +1633,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<List<brick.Variant>> variants(
-      {required int branchId,
-      String? productId,
-      String? variantId,
-      int? page,
-      int? itemsPerPage,
-      String? name}) {
-    // TODO: implement variants
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<List<brick.ITransaction>> transactions(
       {DateTime? startDate,
       DateTime? endDate,
@@ -1726,41 +1696,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<brick.Product?> createProduct(
-      {required brick.Product product,
-      String? modrId,
-      String? orgnNatCd,
-      String? exptNatCd,
-      int? pkg,
-      String? pkgUnitCd,
-      String? qtyUnitCd,
-      int? totWt,
-      int? netWt,
-      String? spplrNm,
-      String? agntNm,
-      int? invcFcurAmt,
-      String? invcFcurCd,
-      double? invcFcurExcrt,
-      String? dclNo,
-      String? taskCd,
-      String? dclDe,
-      String? hsCd,
-      String? imptItemsttsCd,
-      required int businessId,
-      required int branchId,
-      required int tinNumber,
-      required String bhFId,
-      bool skipRegularVariant = false,
-      double qty = 1,
-      double supplyPrice = 0,
-      double retailPrice = 0,
-      int itemSeq = 1,
-      bool ebmSynced = false}) {
-    // TODO: implement createProduct
-    throw UnimplementedError();
-  }
-
-  @override
   Future<brick.Stock> getStockById({required String id}) {
     // TODO: implement getStockById
     throw UnimplementedError();
@@ -1790,6 +1725,74 @@ class Capella with Booting implements RealmInterface {
       required String name,
       brick.Configurations? taxType}) {
     // TODO: implement createVariant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> processItem(
+      {required brick.Variant item,
+      required Map<String, String> quantitis,
+      required Map<String, String> taxTypes,
+      required Map<String, String> itemClasses,
+      required Map<String, String> itemTypes}) {
+    // TODO: implement processItem
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Variant>> selectImportItems(
+      {required int tin, required String bhfId, required String lastReqDt}) {
+    // TODO: implement selectImportItems
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Variant>> variants(
+      {required int branchId,
+      String? productId,
+      String? variantId,
+      int? page,
+      int? itemsPerPage,
+      String? name,
+      String? imptItemsttsCd}) {
+    // TODO: implement variants
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Product?> createProduct(
+      {required brick.Product product,
+      String? modrId,
+      String? orgnNatCd,
+      String? exptNatCd,
+      int? pkg,
+      String? pkgUnitCd,
+      String? spplrItemClsCd,
+      String? spplrItemCd,
+      String? qtyUnitCd,
+      int? totWt,
+      int? netWt,
+      String? spplrNm,
+      String? agntNm,
+      int? invcFcurAmt,
+      String? invcFcurCd,
+      double? invcFcurExcrt,
+      String? dclNo,
+      String? taskCd,
+      String? dclDe,
+      String? hsCd,
+      String? imptItemsttsCd,
+      required int businessId,
+      required int branchId,
+      required int tinNumber,
+      required String bhFId,
+      bool skipRegularVariant = false,
+      double qty = 1,
+      double supplyPrice = 0,
+      double retailPrice = 0,
+      int itemSeq = 1,
+      bool ebmSynced = false}) {
+    // TODO: implement createProduct
     throw UnimplementedError();
   }
 }

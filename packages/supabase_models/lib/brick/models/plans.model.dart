@@ -13,23 +13,23 @@ class Plan extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String? id;
   final int? businessId;
-  final String? selectedPlan;
-  final int? additionalDevices;
-  final bool? isYearlyPlan;
-  final int? totalPrice;
-  final DateTime? createdAt;
+  String? selectedPlan;
+  int? additionalDevices;
+  bool? isYearlyPlan;
+  int? totalPrice;
+  DateTime? createdAt;
   @Sqlite(defaultValue: "false")
   @Supabase(defaultValue: "false")
   bool? paymentCompletedByUser;
 
-  final String? rule;
-  final String? paymentMethod;
+  String? rule;
+  String? paymentMethod;
 
   final List<PlanAddon> addons;
 
-  final DateTime? nextBillingDate;
+  DateTime? nextBillingDate;
 
-  final int? numberOfPayments;
+  int? numberOfPayments;
 
   Plan({
     String? id,

@@ -205,7 +205,7 @@ class _AddVariationState extends State<AddVariation> {
       ..prc = 0
       ..addInfo = "A"
       ..modrId = clip
-      ..pkg = "1"
+      ..pkg = 1
       ..itemSeq = 1
       ..splyAmt = 0.0
       ..taxName = 'N/A';

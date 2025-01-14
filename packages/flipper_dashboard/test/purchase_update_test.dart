@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flipper_models/helperModels/RwApiResponse.dart'; // Import your model
+import 'package:supabase_models/brick/models/all_models.dart'; // Import your model
 
 void main() {
-  ItemList? selectedPurchaseItem;
-  List<ItemList> finalItemListPurchase = [];
+  Variant? selectedPurchaseItem;
+  List<SaleList> finalItemListPurchase = [];
   // Mock data for testing
   List<SaleList>? finalSaleList = [
     SaleList(
@@ -34,7 +34,8 @@ void main() {
       totAmt: 100000,
       remark: null,
       itemList: [
-        ItemList(
+        Variant(
+          name: "Room 2",
           itemSeq: 1,
           itemCd: "RW3NTNO0000101",
           itemClsCd: "4220400800",
@@ -61,7 +62,7 @@ void main() {
   /// but removed any UI related code such as interacting with text controller
   /// to focus on actual test if updating the salesList and ItemList within sa
 
-  void selectItemPurchase(ItemList? item, {required SaleList saleList}) {
+  void selectItemPurchase(Variant? item, {required SaleList saleList}) {
     selectedPurchaseItem = item;
     if (item != null) {
       // Find the index of the SaleList in finalSaleList
@@ -83,8 +84,9 @@ void main() {
 
   test('selectItemPurchase updates finalSaleList correctly', () {
     // Arrange
-    ItemList updatedItem = ItemList(
+    Variant updatedItem = Variant(
       itemSeq: 1,
+      name: "Updated Room Name",
       itemCd: "RW3NTNO0000101",
       itemClsCd: "4220400800",
       itemNm: "Updated Room Name",
@@ -99,7 +101,7 @@ void main() {
       dcAmt: 0,
       taxTyCd: "B",
       taxblAmt: 120000,
-      taxAmt: 18000, // Updated tax amount
+      taxAmt: 18000,
       totAmt: 120000,
     );
 

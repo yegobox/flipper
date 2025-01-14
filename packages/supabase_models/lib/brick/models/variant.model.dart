@@ -38,7 +38,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? itemTyCd;
   String? itemStdNm;
   String? orgnNatCd;
-  String? pkg;
+  int? pkg;
   String? itemCd;
 
   String? pkgUnitCd;
@@ -72,7 +72,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
 
   /// only a placeholder for capturing stock quantity for this variant,
   /// since when capturing qty we only have variant and not stock.
-  @Sqlite(ignore: true)
+
+  @Sqlite(defaultValue: "0.0", ignore: true)
   @Supabase(ignore: true)
   double? qty;
   @Sqlite(ignore: true)
@@ -93,7 +94,41 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? taskCd;
   String? dclDe;
   String? hsCd;
-  String? imptItemsttsCd;
+  @Sqlite(name: 'impt_item_stts_cd')
+  @Supabase(name: 'impt_item_stts_cd')
+  String? imptItemSttsCd;
+
+  // helper fields
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  String? barCode;
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  String? bcdU;
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  double? quantity;
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  String? category;
+
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  final double? dcAmt;
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  final double? totAmt;
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  final double? taxblAmt;
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  final double? taxAmt;
+  // end of fields to ignore
+
+  // relation to purchases table
+  @Supabase(name: "purchase_id")
+  final String? purchaseId;
 
   Variant({
     String? id,
@@ -135,7 +170,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.useYn,
     this.regrId,
     this.regrNm,
-    this.modrId,
+    String? modrId,
     this.modrNm,
     this.lastTouched,
     this.supplyPrice,
@@ -158,73 +193,104 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.taskCd,
     this.dclDe,
     this.hsCd,
-    this.imptItemsttsCd,
-  }) : id = id ?? const Uuid().v4();
+    String? imptItemSttsCd,
+    this.barCode,
+    this.bcdU,
+    this.quantity,
+    this.category,
+    this.purchaseId,
+    this.totAmt,
+    this.taxblAmt,
+    this.taxAmt,
+    this.dcAmt = 0.0,
+  })  : id = id ?? const Uuid().v4(),
+        imptItemSttsCd = imptItemSttsCd ?? '3',
+        modrId = modrId ?? const Uuid().v4().substring(0, 5);
 
   // fromJson method
   factory Variant.fromJson(Map<String, dynamic> json) {
-    return Variant(
-      id: json['id'],
-      name: json['name'],
-      color: json['color'],
-      sku: json['sku'],
-      productId: json['productId'],
-      unit: json['unit'],
-      productName: json['productName'],
-      branchId: json['branchId'],
-      taxName: json['taxName'],
-      taxPercentage: json['taxPercentage'],
-      itemSeq: json['itemSeq'],
-      isrccCd: json['isrccCd'],
-      isrccNm: json['isrccNm'],
-      isrcRt: json['isrcRt'],
-      isrcAmt: json['isrcAmt'],
-      taxTyCd: json['taxTyCd'],
-      bcd: json['bcd'],
-      itemClsCd: json['itemClsCd'],
-      itemTyCd: json['itemTyCd'],
-      itemStdNm: json['itemStdNm'],
-      orgnNatCd: json['orgnNatCd'],
-      pkg: json['pkg'],
-      itemCd: json['itemCd'],
-      pkgUnitCd: json['pkgUnitCd'],
-      qtyUnitCd: json['qtyUnitCd'],
-      itemNm: json['itemNm'],
-      prc: json['prc'],
-      splyAmt: json['splyAmt'],
-      tin: json['tin'],
-      bhfId: json['bhfId'],
-      dftPrc: json['dftPrc'],
-      addInfo: json['addInfo'],
-      isrcAplcbYn: json['isrcAplcbYn'],
-      useYn: json['useYn'],
-      regrId: json['regrId'],
-      regrNm: json['regrNm'],
-      modrId: json['modrId'],
-      modrNm: json['modrNm'],
-      lastTouched: json['lastTouched'],
-      supplyPrice: json['supplyPrice'],
-      retailPrice: json['retailPrice'],
-      spplrItemClsCd: json['spplrItemClsCd'],
-      spplrItemCd: json['spplrItemCd'],
-      spplrItemNm: json['spplrItemNm'],
-      ebmSynced: json['ebmSynced'],
-      dcRt: json['dcRt'],
-      expirationDate: json['expirationDate'],
-      totWt: json['totWt'],
-      netWt: json['netWt'],
-      spplrNm: json['spplrNm'],
-      agntNm: json['agntNm'],
-      invcFcurAmt: json['invcFcurAmt'],
-      invcFcurCd: json['invcFcurCd'],
-      invcFcurExcrt: json['invcFcurExcrt'],
-      exptNatCd: json['exptNatCd'],
-      dclNo: json['dclNo'],
-      taskCd: json['taskCd'],
-      dclDe: json['dclDe'],
-      hsCd: json['hsCd'],
-      imptItemsttsCd: json['imptItemsttsCd'],
-    );
+    try {
+      return Variant(
+        id: json['id'] ?? const Uuid().v4(),
+        name: json['name'] as String? ?? '',
+        color: json['color'] as String? ?? '',
+        sku: json['sku'] as String? ?? '',
+        productId: json['productId'] as String? ?? '',
+        unit: json['unit'] as String? ?? '',
+        qty: (json['qty'] as num?)?.toDouble() ?? 1,
+        productName: json['productName'] as String? ?? '',
+        branchId: json['branchId'] as int? ?? 0,
+        taxName: json['taxName'] as String? ?? '',
+        taxPercentage: (json['taxPercentage'] as num?)?.toDouble() ?? 0.0,
+        itemSeq: json['itemSeq'] as int? ?? 1,
+        isrccCd: json['isrccCd'] as String? ?? '',
+        isrccNm: json['isrccNm'] as String? ?? '',
+        isrcRt: (json['isrcRt'] as num?)?.toInt() ?? 0,
+        isrcAmt: (json['isrcAmt'] as num?)?.toInt() ?? 0,
+        taxTyCd: json['taxTyCd'] as String? ?? '',
+        bcd: json['bcd'] as String? ?? '',
+        itemClsCd: json['itemClsCd'] as String? ?? '',
+        itemTyCd: json['itemTyCd'] as String? ?? '',
+        itemStdNm: json['itemStdNm'] as String? ?? '',
+        orgnNatCd: json['orgnNatCd'] as String? ?? '',
+        pkg: (json['pkg'] as num?)?.toInt() ?? 1,
+        itemCd: json['itemCd'] as String? ?? '',
+        pkgUnitCd: json['pkgUnitCd'] as String? ?? '',
+        qtyUnitCd: json['qtyUnitCd'] as String? ?? '',
+        itemNm: json['itemNm'] as String? ?? '',
+        prc: (json['prc'] as num?)?.toDouble() ?? 0.0,
+        splyAmt: (json['splyAmt'] as num?)?.toDouble() ?? 0.0,
+        tin: json['tin'] as int? ?? 0,
+        bhfId: json['bhfId'] as String? ?? '',
+        dftPrc: (json['dftPrc'] as num?)?.toDouble() ?? 0.0,
+        addInfo: json['addInfo'] as String? ?? '',
+        isrcAplcbYn: json['isrcAplcbYn'] as String? ?? 'Y',
+        useYn: json['useYn'] as String? ?? '',
+        regrId: json['regrId'] as String? ?? '',
+        regrNm: json['regrNm'] as String? ?? '',
+        modrId: json['modrId'] as String? ?? '',
+        modrNm: json['modrNm'] as String? ?? '',
+        lastTouched: json['lastTouched'] != null
+            ? DateTime.tryParse(json['lastTouched'] as String)
+            : null,
+        supplyPrice: (json['supplyPrice'] as num?)?.toDouble() ?? 0.0,
+        retailPrice: (json['retailPrice'] as num?)?.toDouble() ?? 0.0,
+        spplrItemClsCd: json['spplrItemClsCd'] as String? ?? '',
+        spplrItemCd: json['spplrItemCd'] as String? ?? '',
+        spplrItemNm: json['spplrItemNm'] as String? ?? '',
+        ebmSynced: json['ebmSynced'] as bool? ?? false,
+        dcRt: (json['dcRt'] as num?)?.toDouble() ?? 0.0,
+        expirationDate: json['expirationDate'] != null
+            ? DateTime.tryParse(json['expirationDate'] as String)
+            : null,
+        totWt: (json['totWt'] as num?)?.toInt() ?? 0,
+        netWt: (json['netWt'] as num?)?.toInt() ?? 0,
+        spplrNm: json['spplrNm'] as String? ?? '',
+        agntNm: json['agntNm'] as String? ?? '',
+        invcFcurAmt: (json['invcFcurAmt'] as num?)?.toInt() ?? 0,
+        invcFcurCd: json['invcFcurCd'] as String? ?? '',
+        invcFcurExcrt: (json['invcFcurExcrt'] as num?)?.toDouble() ?? 0.0,
+        exptNatCd: json['exptNatCd'] as String? ?? '',
+        dclNo: json['dclNo'] as String? ?? '',
+        taskCd: json['taskCd'] as String? ?? '',
+        dclDe: json['dclDe'] as String? ?? '',
+        hsCd: json['hsCd'] as String? ?? '',
+        imptItemSttsCd: json['imptItemsttsCd'] as String? ?? '',
+        barCode: json['barCode'] as String? ?? '',
+        bcdU: json['bcdU'] as String? ?? '',
+        quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
+        category: json['category'] as String? ?? '',
+        totAmt: (json['totAmt'] as num?)?.toDouble() ?? 0.0,
+        taxblAmt: (json['taxblAmt'] as num?)?.toDouble() ?? 0.0,
+        taxAmt: (json['taxAmt'] as num?)?.toDouble() ?? 0.0,
+        dcAmt: (json['dcAmt'] as num?)?.toDouble() ?? 0.0,
+        purchaseId: json['purchaseId'] as String? ?? '',
+      );
+    } catch (e, s) {
+      print('Error parsing Variant JSON: $e');
+      print(s);
+      throw FormatException('Failed to parse Variant: $e');
+    }
   }
 
   // toJson() method
@@ -288,7 +354,164 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'taskCd': taskCd,
       'dclDe': dclDe,
       'hsCd': hsCd,
-      'imptItemsttsCd': imptItemsttsCd,
+      'imptItemSttsCd': imptItemSttsCd,
+      'totAmt': totAmt,
+      'taxblAmt': taxblAmt,
+      'taxAmt': taxAmt,
+      'dcAmt': dcAmt,
+      'purchaseId': purchaseId,
     };
+  }
+
+  // copyWith method
+  Variant copyWith({
+    String? id,
+    Stock? stock,
+    String? stockId,
+    num? taxPercentage,
+    String? name,
+    String? color,
+    String? sku,
+    String? productId,
+    String? unit,
+    String? productName,
+    int? branchId,
+    String? taxName,
+    int? itemSeq,
+    String? isrccCd,
+    String? isrccNm,
+    int? isrcRt,
+    int? isrcAmt,
+    String? taxTyCd,
+    String? bcd,
+    String? itemClsCd,
+    String? itemTyCd,
+    String? itemStdNm,
+    String? orgnNatCd,
+    int? pkg,
+    String? itemCd,
+    String? pkgUnitCd,
+    String? qtyUnitCd,
+    String? itemNm,
+    double? prc,
+    double? splyAmt,
+    int? tin,
+    String? bhfId,
+    double? dftPrc,
+    String? addInfo,
+    String? isrcAplcbYn,
+    String? useYn,
+    String? regrId,
+    String? regrNm,
+    String? modrId,
+    String? modrNm,
+    DateTime? lastTouched,
+    double? supplyPrice,
+    double? retailPrice,
+    String? spplrItemClsCd,
+    String? spplrItemCd,
+    String? spplrItemNm,
+    bool? ebmSynced,
+    double? dcRt,
+    DateTime? expirationDate,
+    double? qty,
+    double? rsdQty,
+    int? totWt,
+    int? netWt,
+    String? spplrNm,
+    String? agntNm,
+    int? invcFcurAmt,
+    String? invcFcurCd,
+    double? invcFcurExcrt,
+    String? exptNatCd,
+    String? dclNo,
+    String? taskCd,
+    String? dclDe,
+    String? hsCd,
+    String? imptItemSttsCd,
+    String? barCode,
+    String? bcdU,
+    double? quantity,
+    String? category,
+    double? dcAmt,
+    double? totAmt,
+    double? taxblAmt,
+    double? taxAmt,
+    String? purchaseId,
+  }) {
+    return Variant(
+      id: id ?? this.id,
+      stock: stock ?? this.stock,
+      stockId: stockId ?? this.stockId,
+      taxPercentage: taxPercentage ?? this.taxPercentage,
+      name: name ?? this.name,
+      color: color ?? this.color,
+      sku: sku ?? this.sku,
+      productId: productId ?? this.productId,
+      unit: unit ?? this.unit,
+      productName: productName ?? this.productName,
+      branchId: branchId ?? this.branchId,
+      taxName: taxName ?? this.taxName,
+      itemSeq: itemSeq ?? this.itemSeq,
+      isrccCd: isrccCd ?? this.isrccCd,
+      isrccNm: isrccNm ?? this.isrccNm,
+      isrcRt: isrcRt ?? this.isrcRt,
+      isrcAmt: isrcAmt ?? this.isrcAmt,
+      taxTyCd: taxTyCd ?? this.taxTyCd,
+      bcd: bcd ?? this.bcd,
+      itemClsCd: itemClsCd ?? this.itemClsCd,
+      itemTyCd: itemTyCd ?? this.itemTyCd,
+      itemStdNm: itemStdNm ?? this.itemStdNm,
+      orgnNatCd: orgnNatCd ?? this.orgnNatCd,
+      pkg: pkg ?? this.pkg,
+      itemCd: itemCd ?? this.itemCd,
+      pkgUnitCd: pkgUnitCd ?? this.pkgUnitCd,
+      qtyUnitCd: qtyUnitCd ?? this.qtyUnitCd,
+      itemNm: itemNm ?? this.itemNm,
+      prc: prc ?? this.prc,
+      splyAmt: splyAmt ?? this.splyAmt,
+      tin: tin ?? this.tin,
+      bhfId: bhfId ?? this.bhfId,
+      dftPrc: dftPrc ?? this.dftPrc,
+      addInfo: addInfo ?? this.addInfo,
+      isrcAplcbYn: isrcAplcbYn ?? this.isrcAplcbYn,
+      useYn: useYn ?? this.useYn,
+      regrId: regrId ?? this.regrId,
+      regrNm: regrNm ?? this.regrNm,
+      modrId: modrId ?? this.modrId,
+      modrNm: modrNm ?? this.modrNm,
+      lastTouched: lastTouched ?? this.lastTouched,
+      supplyPrice: supplyPrice ?? this.supplyPrice,
+      retailPrice: retailPrice ?? this.retailPrice,
+      spplrItemClsCd: spplrItemClsCd ?? this.spplrItemClsCd,
+      spplrItemCd: spplrItemCd ?? this.spplrItemCd,
+      spplrItemNm: spplrItemNm ?? this.spplrItemNm,
+      ebmSynced: ebmSynced ?? this.ebmSynced,
+      dcRt: dcRt ?? this.dcRt,
+      expirationDate: expirationDate ?? this.expirationDate,
+      qty: qty ?? this.qty,
+      totWt: totWt ?? this.totWt,
+      netWt: netWt ?? this.netWt,
+      spplrNm: spplrNm ?? this.spplrNm,
+      agntNm: agntNm ?? this.agntNm,
+      invcFcurAmt: invcFcurAmt ?? this.invcFcurAmt,
+      invcFcurCd: invcFcurCd ?? this.invcFcurCd,
+      invcFcurExcrt: invcFcurExcrt ?? this.invcFcurExcrt,
+      exptNatCd: exptNatCd ?? this.exptNatCd,
+      dclNo: dclNo ?? this.dclNo,
+      taskCd: taskCd ?? this.taskCd,
+      dclDe: dclDe ?? this.dclDe,
+      hsCd: hsCd ?? this.hsCd,
+      imptItemSttsCd: imptItemSttsCd ?? this.imptItemSttsCd,
+      barCode: barCode ?? this.barCode,
+      bcdU: bcdU ?? this.bcdU,
+      quantity: quantity ?? this.quantity,
+      category: category ?? this.category,
+      dcAmt: dcAmt ?? this.dcAmt,
+      totAmt: totAmt ?? this.totAmt,
+      taxblAmt: taxblAmt ?? this.taxblAmt,
+      taxAmt: taxAmt ?? this.taxAmt,
+      purchaseId: purchaseId ?? this.purchaseId,
+    );
   }
 }

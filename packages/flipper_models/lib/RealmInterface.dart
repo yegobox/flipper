@@ -99,6 +99,8 @@ abstract class RealmInterface {
     int? page,
     int? itemsPerPage,
     String? name,
+    // this define if we are ready to show item on dashboard,
+    String? imptItemsttsCd,
   });
   FutureOr<Configurations?> getByTaxType({required String taxtype});
 
@@ -157,6 +159,8 @@ abstract class RealmInterface {
       String? exptNatCd,
       int? pkg,
       String? pkgUnitCd,
+      String? spplrItemClsCd,
+      String? spplrItemCd,
       String? qtyUnitCd,
       int? totWt,
       int? netWt,
@@ -351,7 +355,7 @@ abstract class RealmInterface {
   Stream<double> soldStockValue({required branchId});
 
   Stream<List<Category>> categoryStream();
-  Future<RwApiResponse> selectImportItems({
+  Future<List<Variant>> selectImportItems({
     required int tin,
     required String bhfId,
     required String lastReqDt,
@@ -519,7 +523,7 @@ abstract class RealmInterface {
   void reDownloadAsset();
 
   Future<void> processItem({
-    required brick.Item item,
+    required Variant item,
     required Map<String, String> quantitis,
     required Map<String, String> taxTypes,
     required Map<String, String> itemClasses,

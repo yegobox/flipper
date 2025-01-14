@@ -161,14 +161,15 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
 
   Future<void> _saveAll() async {
     // Convert each row from the table to an Item model
-    List<brick.Item> items = _excelData!.map((product) {
-      return brick.Item(
+    List<brick.Variant> items = _excelData!.map((product) {
+      return brick.Variant(
         bcdU: product['bcdU'] ?? '',
         barCode: product['BarCode'] ?? '',
         name: product['Name'] ?? '',
         category: product['Category'] ?? '',
-        price: product['Price'] ?? '',
-        quantity: product['Quantity'] ?? '',
+        retailPrice: double.tryParse(product['Price']) ?? 0,
+        supplyPrice: double.tryParse(product['Price']) ?? 0,
+        quantity: double.tryParse(product['Quantity']) ?? 0,
       );
     }).toList();
 

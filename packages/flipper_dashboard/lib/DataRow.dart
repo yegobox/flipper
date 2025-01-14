@@ -1,7 +1,7 @@
 import 'package:flipper_dashboard/popup_modal.dart';
-import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:supabase_models/brick/models/all_models.dart';
 
 class DataRowWidget extends StatefulHookConsumerWidget {
   const DataRowWidget({
@@ -19,8 +19,8 @@ class DataRowWidget extends StatefulHookConsumerWidget {
   final TextEditingController nameController;
   final TextEditingController supplyPriceController;
   final TextEditingController retailPriceController;
-  final void Function(ItemList? selectedItem, SaleList saleList) selectSale;
-  final List<ItemList> finalSalesList;
+  final void Function(Variant? selectedItem, SaleList saleList) selectSale;
+  final List<Variant> finalSalesList;
   final List<SaleList> salesList;
   final VoidCallback saveItemName;
   final VoidCallback acceptPurchases;
@@ -30,7 +30,7 @@ class DataRowWidget extends StatefulHookConsumerWidget {
 }
 
 class _DataRowWidgetState extends ConsumerState<DataRowWidget> {
-  ItemList? selectedItemList;
+  Variant? selectedItemList;
 
   @override
   Widget build(BuildContext context) {
@@ -204,7 +204,7 @@ class _DataRowWidgetState extends ConsumerState<DataRowWidget> {
               widget.selectSale(selectedItemList, saleList);
             },
             cells: [
-              DataCell(Text(item.itemNm)),
+              DataCell(Text(item.itemNm ?? item.name)),
               DataCell(Text(item.qty.toString())),
               DataCell(Text(item.prc.toString())),
               DataCell(Text(item.totAmt.toString())),

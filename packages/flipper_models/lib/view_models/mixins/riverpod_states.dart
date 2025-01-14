@@ -1,4 +1,3 @@
-import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realm_model_export.dart' as cat;
@@ -745,7 +744,7 @@ final currentTransactionsByIdStream =
 });
 
 final selectImportItemsProvider = FutureProvider.autoDispose
-    .family<RwApiResponse, int?>((ref, productId) async {
+    .family<List<Variant>, int?>((ref, productId) async {
   // Fetch the list of variants from a remote service.
   final response = await ProxyService.strategy.selectImportItems(
       tin: 999909695,

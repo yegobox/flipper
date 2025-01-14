@@ -42,7 +42,7 @@ mixin TransactionMixin {
 
       /// update transaction type
 
-      if ( taxExanbled && hasServerUrl && hasUser && !isTaxServiceStoped!) {
+      if (taxExanbled && hasServerUrl && hasUser && !isTaxServiceStoped!) {
         response = await handleReceiptGeneration(
             formKey: formKey,
             context: context,
@@ -290,7 +290,7 @@ mixin TransactionMixin {
           itemTyCd: variation.itemTyCd,
           itemStdNm: variation.itemStdNm,
           orgnNatCd: variation.orgnNatCd,
-          pkg: variation.pkg,
+          pkg: variation.pkg.toString(),
           itemCd: variation.itemCd,
           pkgUnitCd: variation.pkgUnitCd,
           qtyUnitCd: variation.qtyUnitCd,

@@ -1,7 +1,6 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250110094310.migration.dart';
 part '20250104131208.migration.dart';
 part '20250102092703.migration.dart';
 part '20250102092919.migration.dart';
@@ -12,10 +11,11 @@ part '20250102124844.migration.dart';
 part '20250102110336.migration.dart';
 part '20250102144742.migration.dart';
 part '20250109125327.migration.dart';
+part '20250110094310.migration.dart';
+part '20250111130254.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250110094310(),
   const Migration20250104131208(),
   const Migration20250102092703(),
   const Migration20250102092919(),
@@ -25,11 +25,14 @@ final migrations = <Migration>{
   const Migration20250102124844(),
   const Migration20250102110336(),
   const Migration20250102144742(),
-  const Migration20250109125327()
+  const Migration20250109125327(),
+  const Migration20250110094310(),
+  const Migration20250111130254()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250110094310, generatorVersion: 1, tables: <SchemaTable>{
+final schema =
+    Schema(20250111130254, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -316,7 +319,7 @@ final schema = Schema(20250110094310, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('item_ty_cd', Column.varchar),
     SchemaColumn('item_std_nm', Column.varchar),
     SchemaColumn('orgn_nat_cd', Column.varchar),
-    SchemaColumn('pkg', Column.varchar),
+    SchemaColumn('pkg', Column.integer),
     SchemaColumn('item_cd', Column.varchar),
     SchemaColumn('pkg_unit_cd', Column.varchar),
     SchemaColumn('qty_unit_cd', Column.varchar),
@@ -354,7 +357,8 @@ final schema = Schema(20250110094310, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('task_cd', Column.varchar),
     SchemaColumn('dcl_de', Column.varchar),
     SchemaColumn('hs_cd', Column.varchar),
-    SchemaColumn('impt_itemstts_cd', Column.varchar)
+    SchemaColumn('impt_item_stts_cd', Column.varchar),
+    SchemaColumn('purchase_id', Column.varchar)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
@@ -853,6 +857,39 @@ final schema = Schema(20250110094310, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('last_request_date', Column.varchar),
     SchemaColumn('branch_id', Column.varchar),
     SchemaColumn('request_type', Column.varchar)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
+  SchemaTable('SaleList', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('spplr_tin', Column.varchar),
+    SchemaColumn('spplr_nm', Column.varchar),
+    SchemaColumn('spplr_bhf_id', Column.varchar),
+    SchemaColumn('spplr_invc_no', Column.integer),
+    SchemaColumn('rcpt_ty_cd', Column.varchar),
+    SchemaColumn('pmt_ty_cd', Column.varchar),
+    SchemaColumn('cfm_dt', Column.varchar),
+    SchemaColumn('sales_dt', Column.varchar),
+    SchemaColumn('stock_rls_dt', Column.varchar),
+    SchemaColumn('tot_item_cnt', Column.integer),
+    SchemaColumn('taxbl_amt_a', Column.Double),
+    SchemaColumn('taxbl_amt_b', Column.Double),
+    SchemaColumn('taxbl_amt_c', Column.Double),
+    SchemaColumn('taxbl_amt_d', Column.Double),
+    SchemaColumn('tax_rt_a', Column.Double),
+    SchemaColumn('tax_rt_b', Column.Double),
+    SchemaColumn('tax_rt_c', Column.Double),
+    SchemaColumn('tax_rt_d', Column.Double),
+    SchemaColumn('tax_amt_a', Column.Double),
+    SchemaColumn('tax_amt_b', Column.Double),
+    SchemaColumn('tax_amt_c', Column.Double),
+    SchemaColumn('tax_amt_d', Column.Double),
+    SchemaColumn('tot_taxbl_amt', Column.Double),
+    SchemaColumn('tot_tax_amt', Column.Double),
+    SchemaColumn('tot_amt', Column.Double),
+    SchemaColumn('remark', Column.varchar)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   })

@@ -67,14 +67,13 @@ class CronService {
         tinNumber: tinNumber,
         bhfId: bhfId,
       );
-      StockPatch.patchStock(
+      VariantPatch.patchVariant(
         URI: URI,
         sendPort: (message) {
           ProxyService.notification.sendLocalNotification(body: message);
         },
       );
-
-      VariantPatch.patchVariant(
+      StockPatch.patchStock(
         URI: URI,
         sendPort: (message) {
           ProxyService.notification.sendLocalNotification(body: message);

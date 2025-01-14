@@ -17,7 +17,9 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/composite.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/plan_addon.model.dart';// GENERATED CODE DO NOT EDIT
+import 'package:supabase_models/brick/models/plan_addon.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/brick/models/variant.model.dart';// GENERATED CODE DO NOT EDIT
 // ignore: unused_import
 import 'dart:convert';
 import 'package:brick_sqlite/brick_sqlite.dart' show SqliteModel, SqliteAdapter, SqliteModelDictionary, RuntimeSqliteColumnDefinition, SqliteProvider;
@@ -66,6 +68,7 @@ import '../brick/models/asset.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/drawer.model.dart';
 import '../brick/models/import_purchase_dates.model.dart';
+import '../brick/models/purchases.model.dart';
 
 part 'adapters/item_code_adapter.g.dart';
 part 'adapters/stock_adapter.g.dart';
@@ -106,6 +109,7 @@ part 'adapters/assets_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 part 'adapters/drawers_adapter.g.dart';
 part 'adapters/import_purchase_dates_adapter.g.dart';
+part 'adapters/sale_list_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
@@ -147,7 +151,8 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
   Drawers: DrawersAdapter(),
-  ImportPurchaseDates: ImportPurchaseDatesAdapter()
+  ImportPurchaseDates: ImportPurchaseDatesAdapter(),
+  SaleList: SaleListAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -191,6 +196,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
   Drawers: DrawersAdapter(),
-  ImportPurchaseDates: ImportPurchaseDatesAdapter()
+  ImportPurchaseDates: ImportPurchaseDatesAdapter(),
+  SaleList: SaleListAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

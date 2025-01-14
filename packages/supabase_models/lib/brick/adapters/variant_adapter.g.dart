@@ -31,7 +31,7 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       itemTyCd: data['item_ty_cd'] as String?,
       itemStdNm: data['item_std_nm'] as String?,
       orgnNatCd: data['orgn_nat_cd'] as String?,
-      pkg: data['pkg'] as String?,
+      pkg: data['pkg'] as int?,
       itemCd: data['item_cd'] as String?,
       pkgUnitCd: data['pkg_unit_cd'] as String?,
       qtyUnitCd: data['qty_unit_cd'] as String?,
@@ -73,7 +73,8 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       taskCd: data['task_cd'] as String?,
       dclDe: data['dcl_de'] as String?,
       hsCd: data['hs_cd'] as String?,
-      imptItemsttsCd: data['impt_itemstts_cd'] as String?);
+      imptItemSttsCd: data['impt_item_stts_cd'] as String?,
+      purchaseId: data['purchase_id'] as String?);
 }
 
 Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
@@ -144,7 +145,8 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'task_cd': instance.taskCd,
     'dcl_de': instance.dclDe,
     'hs_cd': instance.hsCd,
-    'impt_itemstts_cd': instance.imptItemsttsCd
+    'impt_item_stts_cd': instance.imptItemSttsCd,
+    'purchase_id': instance.purchaseId
   };
 }
 
@@ -190,7 +192,7 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
           data['item_std_nm'] == null ? null : data['item_std_nm'] as String?,
       orgnNatCd:
           data['orgn_nat_cd'] == null ? null : data['orgn_nat_cd'] as String?,
-      pkg: data['pkg'] == null ? null : data['pkg'] as String?,
+      pkg: data['pkg'] == null ? null : data['pkg'] as int?,
       itemCd: data['item_cd'] == null ? null : data['item_cd'] as String?,
       pkgUnitCd:
           data['pkg_unit_cd'] == null ? null : data['pkg_unit_cd'] as String?,
@@ -253,9 +255,11 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
       taskCd: data['task_cd'] == null ? null : data['task_cd'] as String?,
       dclDe: data['dcl_de'] == null ? null : data['dcl_de'] as String?,
       hsCd: data['hs_cd'] == null ? null : data['hs_cd'] as String?,
-      imptItemsttsCd: data['impt_itemstts_cd'] == null
+      imptItemSttsCd: data['impt_item_stts_cd'] == null
           ? null
-          : data['impt_itemstts_cd'] as String?)
+          : data['impt_item_stts_cd'] as String?,
+      purchaseId:
+          data['purchase_id'] == null ? null : data['purchase_id'] as String?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -329,7 +333,8 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'task_cd': instance.taskCd,
     'dcl_de': instance.dclDe,
     'hs_cd': instance.hsCd,
-    'impt_itemstts_cd': instance.imptItemsttsCd
+    'impt_item_stts_cd': instance.imptItemSttsCd,
+    'purchase_id': instance.purchaseId
   };
 }
 
@@ -589,9 +594,13 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'hs_cd',
     ),
-    'imptItemsttsCd': const RuntimeSupabaseColumnDefinition(
+    'imptItemSttsCd': const RuntimeSupabaseColumnDefinition(
       association: false,
-      columnName: 'impt_itemstts_cd',
+      columnName: 'impt_item_stts_cd',
+    ),
+    'purchaseId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'purchase_id',
     )
   };
   @override
@@ -748,7 +757,7 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'pkg',
       iterable: false,
-      type: String,
+      type: int,
     ),
     'itemCd': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -972,9 +981,15 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       iterable: false,
       type: String,
     ),
-    'imptItemsttsCd': const RuntimeSqliteColumnDefinition(
+    'imptItemSttsCd': const RuntimeSqliteColumnDefinition(
       association: false,
-      columnName: 'impt_itemstts_cd',
+      columnName: 'impt_item_stts_cd',
+      iterable: false,
+      type: String,
+    ),
+    'purchaseId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'purchase_id',
       iterable: false,
       type: String,
     )

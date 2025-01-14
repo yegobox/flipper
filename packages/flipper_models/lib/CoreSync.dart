@@ -40,7 +40,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'dart:typed_data';
 import 'package:supabase_models/brick/models/all_models.dart';
-import 'package:supabase_models/brick/models/all_models.dart' as old;
 import 'package:path/path.dart' as path;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flutter/foundation.dart' as foundation;
@@ -551,7 +550,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       Product? product,
       required String productId,
       required String name,
-      String? modrId,
       String? orgnNatCd,
       String? exptNatCd,
       int? pkg,
@@ -568,7 +566,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? taskCd,
       String? dclDe,
       String? hsCd,
+      String? spplrItemCd,
       String? imptItemsttsCd,
+      String? spplrItemClsCd,
       Map<String, String>? taxTypes,
       Map<String, String>? itemClasses,
       Map<String, String>? itemTypes,
@@ -588,9 +588,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       dclNo: dclNo ?? "",
       taskCd: taskCd ?? "",
       dclDe: dclDe ?? "",
-
       hsCd: hsCd ?? "",
-      imptItemsttsCd: imptItemsttsCd ?? "",
+      imptItemSttsCd: imptItemsttsCd ?? "",
       lastTouched: DateTime.now(),
       name: product?.name ?? name,
       sku: sku.toString(),
@@ -604,20 +603,20 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       retailPrice: retailPrice,
       id: variantId,
       bhfId: bhFId ?? '00',
-      itemStdNm: "Regular",
+      itemStdNm: product?.name ?? name,
       addInfo: "A",
-      pkg: pkg?.toString() ?? "1",
+      pkg: pkg ?? 1,
       splyAmt: supplierPrice,
       itemClsCd: "5020230602",
       itemCd: await itemCode(
-        countryCode: 'RW',
+        countryCode: orgnNatCd ?? "RW",
         productType: "2",
         packagingUnit: "CT",
         quantityUnit: "BJ",
         branchId: branchId,
       ),
       modrNm: name,
-      modrId: modrId ?? number,
+      modrId: number,
       pkgUnitCd: pkgUnitCd ?? "BJ",
       regrId: randomNumber().toString().substring(0, 5),
       itemTyCd:
@@ -630,7 +629,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       itemNm: product?.name ?? name,
       taxPercentage: taxType?.taxPercentage ?? 18.0,
       tin: tinNumber,
-      bcd: product?.name ?? name,
+      bcd: (product?.name ?? name)
+          .substring(0, min((product?.name ?? name).length, 20)),
 
       /// country of origin for this item we default until we support something different
       /// and this will happen when we do import.
@@ -647,11 +647,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
       // NOTE: I believe bellow item are required when saving purchase
       ///but I wonder how to get them when saving an item.
-      spplrItemCd: "",
-      spplrItemClsCd: itemClasses?[product?.barCode] ?? "5020230602",
+      spplrItemCd: spplrItemCd ?? "",
+      spplrItemClsCd: itemClasses?[product?.barCode] ?? spplrItemClsCd,
       spplrItemNm: product?.name ?? name,
 
       /// Packaging Unit
+      // qtyUnitCd ??
       qtyUnitCd: "U", // see 4.6 in doc
       ebmSynced: ebmSynced,
     );
@@ -682,6 +683,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? dclDe,
       String? hsCd,
       String? imptItemsttsCd,
+      String? spplrItemClsCd,
+      String? spplrItemCd,
       bool skipRegularVariant = false,
       double qty = 1,
       double supplyPrice = 0,
@@ -707,7 +710,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       Variant newVariant = await _createRegularVariant(
         branchId,
         tinNumber,
-        modrId: modrId,
         orgnNatCd: orgnNatCd,
         exptNatCd: exptNatCd,
         pkg: pkg,
@@ -735,6 +737,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         productId: product.id,
         itemSeq: itemSeq,
         ebmSynced: ebmSynced,
+        spplrItemCd: spplrItemCd,
+        spplrItemClsCd: spplrItemClsCd,
       );
 
       final Stock stock = Stock(
@@ -1256,110 +1260,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     Variant? variant = variantResult.firstOrNull;
 
-    if (variant == null) {
-      /// If the variant doesn't exist, add it
-      variant = await _addMissingVariant(variant, product, branchId, tinNumber);
-    }
-
-    return variant;
-  }
-
-  Future<Variant?> _addMissingVariant(
-      Variant? variant, Product? product, int branchId, int tinNumber) async {
-    final number = randomNumber().toString().substring(0, 5);
-    final repository = Repository();
-    try {
-      if (variant == null) {
-        String variantId = const Uuid().v4();
-        final stockId = const Uuid().v4();
-        variant = Variant(
-            id: variantId,
-
-            // branchIds: [ProxyService.box.getBranchId()!],
-            lastTouched: DateTime.now(),
-            name: product!.name,
-            color: product.color,
-            sku: 'sku',
-            productId: product.id,
-            unit: 'Per Item',
-            productName: product.name,
-            branchId: branchId,
-            supplyPrice: 0,
-            retailPrice: 0,
-            itemNm: product.name,
-            bhfId: (await ProxyService.box.bhfId()) ?? '00',
-            // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
-            itemClsCd: "5020230602",
-            itemCd: randomNumber().toString().substring(0, 5),
-            modrNm: number,
-            modrId: number,
-            pkgUnitCd: "BJ",
-            regrId: randomNumber().toString().substring(0, 5),
-            itemTyCd: "2", // this is a finished product
-            /// available type for itemTyCd are 1 for raw material and 3 for service
-            /// is insurance applicable default is not applicable
-            isrcAplcbYn: "N",
-            useYn: "N",
-            itemSeq: 1,
-            itemStdNm: product.name,
-            taxPercentage: 18.0,
-            tin: tinNumber,
-            bcd: CUSTOM_PRODUCT,
-
-            /// country of origin for this item we default until we support something different
-            /// and this will happen when we do import.
-            orgnNatCd: "RW",
-
-            /// registration name
-            regrNm: CUSTOM_PRODUCT,
-
-            /// taxation type code
-            taxTyCd: "B", // available types A(A-EX),B(B-18.00%),C,D
-            // default unit price
-            dftPrc: 0,
-
-            // NOTE: I believe bellow item are required when saving purchase
-            ///but I wonder how to get them when saving an item.
-            spplrItemCd: randomNumber().toString().substring(0, 5),
-            spplrItemClsCd: randomNumber().toString().substring(0, 5),
-            spplrItemNm: CUSTOM_PRODUCT,
-            qtyUnitCd: "U");
-
-        Stock stock = Stock(
-          lastTouched: DateTime.now(),
-          id: stockId,
-          branchId: branchId,
-          // variantId: variantId,
-          currentStock: 0,
-        )
-          ..canTrackingStock = false
-          ..showLowStockAlert = false
-          ..currentStock = 0
-          ..branchId = branchId
-          // ..variantId = variantId
-          ..lowStock = 10 // default static
-          ..canTrackingStock = true
-          ..showLowStockAlert = true
-          ..active = false
-          ..rsdQty = 0;
-
-        repository.upsert<Variant>(variant);
-
-        repository.upsert<Stock>(stock);
-
-        final variantQuery =
-            brick.Query(where: [brick.Where('id').isExactly(variantId)]);
-        final variantResult = await repository.get<models.Variant>(
-            query: variantQuery,
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-        return variantResult.firstOrNull;
-      }
-    } catch (e, s) {
-      // Handle error during write operation
-      talker.error(e);
-      talker.error(s);
-      throw Exception(e);
-    }
     return variant;
   }
 
@@ -2228,6 +2128,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         totalPrice: totalPrice,
         // payStackUserId: payStackUserId,
         paymentMethod: paymentMethod,
+        plan: plan,
         addons: updatedAddons,
         nextBillingDate: nextBillingDate,
       );
@@ -2321,34 +2222,41 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required int additionalDevices,
     required bool isYearlyPlan,
     required double totalPrice,
-    // required String payStackUserId,
     required String paymentMethod,
     required List<models.PlanAddon> addons,
     required DateTime nextBillingDate,
     required int numberOfPayments,
+    models.Plan? plan,
   }) async {
-    final plan = models.Plan(
-      businessId: businessId,
-      selectedPlan: selectedPlan,
-      additionalDevices: additionalDevices,
-      isYearlyPlan: isYearlyPlan,
-      rule: isYearlyPlan ? 'yearly' : 'monthly',
-      totalPrice: totalPrice.toInt(),
-      createdAt: DateTime.now(),
-      numberOfPayments: numberOfPayments,
-      nextBillingDate: nextBillingDate,
-      // payStackCustomerId: payStackUserId,
-      paymentMethod: paymentMethod,
-      addons: addons,
-    );
-
+    final fPlan = plan ??
+        models.Plan(
+          businessId: businessId,
+          selectedPlan: selectedPlan,
+          additionalDevices: additionalDevices,
+          isYearlyPlan: isYearlyPlan,
+          rule: isYearlyPlan ? 'yearly' : 'monthly',
+          totalPrice: totalPrice.toInt(),
+          createdAt: DateTime.now(),
+          numberOfPayments: numberOfPayments,
+          nextBillingDate: nextBillingDate,
+          paymentMethod: paymentMethod,
+          addons: addons,
+        );
+    fPlan.paymentMethod = paymentMethod;
+    fPlan.paymentCompletedByUser = false;
+    fPlan.nextBillingDate = nextBillingDate;
+    fPlan.numberOfPayments = numberOfPayments;
+    fPlan.isYearlyPlan = isYearlyPlan;
+    fPlan.isYearlyPlan = isYearlyPlan;
+    fPlan.rule = isYearlyPlan ? 'yearly' : 'monthly';
+    fPlan.totalPrice = totalPrice.toInt();
     await repository.upsert(
-      plan,
+      fPlan,
       query: brick.Query(
         where: [brick.Where('businessId').isExactly(businessId)],
       ),
     );
-    return plan;
+    return fPlan;
   }
 
   @override
@@ -2368,16 +2276,104 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<RwApiResponse> selectImportItems(
+  Future<List<Variant>> selectImportItems(
       {required int tin,
       required String bhfId,
       required String lastReqDt}) async {
-    return ProxyService.tax.selectImportItems(
-      tin: tin,
-      bhfId: bhfId,
-      lastReqDt: lastReqDt,
-      URI: await ProxyService.box.getServerUrl() ?? "",
-    );
+    /// Take response save them into Variant's model
+    try {
+      Branch? activeBranch =
+          await branch(serverId: ProxyService.box.getBranchId()!);
+      Business? business =
+          await getBusinessById(businessId: ProxyService.box.getBusinessId()!);
+
+      // get last request date
+      final lastReqDate = await repository.get<ImportPurchaseDates>(
+          query: brick.Query(where: [
+        brick.Where('branchId').isExactly(activeBranch!.id),
+        brick.Where('lastRequestDate').isExactly(lastReqDt)
+      ]));
+
+      /// if is same date do nothing
+      if (lastReqDate.isNotEmpty) {
+        if (lastReqDate.first.lastRequestDate == lastReqDt) {
+          final variantsReceived = await variants(
+              branchId: ProxyService.box.getBranchId()!, imptItemsttsCd: "2");
+
+          return variantsReceived;
+        }
+      }
+      final response = await ProxyService.tax.selectImportItems(
+        tin: tin,
+        bhfId: bhfId,
+        lastReqDt: lastReqDt,
+        URI: await ProxyService.box.getServerUrl() ?? "",
+      );
+
+      /// save lastReqDt
+      repository.upsert<ImportPurchaseDates>(ImportPurchaseDates(
+          lastRequestDate: lastReqDt,
+          branchId: activeBranch.id,
+          requestType: "IMPORT"));
+      for (Variant item in response.data!.itemList!) {
+        /// save the item in our system, rely on the name as when user
+        /// typed to edit a name we helped a user to search through
+        /// existing product and use the name that exist,
+        /// that way we will be updating the product's variant with no question
+        /// otherwise then create a complete new product.
+
+        await createProduct(
+          // TODO: check if this bhfId change as we switch branches.
+          bhFId: (await ProxyService.box.bhfId()) ?? "00",
+          tinNumber: business!.tinNumber!,
+          businessId: ProxyService.box.getBusinessId()!,
+          branchId: ProxyService.box.getBranchId()!,
+          totWt: item.totWt,
+          netWt: item.netWt,
+          spplrNm: item.spplrNm,
+
+          agntNm: item.agntNm,
+          invcFcurAmt: item.invcFcurAmt,
+          invcFcurCd: item.invcFcurCd,
+          invcFcurExcrt: item.invcFcurExcrt,
+          exptNatCd: item.exptNatCd,
+          pkg: item.pkg!,
+          qty: item.qty ?? 1,
+          qtyUnitCd: item.qtyUnitCd,
+          pkgUnitCd: "BJ",
+          dclNo: item.dclNo,
+          taskCd: item.taskCd,
+          dclDe: item.dclDe,
+          orgnNatCd: item.orgnNatCd,
+          hsCd: item.hsCd,
+          imptItemsttsCd: item.imptItemSttsCd,
+          product: Product(
+            color: randomizeColor(),
+            name: item.itemNm!,
+            lastTouched: DateTime.now(),
+            branchId: ProxyService.box.getBranchId()!,
+            businessId: ProxyService.box.getBusinessId()!,
+            createdAt: DateTime.now(),
+            spplrNm: item.spplrNm,
+          ),
+          supplyPrice: item.supplyPrice ?? 0,
+          retailPrice: item.retailPrice ?? 0,
+          itemSeq: item.itemSeq!,
+
+          ebmSynced: true,
+          spplrItemCd: item.hsCd,
+          spplrItemClsCd: item.hsCd,
+        );
+      }
+
+      /// imptItemsttsCd: "2" means imported items are not yet accepted yet.
+      final variantsReceived = await variants(
+          branchId: ProxyService.box.getBranchId()!, imptItemsttsCd: "2");
+      return variantsReceived;
+    } catch (e, s) {
+      print(s.toString());
+      rethrow;
+    }
   }
 
   @override
@@ -3463,26 +3459,37 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<List<Variant>> variants(
-      {required int branchId,
-      String? productId,
-      int? page,
-      String? variantId,
-      String? name,
-      int? itemsPerPage}) async {
+  Future<List<Variant>> variants({
+    required int branchId,
+    String? productId,
+    int? page,
+    String? variantId,
+    String? name,
+    int? itemsPerPage,
+    // this define if we are ready to show item on dashboard,
+    String? imptItemsttsCd,
+  }) async {
     List<Variant> variants = await repository.get<Variant>(
         policy: OfflineFirstGetPolicy.localOnly,
         query: brick.Query(where: [
           if (variantId != null)
             brick.Where('id').isExactly(variantId)
-          else ...[
+          else if (name != null) ...[
+            brick.Where('name').contains(name),
+            brick.Where('branchId').isExactly(branchId),
+          ] else if (imptItemsttsCd != null) ...[
+            brick.Where('imptItemSttsCd').isExactly(imptItemsttsCd),
+            brick.Where('branchId').isExactly(branchId)
+          ] else ...[
             brick.Where('branchId').isExactly(branchId),
             brick.Where('retailPrice').isGreaterThan(0),
             brick.Where('name').isNot(TEMP_PRODUCT),
             brick.Where('productName').isNot(CUSTOM_PRODUCT),
+            // should be not imptItemSttsCd 2  or 4
+            brick.Where('imptItemSttsCd').isNot("2"), // waiting
+            brick.Where('imptItemSttsCd').isNot("4"), // canceled
             if (productId != null)
               brick.Where('productId').isExactly(productId),
-            if (name != null) brick.Where('name').isExactly(name),
           ]
         ]));
 
@@ -4030,6 +4037,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       }
       updatables[i].bhfId = updatables[i].bhfId ?? "00";
       updatables[i].itemNm = updatables[i].name;
+
       updatables[i].ebmSynced = false;
       updatables[i].retailPrice =
           newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
@@ -4533,7 +4541,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 //TODO: check if we are setting modrId same as barcode in other places
   @override
   Future<void> processItem({
-    required models.Item item,
+    required Variant item,
     required Map<String, String> quantitis,
     required Map<String, String> taxTypes,
     required Map<String, String> itemClasses,
@@ -4562,9 +4570,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         final branchId = await ProxyService.box.getBranchId()!;
         final businessId = await ProxyService.box.getBusinessId()!;
         // TO DO: fix this when sql is fixed.
-        // final bhfId = await ProxyService.box.bhfId();
-        final bhfId = "00";
-        final int variantId = randomNumber();
+        final bhfId = await ProxyService.box.bhfId();
         // Create a new product
         Product product = Product(
           color: randomizeColor(),
@@ -4595,9 +4601,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
         // Create variant for the product
         Variant variant = await createVariant(
-            retailPrice: double.parse(item.price),
-            supplierPrice: double.parse(item.price),
-            barCode: item.barCode,
+            retailPrice: item.retailPrice ?? 0,
+            supplierPrice: item.supplyPrice ?? 0,
+            barCode: item.barCode ?? "",
             itemSeq: 1,
             qty: item.quantity ?? 1,
             color: randomizeColor(),

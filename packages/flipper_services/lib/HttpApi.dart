@@ -150,7 +150,6 @@ class HttpApi implements RealmViaHttp {
         },
         Uri.parse('${AppSecrets.coreApi}/v2/api/payNow'),
         body: json.encode({
-          // "amount": f.kDebugMode ? 10 : amount,
           "amount": amount,
           "currency": "RWF",
           "payer": {
@@ -160,6 +159,7 @@ class HttpApi implements RealmViaHttp {
           "payerMessage": "Flipper Subscription",
           "payeeNote": "Flipper Subscription",
           "businessId": ProxyService.box.getBusinessId()!,
+          "branchId": "2f83b8b1-6d41-4d80-b0e7-de8ab36910af"
         }));
     return response.statusCode == 200;
   }
@@ -184,7 +184,8 @@ class HttpApi implements RealmViaHttp {
           "payer": {"partyIdType": "MSISDN", "partyId": phone},
           "payerCurrency": "RWF",
           "payerMessage": "Flipper Subscription",
-          "validityTime": timeInSeconds
+          "validityTime": timeInSeconds,
+          "branchId": "2f83b8b1-6d41-4d80-b0e7-de8ab36910af"
         }));
     return response.statusCode == 200;
   }

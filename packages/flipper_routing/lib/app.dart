@@ -733,10 +733,12 @@ class App {}
 // Find all comments in a file: //.*$|/\*[\s\S]*?\*/
 // brick knowledge: https://github.com/GetDutchie/brick/issues/454
 // https://github.com/GetDutchie/brick/issues/493
+// SUPABSE-BRICK knowledge
 // https://supabase.com/blog/offline-first-flutter-apps
 // 50482
 // brick only update
 // https://github.com/GetDutchie/brick/blob/main/packages/brick_supabase/lib/src/supabase_provider.dart#L119-L136
+// https://github.com/GetDutchie/brick/pull/529/commits/165ee1bca04d4804b08df318de64777b8f5bd850
 
 // https://github.com/MaikuB/flutter_local_notifications/issues/2512
 

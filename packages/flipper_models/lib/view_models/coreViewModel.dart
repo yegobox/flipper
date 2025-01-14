@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/helperModels/RwApiResponse.dart' as api;
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -881,49 +880,53 @@ class CoreViewModel extends FlipperBaseModel
   Future<RwApiResponse>? futurePurchaseResponse;
   bool isLoading = false;
   List<SaleList> salesList = [];
-  RwApiResponse? rwResponse;
+  List<Variant>? rwResponse;
 
   String convertDateToString(DateTime date) {
     final outputFormat = DateFormat('yyyyMMddHHmmss');
     return outputFormat.format(date);
   }
 
-  Future<RwApiResponse> fetchData({
+  Future<List<Variant>> fetchImportData({
     required DateTime selectedDate,
     required bool isImport,
   }) async {
     isLoading = true;
     notifyListeners();
 
-    if (isImport) {
-      brick.Business? business = await ProxyService.strategy
-          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-      final data = await ProxyService.strategy.selectImportItems(
-        tin: business?.tinNumber ?? ProxyService.box.tin(),
-        bhfId: (await ProxyService.box.bhfId()) ?? "00",
-        lastReqDt: convertDateToString(selectedDate),
-      );
+    brick.Business? business = await ProxyService.strategy
+        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    final data = await ProxyService.strategy.selectImportItems(
+      tin: business?.tinNumber ?? ProxyService.box.tin(),
+      bhfId: (await ProxyService.box.bhfId()) ?? "00",
+      lastReqDt: convertDateToString(selectedDate),
+    );
 
-      rwResponse = data;
-      salesList = data.data?.saleList ?? [];
+    rwResponse = data;
 
-      isLoading = false;
-      notifyListeners();
-      return data;
-    } else {
-      final url = await ProxyService.box.getServerUrl();
-      final rwResponse = await ProxyService.tax.selectTrnsPurchaseSales(
-        URI: url!,
-        tin: ProxyService.box.tin(),
-        bhfId: (await ProxyService.box.bhfId()) ?? "00",
-        lastReqDt: convertDateToString(selectedDate),
-      );
+    isLoading = false;
+    notifyListeners();
+    return data;
+  }
 
-      salesList = rwResponse.data?.saleList ?? [];
-      isLoading = false;
-      notifyListeners();
-      return rwResponse;
-    }
+  Future<List<SaleList>> fetchPurchaseData({
+    required DateTime selectedDate,
+    required bool isImport,
+  }) async {
+    isLoading = true;
+    notifyListeners();
+    final url = await ProxyService.box.getServerUrl();
+    final rwResponse = await ProxyService.tax.selectTrnsPurchaseSales(
+      URI: url!,
+      tin: ProxyService.box.tin(),
+      bhfId: (await ProxyService.box.bhfId()) ?? "00",
+      lastReqDt: convertDateToString(selectedDate),
+    );
+
+    salesList = rwResponse;
+    isLoading = false;
+    notifyListeners();
+    return rwResponse;
   }
 
   Future<void> acceptPurchase() async {
@@ -936,7 +939,7 @@ class CoreViewModel extends FlipperBaseModel
       final ref = randomNumber();
 
       for (SaleList supplier in salesList) {
-        for (ItemList item in supplier.itemList!) {
+        for (Variant item in supplier.itemList!) {
           item.retailPrice ??= item.prc;
           talker.warning(
               "Retail Prices while saving item in our DB:: ${item.retailPrice}");
@@ -948,16 +951,16 @@ class CoreViewModel extends FlipperBaseModel
             bhFId: (await ProxyService.box.bhfId()) ?? "00",
             product: brick.Product(
               color: "#e74c3c",
-              name: item.itemNm,
+              name: item.itemNm ?? item.name,
               lastTouched: DateTime.now(),
               branchId: ProxyService.box.getBranchId()!,
               businessId: ProxyService.box.getBusinessId()!,
               createdAt: DateTime.now(),
               spplrNm: supplier.spplrNm,
             ),
-            supplyPrice: item.splyAmt,
-            retailPrice: item.retailPrice ?? item.prc,
-            itemSeq: item.itemSeq,
+            supplyPrice: item.splyAmt ?? 0.0,
+            retailPrice: item.retailPrice ?? item.prc ?? 0.0,
+            itemSeq: item.itemSeq ?? 1,
             ebmSynced: false,
           );
 
@@ -997,8 +1000,9 @@ class CoreViewModel extends FlipperBaseModel
               receiptType: TransactionType.purchase,
               customerTin: ProxyService.box.tin().toString(),
               customerBhfId: bhfId,
-              subTotal: pendingTransaction.subTotal! + item.splyAmt,
-              cashReceived: -(pendingTransaction.subTotal! + item.splyAmt),
+              subTotal: pendingTransaction.subTotal! + (item.splyAmt ?? 0.0),
+              cashReceived:
+                  -(pendingTransaction.subTotal! + (item.splyAmt ?? 0.0)),
               customerName: (await ProxyService.strategy.getBusiness())!.name,
             );
           }
@@ -1029,12 +1033,12 @@ class CoreViewModel extends FlipperBaseModel
     }
   }
 
-  Future<void> acceptAllImport(List<api.Item> finalItemList) async {
+  Future<void> acceptAllImport(List<Variant> finalItemList) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      for (api.Item item in finalItemList) {
+      for (Variant item in finalItemList) {
         await ProxyService.tax.updateImportItems(
             item: item, URI: await ProxyService.box.getServerUrl() ?? "");
       }
