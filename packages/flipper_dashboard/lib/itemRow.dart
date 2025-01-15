@@ -243,7 +243,7 @@ class _RowItemState extends ConsumerState<RowItem>
 
         ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
       } else {
-        await model.saveTransaction(
+        model.saveTransaction(
           variation: widget.variant!,
           amountTotal: widget.variant?.retailPrice ?? 0,
           customItem: false,
