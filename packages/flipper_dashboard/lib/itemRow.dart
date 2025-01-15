@@ -191,71 +191,71 @@ class _RowItemState extends ConsumerState<RowItem>
     );
   }
 
-  Future<void> onTapItem(
-      {required CoreViewModel model, required isOrdering}) async {
+  Future<void> onTapItem({
+    required CoreViewModel model,
+    required bool isOrdering,
+  }) async {
     try {
-      ITransaction? pendingTransaction = null;
+      final flipperWatch? w = kDebugMode ? flipperWatch("callApiWatch") : null;
+      w?.start();
       final branchId = ProxyService.box.getBranchId()!;
-      if (isOrdering) {
-        /// update is ordering to true
-        ProxyService.box.writeBool(key: 'isOrdering', value: true);
-        pendingTransaction = await ProxyService.strategy.manageTransaction(
-          transactionType: TransactionType.sale,
-          isExpense: true,
-          branchId: branchId,
-        );
-      } else {
-        /// update is ordering to true
-        ProxyService.box.writeBool(key: 'isOrdering', value: false);
-        pendingTransaction = await ProxyService.strategy.manageTransaction(
-          transactionType: TransactionType.sale,
-          isExpense: false,
-          branchId: branchId,
-        );
-      }
+      final businessId = ProxyService.box.getBusinessId()!;
 
-      /// first check if this item is a composite
-      Product? product = await ProxyService.strategy.getProduct(
-          businessId: ProxyService.box.getBusinessId()!,
-          id: widget.variant!.productId!,
-          branchId: ProxyService.box.getBranchId()!);
-      if (product != null &&
-          product.isComposite != null &&
-          product.isComposite!) {
-        /// get items of this composite
-        List<Composite> composites =
+      // Update isOrdering flag
+      ProxyService.box.writeBool(key: 'isOrdering', value: isOrdering);
+
+      // Manage transaction
+      final pendingTransaction = await ProxyService.strategy.manageTransaction(
+        transactionType: TransactionType.sale,
+        isExpense: isOrdering,
+        branchId: branchId,
+      );
+
+      // Fetch product details
+      final product = await ProxyService.strategy.getProduct(
+        businessId: businessId,
+        id: widget.variant!.productId!,
+        branchId: branchId,
+      );
+
+      if (product != null && product.isComposite == true) {
+        // Handle composite product
+        final composites =
             await ProxyService.strategy.composites(productId: product.id);
-        for (Composite composite in composites) {
-          /// find a stock for a given variant
-          Variant? variant = await ProxyService.strategy
-              .getVariantById(id: composite.variantId!);
-          model.saveTransaction(
-            variation: variant!,
-            amountTotal: variant.retailPrice!,
-            customItem: false,
-            currentStock: variant.stock!.currentStock!,
-            pendingTransaction: pendingTransaction,
-            partOfComposite: true,
-            compositePrice: composite.actualPrice,
-          );
-          refreshTransactionItems(transactionId: pendingTransaction.id);
-        }
 
-        ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
+        for (final composite in composites) {
+          final variant = await ProxyService.strategy
+              .getVariantById(id: composite.variantId!);
+          if (variant != null) {
+            await model.saveTransaction(
+              variation: variant,
+              amountTotal: variant.retailPrice!,
+              customItem: false,
+              currentStock: variant.stock?.currentStock ?? 0,
+              pendingTransaction: pendingTransaction,
+              partOfComposite: true,
+              compositePrice: composite.actualPrice,
+            );
+          }
+        }
       } else {
-        model.saveTransaction(
+        // Handle non-composite product
+        await model.saveTransaction(
           variation: widget.variant!,
           amountTotal: widget.variant?.retailPrice ?? 0,
           customItem: false,
-          currentStock: widget.variant!.stock!.currentStock!,
+          currentStock: widget.variant!.stock?.currentStock ?? 0,
           pendingTransaction: pendingTransaction,
           partOfComposite: false,
         );
-
-        refreshTransactionItems(transactionId: pendingTransaction.id);
       }
+      w?.log("TapOnItemAndSaveTransaction");
+      // Ensure transaction items are refreshed immediately
+      refreshTransactionItems(transactionId: pendingTransaction.id);
+      // await Future.delayed(Duration.zero); // Force UI rebuild
+      ref.invalidate(transactionItemsProvider((isExpense: isOrdering)));
     } catch (e, s) {
-      talker.warning("Error while clicking ${e}");
+      talker.warning("Error while clicking: $e");
       talker.error(s);
       rethrow;
     }

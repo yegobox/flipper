@@ -214,6 +214,7 @@ mixin TransactionMixin {
     }
   }
 
+ 
   Future<void> addTransactionItems({
     required String variationId,
     required ITransaction pendingTransaction,
@@ -227,112 +228,174 @@ mixin TransactionMixin {
     required bool partOfComposite,
   }) async {
     try {
+      // Update an existing item
       if (item != null && !isCustom) {
-        // Update existing non-custom item
-        item.doneWithTransaction = false;
-
-        await ProxyService.strategy.updateTransactionItem(
-          transactionItemId: item.id,
-          doneWithTransaction: false,
-          qty: item.qty + quantity,
-          taxblAmt: variation.retailPrice! * quantity,
-          price: amountTotal / quantity,
-          totAmt: variation.retailPrice! * quantity,
-          prc: item.prc + variation.retailPrice! * quantity,
-          splyAmt: variation.supplyPrice,
-          quantityApproved: 0,
-          active: true,
-          quantityRequested: ((item.qty) + quantity).toInt(),
-          quantityShipped: 0,
+        await _updateExistingTransactionItem(
+          item: item,
+          quantity: item.qty + quantity,
+          variation: variation,
+          amountTotal: amountTotal,
         );
-
         await updatePendingTransactionTotals(pendingTransaction);
-      } else {
-        // Add new item (for both custom and new non-custom items)
-        double computedQty = isCustom ? 1.0 : quantity;
-        if (partOfComposite) {
-          Composite? composite =
-              (await ProxyService.strategy.composites(variantId: variation.id))
-                  .firstOrNull;
-          computedQty = composite?.qty ?? 0.0;
-        }
-
-        TransactionItem newItem = TransactionItem(
-          compositePrice: partOfComposite == true ? compositePrice! : 0.0,
-          price: variation.retailPrice!,
-          variantId: variation.id,
-          name: name,
-          quantityApproved: 0,
-          quantityRequested: computedQty.toInt(),
-          quantityShipped: 0,
-          branchId: ProxyService.box.getBranchId(),
-          discount: 0.0,
-          prc: variation.retailPrice!,
-          doneWithTransaction: false,
-          active: true,
-          transactionId: pendingTransaction.id,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          remainingStock: currentStock - quantity,
-          lastTouched: DateTime.now(),
-          qty: computedQty,
-          taxblAmt: variation.retailPrice! * quantity,
-          taxAmt: double.parse((amountTotal * 18 / 118).toStringAsFixed(2)),
-          totAmt: variation.retailPrice! * quantity,
-          itemSeq: variation.itemSeq,
-          isrccCd: variation.isrccCd,
-          isrccNm: variation.isrccNm,
-          isrcRt: variation.isrcRt,
-          isrcAmt: variation.isrcAmt,
-          taxTyCd: variation.taxTyCd,
-          bcd: variation.bcd,
-          itemClsCd: variation.itemClsCd,
-          itemTyCd: variation.itemTyCd,
-          itemStdNm: variation.itemStdNm,
-          orgnNatCd: variation.orgnNatCd,
-          pkg: variation.pkg.toString(),
-          itemCd: variation.itemCd,
-          pkgUnitCd: variation.pkgUnitCd,
-          qtyUnitCd: variation.qtyUnitCd,
-          itemNm: variation.itemNm!,
-          splyAmt: variation.supplyPrice,
-          tin: variation.tin,
-          bhfId: variation.bhfId,
-          dftPrc: variation.dftPrc,
-          addInfo: variation.addInfo,
-          isrcAplcbYn: variation.isrcAplcbYn,
-          useYn: variation.useYn,
-          regrId: variation.regrId,
-          regrNm: variation.regrNm,
-          modrId: variation.modrId,
-          modrNm: variation.modrNm,
-          partOfComposite: partOfComposite,
-          dcRt: variation.dcRt,
-          dcAmt: (variation.retailPrice! * (variation.qty ?? 1.0)) *
-              (variation.dcRt ?? 0.0),
-        );
-
-        await ProxyService.strategy.addTransactionItem(
-            transaction: pendingTransaction,
-            item: newItem,
-            partOfComposite: partOfComposite);
+        return;
       }
 
-      // Handle activation of inactive items
-      List<TransactionItem> inactiveItems = await ProxyService.strategy
-          .transactionItems(
-              branchId: ProxyService.box.getBranchId()!,
-              transactionId: pendingTransaction.id,
-              doneWithTransaction: false,
-              active: false);
+      // Add a new item
+      double computedQty = await _calculateQuantity(
+        isCustom: isCustom,
+        partOfComposite: partOfComposite,
+        variation: variation,
+      );
 
-      markItemAsDoneWithTransaction(
-          inactiveItems: inactiveItems, pendingTransaction: pendingTransaction);
-      updatePendingTransactionTotals(pendingTransaction);
+      final newItem = _createTransactionItem(
+        variation: variation,
+        name: name,
+        quantity: computedQty,
+        amountTotal: amountTotal,
+        currentStock: currentStock,
+        pendingTransaction: pendingTransaction,
+        compositePrice: partOfComposite ? compositePrice ?? 0.0 : 0.0,
+        partOfComposite: partOfComposite,
+      );
+
+      await ProxyService.strategy.addTransactionItem(
+        transaction: pendingTransaction,
+        item: newItem,
+        partOfComposite: partOfComposite,
+      );
+
+      // Reactivate inactive items if necessary
+      await _reactivateInactiveItems(pendingTransaction);
+
+      await updatePendingTransactionTotals(pendingTransaction);
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);
       rethrow;
+    }
+  }
+
+// Helper: Update existing transaction item
+  Future<void> _updateExistingTransactionItem({
+    required TransactionItem item,
+    required double quantity,
+    required Variant variation,
+    required double amountTotal,
+  }) async {
+    await ProxyService.strategy.updateTransactionItem(
+      transactionItemId: item.id,
+      doneWithTransaction: false,
+      qty: quantity,
+      taxblAmt: variation.retailPrice! * quantity,
+      price: amountTotal / quantity,
+      totAmt: variation.retailPrice! * quantity,
+      prc: item.prc + variation.retailPrice! * quantity,
+      splyAmt: variation.supplyPrice,
+      quantityApproved: 0,
+      active: true,
+      quantityRequested: quantity.toInt(),
+      quantityShipped: 0,
+    );
+  }
+
+// Helper: Calculate quantity
+  Future<double> _calculateQuantity({
+    required bool isCustom,
+    required bool partOfComposite,
+    required Variant variation,
+  }) async {
+    if (isCustom) return 1.0;
+
+    if (partOfComposite) {
+      final composite =
+          (await ProxyService.strategy.composites(variantId: variation.id))
+              .firstOrNull;
+      return composite?.qty ?? 0.0;
+    }
+
+    return quantity;
+  }
+
+// Helper: Create a transaction item
+  TransactionItem _createTransactionItem({
+    required Variant variation,
+    required String name,
+    required double quantity,
+    required double amountTotal,
+    required double currentStock,
+    required ITransaction pendingTransaction,
+    required double compositePrice,
+    required bool partOfComposite,
+  }) {
+    return TransactionItem(
+      discount: 0.0,
+      compositePrice: compositePrice,
+      price: variation.retailPrice!,
+      variantId: variation.id,
+      name: name,
+      qty: quantity,
+      taxblAmt: variation.retailPrice! * quantity,
+      taxAmt: double.parse((amountTotal * 18 / 118).toStringAsFixed(2)),
+      totAmt: variation.retailPrice! * quantity,
+      prc: variation.retailPrice!,
+      quantityApproved: 0,
+      quantityRequested: quantity.toInt(),
+      quantityShipped: 0,
+      active: true,
+      doneWithTransaction: false,
+      transactionId: pendingTransaction.id,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      remainingStock: currentStock - quantity,
+      branchId: ProxyService.box.getBranchId(),
+      itemSeq: variation.itemSeq,
+      isrccCd: variation.isrccCd,
+      isrccNm: variation.isrccNm,
+      isrcRt: variation.isrcRt,
+      isrcAmt: variation.isrcAmt,
+      taxTyCd: variation.taxTyCd,
+      bcd: variation.bcd,
+      itemClsCd: variation.itemClsCd,
+      itemTyCd: variation.itemTyCd,
+      itemStdNm: variation.itemStdNm,
+      orgnNatCd: variation.orgnNatCd,
+      pkg: variation.pkg.toString(),
+      itemCd: variation.itemCd,
+      pkgUnitCd: variation.pkgUnitCd,
+      qtyUnitCd: variation.qtyUnitCd,
+      itemNm: variation.itemNm!,
+      splyAmt: variation.supplyPrice,
+      tin: variation.tin,
+      bhfId: variation.bhfId,
+      dftPrc: variation.dftPrc,
+      addInfo: variation.addInfo,
+      isrcAplcbYn: variation.isrcAplcbYn,
+      useYn: variation.useYn,
+      regrId: variation.regrId,
+      regrNm: variation.regrNm,
+      modrId: variation.modrId,
+      modrNm: variation.modrNm,
+      dcRt: variation.dcRt,
+      dcAmt: (variation.retailPrice! * (variation.qty ?? 1.0)) *
+          (variation.dcRt ?? 0.0),
+      partOfComposite: partOfComposite,
+    );
+  }
+
+// Helper: Reactivate inactive items
+  Future<void> _reactivateInactiveItems(ITransaction pendingTransaction) async {
+    final inactiveItems = await ProxyService.strategy.transactionItems(
+      branchId: ProxyService.box.getBranchId()!,
+      transactionId: pendingTransaction.id,
+      doneWithTransaction: false,
+      active: false,
+    );
+
+    if (inactiveItems.isNotEmpty) {
+      markItemAsDoneWithTransaction(
+        inactiveItems: inactiveItems,
+        pendingTransaction: pendingTransaction,
+      );
     }
   }
 
