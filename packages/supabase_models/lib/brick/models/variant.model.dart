@@ -360,6 +360,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'taxAmt': taxAmt,
       'dcAmt': dcAmt,
       'purchaseId': purchaseId,
+      "lastTouched": lastTouched?.toIso8601String(),
     };
   }
 

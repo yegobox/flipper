@@ -1759,42 +1759,6 @@ class Capella with Booting implements RealmInterface {
     throw UnimplementedError();
   }
 
-  @override
-  Future<brick.Product?> createProduct(
-      {required brick.Product product,
-      String? modrId,
-      String? orgnNatCd,
-      String? exptNatCd,
-      int? pkg,
-      String? pkgUnitCd,
-      String? spplrItemClsCd,
-      String? spplrItemCd,
-      String? qtyUnitCd,
-      int? totWt,
-      int? netWt,
-      String? spplrNm,
-      String? agntNm,
-      int? invcFcurAmt,
-      String? invcFcurCd,
-      double? invcFcurExcrt,
-      String? dclNo,
-      String? taskCd,
-      String? dclDe,
-      String? hsCd,
-      String? imptItemsttsCd,
-      required int businessId,
-      required int branchId,
-      required int tinNumber,
-      required String bhFId,
-      bool skipRegularVariant = false,
-      double qty = 1,
-      double supplyPrice = 0,
-      double retailPrice = 0,
-      int itemSeq = 1,
-      bool ebmSynced = false}) {
-    // TODO: implement createProduct
-    throw UnimplementedError();
-  }
   
   @override
   FutureOr<bool> isBranchEnableForPayment({required String currentBranchId}) {
@@ -1829,6 +1793,12 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<brick.CustomerPayments> upsertPayment(brick.CustomerPayments payment) {
     // TODO: implement upsertPayment
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<brick.Product?> createProduct({required brick.Product product, String? modrId, String? orgnNatCd, String? exptNatCd, int? pkg, String? pkgUnitCd, String? spplrItemClsCd, String? spplrItemCd, String? qtyUnitCd, int? totWt, int? netWt, String? spplrNm, String? agntNm, int? invcFcurAmt, String? invcFcurCd, double? invcFcurExcrt, String? dclNo, String? taskCd, String? dclDe, String? hsCd, String? imptItemsttsCd, required int businessId, required int branchId, required int tinNumber, required String bhFId, Map<String, String>? taxTypes, Map<String, String>? itemClasses, Map<String, String>? itemTypes, bool skipRegularVariant = false, double qty = 1, double supplyPrice = 0, double retailPrice = 0, int itemSeq = 1, bool ebmSynced = false}) {
+    // TODO: implement createProduct
     throw UnimplementedError();
   }
 }

@@ -275,7 +275,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (variant != null) {
         Stock? stock = await getStockById(id: variant.stockId!);
 
-        stock!.currentStock = stock.currentStock! +
+        stock.currentStock = stock.currentStock! +
             (variation.stock?.rsdQty ?? variation.qty ?? 0);
         stock.rsdQty = stock.currentStock! + (stock.rsdQty!);
         stock.lastTouched = DateTime.now().toLocal();
@@ -665,6 +665,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       required int branchId,
       required int tinNumber,
       required String bhFId,
+      Map<String, String>? taxTypes,
+      Map<String, String>? itemClasses,
+      Map<String, String>? itemTypes,
       String? modrId,
       String? orgnNatCd,
       String? exptNatCd,
@@ -691,69 +694,76 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       double retailPrice = 0,
       int itemSeq = 1,
       bool ebmSynced = false}) async {
-    final String productName = product.name;
-    if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
-      final Product? existingProduct = await getProduct(
-          name: productName, businessId: businessId, branchId: branchId);
-      if (existingProduct != null) {
-        return existingProduct;
+    try {
+      final String productName = product.name;
+      if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
+        final Product? existingProduct = await getProduct(
+            name: productName, businessId: businessId, branchId: branchId);
+        if (existingProduct != null) {
+          return existingProduct;
+        }
       }
+
+      SKU sku = await getSku(branchId: branchId, businessId: businessId);
+
+      sku.consumed = true;
+      await repository.upsert(sku);
+      final createdProduct = await repository.upsert<Product>(product);
+
+      if (!skipRegularVariant) {
+        Variant newVariant = await _createRegularVariant(
+          branchId,
+          tinNumber,
+          orgnNatCd: orgnNatCd,
+          exptNatCd: exptNatCd,
+          pkg: pkg,
+          taxTypes: taxTypes,
+          itemClasses: itemClasses,
+          itemTypes: itemTypes,
+          pkgUnitCd: pkgUnitCd,
+          qtyUnitCd: qtyUnitCd,
+          totWt: totWt,
+          netWt: netWt,
+          spplrNm: spplrNm,
+          agntNm: agntNm,
+          invcFcurAmt: invcFcurAmt,
+          invcFcurExcrt: invcFcurExcrt,
+          invcFcurCd: invcFcurCd,
+          qty: qty,
+          dclNo: dclNo,
+          taskCd: taskCd,
+          dclDe: dclDe,
+          hsCd: hsCd,
+          imptItemsttsCd: imptItemsttsCd,
+          product: createdProduct,
+          bhFId: bhFId,
+          supplierPrice: supplyPrice,
+          retailPrice: retailPrice,
+          name: createdProduct.name,
+          sku: sku.sku!,
+          productId: product.id,
+          itemSeq: itemSeq,
+          ebmSynced: ebmSynced,
+          spplrItemCd: spplrItemCd,
+          spplrItemClsCd: spplrItemClsCd,
+        );
+        talker.info('New variant created: ${newVariant.toJson()}');
+        final Stock stock = Stock(
+            lastTouched: DateTime.now(),
+            rsdQty: qty,
+            initialStock: qty,
+            value: (qty * newVariant.retailPrice!).toDouble(),
+            branchId: branchId,
+            currentStock: qty);
+        final createdStock = await repository.upsert<Stock>(stock);
+        newVariant.stock = createdStock;
+        newVariant.stockId = createdStock.id;
+        await repository.upsert<Variant>(newVariant);
+      }
+      return createdProduct;
+    } catch (e) {
+      rethrow;
     }
-
-    SKU sku = await getSku(branchId: branchId, businessId: businessId);
-
-    sku.consumed = true;
-    await repository.upsert(sku);
-    final createdProduct = await repository.upsert<Product>(product);
-
-    if (!skipRegularVariant) {
-      Variant newVariant = await _createRegularVariant(
-        branchId,
-        tinNumber,
-        orgnNatCd: orgnNatCd,
-        exptNatCd: exptNatCd,
-        pkg: pkg,
-        pkgUnitCd: pkgUnitCd,
-        qtyUnitCd: qtyUnitCd,
-        totWt: totWt,
-        netWt: netWt,
-        spplrNm: spplrNm,
-        agntNm: agntNm,
-        invcFcurAmt: invcFcurAmt,
-        invcFcurExcrt: invcFcurExcrt,
-        invcFcurCd: invcFcurCd,
-        qty: qty,
-        dclNo: dclNo,
-        taskCd: taskCd,
-        dclDe: dclDe,
-        hsCd: hsCd,
-        imptItemsttsCd: imptItemsttsCd,
-        product: createdProduct,
-        bhFId: bhFId,
-        supplierPrice: supplyPrice,
-        retailPrice: retailPrice,
-        name: createdProduct.name,
-        sku: sku.sku!,
-        productId: product.id,
-        itemSeq: itemSeq,
-        ebmSynced: ebmSynced,
-        spplrItemCd: spplrItemCd,
-        spplrItemClsCd: spplrItemClsCd,
-      );
-
-      final Stock stock = Stock(
-          lastTouched: DateTime.now(),
-          rsdQty: qty,
-          initialStock: qty,
-          value: (qty * newVariant.retailPrice!).toDouble(),
-          branchId: branchId,
-          currentStock: qty);
-      final createdStock = await repository.upsert<Stock>(stock);
-      newVariant.stock = createdStock;
-      newVariant.stockId = createdStock.id;
-      await repository.upsert<Variant>(newVariant);
-    }
-    return createdProduct;
   }
 
   @override
@@ -855,22 +865,22 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       case 'variant':
         final variant = await getVariantById(id: id);
         final stock = await getStockById(id: variant!.stockId!);
-        if (stock != null) {
-          try {
-            await repository.delete<Variant>(
-              variant,
-              query: brick.Query(
-                  action: QueryAction.delete,
-                  where: [brick.Where('id').isExactly(id)]),
-            );
-            await repository.delete<Stock>(
-              stock,
-              query: brick.Query(
-                  action: QueryAction.delete,
-                  where: [brick.Where('id').isExactly(id)]),
-            );
-          } catch (e) {}
-        }
+
+        try {
+          await repository.delete<Variant>(
+            variant,
+            query: brick.Query(
+                action: QueryAction.delete,
+                where: [brick.Where('id').isExactly(id)]),
+          );
+          await repository.delete<Stock>(
+            stock,
+            query: brick.Query(
+                action: QueryAction.delete,
+                where: [brick.Where('id').isExactly(id)]),
+          );
+        } catch (e) {}
+
         break;
 
       case 'transactionItem':
@@ -2520,10 +2530,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               if (separator[2] == "stock") {
                 final stockId = separator[3];
                 Stock? stock = await getStockById(id: stockId);
-                if (stock != null) {
-                  stock.ebmSynced = true;
-                  repository.upsert<Stock>(stock);
-                }
+
+                stock.ebmSynced = true;
+                repository.upsert<Stock>(stock);
+
                 ProxyService.notification.sendLocalNotification(
                     body: "Stock Saving " + separator[1]);
               }
@@ -3688,15 +3698,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       double? value,
       DateTime? lastTouched}) async {
     Stock? stock = await getStockById(id: stockId);
-    if (stock != null) {
-      stock.currentStock = currentStock ?? qty ?? stock.currentStock;
-      stock.rsdQty = rsdQty ?? stock.rsdQty;
-      stock.initialStock = initialStock ?? qty ?? stock.initialStock;
-      stock.ebmSynced = ebmSynced ?? stock.ebmSynced;
-      stock.value = value ?? stock.value;
-      stock.lastTouched = lastTouched ?? stock.lastTouched;
-      repository.upsert(stock);
-    }
+
+    stock.currentStock = currentStock ?? qty ?? stock.currentStock;
+    stock.rsdQty = rsdQty ?? stock.rsdQty;
+    stock.initialStock = initialStock ?? qty ?? stock.initialStock;
+    stock.ebmSynced = ebmSynced ?? stock.ebmSynced;
+    stock.value = value ?? stock.value;
+    stock.lastTouched = lastTouched ?? stock.lastTouched;
+    repository.upsert(stock);
   }
 
   @override
@@ -4548,11 +4557,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required Map<String, String> itemTypes,
   }) async {
     try {
-      ///
       if (item.bcdU != null && item.bcdU!.isNotEmpty) {
         print('Searching for variant with modrId: ${item.barCode}');
-        // Variant? variant =
-        //     realm!.query<Variant>(r'modrId == $0', [item.barCode]).firstOrNull;
+
         Variant? variant = await getVariantById(modrId: item.barCode);
         print('Found variant: ${variant?.bcd}, ${variant?.name}');
         if (variant != null) {
@@ -4571,91 +4578,64 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         final businessId = await ProxyService.box.getBusinessId()!;
         // TO DO: fix this when sql is fixed.
         final bhfId = await ProxyService.box.bhfId();
-        // Create a new product
-        Product product = Product(
-          color: randomizeColor(),
-          name: item.name,
-          barCode: item.barCode,
-          branchId: branchId,
-          businessId: businessId,
-        );
-
-        // Get tax type configuration
-        Configurations? taxType = await ProxyService.strategy
-            .getByTaxType(taxtype: taxTypes[product.barCode] ?? "B");
 
         Business? business = await getBusiness(businessId: businessId);
 
-        talker.warning(
-            "ItemClass${itemClasses[product.barCode] ?? "5020230602"}");
+        talker.warning("ItemClass${itemClasses[item.barCode] ?? "5020230602"}");
 
-        repository.upsert(product);
-
-        // Create stock for the variant
-        Stock stock = _createStock(
-            product: product,
-            branchId: branchId,
-            bhfId: bhfId,
-            itemQuantity: item.quantity,
-            quantitis: quantitis);
-
-        // Create variant for the product
-        Variant variant = await createVariant(
-            retailPrice: item.retailPrice ?? 0,
-            supplierPrice: item.supplyPrice ?? 0,
-            barCode: item.barCode ?? "",
-            itemSeq: 1,
-            qty: item.quantity ?? 1,
+        await createProduct(
+          bhFId: bhfId!,
+          tinNumber: business!.tinNumber!,
+          businessId: ProxyService.box.getBusinessId()!,
+          branchId: ProxyService.box.getBranchId()!,
+          totWt: item.totWt,
+          netWt: item.netWt,
+          spplrNm: item.spplrNm,
+          agntNm: item.agntNm,
+          invcFcurAmt: item.invcFcurAmt,
+          invcFcurCd: item.invcFcurCd,
+          invcFcurExcrt: item.invcFcurExcrt,
+          exptNatCd: item.exptNatCd,
+          pkg: item.pkg ?? 1,
+          qty: item.qty ?? 1,
+          qtyUnitCd: item.qtyUnitCd,
+          pkgUnitCd: "BJ",
+          dclNo: item.dclNo,
+          taskCd: item.taskCd,
+          dclDe: item.dclDe,
+          orgnNatCd: item.orgnNatCd,
+          hsCd: item.hsCd,
+          imptItemsttsCd: item.imptItemSttsCd,
+          taxTypes: taxTypes,
+          itemClasses: itemClasses,
+          itemTypes: itemTypes,
+          product: Product(
             color: randomizeColor(),
-            tinNumber: business?.tinNumber ?? ProxyService.box.tin(),
-            name: item.name,
-            sku:
-                (await getSku(branchId: branchId, businessId: businessId)).sku!,
-            productId: product.id,
-            taxType: taxType,
+            name: item.itemNm ?? item.name,
+            lastTouched: DateTime.now(),
             branchId: branchId,
-            taxTypes: taxTypes,
-            itemClasses: itemClasses,
-            itemTypes: itemTypes);
-
-        repository.upsert(stock);
-        variant.stock = stock;
-        variant.stockId = stock.id;
-
-        repository.upsert(variant);
+            businessId: businessId,
+            createdAt: DateTime.now(),
+            spplrNm: item.spplrNm,
+            barCode: item.barCode,
+          ),
+          supplyPrice: item.supplyPrice ?? 0,
+          retailPrice: item.retailPrice ?? 0,
+          itemSeq: item.itemSeq ?? 1,
+          ebmSynced: false,
+          spplrItemCd: item.hsCd,
+          spplrItemClsCd: item.hsCd,
+        );
       }
-    } catch (e) {
+    } catch (e, s) {
+      print(e);
+      print(s);
       rethrow;
     }
   }
 
   String randomizeColor() {
     return '#${(Random().nextInt(0x1000000) | 0x800000).toRadixString(16).padLeft(6, '0').toUpperCase()}';
-  }
-
-  Stock _createStock({
-    required Product product,
-    required int branchId,
-    required String? bhfId,
-    double? itemQuantity,
-    required Map<String, String> quantitis,
-  }) {
-    final itemQuantityIsNonZero = itemQuantity;
-    return Stock(
-      currentStock: double.parse(quantitis[product.barCode] ?? "1"),
-      lowStock: 0,
-      canTrackingStock: false,
-      showLowStockAlert: true,
-      bhfId: bhfId,
-      active: true,
-      value: itemQuantityIsNonZero ??
-          double.parse(quantitis[product.barCode] ?? "1"),
-      rsdQty: itemQuantityIsNonZero ??
-          double.parse(quantitis[product.barCode] ?? "1"),
-      lastTouched: DateTime.now(),
-      branchId: branchId,
-      ebmSynced: false,
-    );
   }
 
   @override
