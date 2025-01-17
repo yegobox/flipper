@@ -5,11 +5,105 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:intl/intl.dart';
 
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flutter/material.dart';
 
 class ScannViewModel extends ProductViewModel with RRADEFAULTS {
+  final Map<String, bool> _selectedVariants = {};
+  final Map<String, TextEditingController> _discountControllers = {};
+  final Map<String, TextEditingController> _dateControllers = {};
+
+  // Toggles selection for a specific variant.
+  void toggleSelect(String variantId) {
+    _selectedVariants[variantId] = !_selectedVariants[variantId]!;
+    notifyListeners();
+  }
+
+  // Checks if a specific variant is selected.
+  bool isSelected(String variantId) {
+    return _selectedVariants[variantId] ?? false;
+  }
+
+  // Toggles selection for all variants.
+  void toggleSelectAll(List<Variant> scannedVariants, bool selectAll) {
+    for (var variant in scannedVariants) {
+      _selectedVariants[variant.id] = selectAll;
+    }
+    notifyListeners();
+  }
+
+  // Returns the selection state for all variants.
+  bool selectAll(List<Variant> variants) {
+    return variants.every((variant) => _selectedVariants[variant.id] ?? false);
+  }
+
+  // Updates the tax type for a variant.
+  Future<void> updateTax(Variant variant, String newTaxType) async {
+    try {
+      await ProxyService.strategy.updateVariant(
+        updatables: [variant],
+        variantId: variant.id,
+        taxTyCd: newTaxType,
+      );
+      notifyListeners();
+    } catch (e) {
+      talker.error(e);
+    }
+  }
+
+  // Returns a TextEditingController for managing the discount of a variant.
+  TextEditingController getDiscountController(String variantId,
+      {int? defaultDiscount}) {
+    if (!_discountControllers.containsKey(variantId)) {
+      _discountControllers[variantId] = TextEditingController(
+        text: defaultDiscount?.toString() ?? '0',
+      );
+    }
+    return _discountControllers[variantId]!;
+  }
+
+  // Opens a date picker and returns the picked date.
+  Future<DateTime?> pickDate(BuildContext context) async {
+    return await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2023),
+      lastDate: DateTime(2100),
+    );
+  }
+
+  // Returns a TextEditingController for managing the expiration date of a variant.
+  TextEditingController getDateController(String variantId,
+      {DateTime? defaultDate}) {
+    if (!_dateControllers.containsKey(variantId)) {
+      _dateControllers[variantId] = TextEditingController(
+        text: defaultDate != null
+            ? DateFormat('yyyy-MM-dd').format(defaultDate)
+            : '',
+      );
+    }
+    return _dateControllers[variantId]!;
+  }
+
+  // Determines whether to show the delete button for a variant.
+  bool showDeleteButton(String variantId) {
+    return isSelected(variantId);
+  }
+
+  // Disposes controllers when they are no longer needed.
+  @override
+  void dispose() {
+    for (var controller in _discountControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _dateControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
   List<Variant> scannedVariants = [];
   double retailPrice = 0.0;
   double supplyPrice = 0.0;
@@ -71,14 +165,16 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       prc: retailPrice,
       qty: 1,
       dcRt: 0,
+
       // bcd is bar code
       bcd: barCode,
       sku: barCode,
       productId: product.id,
       color: currentColor,
       unit: 'Per Item',
-      productName: kProductName ?? product.name,
+      productName: product.name,
       branchId: branchId,
+
       lastTouched: DateTime.now(),
     );
     final stock = Stock(

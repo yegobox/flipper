@@ -31,6 +31,8 @@ mixin ProductMixin {
       required packagingUnit,
       Map<String, TextEditingController>? rates,
       Map<String, TextEditingController>? dates,
+      double? retailPrice,
+      double? supplyPrice,
       required String productName,
       required String selectedProductType}) async {
     ///loop variations add pkgUnitCd this come from UI but a lot of
@@ -75,8 +77,11 @@ mixin ProductMixin {
             packagingUnit: packagingUnit,
             quantityUnit: "CT");
         variations[i].modrNm = number;
-        // variations[i].productName = productName;
+        variations[i].productName = productName;
         variations[i].modrId = number;
+        variations[i].prc = retailPrice;
+        variations[i].supplyPrice = supplyPrice;
+        variations[i].retailPrice = retailPrice;
         variations[i].regrId = randomNumber().toString().substring(0, 5);
 
         variations[i].itemTyCd = selectedProductType;

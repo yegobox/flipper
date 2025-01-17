@@ -3,15 +3,16 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flipper_dashboard/CountryOfOriginSelector.dart';
+import 'package:flipper_dashboard/DropdownButtonWithLabel.dart';
 import 'package:flipper_dashboard/FieldCompositeActivated.dart';
+import 'package:flipper_dashboard/ProductTypeDropdown.dart';
 import 'package:flipper_dashboard/SearchProduct.dart';
 import 'package:flipper_dashboard/CompositeVariation.dart';
+import 'package:flipper_dashboard/TableVariants.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_ui/style_widget/text.dart';
-import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flipper_dashboard/create/browsePhotos.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -24,7 +25,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 import 'package:stacked/stacked.dart';
-import 'package:flutter/services.dart';
 
 class QuantityCell extends StatelessWidget {
   final double? quantity;
@@ -65,9 +65,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
   Map<String, TextEditingController> _rates = {};
   Map<String, TextEditingController> _dates = {};
-
-  bool _selectAll = false;
-  bool _showDeleteButton = false;
 
   String selectedPackageUnitValue = "BJ: Bucket Bucket";
 
@@ -146,198 +143,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     super.dispose();
   }
 
-  void _showEditQuantityDialog(
-    BuildContext context,
-    Variant variant,
-    ScannViewModel model,
-    VoidCallback onDialogClosed,
-  ) {
-    TextEditingController quantityController =
-        TextEditingController(text: variant.stock?.currentStock.toString());
-
-    // Create a FocusNode and set autofocus to true
-    FocusNode focusNode = FocusNode();
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Edit Quantity'),
-          content: TextFormField(
-            controller: quantityController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: 'Quantity'),
-            focusNode: focusNode,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                double newQuantity =
-                    double.tryParse(quantityController.text) ?? 0.0;
-                model.updateVariantQuantity(variant.id, newQuantity);
-                Navigator.pop(context);
-              },
-              child: Text('Save'),
-            ),
-          ],
-        );
-      },
-    );
-
-    // Use WidgetsBinding.instance?.addPostFrameCallback to focus after the frame is painted
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      focusNode.requestFocus();
-    });
-
-    // Add a callback to execute when the dialog is closed
-    Navigator.of(context).popUntil((route) {
-      onDialogClosed();
-      return true;
-    });
-  }
-
-  Widget _buildUniversalProductDropDown(
-      BuildContext context, ScannViewModel model, Variant variant) {
-    final unitsAsyncValue = ref.watch(universalProductsNames);
-
-    return unitsAsyncValue.when(
-      data: (items) {
-        final List<String> itemClsCdList = items.asData?.value
-                .map((unit) => ((unit.itemClsNm ?? "") + " " + unit.itemClsCd!))
-                .toList() ??
-            [];
-
-        // talker.warning(itemClsCdList);
-        return Container(
-          width: double.infinity,
-          child: DropdownSearch<String>(
-            items: itemClsCdList,
-            selectedItem: itemClsCdList.isNotEmpty ? itemClsCdList.first : null,
-            dropdownDecoratorProps: DropDownDecoratorProps(
-              dropdownSearchDecoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                disabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
-              ),
-            ),
-            onChanged: (String? newValue) {
-              if (newValue != null) {
-                // Loop through model.scannedVariants
-                for (var scannedVariant in model.scannedVariants) {
-                  // Find the related variant based on some criteria
-                  // For example, matching variant.id
-                  if (scannedVariant.id == variant.id) {
-                    // Update the variant.itemClsCd with the value of newValue
-                    final value = newValue.split(' ').last;
-                    scannedVariant.itemClsCd = value;
-                    break; // Exit the loop since the variant is found and updated
-                  }
-                }
-              }
-            },
-          ),
-        );
-      },
-      loading: () => const CircularProgressIndicator(),
-      error: (error, stackTrace) => Text('Error: $error'),
-    );
-  }
-
-  Widget _buildUnitOfMeasureDropDown(
-      BuildContext context, Variant variant, ScannViewModel model) {
-    final unitsAsyncValue = ref.watch(unitsProvider);
-
-    return unitsAsyncValue.when(
-      data: (units) {
-        return Container(
-          width: double.infinity,
-          child: DropdownSearch<String>(
-            items: units.asData?.value.map((unit) => unit.name!).toList() ?? [],
-            selectedItem: variant.unit,
-            dropdownDecoratorProps: DropDownDecoratorProps(
-              dropdownSearchDecoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                disabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
-              ),
-            ),
-          ),
-        );
-      },
-      loading: () =>
-          const CircularProgressIndicator(), // Show a loading indicator
-      error: (error, stackTrace) =>
-          Text('Error: $error'), // Show an error message
-    );
-  }
-
-  Widget _buildTaxDropdown(
-    BuildContext context,
-    Variant variant,
-    ScannViewModel model,
-  ) {
-    final List<String> options = ["A", "B", "C", "D"];
-
-    return DropdownButton<String>(
-      value: variant.taxTyCd ?? "B", // Default value if null
-      items: options.map((String option) {
-        return DropdownMenuItem<String>(
-          value: option,
-          child: Text(option),
-        );
-      }).toList(),
-      onChanged: (String? newValue) {
-        if (newValue != null && newValue != variant.taxTyCd) {
-          try {
-            ProxyService.strategy.updateVariant(
-                updatables: [variant],
-                variantId: variant.id,
-                taxTyCd: newValue);
-
-            // Force the UI to rebuild if necessary
-            model.notifyListeners();
-          } catch (e) {
-            talker.error(e);
-          }
-        }
-      },
-      isExpanded: true, // Makes the dropdown fill available space
-      underline: SizedBox.shrink(), // Removes the default underline
-    );
-  }
-
   // Helper function to get a valid color or a default color
 
   // Helper function to check if a string is a valid hexadecimal color code
@@ -369,6 +174,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           productName: model.kProductName!,
           rates: _rates,
           dates: _dates,
+          retailPrice: double.tryParse(retailPriceController.text) ?? 0,
+          supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
           variations: model.scannedVariants,
           selectedProductType: selectedProductType,
           packagingUnit: selectedPackageUnitValue.split(":")[0]);
@@ -413,83 +220,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     }
   }
 
-  Widget _buildDropdownButton(ScannViewModel model) {
-    return Column(
-      children: [
-        Text("Packaging unit"),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey),
-          ),
-          child: DropdownButton<String>(
-            value: selectedPackageUnitValue,
-            onChanged: (String? newValue) {
-              setState(() {
-                if (newValue != null) {
-                  selectedPackageUnitValue = newValue;
-                }
-              });
-            },
-            items: model.pkgUnits.map<DropdownMenuItem<String>>(
-              (String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              },
-            ).toList(),
-            style: const TextStyle(color: Colors.black, fontSize: 16),
-            icon: const Icon(Icons.arrow_drop_down),
-            iconSize: 30,
-            isExpanded: true,
-            underline: SizedBox(), // Remove the default underline
-          ),
-        ),
-      ],
-    );
-  }
-
 // Define your default color
   Color DEFAULT_COLOR = Colors.grey;
 
   // Add this new method to create the product type dropdown
-  Widget _productTypeDropDown(BuildContext context) {
-    final List<Map<String, String>> options = [
-      {"name": "Raw Material", "value": "1"},
-      {"name": "Finished Product", "value": "2"},
-      {"name": "Service without stock", "value": "3"},
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey),
-        ),
-        child: DropdownButton<String>(
-          value: selectedProductType,
-          onChanged: (String? newValue) {
-            if (newValue == null) return;
-            setState(() {
-              selectedProductType = newValue; // Update the state variable
-            });
-          },
-          items: options.map((option) {
-            return DropdownMenuItem<String>(
-              value: option['value'],
-              child: Text(option['name']!),
-            );
-          }).toList(),
-          isExpanded: true,
-          underline: SizedBox(), // Remove the default underline
-        ),
-      ),
-    );
-  }
 
   // Add a state variable to hold the selected product type
   String selectedProductType = "2";
@@ -497,6 +231,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   @override
   Widget build(BuildContext context) {
     final productRef = ref.watch(unsavedProductProvider);
+
     return ViewModelBuilder<ScannViewModel>.reactive(
       viewModelBuilder: () => ScannViewModel(),
       onViewModelReady: (model) async {
@@ -564,12 +299,52 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                       !ref.watch(isCompositeProvider)
                           ? scanField(model, productRef: productRef)
                           : SizedBox.shrink(),
-                      packagingDropDown(model),
+                      DropdownButtonWithLabel(
+                        label: "Packaging Unit",
+                        selectedValue: selectedPackageUnitValue,
+                        options: model.pkgUnits,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedPackageUnitValue = newValue!;
+                          });
+                        },
+                      ),
 
-                      _productTypeDropDown(context),
+                      // _productTypeDropDown(context),
+                      ProductTypeDropdown(
+                        selectedValue: selectedProductType,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedProductType = newValue!;
+                          });
+                        },
+                      ),
+                      CountryOfOriginSelector(),
                       // previewName(model),
                       !ref.watch(isCompositeProvider)
-                          ? TableVariants(model, context)
+                          ? TableVariants(
+                              unversalProducts:
+                                  ref.watch(universalProductsNames).value,
+                              units:
+                                  ref.watch(unitsProvider).value?.value ?? [],
+                              scannedInputFocusNode: scannedInputFocusNode,
+                              unitOfMeasures: [],
+                              model: model,
+                              onUnitOfMeasureChanged: (newValue) {
+                                if (newValue != null) {
+                                  // Loop through model.scannedVariants
+                                  for (var scannedVariant
+                                      in model.scannedVariants) {
+                                    // Find the related variant based on some criteria
+                                    // For example, matching variant.id
+
+                                    // Update the variant.unit with the value of newValue
+                                    scannedVariant.unit = newValue;
+                                    break; // Exit the loop since the variant is found and updated
+                                  }
+                                }
+                              },
+                            )
                           : SizedBox.shrink(),
                       ref.watch(isCompositeProvider)
                           ? Fieldcompositeactivated(
@@ -910,15 +685,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     );
   }
 
-  Padding packagingDropDown(ScannViewModel model) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: model.EBMenabled
-          ? _buildDropdownButton(model)
-          : const SizedBox.shrink(),
-    );
-  }
-
   Padding scanField(ScannViewModel model, {Product? productRef}) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -932,33 +698,51 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
         ),
         textInputAction: TextInputAction.done,
+        validator: (value) {
+          final retailPrice = double.tryParse(retailPriceController.text);
+          final supplyPrice = double.tryParse(supplyPriceController.text);
+
+          if (retailPrice == null) {
+            return 'Retail Price cannot be null or invalid';
+          }
+          if (supplyPrice == null) {
+            return 'Supply Price cannot be null or invalid';
+          }
+
+          return null;
+        },
         onFieldSubmitted: (barCodeInput) {
-          _inputTimer?.cancel();
-          talker.warning("Starting timer for barcode: ${barCodeInput.trim()}");
-
-          _inputTimer = Timer(const Duration(seconds: 1), () {
+          if (Form.of(scannedInputFocusNode.context!).validate()) {
+            _inputTimer?.cancel();
             talker
-                .warning("Timer completed for barcode: ${barCodeInput.trim()}");
+                .warning("Starting timer for barcode: ${barCodeInput.trim()}");
 
-            if (barCodeInput.trim().isNotEmpty) {
-              try {
-                model.onAddVariant(
-                  editmode: widget.productId != null,
-                  barCode: barCodeInput,
-                  retailPrice: double.tryParse(retailPriceController.text) ?? 0,
-                  supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
-                  isTaxExempted: false,
-                  product: productRef!,
-                );
-                talker.warning("onAddVariant called successfully");
-              } catch (e, s) {
-                talker.error("Error in onAddVariant: $e", s);
+            _inputTimer = Timer(const Duration(seconds: 1), () {
+              talker.warning(
+                  "Timer completed for barcode: ${barCodeInput.trim()}");
+
+              if (barCodeInput.trim().isNotEmpty) {
+                try {
+                  model.onAddVariant(
+                    editmode: widget.productId != null,
+                    barCode: barCodeInput,
+                    retailPrice:
+                        double.tryParse(retailPriceController.text) ?? 0,
+                    supplyPrice:
+                        double.tryParse(supplyPriceController.text) ?? 0,
+                    isTaxExempted: false,
+                    product: productRef!,
+                  );
+                  talker.warning("onAddVariant called successfully");
+                } catch (e, s) {
+                  talker.error("Error in onAddVariant: $e", s);
+                }
+
+                scannedInputController.clear();
+                scannedInputFocusNode.requestFocus();
               }
-
-              scannedInputController.clear();
-              scannedInputFocusNode.requestFocus();
-            }
-          });
+            });
+          }
         },
         focusNode: scannedInputFocusNode,
       ),
@@ -1028,306 +812,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         ),
         keyboardType: TextInputType.number,
       ),
-    );
-  }
-
-  Map<String, bool> _selectedVariants = {};
-
-  Stack TableVariants(ScannViewModel model, BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                spreadRadius: 2,
-                blurRadius: 5,
-                offset: Offset(0, 3),
-              ),
-            ],
-          ),
-          margin: const EdgeInsets.all(8),
-          child: SizedBox(
-            height: 200,
-            child: ListView(
-              children: [
-                DataTable(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.grey[300]!,
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  columns: [
-                    DataColumn(
-                      label: Row(
-                        children: [
-                          Checkbox(
-                            value: _selectAll,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectAll = value!;
-                                _showDeleteButton = value;
-
-                                // Select or deselect all variants
-                                model.scannedVariants.forEach((variant) {
-                                  _selectedVariants[variant.id] = _selectAll;
-                                });
-                              });
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          const Text('All',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                    const DataColumn(
-                        label: Text('Name',
-                            style: TextStyle(fontWeight: FontWeight.bold))),
-                    const DataColumn(
-                        label: Text('Price',
-                            style: TextStyle(fontWeight: FontWeight.bold))),
-                    const DataColumn(
-                        label: Text('Date',
-                            style: TextStyle(fontWeight: FontWeight.bold))),
-                    const DataColumn(
-                        label: Text('Quantity',
-                            style: TextStyle(fontWeight: FontWeight.bold))),
-                    const DataColumn(
-                        label: Text('Tax',
-                            style: TextStyle(fontWeight: FontWeight.bold))),
-                    const DataColumn(
-                        label: Text('Unit',
-                            style: TextStyle(fontWeight: FontWeight.bold))),
-                    const DataColumn(
-                        label: Text('Classification',
-                            style: TextStyle(fontWeight: FontWeight.bold))),
-                    const DataColumn(
-                        label: Text('Discount',
-                            style: TextStyle(fontWeight: FontWeight.bold))),
-                    const DataColumn(
-                        label: Text('Expiration',
-                            style: TextStyle(fontWeight: FontWeight.bold))),
-                    const DataColumn(
-                        label: Text('Action',
-                            style: TextStyle(fontWeight: FontWeight.bold))),
-                  ],
-                  rows: model.scannedVariants.reversed.map((variant) {
-                    if (variant.stock == null) {
-                      ProxyService.strategy.saveStock(
-                        variant: variant,
-                        rsdQty: variant.qty!,
-                        productId: variant.productId!,
-                        variantId: variant.id,
-                        branchId: variant.branchId!,
-                        currentStock: variant.qty!,
-                        value:
-                            (variant.qty! * (variant.retailPrice!)).toDouble(),
-                      );
-
-                      // final stock =await ProxyService.strategy.getStockById(id: id);
-
-                      // ProxyService.strategy
-                      //     .addStockToVariant(variant: variant, stock: stock!);
-                    }
-                    bool isSelected = _selectedVariants[variant.id] ?? false;
-
-                    /// update the discount rate if we are in edit mode to have the value saved
-                    _rates[variant.id] = TextEditingController(
-                      text: variant.dcRt.toString(),
-                    );
-                    _dates[variant.id] = TextEditingController(
-                      text: variant.expirationDate?.toYYYMMdd() ?? "",
-                    );
-
-                    return DataRow(
-                      selected: isSelected, // Use selection status from map
-                      color: WidgetStateProperty.resolveWith<Color?>(
-                          (Set<WidgetState> states) {
-                        if (states.contains(WidgetState.selected)) {
-                          return Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withValues(alpha: .08);
-                        }
-                        return null;
-                      }),
-                      cells: [
-                        DataCell(
-                          Checkbox(
-                            value: isSelected,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedVariants[variant.id] = value!;
-                                _showDeleteButton =
-                                    _selectedVariants.containsValue(true);
-                              });
-                            },
-                          ),
-                        ),
-                        DataCell(Text(variant.bcd ?? variant.name)),
-                        DataCell(Text(variant.retailPrice!.toStringAsFixed(2))),
-                        DataCell(
-                          Text(
-                            variant.lastTouched == null
-                                ? ''
-                                : variant.lastTouched!.toLocal().toYYYMMdd(),
-                          ),
-                        ),
-                        DataCell(
-                          QuantityCell(
-                            quantity: variant.stock?.currentStock,
-                            onEdit: () {
-                              _showEditQuantityDialog(
-                                context,
-                                variant,
-                                model,
-                                () {
-                                  FocusScope.of(context)
-                                      .requestFocus(scannedInputFocusNode);
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                        DataCell(_buildTaxDropdown(context, variant, model)),
-                        DataCell(_buildUnitOfMeasureDropDown(
-                            context, variant, model)),
-                        DataCell(_buildUniversalProductDropDown(
-                            context, model, variant)),
-                        DataCell(
-                          TextFormField(
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              suffixText: '%',
-                              hintText: 'Enter Discount',
-                            ),
-                            controller: _rates[variant.id],
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            onChanged: (value) {
-                              // Parse the entered value to an integer; default to 0 if parsing fails
-                              final discount = int.tryParse(value) ?? 0;
-
-                              // Check if the parsed discount is outside the valid range (0 to 100)
-                              if (discount < 0 || discount > 100) {
-                                // If the value is invalid (less than 0 or greater than 100), reset the field to '0'
-                                _rates[variant.id]?.text = '0';
-                              } else {
-                                // If the value is valid, update the field with the entered value
-                                _rates[variant.id]?.text = value;
-                              }
-                            },
-                          ),
-                        ),
-                        DataCell(
-                          TextFormField(
-                            readOnly: true,
-                            decoration: InputDecoration(
-                              hintText: 'Select Date',
-                              suffixIcon: Icon(Icons.calendar_today),
-                            ),
-                            controller: _dates[variant.id],
-                            onTap: () async {
-                              // Open the date picker dialog
-                              DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(2023),
-                                lastDate: DateTime(2100),
-                              );
-
-                              if (pickedDate != null) {
-                                // Update the text controller with the selected date
-                                _dates[variant.id]?.text =
-                                    DateFormat('yyyy-MM-dd').format(pickedDate);
-                              }
-                              model.expirationDate = _dates[variant.id]?.text;
-                            },
-                          ),
-                        ),
-                        DataCell(
-                          IconButton(
-                            onPressed: () {
-                              model.removeVariant(id: variant.id);
-                            },
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.redAccent,
-                            ),
-                            tooltip: 'Delete',
-                          ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (_showDeleteButton)
-          Positioned(
-            top: 10,
-            right: 10,
-            child: ElevatedButton(
-              onPressed: () async {
-                bool confirmed = await showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Confirm Deletion'),
-                      content: const Text(
-                          'Are you sure you want to delete all variants?'),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(false);
-                          },
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(true);
-                          },
-                          child: const Text('Delete'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-
-                if (confirmed == true) {
-                  model.deleteAllVariants();
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              ),
-              child: const Flippertext(
-                'Delete',
-                color: Colors.white,
-              ),
-            ),
-          ),
-      ],
     );
   }
 }
