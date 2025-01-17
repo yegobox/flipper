@@ -18,7 +18,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   String _selectedPlan = 'Mobile';
   int _additionalDevices = 0;
   bool _isYearlyPlan = false;
-  double _totalPrice = kDebugMode ? 100 : 5000;
+  double _totalPrice = 5000;
   List<String> _additionalServices = [];
 
   // Add toggles for additional services
@@ -32,12 +32,12 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
       double basePrice;
       switch (_selectedPlan) {
         case 'Mobile':
-          basePrice = kDebugMode ? 100 : 5000;
-          if (_taxReporting) basePrice += kDebugMode ? 100 : 30000;
+          basePrice = 5000;
+          if (_taxReporting) basePrice += 30000;
           break;
         case 'Mobile + Desktop':
           basePrice = 120000;
-          if (_taxReporting) basePrice += kDebugMode ? 100 : 30000;
+          if (_taxReporting) basePrice += 30000;
           break;
 
         case 'Entreprise':
@@ -49,7 +49,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           if (_unlimitedBranches) basePrice += 600000;
           break;
         default:
-          basePrice = kDebugMode ? 100 : 5000;
+          basePrice = 5000;
       }
 
       if (_isYearlyPlan) {
@@ -129,11 +129,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         _buildPlanCard(
             'Mobile',
             'Mobile only',
-            _isYearlyPlan
-                ? '48,000 RWF/year'
-                : kDebugMode
-                    ? '100 RWF/month'
-                    : '5,000 RWF/month',
+            _isYearlyPlan ? '48,000 RWF/year' : '5,000 RWF/month',
             Icons.phone_iphone),
         SizedBox(height: 8),
         _buildPlanCard(
