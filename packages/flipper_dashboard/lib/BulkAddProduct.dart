@@ -26,6 +26,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
   final Map<String, String> _selectedTaxTypes = {};
   final Map<String, TextEditingController> _quantityControllers = {};
   final Map<String, String> _selectedProductTypes = {};
+  bool _isLoading = false; // Track loading state
 
   @override
   void initState() {
@@ -55,6 +56,9 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
   }
 
   Future<void> _selectFile() async {
+    setState(() {
+      _isLoading = true; // Start loading
+    });
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -64,15 +68,29 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
         setState(() {
           _selectedFile = result.files.first;
           _excelData = null;
+          _isLoading = false; // Stop loading
         });
         _parseExcelData();
+      } else {
+        setState(() {
+          _isLoading = false; // Stop loading if no file selected
+        });
       }
     } catch (e) {
       print('Error selecting file: $e');
+      setState(() {
+        _isLoading = false; // Stop loading on error
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting file: $e')),
+      );
     }
   }
 
   Future<void> _parseExcelData() async {
+    setState(() {
+      _isLoading = true; // Start loading during parsing
+    });
     try {
       if (_selectedFile != null) {
         late Excel excel;
@@ -141,11 +159,18 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
 
         setState(() {
           _excelData = data;
+          _isLoading = false; // Stop loading
         });
       }
     } catch (e, s) {
       print('Error parsing Excel data: $e');
       print('Error parsing Excel data: $s');
+      setState(() {
+        _isLoading = false; // Stop loading on error
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error parsing Excel data: $e')),
+      );
     }
   }
 
@@ -208,9 +233,10 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
             FlipperButton(
               textColor: Colors.black,
               onPressed: _selectFile,
-              text: 'Choose Excel File',
+              text: _selectedFile == null
+                  ? 'Choose Excel File'
+                  : 'Change Excel File', // Dynamic text based on file selection
             ),
-            const SizedBox(height: 24.0),
             if (_selectedFile != null)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -223,38 +249,45 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
                 ),
               ),
             const SizedBox(height: 16),
-            FlipperButton(
-              textColor: Colors.white,
-              color: Colors.blue,
-              onPressed: () async {
-                if (_excelData != null) {
-                  try {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (BuildContext context) {
-                        return const Center(child: CircularProgressIndicator());
-                      },
-                    );
-                    await _saveAll();
-                    Navigator.of(context, rootNavigator: true).pop('dialog');
-                  } catch (e) {
-                    Navigator.of(context, rootNavigator: true).pop('dialog');
+            if (_selectedFile != null) //Conditionally show 'Save All' button
+              FlipperButton(
+                textColor: Colors.white,
+                color: Colors.blue,
+                onPressed: () async {
+                  if (_excelData != null) {
+                    try {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        },
+                      );
+                      await _saveAll();
+                      Navigator.of(context, rootNavigator: true).pop('dialog');
+                    } catch (e) {
+                      Navigator.of(context, rootNavigator: true).pop('dialog');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error saving data: $e')),
+                      );
+                    }
+                  } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error saving data: $e')),
+                      const SnackBar(content: Text('No data to save')),
                     );
                   }
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('No data to save')),
-                  );
-                }
-              },
-              text: 'Save All',
-            ),
+                },
+                text: 'Save All',
+              ),
             const SizedBox(height: 24.0),
-            if (_excelData == null && _selectedFile != null)
-              const Center(child: CircularProgressIndicator()),
+            if (_isLoading) const Center(child: CircularProgressIndicator()),
+            if (_excelData == null && _selectedFile != null && !_isLoading)
+              const Center(
+                child: Text('Parsing Data...',
+                    style:
+                        TextStyle(fontSize: 16, fontStyle: FontStyle.italic)),
+              ),
             if (_excelData != null)
               Container(
                 decoration: BoxDecoration(
@@ -579,7 +612,7 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
           ),
         );
       },
-      loading: () => const CircularProgressIndicator(),
+      loading: () => Text('Loading...'),
       error: (error, stackTrace) => Text('Error: $error'),
     );
   }
