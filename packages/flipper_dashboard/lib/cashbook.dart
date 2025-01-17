@@ -2,8 +2,8 @@ import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/BuildGaugeOrList.dart';
@@ -114,8 +114,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        buildTransactionButton(
-          label: 'Cash In',
+        FlipperButton(
+          text: 'Cash In',
           color: Colors.green,
           onPressed: () {
             model.newTransactionPressed = true;
@@ -123,8 +123,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
             model.notifyListeners();
           },
         ),
-        buildTransactionButton(
-          label: TransactionType.cashOut,
+        FlipperButton(
+          text: TransactionType.cashOut,
           color: Color(0xFFFF0331),
           onPressed: () {
             model.newTransactionPressed = true;
@@ -133,54 +133,6 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           },
         ),
       ],
-    );
-  }
-
-  Widget buildTransactionButton({
-    required String label,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 15.0),
-      child: SizedBox(
-        height: 41,
-        width: 150,
-        child: OutlinedButton(
-          onPressed: onPressed,
-          style: ButtonStyle(
-            side: WidgetStateProperty.all<BorderSide>(
-              BorderSide(color: color),
-            ),
-            shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
-              (states) => RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-            ),
-            backgroundColor: WidgetStateProperty.all<Color>(color),
-            overlayColor: WidgetStateProperty.resolveWith<Color?>(
-              (Set<WidgetState> states) {
-                return color; // Defer to the widget's default.
-              },
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Icon(Icons.add, color: Colors.white),
-              Spacer(),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 

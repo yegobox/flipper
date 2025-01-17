@@ -90,7 +90,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     return Column(
       children: [
         Text(
-          double.parse(keypad).toRwf(),
+          double.tryParse(keypad)?.toRwf() ?? '0',
           style: GoogleFonts.poppins(
             fontSize: 40,
             fontWeight: FontWeight.w600,
