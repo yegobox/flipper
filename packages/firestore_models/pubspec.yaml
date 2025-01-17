@@ -31,7 +31,7 @@ dependency_overrides:
   meta: ^1.12.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^2.5.0
+  sqlite3: ^2.6.1
   stacked_services: ^1.6.0
 dev_dependencies:
   flutter_test:

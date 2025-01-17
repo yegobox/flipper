@@ -21,7 +21,6 @@ import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 import 'package:cbl/src/database/collection.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-import 'package:supabase_models/brick/models/all_models.dart' as brick;
 
 enum ClearData { Business, Branch }
 
