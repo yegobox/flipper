@@ -33,6 +33,7 @@ mixin ProductMixin {
       Map<String, TextEditingController>? dates,
       double? retailPrice,
       double? supplyPrice,
+     required String countryofOrigin,
       required String productName,
       required String selectedProductType}) async {
     ///loop variations add pkgUnitCd this come from UI but a lot of
@@ -67,12 +68,12 @@ mixin ProductMixin {
         variations[i].expirationDate = dates?[variations[i].id] == null
             ? null
             : DateTime.tryParse(dates![variations[i].id]!.text);
-
+        
         variations[i].color = currentColor;
         variations[i].pkg = 1;
         variations[i].itemCd = await ProxyService.strategy.itemCode(
-            countryCode: "RW",
-            productType: "2",
+            countryCode: countryofOrigin,
+            productType: selectedProductType,
             branchId: ProxyService.box.getBranchId()!,
             packagingUnit: packagingUnit,
             quantityUnit: "CT");

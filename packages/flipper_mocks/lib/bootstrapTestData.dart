@@ -52,6 +52,7 @@ class CreateMockdata {
   Future<void> createAndSaveMockStockRequests() async {
     // Create a product first
     Product? product = await ProxyService.strategy.createProduct(
+        createItemCode: true,
         bhFId: "00",
         tinNumber: 111,
         branchId: 1,

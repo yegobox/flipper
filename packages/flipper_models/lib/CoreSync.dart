@@ -237,15 +237,24 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
     try {
       for (Map map in units) {
-        final unit = IUnit(
-            active: map['active'],
-            branchId: branchId,
-            name: map['name'],
-            lastTouched: DateTime.now(),
-            value: map['value']);
+        final existingUnit = (await repository.get<IUnit>(
+                query: brick.Query(where: [
+          brick.Where('name').isExactly(map['name']),
+          brick.Where('branchId').isExactly(branchId),
+        ])))
+            .firstOrNull;
 
-        // Add the unit to Realm
-        await repository.upsert<IUnit>(unit);
+        if (existingUnit == null) {
+          final unit = IUnit(
+              active: map['active'],
+              branchId: branchId,
+              name: map['name'],
+              lastTouched: DateTime.now(),
+              value: map['value']);
+
+          // Add the unit to db
+          await repository.upsert<IUnit>(unit);
+        }
       }
 
       return 200;
@@ -546,6 +555,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       required double retailPrice,
       required int itemSeq,
       String? bhFId,
+      bool createItemCode = false,
       required bool ebmSynced,
       Product? product,
       required String productId,
@@ -608,13 +618,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       pkg: pkg ?? 1,
       splyAmt: supplierPrice,
       itemClsCd: "5020230602",
-      itemCd: await itemCode(
-        countryCode: orgnNatCd ?? "RW",
-        productType: "2",
-        packagingUnit: "CT",
-        quantityUnit: "BJ",
-        branchId: branchId,
-      ),
+      itemCd: createItemCode
+          ? await itemCode(
+              countryCode: orgnNatCd ?? "RW",
+              productType: "2",
+              packagingUnit: "CT",
+              quantityUnit: "BJ",
+              branchId: branchId,
+            )
+          : null,
       modrNm: name,
       modrId: number,
       pkgUnitCd: pkgUnitCd ?? "BJ",
@@ -693,6 +705,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       double supplyPrice = 0,
       double retailPrice = 0,
       int itemSeq = 1,
+      required bool createItemCode,
       bool ebmSynced = false}) async {
     try {
       final String productName = product.name;
@@ -717,6 +730,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           orgnNatCd: orgnNatCd,
           exptNatCd: exptNatCd,
           pkg: pkg,
+          createItemCode: createItemCode,
           taxTypes: taxTypes,
           itemClasses: itemClasses,
           itemTypes: itemTypes,
@@ -1251,6 +1265,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       product = await createProduct(
           tinNumber: tinNumber,
           bhFId: bhFId,
+          createItemCode: true,
           branchId: branchId,
           businessId: businessId,
           product: models.Product(
@@ -2299,10 +2314,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
       // get last request date
       final lastReqDate = await repository.get<ImportPurchaseDates>(
+          policy: OfflineFirstGetPolicy.alwaysHydrate,
           query: brick.Query(where: [
-        brick.Where('branchId').isExactly(activeBranch!.id),
-        brick.Where('lastRequestDate').isExactly(lastReqDt)
-      ]));
+            brick.Where('branchId').isExactly(activeBranch!.id),
+            brick.Where('lastRequestDate').isExactly(lastReqDt)
+          ]));
 
       /// if is same date do nothing
       if (lastReqDate.isNotEmpty) {
@@ -2351,6 +2367,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           qty: item.qty ?? 1,
           qtyUnitCd: item.qtyUnitCd,
           pkgUnitCd: "BJ",
+          createItemCode: true,
           dclNo: item.dclNo,
           taskCd: item.taskCd,
           dclDe: item.dclDe,
@@ -4589,6 +4606,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           businessId: ProxyService.box.getBusinessId()!,
           branchId: ProxyService.box.getBranchId()!,
           totWt: item.totWt,
+          createItemCode: true,
           netWt: item.netWt,
           spplrNm: item.spplrNm,
           agntNm: item.agntNm,
@@ -4935,5 +4953,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<models.CustomerPayments> upsertPayment(
       models.CustomerPayments payment) async {
     return await repository.upsert<CustomerPayments>(payment);
+  }
+
+  @override
+  Future<List<Country>> countries() async {
+    return await repository.get<Country>(
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
   }
 }

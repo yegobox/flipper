@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_dashboard/AddProductDialog.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
@@ -15,7 +16,6 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_ui/style_widget/button.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -298,54 +298,6 @@ class SearchFieldState extends ConsumerState<SearchField>
             );
           }
         },
-      ),
-    );
-  }
-}
-
-class AddProductDialog extends StatelessWidget {
-  final Function(bool) onChoiceSelected;
-
-  const AddProductDialog({Key? key, required this.onChoiceSelected})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4),
-      ),
-      title: const Center(
-        child: Text('Add Product',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            )),
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Add some padding to the dialog content
-          const SizedBox(height: 16),
-          FlipperButton(
-            textColor: Colors.black,
-            onPressed: () {
-              Navigator.of(context).pop();
-              onChoiceSelected(false); // Classic add
-            },
-            text: 'Add Product (Classic)',
-          ),
-          const SizedBox(height: 16),
-          FlipperButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              onChoiceSelected(true); // Bulk add
-            },
-            textColor: Colors.black,
-            text: 'Bulk Add Product',
-          ),
-          const SizedBox(height: 16),
-        ],
       ),
     );
   }

@@ -945,6 +945,7 @@ class CoreViewModel extends FlipperBaseModel
               "Retail Prices while saving item in our DB:: ${item.retailPrice}");
 
           brick.Product? product = await ProxyService.strategy.createProduct(
+            createItemCode: true,
             businessId: ProxyService.box.getBusinessId()!,
             branchId: ProxyService.box.getBranchId()!,
             tinNumber: ProxyService.box.tin(),

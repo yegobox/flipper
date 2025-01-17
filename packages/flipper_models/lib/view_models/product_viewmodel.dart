@@ -111,6 +111,7 @@ class ProductViewModel extends FlipperBaseModel
 
       /// create a temp product or return it if it exists
       Product? product = await ProxyService.strategy.createProduct(
+        createItemCode: true,
         tinNumber: ProxyService.box.tin(),
         bhFId: (await ProxyService.box.bhfId()) ?? "00",
         businessId: ProxyService.box.getBusinessId()!,

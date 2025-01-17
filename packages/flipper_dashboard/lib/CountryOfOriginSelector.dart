@@ -1,26 +1,26 @@
-
+import 'package:flipper_models/providers/country_provider.dart';
 import 'package:flutter/material.dart';
 
-class CountryOfOriginSelector extends StatefulWidget {
-  @override
-  _CountryOfOriginSelectorState createState() => _CountryOfOriginSelectorState();
-}
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:supabase_models/brick/models/all_models.dart';
 
-class _CountryOfOriginSelectorState extends State<CountryOfOriginSelector> {
-  // List of countries
-  final List<Map<String, String>> countries = [
-    {"name": "United States", "code": "US"},
-    {"name": "United Kingdom", "code": "UK"},
-    {"name": "Canada", "code": "CA"},
-    {"name": "India", "code": "IN"},
-    {"name": "Germany", "code": "DE"},
-  ];
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-  // State variable to hold the selected country code
-  String? selectedCountry;
+final selectedCountryProvider = StateProvider<String?>((ref) => null);
+
+class CountryOfOriginSelector extends ConsumerWidget {
+  final void Function(Country) onCountrySelected;
+
+  const CountryOfOriginSelector({
+    Key? key,
+    required this.onCountrySelected,
+  }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final countriesAsyncValue = ref.watch(countriesProvider);
+    final selectedCountryCode = ref.watch(selectedCountryProvider);
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Container(
@@ -29,24 +29,44 @@ class _CountryOfOriginSelectorState extends State<CountryOfOriginSelector> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.grey),
         ),
-        child: DropdownButton<String>(
-          value: selectedCountry,
-          onChanged: (String? newValue) {
-            if (newValue != null) {
-              setState(() {
-                selectedCountry = newValue; // Update selected country
+        child: countriesAsyncValue.when(
+          data: (countries) {
+            // Select first item if nothing is selected
+            if (selectedCountryCode == null && countries.isNotEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                final firstCountry = countries.first;
+                onCountrySelected(firstCountry);
+                ref.read(selectedCountryProvider.notifier).state =
+                    firstCountry.code;
               });
             }
-          },
-          items: countries.map((country) {
-            return DropdownMenuItem<String>(
-              value: country['code'],
-              child: Text(country['name']!),
+
+            return DropdownButton<String>(
+              value: selectedCountryCode ??
+                  (countries.isNotEmpty ? countries.first.code : null),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  final selectedCountry = countries.firstWhere(
+                    (country) => country.code == newValue,
+                  );
+                  onCountrySelected(selectedCountry);
+                  ref.read(selectedCountryProvider.notifier).state = newValue;
+                }
+              },
+              items: countries.map((country) {
+                return DropdownMenuItem<String>(
+                  value: country.code,
+                  child: Text(
+                      '${country.name} (${country.code})'), // Show both name and code
+                );
+              }).toList(),
+              isExpanded: true,
+              underline: const SizedBox(),
+              hint: const Text("Select Country of Origin"),
             );
-          }).toList(),
-          isExpanded: true,
-          underline: const SizedBox(), // Remove the default underline
-          hint: const Text("Select Country of Origin"), // Placeholder text
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => const Text("Failed to load countries"),
         ),
       ),
     );

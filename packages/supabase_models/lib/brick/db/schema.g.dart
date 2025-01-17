@@ -1,43 +1,46 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250114144814.migration.dart';
 part '20250104131208.migration.dart';
+part '20250111130254.migration.dart';
 part '20250102092703.migration.dart';
 part '20250102092919.migration.dart';
 part '20250102125905.migration.dart';
+part '20250114092913.migration.dart';
+part '20250110094310.migration.dart';
 part '20250101092622.migration.dart';
+part '20250114144814.migration.dart';
 part '20250102130727.migration.dart';
 part '20250102124844.migration.dart';
 part '20250102110336.migration.dart';
 part '20250102144742.migration.dart';
-part '20250109125327.migration.dart';
-part '20250110094310.migration.dart';
-part '20250111130254.migration.dart';
-part '20250114092913.migration.dart';
 part '20250114114345.migration.dart';
+part '20250109125327.migration.dart';
+part '20250117141102.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250114144814(),
   const Migration20250104131208(),
+  const Migration20250111130254(),
   const Migration20250102092703(),
   const Migration20250102092919(),
   const Migration20250102125905(),
+  const Migration20250114092913(),
+  const Migration20250110094310(),
   const Migration20250101092622(),
+  const Migration20250114144814(),
   const Migration20250102130727(),
   const Migration20250102124844(),
   const Migration20250102110336(),
   const Migration20250102144742(),
+  const Migration20250114114345(),
   const Migration20250109125327(),
-  const Migration20250110094310(),
-  const Migration20250111130254(),
-  const Migration20250114092913(),
-  const Migration20250114114345()
+  const Migration20250117141102()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250114144814, generatorVersion: 1, tables: <SchemaTable>{
+final schema =
+    Schema(20250117141102, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -48,6 +51,16 @@ final schema = Schema(20250114144814, generatorVersion: 1, tables: <SchemaTable>
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true),
     SchemaIndex(columns: ['code'], unique: false)
+  }),
+  SchemaTable('ImportPurchaseDates', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('last_request_date', Column.varchar),
+    SchemaColumn('branch_id', Column.varchar),
+    SchemaColumn('request_type', Column.varchar)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
   }),
   SchemaTable('Stock', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
@@ -137,6 +150,18 @@ final schema = Schema(20250114144814, generatorVersion: 1, tables: <SchemaTable>
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
+  SchemaTable('CustomerPayments', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('customer_id', Column.varchar),
+    SchemaColumn('phone_number', Column.varchar),
+    SchemaColumn('payment_status', Column.varchar),
+    SchemaColumn('transaction_id', Column.varchar),
+    SchemaColumn('amount_payable', Column.Double)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('ITransaction', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -222,6 +247,59 @@ final schema = Schema(20250114144814, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('active', Column.boolean),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
+  SchemaTable('SaleList', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('spplr_tin', Column.varchar),
+    SchemaColumn('spplr_nm', Column.varchar),
+    SchemaColumn('spplr_bhf_id', Column.varchar),
+    SchemaColumn('spplr_invc_no', Column.integer),
+    SchemaColumn('rcpt_ty_cd', Column.varchar),
+    SchemaColumn('pmt_ty_cd', Column.varchar),
+    SchemaColumn('cfm_dt', Column.varchar),
+    SchemaColumn('sales_dt', Column.varchar),
+    SchemaColumn('stock_rls_dt', Column.varchar),
+    SchemaColumn('tot_item_cnt', Column.integer),
+    SchemaColumn('taxbl_amt_a', Column.Double),
+    SchemaColumn('taxbl_amt_b', Column.Double),
+    SchemaColumn('taxbl_amt_c', Column.Double),
+    SchemaColumn('taxbl_amt_d', Column.Double),
+    SchemaColumn('tax_rt_a', Column.Double),
+    SchemaColumn('tax_rt_b', Column.Double),
+    SchemaColumn('tax_rt_c', Column.Double),
+    SchemaColumn('tax_rt_d', Column.Double),
+    SchemaColumn('tax_amt_a', Column.Double),
+    SchemaColumn('tax_amt_b', Column.Double),
+    SchemaColumn('tax_amt_c', Column.Double),
+    SchemaColumn('tax_amt_d', Column.Double),
+    SchemaColumn('tot_taxbl_amt', Column.Double),
+    SchemaColumn('tot_tax_amt', Column.Double),
+    SchemaColumn('tot_amt', Column.Double),
+    SchemaColumn('remark', Column.varchar)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
+  SchemaTable('Country', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('name', Column.varchar),
+    SchemaColumn('sort_order', Column.integer),
+    SchemaColumn('description', Column.varchar),
+    SchemaColumn('code', Column.varchar)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
+  SchemaTable('BranchPaymentIntegration', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('branch_id', Column.varchar),
+    SchemaColumn('is_enabled', Column.boolean)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
@@ -852,70 +930,6 @@ final schema = Schema(20250114144814, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer)
-  }, indices: <SchemaIndex>{
-    SchemaIndex(columns: ['id'], unique: true)
-  }),
-  SchemaTable('ImportPurchaseDates', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('id', Column.varchar, unique: true),
-    SchemaColumn('last_request_date', Column.varchar),
-    SchemaColumn('branch_id', Column.varchar),
-    SchemaColumn('request_type', Column.varchar)
-  }, indices: <SchemaIndex>{
-    SchemaIndex(columns: ['id'], unique: true)
-  }),
-  SchemaTable('SaleList', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('id', Column.varchar, unique: true),
-    SchemaColumn('spplr_tin', Column.varchar),
-    SchemaColumn('spplr_nm', Column.varchar),
-    SchemaColumn('spplr_bhf_id', Column.varchar),
-    SchemaColumn('spplr_invc_no', Column.integer),
-    SchemaColumn('rcpt_ty_cd', Column.varchar),
-    SchemaColumn('pmt_ty_cd', Column.varchar),
-    SchemaColumn('cfm_dt', Column.varchar),
-    SchemaColumn('sales_dt', Column.varchar),
-    SchemaColumn('stock_rls_dt', Column.varchar),
-    SchemaColumn('tot_item_cnt', Column.integer),
-    SchemaColumn('taxbl_amt_a', Column.Double),
-    SchemaColumn('taxbl_amt_b', Column.Double),
-    SchemaColumn('taxbl_amt_c', Column.Double),
-    SchemaColumn('taxbl_amt_d', Column.Double),
-    SchemaColumn('tax_rt_a', Column.Double),
-    SchemaColumn('tax_rt_b', Column.Double),
-    SchemaColumn('tax_rt_c', Column.Double),
-    SchemaColumn('tax_rt_d', Column.Double),
-    SchemaColumn('tax_amt_a', Column.Double),
-    SchemaColumn('tax_amt_b', Column.Double),
-    SchemaColumn('tax_amt_c', Column.Double),
-    SchemaColumn('tax_amt_d', Column.Double),
-    SchemaColumn('tot_taxbl_amt', Column.Double),
-    SchemaColumn('tot_tax_amt', Column.Double),
-    SchemaColumn('tot_amt', Column.Double),
-    SchemaColumn('remark', Column.varchar)
-  }, indices: <SchemaIndex>{
-    SchemaIndex(columns: ['id'], unique: true)
-  }),
-  SchemaTable('BranchPaymentIntegration', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('id', Column.varchar, unique: true),
-    SchemaColumn('branch_id', Column.varchar),
-    SchemaColumn('is_enabled', Column.boolean)
-  }, indices: <SchemaIndex>{
-    SchemaIndex(columns: ['id'], unique: true)
-  }),
-  SchemaTable('CustomerPayments', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('id', Column.varchar, unique: true),
-    SchemaColumn('customer_id', Column.varchar),
-    SchemaColumn('phone_number', Column.varchar),
-    SchemaColumn('payment_status', Column.varchar),
-    SchemaColumn('transaction_id', Column.varchar),
-    SchemaColumn('amount_payable', Column.Double)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   })

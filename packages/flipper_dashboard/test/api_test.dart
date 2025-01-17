@@ -23,6 +23,7 @@ void main() {
 
     test('Add product into realm db', () async {
       Product? product = await realm.createProduct(
+          createItemCode: true,
           bhFId: "00",
           tinNumber: 111,
           branchId: 1,

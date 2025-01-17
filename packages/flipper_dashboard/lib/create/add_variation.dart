@@ -213,6 +213,7 @@ class _AddVariationState extends State<AddVariation> {
     variations.add(data);
 
     await model.addVariant(
+      countryofOrigin: "RW",
       selectedProductType: selectedProductType,
       packagingUnit: "BJ",
       productName: productName,

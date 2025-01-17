@@ -130,13 +130,15 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
   final talker = TalkerFlutter.init();
 
-  Future<void> onAddVariant(
+  Future<void> onScanItem(
       {required String barCode,
       required bool isTaxExempted,
       required Product product,
       required double retailPrice,
       required double supplyPrice,
-      required bool editmode}) async {
+      required bool editmode,
+     
+      required String countryCode}) async {
     int branchId = ProxyService.box.getBranchId()!;
     Business? business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
@@ -165,7 +167,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       prc: retailPrice,
       qty: 1,
       dcRt: 0,
-
+      
       // bcd is bar code
       bcd: barCode,
       sku: barCode,
@@ -199,11 +201,13 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     notifyListeners();
   }
 
-  Future<Product?> createProduct({required String name}) async {
+  Future<Product?> createProduct(
+      {required String name, required bool createItemCode}) async {
     int businessId = ProxyService.box.getBusinessId()!;
     int branchId = ProxyService.box.getBranchId()!;
     String bhfid = (await ProxyService.box.bhfId()) ?? "00";
     return await ProxyService.strategy.createProduct(
+      createItemCode: false,
       tinNumber: ProxyService.box.tin(),
       bhFId: bhfid,
       businessId: ProxyService.box.getBusinessId()!,

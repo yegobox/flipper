@@ -173,6 +173,7 @@ abstract class RealmInterface {
       String? taskCd,
       String? dclDe,
       String? hsCd,
+      required bool createItemCode,
       String? imptItemsttsCd,
       required int businessId,
       required int branchId,
@@ -843,4 +844,6 @@ abstract class RealmInterface {
 
   /// Deletes a CustomerPayment by its ID
   Future<void> deletePaymentById(String id);
+
+  Future<List<Country>> countries();
 }

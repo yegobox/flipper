@@ -81,15 +81,7 @@ class ForceDataEntryService {
       createCategory(name: name, branchId: branchid);
     }
 
-    List<IUnit> kUnits = await ProxyService.strategy.units(branchId: branchid);
-
-    if (kUnits.isEmpty) {
-      try {
-        await ProxyService.strategy.addUnits(units: mockUnits);
-      } catch (e) {
-        talker.critical(e);
-      }
-    }
+    ProxyService.strategy.addUnits(units: mockUnits);
 
     /// bootstrap tax if not bootstraped
     for (String item in ["A", "B", "C", "D"]) {

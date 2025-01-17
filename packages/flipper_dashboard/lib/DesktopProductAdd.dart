@@ -124,6 +124,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   TextEditingController productNameController = TextEditingController();
   TextEditingController retailPriceController = TextEditingController();
   TextEditingController supplyPriceController = TextEditingController();
+  TextEditingController countryOfOriginController = TextEditingController();
   TextEditingController scannedInputController = TextEditingController();
   TextEditingController barCodeController = TextEditingController();
   TextEditingController skuController = TextEditingController();
@@ -172,6 +173,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     } else {
       await model.addVariant(
           productName: model.kProductName!,
+          countryofOrigin: countryOfOriginController.text.isEmpty
+              ? "RW"
+              : countryOfOriginController.text,
           rates: _rates,
           dates: _dates,
           retailPrice: double.tryParse(retailPriceController.text) ?? 0,
@@ -266,7 +270,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           }
         } else {
           // If productId is not given, create a new product
-          Product? product = await model.createProduct(name: TEMP_PRODUCT);
+          Product? product = await model.createProduct(
+            name: TEMP_PRODUCT,
+            createItemCode: false,
+          );
           ref
               .read(unsavedProductProvider.notifier)
               .emitProduct(value: product!);
@@ -319,7 +326,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           });
                         },
                       ),
-                      CountryOfOriginSelector(),
+                      CountryOfOriginSelector(
+                        onCountrySelected: (Country country) {
+                          print("Selected country: ${country.name}");
+                          countryOfOriginController.text = country.code;
+                        },
+                      ),
                       // previewName(model),
                       !ref.watch(isCompositeProvider)
                           ? TableVariants(
@@ -723,7 +735,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
               if (barCodeInput.trim().isNotEmpty) {
                 try {
-                  model.onAddVariant(
+                  model.onScanItem(
+                    countryCode: countryOfOriginController.text.isEmpty == true
+                        ? "RW"
+                        : countryOfOriginController.text,
                     editmode: widget.productId != null,
                     barCode: barCodeInput,
                     retailPrice:
