@@ -290,7 +290,7 @@ abstract class RealmInterface {
   });
   Future<Stock> getStockById({required String id});
 
-  Future<Variant?> getVariantById({String? id, String? modrId});
+  Future<Variant?> getVariantById({String? id, String? modrId,String? name, String? bcd});
   Future<bool> isTaxEnabled({required int businessId});
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,

@@ -1702,12 +1702,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<brick.Variant?> getVariantById({String? id, String? modrId}) {
-    // TODO: implement getVariantById
-    throw UnimplementedError();
-  }
-
-  @override
   Future<brick.Variant> createVariant(
       {required String barCode,
       required int sku,
@@ -1759,54 +1753,94 @@ class Capella with Booting implements RealmInterface {
     throw UnimplementedError();
   }
 
-  
   @override
   FutureOr<bool> isBranchEnableForPayment({required String currentBranchId}) {
     // TODO: implement isBranchEnableForPayment
     throw UnimplementedError();
   }
-  
+
   @override
-  FutureOr<void> setBranchPaymentStatus({required String currentBranchId, required bool status}) {
+  FutureOr<void> setBranchPaymentStatus(
+      {required String currentBranchId, required bool status}) {
     // TODO: implement setBranchPaymentStatus
     throw UnimplementedError();
   }
-  
+
   @override
   Future<void> deletePaymentById(String id) {
     // TODO: implement deletePaymentById
     throw UnimplementedError();
   }
-  
+
   @override
   Future<List<brick.CustomerPayments>> getAllPayments() {
     // TODO: implement getAllPayments
     throw UnimplementedError();
   }
-  
+
   @override
   Future<brick.CustomerPayments?> getPaymentById(String id) {
     // TODO: implement getPaymentById
     throw UnimplementedError();
   }
-  
+
   @override
   Future<brick.CustomerPayments> upsertPayment(brick.CustomerPayments payment) {
     // TODO: implement upsertPayment
     throw UnimplementedError();
   }
-  
-  
-  
+
   @override
   Future<List<brick.Country>> countries() {
     // TODO: implement countries
     throw UnimplementedError();
   }
-  
+
   @override
-  Future<brick.Product?> createProduct({required brick.Product product, String? modrId, String? orgnNatCd, String? exptNatCd, int? pkg, String? pkgUnitCd, String? spplrItemClsCd, String? spplrItemCd, String? qtyUnitCd, int? totWt, int? netWt, String? spplrNm, String? agntNm, int? invcFcurAmt, String? invcFcurCd, double? invcFcurExcrt, String? dclNo, String? taskCd, String? dclDe, String? hsCd, required bool createItemCode, String? imptItemsttsCd, required int businessId, required int branchId, required int tinNumber, required String bhFId, Map<String, String>? taxTypes, Map<String, String>? itemClasses, Map<String, String>? itemTypes, bool skipRegularVariant = false, double qty = 1, double supplyPrice = 0, double retailPrice = 0, int itemSeq = 1, bool ebmSynced = false}) {
+  Future<brick.Product?> createProduct(
+      {required brick.Product product,
+      String? modrId,
+      String? orgnNatCd,
+      String? exptNatCd,
+      int? pkg,
+      String? pkgUnitCd,
+      String? spplrItemClsCd,
+      String? spplrItemCd,
+      String? qtyUnitCd,
+      int? totWt,
+      int? netWt,
+      String? spplrNm,
+      String? agntNm,
+      int? invcFcurAmt,
+      String? invcFcurCd,
+      double? invcFcurExcrt,
+      String? dclNo,
+      String? taskCd,
+      String? dclDe,
+      String? hsCd,
+      required bool createItemCode,
+      String? imptItemsttsCd,
+      required int businessId,
+      required int branchId,
+      required int tinNumber,
+      required String bhFId,
+      Map<String, String>? taxTypes,
+      Map<String, String>? itemClasses,
+      Map<String, String>? itemTypes,
+      bool skipRegularVariant = false,
+      double qty = 1,
+      double supplyPrice = 0,
+      double retailPrice = 0,
+      int itemSeq = 1,
+      bool ebmSynced = false}) {
     // TODO: implement createProduct
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Variant?> getVariantById(
+      {String? id, String? modrId, String? name, String? bcd}) {
+    // TODO: implement getVariantById
     throw UnimplementedError();
   }
 }

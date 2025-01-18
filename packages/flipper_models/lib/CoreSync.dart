@@ -583,7 +583,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       Map<String, String>? itemClasses,
       Map<String, String>? itemTypes,
       required int sku,
-      models.Configurations? taxType}) async {
+      models.Configurations? taxType,
+      String? bcd}) async {
     final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
 
@@ -641,8 +642,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       itemNm: product?.name ?? name,
       taxPercentage: taxType?.taxPercentage ?? 18.0,
       tin: tinNumber,
-      bcd: (product?.name ?? name)
-          .substring(0, min((product?.name ?? name).length, 20)),
+      bcd: bcd ??
+          (product?.name ?? name)
+              .substring(0, min((product?.name ?? name).length, 20)),
 
       /// country of origin for this item we default until we support something different
       /// and this will happen when we do import.
@@ -757,6 +759,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           sku: sku.sku!,
           productId: product.id,
           itemSeq: itemSeq,
+          bcd: product.barCode,
           ebmSynced: ebmSynced,
           spplrItemCd: spplrItemCd,
           spplrItemClsCd: spplrItemClsCd,
@@ -2918,7 +2921,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<List<UnversalProduct>> universalProductNames(
       {required int branchId}) async {
     return repository.get<UnversalProduct>(
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
         query:
             brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
   }
@@ -3543,12 +3546,17 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Variant?> getVariantById({String? id, String? modrId}) async {
+  Future<Variant?> getVariantById(
+      {String? id, String? modrId, String? name, String? bcd}) async {
     final query = brick.Query(where: [
       if (id != null)
         brick.Where('id', value: id, compare: brick.Compare.exact),
       if (modrId != null)
         brick.Where('modrId', value: modrId, compare: brick.Compare.exact),
+      if (name != null)
+        brick.Where('name', value: name, compare: brick.Compare.exact),
+      if (bcd != null)
+        brick.Where('bcd', value: bcd, compare: brick.Compare.exact),
     ]);
     return (await repository.get<Variant>(query: query)).firstOrNull;
   }
@@ -4600,51 +4608,68 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         Business? business = await getBusiness(businessId: businessId);
 
         talker.warning("ItemClass${itemClasses[item.barCode] ?? "5020230602"}");
-
-        await createProduct(
-          bhFId: bhfId ?? "00",
-          tinNumber: business?.tinNumber ?? 111111,
-          businessId: ProxyService.box.getBusinessId()!,
-          branchId: ProxyService.box.getBranchId()!,
-          totWt: item.totWt,
-          createItemCode: true,
-          netWt: item.netWt,
-          spplrNm: item.spplrNm,
-          agntNm: item.agntNm,
-          invcFcurAmt: item.invcFcurAmt,
-          invcFcurCd: item.invcFcurCd,
-          invcFcurExcrt: item.invcFcurExcrt,
-          exptNatCd: item.exptNatCd,
-          pkg: item.pkg ?? 1,
-          qty: item.qty ?? 1,
-          qtyUnitCd: item.qtyUnitCd,
-          pkgUnitCd: "BJ",
-          dclNo: item.dclNo,
-          taskCd: item.taskCd,
-          dclDe: item.dclDe,
-          orgnNatCd: item.orgnNatCd,
-          hsCd: item.hsCd,
-          imptItemsttsCd: item.imptItemSttsCd,
-          taxTypes: taxTypes,
-          itemClasses: itemClasses,
-          itemTypes: itemTypes,
-          product: Product(
-            color: randomizeColor(),
-            name: item.itemNm ?? item.name,
-            lastTouched: DateTime.now(),
-            branchId: branchId,
-            businessId: businessId,
-            createdAt: DateTime.now(),
+        // is this exist using name
+        Variant? variant = await getVariantById(name: item.name);
+        if (variant != null) {
+          variant.bcd = item.barCode;
+          variant.name = item.name;
+          variant.color = randomizeColor();
+          variant.lastTouched = DateTime.now();
+          //get stock
+          Stock? stock = await getStockById(id: variant.id);
+          stock.currentStock = double.parse(quantitis[item.barCode] ?? "0");
+          stock.rsdQty = double.parse(quantitis[item.barCode] ?? "0");
+          stock.initialStock = double.parse(quantitis[item.barCode] ?? "0");
+          //upsert
+          repository.upsert(stock);
+          repository.upsert(variant);
+        } else {
+          await createProduct(
+            bhFId: bhfId ?? "00",
+            tinNumber: business?.tinNumber ?? 111111,
+            businessId: ProxyService.box.getBusinessId()!,
+            branchId: ProxyService.box.getBranchId()!,
+            totWt: item.totWt,
+            createItemCode: true,
+            netWt: item.netWt,
             spplrNm: item.spplrNm,
-            barCode: item.barCode,
-          ),
-          supplyPrice: item.supplyPrice ?? 0,
-          retailPrice: item.retailPrice ?? 0,
-          itemSeq: item.itemSeq ?? 1,
-          ebmSynced: false,
-          spplrItemCd: item.hsCd,
-          spplrItemClsCd: item.hsCd,
-        );
+            agntNm: item.agntNm,
+            invcFcurAmt: item.invcFcurAmt,
+            invcFcurCd: item.invcFcurCd,
+            invcFcurExcrt: item.invcFcurExcrt,
+            exptNatCd: item.exptNatCd,
+            pkg: item.pkg ?? 1,
+            qty: item.qty ?? 1,
+            qtyUnitCd: item.qtyUnitCd,
+            pkgUnitCd: "BJ",
+            dclNo: item.dclNo,
+            taskCd: item.taskCd,
+            dclDe: item.dclDe,
+            orgnNatCd: item.orgnNatCd,
+            hsCd: item.hsCd,
+            imptItemsttsCd: item.imptItemSttsCd,
+            taxTypes: taxTypes,
+            itemClasses: itemClasses,
+            itemTypes: itemTypes,
+            // barCode: item.barCode,
+            product: Product(
+              color: randomizeColor(),
+              name: item.itemNm ?? item.name,
+              lastTouched: DateTime.now(),
+              branchId: branchId,
+              businessId: businessId,
+              createdAt: DateTime.now(),
+              spplrNm: item.spplrNm,
+              barCode: item.barCode,
+            ),
+            supplyPrice: item.supplyPrice ?? 0,
+            retailPrice: item.retailPrice ?? 0,
+            itemSeq: item.itemSeq ?? 1,
+            ebmSynced: false,
+            spplrItemCd: item.hsCd,
+            spplrItemClsCd: item.hsCd,
+          );
+        }
       }
     } catch (e, s) {
       print(e);
