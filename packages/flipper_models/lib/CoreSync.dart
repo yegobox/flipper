@@ -4623,7 +4623,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           stock.value = stock.currentStock! * variant.retailPrice!;
           //upsert
           await repository.upsert(stock);
-          repository.upsert(variant);
+          await repository.upsert(variant);
+          //
         } else {
           await createProduct(
             bhFId: bhfId ?? "00",
