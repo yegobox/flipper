@@ -267,10 +267,9 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
                       await _saveAll();
                       Navigator.of(context, rootNavigator: true).pop('dialog');
                     } catch (e) {
-                      Navigator.of(context, rootNavigator: true).pop('dialog');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error saving data: $e')),
-                      );
+                      Navigator.of(context).pop();
+                      rethrow;
+                      
                     }
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
