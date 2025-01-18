@@ -4622,7 +4622,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           stock.initialStock = double.parse(quantitis[item.barCode] ?? "0");
           stock.value = stock.currentStock! * variant.retailPrice!;
           //upsert
-          repository.upsert(stock);
+          await repository.upsert(stock);
           repository.upsert(variant);
         } else {
           await createProduct(
