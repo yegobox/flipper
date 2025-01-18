@@ -4601,8 +4601,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         talker.warning("ItemClass${itemClasses[item.barCode] ?? "5020230602"}");
 
         await createProduct(
-          bhFId: bhfId!,
-          tinNumber: business!.tinNumber!,
+          bhFId: bhfId ?? "00",
+          tinNumber: business?.tinNumber ?? 111111,
           businessId: ProxyService.box.getBusinessId()!,
           branchId: ProxyService.box.getBranchId()!,
           totWt: item.totWt,

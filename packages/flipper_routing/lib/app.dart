@@ -743,3 +743,5 @@ class App {}
 // https://github.com/MaikuB/flutter_local_notifications/issues/2512
 
 // https://medium.com/team-rockstars-it/the-easiest-way-to-build-a-flutter-ios-app-using-github-actions-plus-a-key-takeaway-for-developers-48cf2ad7c72a
+// App of reference:
+// https://www.projectmanager.com/software/dashboard

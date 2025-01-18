@@ -54,7 +54,7 @@ dependencies:
   async: ^2.11.0
   mime: ^1.0.6
   firebase_core: ^3.8.1
-  sqlite3_flutter_libs: ^0.5.29
+  sqlite3_flutter_libs: ^0.5.27
   permission_handler: ^11.3.1
   cloud_firestore_odm: ^1.0.0-dev.88
   json_annotation: ^4.9.0
@@ -74,7 +74,7 @@ dependency_overrides:
   analyzer: ^6.0.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^2.6.1
+  sqlite3: ^2.5.0
   stacked_services: ^1.6.0
   # amplify_db_common:
   #   git:

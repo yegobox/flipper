@@ -16,7 +16,7 @@ dependency_overrides:
   http: ^1.2.2
   meta: ^1.12.0
   web: ^0.5.1
-  sqlite3: ^2.6.1
+  sqlite3: ^2.5.0
   
 dev_dependencies:
   flutter_test:
