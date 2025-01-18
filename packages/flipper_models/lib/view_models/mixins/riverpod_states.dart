@@ -775,11 +775,11 @@ final ordersStreamProvider =
 final universalProductsNames =
     FutureProvider.autoDispose<AsyncValue<List<UnversalProduct>>>((ref) async {
   try {
-    final branchId = ProxyService.box.getBranchId()!;
+    // final branchId = ProxyService.box.getBranchId()!;
 
     // Check if units are already present in the database
     final existingUnits =
-        await ProxyService.strategy.universalProductNames(branchId: branchId);
+        await ProxyService.strategy.universalProductNames(branchId: 1);
 
     return AsyncData(existingUnits);
   } catch (error) {

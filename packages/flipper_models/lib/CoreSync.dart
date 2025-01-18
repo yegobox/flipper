@@ -2918,6 +2918,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<List<UnversalProduct>> universalProductNames(
       {required int branchId}) async {
     return repository.get<UnversalProduct>(
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
         query:
             brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
   }
