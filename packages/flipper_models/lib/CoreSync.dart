@@ -4616,7 +4616,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           variant.color = randomizeColor();
           variant.lastTouched = DateTime.now();
           //get stock
-          Stock? stock = await getStockById(id: variant.id);
+          Stock? stock = await getStockById(id: variant.stock!.id);
           stock.currentStock = double.parse(quantitis[item.barCode] ?? "0");
           stock.rsdQty = double.parse(quantitis[item.barCode] ?? "0");
           stock.initialStock = double.parse(quantitis[item.barCode] ?? "0");
@@ -4639,7 +4639,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             invcFcurExcrt: item.invcFcurExcrt,
             exptNatCd: item.exptNatCd,
             pkg: item.pkg ?? 1,
-            qty: item.qty ?? 1,
+            qty: double.parse(quantitis[item.barCode] ?? "1"),
             qtyUnitCd: item.qtyUnitCd,
             pkgUnitCd: "BJ",
             dclNo: item.dclNo,
