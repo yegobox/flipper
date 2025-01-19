@@ -4593,6 +4593,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               ? item.bcdU!.substring(0, item.bcdU!.length - 2)
               : item.bcdU;
           variant.name = item.name;
+          Stock? stock = await getStockById(id: variant.stock!.id);
+          stock.currentStock = double.parse(quantitis[item.barCode] ?? "0");
+          stock.rsdQty = double.parse(quantitis[item.barCode] ?? "0");
+          stock.initialStock = double.parse(quantitis[item.barCode] ?? "0");
+          stock.value = stock.currentStock! * variant.retailPrice!;
+          //upsert
+          await await repository.upsert(stock);
           repository.upsert(variant);
 
           print('Updated variant bcd: ${variant.bcd}, name: ${variant.name}');
