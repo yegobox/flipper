@@ -4590,7 +4590,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (item.bcdU != null && item.bcdU!.isNotEmpty) {
         print('Searching for variant with modrId: ${item.barCode}');
 
-        Variant? variant = await getVariantById(modrId: item.barCode);
+        Variant? variant = await getVariantById(bcd: item.barCode);
         print('Found variant: ${variant?.bcd}, ${variant?.name}');
         if (variant != null) {
           variant.bcd = item.bcdU!.endsWith('.0')
@@ -4604,7 +4604,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           stock.value = stock.currentStock! * variant.retailPrice!;
           //upsert
           await await repository.upsert(stock);
-          repository.upsert(variant);
+          await repository.upsert(variant);
 
           print('Updated variant bcd: ${variant.bcd}, name: ${variant.name}');
         } else {
