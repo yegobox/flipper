@@ -1,7 +1,7 @@
 name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 1.170.4252223233024+1737217060
+version: 1.170.4252223233025+1737262621
 
 environment:
   sdk: ">=3.3.4 <4.0.0"
@@ -13,7 +13,7 @@ dependencies:
   sentry: ^8.6.0
   sentry_flutter: ^8.10.1
   
-  firebase_crashlytics: ^4.1.3
+  firebase_crashlytics: ^4.3.0
   flutter_local_notifications: ^19.0.0-dev.4
   intl: ^0.19.0
   injectable: ^2.5.0
@@ -47,7 +47,7 @@ dependencies:
   google_fonts: ^6.1.0
   
   number_display: ^3.0.0
-  firebase_core: ^3.8.1
+  firebase_core: ^3.10.0
   cupertino_icons: ^1.0.2
   connectivity_plus: ^6.0.5
   #google_mobile_ads: ^5.0.0
@@ -116,7 +116,7 @@ dependencies:
   flutter_chat_ui: ^1.6.10
   firebase_remote_config: ^5.1.3
   share_plus: ^9.0.0
-  firebase_messaging: ^15.1.3
+  firebase_messaging: ^15.2.0
   country_code_picker: ^3.0.0
   firebase_ui_localizations: ^1.9.0
   flutter_localizations:
@@ -163,7 +163,7 @@ dependencies:
   amplify_storage_s3: ^2.5.0
   shared_preferences: ^2.3.2
   easy_localization: ^3.0.7 
-  cloud_firestore: ^5.4.3
+  # cloud_firestore: ^5.4.3
   supabase_flutter: ^2.8.0
   sqflite_common_ffi: ^2.3.4+4
   # https://github.com/alextekartik/flutter_app_example/blob/master/demo_sqflite/tool/windows/windows_release_info.md
@@ -214,7 +214,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.3174.0
+  msix_version: 1.170.3175.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"
