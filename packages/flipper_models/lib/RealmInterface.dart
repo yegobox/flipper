@@ -98,6 +98,7 @@ abstract class RealmInterface {
     int? page,
     int? itemsPerPage,
     String? name,
+    String? bcd,
     // this define if we are ready to show item on dashboard,
     String? imptItemsttsCd,
   });
@@ -290,7 +291,8 @@ abstract class RealmInterface {
   });
   Future<Stock> getStockById({required String id});
 
-  Future<Variant?> getVariantById({String? id, String? modrId,String? name, String? bcd});
+  Future<Variant?> getVariantById(
+      {String? id, String? modrId, String? name, String? bcd});
   Future<bool> isTaxEnabled({required int businessId});
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,

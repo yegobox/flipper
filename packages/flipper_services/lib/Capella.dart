@@ -1746,6 +1746,7 @@ class Capella with Booting implements RealmInterface {
       String? productId,
       String? variantId,
       int? page,
+      String? bcd,
       int? itemsPerPage,
       String? name,
       String? imptItemsttsCd}) {

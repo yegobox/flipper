@@ -3496,6 +3496,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     int? page,
     String? variantId,
     String? name,
+    String? bcd,
     int? itemsPerPage,
     // this define if we are ready to show item on dashboard,
     String? imptItemsttsCd,
@@ -3507,6 +3508,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             brick.Where('id').isExactly(variantId)
           else if (name != null) ...[
             brick.Where('name').contains(name),
+            brick.Where('branchId').isExactly(branchId),
+          ] else if (bcd != null) ...[
+            brick.Where('bcd').isExactly(bcd),
             brick.Where('branchId').isExactly(branchId),
           ] else if (imptItemsttsCd != null) ...[
             brick.Where('imptItemSttsCd').isExactly(imptItemsttsCd),
