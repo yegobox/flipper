@@ -473,6 +473,7 @@ class RWTax with NetworkHelper implements TaxApi {
     taxAmount = (taxAmount * 100).round() / 100;
 
     final itemJson = TransactionItem(
+      lastTouched: DateTime.now(),
       qty: quantity,
       discount: item.discount,
       remainingStock: item.remainingStock!,
@@ -838,7 +839,7 @@ class RWTax with NetworkHelper implements TaxApi {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'trnsPurchase/savePurchases')
         .toString();
-    
+
     final repository = Repository();
     List<Business> businesses =
         await repository.get<Business>(query: Query.where('isDefault', true));

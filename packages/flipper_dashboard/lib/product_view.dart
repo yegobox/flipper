@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/DataView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
+import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
@@ -153,8 +154,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final showProductList = ref.watch(showProductsList);
 
     final dateRange = ref.watch(dateRangeProvider);
-    final startDate = dateRange['startDate'];
-    final endDate = dateRange['endDate'];
+    final startDate = dateRange.startDate;
+    final endDate = dateRange.endDate;
 
     return Stack(
       children: [

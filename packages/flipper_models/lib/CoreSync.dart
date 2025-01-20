@@ -3637,10 +3637,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
     final transactionPaymentRecordWithAmount0 =
         (await repository.get<TransactionPaymentRecord>(
+                policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
                 query: brick.Query(where: [
-      brick.Where('transactionId').isExactly(transactionId),
-      brick.Where('amount').isExactly(0.0),
-    ])))
+                  brick.Where('transactionId').isExactly(transactionId),
+                  brick.Where('amount').isExactly(0.0),
+                ])))
             .firstOrNull;
     if (transactionPaymentRecordWithAmount0 != null) {
       await repository.delete<TransactionPaymentRecord>(
@@ -3926,34 +3927,43 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     bool? doneWithTransaction,
     bool? active,
   }) {
-    final item = repository.subscribe<TransactionItem>(
-      policy: OfflineFirstGetPolicy.localOnly,
-      query: brick.Query(where: [
-        if (transactionId != null)
-          brick.Where('transactionId').isExactly(transactionId),
-        brick.Where('branchId').isExactly(branchId),
-        if (startDate != null && endDate != null)
-          if (startDate == endDate)
-            // Include the entire day when startDate and endDate are the same
-            brick.Where('lastTouched').isBetween(
-              startDate.toIso8601String(),
-              startDate.add(const Duration(days: 1)).toIso8601String(),
-            )
-          else
-            brick.Where('lastTouched').isBetween(
-              startDate.toIso8601String(),
-              endDate.toIso8601String(),
-            ),
-        if (doneWithTransaction != null)
-          brick.Where('doneWithTransaction').isExactly(doneWithTransaction),
-        if (active != null) brick.Where('active').isExactly(active),
-      ]),
-    );
+    // Create a list of conditions for better readability and debugging
+    final List<brick.Where> conditions = [
+      // Always include branchId since it's required
+      brick.Where('branchId').isExactly(branchId),
 
-    return item.map((data) {
-      print('Transaction Item stream data: ${data.length} records');
-      return data;
-    });
+      // Optional conditions
+      if (transactionId != null)
+        brick.Where('transactionId').isExactly(transactionId),
+
+      // Date range handling
+      if (startDate != null && endDate != null)
+        if (startDate == endDate)
+          brick.Where('createdAt').isBetween(
+            startDate.toIso8601String(),
+            startDate.add(const Duration(days: 1)).toIso8601String(),
+          )
+        else
+          brick.Where('createdAt').isBetween(
+            startDate.toIso8601String(),
+            endDate.toIso8601String(),
+          ),
+
+      if (doneWithTransaction != null)
+        brick.Where('doneWithTransaction').isExactly(doneWithTransaction),
+      if (active != null) brick.Where('active').isExactly(active),
+    ];
+
+    // Add logging to help debug the query
+    // print('TransactionItems query conditions: $conditions');
+
+    final queryString = brick.Query(where: conditions);
+
+    // Return the stream directly from repository with mapping
+    return repository.subscribe<TransactionItem>(
+      query: queryString,
+      policy: OfflineFirstGetPolicy.localOnly,
+    );
   }
 
   @override

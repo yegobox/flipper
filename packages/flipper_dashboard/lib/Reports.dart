@@ -4,6 +4,8 @@ import 'package:flipper_dashboard/DownloadCard.dart';
 import 'package:flipper_dashboard/ReportCard.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/date_range_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';

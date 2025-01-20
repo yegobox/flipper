@@ -328,6 +328,7 @@ mixin TransactionMixin {
     required bool partOfComposite,
   }) {
     return TransactionItem(
+      lastTouched: DateTime.now(),
       discount: 0.0,
       compositePrice: compositePrice,
       price: variation.retailPrice!,

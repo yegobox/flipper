@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/mixins/base_cart_mixin.dart';
+import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -12,10 +13,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, BaseCartMixin<T> {
-  Future<void> previewOrOrder({
-    bool isShopingFromWareHouse = true,
-    required ITransaction transaction
-  }) async {
+  Future<void> previewOrOrder(
+      {bool isShopingFromWareHouse = true,
+      required ITransaction transaction}) async {
     ref.read(previewingCart.notifier).state = !ref.read(previewingCart);
 
     if (!isShopingFromWareHouse) return;
@@ -35,7 +35,7 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
 
     final deliveryNote = deliveryNoteCotroller.text;
     final dateRange = ref.watch(dateRangeProvider);
-    final startDate = dateRange['startDate'];
+    final startDate = dateRange.startDate;
 
     String orderId = await ProxyService.strategy.createStockRequest(
       items,

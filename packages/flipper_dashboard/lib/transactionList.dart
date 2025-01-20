@@ -2,6 +2,8 @@
 
 import 'package:flipper_dashboard/DataView.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
+import 'package:flipper_models/providers/date_range_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
@@ -20,8 +22,8 @@ class TransactionListState extends ConsumerState<TransactionList>
   @override
   Widget build(BuildContext context) {
     final dateRange = ref.watch(dateRangeProvider);
-    final startDate = dateRange['startDate'];
-    final endDate = dateRange['endDate'];
+    final startDate = dateRange.startDate;
+    final endDate = dateRange.endDate;
 
     final showDetailed = ref.watch(toggleBooleanValueProvider);
     // Only watch the provider we need based on showPluReportWidget

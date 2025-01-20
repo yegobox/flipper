@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/PurchaseCodeForm.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
+import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -41,7 +42,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       String deliveryNote = deliveryNoteCotroller.text;
 
       final dateRange = ref.watch(dateRangeProvider);
-      final startDate = dateRange['startDate'];
+      final startDate = dateRange.startDate;
 
       final items = await ProxyService.strategy.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
@@ -170,7 +171,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     try {
       // Save payment methods
       for (var payment in paymentMethods) {
-        await ProxyService.strategy.savePaymentType(
+        ProxyService.strategy.savePaymentType(
           singlePaymentOnly: paymentMethods.length == 1,
           amount: payment.amount,
           transactionId: transaction.id,

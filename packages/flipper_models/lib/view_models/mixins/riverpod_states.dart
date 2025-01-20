@@ -1,4 +1,6 @@
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/date_range_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realm_model_export.dart' as cat;
 import 'package:flipper_services/constants.dart';
@@ -651,57 +653,12 @@ class ButtonIndexNotifier extends StateNotifier<int> {
 }
 
 //DateTime range provider
-final dateRangeProvider =
-    StateNotifierProvider<DateRangeNotifier, Map<String, DateTime>>(
-  (ref) => DateRangeNotifier(),
-);
-
-class DateRangeNotifier extends StateNotifier<Map<String, DateTime>> {
-  DateRangeNotifier() : super({});
-
-  void setStartDate(DateTime startDate) {
-    state = {...state, 'startDate': startDate};
-  }
-
-  void setEndDate(DateTime endDate) {
-    state = {...state, 'endDate': endDate};
-  }
-}
-
-final transactionItemListProvider =
-    StreamProvider.autoDispose<List<TransactionItem>>((ref) {
-  final dateRange = ref.watch(dateRangeProvider);
-  final startDate = dateRange['startDate'];
-  final endDate = dateRange['endDate'];
-
-  // Use keepAlive to prevent the provider from being disposed immediately
-  ref.keepAlive();
-
-  if (startDate == null || endDate == null) {
-    return Stream.value([]);
-  }
-
-  return ProxyService.strategy
-      .transactionItemsStreams(
-    startDate: startDate,
-    endDate: endDate,
-    branchId: ProxyService.box.getBranchId()!,
-  )
-      .map((transactions) {
-    // talker.info("Transaction Item Data: $transactions");
-    return transactions;
-  }).handleError((e, stackTrace) {
-    talker.error("Error loading transaction items: $e");
-    talker.error(stackTrace);
-    throw e;
-  });
-});
 
 final transactionListProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
   final dateRange = ref.watch(dateRangeProvider);
-  final startDate = dateRange['startDate'];
-  final endDate = dateRange['endDate'];
+  final startDate = dateRange.startDate;
+  final endDate = dateRange.endDate;
 
   // Check if startDate or endDate is null, and return an empty list stream if either is null
   if (startDate == null || endDate == null) {

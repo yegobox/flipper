@@ -6,7 +6,7 @@ part of 'transactions_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$transactionsHash() => r'48cb8b5b41f6789737dac1b57d895e78b9ec78da';
+String _$transactionsHash() => r'eea2d4c000d9248c5b851f70400c36b5a405a9d5';
 
 /// See also [transactions].
 @ProviderFor(transactions)
@@ -23,5 +23,25 @@ final transactionsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TransactionsRef = AutoDisposeStreamProviderRef<List<ITransaction>>;
+String _$transactionItemListHash() =>
+    r'85552971ed9825743561738c79c9b409714319e1';
+
+/// See also [transactionItemList].
+@ProviderFor(transactionItemList)
+final transactionItemListProvider =
+    AutoDisposeStreamProvider<List<TransactionItem>>.internal(
+  transactionItemList,
+  name: r'transactionItemListProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$transactionItemListHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef TransactionItemListRef
+    = AutoDisposeStreamProviderRef<List<TransactionItem>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

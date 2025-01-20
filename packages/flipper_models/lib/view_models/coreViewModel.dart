@@ -233,6 +233,7 @@ class CoreViewModel extends FlipperBaseModel
 
     if (items.isEmpty) {
       TransactionItem newItem = TransactionItem(
+        lastTouched: DateTime.now(),
         qty: 1,
         itemNm: name,
         price: amount,
@@ -296,6 +297,7 @@ class CoreViewModel extends FlipperBaseModel
         );
       } else {
         TransactionItem newItem = TransactionItem(
+          lastTouched: DateTime.now(),
           itemNm: name,
           qty: 1,
           price: amount,
