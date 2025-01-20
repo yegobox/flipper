@@ -45,12 +45,17 @@ class TransactionListState extends ConsumerState<TransactionList>
         data: (data) {
           if (data.isEmpty) {
             return Center(
-              child: Text(
-                'No reports available',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey[600],
-                ),
+              child: Column(
+                children: [
+                  datePicker(),
+                  Text(
+                    'No reports available, select Date for report',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
               ),
             );
           }

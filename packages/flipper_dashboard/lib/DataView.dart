@@ -170,6 +170,7 @@ class DataViewState extends ConsumerState<DataView>
         _buildRowsPerPageInput(),
         if (widget.showDetailedReport) datePicker(),
         _buildExportButton(),
+        datePicker(),
       ],
     );
   }

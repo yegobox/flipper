@@ -94,14 +94,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   Widget _buildMainContent(BuildContext context, ProductViewModel model) {
-    final buttonIndex = ref.watch(buttonIndexProvider);
-    if (buttonIndex == 1) {
-      return ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 700),
-        child: TransactionList(showDetailedReport: true),
-      );
-    }
-
     return _buildVariantList(context, model);
   }
 

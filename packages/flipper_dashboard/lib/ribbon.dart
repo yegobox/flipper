@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
+import 'package:flipper_dashboard/transactionList.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
@@ -137,6 +138,9 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
   final _routerService = locator<RouterService>();
 
   Future<void> _navigateBasedOnIndex(int index) async {
+    if (index == 1) {
+      _showReport(context);
+    }
     if (index == 3) {
       _routerService.navigateTo(ReportsRoute());
     } else if (index == 2) {
@@ -197,6 +201,19 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
         Navigator.of(context).pop();
       },
       barrierDismissible: true,
+    );
+  }
+
+  void _showReport(BuildContext context) {
+    showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (_) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 700),
+          child: TransactionList(showDetailedReport: true),
+        ),
+      ),
     );
   }
 
