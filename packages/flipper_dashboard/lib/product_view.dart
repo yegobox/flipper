@@ -8,7 +8,6 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_dashboard/TransactionList.dart';
 
 enum ViewMode { products, stocks }
 
