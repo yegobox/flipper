@@ -211,7 +211,10 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
       builder: (_) => Dialog(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 700),
-          child: TransactionList(showDetailedReport: true),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TransactionList(showDetailedReport: true),
+          ),
         ),
       ),
     );
