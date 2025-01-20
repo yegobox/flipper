@@ -7,6 +7,7 @@ part '20250102092703.migration.dart';
 part '20250102092919.migration.dart';
 part '20250102125905.migration.dart';
 part '20250114092913.migration.dart';
+part '20250117141102.migration.dart';
 part '20250110094310.migration.dart';
 part '20250101092622.migration.dart';
 part '20250114144814.migration.dart';
@@ -16,7 +17,6 @@ part '20250102110336.migration.dart';
 part '20250102144742.migration.dart';
 part '20250114114345.migration.dart';
 part '20250109125327.migration.dart';
-part '20250117141102.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -26,6 +26,7 @@ final migrations = <Migration>{
   const Migration20250102092919(),
   const Migration20250102125905(),
   const Migration20250114092913(),
+  const Migration20250117141102(),
   const Migration20250110094310(),
   const Migration20250101092622(),
   const Migration20250114144814(),
@@ -34,8 +35,7 @@ final migrations = <Migration>{
   const Migration20250102110336(),
   const Migration20250102144742(),
   const Migration20250114114345(),
-  const Migration20250109125327(),
-  const Migration20250117141102()
+  const Migration20250109125327()
 };
 
 /// A consumable database structure including the latest generated migration.

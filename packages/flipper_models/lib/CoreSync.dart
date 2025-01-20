@@ -415,28 +415,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Stream<List<Category>> categoryStream() async* {
-    final controller = StreamController<List<Category>>.broadcast();
+  Stream<List<Category>> categoryStream() {
     final branchId = ProxyService.box.getBranchId()!;
-    controller.onListen = () async {
-      try {
-        final categories = await repository.get<Category>(
-            query: brick.Query(
-                where: [brick.Where('branchId').isExactly(branchId)]));
-        if (categories.isNotEmpty) {
-          controller.add(categories);
-        }
-      } catch (e, s) {
-        talker.error('Error fetching categories: $e');
-        talker.error('Stack trace: $s');
-      }
-    };
-
-    controller.onCancel = () {
-      controller.close();
-    };
-
-    yield* controller.stream;
+    return repository.subscribe<Category>(
+        query:
+            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
   }
 
   @override

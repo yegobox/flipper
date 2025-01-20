@@ -1,7 +1,6 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/realm_model_export.dart' as cat;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
@@ -614,14 +613,6 @@ final variantsFutureProvider = FutureProvider.autoDispose
   return AsyncData(data);
 });
 
-final categoryStreamProvider =
-    StreamProvider.autoDispose<List<cat.Category>>((ref) {
-  final category = ProxyService.strategy.categoryStream();
-
-  // Return the stream
-  return category;
-});
-
 final unitsProvider =
     FutureProvider.autoDispose<AsyncValue<List<IUnit>>>((ref) async {
   try {
@@ -1198,7 +1189,6 @@ List<ProviderBase> allProviders = [
   receivingOrdersModeProvider,
   customersProvider,
   ordersStreamProvider,
-  categoryStreamProvider,
   transactionsStreamProvider,
   unitsProvider,
   buttonIndexProvider,
