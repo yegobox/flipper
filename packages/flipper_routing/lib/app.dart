@@ -86,8 +86,8 @@ import 'all_routes.dart';
   logger: StackedLogger(),
 )
 class App {}
-// TODO: https://developer.android.com/studio/preview/features#device-mirroring-giraffe
-// TODO: before adding a package see from the bellow list if we don't
+//  https://developer.android.com/studio/preview/features#device-mirroring-giraffe
+//  before adding a package see from the bellow list if we don't
 // modal_bottom_sheet: ^3.0.0-pre
 // `dart run build_runner build --delete-conflicting-outputs`
 // dart run build_runner watch
@@ -99,7 +99,7 @@ class App {}
 //                                 context, 'Binded to ${tenants[index].name}');
 // flutter attach -d <DEVICE_ID>
 
-// FIXME: use dart-define for secrets
+
 // https://thiele.dev/blog/part-1-configure-a-flutter-app-with-dart-define-environment-variable/
 // dart run msix:create
 // TODO: implement SNS notification as well
@@ -129,7 +129,7 @@ class App {}
 // TODO: on my todos
 // -https://pub.dev/packages/tray_manager
 // -ref: https://github.com/Merrit/adventure_list/blob/main/lib/src/system_tray/system_tray_manager.dart
-// TODO:  packages we can use
+//   packages we can use
 // - https://github.com/luckysmg/flutter_swipe_action_cell(if we choose to use this, then we will need to  the one we use on while showing product item)
 // git submodule update --remote --merge
 // git config submodule.recurse false

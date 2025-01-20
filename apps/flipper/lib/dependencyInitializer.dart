@@ -147,7 +147,6 @@ Future<void> initializeDependencies() async {
   setupDialogUi();
   setupBottomSheetUi();
   // await openDatabase();
-  // TODO: re-work on supabase initi when working with powersync
 
   ///Will switch to localNotification when it support windows
   if (!isWeb && !isWindows) {

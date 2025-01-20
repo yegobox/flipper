@@ -11,9 +11,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_services/proxy.dart';
 import 'drawerB.dart';
-// TODO: delete this widgets
-// import 'widgets/dropdown.dart';
-// import 'widgets/mini_app_icon.dart';
 import 'customappbar.dart';
 
 import 'package:flipper_routing/app.locator.dart';
@@ -75,6 +72,7 @@ class _AppsState extends ConsumerState<Apps> {
               child: RefreshIndicator(
                 onRefresh: () async {
                   // Refresh data
+                  // ignore: unused_result
                   await ref.refresh(transactionsStreamProvider);
                 },
                 child: SingleChildScrollView(

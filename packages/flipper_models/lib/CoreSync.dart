@@ -3502,7 +3502,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     String? imptItemsttsCd,
   }) async {
     List<Variant> variants = await repository.get<Variant>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
         query: brick.Query(where: [
           if (variantId != null)
             brick.Where('id').isExactly(variantId)

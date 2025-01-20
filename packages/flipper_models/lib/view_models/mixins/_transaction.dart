@@ -96,6 +96,7 @@ mixin TransactionMixin {
       double discount,
       {required Function onComplete,
       required String bhfId}) async {
+    // TODO: TODO: check if we are computing the stock's value propper.
     ProxyService.strategy.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isProformaMode(),
@@ -214,7 +215,6 @@ mixin TransactionMixin {
     }
   }
 
- 
   Future<void> addTransactionItems({
     required String variationId,
     required ITransaction pendingTransaction,
