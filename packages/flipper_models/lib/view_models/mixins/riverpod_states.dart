@@ -1,6 +1,5 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
-import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realm_model_export.dart' as cat;
 import 'package:flipper_services/constants.dart';
