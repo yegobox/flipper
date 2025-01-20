@@ -5,6 +5,7 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:http/http.dart' as http show Request;
 import 'package:supabase_models/brick/brick.g.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 import 'db/schema.g.dart';
@@ -52,6 +53,10 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       databaseFactory:
           Platform.isWindows ? databaseFactoryFfi : databaseFactory,
       databasePath: queuePath,
+      onReattempt: (http.Request  re,o){
+        print("Request status: $o");
+        print("Object: ${re.body}");
+      },
       onRequestException: (request, object) {
         // Deal with failed requests see https://github.com/GetDutchie/brick/issues/527
         print("Offline request exception: $request");

@@ -139,10 +139,10 @@ class CronService {
     Business? business = await ProxyService.strategy.getBusiness();
     String? token;
 
-    if (!Platform.isWindows && !isMacOs && !isIos) {
+    if (!Platform.isWindows && !isMacOs && !isIos && business!=null) {
       token = await FirebaseMessaging.instance.getToken();
 
-      business!.deviceToken = token.toString();
+      business?.deviceToken = token.toString();
     }
   }
 

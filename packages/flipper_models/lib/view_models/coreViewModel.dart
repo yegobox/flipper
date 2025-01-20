@@ -148,7 +148,7 @@ class CoreViewModel extends FlipperBaseModel
         break;
       case '+':
 
-        /// because we do not want to recoed expense to be part of transactions or sale
+        /// because we do not want to record expense to be part of transactions or sale
         /// so we do not record an item related to this transaction
         if (isExpense) return;
 

@@ -129,7 +129,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       final http.Response response = await ProxyService.strategy
           .sendLoginRequest(
               pinLocal!.phoneNumber!, ProxyService.http, AppSecrets.apihubProd,
-              uid: pinLocal.uid!);
+              uid: pinLocal.uid??"");
       if (response.statusCode == 200 && response.body.isNotEmpty) {
         /// path the user pin, with
         final IUser user = IUser.fromJson(json.decode(response.body));
@@ -2989,12 +2989,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         branchId: branchId,
         transactionId: transaction.id,
       );
-
-      // Update transaction details
-      final double subTotal =
-          items.fold(0, (num a, b) => a + (b.price * b.qty));
-      final double subTotalFinalized = !isIncome ? cashReceived : subTotal;
-
+       double subTotalFinalized = cashReceived;
+      if(isIncome){
+        // Update transaction details
+        final double subTotal =
+        items.fold(0, (num a, b) => a + (b.price * b.qty));
+          subTotalFinalized = !isIncome ? cashReceived : subTotal;
+        // Update stock and transaction items
+        await _updateStockAndItems(items: items, branchId: branchId);
+      }
       _updateTransactionDetails(
         transaction: transaction,
         isIncome: isIncome,
@@ -3009,9 +3012,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
       // Save transaction
       repository.upsert(transaction);
-
-      // Update stock and transaction items
-      await _updateStockAndItems(items: items, branchId: branchId);
 
       // Handle receipt if required
       if (directlyHandleReceipt) {
@@ -4844,10 +4844,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<void> startReplicator() {
-    // TODO: implement startReplicator
-    throw UnimplementedError();
-  }
+  Future<void> startReplicator() async{}
 
   @override
   Stream<double> stockValue({required branchId}) {
@@ -4917,10 +4914,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<void> updatePin(
-      {required int userId, String? phoneNumber, String? tokenUid}) {
-    // TODO: implement updatePin
-    throw UnimplementedError();
+  Future<void> updatePin(
+      {required int userId, String? phoneNumber, String? tokenUid}) async {
+    List<Pin> pin =await repository.get<Pin>(query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
+    if(pin.isNotEmpty){
+      Pin myPin = pin.first;
+      myPin.phoneNumber = phoneNumber;
+      myPin.tokenUid = tokenUid;
+      repository.upsert(myPin);
+    }
   }
 
   @override
