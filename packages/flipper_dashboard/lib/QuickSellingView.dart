@@ -117,9 +117,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     transactionItemsAsyncValue.whenData((items) {
       try {
-        setState(() {
-          transactionItems = items;
-        });
+        transactionItems = items;
         if (items.isNotEmpty) {
           ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
         }

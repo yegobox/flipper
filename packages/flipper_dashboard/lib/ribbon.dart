@@ -1,15 +1,16 @@
 import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/transactionList.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
+    show buttonIndexProvider, selectedBranchProvider;
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
-import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/constants.dart' show TransactionPeriod;
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.locator.dart' show locator;
 import 'package:flipper_routing/app.router.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
