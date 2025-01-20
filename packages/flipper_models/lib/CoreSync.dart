@@ -494,12 +494,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   FutureOr<List<Composite>> composites(
       {String? productId, String? variantId}) async {
     return await repository.get<Composite>(
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
         query: brick.Query(
-      where: [
-        if (productId != null) brick.Where('productId').isExactly(productId),
-        if (variantId != null) brick.Where('variantId').isExactly(variantId),
-      ],
-    ));
+          where: [
+            if (productId != null)
+              brick.Where('productId').isExactly(productId),
+            if (variantId != null)
+              brick.Where('variantId').isExactly(variantId),
+          ],
+        ));
   }
 
   @override
@@ -3365,7 +3368,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         transaction.customerName = customerName ?? transaction.customerName;
         transaction.lastTouched = lastTouched ?? transaction.lastTouched;
 
-        await repository.upsert<ITransaction>(transaction);
+        await repository.upsert<ITransaction>(
+            policy: OfflineFirstUpsertPolicy.optimisticLocal, transaction);
       }
     }
   }
@@ -3413,7 +3417,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       item.totAmt = totAmt ?? item.totAmt;
       item.doneWithTransaction =
           doneWithTransaction ?? item.doneWithTransaction;
-      repository.upsert(item, query: brick.Query(action: QueryAction.update));
+      repository.upsert(policy: OfflineFirstUpsertPolicy.optimisticLocal, item);
     }
   }
 
@@ -3540,12 +3544,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<models.TransactionItem?> getTransactionItemByVariantId(
       {required String variantId, String? transactionId}) async {
     return (await repository.get<TransactionItem>(
+            policy: OfflineFirstGetPolicy.localOnly,
             query: brick.Query(where: [
-      brick.Where('variantId', value: variantId, compare: brick.Compare.exact),
-      if (transactionId != null)
-        brick.Where('transactionId',
-            value: transactionId, compare: brick.Compare.exact),
-    ])))
+              brick.Where('variantId',
+                  value: variantId, compare: brick.Compare.exact),
+              if (transactionId != null)
+                brick.Where('transactionId',
+                    value: transactionId, compare: brick.Compare.exact),
+            ])))
         .firstOrNull;
   }
 
@@ -4304,14 +4310,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? name,
       required int businessId}) async {
     return (await repository.get<Product>(
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
             query: brick.Query(where: [
-      // brick.Or('id').isExactly(id),
-      if (id != null) brick.Where('id').isExactly(id),
-      if (name != null) brick.Where('name').isExactly(name),
-      if (barCode != null) brick.Where('barCode').isExactly(barCode),
-      brick.Where('branchId').isExactly(branchId),
-      brick.Where('businessId').isExactly(businessId),
-    ])))
+              if (id != null) brick.Where('id').isExactly(id),
+              if (name != null) brick.Where('name').isExactly(name),
+              if (barCode != null) brick.Where('barCode').isExactly(barCode),
+              brick.Where('branchId').isExactly(branchId),
+              brick.Where('businessId').isExactly(businessId),
+            ])))
         .firstOrNull;
   }
 

@@ -230,13 +230,13 @@ mixin TransactionMixin {
     try {
       // Update an existing item
       if (item != null && !isCustom) {
-        await _updateExistingTransactionItem(
+        _updateExistingTransactionItem(
           item: item,
           quantity: item.qty + quantity,
           variation: variation,
           amountTotal: amountTotal,
         );
-        await updatePendingTransactionTotals(pendingTransaction);
+        updatePendingTransactionTotals(pendingTransaction);
         return;
       }
 
@@ -258,16 +258,16 @@ mixin TransactionMixin {
         partOfComposite: partOfComposite,
       );
 
-      await ProxyService.strategy.addTransactionItem(
+      ProxyService.strategy.addTransactionItem(
         transaction: pendingTransaction,
         item: newItem,
         partOfComposite: partOfComposite,
       );
 
       // Reactivate inactive items if necessary
-      await _reactivateInactiveItems(pendingTransaction);
+      _reactivateInactiveItems(pendingTransaction);
 
-      await updatePendingTransactionTotals(pendingTransaction);
+      updatePendingTransactionTotals(pendingTransaction);
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);
