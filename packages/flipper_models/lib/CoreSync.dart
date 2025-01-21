@@ -4099,13 +4099,19 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       updatables[i].lastTouched = DateTime.now().toLocal();
 
       await repository.upsert<Variant>(updatables[i]);
-      await repository.upsert<Stock>(updatables[i].stock!);
-      StockPatch.patchStock(
-        URI: (await ProxyService.box.getServerUrl())!,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
+      if (updatables[i].stock != null) {
+        await repository.upsert<Stock>(updatables[i].stock!);
+      }
+
+      if (await ProxyService.strategy
+          .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!)) {
+        StockPatch.patchStock(
+          URI: (await ProxyService.box.getServerUrl())!,
+          sendPort: (message) {
+            ProxyService.notification.sendLocalNotification(body: message);
+          },
+        );
+      }
     }
   }
 
