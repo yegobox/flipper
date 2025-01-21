@@ -232,8 +232,7 @@ class ProductViewModel extends FlipperBaseModel
 
   void updateStock({required String variantId}) async {
     if (_stockValue != null) {
-      Variant? variant =
-          await ProxyService.strategy.getVariantById(id: variantId);
+      Variant? variant = await ProxyService.strategy.getVariant(id: variantId);
 
       ProxyService.strategy
           .updateStock(stockId: variant!.stock!.id, currentStock: _stockValue!);

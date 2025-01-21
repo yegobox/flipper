@@ -60,7 +60,7 @@ class SellState extends ConsumerState<Sell> {
             showActionButton: true,
             onActionButtonClicked: () async {
               Variant? variant =
-                  await ProxyService.strategy.getVariantById(id: model.checked);
+                  await ProxyService.strategy.getVariant(id: model.checked);
 
               bool saved = await model.saveTransaction(
                   partOfComposite: false,

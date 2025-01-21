@@ -224,8 +224,8 @@ class _RowItemState extends ConsumerState<RowItem>
             await ProxyService.strategy.composites(productId: product.id);
 
         for (final composite in composites) {
-          final variant = await ProxyService.strategy
-              .getVariantById(id: composite.variantId!);
+          final variant =
+              await ProxyService.strategy.getVariant(id: composite.variantId!);
           if (variant != null) {
             await model.saveTransaction(
               variation: variant,

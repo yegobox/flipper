@@ -308,8 +308,7 @@ class ItemDetailCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     FutureBuilder<Variant?>(
-                      future:
-                          ProxyService.strategy.getVariantById(id: variant.id),
+                      future: ProxyService.strategy.getVariant(id: variant.id),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -387,8 +386,8 @@ class BestSellingItemCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     FutureBuilder(
-                      future: ProxyService.strategy
-                          .getVariantById(id: bestSeller.id),
+                      future:
+                          ProxyService.strategy.getVariant(id: bestSeller.id),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {

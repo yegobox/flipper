@@ -1839,7 +1839,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<brick.Variant?> getVariantById(
+  Future<brick.Variant?> getVariant(
       {String? id, String? modrId, String? name, String? bcd}) {
     // TODO: implement getVariantById
     throw UnimplementedError();
