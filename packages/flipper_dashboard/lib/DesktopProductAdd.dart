@@ -271,7 +271,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         _showNoProductSavedToast();
         return;
       }
-
+      //
       await _saveProductAndVariants(model, context, product,
           selectedProductType: selectedProductType);
     } catch (e) {
