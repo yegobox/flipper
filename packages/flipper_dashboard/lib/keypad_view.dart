@@ -281,7 +281,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 } catch (e) {
                   talker.error(e);
                 }
-                Navigator.of(context).pop(true);
+                Navigator.of(context).maybePop(true);
               },
             ),
           ],

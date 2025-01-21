@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/DesktopProductAdd.dart';
+import 'package:flipper_dashboard/QuantityCell.dart';
 import 'package:flipper_dashboard/TaxDropdown.dart';
 import 'package:flipper_dashboard/UnitOfMeasureDropdown.dart';
 import 'package:flipper_dashboard/UniversalProductDropdown.dart';
