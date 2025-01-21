@@ -73,7 +73,7 @@ class SaleList extends OfflineFirstWithSupabaseModel {
   // from json method
   factory SaleList.fromJson(Map<String, dynamic> json) {
     return SaleList(
-      id: json['id'] as String,
+      id: json['id'] as String?,
       spplrTin: json['spplrTin'] as String,
       spplrNm: json['spplrNm'] as String,
       spplrBhfId: json['spplrBhfId'] as String,

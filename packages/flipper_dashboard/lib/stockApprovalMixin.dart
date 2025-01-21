@@ -23,7 +23,7 @@ mixin StockRequestApprovalLogic {
     }
     // TODO: re-implement this as using request.items.first.variantId! is not the right way.
     Variant? variant = await ProxyService.strategy
-        .getVariantById(id: request.items.first.variantId!);
+        .getVariant(id: request.items.first.variantId!);
 
     if (!isFullyApproved) {
       bool partialApprovalResult = await _handlePartialApproval(
@@ -45,7 +45,7 @@ mixin StockRequestApprovalLogic {
   }
 
   Future<bool> _canApproveItem({required TransactionItem item}) async {
-    Variant? variant = await ProxyService.strategy.getVariantById(
+    Variant? variant = await ProxyService.strategy.getVariant(
       id: item.variantId!,
     );
     return variant != null &&
@@ -74,8 +74,7 @@ mixin StockRequestApprovalLogic {
 
   void _updateVariantBranch(
       {required String variantId, required int subBranchId}) async {
-    Variant? variant =
-        await ProxyService.strategy.getVariantById(id: variantId);
+    Variant? variant = await ProxyService.strategy.getVariant(id: variantId);
     if (variant != null) {
       // if (!variant.branchIds.contains(subBranchId)) {
       // TODO: this logic will change in new version of flipper
@@ -87,7 +86,7 @@ mixin StockRequestApprovalLogic {
 
   void _updateOrCreateStock(
       {required TransactionItem item, required int subBranchId}) async {
-    Variant? variant = await ProxyService.strategy.getVariantById(
+    Variant? variant = await ProxyService.strategy.getVariant(
       id: item.variantId!,
     );
 
@@ -339,7 +338,7 @@ mixin StockRequestApprovalLogic {
       required int approvedQuantity,
       required int subBranchId}) async {
     Variant? variant =
-        await ProxyService.strategy.getVariantById(id: item.variantId!);
+        await ProxyService.strategy.getVariant(id: item.variantId!);
     if (variant == null) return;
 
     if (variant.stock == null) {
@@ -386,7 +385,7 @@ mixin StockRequestApprovalLogic {
 
   Future<void> _updateMainBranchStock(
       {required String variantId, required int approvedQuantity}) async {
-    Variant? mainBranchStock = await ProxyService.strategy.getVariantById(
+    Variant? mainBranchStock = await ProxyService.strategy.getVariant(
       id: variantId,
     );
 

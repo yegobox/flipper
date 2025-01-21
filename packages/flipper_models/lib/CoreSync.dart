@@ -129,7 +129,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       final http.Response response = await ProxyService.strategy
           .sendLoginRequest(
               pinLocal!.phoneNumber!, ProxyService.http, AppSecrets.apihubProd,
-              uid: pinLocal.uid??"");
+              uid: pinLocal.uid ?? "");
       if (response.statusCode == 200 && response.body.isNotEmpty) {
         /// path the user pin, with
         final IUser user = IUser.fromJson(json.decode(response.body));
@@ -279,7 +279,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   Future<void> _processVariant(int branchId, Variant variation) async {
     try {
-      Variant? variant = await getVariantById(id: variation.id);
+      Variant? variant = await getVariant(id: variation.id);
 
       if (variant != null) {
         Stock? stock = await getStockById(id: variant.stockId!);
@@ -866,7 +866,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         }
         break;
       case 'variant':
-        final variant = await getVariantById(id: id);
+        final variant = await getVariant(id: id);
         final stock = await getStockById(id: variant!.stockId!);
 
         try {
@@ -1146,7 +1146,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
             ? [brick.Where('serverId').isExactly(businessId)]
             : [brick.Where('isDefault').isExactly(true)]);
     final result = await repository.get<models.Business>(
-        query: query, policy: OfflineFirstGetPolicy.localOnly);
+        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
     return result.firstOrNull;
   }
 
@@ -2989,12 +2989,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         branchId: branchId,
         transactionId: transaction.id,
       );
-       double subTotalFinalized = cashReceived;
-      if(isIncome){
+      double subTotalFinalized = cashReceived;
+      if (isIncome) {
         // Update transaction details
         final double subTotal =
-        items.fold(0, (num a, b) => a + (b.price * b.qty));
-          subTotalFinalized = !isIncome ? cashReceived : subTotal;
+            items.fold(0, (num a, b) => a + (b.price * b.qty));
+        subTotalFinalized = !isIncome ? cashReceived : subTotal;
         // Update stock and transaction items
         await _updateStockAndItems(items: items, branchId: branchId);
       }
@@ -3089,7 +3089,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required int branchId,
   }) async {
     try {
-      final variant = await getVariantById(id: item.variantId!);
+      final variant = await getVariant(id: item.variantId!);
 
       final finalStock = (variant!.stock!.currentStock! - item.qty);
 
@@ -3539,9 +3539,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Variant?> getVariantById(
+  Future<Variant?> getVariant(
       {String? id, String? modrId, String? name, String? bcd}) async {
+    int branchId = ProxyService.box.getBranchId()!;
     final query = brick.Query(where: [
+      brick.Where('branchId').isExactly(branchId),
       if (id != null)
         brick.Where('id', value: id, compare: brick.Compare.exact),
       if (modrId != null)
@@ -4043,7 +4045,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? pkgUnitCd,
       bool? ebmSynced}) async {
     if (variantId != null) {
-      Variant? variant = await getVariantById(id: variantId);
+      Variant? variant = await getVariant(id: variantId);
       if (variant != null) {
         variant.productName = productName ?? variant.productName;
         variant.productId = productId ?? variant.productId;
@@ -4589,7 +4591,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (item.bcdU != null && item.bcdU!.isNotEmpty) {
         print('Searching for variant with modrId: ${item.barCode}');
 
-        Variant? variant = await getVariantById(bcd: item.barCode);
+        Variant? variant = await getVariant(bcd: item.barCode);
         print('Found variant: ${variant?.bcd}, ${variant?.name}');
         if (variant != null) {
           variant.bcd = item.bcdU!.endsWith('.0')
@@ -4619,9 +4621,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
         talker.warning("ItemClass${itemClasses[item.barCode] ?? "5020230602"}");
         // is this exist using name
-        Variant? variant = await getVariantById(name: item.name);
-        if (variant != null) {
-          variant.bcd = item.barCode;
+        Variant? variant = await getVariant(name: item.name);
+        if (variant != null && item.bcdU != null) {
+          variant.bcd = item.bcdU;
           variant.name = item.name;
           variant.color = randomizeColor();
           variant.lastTouched = DateTime.now();
@@ -4844,7 +4846,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<void> startReplicator() async{}
+  Future<void> startReplicator() async {}
 
   @override
   Stream<double> stockValue({required branchId}) {
@@ -4916,8 +4918,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   Future<void> updatePin(
       {required int userId, String? phoneNumber, String? tokenUid}) async {
-    List<Pin> pin =await repository.get<Pin>(query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
-    if(pin.isNotEmpty){
+    List<Pin> pin = await repository.get<Pin>(
+        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
+    if (pin.isNotEmpty) {
       Pin myPin = pin.first;
       myPin.phoneNumber = phoneNumber;
       myPin.tokenUid = tokenUid;

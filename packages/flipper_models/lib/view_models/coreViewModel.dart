@@ -452,8 +452,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void loadVariantStock({required String variantId}) async {
-    _currentItemStock =
-        await ProxyService.strategy.getVariantById(id: variantId);
+    _currentItemStock = await ProxyService.strategy.getVariant(id: variantId);
   }
 
   Future<List<Variant>> getVariants({required String productId}) async {
@@ -785,7 +784,7 @@ class CoreViewModel extends FlipperBaseModel
     keypad.setAmount(amount: variants.first.retailPrice! * quantity);
     toggleCheckbox(variantId: variants.first.id);
     increaseQty(callback: (quantity) {}, custom: true);
-    Variant? variant = await ProxyService.strategy.getVariantById(id: checked);
+    Variant? variant = await ProxyService.strategy.getVariant(id: checked);
 
     await saveTransaction(
         partOfComposite: false,

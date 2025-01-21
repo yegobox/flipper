@@ -67,11 +67,13 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   Future<List<SaleList>> _fetchDataPurchase(
       {required DateTime selectedDate}) async {
     String convertedDate = convertDateToString(selectedDate);
+    Business? business = await ProxyService.strategy
+        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
     final url = await ProxyService.box.getServerUrl();
     final rwResponse = await ProxyService.tax.selectTrnsPurchaseSales(
       URI: url!,
-      tin: ProxyService.box.tin(),
+      tin: business?.tinNumber ?? ProxyService.box.tin(),
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
       lastReqDt: convertedDate,
     );
