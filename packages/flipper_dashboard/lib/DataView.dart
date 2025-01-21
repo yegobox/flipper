@@ -115,7 +115,7 @@ class DataViewState extends ConsumerState<DataView>
       context: context,
       builder: (context) => OptionModal(
         child: StockRecount(
-          itemName: data.variant.productName,
+          itemName: data.productName,
           stockId: data.id,
           onRecount: (value) {
             final parsedValue = double.tryParse(value);

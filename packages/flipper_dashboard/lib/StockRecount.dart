@@ -4,7 +4,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 
 class StockRecount extends StatelessWidget {
-  final int stockId;
+  final String stockId;
   final Function(String) onRecount;
   final String itemName;
 
