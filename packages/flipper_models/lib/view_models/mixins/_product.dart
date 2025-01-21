@@ -131,22 +131,25 @@ mixin ProductMixin {
       ProxyService.strategy.addVariant(
           variations: updatables, branchId: ProxyService.box.getBranchId()!);
       // add this variant to rra
-      VariantPatch.patchVariant(
-        URI: (await ProxyService.box.getServerUrl())!,
-        sendPort: (message) {
-          // ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-      StockPatch.patchStock(
-        URI: (await ProxyService.box.getServerUrl())!,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
+      if (await ProxyService.strategy
+          .isTaxEnabled(businessId: business!.serverId)) {
+        VariantPatch.patchVariant(
+          URI: (await ProxyService.box.getServerUrl())!,
+          sendPort: (message) {
+            // ProxyService.notification.sendLocalNotification(body: message);
+          },
+        );
+        StockPatch.patchStock(
+          URI: (await ProxyService.box.getServerUrl())!,
+          sendPort: (message) {
+            ProxyService.notification.sendLocalNotification(body: message);
+          },
+        );
+      }
     } catch (e, s) {
       talker.error(e);
       talker.error(s);
-      throw e;
+      rethrow;
     }
   }
 

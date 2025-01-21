@@ -26,26 +26,6 @@ import 'package:overlay_support/overlay_support.dart';
 
 import 'package:stacked/stacked.dart';
 
-class QuantityCell extends StatelessWidget {
-  final double? quantity;
-  final VoidCallback onEdit;
-
-  const QuantityCell({required this.quantity, required this.onEdit});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onEdit,
-      child: Row(
-        children: [
-          Text(quantity.toString()),
-          const Icon(Icons.edit),
-        ],
-      ),
-    );
-  }
-}
-
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
 
@@ -158,69 +138,145 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   Future<void> _saveProductAndVariants(
       ScannViewModel model, BuildContext context, Product productRef,
       {required String selectedProductType}) async {
-    if (model.kProductName == null) {
-      _showNoProductNameToast();
-      return;
-    }
+    try {
+      ref.read(loadingProvider.notifier).startLoading();
 
-    if (widget.productId != null) {
-      await model.bulkUpdateVariants(true,
+      if (model.kProductName == null) {
+        _showNoProductNameToast();
+        ref.read(loadingProvider.notifier).stopLoading();
+        return;
+      }
+
+      if (widget.productId != null) {
+        await model.bulkUpdateVariants(true,
+            color: model.currentColor,
+            selectedProductType: selectedProductType,
+            newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
+            rates: _rates,
+            dates: _dates);
+      } else {
+        await model.addVariant(
+            productName: model.kProductName!,
+            countryofOrigin: countryOfOriginController.text.isEmpty
+                ? "RW"
+                : countryOfOriginController.text,
+            rates: _rates,
+            dates: _dates,
+            retailPrice: double.tryParse(retailPriceController.text) ?? 0,
+            supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
+            variations: model.scannedVariants,
+            selectedProductType: selectedProductType,
+            packagingUnit: selectedPackageUnitValue.split(":")[0]);
+      }
+
+      model.currentColor = pickerColor.toHex();
+
+      await model.saveProduct(
+          mproduct: productRef,
           color: model.currentColor,
-          selectedProductType: selectedProductType,
-          newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
-          rates: _rates,
-          dates: _dates);
-    } else {
-      await model.addVariant(
-          productName: model.kProductName!,
-          countryofOrigin: countryOfOriginController.text.isEmpty
-              ? "RW"
-              : countryOfOriginController.text,
-          rates: _rates,
-          dates: _dates,
-          retailPrice: double.tryParse(retailPriceController.text) ?? 0,
-          supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
-          variations: model.scannedVariants,
-          selectedProductType: selectedProductType,
-          packagingUnit: selectedPackageUnitValue.split(":")[0]);
+          inUpdateProcess: widget.productId != null,
+          productName: model.kProductName!);
+
+      final searchKeyword = ref.watch(searchStringProvider);
+      final scanMode = ref.watch(scanningModeProvider);
+
+      await ref
+          .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
+          .loadProducts(searchString: searchKeyword, scanMode: scanMode);
+
+      // Refresh the product list
+      ref.read(searchStringProvider.notifier).emitString(value: "search");
+      ref.read(searchStringProvider.notifier).emitString(value: "");
+
+      await ref
+          .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
+          .loadProducts(searchString: model.kProductName ?? "", scanMode: true);
+
+      ref.read(loadingProvider.notifier).stopLoading();
+      toast("Product Saved Successfully");
+      Navigator.maybePop(context);
+    } catch (e) {
+      ref.read(loadingProvider.notifier).stopLoading();
+      toast("Failed to save product: ${e.toString()}");
+      // Don't close the dialog automatically on error
     }
+  }
 
-    model.currentColor = pickerColor.toHex();
+  Future<void> _handleCompositeProductSave(ScannViewModel model) async {
+    try {
+      ref.read(loadingProvider.notifier).startLoading();
 
-    await model.saveProduct(
-        mproduct: productRef,
-        color: model.currentColor,
-        inUpdateProcess: widget.productId != null,
-        productName: model.kProductName!);
+      List<VariantState> partOfComposite =
+          ref.watch(selectedVariantsLocalProvider);
 
-    final searchKeyword = ref.watch(searchStringProvider);
-    final scanMode = ref.watch(scanningModeProvider);
-    ref
-        .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
-        .loadProducts(searchString: searchKeyword, scanMode: scanMode);
+      // Save each composite component
+      for (var component in partOfComposite) {
+        ProxyService.strategy.saveComposite(
+          composite: Composite(
+            businessId: ProxyService.box.getBusinessId(),
+            productId: ref.read(unsavedProductProvider)!.id,
+            qty: component.quantity,
+            actualPrice: double.tryParse(retailPriceController.text) ?? 0.0,
+            branchId: ProxyService.box.getBranchId(),
+            variantId: component.variant.id,
+          ),
+        );
+      }
 
-    /// end of reloading
-    ///
-    /// attempt to see newly created product
-    ref.read(searchStringProvider.notifier).emitString(value: "search");
-    ref.read(searchStringProvider.notifier).emitString(value: "");
+      // Update the product
+      await ProxyService.strategy.updateProduct(
+        productId: ref.read(unsavedProductProvider)!.id,
+        branchId: ProxyService.box.getBranchId()!,
+        businessId: ProxyService.box.getBusinessId()!,
+        name: productNameController.text,
+        isComposite: true,
+      );
 
-    ref
-        .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
-        .loadProducts(searchString: model.kProductName ?? "", scanMode: true);
-    toast("Product Saved");
-    ref.read(loadingProvider.notifier).stopLoading();
-    Navigator.maybePop(context);
+      // Create default variant
+      await ProxyService.strategy.createVariant(
+        tinNumber: ProxyService.box.tin(),
+        branchId: ProxyService.box.getBranchId()!,
+        itemSeq: 1,
+        qty: 1,
+        barCode: barCodeController.text,
+        sku: int.tryParse(skuController.text) ?? 1,
+        retailPrice: double.tryParse(retailPriceController.text) ?? 0,
+        supplierPrice: double.tryParse(supplyPriceController.text) ?? 0,
+        productId: ref.read(unsavedProductProvider)!.id,
+        color: ref.read(unsavedProductProvider)!.color,
+        name: productNameController.text,
+      );
+
+      // Refresh the list
+      final combinedNotifier = ref.read(refreshProvider);
+      combinedNotifier.performActions(productName: "", scanMode: true);
+      ref.read(selectedVariantsLocalProvider.notifier).clearState();
+
+      ref.read(loadingProvider.notifier).stopLoading();
+      toast("Composite product saved successfully");
+      Navigator.maybePop(context);
+    } catch (e) {
+      ref.read(loadingProvider.notifier).stopLoading();
+      toast("Failed to save composite product: ${e.toString()}");
+      talker.error("Error saving composite product: $e");
+      // Don't close the dialog automatically on error
+    }
   }
 
   void _onSaveButtonPressed(
       ScannViewModel model, BuildContext context, Product product,
-      {required String selectedProductType}) {
-    if (model.scannedVariants.isEmpty && widget.productId == null) {
-      _showNoProductSavedToast();
-    } else {
-      _saveProductAndVariants(model, context, product,
+      {required String selectedProductType}) async {
+    try {
+      if (model.scannedVariants.isEmpty && widget.productId == null) {
+        _showNoProductSavedToast();
+        return;
+      }
+
+      await _saveProductAndVariants(model, context, product,
           selectedProductType: selectedProductType);
+    } catch (e) {
+      toast("Error saving product: ${e.toString()}");
+      talker.error("Error in _onSaveButtonPressed: $e");
     }
   }
 
@@ -332,7 +388,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           countryOfOriginController.text = country.code;
                         },
                       ),
-                      // previewName(model),
+
                       !ref.watch(isCompositeProvider)
                           ? TableVariants(
                               unversalProducts:
@@ -347,9 +403,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                   // Loop through model.scannedVariants
                                   for (var scannedVariant
                                       in model.scannedVariants) {
-                                    // Find the related variant based on some criteria
-                                    // For example, matching variant.id
-
                                     // Update the variant.unit with the value of newValue
                                     scannedVariant.unit = newValue;
                                     break; // Exit the loop since the variant is found and updated
@@ -438,42 +491,16 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     ElevatedButton(
-                        onPressed: () {
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                    content: SingleChildScrollView(
-                                  child: BlockPicker(
-                                    pickerColor: pickerColor,
-                                    onColorChanged: changeColor,
-                                    availableColors: colors,
-                                    layoutBuilder: pickerLayoutBuilder,
-                                  ),
-                                ));
-                              });
-                        },
-                        child: Icon(Icons.color_lens,
-                            color: useWhiteForeground(pickerColor)
-                                ? Colors.white
-                                : Colors.black),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: pickerColor,
-                          shadowColor: pickerColor.withValues(alpha: 1),
-                          elevation: 0,
-                        )),
-                    SizedBox(width: 10),
-                    ElevatedButton(
                       onPressed: () async {
                         try {
-                          /// form is validated and we are not dealing with composite product
                           if (_formKey.currentState!.validate() &&
                               !ref.watch(isCompositeProvider)) {
                             if (productRef == null) {
+                              toast("Invalid product reference");
                               Navigator.maybePop(context);
                               return;
                             }
-                            ref.read(loadingProvider.notifier).startLoading();
+
                             _onSaveButtonPressed(
                               selectedProductType: selectedProductType,
                               productModel,
@@ -482,96 +509,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             );
                           } else if (_fieldComposite.currentState?.validate() ??
                               false) {
-                            /// we are now officially dealing with composite product
-                            talker.info(
-                                "we are dealing with composite product now handle down");
-
-                            List<VariantState> partOfComposite =
-                                ref.watch(selectedVariantsLocalProvider);
-                            for (var i = 0; i < partOfComposite.length; i++) {
-                              partOfComposite[i].variant.id;
-                              talker.info(
-                                  "This is the variant on composite${partOfComposite[i].variant.id}");
-
-                              /// now save each
-                              ProxyService.strategy.saveComposite(
-                                composite: Composite(
-                                    businessId:
-                                        ProxyService.box.getBusinessId(),
-                                    productId:
-                                        ref.read(unsavedProductProvider)!.id,
-                                    qty: partOfComposite[i].quantity,
-                                    actualPrice: double.tryParse(
-                                            retailPriceController.text) ??
-                                        0.0,
-                                    branchId: ProxyService.box.getBranchId(),
-                                    variantId: partOfComposite[i].variant.id),
-                              );
-                            }
-
-                            /// because this product has no variant attached
-                            // final productRef = ref.watch(productProvider);
-                            String sku = skuController.text;
-                            String barCode = barCodeController.text;
-                            String name = productNameController.text;
-
-                            /// print the sku and bar
-                            talker.info("SKU ${sku} Bar Code ${barCode}");
-
-                            Product? product = await ProxyService.strategy
-                                .getProduct(
-                                    businessId:
-                                        ProxyService.box.getBusinessId()!,
-                                    id: ref.read(unsavedProductProvider)!.id,
-                                    branchId: ProxyService.box.getBranchId()!);
-
-                            /// update the product with propper name
-
-                            ProxyService.strategy.updateProduct(
-                              productId: ref.read(unsavedProductProvider)!.id,
-                              branchId: ProxyService.box.getBranchId()!,
-                              businessId: ProxyService.box.getBusinessId()!,
-                              name: productNameController.text,
-                              isComposite: true,
-                            );
-
-                            /// create the default variant to represent this composite item, in flipper each product
-                            /// has a default variant
-                            ProxyService.strategy.createVariant(
-                              tinNumber: ProxyService.box.tin(),
-                              branchId: ProxyService.box.getBranchId()!,
-                              itemSeq: 1,
-
-                              /// because this is a placeholder variant, then qty does not matter in this scenario
-                              /// we only care about it when the qty will be involved in manaing stock
-                              /// but for composite, stock is managed to the level of the composites item not the default item on product
-                              qty: 1,
-                              barCode: barCode,
-                              sku: int.tryParse(sku) ?? 1,
-                              retailPrice:
-                                  double.tryParse(retailPriceController.text) ??
-                                      0,
-                              supplierPrice:
-                                  double.tryParse(supplyPriceController.text) ??
-                                      0,
-                              productId: product!.id,
-                              color: product.color,
-                              name: name,
-                            );
-
-                            /// refresh the list
-                            final combinedNotifier = ref.read(refreshProvider);
-                            combinedNotifier.performActions(
-                                productName: "", scanMode: true);
-                            ref
-                                .read(selectedVariantsLocalProvider.notifier)
-                                .clearState();
-                            Navigator.maybePop(context);
-
-                            /// at the end then save the product with the composite attached.
+                            await _handleCompositeProductSave(productModel);
                           }
                         } catch (e) {
-                          talker.warning(e);
+                          toast("An unexpected error occurred");
+                          talker.error("Error in save button: $e");
                         }
                       },
                       child: const Text('Save'),
