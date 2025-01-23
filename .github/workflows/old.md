@@ -281,7 +281,7 @@
 #       #       - First Change
 #       #       - Second Change
 #       - name: Upload .msix to Release
-#         uses: actions/upload-artifact@v3
+#         uses: actions/upload-artifact@v4
 #         env:
 #           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 #         with:
