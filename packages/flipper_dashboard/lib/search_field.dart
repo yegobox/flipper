@@ -254,6 +254,10 @@ class SearchFieldState extends ConsumerState<SearchField>
                     width: double.infinity,
                     height: 800,
                     child: KeyPadView(
+                      onConfirm: () {
+                        // Handle the pop action here
+                        Navigator.of(context).pop();
+                      },
                       isBigScreen: true,
                       model: model,
                       accountingMode: false,

@@ -8,7 +8,7 @@ import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:flipper_services/proxy.dart';
 import 'package:cbl/cbl.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-
+import 'package:uuid/uuid.dart';
 import 'package:receipt/print.dart';
 
 class TaxController<OBJ> {
@@ -377,67 +377,23 @@ class TaxController<OBJ> {
           );
           // copy TransactionItem
           for (TransactionItem item in items) {
-            final copy = TransactionItem(
-              id: item.id,
-              qty: item.qty,
-              discount: item.discount,
-              remainingStock: item.remainingStock,
-              itemCd: item.itemCd,
-              transactionId: newTransactionId.id,
-              variantId: transaction.id,
-              qtyUnitCd: item.qtyUnitCd,
-              prc: item.prc,
-              regrId: item.regrId,
-              regrNm: item.regrNm,
-              modrId: item.modrId,
-              modrNm: item.modrNm,
-              name: item.name,
-              quantityRequested: item.quantityRequested,
-              quantityApproved: item.quantityApproved,
-              quantityShipped: item.quantityShipped,
-              price: item.price,
-              createdAt: item.createdAt,
-              updatedAt: item.updatedAt,
-              isRefunded: item.isRefunded,
-              doneWithTransaction: item.doneWithTransaction,
-              active: item.active,
-              dcRt: item.dcRt,
-              dcAmt: item.dcAmt,
-              taxblAmt: item.taxblAmt,
-              taxAmt: item.taxAmt,
-              totAmt: item.totAmt,
-              itemSeq: item.itemSeq,
-              isrccCd: item.isrccCd,
-              isrccNm: item.isrccNm,
-              isrcRt: item.isrcRt,
-              isrcAmt: item.isrcAmt,
-              taxTyCd: item.taxTyCd,
-              bcd: item.bcd,
-              itemClsCd: item.itemClsCd,
-              itemTyCd: item.itemTyCd,
-              itemStdNm: item.itemStdNm,
-              orgnNatCd: item.orgnNatCd,
-              pkg: item.pkg,
-              pkgUnitCd: item.pkgUnitCd,
-              itemNm: item.itemNm,
-              splyAmt: item.splyAmt,
-              tin: item.tin,
-              bhfId: item.bhfId,
-              dftPrc: item.dftPrc,
-              addInfo: item.addInfo,
-              isrcAplcbYn: item.isrcAplcbYn,
-              useYn: item.useYn,
-              lastTouched: item.lastTouched,
-              branchId: item.branchId,
-              ebmSynced: item.ebmSynced,
-              partOfComposite: item.partOfComposite,
-              compositePrice: item.compositePrice,
+            final copy = item.copyWith(
+              id: const Uuid().v4(), // Generate a new ID
+              transactionId: newTransactionId.id, // Update transactionId
+              variantId: transaction.id, // Update variantId
             );
 
             await ProxyService.strategy.addTransactionItem(
               transaction: newTransactionId,
               item: copy,
               partOfComposite: item.partOfComposite ?? false,
+              lastTouched: item.lastTouched ?? DateTime.now(),
+              discount: item.discount,
+              compositePrice: item.compositePrice ?? 0.0,
+              quantity: item.qty,
+              currentStock: item.remainingStock ?? 0,
+              name: item.name,
+              amountTotal: item.totAmt ?? 0.0,
             );
           }
 

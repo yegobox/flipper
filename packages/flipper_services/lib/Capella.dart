@@ -677,12 +677,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Stream<Plan?> paymentPlanStream({required int businessId}) {
-    // TODO: implement paymentPlanStream
-    throw UnimplementedError();
-  }
-
-  @override
   Stream<List<Product>> productStreams({String? prodIndex}) {
     // TODO: implement productStreams
     throw UnimplementedError();
@@ -1106,15 +1100,6 @@ class Capella with Booting implements RealmInterface {
   FutureOr<Variant> addStockToVariant(
       {required Variant variant, Stock? stock}) {
     // TODO: implement addStockToVariant
-    throw UnimplementedError();
-  }
-
-  @override
-  FutureOr<void> addTransactionItem(
-      {required ITransaction transaction,
-      required TransactionItem item,
-      required bool partOfComposite}) {
-    // TODO: implement addTransactionItem
     throw UnimplementedError();
   }
 
@@ -1853,6 +1838,23 @@ class Capella with Booting implements RealmInterface {
       required String lastReqDt,
       required String url}) {
     // TODO: implement selectPurchases
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> addTransactionItem(
+      {required brick.ITransaction transaction,
+      required bool partOfComposite,
+      required DateTime lastTouched,
+      required double discount,
+      double? compositePrice,
+      required double quantity,
+      required double currentStock,
+      brick.Variant? variation,
+      required double amountTotal,
+      required String name,
+      brick.TransactionItem? item}) {
+    // TODO: implement addTransactionItem
     throw UnimplementedError();
   }
 }
