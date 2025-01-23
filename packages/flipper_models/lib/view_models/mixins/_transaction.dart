@@ -247,21 +247,17 @@ mixin TransactionMixin {
         variation: variation,
       );
 
-      final newItem = _createTransactionItem(
-        variation: variation,
-        name: name,
-        quantity: computedQty,
-        amountTotal: amountTotal,
-        currentStock: currentStock,
-        pendingTransaction: pendingTransaction,
-        compositePrice: partOfComposite ? compositePrice ?? 0.0 : 0.0,
-        partOfComposite: partOfComposite,
-      );
-
       ProxyService.strategy.addTransactionItem(
         transaction: pendingTransaction,
-        item: newItem,
+        lastTouched: DateTime.now(),
+        discount: 0.0,
+        compositePrice: partOfComposite ? compositePrice ?? 0.0 : 0.0,
+        quantity: computedQty,
+        currentStock: currentStock,
         partOfComposite: partOfComposite,
+        variation: variation,
+        name: name,
+        amountTotal: amountTotal,
       );
 
       // Reactivate inactive items if necessary
@@ -314,73 +310,6 @@ mixin TransactionMixin {
     }
 
     return quantity;
-  }
-
-// Helper: Create a transaction item
-  TransactionItem _createTransactionItem({
-    required Variant variation,
-    required String name,
-    required double quantity,
-    required double amountTotal,
-    required double currentStock,
-    required ITransaction pendingTransaction,
-    required double compositePrice,
-    required bool partOfComposite,
-  }) {
-    return TransactionItem(
-      lastTouched: DateTime.now(),
-      discount: 0.0,
-      compositePrice: compositePrice,
-      price: variation.retailPrice!,
-      variantId: variation.id,
-      name: name,
-      qty: quantity,
-      taxblAmt: variation.retailPrice! * quantity,
-      taxAmt: double.parse((amountTotal * 18 / 118).toStringAsFixed(2)),
-      totAmt: variation.retailPrice! * quantity,
-      prc: variation.retailPrice!,
-      quantityApproved: 0,
-      quantityRequested: quantity.toInt(),
-      quantityShipped: 0,
-      active: true,
-      doneWithTransaction: false,
-      transactionId: pendingTransaction.id,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      remainingStock: currentStock - quantity,
-      branchId: ProxyService.box.getBranchId(),
-      itemSeq: variation.itemSeq,
-      isrccCd: variation.isrccCd,
-      isrccNm: variation.isrccNm,
-      isrcRt: variation.isrcRt,
-      isrcAmt: variation.isrcAmt,
-      taxTyCd: variation.taxTyCd,
-      bcd: variation.bcd,
-      itemClsCd: variation.itemClsCd,
-      itemTyCd: variation.itemTyCd,
-      itemStdNm: variation.itemStdNm,
-      orgnNatCd: variation.orgnNatCd,
-      pkg: variation.pkg.toString(),
-      itemCd: variation.itemCd,
-      pkgUnitCd: variation.pkgUnitCd,
-      qtyUnitCd: variation.qtyUnitCd,
-      itemNm: variation.itemNm!,
-      splyAmt: variation.supplyPrice,
-      tin: variation.tin,
-      bhfId: variation.bhfId,
-      dftPrc: variation.dftPrc,
-      addInfo: variation.addInfo,
-      isrcAplcbYn: variation.isrcAplcbYn,
-      useYn: variation.useYn,
-      regrId: variation.regrId,
-      regrNm: variation.regrNm,
-      modrId: variation.modrId,
-      modrNm: variation.modrNm,
-      dcRt: variation.dcRt,
-      dcAmt: (variation.retailPrice! * (variation.qty ?? 1.0)) *
-          (variation.dcRt ?? 0.0),
-      partOfComposite: partOfComposite,
-    );
   }
 
 // Helper: Reactivate inactive items

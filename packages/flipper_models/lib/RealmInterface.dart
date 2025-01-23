@@ -257,10 +257,18 @@ abstract class RealmInterface {
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount});
 
-  FutureOr<void> addTransactionItem(
-      {required ITransaction transaction,
-      required TransactionItem item,
-      required bool partOfComposite});
+  Future<void> addTransactionItem({
+    required ITransaction transaction,
+    required bool partOfComposite,
+    required DateTime lastTouched,
+    required double discount,
+    double? compositePrice,
+    required double quantity,
+    required double currentStock,
+     Variant? variation,
+    required double amountTotal, // Added to match old implementation
+    required String name,  TransactionItem? item, // Added to match old implementation
+  });
 
   Future<int> userNameAvailable(
       {required String name, required HttpClientInterface flipperHttpClient});

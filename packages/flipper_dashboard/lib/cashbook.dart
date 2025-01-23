@@ -142,6 +142,10 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       children: [
         Expanded(
           child: KeyPadView.cashBookMode(
+              onConfirm: () {
+                // Handle the pop action here
+                Navigator.of(context).pop();
+              },
               model: model,
               isBigScreen: widget.isBigScreen,
               accountingMode: true,

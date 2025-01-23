@@ -1,7 +1,5 @@
 // ignore_for_file: unused_result
 
-import 'dart:developer';
-
 import 'package:flipper_dashboard/create/category_selector.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -19,6 +17,7 @@ class KeyPadView extends StatefulHookConsumerWidget {
   final bool accountingMode;
   final String transactionType;
   final String? categoryId;
+  final VoidCallback onConfirm;
 
   const KeyPadView({
     Key? key,
@@ -26,6 +25,7 @@ class KeyPadView extends StatefulHookConsumerWidget {
     this.isBigScreen = false,
     this.accountingMode = false,
     this.categoryId,
+    required this.onConfirm,
     this.transactionType = TransactionType.cashOut,
   }) : super(key: key);
 
@@ -34,6 +34,7 @@ class KeyPadView extends StatefulHookConsumerWidget {
     required this.model,
     this.isBigScreen = false,
     this.categoryId,
+    required this.onConfirm,
     required this.accountingMode,
     required this.transactionType,
   }) : super(key: key);
@@ -201,7 +202,6 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       key: ref.watch(keypadProvider),
     );
 
-    // (isExpense: false)
     ref.refresh(transactionItemsProvider((isExpense: false)));
   }
 
@@ -217,21 +217,19 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     if (key == 'C') {
       await _handleNumberKey(key);
     } else if (key == 'Confirm') {
-      await _handleConfirmKey(transaction, key);
+      await _handleConfirmKey(transaction);
     } else if (key == '+') {
       await _handlePlusKey(transaction);
     }
   }
 
-  Future<void> _handleConfirmKey(
-      AsyncValue<ITransaction> transaction, String key) async {
-    log("Key: $key");
-
-    // Get the current value from the keypadProvider
+  Future<void> _handleConfirmKey(AsyncValue<ITransaction> transaction) async {
     final currentValue = ref.read(keypadProvider);
-
-    // Convert the currentValue to a double
     final amount = double.tryParse(currentValue) ?? 0.0;
+
+    if (amount == 0) {
+      return;
+    }
 
     widget.model.keypad.setCashReceived(amount: amount);
 
@@ -249,7 +247,6 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             TextButton(
               child: Text('Confirm'),
               onPressed: () async {
-                // discount, transactionType: transactionType, isIncome: isIncome
                 final bool isIncome =
                     (widget.transactionType == TransactionType.cashIn ||
                         widget.transactionType == TransactionType.sale);
@@ -262,26 +259,27 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                       duration: Duration(seconds: 3),
                       action: SnackBarAction(
                         label: 'OK',
-                        onPressed: () {
-                          // Optional: Add an action when the snackbar is dismissed
-                        },
+                        onPressed: () {},
                       ),
                     ),
                   );
                   return;
                 }
                 try {
-                  HandleTransactionFromCashBook(
+                  await HandleTransactionFromCashBook(
                     cashReceived: amount,
                     paymentType: ProxyService.box.paymentType() ?? "Cash",
                     discount: 0,
                     transactionType: widget.transactionType,
                     isIncome: isIncome,
                   );
+                  Navigator.of(context).pop(true);
+                  widget.onConfirm(); // Ensure pop is called
                 } catch (e) {
                   talker.error(e);
+                  Navigator.of(context).pop(false);
+                  widget.onConfirm(); // Ensure pop is called
                 }
-                Navigator.of(context).maybePop(true);
               },
             ),
           ],
@@ -290,10 +288,6 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     );
 
     if (confirmed) {
-      if (amount == 0 && key != "Confirm") {
-        return;
-      }
-
       widget.model.keyboardKeyPressed(
         isExpense: widget.transactionType == TransactionType.cashOut,
         key: '+',
@@ -303,7 +297,6 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       );
 
       talker.info(currentValue);
-
       HapticFeedback.lightImpact();
     }
   }
@@ -320,19 +313,22 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     ref.refresh(transactionItemsProvider((isExpense: false)));
   }
 
-  Future<void> HandleTransactionFromCashBook(
-      {required String paymentType,
-      required double cashReceived,
-      required int discount,
-      required bool isIncome,
-      required String transactionType}) async {
+  Future<void> HandleTransactionFromCashBook({
+    required String paymentType,
+    required double cashReceived,
+    required int discount,
+    required bool isIncome,
+    required String transactionType,
+  }) async {
     widget.model.newTransactionPressed = false;
     final isExpense = (TransactionType.cashOut == widget.transactionType);
 
     final transaction = await ProxyService.strategy.manageTransaction(
-        isExpense: isExpense,
-        transactionType: widget.transactionType,
-        branchId: ProxyService.box.getBranchId()!);
+      isExpense: isExpense,
+      transactionType: widget.transactionType,
+      branchId: ProxyService.box.getBranchId()!,
+    );
+
     widget.model.keyboardKeyPressed(
       isExpense: widget.transactionType == TransactionType.cashOut,
       key: '+',
@@ -340,37 +336,28 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         ref.read(keypadProvider.notifier).reset();
       },
     );
+
     Category? category = await ProxyService.strategy
         .activeCategory(branchId: ProxyService.box.getBranchId()!);
     var shortestSide = MediaQuery.of(context).size.shortestSide;
     var useMobileLayout = shortestSide < 600;
 
-    !useMobileLayout
-        ? ProxyService.strategy.collectPayment(
-            cashReceived: cashReceived,
-            branchId: ProxyService.box.getBranchId()!,
-            bhfId: (await ProxyService.box.bhfId()) ?? "00",
-            isProformaMode: ProxyService.box.isProformaMode(),
-            isTrainingMode: ProxyService.box.isTrainingMode(),
-            transaction: transaction,
-            paymentType: paymentType,
-            discount: discount.toDouble(),
-            transactionType: TransactionType.sale,
-            directlyHandleReceipt: false,
-            isIncome: isIncome)
-        : ProxyService.strategy.collectPayment(
-            branchId: ProxyService.box.getBranchId()!,
-            bhfId: (await ProxyService.box.bhfId()) ?? "00",
-            isProformaMode: ProxyService.box.isProformaMode(),
-            isTrainingMode: ProxyService.box.isTrainingMode(),
-            cashReceived: cashReceived,
-            transaction: transaction,
-            directlyHandleReceipt: false,
-            paymentType: paymentType,
-            discount: discount.toDouble(),
-            categoryId: category?.id.toString(),
-            transactionType: category?.name ?? "",
-            isIncome: isIncome);
+    await ProxyService.strategy.collectPayment(
+      cashReceived: cashReceived,
+      branchId: ProxyService.box.getBranchId()!,
+      bhfId: (await ProxyService.box.bhfId()) ?? "00",
+      isProformaMode: ProxyService.box.isProformaMode(),
+      isTrainingMode: ProxyService.box.isTrainingMode(),
+      transaction: transaction,
+      paymentType: paymentType,
+      discount: discount.toDouble(),
+      transactionType:
+          useMobileLayout ? category?.name ?? "" : TransactionType.sale,
+      directlyHandleReceipt: false,
+      isIncome: isIncome,
+      categoryId: category?.id.toString(),
+    );
+
     ref.refresh(transactionItemsProvider((isExpense: false)));
   }
 }
