@@ -697,7 +697,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       int itemSeq = 1,
       required bool createItemCode,
       bool ebmSynced = false,
-      String? saleListId}) async {
+      String? saleListId,
+      Purchase? purchase}) async {
     try {
       final String productName = product.name;
       if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
@@ -766,7 +767,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         newVariant.stock = createdStock;
         newVariant.stockId = createdStock.id;
         await repository.upsert<Variant>(newVariant);
+
+        /// if this was associated with purchase, look for the variant created then associate it with the purchase
+        /// purchase can have a list of variants associated with it.
+        if (purchase != null) {
+          purchase.variants = [newVariant];
+          await repository.upsert<Purchase>(purchase);
+        }
       }
+
       return createdProduct;
     } catch (e) {
       rethrow;
@@ -5034,40 +5043,42 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // check if relation can update
     try {
       final id = randomString();
-      Purchase saleList = Purchase(
-          spplrTin: "11",
-          spplrNm: id,
-          spplrBhfId: "01",
-          spplrInvcNo: 1,
-          rcptTyCd: "N",
-          pmtTyCd: "N",
-          cfmDt: "cfmDt",
-          salesDt: "salesDt",
-          totItemCnt: 1,
-          taxblAmtA: 1.0,
-          taxblAmtB: 1.0,
-          taxblAmtC: 1.0,
-          taxblAmtD: 1.0,
-          taxRtA: 1.0,
-          taxRtB: 1.0,
-          taxRtC: 1.0,
-          taxRtD: 1.0,
-          taxAmtA: 1.0,
-          taxAmtB: 1.0,
-          taxAmtC: 1.0,
-          taxAmtD: 1.0,
-          totTaxblAmt: 1.0,
-          totTaxAmt: 1.0,
-          totAmt: 1.0);
-      await repository.upsert<Purchase>(saleList);
+      Purchase purchase = Purchase(
+        spplrTin: "11",
+        spplrNm: id,
+        spplrBhfId: "01",
+        spplrInvcNo: 1,
+        rcptTyCd: "N",
+        pmtTyCd: "N",
+        cfmDt: "cfmDt",
+        salesDt: "salesDt",
+        totItemCnt: 1,
+        taxblAmtA: 1.0,
+        taxblAmtB: 1.0,
+        taxblAmtC: 1.0,
+        taxblAmtD: 1.0,
+        taxRtA: 1.0,
+        taxRtB: 1.0,
+        taxRtC: 1.0,
+        taxRtD: 1.0,
+        taxAmtA: 1.0,
+        taxAmtB: 1.0,
+        taxAmtC: 1.0,
+        taxAmtD: 1.0,
+        totTaxblAmt: 1.0,
+        totTaxAmt: 1.0,
+        totAmt: 1.0,
+      );
+
       // save item then
 
       await createProduct(
-        saleListId: saleList.id,
+        saleListId: purchase.id,
         businessId: 1,
         branchId: 1,
         tinNumber: 1111,
         bhFId: "01",
+        purchase: purchase,
         createItemCode: false,
         product: Product(
           color: randomizeColor(),
@@ -5086,7 +5097,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       final response = await repository.get<Purchase>(
           policy: OfflineFirstGetPolicy.alwaysHydrate,
           query: brick.Query(
-              where: [brick.Where('spplrNm').isExactly(id)]));
+              where: [brick.Where('spplrNm').isExactly("6155010b1f11527")]));
       if (response.isNotEmpty) {
         print("We got variants ${response.first.spplrNm}");
         print("We got variants ${response.first.variants?.length}");

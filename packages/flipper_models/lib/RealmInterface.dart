@@ -154,6 +154,7 @@ abstract class RealmInterface {
 
   Future<Product?> createProduct(
       {required Product product,
+      Purchase? purchase,
       String? modrId,
       String? orgnNatCd,
       String? exptNatCd,
