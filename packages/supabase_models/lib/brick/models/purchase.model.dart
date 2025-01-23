@@ -7,10 +7,14 @@ import 'package:uuid/uuid.dart';
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'purchases'),
 )
-class SaleList extends OfflineFirstWithSupabaseModel {
+class Purchase extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
   final String id;
+
+  @Supabase(ignore: true)
+  // @Sqlite(ignore: true)
+  List<Variant>? variants;
   final String spplrTin;
   final String spplrNm;
   final String spplrBhfId;
@@ -21,26 +25,24 @@ class SaleList extends OfflineFirstWithSupabaseModel {
   final String salesDt;
   final String? stockRlsDt;
   final int totItemCnt;
-  final double taxblAmtA;
-  final double taxblAmtB;
-  final double taxblAmtC;
-  final double taxblAmtD;
-  final double taxRtA;
-  final double taxRtB;
-  final double taxRtC;
-  final double taxRtD;
-  final double taxAmtA;
-  final double taxAmtB;
-  final double taxAmtC;
-  final double taxAmtD;
-  final double totTaxblAmt;
-  final double totTaxAmt;
-  final double totAmt;
+  final num taxblAmtA;
+  final num taxblAmtB;
+  final num taxblAmtC;
+  final num taxblAmtD;
+  final num taxRtA;
+  final num taxRtB;
+  final num taxRtC;
+  final num taxRtD;
+  final num taxAmtA;
+  final num taxAmtB;
+  final num taxAmtC;
+  final num taxAmtD;
+  final num totTaxblAmt;
+  final num totTaxAmt;
+  final num totAmt;
   final String? remark;
-  @Sqlite(ignore: true)
-  @Supabase(ignore: true)
-  final List<Variant>? itemList;
-  SaleList({
+
+  Purchase({
     String? id,
     required this.spplrTin,
     required this.spplrNm,
@@ -68,11 +70,11 @@ class SaleList extends OfflineFirstWithSupabaseModel {
     required this.totTaxAmt,
     required this.totAmt,
     this.remark,
-    this.itemList,
+    this.variants,
   }) : id = id ?? const Uuid().v4();
   // from json method
-  factory SaleList.fromJson(Map<String, dynamic> json) {
-    return SaleList(
+  factory Purchase.fromJson(Map<String, dynamic> json) {
+    return Purchase(
       id: json['id'] as String?,
       spplrTin: json['spplrTin'] as String,
       spplrNm: json['spplrNm'] as String,
@@ -100,8 +102,8 @@ class SaleList extends OfflineFirstWithSupabaseModel {
       totTaxAmt: (json['totTaxAmt'] as num).toDouble(),
       totAmt: (json['totAmt'] as num).toDouble(),
       remark: json['remark'] as String?,
-      itemList: (json['itemList'] as List<dynamic>?)
-          ?.map((e) => Variant.fromJson(e as Map<String, dynamic>))
+      variants: (json['itemList'] as List<dynamic>)
+          .map((e) => Variant.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
   }
@@ -135,7 +137,7 @@ class SaleList extends OfflineFirstWithSupabaseModel {
       'totTaxAmt': totTaxAmt,
       'totAmt': totAmt,
       'remark': remark,
-      'itemList': itemList,
+      'itemList': variants,
     };
   }
 }

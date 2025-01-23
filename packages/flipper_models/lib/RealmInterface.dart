@@ -291,6 +291,12 @@ abstract class RealmInterface {
   });
   Future<Stock> getStockById({required String id});
 
+  Future<List<Purchase>> selectPurchases(
+      {required String bhfId,
+      required int tin,
+      required String lastReqDt,
+      required String url});
+
   Future<Variant?> getVariant(
       {String? id, String? modrId, String? name, String? bcd});
   Future<bool> isTaxEnabled({required int businessId});

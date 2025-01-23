@@ -3,10 +3,10 @@ import 'package:supabase_models/brick/models/all_models.dart'; // Import your mo
 
 void main() {
   Variant? selectedPurchaseItem;
-  List<SaleList> finalItemListPurchase = [];
+  List<Purchase> finalItemListPurchase = [];
   // Mock data for testing
-  List<SaleList>? finalSaleList = [
-    SaleList(
+  List<Purchase>? finalSaleList = [
+    Purchase(
       spplrTin: "999980160",
       spplrNm: "TESTING COMPANY 35 LTD",
       spplrBhfId: "00",
@@ -33,7 +33,7 @@ void main() {
       totTaxAmt: 15254.24,
       totAmt: 100000,
       remark: null,
-      itemList: [
+      variants: [
         Variant(
           name: "Room 2",
           itemSeq: 1,
@@ -62,7 +62,7 @@ void main() {
   /// but removed any UI related code such as interacting with text controller
   /// to focus on actual test if updating the salesList and ItemList within sa
 
-  void selectItemPurchase(Variant? item, {required SaleList saleList}) {
+  void selectItemPurchase(Variant? item, {required Purchase saleList}) {
     selectedPurchaseItem = item;
     if (item != null) {
       // Find the index of the SaleList in finalSaleList
@@ -72,11 +72,11 @@ void main() {
       if (saleListIndex != -1) {
         // Find the index of the ItemList within the found SaleList
         int itemListIndex = finalSaleList[saleListIndex]
-            .itemList!
+            .variants!
             .indexWhere((i) => i.itemCd == item.itemCd);
         if (itemListIndex != -1) {
           // Update the ItemList in finalSaleList
-          finalSaleList[saleListIndex].itemList![itemListIndex] = item;
+          finalSaleList[saleListIndex].variants![itemListIndex] = item;
         }
       }
     }
@@ -105,16 +105,16 @@ void main() {
       totAmt: 120000,
     );
 
-    SaleList targetSaleList = finalSaleList[0];
+    Purchase targetSaleList = finalSaleList[0];
 
     // Act
     selectItemPurchase(updatedItem, saleList: targetSaleList);
 
     // Assert
-    expect(finalSaleList[0].itemList![0].itemNm, "Updated Room Name");
-    expect(finalSaleList[0].itemList![0].qty, 2);
-    expect(finalSaleList[0].itemList![0].prc, 120000);
-    expect(finalSaleList[0].itemList![0].taxAmt, 18000);
+    expect(finalSaleList[0].variants![0].itemNm, "Updated Room Name");
+    expect(finalSaleList[0].variants![0].qty, 2);
+    expect(finalSaleList[0].variants![0].prc, 120000);
+    expect(finalSaleList[0].variants![0].taxAmt, 18000);
   });
 
   test('selectItemPurchase clears controllers when item is null', () {

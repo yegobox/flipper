@@ -880,7 +880,7 @@ class CoreViewModel extends FlipperBaseModel
   Future<RwApiResponse>? futureImportResponse;
   Future<RwApiResponse>? futurePurchaseResponse;
   bool isLoading = false;
-  List<SaleList> salesList = [];
+  List<Purchase> salesList = [];
   List<Variant>? rwResponse;
 
   String convertDateToString(DateTime date) {
@@ -910,7 +910,7 @@ class CoreViewModel extends FlipperBaseModel
     return data;
   }
 
-  Future<List<SaleList>> fetchPurchaseData({
+  Future<List<Purchase>> fetchPurchaseData({
     required DateTime selectedDate,
     required bool isImport,
   }) async {
@@ -939,8 +939,8 @@ class CoreViewModel extends FlipperBaseModel
       talker.warning("salesListLenghts" + salesList.length.toString());
       final ref = randomNumber();
 
-      for (SaleList supplier in salesList) {
-        for (Variant item in supplier.itemList!) {
+      for (Purchase supplier in salesList) {
+        for (Variant item in supplier.variants!) {
           item.retailPrice ??= item.prc;
           talker.warning(
               "Retail Prices while saving item in our DB:: ${item.retailPrice}");

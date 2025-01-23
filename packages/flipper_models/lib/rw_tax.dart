@@ -831,7 +831,7 @@ class RWTax with NetworkHelper implements TaxApi {
 
   @override
   Future<RwApiResponse> savePurchases({
-    required SaleList item,
+    required Purchase item,
     required String URI,
     String rcptTyCd = "S",
     required String bhfId,
@@ -917,7 +917,7 @@ class RWTax with NetworkHelper implements TaxApi {
   }
 
   @override
-  Future<List<SaleList>> selectTrnsPurchaseSales(
+  Future<List<Purchase>> selectTrnsPurchaseSales(
       {required int tin,
       required String bhfId,
       required String URI,

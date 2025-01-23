@@ -33,7 +33,7 @@ class Data {
   final String? sdcId;
   final String? mrcNo;
   final List<Variant>? itemList;
-  final List<SaleList>? saleList; // Added saleList here
+  final List<Purchase>? saleList; // Added saleList here
 
   Data({
     this.rcptNo,

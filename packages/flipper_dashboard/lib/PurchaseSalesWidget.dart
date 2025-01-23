@@ -1,16 +1,17 @@
 import 'package:flipper_dashboard/DataRow.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 
 class PurchaseSaleWidget extends StatefulWidget {
-  final Future<List<SaleList>>? futureResponse;
+  final Future<List<Purchase>>? futureResponse;
   final GlobalKey<FormState> formKey;
   final TextEditingController nameController;
   final TextEditingController supplyPriceController;
   final TextEditingController retailPriceController;
   final void Function() saveItemName;
   final void Function() acceptPurchases;
-  final void Function(Variant? selectedItem, SaleList saleList) selectSale;
+  final void Function(Variant? selectedItem, Purchase saleList) selectSale;
   final List<Variant> finalSalesList;
   PurchaseSaleWidget({
     required this.futureResponse,
@@ -33,7 +34,7 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
   Widget build(BuildContext context) {
     return Container(
       height: 400,
-      child: FutureBuilder<List<SaleList>>(
+      child: FutureBuilder<List<Purchase>>(
         future: widget.futureResponse,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -53,24 +54,10 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        ElevatedButton(
+                        FlipperButton(
                           onPressed: widget.acceptPurchases,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16.0, vertical: 12.0),
-                            child: Text(
-                              'Accept All Purchases',
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(0.0),
-                            ),
-                          ),
+                          text: 'Accept All Purchases',
+                          textColor: Colors.black,
                         ),
                       ],
                     ),

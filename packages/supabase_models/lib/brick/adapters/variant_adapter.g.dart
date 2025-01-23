@@ -6,6 +6,7 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Variant(
       id: data['id'] as String?,
+      purchaseId: data['purchase_id'] as String?,
       stock: data['stock'] == null
           ? null
           : await StockAdapter().fromSupabase(data['stock'],
@@ -73,8 +74,7 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       taskCd: data['task_cd'] as String?,
       dclDe: data['dcl_de'] as String?,
       hsCd: data['hs_cd'] as String?,
-      imptItemSttsCd: data['impt_item_stts_cd'] as String?,
-      purchaseId: data['purchase_id'] as String?);
+      imptItemSttsCd: data['impt_item_stts_cd'] as String?);
 }
 
 Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
@@ -82,6 +82,7 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
+    'purchase_id': instance.purchaseId,
     'stock': instance.stock != null
         ? await StockAdapter().toSupabase(instance.stock!,
             provider: provider, repository: repository)
@@ -145,8 +146,7 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'task_cd': instance.taskCd,
     'dcl_de': instance.dclDe,
     'hs_cd': instance.hsCd,
-    'impt_item_stts_cd': instance.imptItemSttsCd,
-    'purchase_id': instance.purchaseId
+    'impt_item_stts_cd': instance.imptItemSttsCd
   };
 }
 
@@ -155,6 +155,8 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Variant(
       id: data['id'] as String,
+      purchaseId:
+          data['purchase_id'] == null ? null : data['purchase_id'] as String?,
       stock: data['stock_Stock_brick_id'] == null
           ? null
           : (data['stock_Stock_brick_id'] > -1
@@ -257,9 +259,7 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
       hsCd: data['hs_cd'] == null ? null : data['hs_cd'] as String?,
       imptItemSttsCd: data['impt_item_stts_cd'] == null
           ? null
-          : data['impt_item_stts_cd'] as String?,
-      purchaseId:
-          data['purchase_id'] == null ? null : data['purchase_id'] as String?)
+          : data['impt_item_stts_cd'] as String?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -268,6 +268,7 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
+    'purchase_id': instance.purchaseId,
     'stock_Stock_brick_id': instance.stock != null
         ? instance.stock!.primaryKey ??
             await provider.upsert<Stock>(instance.stock!,
@@ -333,8 +334,7 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'task_cd': instance.taskCd,
     'dcl_de': instance.dclDe,
     'hs_cd': instance.hsCd,
-    'impt_item_stts_cd': instance.imptItemSttsCd,
-    'purchase_id': instance.purchaseId
+    'impt_item_stts_cd': instance.imptItemSttsCd
   };
 }
 
@@ -351,6 +351,10 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'id': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'id',
+    ),
+    'purchaseId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'purchase_id',
     ),
     'stock': const RuntimeSupabaseColumnDefinition(
       association: true,
@@ -597,10 +601,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'imptItemSttsCd': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'impt_item_stts_cd',
-    ),
-    'purchaseId': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'purchase_id',
     )
   };
   @override
@@ -618,6 +618,12 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'id': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'id',
+      iterable: false,
+      type: String,
+    ),
+    'purchaseId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'purchase_id',
       iterable: false,
       type: String,
     ),
@@ -984,12 +990,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'imptItemSttsCd': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'impt_item_stts_cd',
-      iterable: false,
-      type: String,
-    ),
-    'purchaseId': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'purchase_id',
       iterable: false,
       type: String,
     )

@@ -570,7 +570,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       Map<String, String>? itemTypes,
       required int sku,
       models.Configurations? taxType,
-      String? bcd}) async {
+      String? bcd,
+      String? saleListId}) async {
     final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
 
@@ -579,6 +580,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       agntNm: agntNm ?? "",
       netWt: netWt ?? 0,
       totWt: totWt ?? 0,
+      purchaseId: saleListId,
       invcFcurAmt: invcFcurAmt ?? 0,
       invcFcurCd: invcFcurCd ?? "",
       exptNatCd: exptNatCd ?? "",
@@ -694,7 +696,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       double retailPrice = 0,
       int itemSeq = 1,
       required bool createItemCode,
-      bool ebmSynced = false}) async {
+      bool ebmSynced = false,
+      String? saleListId}) async {
     try {
       final String productName = product.name;
       if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
@@ -720,6 +723,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           pkg: pkg,
           createItemCode: createItemCode,
           taxTypes: taxTypes,
+          saleListId: saleListId,
           itemClasses: itemClasses,
           itemTypes: itemTypes,
           pkgUnitCd: pkgUnitCd,
@@ -5008,5 +5012,89 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<List<Country>> countries() async {
     return await repository.get<Country>(
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+  }
+
+  @override
+  Future<List<Purchase>> selectPurchases(
+      {required String bhfId,
+      required int tin,
+      required String lastReqDt,
+      required String url}) async {
+    // List<SaleList> saleList = await ProxyService.tax.selectTrnsPurchaseSales(
+    //   URI: url,
+    //   tin: tin,
+    //   bhfId: (await ProxyService.box.bhfId()) ?? "00",
+    //   lastReqDt: lastReqDt,
+    // );
+    // save the sales's list item into variants
+    // return saleList;
+    // test relation,
+    //1. save saleList
+    //2. save saleListItems
+    // check if relation can update
+    try {
+      final id = randomString();
+      Purchase saleList = Purchase(
+          spplrTin: "11",
+          spplrNm: id,
+          spplrBhfId: "01",
+          spplrInvcNo: 1,
+          rcptTyCd: "N",
+          pmtTyCd: "N",
+          cfmDt: "cfmDt",
+          salesDt: "salesDt",
+          totItemCnt: 1,
+          taxblAmtA: 1.0,
+          taxblAmtB: 1.0,
+          taxblAmtC: 1.0,
+          taxblAmtD: 1.0,
+          taxRtA: 1.0,
+          taxRtB: 1.0,
+          taxRtC: 1.0,
+          taxRtD: 1.0,
+          taxAmtA: 1.0,
+          taxAmtB: 1.0,
+          taxAmtC: 1.0,
+          taxAmtD: 1.0,
+          totTaxblAmt: 1.0,
+          totTaxAmt: 1.0,
+          totAmt: 1.0);
+      await repository.upsert<Purchase>(saleList);
+      // save item then
+
+      await createProduct(
+        saleListId: saleList.id,
+        businessId: 1,
+        branchId: 1,
+        tinNumber: 1111,
+        bhFId: "01",
+        createItemCode: false,
+        product: Product(
+          color: randomizeColor(),
+          name: "Test001",
+          lastTouched: DateTime.now(),
+          branchId: 1,
+          businessId: 1,
+          createdAt: DateTime.now(),
+          spplrNm: "item.spplrNm",
+          barCode: "001",
+        ),
+      );
+
+      /// save saleListItems
+      // get saleListItems
+      final response = await repository.get<Purchase>(
+          policy: OfflineFirstGetPolicy.alwaysHydrate,
+          query: brick.Query(
+              where: [brick.Where('spplrNm').isExactly(id)]));
+      if (response.isNotEmpty) {
+        print("We got variants ${response.first.spplrNm}");
+        print("We got variants ${response.first.variants?.length}");
+      }
+    } catch (e, s) {
+      talker.error(e);
+      talker.error(s);
+    }
+    return [];
   }
 }

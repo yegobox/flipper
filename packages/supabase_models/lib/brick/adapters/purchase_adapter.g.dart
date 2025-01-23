@@ -1,10 +1,10 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<SaleList> _$SaleListFromSupabase(Map<String, dynamic> data,
+Future<Purchase> _$PurchaseFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
-  return SaleList(
+  return Purchase(
       id: data['id'] as String?,
       spplrTin: data['spplr_tin'] as String,
       spplrNm: data['spplr_nm'] as String,
@@ -16,25 +16,25 @@ Future<SaleList> _$SaleListFromSupabase(Map<String, dynamic> data,
       salesDt: data['sales_dt'] as String,
       stockRlsDt: data['stock_rls_dt'] as String?,
       totItemCnt: data['tot_item_cnt'] as int,
-      taxblAmtA: data['taxbl_amt_a'] as double,
-      taxblAmtB: data['taxbl_amt_b'] as double,
-      taxblAmtC: data['taxbl_amt_c'] as double,
-      taxblAmtD: data['taxbl_amt_d'] as double,
-      taxRtA: data['tax_rt_a'] as double,
-      taxRtB: data['tax_rt_b'] as double,
-      taxRtC: data['tax_rt_c'] as double,
-      taxRtD: data['tax_rt_d'] as double,
-      taxAmtA: data['tax_amt_a'] as double,
-      taxAmtB: data['tax_amt_b'] as double,
-      taxAmtC: data['tax_amt_c'] as double,
-      taxAmtD: data['tax_amt_d'] as double,
-      totTaxblAmt: data['tot_taxbl_amt'] as double,
-      totTaxAmt: data['tot_tax_amt'] as double,
-      totAmt: data['tot_amt'] as double,
+      taxblAmtA: data['taxbl_amt_a'] as num,
+      taxblAmtB: data['taxbl_amt_b'] as num,
+      taxblAmtC: data['taxbl_amt_c'] as num,
+      taxblAmtD: data['taxbl_amt_d'] as num,
+      taxRtA: data['tax_rt_a'] as num,
+      taxRtB: data['tax_rt_b'] as num,
+      taxRtC: data['tax_rt_c'] as num,
+      taxRtD: data['tax_rt_d'] as num,
+      taxAmtA: data['tax_amt_a'] as num,
+      taxAmtB: data['tax_amt_b'] as num,
+      taxAmtC: data['tax_amt_c'] as num,
+      taxAmtD: data['tax_amt_d'] as num,
+      totTaxblAmt: data['tot_taxbl_amt'] as num,
+      totTaxAmt: data['tot_tax_amt'] as num,
+      totAmt: data['tot_amt'] as num,
       remark: data['remark'] as String?);
 }
 
-Future<Map<String, dynamic>> _$SaleListToSupabase(SaleList instance,
+Future<Map<String, dynamic>> _$PurchaseToSupabase(Purchase instance,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
@@ -68,11 +68,25 @@ Future<Map<String, dynamic>> _$SaleListToSupabase(SaleList instance,
   };
 }
 
-Future<SaleList> _$SaleListFromSqlite(Map<String, dynamic> data,
+Future<Purchase> _$PurchaseFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
-  return SaleList(
+  return Purchase(
       id: data['id'] as String,
+      variants: (await provider.rawQuery(
+              'SELECT DISTINCT `f_Variant_brick_id` FROM `_brick_Purchase_variants` WHERE l_Purchase_brick_id = ?',
+              [
+            data['_brick_id'] as int
+          ]).then((results) {
+        final ids = results.map((r) => r['f_Variant_brick_id']);
+        return Future.wait<Variant>(ids.map((primaryKey) => repository!
+            .getAssociation<Variant>(
+              Query.where('primaryKey', primaryKey, limit1: true),
+            )
+            .then((r) => r!.first)));
+      }))
+          .toList()
+          .cast<Variant>(),
       spplrTin: data['spplr_tin'] as String,
       spplrNm: data['spplr_nm'] as String,
       spplrBhfId: data['spplr_bhf_id'] as String,
@@ -84,30 +98,32 @@ Future<SaleList> _$SaleListFromSqlite(Map<String, dynamic> data,
       stockRlsDt:
           data['stock_rls_dt'] == null ? null : data['stock_rls_dt'] as String?,
       totItemCnt: data['tot_item_cnt'] as int,
-      taxblAmtA: data['taxbl_amt_a'] as double,
-      taxblAmtB: data['taxbl_amt_b'] as double,
-      taxblAmtC: data['taxbl_amt_c'] as double,
-      taxblAmtD: data['taxbl_amt_d'] as double,
-      taxRtA: data['tax_rt_a'] as double,
-      taxRtB: data['tax_rt_b'] as double,
-      taxRtC: data['tax_rt_c'] as double,
-      taxRtD: data['tax_rt_d'] as double,
-      taxAmtA: data['tax_amt_a'] as double,
-      taxAmtB: data['tax_amt_b'] as double,
-      taxAmtC: data['tax_amt_c'] as double,
-      taxAmtD: data['tax_amt_d'] as double,
-      totTaxblAmt: data['tot_taxbl_amt'] as double,
-      totTaxAmt: data['tot_tax_amt'] as double,
-      totAmt: data['tot_amt'] as double,
+      taxblAmtA: data['taxbl_amt_a'] as num,
+      taxblAmtB: data['taxbl_amt_b'] as num,
+      taxblAmtC: data['taxbl_amt_c'] as num,
+      taxblAmtD: data['taxbl_amt_d'] as num,
+      taxRtA: data['tax_rt_a'] as num,
+      taxRtB: data['tax_rt_b'] as num,
+      taxRtC: data['tax_rt_c'] as num,
+      taxRtD: data['tax_rt_d'] as num,
+      taxAmtA: data['tax_amt_a'] as num,
+      taxAmtB: data['tax_amt_b'] as num,
+      taxAmtC: data['tax_amt_c'] as num,
+      taxAmtD: data['tax_amt_d'] as num,
+      totTaxblAmt: data['tot_taxbl_amt'] as num,
+      totTaxAmt: data['tot_tax_amt'] as num,
+      totAmt: data['tot_amt'] as num,
       remark: data['remark'] == null ? null : data['remark'] as String?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$SaleListToSqlite(SaleList instance,
+Future<Map<String, dynamic>> _$PurchaseToSqlite(Purchase instance,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
+    'variants':
+        instance.variants != null ? jsonEncode(instance.variants) : null,
     'spplr_tin': instance.spplrTin,
     'spplr_nm': instance.spplrNm,
     'spplr_bhf_id': instance.spplrBhfId,
@@ -137,9 +153,9 @@ Future<Map<String, dynamic>> _$SaleListToSqlite(SaleList instance,
   };
 }
 
-/// Construct a [SaleList]
-class SaleListAdapter extends OfflineFirstWithSupabaseAdapter<SaleList> {
-  SaleListAdapter();
+/// Construct a [Purchase]
+class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
+  PurchaseAdapter();
 
   @override
   final supabaseTableName = 'purchases';
@@ -150,6 +166,12 @@ class SaleListAdapter extends OfflineFirstWithSupabaseAdapter<SaleList> {
     'id': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'id',
+    ),
+    'variants': const RuntimeSupabaseColumnDefinition(
+      association: true,
+      columnName: 'variants',
+      associationType: Map,
+      associationIsNullable: true,
     ),
     'spplrTin': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -254,12 +276,6 @@ class SaleListAdapter extends OfflineFirstWithSupabaseAdapter<SaleList> {
     'remark': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'remark',
-    ),
-    'itemList': const RuntimeSupabaseColumnDefinition(
-      association: true,
-      columnName: 'item_list',
-      associationType: Map,
-      associationIsNullable: true,
     )
   };
   @override
@@ -279,6 +295,12 @@ class SaleListAdapter extends OfflineFirstWithSupabaseAdapter<SaleList> {
       columnName: 'id',
       iterable: false,
       type: String,
+    ),
+    'variants': const RuntimeSqliteColumnDefinition(
+      association: true,
+      columnName: 'variants',
+      iterable: true,
+      type: Map,
     ),
     'spplrTin': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -344,110 +366,104 @@ class SaleListAdapter extends OfflineFirstWithSupabaseAdapter<SaleList> {
       association: false,
       columnName: 'taxbl_amt_a',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'taxblAmtB': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'taxbl_amt_b',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'taxblAmtC': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'taxbl_amt_c',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'taxblAmtD': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'taxbl_amt_d',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'taxRtA': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tax_rt_a',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'taxRtB': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tax_rt_b',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'taxRtC': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tax_rt_c',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'taxRtD': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tax_rt_d',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'taxAmtA': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tax_amt_a',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'taxAmtB': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tax_amt_b',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'taxAmtC': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tax_amt_c',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'taxAmtD': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tax_amt_d',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'totTaxblAmt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tot_taxbl_amt',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'totTaxAmt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tot_tax_amt',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'totAmt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tot_amt',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'remark': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'remark',
       iterable: false,
       type: String,
-    ),
-    'itemList': const RuntimeSqliteColumnDefinition(
-      association: true,
-      columnName: 'item_list',
-      iterable: true,
-      type: Map,
     )
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      SaleList instance, DatabaseExecutor executor) async {
+      Purchase instance, DatabaseExecutor executor) async {
     final results = await executor.rawQuery('''
-        SELECT * FROM `SaleList` WHERE id = ? LIMIT 1''', [instance.id]);
+        SELECT * FROM `Purchase` WHERE id = ? LIMIT 1''', [instance.id]);
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -458,31 +474,31 @@ class SaleListAdapter extends OfflineFirstWithSupabaseAdapter<SaleList> {
   }
 
   @override
-  final String tableName = 'SaleList';
+  final String tableName = 'Purchase';
   @override
   Future<void> afterSave(instance, {required provider, repository}) async {
     if (instance.primaryKey != null) {
-      final itemListOldColumns = await provider.rawQuery(
-          'SELECT `f_Variant_brick_id` FROM `_brick_SaleList_item_list` WHERE `l_SaleList_brick_id` = ?',
+      final variantsOldColumns = await provider.rawQuery(
+          'SELECT `f_Variant_brick_id` FROM `_brick_Purchase_variants` WHERE `l_Purchase_brick_id` = ?',
           [instance.primaryKey]);
-      final itemListOldIds =
-          itemListOldColumns.map((a) => a['f_Variant_brick_id']);
-      final itemListNewIds =
-          instance.itemList?.map((s) => s.primaryKey).whereType<int>() ?? [];
-      final itemListIdsToDelete =
-          itemListOldIds.where((id) => !itemListNewIds.contains(id));
+      final variantsOldIds =
+          variantsOldColumns.map((a) => a['f_Variant_brick_id']);
+      final variantsNewIds =
+          instance.variants?.map((s) => s.primaryKey).whereType<int>() ?? [];
+      final variantsIdsToDelete =
+          variantsOldIds.where((id) => !variantsNewIds.contains(id));
 
-      await Future.wait<void>(itemListIdsToDelete.map((id) async {
+      await Future.wait<void>(variantsIdsToDelete.map((id) async {
         return await provider.rawExecute(
-            'DELETE FROM `_brick_SaleList_item_list` WHERE `l_SaleList_brick_id` = ? AND `f_Variant_brick_id` = ?',
+            'DELETE FROM `_brick_Purchase_variants` WHERE `l_Purchase_brick_id` = ? AND `f_Variant_brick_id` = ?',
             [instance.primaryKey, id]).catchError((e) => null);
       }));
 
-      await Future.wait<int?>(instance.itemList?.map((s) async {
+      await Future.wait<int?>(instance.variants?.map((s) async {
             final id = s.primaryKey ??
                 await provider.upsert<Variant>(s, repository: repository);
             return await provider.rawInsert(
-                'INSERT OR IGNORE INTO `_brick_SaleList_item_list` (`l_SaleList_brick_id`, `f_Variant_brick_id`) VALUES (?, ?)',
+                'INSERT OR IGNORE INTO `_brick_Purchase_variants` (`l_Purchase_brick_id`, `f_Variant_brick_id`) VALUES (?, ?)',
                 [instance.primaryKey, id]);
           }) ??
           []);
@@ -490,27 +506,27 @@ class SaleListAdapter extends OfflineFirstWithSupabaseAdapter<SaleList> {
   }
 
   @override
-  Future<SaleList> fromSupabase(Map<String, dynamic> input,
+  Future<Purchase> fromSupabase(Map<String, dynamic> input,
           {required provider,
           covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$SaleListFromSupabase(input,
+      await _$PurchaseFromSupabase(input,
           provider: provider, repository: repository);
   @override
-  Future<Map<String, dynamic>> toSupabase(SaleList input,
+  Future<Map<String, dynamic>> toSupabase(Purchase input,
           {required provider,
           covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$SaleListToSupabase(input,
+      await _$PurchaseToSupabase(input,
           provider: provider, repository: repository);
   @override
-  Future<SaleList> fromSqlite(Map<String, dynamic> input,
+  Future<Purchase> fromSqlite(Map<String, dynamic> input,
           {required provider,
           covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$SaleListFromSqlite(input,
+      await _$PurchaseFromSqlite(input,
           provider: provider, repository: repository);
   @override
-  Future<Map<String, dynamic>> toSqlite(SaleList input,
+  Future<Map<String, dynamic>> toSqlite(Purchase input,
           {required provider,
           covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$SaleListToSqlite(input,
+      await _$PurchaseToSqlite(input,
           provider: provider, repository: repository);
 }
