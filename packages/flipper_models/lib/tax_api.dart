@@ -8,7 +8,7 @@ abstract class TaxApi {
   Future<RwApiResponse> saveStockMaster(
       {required Variant variant, required String URI});
   Future<RwApiResponse> savePurchases({
-    required SaleList item,
+    required Purchase item,
     required String URI,
     required String bhfId,
     String rcptTyCd = "S",
@@ -53,7 +53,7 @@ abstract class TaxApi {
 
   // Future<RwApiResponse> savePurchases(
   //     {required SaleList item, required String URI});
-  Future<List<SaleList>> selectTrnsPurchaseSales(
+  Future<List<Purchase>> selectTrnsPurchaseSales(
       {required int tin,
       required String bhfId,
       required String lastReqDt,

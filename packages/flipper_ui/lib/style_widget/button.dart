@@ -8,7 +8,8 @@ class FlipperButton extends StatelessWidget {
   final double? height;
   final Color? color;
   final Color? textColor;
-  final double? radius;
+  final double? radius; // Individual corner radius (for backward compatibility)
+  final BorderRadius? borderRadius; // Customizable corner radius
   final bool busy;
   final bool isLoading;
 
@@ -18,7 +19,8 @@ class FlipperButton extends StatelessWidget {
     this.width = 200,
     this.color,
     this.height = 50,
-    this.radius = 10,
+    this.radius = 10, // Default radius for backward compatibility
+    this.borderRadius, // Customizable borderRadius
     this.textColor,
     this.onPressed,
     this.busy = false,
@@ -28,6 +30,10 @@ class FlipperButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDisabled = busy || isLoading;
+
+    // Use borderRadius if provided, otherwise fall back to radius
+    final BorderRadius effectiveBorderRadius =
+        borderRadius ?? BorderRadius.circular(radius ?? 10.0);
 
     return SizedBox(
       width: width,
@@ -63,7 +69,7 @@ class FlipperButton extends StatelessWidget {
         style: ButtonStyle(
           shape: WidgetStateProperty.all<OutlinedBorder>(
             RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(radius ?? 10.0),
+              borderRadius: effectiveBorderRadius, // Use effectiveBorderRadius
             ),
           ),
           backgroundColor: WidgetStateProperty.resolveWith<Color>(
@@ -77,11 +83,11 @@ class FlipperButton extends StatelessWidget {
           overlayColor: WidgetStateProperty.resolveWith<Color?>(
             (Set<WidgetState> states) {
               if (states.contains(WidgetState.hovered)) {
-                return Colors.blue.withOpacity(0.04);
+                return Colors.blue.withValues(alpha: 0.04);
               }
               if (states.contains(WidgetState.focused) ||
                   states.contains(WidgetState.pressed)) {
-                return Colors.blue.withOpacity(0.12);
+                return Colors.blue.withValues(alpha: 0.12);
               }
               return null; // Defer to the widget's default.
             },
@@ -119,7 +125,7 @@ class FlipperButtonFlat extends StatelessWidget {
         overlayColor: WidgetStateProperty.resolveWith<Color?>(
           (Set<WidgetState> states) {
             if (states.contains(WidgetState.hovered)) {
-              return Colors.blue.withOpacity(0.04);
+              return Colors.blue.withValues(alpha: 0.04);
             }
             return null; // Defer to the widget's default.
           },
@@ -183,7 +189,7 @@ class FlipperIconButton extends StatelessWidget {
           overlayColor: WidgetStateProperty.resolveWith<Color?>(
             (Set<WidgetState> states) {
               if (states.contains(WidgetState.hovered)) {
-                return Colors.blue.withOpacity(0.04);
+                return Colors.blue.withValues(alpha: 0.04);
               }
               return null; // Defer to the widget's default.
             },

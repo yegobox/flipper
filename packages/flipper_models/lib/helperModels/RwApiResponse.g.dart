@@ -36,7 +36,7 @@ Data _$DataFromJson(Map<String, dynamic> json) => Data(
           ?.map((e) => Variant.fromJson(e as Map<String, dynamic>))
           .toList(),
       saleList: (json['saleList'] as List<dynamic>?)
-          ?.map((e) => SaleList.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => Purchase.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
