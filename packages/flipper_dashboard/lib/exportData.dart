@@ -208,9 +208,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     try {
       ref.read(isProcessingProvider.notifier).startProcessing();
       String filePath;
-
+      final business = await ProxyService.strategy
+          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
       if (ProxyService.box.exportAsPdf()) {
-        final business = await ProxyService.strategy.getBusiness();
         final PdfDocument document =
             workBookKey.currentState!.exportToPdfDocument(
           fitAllColumnsInOnePage: true,
@@ -233,7 +233,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
 
         if (!isStockRecount) {
-          final business = await ProxyService.strategy.getBusiness();
           final drawer = await ProxyService.strategy
               .getDrawer(cashierId: ProxyService.box.getUserId()!);
           final ExcelStyler styler = ExcelStyler(workbook);

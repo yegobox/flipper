@@ -2829,7 +2829,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (id != null) brick.Where('id').isExactly(id),
       // if (filterType != null) brick.Where('filterType').isExactly(filterType),
       if (branchId != null) brick.Where('branchId').isExactly(branchId),
-      if (isCashOut) brick.Where('isExpense').isExactly(true),
+      if (isCashOut || isExpense) brick.Where('isExpense').isExactly(true),
     ];
     if (startDate != null && endDate != null) {
       if (startDate == endDate) {
@@ -2850,7 +2850,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
     final queryString = brick.Query(where: conditions);
 
-    return await repository.get<ITransaction>(query: queryString);
+    return await repository.get<ITransaction>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate, query: queryString);
   }
 
   @override
