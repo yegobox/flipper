@@ -1801,6 +1801,7 @@ class Capella with Booting implements RealmInterface {
   Future<brick.Product?> createProduct(
       {required brick.Product product,
       String? modrId,
+      Purchase? purchase,
       String? orgnNatCd,
       String? exptNatCd,
       int? pkg,
