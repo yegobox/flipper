@@ -273,11 +273,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     transactionType: widget.transactionType,
                     isIncome: isIncome,
                   );
-                  Navigator.of(context).pop(true);
                   widget.onConfirm(); // Ensure pop is called
                 } catch (e) {
                   talker.error(e);
-                  Navigator.of(context).pop(false);
                   widget.onConfirm(); // Ensure pop is called
                 }
               },

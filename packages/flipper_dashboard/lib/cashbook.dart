@@ -52,32 +52,35 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     return Column(
       children: [
         buildTransactionSection(context, model),
-        SizedBox(height: 31),
+        const SizedBox(height: 31), // Use const for static widgets
       ],
     );
   }
 
   Widget buildDropdowns(CoreViewModel model) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ReusableDropdown(
-          options: model.transactionPeriodOptions,
-          selectedOption: model.transactionPeriod,
-          onChanged: (String? newPeriod) {
-            model.transactionPeriod = newPeriod!;
-          },
-        ),
-        ReusableDropdown(
-          options: model.profitTypeOptions,
-          selectedOption: model.profitType,
-          onChanged: (String? newProfitType) {
-            model.profitType = newProfitType!;
-            model.notifyListeners();
-          },
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0), // Add padding
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ReusableDropdown(
+            options: model.transactionPeriodOptions,
+            selectedOption: model.transactionPeriod,
+            onChanged: (String? newPeriod) {
+              model.transactionPeriod = newPeriod!;
+            },
+          ),
+          ReusableDropdown(
+            options: model.profitTypeOptions,
+            selectedOption: model.profitType,
+            onChanged: (String? newProfitType) {
+              model.profitType = newProfitType!;
+              model.notifyListeners();
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -96,15 +99,16 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     final endDate = dateRange.endDate;
     return Column(
       children: [
-        SizedBox(height: 5),
+        const SizedBox(height: 5), // Use const for static widgets
         Expanded(
           child: BuildGaugeOrList(
-              startDate: startDate,
-              endDate: endDate,
-              context: context,
-              model: model,
-              widgetType: 'list',
-              data: transactionData),
+            startDate: startDate,
+            endDate: endDate,
+            context: context,
+            model: model,
+            widgetType: 'list',
+            data: transactionData,
+          ),
         ),
         buildTransactionButtons(model),
       ],
@@ -112,28 +116,33 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   Widget buildTransactionButtons(CoreViewModel model) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        FlipperButton(
-          text: 'Cash In',
-          color: Colors.green,
-          onPressed: () {
-            model.newTransactionPressed = true;
-            model.newTransactionType = TransactionType.cashIn;
-            model.notifyListeners();
-          },
-        ),
-        FlipperButton(
-          text: TransactionType.cashOut,
-          color: Color(0xFFFF0331),
-          onPressed: () {
-            model.newTransactionPressed = true;
-            model.newTransactionType = TransactionType.cashOut;
-            model.notifyListeners();
-          },
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: 16.0), // Add horizontal padding
+      child: Row(
+        mainAxisAlignment:
+            MainAxisAlignment.spaceAround, // Use spaceAround for better spacing
+        children: [
+          FlipperButton(
+            text: 'Cash In',
+            color: Colors.green,
+            onPressed: () {
+              model.newTransactionPressed = true;
+              model.newTransactionType = TransactionType.cashIn;
+              model.notifyListeners();
+            },
+          ),
+          FlipperButton(
+            text: TransactionType.cashOut,
+            color: const Color(0xFFFF0331),
+            onPressed: () {
+              model.newTransactionPressed = true;
+              model.newTransactionType = TransactionType.cashOut;
+              model.notifyListeners();
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -142,14 +151,17 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       children: [
         Expanded(
           child: KeyPadView.cashBookMode(
-              onConfirm: () {
-                // Handle the pop action here
-                Navigator.of(context).pop();
-              },
-              model: model,
-              isBigScreen: widget.isBigScreen,
-              accountingMode: true,
-              transactionType: model.newTransactionType),
+            onConfirm: () {
+              // Handle the pop action here
+              Navigator.of(context).pop();
+              model.newTransactionPressed = false;
+              model.notifyListeners();
+            },
+            model: model,
+            isBigScreen: widget.isBigScreen,
+            accountingMode: true,
+            transactionType: model.newTransactionType,
+          ),
         ),
       ],
     );
