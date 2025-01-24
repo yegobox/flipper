@@ -399,7 +399,7 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
     final quantityWidth = availableWidth * 0.15; // 15% of width
     final statusWidth = availableWidth * 0.25; // 25% of width
     final actionsWidth = availableWidth * 0.20; // 20% of width
-    print("Items Length:${itemList.length}");
+    //print("Items Length:${itemList.length}");
 
     return Card(
       elevation: 2,
