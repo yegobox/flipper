@@ -5319,4 +5319,20 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // Yield the total sales revenue as a stream value
     yield totalRevenue;
   }
+
+  @override
+  Future<List<BusinessAnalytic>> analytics({required int branchId}) async {
+    return await repository.get<BusinessAnalytic>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        query:
+            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
+  }
+
+  @override
+  Future<List<models.Stock>> stocks({required int branchId}) async {
+    return await repository.get<Stock>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        query:
+            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
+  }
 }

@@ -1869,4 +1869,16 @@ class Capella with Booting implements RealmInterface {
     // TODO: implement fetchProfit
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<brick.BusinessAnalytic>> analytics({required int branchId}) {
+    // TODO: implement analytics
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<List<brick.Stock>> stocks({required int branchId}) {
+    // TODO: implement stocks
+    throw UnimplementedError();
+  }
 }
