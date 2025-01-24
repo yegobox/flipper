@@ -2926,7 +2926,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (branchId != null) brick.Where('branchId').isExactly(branchId),
       if (isCashOut) brick.Where('isCashOut').isExactly(true),
       if (isExpense) brick.Where('isExpense').isExactly(true),
-      if (includePending) brick.Where('status').isExactly('PENDING'),
+      if (includePending) brick.Where('status').isExactly(PENDING),
       if (filterType != null)
         brick.Where('type').isExactly(filterType.toString()),
       if (transactionType != null)
