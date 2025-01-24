@@ -2,13 +2,14 @@
 
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/stock_value_provider.dart';
 import 'package:flipper_models/providers/total_sale_provider.dart';
 import 'package:flipper_models/providers/profit_provider.dart';
+import 'package:flipper_models/providers/business_analytic_provider.dart';
+import 'package:flipper_models/providers/metric_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class ReportsDashboard extends HookConsumerWidget {
@@ -16,14 +17,13 @@ class ReportsDashboard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Fetch data providers (adjust according to your actual providers)
+    final branchId = ProxyService.box.getBranchId()!;
 
-    final totalSales =
-        ref.watch(totalSaleProvider(branchId: ProxyService.box.getBranchId()!));
-    final stockValue = ref
-        .watch(stockValueProvider(branchId: ProxyService.box.getBranchId()!));
-    final profitVsCost =
-        ref.watch(profitProvider(ProxyService.box.getBranchId()!));
+    // Fetch data providers
+    final totalSales = ref.watch(totalSaleProvider(branchId: branchId));
+    final stockValue = ref.watch(stockValueProvider(branchId: branchId));
+    final profitVsCost = ref.watch(profitProvider(branchId));
+    final stockPerformance = ref.watch(fetchStockPerformanceProvider(branchId));
 
     return Scaffold(
       appBar: AppBar(
@@ -33,8 +33,11 @@ class ReportsDashboard extends HookConsumerWidget {
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
-              // Implement refresh logic
-              ref.invalidate(reportsProvider);
+              // Refresh all providers
+              ref.invalidate(totalSaleProvider);
+              ref.invalidate(stockValueProvider);
+              ref.invalidate(profitProvider);
+              ref.invalidate(fetchStockPerformanceProvider);
             },
           ),
           IconButton(
@@ -48,7 +51,11 @@ class ReportsDashboard extends HookConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(reportsProvider);
+          // Refresh all providers
+          ref.invalidate(totalSaleProvider);
+          ref.invalidate(stockValueProvider);
+          ref.invalidate(profitProvider);
+          ref.invalidate(fetchStockPerformanceProvider);
         },
         child: SingleChildScrollView(
           physics: AlwaysScrollableScrollPhysics(),
@@ -59,9 +66,10 @@ class ReportsDashboard extends HookConsumerWidget {
               children: [
                 // Performance Overview Cards
                 _buildPerformanceCards(
-                    stockValue: stockValue,
-                    totalSales: totalSales,
-                    profitVsCost: profitVsCost),
+                  stockValue: stockValue,
+                  totalSales: totalSales,
+                  profitVsCost: profitVsCost,
+                ),
 
                 SizedBox(height: 20),
 
@@ -75,12 +83,12 @@ class ReportsDashboard extends HookConsumerWidget {
                 SizedBox(height: 10),
 
                 // Stock Performance Chart
-                _buildStockPerformanceChart(),
+                _buildStockPerformanceChart(stockPerformance),
 
                 SizedBox(height: 20),
 
                 // Detailed Metrics Grid
-                _buildDetailedMetricsGrid(),
+                _buildDetailedMetricsGrid(ref: ref),
               ],
             ),
           ),
@@ -97,15 +105,16 @@ class ReportsDashboard extends HookConsumerWidget {
     ).then((dateRange) {
       if (dateRange != null) {
         ref.read(dateRangeProvider.notifier).setStartDate(dateRange.start);
-        ref.read(dateRangeProvider.notifier).setStartDate(dateRange.end);
+        ref.read(dateRangeProvider.notifier).setEndDate(dateRange.end);
       }
     });
   }
 
-  Widget _buildPerformanceCards(
-      {required AsyncValue<double> stockValue,
-      required AsyncValue<double> totalSales,
-      required AsyncValue<double> profitVsCost}) {
+  Widget _buildPerformanceCards({
+    required AsyncValue<double> stockValue,
+    required AsyncValue<double> totalSales,
+    required AsyncValue<double> profitVsCost,
+  }) {
     return Column(
       children: [
         Row(
@@ -195,108 +204,136 @@ class ReportsDashboard extends HookConsumerWidget {
     );
   }
 
-  Widget _buildStockPerformanceChart() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Stock Performance Trend',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+  Widget _buildStockPerformanceChart(
+      AsyncValue<List<BusinessAnalytic>> stockPerformance) {
+    return stockPerformance.when(
+      loading: () => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: CircularProgressIndicator(
+            strokeWidth: 4.0, // Adjust the thickness of the indicator
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Set color
+          ),
+        ),
+      ),
+      error: (error, stack) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            'Error: $error',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.red,
             ),
-            SizedBox(height: 10),
-            SizedBox(
-              height: 250,
-              child: LineChart(
-                LineChartData(
-                  gridData: FlGridData(show: false),
-                  titlesData: FlTitlesData(show: false),
-                  borderData: FlBorderData(show: false),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: [
-                        FlSpot(0, 3),
-                        FlSpot(1, 2),
-                        FlSpot(2, 5),
-                        FlSpot(3, 3.1),
-                        FlSpot(4, 4),
-                        FlSpot(5, 3),
-                      ],
-                      isCurved: true,
-                      color: Colors.blue,
-                      barWidth: 4,
-                      isStrokeCapRound: true,
-                      dotData: FlDotData(show: false),
-                      belowBarData: BarAreaData(
-                          show: true, color: Colors.blue.withOpacity(0.1)),
-                    ),
-                  ],
+          ),
+        ),
+      ),
+      data: (analytics) {
+        // Check if there are at least 2 data points
+        if (analytics.length < 2) {
+          return Card(
+            elevation: 4,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Center(
+                child: Text(
+                  'Insufficient data to display the chart',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[700],
+                  ),
                 ),
               ),
             ),
-          ],
-        ),
-      ),
+          );
+        }
+
+        // Transform analytics data into FlSpot objects
+        final spots = analytics.asMap().entries.map((entry) {
+          final index = entry.key.toDouble(); // Cast index to double
+          final analytic = entry.value;
+          return FlSpot(
+              index, analytic.value.toDouble()); // Cast value to double
+        }).toList();
+
+        return Card(
+          elevation: 4,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Stock Performance Trend',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 10),
+                SizedBox(
+                  height: 250,
+                  child: LineChart(
+                    LineChartData(
+                      gridData: FlGridData(show: false),
+                      titlesData: FlTitlesData(show: false),
+                      borderData: FlBorderData(show: false),
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: spots,
+                          isCurved: true,
+                          color: Colors.blue,
+                          barWidth: 4,
+                          isStrokeCapRound: true,
+                          dotData: FlDotData(show: false),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            color: Colors.blue.withOpacity(0.1),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildDetailedMetricsGrid() {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      childAspectRatio: 1.5,
-      children: [
-        _buildDetailMetricCard(
-          title: 'Inventory Turnover',
-          value: '4.5x',
-          icon: Icons.loop,
-          color: Colors.purple,
-        ),
-        _buildDetailMetricCard(
-          title: 'Gross Margin',
-          value: '42%',
-          icon: Icons.percent,
-          color: Colors.orange,
-        ),
-        _buildDetailMetricCard(
-          title: 'Average Order Value',
-          value: '\$85.50',
-          icon: Icons.attach_money,
-          color: Colors.teal,
-        ),
-        _buildDetailMetricCard(
-          title: 'Stock Days',
-          value: '45 days',
-          icon: Icons.calendar_today,
-          color: Colors.red,
-        ),
-        _buildDetailMetricCard(
-          title: 'Net Profit',
-          value: '\$12,500',
-          icon: Icons.trending_up,
-          color: Colors.green,
-        ),
-        _buildDetailMetricCard(
-          title: 'Customer Acquisition Cost',
-          value: '\$50',
-          icon: Icons.person_add,
-          color: Colors.blue,
-        ),
-        _buildDetailMetricCard(
-          title: 'Customer Lifetime Value',
-          value: '\$1,200',
-          icon: Icons.people,
-          color: Colors.pink,
-        ),
-      ],
+  Widget _buildDetailedMetricsGrid({required WidgetRef ref}) {
+    final branchId = ProxyService.box.getBranchId()!;
+    final metricsAsync = ref.watch(fetchMetricsProvider(branchId));
+
+    return metricsAsync.when(
+      loading: () => Center(
+        child: CircularProgressIndicator(),
+      ),
+      error: (error, stack) => Center(
+        child: Text('Error: $error'),
+      ),
+      data: (metrics) {
+        return GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          childAspectRatio: 1.5,
+          children: metrics.map((metric) {
+            return _buildDetailMetricCard(
+              title: metric.title,
+              value: metric.value,
+              icon: metric.icon,
+              color: metric.color,
+            );
+          }).toList(),
+        );
+      },
     );
   }
 

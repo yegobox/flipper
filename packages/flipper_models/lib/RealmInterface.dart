@@ -299,6 +299,8 @@ abstract class RealmInterface {
     String? id,
     bool? active,
   });
+
+  FutureOr<List<Stock>> stocks({required int branchId});
   Future<Stock> getStockById({required String id});
 
   Future<List<Purchase>> selectPurchases(
@@ -865,4 +867,5 @@ abstract class RealmInterface {
   Future<double> fetchProfit(int branchId);
 
   Future<double> fetchCost(int branchId);
+  Future<List<BusinessAnalytic>> analytics({required int branchId});
 }

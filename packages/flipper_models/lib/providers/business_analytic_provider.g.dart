@@ -1,12 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'profit_provider.dart';
+part of 'business_analytic_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$profitHash() => r'05a60f996d2bc1b314c2bcc3acb9fbf28b582cb2';
+String _$fetchStockPerformanceHash() =>
+    r'e493a3159e414f4487405c8c3307dc4f21add7d5';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,35 +30,28 @@ class _SystemHash {
   }
 }
 
-abstract class _$Profit extends BuildlessAutoDisposeAsyncNotifier<double> {
-  late final int branchId;
+/// See also [fetchStockPerformance].
+@ProviderFor(fetchStockPerformance)
+const fetchStockPerformanceProvider = FetchStockPerformanceFamily();
 
-  FutureOr<double> build(
-    int branchId,
-  );
-}
+/// See also [fetchStockPerformance].
+class FetchStockPerformanceFamily
+    extends Family<AsyncValue<List<BusinessAnalytic>>> {
+  /// See also [fetchStockPerformance].
+  const FetchStockPerformanceFamily();
 
-/// See also [Profit].
-@ProviderFor(Profit)
-const profitProvider = ProfitFamily();
-
-/// See also [Profit].
-class ProfitFamily extends Family<AsyncValue<double>> {
-  /// See also [Profit].
-  const ProfitFamily();
-
-  /// See also [Profit].
-  ProfitProvider call(
+  /// See also [fetchStockPerformance].
+  FetchStockPerformanceProvider call(
     int branchId,
   ) {
-    return ProfitProvider(
+    return FetchStockPerformanceProvider(
       branchId,
     );
   }
 
   @override
-  ProfitProvider getProviderOverride(
-    covariant ProfitProvider provider,
+  FetchStockPerformanceProvider getProviderOverride(
+    covariant FetchStockPerformanceProvider provider,
   ) {
     return call(
       provider.branchId,
@@ -76,29 +70,33 @@ class ProfitFamily extends Family<AsyncValue<double>> {
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'profitProvider';
+  String? get name => r'fetchStockPerformanceProvider';
 }
 
-/// See also [Profit].
-class ProfitProvider
-    extends AutoDisposeAsyncNotifierProviderImpl<Profit, double> {
-  /// See also [Profit].
-  ProfitProvider(
+/// See also [fetchStockPerformance].
+class FetchStockPerformanceProvider
+    extends AutoDisposeFutureProvider<List<BusinessAnalytic>> {
+  /// See also [fetchStockPerformance].
+  FetchStockPerformanceProvider(
     int branchId,
   ) : this._internal(
-          () => Profit()..branchId = branchId,
-          from: profitProvider,
-          name: r'profitProvider',
+          (ref) => fetchStockPerformance(
+            ref as FetchStockPerformanceRef,
+            branchId,
+          ),
+          from: fetchStockPerformanceProvider,
+          name: r'fetchStockPerformanceProvider',
           debugGetCreateSourceHash:
               const bool.fromEnvironment('dart.vm.product')
                   ? null
-                  : _$profitHash,
-          dependencies: ProfitFamily._dependencies,
-          allTransitiveDependencies: ProfitFamily._allTransitiveDependencies,
+                  : _$fetchStockPerformanceHash,
+          dependencies: FetchStockPerformanceFamily._dependencies,
+          allTransitiveDependencies:
+              FetchStockPerformanceFamily._allTransitiveDependencies,
           branchId: branchId,
         );
 
-  ProfitProvider._internal(
+  FetchStockPerformanceProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
@@ -111,20 +109,14 @@ class ProfitProvider
   final int branchId;
 
   @override
-  FutureOr<double> runNotifierBuild(
-    covariant Profit notifier,
+  Override overrideWith(
+    FutureOr<List<BusinessAnalytic>> Function(FetchStockPerformanceRef provider)
+        create,
   ) {
-    return notifier.build(
-      branchId,
-    );
-  }
-
-  @override
-  Override overrideWith(Profit Function() create) {
     return ProviderOverride(
       origin: this,
-      override: ProfitProvider._internal(
-        () => create()..branchId = branchId,
+      override: FetchStockPerformanceProvider._internal(
+        (ref) => create(ref as FetchStockPerformanceRef),
         from: from,
         name: null,
         dependencies: null,
@@ -136,13 +128,13 @@ class ProfitProvider
   }
 
   @override
-  AutoDisposeAsyncNotifierProviderElement<Profit, double> createElement() {
-    return _ProfitProviderElement(this);
+  AutoDisposeFutureProviderElement<List<BusinessAnalytic>> createElement() {
+    return _FetchStockPerformanceProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is ProfitProvider && other.branchId == branchId;
+    return other is FetchStockPerformanceProvider && other.branchId == branchId;
   }
 
   @override
@@ -156,18 +148,19 @@ class ProfitProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin ProfitRef on AutoDisposeAsyncNotifierProviderRef<double> {
+mixin FetchStockPerformanceRef
+    on AutoDisposeFutureProviderRef<List<BusinessAnalytic>> {
   /// The parameter `branchId` of this provider.
   int get branchId;
 }
 
-class _ProfitProviderElement
-    extends AutoDisposeAsyncNotifierProviderElement<Profit, double>
-    with ProfitRef {
-  _ProfitProviderElement(super.provider);
+class _FetchStockPerformanceProviderElement
+    extends AutoDisposeFutureProviderElement<List<BusinessAnalytic>>
+    with FetchStockPerformanceRef {
+  _FetchStockPerformanceProviderElement(super.provider);
 
   @override
-  int get branchId => (origin as ProfitProvider).branchId;
+  int get branchId => (origin as FetchStockPerformanceProvider).branchId;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

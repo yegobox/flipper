@@ -37,7 +37,7 @@ Future<Purchase> _$PurchaseFromSupabase(Map<String, dynamic> data,
       totTaxblAmt: data['tot_taxbl_amt'] as num,
       totTaxAmt: data['tot_tax_amt'] as num,
       totAmt: data['tot_amt'] as num,
-      branchId: data['branch_id'] as int,
+      branchId: data['branch_id'] as int?,
       remark: data['remark'] as String?);
 }
 
@@ -126,7 +126,7 @@ Future<Purchase> _$PurchaseFromSqlite(Map<String, dynamic> data,
       totTaxblAmt: data['tot_taxbl_amt'] as num,
       totTaxAmt: data['tot_tax_amt'] as num,
       totAmt: data['tot_amt'] as num,
-      branchId: data['branch_id'] as int,
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       remark: data['remark'] == null ? null : data['remark'] as String?)
     ..primaryKey = data['_brick_id'] as int;
 }

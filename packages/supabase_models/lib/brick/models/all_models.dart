@@ -46,3 +46,5 @@ export 'country.model.dart';
 
 // non db models
 export 'ProgressData.dart';
+export 'business_analytic.model.dart';
+export 'Metric.dart';
