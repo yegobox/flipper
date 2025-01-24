@@ -11,12 +11,12 @@ class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
   final String id;
-   @Sqlite(index: true)
-  final String? purchaseId;
+  @Supabase(foreignKey: 'purchase_id')
+  @Sqlite(index: true)
+  String? purchaseId;
   Stock? stock;
   String? stockId;
 
-  
   @Sqlite(defaultValue: "18.0", columnType: Column.num)
   @Supabase(defaultValue: "18.0")
   num? taxPercentage;
@@ -129,8 +129,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(ignore: true)
   final double? taxAmt;
   // end of fields to ignore
-
- 
 
   Variant({
     String? id,
