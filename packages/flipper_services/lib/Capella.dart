@@ -281,7 +281,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Stream<double> soldStockValue({required branchId}) {
+  Stream<double> totalSales({required branchId}) {
     // TODO: implement soldStockValue
     throw UnimplementedError();
   }
@@ -608,7 +608,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Stream<double> getStockValue({required int branchId}) {
+  Stream<double> wholeStockValue({required int branchId}) {
     // TODO: implement getStockValue
     throw UnimplementedError();
   }
@@ -1855,6 +1855,18 @@ class Capella with Booting implements RealmInterface {
       required String name,
       brick.TransactionItem? item}) {
     // TODO: implement addTransactionItem
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<double> fetchCost(int branchId) {
+    // TODO: implement fetchCost
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<double> fetchProfit(int branchId) {
+    // TODO: implement fetchProfit
     throw UnimplementedError();
   }
 }

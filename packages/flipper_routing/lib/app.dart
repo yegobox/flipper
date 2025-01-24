@@ -60,7 +60,7 @@ import 'all_routes.dart';
     CustomRoute(page: Transactions),
     CustomRoute(page: Security),
     CustomRoute(page: Comfirm),
-    CustomRoute(page: Reports),
+    CustomRoute(page: ReportsDashboard),
     CustomRoute(page: AdminControl),
     CustomRoute(page: AddBranch),
     CustomRoute(page: QuickSellingView),
@@ -89,7 +89,7 @@ class App {}
 //  https://developer.android.com/studio/preview/features#device-mirroring-giraffe
 //  before adding a package see from the bellow list if we don't
 // modal_bottom_sheet: ^3.0.0-pre
-// `dart run build_runner build --delete-conflicting-outputs`
+// ``dart run build_runner build --delete-conflicting-outputs``
 // dart run build_runner watch
 // `dart run realm generate --watch`
 // dart pub cache clean

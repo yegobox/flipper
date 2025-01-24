@@ -39,10 +39,12 @@ class Purchase extends OfflineFirstWithSupabaseModel {
   final num totTaxblAmt;
   final num totTaxAmt;
   final num totAmt;
+  int? branchId;
   final String? remark;
 
   Purchase({
     String? id,
+    this.branchId,
     required this.spplrTin,
     required this.spplrNm,
     required this.spplrBhfId,

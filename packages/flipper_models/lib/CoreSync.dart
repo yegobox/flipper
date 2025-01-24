@@ -4686,16 +4686,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     throw UnimplementedError();
   }
 
-  @override
-  Stream<double> getStockValue({required int branchId}) {
-    return repository
-        .subscribe<Stock>(
-            query: brick.Query(
-                where: [brick.Where('branchId').isExactly(branchId)]))
-        .map(
-            (changes) => changes.fold(0.0, (sum, stock) => sum + stock.value!));
-  }
-
 //TODO: check if we are setting modrId same as barcode in other places
   @override
   Future<void> processItem({
@@ -4958,19 +4948,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Stream<double> soldStockValue({required branchId}) {
-    // TODO: implement soldStockValue
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> startReplicator() async {}
-
-  @override
-  Stream<double> stockValue({required branchId}) {
-    // TODO: implement stockValue
-    throw UnimplementedError();
-  }
 
   @override
   Future<({String customerCode, String url, int userId})> subscribe(
@@ -5219,5 +5197,126 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       talker.error(s);
     }
     return [];
+  }
+
+  @override
+  Future<double> fetchCost(int branchId) async {
+    double totalCost = 0.0;
+
+    // Fetch all variants for the given branch
+    final variants = await repository.get<Variant>(
+      query: brick.Query(where: [
+        brick.Where('branchId').isExactly(branchId),
+      ]),
+    );
+
+    // Calculate cost for each variant
+    for (final variant in variants) {
+      if (variant.supplyPrice != null && variant.qty != null) {
+        totalCost += variant.supplyPrice! * variant.qty!;
+      }
+    }
+
+    return totalCost;
+  }
+
+  @override
+  Future<double> fetchProfit(int branchId) async {
+    double totalProfit = 0.0;
+
+    // Fetch all variants for the given branch
+    final variants = await repository.get<Variant>(
+      query: brick.Query(where: [
+        brick.Where('branchId').isExactly(branchId),
+      ]),
+    );
+
+    // Calculate profit for each variant
+    for (final variant in variants) {
+      if (variant.retailPrice != null &&
+          variant.supplyPrice != null &&
+          variant.qty != null) {
+        final revenue = variant.retailPrice! * variant.qty!;
+        final cost = variant.supplyPrice! * variant.qty!;
+        totalProfit += (revenue - cost);
+      }
+    }
+
+    // Fetch all transaction items for the given branch
+    final transactionItems = await repository.get<TransactionItem>(
+      query: brick.Query(where: [
+        brick.Where('branchId').isExactly(branchId),
+      ]),
+    );
+
+    // Calculate profit for each transaction item
+    for (final item in transactionItems) {
+      // Fetch the associated variant to get the supply price
+      final variant = (await repository.get<Variant>(
+        query: brick.Query(where: [
+          brick.Where('id').isExactly(item.variantId!),
+        ]),
+      ))
+          .first;
+
+      if (variant.supplyPrice != null) {
+        final revenue = item.price * item.qty;
+        final cost = variant.supplyPrice! * item.qty;
+        totalProfit += (revenue - cost);
+      }
+    }
+
+    return totalProfit;
+  }
+
+  @override
+  Stream<double> wholeStockValue({required int branchId}) {
+    return repository
+        .subscribe<Stock>(
+            query: brick.Query(
+                where: [brick.Where('branchId').isExactly(branchId)]))
+        .map(
+            (changes) => changes.fold(0.0, (sum, stock) => sum + stock.value!));
+  }
+
+  @override
+  Stream<double> totalSales({required int branchId}) async* {
+    // Fetch all stock records for the given branch
+    final stocks = await repository.get<Stock>(
+      query: brick.Query(where: [
+        brick.Where('branchId').isExactly(branchId), // Filter by branchId
+      ]),
+    );
+
+    // Initialize total revenue to 0.0
+    double totalRevenue = 0.0;
+
+    // Iterate through each stock record
+    for (final stock in stocks) {
+      // Check if initialStock and currentStock are not null
+      if (stock.initialStock != null && stock.currentStock != null) {
+        // Calculate the quantity of stock sold for this stock item
+        final soldQuantity = stock.initialStock! - stock.currentStock!;
+
+        // Fetch all variants associated with this stock item
+        final variants = await repository.get<Variant>(
+          query: brick.Query(where: [
+            brick.Where('stockId').isExactly(stock.id), // Filter by stockId
+          ]),
+        );
+
+        // Iterate through each variant to calculate revenue
+        for (final variant in variants) {
+          // Check if retailPrice (selling price) is not null
+          if (variant.retailPrice != null) {
+            // Calculate revenue for this variant: soldQuantity * retailPrice
+            totalRevenue += soldQuantity * variant.retailPrice!;
+          }
+        }
+      }
+    }
+
+    // Yield the total sales revenue as a stream value
+    yield totalRevenue;
   }
 }
