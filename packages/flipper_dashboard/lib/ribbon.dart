@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/BranchPerformance.dart';
+import 'package:flipper_dashboard/Reports.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/transactionList.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
@@ -143,7 +144,21 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
       _showReport(context);
     }
     if (index == 3) {
-      _routerService.navigateTo(ReportsRoute());
+      showDialog(
+        barrierDismissible: true,
+        context: context,
+        builder: (_) => Dialog(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(4))),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 700),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ReportsDashboard(),
+            ),
+          ),
+        ),
+      );
     } else if (index == 2) {
       final data = await ProxyService.strategy
           .getTransactionsAmountsSum(period: TransactionPeriod.today);

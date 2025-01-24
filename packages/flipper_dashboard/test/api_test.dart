@@ -29,6 +29,7 @@ void main() {
 
       // Create mock Purchase data with Variants
       final purchase = Purchase(
+        branchId: 1,
         id: '1',
         spplrTin: '123456789',
         spplrNm: 'Supplier Name',

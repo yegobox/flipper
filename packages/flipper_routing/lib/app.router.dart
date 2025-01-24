@@ -558,10 +558,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
-    ReportsRoute.name: (routeData) {
+    ReportsDashboardRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.Reports(),
+        child: const _i1.ReportsDashboard(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -829,8 +829,8 @@ class StackedRouterWeb extends _i4.RootStackRouter {
           path: '/Comfirm',
         ),
         _i4.RouteConfig(
-          ReportsRoute.name,
-          path: '/Reports',
+          ReportsDashboardRoute.name,
+          path: '/reports-dashboard',
         ),
         _i4.RouteConfig(
           AdminControlRoute.name,
@@ -2203,15 +2203,15 @@ class ComfirmRoute extends _i4.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i1.Reports]
-class ReportsRoute extends _i4.PageRouteInfo<void> {
-  const ReportsRoute()
+/// [_i1.ReportsDashboard]
+class ReportsDashboardRoute extends _i4.PageRouteInfo<void> {
+  const ReportsDashboardRoute()
       : super(
-          ReportsRoute.name,
-          path: '/Reports',
+          ReportsDashboardRoute.name,
+          path: '/reports-dashboard',
         );
 
-  static const String name = 'Reports';
+  static const String name = 'ReportsDashboard';
 }
 
 /// generated route for
@@ -2983,10 +2983,10 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> navigateToReports(
+  Future<dynamic> navigateToReportsDashboard(
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
-      const ReportsRoute(),
+      const ReportsDashboardRoute(),
       onFailure: onFailure,
     );
   }
@@ -3684,10 +3684,10 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> replaceWithReports(
+  Future<dynamic> replaceWithReportsDashboard(
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
-      const ReportsRoute(),
+      const ReportsDashboardRoute(),
       onFailure: onFailure,
     );
   }

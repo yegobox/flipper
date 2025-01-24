@@ -83,7 +83,7 @@ abstract class RealmInterface {
   FutureOr<Category?> activeCategory({required int branchId});
   Future<List<IUnit>> units({required int branchId});
   FutureOr<T?> create<T>({required T data});
-  Stream<double> getStockValue({required int branchId});
+  Stream<double> wholeStockValue({required int branchId});
 
   Future<bool> delete(
       {required String id,
@@ -265,9 +265,10 @@ abstract class RealmInterface {
     double? compositePrice,
     required double quantity,
     required double currentStock,
-     Variant? variation,
+    Variant? variation,
     required double amountTotal, // Added to match old implementation
-    required String name,  TransactionItem? item, // Added to match old implementation
+    required String name,
+    TransactionItem? item, // Added to match old implementation
   });
 
   Future<int> userNameAvailable(
@@ -370,9 +371,7 @@ abstract class RealmInterface {
       bool? doneWithTransaction,
       bool? active});
 
-  Stream<double> stockValue({required branchId});
-
-  Stream<double> soldStockValue({required branchId});
+  Stream<double> totalSales({required int branchId});
 
   Stream<List<Category>> categoryStream();
   Future<List<Variant>> selectImportItems({
@@ -862,4 +861,8 @@ abstract class RealmInterface {
   Future<void> deletePaymentById(String id);
 
   Future<List<Country>> countries();
+
+  Future<double> fetchProfit(int branchId);
+
+  Future<double> fetchCost(int branchId);
 }

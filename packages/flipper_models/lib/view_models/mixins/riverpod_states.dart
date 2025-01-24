@@ -105,18 +105,9 @@ class SellingModeNotifier extends StateNotifier<SellingMode> {
   }
 }
 
-final stocValueProvider =
-    StreamProvider.autoDispose.family<double, int>((ref, branchId) {
-  return ProxyService.strategy.stockValue(branchId: branchId);
-});
-
-final soldStockValueProvider =
-    StreamProvider.autoDispose.family<double, int>((ref, branchId) {
-  return ProxyService.strategy.soldStockValue(branchId: branchId);
-});
 final initialStockProvider =
     StreamProvider.autoDispose.family<double, int>((ref, branchId) {
-  return ProxyService.strategy.soldStockValue(branchId: branchId);
+  return ProxyService.strategy.totalSales(branchId: branchId);
 });
 
 final paginatedVariantsProvider = StateNotifierProvider.family<

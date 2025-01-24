@@ -37,6 +37,7 @@ Future<Purchase> _$PurchaseFromSupabase(Map<String, dynamic> data,
       totTaxblAmt: data['tot_taxbl_amt'] as num,
       totTaxAmt: data['tot_tax_amt'] as num,
       totAmt: data['tot_amt'] as num,
+      branchId: data['branch_id'] as int,
       remark: data['remark'] as String?);
 }
 
@@ -75,6 +76,7 @@ Future<Map<String, dynamic>> _$PurchaseToSupabase(Purchase instance,
     'tot_taxbl_amt': instance.totTaxblAmt,
     'tot_tax_amt': instance.totTaxAmt,
     'tot_amt': instance.totAmt,
+    'branch_id': instance.branchId,
     'remark': instance.remark
   };
 }
@@ -124,6 +126,7 @@ Future<Purchase> _$PurchaseFromSqlite(Map<String, dynamic> data,
       totTaxblAmt: data['tot_taxbl_amt'] as num,
       totTaxAmt: data['tot_tax_amt'] as num,
       totAmt: data['tot_amt'] as num,
+      branchId: data['branch_id'] as int,
       remark: data['remark'] == null ? null : data['remark'] as String?)
     ..primaryKey = data['_brick_id'] as int;
 }
@@ -160,6 +163,7 @@ Future<Map<String, dynamic>> _$PurchaseToSqlite(Purchase instance,
     'tot_taxbl_amt': instance.totTaxblAmt,
     'tot_tax_amt': instance.totTaxAmt,
     'tot_amt': instance.totAmt,
+    'branch_id': instance.branchId,
     'remark': instance.remark
   };
 }
@@ -283,6 +287,10 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
     'totAmt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'tot_amt',
+    ),
+    'branchId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'branch_id',
     ),
     'remark': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -462,6 +470,12 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
       columnName: 'tot_amt',
       iterable: false,
       type: num,
+    ),
+    'branchId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'branch_id',
+      iterable: false,
+      type: int,
     ),
     'remark': const RuntimeSqliteColumnDefinition(
       association: false,

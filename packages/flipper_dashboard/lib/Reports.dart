@@ -1,237 +1,347 @@
 // ignore_for_file: unused_result
 
-import 'package:flipper_dashboard/DownloadCard.dart';
-import 'package:flipper_dashboard/ReportCard.dart';
-import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
-import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_models/providers/stock_value_provider.dart';
+import 'package:flipper_models/providers/total_sale_provider.dart';
+import 'package:flipper_models/providers/profit_provider.dart';
+import 'package:fl_chart/fl_chart.dart';
 
-import 'package:flipper_dashboard/TransactionList.dart';
-
-class Reports extends StatefulHookConsumerWidget {
-  const Reports({super.key});
-
-  @override
-  ReportsState createState() => ReportsState();
-}
-
-class ReportsState extends ConsumerState<Reports>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+class ReportsDashboard extends HookConsumerWidget {
+  const ReportsDashboard({Key? key}) : super(key: key);
 
   @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this);
-  }
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Fetch data providers (adjust according to your actual providers)
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+    final totalSales =
+        ref.watch(totalSaleProvider(branchId: ProxyService.box.getBranchId()!));
+    final stockValue = ref
+        .watch(stockValueProvider(branchId: ProxyService.box.getBranchId()!));
+    final profitVsCost =
+        ref.watch(profitProvider(ProxyService.box.getBranchId()!));
 
-  @override
-  Widget build(BuildContext context) {
-    final stockValue =
-        ref.watch(stocValueProvider(ProxyService.box.getBranchId()!));
-    final soldStock =
-        ref.watch(soldStockValueProvider(ProxyService.box.getBranchId()!));
-
-    // final initialStock =
-    //     ref.watch(initialStockProvider(ProxyService.box.getBranchId()!));
-    final reports = ref.watch(reportsProvider(ProxyService.box.getBranchId()!));
-
-    return SafeArea(
-      child: Scaffold(
-        appBar: CustomAppBar(
-          closeButton: CLOSEBUTTON.WIDGET,
-          isDividerVisible: false,
-          onPop: () async {
-            talker.info("Invalidating transactionItemListProvider");
-            ref.invalidate(transactionItemListProvider);
-          },
-          customLeadingWidget: back.BackButton(popCallback: () {
-            talker.info("Invalidating transactionItemListProvider");
-            ref.invalidate(transactionItemListProvider);
-            ref.invalidate(transactionListProvider);
-            //pop();
-            locator<RouterService>().pop();
-          }),
-        ),
-        body: SingleChildScrollView(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Business Analytics',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+              // Implement refresh logic
+              ref.invalidate(reportsProvider);
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.calendar_today),
+            onPressed: () {
+              // Open date range picker
+              _showDateRangePicker(context, ref);
+            },
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(reportsProvider);
+        },
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Stock Performance',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueGrey[700],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          ReportCard(
-                            cardName: "Stock Value",
-                            wordingA: "Current Stock",
-                            wordingB: "Gross Sales",
-                            stockValue: stockValue.asData?.value ?? 0,
-                            soldStock: soldStock.asData?.value ?? 0,
-                            description: "Stock Performance",
-                          ),
-                        ],
+                // Performance Overview Cards
+                _buildPerformanceCards(
+                    stockValue: stockValue,
+                    totalSales: totalSales,
+                    profitVsCost: profitVsCost),
+
+                SizedBox(height: 20),
+
+                // Key Metrics Section
+                Text(
+                  'Key Metrics',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      flex: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                ref.watch(toggleBooleanValueProvider)
-                                    ? 'Past Reports'
-                                    : 'AI Reports',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blueGrey[700],
-                                ),
-                              ),
-                              Switch(
-                                value: ref.watch(toggleBooleanValueProvider),
-                                onChanged: (value) {
-                                  ref
-                                      .read(toggleBooleanValueProvider.notifier)
-                                      .toggleReport();
+                ),
+                SizedBox(height: 10),
 
-                                  talker.warning(
-                                      "toggledReportValue ${ref.watch(toggleBooleanValueProvider)}");
+                // Stock Performance Chart
+                _buildStockPerformanceChart(),
 
-                                  ref
-                                      .read(dateRangeProvider.notifier)
-                                      .setStartDate(DateTime.now());
-                                  ref
-                                      .read(dateRangeProvider.notifier)
-                                      .setEndDate(DateTime.now());
+                SizedBox(height: 20),
 
-                                  ref.refresh(transactionItemListProvider);
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          ref.watch(toggleBooleanValueProvider)
-                              ? Center(
-                                  child: ConstrainedBox(
-                                    constraints: BoxConstraints(maxHeight: 900),
-                                    child: TransactionList(
-                                      showDetailedReport:
-                                          ref.watch(toggleBooleanValueProvider),
-                                    ),
-                                  ),
-                                )
-                              : reports.when(
-                                  data: (reports) {
-                                    if (reports.isEmpty) {
-                                      return Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.inbox_outlined,
-                                              size: 64,
-                                              color: Colors.grey,
-                                            ),
-                                            SizedBox(height: 16),
-                                            Text(
-                                              'No reports available',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                color: Colors.grey[600],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    } else {
-                                      return ListView.builder(
-                                        shrinkWrap: true,
-                                        physics: NeverScrollableScrollPhysics(),
-                                        itemCount: reports.length,
-                                        itemBuilder: (context, index) {
-                                          final report = reports[index];
-                                          return Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 12.0),
-                                            child: DownloadCard(
-                                              url: report.s3Url!,
-                                              filename: report.filename!,
-                                              downloaded:
-                                                  report.downloaded ?? false,
-                                              report: report,
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    }
-                                  },
-                                  loading: () => Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.inbox_outlined,
-                                          size: 64,
-                                          color: Colors.grey,
-                                        ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          'No reports available',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  error: (error, stack) => Center(
-                                    child:
-                                        Text('Error loading reports: $error'),
-                                  ),
-                                ),
-                        ],
-                      ),
+                // Detailed Metrics Grid
+                _buildDetailedMetricsGrid(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDateRangePicker(BuildContext context, WidgetRef ref) {
+    showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    ).then((dateRange) {
+      if (dateRange != null) {
+        ref.read(dateRangeProvider.notifier).setStartDate(dateRange.start);
+        ref.read(dateRangeProvider.notifier).setStartDate(dateRange.end);
+      }
+    });
+  }
+
+  Widget _buildPerformanceCards(
+      {required AsyncValue<double> stockValue,
+      required AsyncValue<double> totalSales,
+      required AsyncValue<double> profitVsCost}) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildMetricCard(
+                title: 'Stock Value',
+                value: stockValue.valueOrNull?.toRwf() ?? 'N/A',
+                icon: Icons.inventory,
+                color: Colors.blue,
+              ),
+            ),
+            SizedBox(width: 10),
+            Expanded(
+              child: _buildMetricCard(
+                title: 'Total Sales',
+                value: totalSales.valueOrNull?.toRwf() ?? 'N/A',
+                icon: Icons.shopping_cart,
+                color: Colors.green,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMetricCard(
+                title: 'Profit vs Cost',
+                value: profitVsCost.valueOrNull?.toRwf() ?? 'N/A',
+                icon: Icons.trending_up,
+                color: Colors.purple,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color.withOpacity(0.2), color.withOpacity(0.05)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: color, size: 30),
+              SizedBox(height: 10),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[700],
+                ),
+              ),
+              SizedBox(height: 5),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStockPerformanceChart() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Stock Performance Trend',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 10),
+            SizedBox(
+              height: 250,
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(show: false),
+                  titlesData: FlTitlesData(show: false),
+                  borderData: FlBorderData(show: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: [
+                        FlSpot(0, 3),
+                        FlSpot(1, 2),
+                        FlSpot(2, 5),
+                        FlSpot(3, 3.1),
+                        FlSpot(4, 4),
+                        FlSpot(5, 3),
+                      ],
+                      isCurved: true,
+                      color: Colors.blue,
+                      barWidth: 4,
+                      isStrokeCapRound: true,
+                      dotData: FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                          show: true, color: Colors.blue.withOpacity(0.1)),
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailedMetricsGrid() {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      childAspectRatio: 1.5,
+      children: [
+        _buildDetailMetricCard(
+          title: 'Inventory Turnover',
+          value: '4.5x',
+          icon: Icons.loop,
+          color: Colors.purple,
+        ),
+        _buildDetailMetricCard(
+          title: 'Gross Margin',
+          value: '42%',
+          icon: Icons.percent,
+          color: Colors.orange,
+        ),
+        _buildDetailMetricCard(
+          title: 'Average Order Value',
+          value: '\$85.50',
+          icon: Icons.attach_money,
+          color: Colors.teal,
+        ),
+        _buildDetailMetricCard(
+          title: 'Stock Days',
+          value: '45 days',
+          icon: Icons.calendar_today,
+          color: Colors.red,
+        ),
+        _buildDetailMetricCard(
+          title: 'Net Profit',
+          value: '\$12,500',
+          icon: Icons.trending_up,
+          color: Colors.green,
+        ),
+        _buildDetailMetricCard(
+          title: 'Customer Acquisition Cost',
+          value: '\$50',
+          icon: Icons.person_add,
+          color: Colors.blue,
+        ),
+        _buildDetailMetricCard(
+          title: 'Customer Lifetime Value',
+          value: '\$1,200',
+          icon: Icons.people,
+          color: Colors.pink,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetailMetricCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color.withOpacity(0.2), color.withOpacity(0.05)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 30),
+              SizedBox(height: 10),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                ),
+              ),
+              SizedBox(height: 5),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
           ),
         ),
       ),
