@@ -14,11 +14,6 @@ Future<List<Metric>> fetchMetrics(Ref ref, int branchId) async {
   final transactionItems =
       await ProxyService.strategy.transactionItems(branchId: branchId);
 
-  // Debug: Print fetched data
-  print('Stocks: $stocks');
-  print('Variants: $variants');
-  print('Transaction Items: $transactionItems');
-
   // Calculate metrics
   final totalRevenue = transactionItems.fold<double>(
     0.0,
