@@ -1,3 +1,4 @@
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
@@ -11,9 +12,7 @@ class Purchase extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
   final String id;
-
-  @Supabase(ignore: true)
-  // @Sqlite(ignore: true)
+  // @Supabase(ignore: true)
   List<Variant>? variants;
   final String spplrTin;
   final String spplrNm;

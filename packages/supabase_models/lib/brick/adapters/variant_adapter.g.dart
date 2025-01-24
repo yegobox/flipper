@@ -355,6 +355,7 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'purchaseId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'purchase_id',
+      foreignKey: 'purchase_id',
     ),
     'stock': const RuntimeSupabaseColumnDefinition(
       association: true,

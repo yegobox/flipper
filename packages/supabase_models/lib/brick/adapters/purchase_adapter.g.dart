@@ -6,6 +6,12 @@ Future<Purchase> _$PurchaseFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Purchase(
       id: data['id'] as String?,
+      variants: await Future.wait<Variant>(data['variants']
+              ?.map((d) => VariantAdapter()
+                  .fromSupabase(d, provider: provider, repository: repository))
+              .toList()
+              .cast<Future<Variant>>() ??
+          []),
       spplrTin: data['spplr_tin'] as String,
       spplrNm: data['spplr_nm'] as String,
       spplrBhfId: data['spplr_bhf_id'] as String,
@@ -39,6 +45,11 @@ Future<Map<String, dynamic>> _$PurchaseToSupabase(Purchase instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
+    'variants': await Future.wait<Map<String, dynamic>>(instance.variants
+            ?.map((s) => VariantAdapter()
+                .toSupabase(s, provider: provider, repository: repository))
+            .toList() ??
+        []),
     'spplr_tin': instance.spplrTin,
     'spplr_nm': instance.spplrNm,
     'spplr_bhf_id': instance.spplrBhfId,
