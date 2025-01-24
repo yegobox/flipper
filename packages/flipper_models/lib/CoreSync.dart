@@ -2905,46 +2905,51 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<List<ITransaction>> transactions(
-      {DateTime? startDate,
-      DateTime? endDate,
-      String? status,
-      String? transactionType,
-      int? branchId,
-      bool isCashOut = false,
-      String? id,
-      FilterType? filterType,
-      bool isExpense = false,
-      bool includePending = false}) async {
+  FutureOr<List<ITransaction>> transactions({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    String? id,
+    FilterType? filterType,
+    bool isExpense = false,
+    bool includePending = false,
+  }) async {
     final List<brick.Where> conditions = [
-      brick.Where('status').isExactly(status ?? COMPLETE),
-      brick.Where('subTotal').isGreaterThan(0),
+      brick.Where('status')
+          .isExactly(status ?? COMPLETE), // Ensure default value
+      if (!isExpense)
+        brick.Where('subTotal').isGreaterThan(0), // Optional condition
       if (id != null) brick.Where('id').isExactly(id),
-      // if (filterType != null) brick.Where('filterType').isExactly(filterType),
       if (branchId != null) brick.Where('branchId').isExactly(branchId),
-      if (isCashOut || isExpense) brick.Where('isExpense').isExactly(true),
+      if (isCashOut) brick.Where('isCashOut').isExactly(true),
+      if (isExpense) brick.Where('isExpense').isExactly(true),
+      if (includePending) brick.Where('status').isExactly('PENDING'),
+      if (filterType != null)
+        brick.Where('type').isExactly(filterType.toString()),
+      if (transactionType != null)
+        brick.Where('transactionType').isExactly(transactionType),
     ];
+
     if (startDate != null && endDate != null) {
-      if (startDate == endDate) {
-        conditions.add(
-          brick.Where('lastTouched').isBetween(
-            startDate.toIso8601String(),
-            startDate.add(Duration(days: 1)).toIso8601String(),
-          ),
-        );
-      } else {
-        conditions.add(
-          brick.Where('lastTouched').isBetween(
-            startDate.toIso8601String(),
-            endDate.toIso8601String(),
-          ),
-        );
-      }
+      final endRange =
+          startDate == endDate ? endDate.add(Duration(days: 1)) : endDate;
+      conditions.add(
+        brick.Where('lastTouched').isBetween(
+          startDate.toUtc().toString().substring(0, 10),
+          endRange.toUtc().toString().substring(0, 10),
+        ),
+      );
     }
+
     final queryString = brick.Query(where: conditions);
 
     return await repository.get<ITransaction>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate, query: queryString);
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: queryString,
+    );
   }
 
   @override
@@ -5138,7 +5143,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     try {
       // final id = randomString();
       // Purchase purchase = Purchase(
-      //   spplrTin: "11",
+      //   spplrTin: id,
       //   spplrNm: id,
       //   spplrBhfId: "01",
       //   spplrInvcNo: 1,
@@ -5191,10 +5196,21 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       // get saleListItems
       final purchases = await repository.get<Purchase>();
       for (final purchase in purchases) {
-        print('List of Variants: ${purchase.variants?.length}');
         if (purchase.variants != null) {
           for (final variant in purchase.variants!) {
-            print('Variant ID: ${variant.id}');
+            print('Variant ID A: ${variant.id}');
+          }
+        }
+      }
+
+      final purchasesB = await repository.get<Purchase>(
+          query: brick.Query(where: [
+        brick.Where('id').isExactly("cc77ab8a-3cf0-4bd4-965c-bda8a0350e7e")
+      ]));
+      for (final purchase in purchasesB) {
+        if (purchase.variants != null) {
+          for (final variant in purchase.variants!) {
+            print('Variant ID B: ${variant.id}');
           }
         }
       }

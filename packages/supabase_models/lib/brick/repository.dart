@@ -53,9 +53,10 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       databaseFactory:
           Platform.isWindows ? databaseFactoryFfi : databaseFactory,
       databasePath: queuePath,
-      onReattempt: (http.Request  re,o){
-        print("Request status: $o");
-        print("Object: ${re.body}");
+      onReattempt: (http.Request re, o) {
+        // print("Request status: $o");
+        print("here");
+        // print("Object: ${re.body}");
       },
       onRequestException: (request, object) {
         // Deal with failed requests see https://github.com/GetDutchie/brick/issues/527
