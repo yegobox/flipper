@@ -2973,16 +2973,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (startDate == endDate) {
         conditions.add(
           brick.Where('lastTouched').isBetween(
-            startDate.toUtc().toString().substring(0, 10),
-            startDate.add(Duration(days: 1))
-              ..toUtc().toString().substring(0, 10),
+            startDate.toUtc().toIso8601String(),
+            startDate.add(Duration(days: 1)).toUtc().toIso8601String(),
           ),
         );
       } else {
         conditions.add(
           brick.Where('lastTouched').isBetween(
-            startDate..toUtc().toString().substring(0, 10),
-            endDate..toUtc().toString().substring(0, 10),
+            startDate.toUtc().toIso8601String(),
+            endDate.toUtc().toIso8601String(),
           ),
         );
       }

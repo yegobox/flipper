@@ -314,12 +314,14 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
       final value = infoData[i][1];
       final cell = reportSheet.getRangeByName('B$rowIndex');
-      if (value is num) {
-        cell.setValue(value);
-        cell.numberFormat = config.currencyFormat;
-      } else {
-        cell.setText(value.toString());
-      }
+      try {
+        if (value is num) {
+          cell.setValue(value);
+          cell.numberFormat = config.currencyFormat ?? r'#,##0.00';
+        } else {
+          cell.setText(value.toString());
+        }
+      } catch (e) {}
 
       final infoRange = reportSheet.getRangeByName(
           'A$rowIndex:${String.fromCharCode(64 + reportSheet.getLastColumn())}$rowIndex');
@@ -394,7 +396,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     paymentMethodSheet.getRangeByIndex(1, 1, 1, 2).cellStyle = headerStyle;
 
     // Group transactions by payment type and sum the amounts
-
     final paymentTypeTotals = SplayTreeMap<String, double>();
 
     for (var transaction in config.transactions) {
@@ -418,26 +419,44 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 "Invalid payment data for transaction: ${transaction.id}");
           }
         }
-      } else {
-        talker
-            .error("No payment types found for transaction: ${transaction.id}");
       }
     }
 
     talker.warning(paymentTypeTotals);
-
     int rowIndex = 2;
-    paymentTypeTotals.forEach((paymentType, totalAmount) {
-      paymentMethodSheet.getRangeByIndex(rowIndex, 1).setText(paymentType);
-      paymentMethodSheet.getRangeByIndex(rowIndex, 2).setNumber(totalAmount);
-      paymentMethodSheet.getRangeByIndex(rowIndex, 2).numberFormat =
-          config.currencyFormat;
-      rowIndex++;
-    });
-
-    for (int i = 1; i <= 2; i++) {
-      paymentMethodSheet.autoFitColumn(i);
+    int lastRow = paymentMethodSheet.getLastRow();
+    if (lastRow == -1) {
+      // If the sheet is empty, start from the first row
+      lastRow = 1;
+      rowIndex = lastRow;
     }
+
+    try {
+      if (paymentTypeTotals.isNotEmpty) {
+        paymentTypeTotals.forEach((paymentType, totalAmount) {
+          if (rowIndex > lastRow) {
+            paymentMethodSheet.insertRow(rowIndex);
+          }
+          paymentMethodSheet.getRangeByIndex(rowIndex, 1).setText(paymentType);
+          final cell = paymentMethodSheet.getRangeByIndex(rowIndex, 2);
+          cell.setNumber(totalAmount);
+
+          // Apply the number format safely
+          try {
+            cell.numberFormat = config.currencyFormat;
+          } catch (e) {
+            // talker.error("Failed to apply number format: $e");
+            // talker.error(e);
+            cell.numberFormat = r'#,##0.00'; // Fallback to a default format
+          }
+
+          rowIndex++;
+        });
+        for (int i = 1; i <= 2; i++) {
+          paymentMethodSheet.autoFitColumn(i);
+        }
+      }
+    } catch (e) {}
   }
 
   void _addExpensesSheet(excel.Workbook workbook, List<ITransaction> expenses,
@@ -634,7 +653,6 @@ class ExportConfig {
   String currencySymbol;
   String currencyFormat;
   final List<ITransaction> transactions;
-
   ExportConfig({
     this.startDate,
     this.endDate,
@@ -643,5 +661,6 @@ class ExportConfig {
     this.currencySymbol = 'RF',
     required this.transactions,
   }) : currencyFormat =
-            '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"';
+            '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"' ??
+                r'#,##0.00';
 }
