@@ -239,47 +239,45 @@ class DataViewState extends ConsumerState<DataView>
 
   Widget _buildDataGrid(BoxConstraints constraint) {
     return SfDataGridTheme(
-        data: SfDataGridThemeData(
-          headerHoverColor: Colors.yellow,
-          gridLineColor: Colors.amber,
-          gridLineStrokeWidth: 1.0,
-          rowHoverColor: Colors.yellow,
-          selectionColor: Colors.yellow,
-          rowHoverTextStyle: TextStyle(color: Colors.red, fontSize: 14),
-        ),
-        child: Expanded(
-          child: SfDataGrid(
-            selectionMode: SelectionMode.multiple,
-            allowSorting: true,
-            allowColumnsResizing: true,
-            key: workBookKey,
-            source: _dataGridSource,
-            allowFiltering: true,
-            highlightRowOnHover: true,
-            gridLinesVisibility: GridLinesVisibility.both,
-            headerGridLinesVisibility: GridLinesVisibility.both,
-            columnWidthMode: ColumnWidthMode.fill,
-            onCellTap: _handleCellTap,
-            columns: _getTableHeaders(),
-            rowsPerPage: widget.rowsPerPage,
-            footer: Padding(
-              padding: EdgeInsets.all(8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Total:"),
-                  Text(widget.transactions
-                          ?.fold<double>(
-                              0,
-                              (sum, transaction) =>
-                                  sum + transaction.cashReceived!)
-                          .toRwf() ??
-                      ""),
-                ],
-              ),
-            ),
+      data: SfDataGridThemeData(
+        headerHoverColor: Colors.yellow,
+        gridLineColor: Colors.amber,
+        gridLineStrokeWidth: 1.0,
+        rowHoverColor: Colors.yellow,
+        selectionColor: Colors.yellow,
+        rowHoverTextStyle: TextStyle(color: Colors.red, fontSize: 14),
+      ),
+      child: SfDataGrid(
+        // Remove the Expanded widget here
+        selectionMode: SelectionMode.multiple,
+        allowSorting: true,
+        allowColumnsResizing: true,
+        key: workBookKey,
+        source: _dataGridSource,
+        allowFiltering: true,
+        highlightRowOnHover: true,
+        gridLinesVisibility: GridLinesVisibility.both,
+        headerGridLinesVisibility: GridLinesVisibility.both,
+        columnWidthMode: ColumnWidthMode.fill,
+        onCellTap: _handleCellTap,
+        columns: _getTableHeaders(),
+        rowsPerPage: widget.rowsPerPage,
+        footer: Padding(
+          padding: EdgeInsets.all(8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Total:"),
+              Text(widget.transactions
+                      ?.fold<double>(0,
+                          (sum, transaction) => sum + transaction.cashReceived!)
+                      .toRwf() ??
+                  ""),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   Widget _buildDataPager(BoxConstraints constraint) {
