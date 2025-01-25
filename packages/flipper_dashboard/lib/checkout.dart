@@ -3,12 +3,13 @@
 import 'dart:io';
 
 import 'package:flipper_dashboard/IncomingOrders.dart';
+import 'package:flipper_dashboard/MobileView.dart';
+import 'package:flipper_dashboard/OrderStatusSelector.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/bottomSheet.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
-import 'package:flipper_dashboard/product_view.dart';
-import 'package:flipper_dashboard/search_field.dart';
+import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
@@ -26,7 +27,7 @@ import 'package:stacked/stacked.dart';
 enum OrderStatus { pending, approved }
 
 class CheckOut extends StatefulHookConsumerWidget {
-  CheckOut({
+  const CheckOut({
     Key? key,
     required this.isBigScreen,
   }) : super(key: key);
@@ -47,7 +48,6 @@ class CheckOutState extends ConsumerState<CheckOut>
   late AnimationController _animationController;
   late Animation<double> _animation;
   late TabController tabController;
-  final FocusNode keyPadFocusNode = FocusNode();
   OrderStatus _selectedStatus = OrderStatus.pending;
 
   @override
@@ -64,7 +64,6 @@ class CheckOutState extends ConsumerState<CheckOut>
     if (mounted) {
       WidgetsBinding.instance.addObserver(this);
       tabController = TabController(length: 3, vsync: this);
-      // run the code in here only once.
     }
   }
 
@@ -99,7 +98,6 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   Widget _buildDataWidget(ITransaction transaction) {
     final branchId = ProxyService.box.getBranchId() ?? 0;
-    // Defer the refresh until after the build phase
     Future.microtask(() {
       ref.refresh(pendingTransactionProvider(
           (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
@@ -147,98 +145,7 @@ class CheckOutState extends ConsumerState<CheckOut>
               child: FadeTransition(
                 opacity: _animation,
                 child: (ProxyService.box.isOrdersDefault()!)
-                    ? Padding(
-                        padding: const EdgeInsets.only(top: 30.0),
-                        child: Column(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(30),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    spreadRadius: 1,
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: SegmentedButton<OrderStatus>(
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      WidgetStateProperty.resolveWith<Color>(
-                                    (Set<WidgetState> states) {
-                                      if (states
-                                          .contains(WidgetState.selected)) {
-                                        return Theme.of(context)
-                                            .colorScheme
-                                            .primary;
-                                      }
-                                      return Colors.white;
-                                    },
-                                  ),
-                                  foregroundColor:
-                                      WidgetStateProperty.resolveWith<Color>(
-                                    (Set<WidgetState> states) {
-                                      if (states
-                                          .contains(WidgetState.selected)) {
-                                        return Colors.white;
-                                      }
-                                      return Theme.of(context)
-                                          .colorScheme
-                                          .primary;
-                                    },
-                                  ),
-                                  side: WidgetStateProperty.all(
-                                    BorderSide(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary),
-                                  ),
-                                  overlayColor: WidgetStateProperty.all(
-                                      Colors.transparent),
-                                ),
-                                segments: const <ButtonSegment<OrderStatus>>[
-                                  ButtonSegment<OrderStatus>(
-                                    value: OrderStatus.pending,
-                                    label: Text('Pending'),
-                                    icon: Icon(Icons.hourglass_empty),
-                                  ),
-                                  ButtonSegment<OrderStatus>(
-                                    value: OrderStatus.approved,
-                                    label: Text('Approved'),
-                                    icon: Icon(Icons.check_circle_outline),
-                                  ),
-                                ],
-                                selected: <OrderStatus>{_selectedStatus},
-                                onSelectionChanged:
-                                    (Set<OrderStatus> newSelection) {
-                                  setState(() {
-                                    _selectedStatus = newSelection.first;
-                                  });
-                                  if (newSelection.first ==
-                                      OrderStatus.approved) {
-                                    ref
-                                        .watch(stringProvider.notifier)
-                                        .updateString(RequestStatus.approved);
-                                  } else if (newSelection.first ==
-                                      OrderStatus.pending) {
-                                    ref
-                                        .watch(stringProvider.notifier)
-                                        .updateString(RequestStatus.pending);
-                                  }
-                                },
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Flexible(
-                              child: SingleChildScrollView(
-                                child: const IncomingOrdersWidget(),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
+                    ? _buildOrdersContent()
                     : SizedBox.shrink(),
               ),
             ),
@@ -260,16 +167,30 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
-  Widget _buildIconRow() {
+  Widget _buildOrdersContent() {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Padding(
-            padding: EdgeInsets.all(8.0),
-            child: IconRow(),
-          );
-        },
+      padding: const EdgeInsets.only(top: 30.0),
+      child: Column(
+        children: [
+          OrderStatusSelector(
+            selectedStatus: _selectedStatus,
+            onStatusChanged: (newStatus) {
+              setState(() {
+                _selectedStatus = newStatus;
+              });
+              ref.watch(stringProvider.notifier).updateString(
+                  newStatus == OrderStatus.approved
+                      ? RequestStatus.approved
+                      : RequestStatus.pending);
+            },
+          ),
+          const SizedBox(height: 20),
+          Flexible(
+            child: SingleChildScrollView(
+              child: const IncomingOrdersWidget(),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -285,30 +206,11 @@ class CheckOutState extends ConsumerState<CheckOut>
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: PayableView(
+            transactionId: transaction.id,
             mode: SellingMode.forSelling,
-            completeTransaction: () async {
-              /// update a transaction with customer name and tin
-              if (customerNameController.text.isEmpty) {
-                /// remove old customer added maybe from previous sale
-                ProxyService.box.remove(key: 'customerName');
-                ProxyService.box.remove(key: 'getRefundReason');
-              }
-              if (discountController.text.isEmpty) {
-                ProxyService.box.remove(key: 'discountRate');
-              }
-              try {
-                applyDiscount(transaction);
-                await startCompleteTransactionFlow(
-                  completeTransaction: () {
-                    ref.read(loadingProvider.notifier).stopLoading();
-                  },
-                  transaction: transaction,
-                  paymentMethods: ref.watch(paymentMethodsProvider),
-                );
-              } catch (e) {
-                ref.read(loadingProvider.notifier).stopLoading();
-                rethrow;
-              }
+            completeTransaction: (immediateCompletion) async {
+              await _handleCompleteTransaction(
+                  transaction, immediateCompletion);
             },
             model: model,
             ticketHandler: () => handleTicketNavigation(transaction),
@@ -330,9 +232,48 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
+  Widget _buildIconRow() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Padding(
+            padding: EdgeInsets.all(8.0),
+            child: IconRow(),
+          );
+        },
+      ),
+    );
+  }
+
   String getCartText() {
     int count = int.parse(getCartItemCount());
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
+  }
+
+  Future<void> _handleCompleteTransaction(
+      ITransaction transaction, bool immediateCompletion) async {
+    if (customerNameController.text.isEmpty) {
+      ProxyService.box.remove(key: 'customerName');
+      ProxyService.box.remove(key: 'getRefundReason');
+    }
+    if (discountController.text.isEmpty) {
+      ProxyService.box.remove(key: 'discountRate');
+    }
+    try {
+      applyDiscount(transaction);
+      await startCompleteTransactionFlow(
+        immediateCompletion: immediateCompletion,
+        completeTransaction: () {
+          ref.read(payButtonLoadingProvider.notifier).stopLoading();
+        },
+        transaction: transaction,
+        paymentMethods: ref.watch(paymentMethodsProvider),
+      );
+    } catch (e) {
+      ref.read(payButtonLoadingProvider.notifier).stopLoading();
+      rethrow;
+    }
   }
 
   Widget _buildSmallScreenLayout(ITransaction transaction,
@@ -367,57 +308,34 @@ class CheckOutState extends ConsumerState<CheckOut>
                       child: Container(
                         color: Colors.white,
                         child: PayableView(
+                          transactionId: transaction.id,
                           mode: SellingMode.forOrdering,
                           wording: getCartText(),
                           model: model,
+                          completeTransaction: (immediateCompletion) async {
+                            await _handleCompleteTransaction(
+                                transaction, immediateCompletion);
+                          },
                           ticketHandler: () =>
                               handleTicketNavigation(transaction),
                           previewCart: () {
-                            // talker.warning("Show Quick Sell: ${showCart}");
                             if (Platform.isAndroid || Platform.isIOS) {
                               BottomSheets.showBottom(
-                                  context: context,
-                                  ref: ref,
-                                  transactionId: transaction.id,
-                                  onCharge: (transactionId, total) {
-                                    try {
-                                      /// if the business is set with
-                                      startCompleteTransactionFlow(
-                                          completeTransaction: () {
-                                            ref
-                                                .read(loadingProvider.notifier)
-                                                .stopLoading();
-                                          },
-                                          transaction: transaction,
-                                          paymentMethods: ref
-                                              .watch(paymentMethodsProvider));
-
-                                      Navigator.of(context).pop();
-                                    } catch (e, s) {
-                                      ref
-                                          .read(loadingProvider.notifier)
-                                          .stopLoading();
-                                      talker.warning(e);
-                                      talker.error(s);
-                                    }
-                                  },
-                                  doneDelete: () {
-                                    print("done delete");
-                                    // final isOrdering =
-                                    //     ProxyService.box.isOrdering() ?? false;
-
-                                    // ref.refresh(transactionItemsProvider(
-                                    //     (isExpense: isOrdering)));
-                                    ref.refresh(transactionItemsStreamProvider(
-                                        branchId:
-                                            ProxyService.box.getBranchId()!,
-                                        transactionId: transaction.id));
-
-                                    /// force closing the modal, this is because we have no way to update the item on bottomsheet
-                                    /// since bottom sheet is called on button click and we have no way to update it without another trigger
-                                    /// and bottomsheet is not a stateful widget
-                                    Navigator.of(context).pop();
-                                  });
+                                context: context,
+                                ref: ref,
+                                transactionId: transaction.id,
+                                onCharge: (transactionId, total) async {
+                                  await _handleCompleteTransaction(
+                                      transaction, false);
+                                  Navigator.of(context).pop();
+                                },
+                                doneDelete: () {
+                                  ref.refresh(transactionItemsStreamProvider(
+                                      branchId: ProxyService.box.getBranchId()!,
+                                      transactionId: transaction.id));
+                                  Navigator.of(context).pop();
+                                },
+                              );
                             } else {
                               previewOrOrder(
                                   isShopingFromWareHouse: false,
@@ -432,59 +350,6 @@ class CheckOutState extends ConsumerState<CheckOut>
               : Scaffold(body: SafeArea(child: _buildQuickSellingView())),
         );
       },
-    );
-  }
-}
-
-class MobileView extends StatefulHookConsumerWidget {
-  const MobileView({
-    required this.widget,
-    required this.tabController,
-    required this.textEditController,
-    required this.model,
-    Key? key,
-  }) : super(key: key);
-  final CoreViewModel model;
-  final CheckOut widget;
-  final TabController tabController;
-  final TextEditingController textEditController;
-
-  @override
-  _MobileViewState createState() => _MobileViewState();
-}
-
-class _MobileViewState extends ConsumerState<MobileView> {
-  final TextEditingController textEditController = TextEditingController();
-  final TextEditingController searchContrroller = TextEditingController();
-  final TextEditingController discountController = TextEditingController();
-  final TextEditingController receivedAmountController =
-      TextEditingController();
-  final TextEditingController customerPhoneNumberController =
-      TextEditingController();
-  final TextEditingController paymentTypeController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SearchField(
-                  controller: searchContrroller,
-                  showAddButton: true,
-                  showDatePicker: false,
-                  showIncomingButton: true,
-                  showOrderButton: true,
-                ),
-              ),
-              ProductView.normalMode(),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

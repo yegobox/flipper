@@ -2027,27 +2027,23 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           brick.Where('subTotal', value: 0, compare: brick.Compare.greaterThan),
       ]);
 
-      // Fetch transactions
+      /// Fetch transactions
+      /// keey it local localOnly this is to avoid the status to change from remote and
       final List<ITransaction> transactions =
           await repository.get<ITransaction>(
-              query: query, policy: OfflineFirstGetPolicy.localOnly);
+        query: query,
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
 
-      // Check for transactions with items
-      for (final transaction in transactions) {
-        final List<TransactionItem> items = await transactionItems(
-          branchId: branchId,
-          transactionId: transaction.id,
-          doneWithTransaction: false,
-          active: true,
-        );
-
-        if (items.isNotEmpty) {
-          return transaction;
-        }
+      // If more than one transaction is found, delete the excess ones
+      if (transactions.length > 1) {
+        // for (int i = 1; i < transactions.length; i++) {
+        //   await repository.delete<ITransaction>(transactions[i]);
+        // }
       }
 
-      // If no transaction with items found, return the first transaction (if any)
-      return transactions.isNotEmpty ? transactions.first : null;
+      // Return the first transaction (if any)
+      return transactions.isNotEmpty ? transactions.last : null;
     } catch (e, s) {
       // Log errors (optional, replace talker with your preferred logger)
       talker.error('Error in _pendingTransaction: $e');
@@ -2947,7 +2943,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     final queryString = brick.Query(where: conditions);
 
     return await repository.get<ITransaction>(
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
       query: queryString,
     );
   }
@@ -2977,15 +2973,16 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (startDate == endDate) {
         conditions.add(
           brick.Where('lastTouched').isBetween(
-            startDate.toIso8601String(),
-            startDate.add(Duration(days: 1)).toIso8601String(),
+            startDate.toUtc().toString().substring(0, 10),
+            startDate.add(Duration(days: 1))
+              ..toUtc().toString().substring(0, 10),
           ),
         );
       } else {
         conditions.add(
           brick.Where('lastTouched').isBetween(
-            startDate.toIso8601String(),
-            endDate.toIso8601String(),
+            startDate..toUtc().toString().substring(0, 10),
+            endDate..toUtc().toString().substring(0, 10),
           ),
         );
       }
@@ -3123,6 +3120,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       );
 
       // Save transaction
+      transaction.status = COMPLETE;
       repository.upsert(transaction);
 
       // Handle receipt if required
@@ -3151,19 +3149,25 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }) {
     final now = DateTime.now().toUtc().toLocal();
 
-    transaction
-      ..status = COMPLETE
-      ..isIncome = isIncome
-      ..isExpense = !isIncome
-      ..customerChangeDue = (cashReceived - subTotalFinalized)
-      ..paymentType = paymentType
-      ..cashReceived = cashReceived
-      ..subTotal = subTotalFinalized
-      ..receiptType = _determineReceiptType(isProformaMode, isTrainingMode)
-      ..updatedAt = now
-      ..createdAt = now
-      ..transactionType = transactionType
-      ..lastTouched = now;
+    // Update transaction properties using the = operator
+    transaction.status = COMPLETE;
+    transaction.isIncome = isIncome;
+    transaction.isExpense = !isIncome;
+    transaction.customerChangeDue = (cashReceived - subTotalFinalized);
+    transaction.paymentType = paymentType;
+    transaction.cashReceived = cashReceived;
+    transaction.subTotal = subTotalFinalized;
+    transaction.receiptType =
+        _determineReceiptType(isProformaMode, isTrainingMode);
+    transaction.updatedAt = now;
+    transaction.createdAt = now;
+    transaction.transactionType = transactionType;
+    transaction.lastTouched = now;
+
+    // Optionally update categoryId if provided
+    if (categoryId != null) {
+      transaction.categoryId = categoryId;
+    }
   }
 
   String _determineReceiptType(bool isProformaMode, bool isTrainingMode) {

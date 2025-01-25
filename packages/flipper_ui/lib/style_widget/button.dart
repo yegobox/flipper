@@ -104,6 +104,7 @@ class FlipperButtonFlat extends StatelessWidget {
   final VoidCallback? onPressed;
   final Color? textColor;
   final bool busy;
+  final bool isLoading;
 
   const FlipperButtonFlat({
     Key? key,
@@ -111,10 +112,13 @@ class FlipperButtonFlat extends StatelessWidget {
     this.textColor,
     this.onPressed,
     this.busy = false,
+    this.isLoading = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final bool isDisabled = busy || isLoading;
+
     return TextButton(
       style: ButtonStyle(
         shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
@@ -131,7 +135,7 @@ class FlipperButtonFlat extends StatelessWidget {
           },
         ),
       ),
-      child: busy
+      child: isDisabled
           ? SizedBox(
               width: 24,
               height: 24,
@@ -145,7 +149,7 @@ class FlipperButtonFlat extends StatelessWidget {
               text,
               color: textColor,
             ),
-      onPressed: busy ? null : onPressed,
+      onPressed: isDisabled ? null : onPressed,
     );
   }
 }
@@ -160,6 +164,7 @@ class FlipperIconButton extends StatelessWidget {
   final double? width;
   final double? height;
   final bool busy;
+  final bool isLoading;
 
   const FlipperIconButton({
     Key? key,
@@ -172,10 +177,13 @@ class FlipperIconButton extends StatelessWidget {
     this.onPressed,
     this.iconSize = 24.0, // Default icon size
     this.busy = false,
+    this.isLoading = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final bool isDisabled = busy || isLoading;
+
     return Container(
       height: height,
       width: width,
@@ -195,7 +203,7 @@ class FlipperIconButton extends StatelessWidget {
             },
           ),
         ),
-        child: busy
+        child: isDisabled
             ? SizedBox(
                 width: 24,
                 height: 24,
@@ -222,7 +230,7 @@ class FlipperIconButton extends StatelessWidget {
                   ],
                 ],
               ),
-        onPressed: busy ? null : onPressed,
+        onPressed: isDisabled ? null : onPressed,
       ),
     );
   }

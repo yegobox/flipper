@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/PurchaseCodeForm.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
+import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -167,6 +168,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     required ITransaction transaction,
     required Function completeTransaction,
     required List<Payment> paymentMethods,
+    bool immediateCompletion = false, // New parameter
   }) async {
     try {
       // Save payment methods
@@ -198,7 +200,8 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       final isDigitalPaymentEnabled = await ProxyService.strategy
           .isBranchEnableForPayment(currentBranchId: branchId);
 
-      if (isDigitalPaymentEnabled) {
+      if (isDigitalPaymentEnabled && !immediateCompletion) {
+        // Process digital payment only if immediateCompletion is false
         await _processDigitalPayment(
           customer: customer,
           transaction: transaction,
@@ -209,6 +212,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
           paymentType: paymentType,
         );
       } else {
+        // Process cash payment or skip digital payment if immediateCompletion is true
         await _processCashPayment(
           customer: customer,
           transaction: transaction,
@@ -221,7 +225,8 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
 
       await _refreshTransactionItems(transactionId: transaction.id);
     } catch (e, s) {
-      ref.read(loadingProvider.notifier).stopLoading();
+      // Example: Stop loading from another widget or function
+      ref.read(payButtonLoadingProvider.notifier).stopLoading();
       String errorMessage = e
           .toString()
           .split('Caught Exception: ')
@@ -276,7 +281,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     Repository().subscribeToRealtime<CustomerPayments>(query: query).listen(
       (data) async {
         if (data.isEmpty) return;
-        talker.warning(data);
+        talker.warning("Payment Completed by a user ${data}");
 
         if (customer != null) {
           await additionalInformationIsRequiredToCompleteTransaction(
@@ -289,7 +294,8 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
           );
           final branchId = ProxyService.box.getBranchId()!;
 
-          ref.read(loadingProvider.notifier).stopLoading();
+          // Example: Stop loading from another widget or function
+          ref.read(payButtonLoadingProvider.notifier).stopLoading();
           ref.refresh(pendingTransactionProvider((
             mode: TransactionType.sale,
             isExpense: false,
@@ -309,7 +315,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
           );
           final branchId = ProxyService.box.getBranchId()!;
 
-          ref.read(loadingProvider.notifier).stopLoading();
+          ref.read(payButtonLoadingProvider.notifier).stopLoading();
           ref.refresh(pendingTransactionProvider((
             mode: TransactionType.sale,
             isExpense: false,
@@ -340,7 +346,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       );
       final branchId = ProxyService.box.getBranchId()!;
 
-      ref.read(loadingProvider.notifier).stopLoading();
+      ref.read(payButtonLoadingProvider.notifier).stopLoading();
       ref.refresh(pendingTransactionProvider(
           (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
     } else {
@@ -357,7 +363,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       );
       final branchId = ProxyService.box.getBranchId()!;
 
-      ref.read(loadingProvider.notifier).stopLoading();
+      ref.read(payButtonLoadingProvider.notifier).stopLoading();
       ref.refresh(pendingTransactionProvider(
           (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
     }
@@ -380,8 +386,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       amount: finalPrice,
       flipperHttpClient: ProxyService.http,
     );
-    print(response);
-    return true;
+    return response;
   }
 
 // Helper method to handle payment errors
@@ -544,7 +549,10 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                       onPressed: () {
-                        ref.read(loadingProvider.notifier).stopLoading();
+                        // Example: Stop loading from another widget or function
+                        ref
+                            .read(payButtonLoadingProvider.notifier)
+                            .stopLoading();
                         ref
                             .read(isProcessingProvider.notifier)
                             .stopProcessing();
