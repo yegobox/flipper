@@ -344,7 +344,7 @@ class TaxController<OBJ> {
             categoryId: transaction.categoryId,
             transactionNumber: transaction.transactionNumber,
             branchId: transaction.branchId,
-            status: transaction.status,
+            status: COMPLETE,
             transactionType: transaction.transactionType,
             cashReceived: transaction.cashReceived,
             customerChangeDue: transaction.customerChangeDue,

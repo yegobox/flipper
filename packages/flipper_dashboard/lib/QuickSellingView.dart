@@ -151,12 +151,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ),
       floatingActionButton: !(ProxyService.box.isOrdering() ?? false)
           ? PayableView(
+              transactionId: transactionAsyncValue.value?.id ?? "",
               wording: "Pay ${getSumOfItems().toRwf()}",
               mode: SellingMode.forSelling,
-              completeTransaction: () {
+              completeTransaction: (imediteCompleteTransaction) {
                 talker.warning("We are about to complete a sale");
                 transactionAsyncValue.whenData((ITransaction transaction) {
                   startCompleteTransactionFlow(
+                      immediateCompletion: imediteCompleteTransaction,
                       completeTransaction: () {
                         ref.read(loadingProvider.notifier).stopLoading();
                       },

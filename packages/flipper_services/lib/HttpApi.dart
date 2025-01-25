@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -170,7 +171,28 @@ class HttpApi implements RealmViaHttp {
           "paymentType": paymentType,
           "externalId": externalId
         }));
-    return response.statusCode == 200;
+    talker.warning(response.body);
+    final status = response.statusCode;
+    if (status == 400) {
+      throw Exception("Bad request");
+    } else if (status == 401) {
+      throw Exception("Unauthorized");
+    } else if (status == 403) {
+      throw Exception("Forbidden");
+    } else if (status == 404) {
+      throw Exception("Not found");
+    } else if (status == 409) {
+      throw Exception("Duplicate payment Id");
+    } else if (status == 500) {
+      throw Exception("Internal server error");
+    } else if (status == 502) {
+      throw Exception("Payment gateway down");
+    } else if (status == 503) {
+      throw Exception("Service unavailable");
+    } else if (status == 504) {
+      throw Exception("Gateway timeout");
+    }
+    return status == 200;
   }
 
   @override
