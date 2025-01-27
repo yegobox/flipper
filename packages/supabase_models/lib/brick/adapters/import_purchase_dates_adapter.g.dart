@@ -9,7 +9,8 @@ Future<ImportPurchaseDates> _$ImportPurchaseDatesFromSupabase(
       id: data['id'] as String?,
       lastRequestDate: data['last_request_date'] as String?,
       branchId: data['branch_id'] as String?,
-      requestType: data['request_type'] as String?);
+      requestType: data['request_type'] as String?,
+      purchaseId: data['purchase_id'] as String?);
 }
 
 Future<Map<String, dynamic>> _$ImportPurchaseDatesToSupabase(
@@ -20,7 +21,8 @@ Future<Map<String, dynamic>> _$ImportPurchaseDatesToSupabase(
     'id': instance.id,
     'last_request_date': instance.lastRequestDate,
     'branch_id': instance.branchId,
-    'request_type': instance.requestType
+    'request_type': instance.requestType,
+    'purchase_id': instance.purchaseId
   };
 }
 
@@ -35,7 +37,9 @@ Future<ImportPurchaseDates> _$ImportPurchaseDatesFromSqlite(
           : data['last_request_date'] as String?,
       branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
       requestType:
-          data['request_type'] == null ? null : data['request_type'] as String?)
+          data['request_type'] == null ? null : data['request_type'] as String?,
+      purchaseId:
+          data['purchase_id'] == null ? null : data['purchase_id'] as String?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -47,7 +51,8 @@ Future<Map<String, dynamic>> _$ImportPurchaseDatesToSqlite(
     'id': instance.id,
     'last_request_date': instance.lastRequestDate,
     'branch_id': instance.branchId,
-    'request_type': instance.requestType
+    'request_type': instance.requestType,
+    'purchase_id': instance.purchaseId
   };
 }
 
@@ -77,6 +82,11 @@ class ImportPurchaseDatesAdapter
     'requestType': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'request_type',
+    ),
+    'purchaseId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'purchase_id',
+      foreignKey: 'purchase_id',
     )
   };
   @override
@@ -112,6 +122,12 @@ class ImportPurchaseDatesAdapter
     'requestType': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'request_type',
+      iterable: false,
+      type: String,
+    ),
+    'purchaseId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'purchase_id',
       iterable: false,
       type: String,
     )

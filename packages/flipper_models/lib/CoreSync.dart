@@ -663,7 +663,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       required int sku,
       models.Configurations? taxType,
       String? bcd,
-      String? saleListId}) async {
+      String? saleListId,
+      String? pchsSttsCd}) async {
     final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
 
@@ -672,6 +673,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       agntNm: agntNm ?? "",
       netWt: netWt ?? 0,
       totWt: totWt ?? 0,
+      pchsSttsCd: pchsSttsCd,
       invcFcurAmt: invcFcurAmt ?? 0,
       invcFcurCd: invcFcurCd ?? "",
       exptNatCd: exptNatCd ?? "",
@@ -789,7 +791,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       required bool createItemCode,
       bool ebmSynced = false,
       String? saleListId,
-      Purchase? purchase}) async {
+      Purchase? purchase,
+      String? pchsSttsCd}) async {
     try {
       final String productName = product.name;
       if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
@@ -812,6 +815,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           tinNumber,
           orgnNatCd: orgnNatCd,
           exptNatCd: exptNatCd,
+          pchsSttsCd: pchsSttsCd,
           pkg: pkg,
           createItemCode: createItemCode,
           taxTypes: taxTypes,
@@ -2405,10 +2409,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
       // get last request date
       final lastReqDate = await repository.get<ImportPurchaseDates>(
-          policy: OfflineFirstGetPolicy.alwaysHydrate,
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
           query: brick.Query(where: [
             brick.Where('branchId').isExactly(activeBranch!.id),
-            brick.Where('lastRequestDate').isExactly(lastReqDt)
+            brick.Where('lastRequestDate').isExactly(lastReqDt),
+            brick.Where('requestType').isExactly("IMPORT"),
           ]));
 
       /// if is same date do nothing
@@ -2432,7 +2437,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           lastRequestDate: lastReqDt,
           branchId: activeBranch.id,
           requestType: "IMPORT"));
-      for (Variant item in response.data!.itemList!) {
+      for (Variant item in response.data?.itemList ?? []) {
         /// save the item in our system, rely on the name as when user
         /// typed to edit a name we helped a user to search through
         /// existing product and use the name that exist,
@@ -3599,37 +3604,48 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     String? variantId,
     String? name,
     String? bcd,
+    String? purchaseId,
     int? itemsPerPage,
-    // this define if we are ready to show item on dashboard,
     String? imptItemsttsCd,
+    bool includePurchases = false,
   }) async {
     List<Variant> variants = await repository.get<Variant>(
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        query: brick.Query(where: [
-          if (variantId != null)
-            brick.Where('id').isExactly(variantId)
-          else if (name != null) ...[
-            brick.Where('name').contains(name),
-            brick.Where('branchId').isExactly(branchId),
-          ] else if (bcd != null) ...[
-            brick.Where('bcd').isExactly(bcd),
-            brick.Where('branchId').isExactly(branchId),
-          ] else if (imptItemsttsCd != null) ...[
-            brick.Where('imptItemSttsCd').isExactly(imptItemsttsCd),
-            brick.Where('branchId').isExactly(branchId)
-          ] else ...[
-            brick.Where('branchId').isExactly(branchId),
-            brick.Where('retailPrice').isGreaterThan(0),
-            brick.Where('name').isNot(TEMP_PRODUCT),
-            brick.Where('productName').isNot(CUSTOM_PRODUCT),
-            // should be not imptItemSttsCd 2  or 4
-            brick.Where('imptItemSttsCd').isNot("2"), // waiting
-            brick.Where('imptItemSttsCd').isNot("4"), // canceled
-            if (productId != null)
-              brick.Where('productId').isExactly(productId),
-          ]
-        ]));
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: brick.Query(where: [
+        if (variantId != null)
+          brick.Where('id').isExactly(variantId)
+        else if (name != null) ...[
+          brick.Where('name').contains(name),
+          brick.Where('branchId').isExactly(branchId),
+        ] else if (bcd != null) ...[
+          brick.Where('bcd').isExactly(bcd),
+          brick.Where('branchId').isExactly(branchId),
+        ] else if (imptItemsttsCd != null) ...[
+          brick.Where('imptItemSttsCd').isExactly(imptItemsttsCd),
+          brick.Where('branchId').isExactly(branchId)
+        ] else ...[
+          brick.Where('branchId').isExactly(branchId),
+          if (!includePurchases) brick.Where('retailPrice').isGreaterThan(0),
+          brick.Where('name').isNot(TEMP_PRODUCT),
+          brick.Where('productName').isNot(CUSTOM_PRODUCT),
+          // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled)
+          if (!includePurchases) ...[
+            brick.Where('imptItemSttsCd').isNot("2"),
+            brick.Where('imptItemSttsCd').isNot("4"),
+          ],
 
+          /// 01 is waiting for approval.
+          if (includePurchases) brick.Where('pchsSttsCd').isExactly("01"),
+          if (productId != null) brick.Where('productId').isExactly(productId),
+          if (purchaseId != null)
+            brick.Where('purchaseId').isExactly(purchaseId),
+          // Apply the purchaseId filter only if includePurchases is true
+          if (includePurchases) brick.Where('purchaseId').isNot(null),
+        ]
+      ]),
+    );
+
+    // Pagination logic (if needed)
     if (page != null && itemsPerPage != null) {
       final offset = page * itemsPerPage;
       return variants.skip(offset).take(itemsPerPage).toList();
@@ -5104,102 +5120,96 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<List<Purchase>> selectPurchases(
-      {required String bhfId,
-      required int tin,
-      required String lastReqDt,
-      required String url}) async {
-    // List<SaleList> saleList = await ProxyService.tax.selectTrnsPurchaseSales(
-    //   URI: url,
-    //   tin: tin,
-    //   bhfId: (await ProxyService.box.bhfId()) ?? "00",
-    //   lastReqDt: lastReqDt,
-    // );
-    // save the sales's list item into variants
-    // return saleList;
-    // test relation,
-    //1. save saleList
-    //2. save saleListItems
-    // check if relation can update
+  Future<List<Variant>> selectPurchases({
+    required String bhfId,
+    required int tin,
+    required String lastReqDt,
+    required String url,
+  }) async {
+    // Fetch business details
+    Business? business =
+        await getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    final businessId = ProxyService.box.getBusinessId()!;
+    final branchId = ProxyService.box.getBranchId()!;
+    final tinNumber = business!.tinNumber!;
+    final bhfId = business.bhfId!;
+    Branch? activeBranch =
+        await branch(serverId: ProxyService.box.getBranchId()!);
+
     try {
-      // final id = randomString();
-      // Purchase purchase = Purchase(
-      //   spplrTin: id,
-      //   spplrNm: id,
-      //   spplrBhfId: "01",
-      //   spplrInvcNo: 1,
-      //   rcptTyCd: "N",
-      //   pmtTyCd: "N",
-      //   cfmDt: "cfmDt",
-      //   salesDt: "salesDt",
-      //   totItemCnt: 1,
-      //   taxblAmtA: 1.0,
-      //   taxblAmtB: 1.0,
-      //   taxblAmtC: 1.0,
-      //   taxblAmtD: 1.0,
-      //   taxRtA: 1.0,
-      //   taxRtB: 1.0,
-      //   taxRtC: 1.0,
-      //   taxRtD: 1.0,
-      //   taxAmtA: 1.0,
-      //   taxAmtB: 1.0,
-      //   taxAmtC: 1.0,
-      //   taxAmtD: 1.0,
-      //   totTaxblAmt: 1.0,
-      //   totTaxAmt: 1.0,
-      //   totAmt: 1.0,
-      //   variants: [],
-      // );
+      // Check if the last request date already exists in the database
+      final lastReqDate = await repository.get<ImportPurchaseDates>(
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        query: brick.Query(where: [
+          brick.Where('branchId').isExactly(activeBranch!.id),
+          brick.Where('lastRequestDate').isExactly(lastReqDt),
+          brick.Where('requestType').isExactly("PURCHASE"),
+        ]),
+      );
 
-      // // save item then
+      if (lastReqDate.isEmpty) {
+        List<Purchase> saleList =
+            await ProxyService.tax.selectTrnsPurchaseSales(
+          URI: url,
+          tin: tin,
+          bhfId: (await ProxyService.box.bhfId()) ?? "00",
+          lastReqDt: lastReqDt,
+        );
+        // Log the first purchase for debugging
+        //print(saleList.first.toJson());
 
-      // await createProduct(
-      //   saleListId: purchase.id,
-      //   businessId: 1,
-      //   branchId: 1,
-      //   tinNumber: 1111,
-      //   bhFId: "01",
-      //   purchase: purchase,
-      //   createItemCode: false,
-      //   product: Product(
-      //     color: randomizeColor(),
-      //     name: "Test001",
-      //     lastTouched: DateTime.now(),
-      //     branchId: 1,
-      //     businessId: 1,
-      //     createdAt: DateTime.now(),
-      //     spplrNm: "item.spplrNm",
-      //     barCode: "001",
-      //   ),
-      // );
+        // If the last request date does not exist, process new purchases
+        for (Purchase purchase in saleList) {
+          final futures = purchase.variants?.map((variant) async {
+            // Create a product for each variant
+            await createProduct(
+              saleListId: purchase.id,
+              businessId: businessId,
+              branchId: branchId,
+              tinNumber: tinNumber,
+              bhFId: bhfId,
+              purchase: purchase,
+              createItemCode: false,
 
-      /// save saleListItems
-      // get saleListItems
-      final purchases = await repository.get<Purchase>();
-      for (final purchase in purchases) {
-        if (purchase.variants != null) {
-          for (final variant in purchase.variants!) {
-            print('Variant ID A: ${variant.id}');
+              /// se this new variant created to 2 to not show it directly until is approved.
+              pchsSttsCd: "01",
+              product: Product(
+                color: randomizeColor(),
+                name: variant.itemNm ?? variant.name,
+                lastTouched: DateTime.now(),
+                branchId: branchId,
+                businessId: businessId,
+                createdAt: DateTime.now(),
+                spplrNm: purchase.spplrNm,
+                barCode: variant.bcd,
+              ),
+            );
+
+            // Save the purchase code and last request date
+            await repository.upsert<ImportPurchaseDates>(
+              ImportPurchaseDates(
+                requestType: 'PURCHASE',
+                branchId: activeBranch.id,
+                lastRequestDate: lastReqDt,
+                purchaseId: purchase.id,
+              ),
+            );
+          }).toList();
+
+          // Wait for all futures to complete
+          if (futures != null) {
+            await Future.wait(futures);
           }
         }
+        // return purchases i.e all variants that has purchaseId that are not null
+        // and the itemCd !=3; because 3 mean that this purchase has been accepted
+        return await variants(branchId: branchId, includePurchases: true);
+      } else {
+        return await variants(includePurchases: true, branchId: branchId);
       }
-
-      final purchasesB = await repository.get<Purchase>(
-          query: brick.Query(where: [
-        brick.Where('id').isExactly("cc77ab8a-3cf0-4bd4-965c-bda8a0350e7e")
-      ]));
-      for (final purchase in purchasesB) {
-        if (purchase.variants != null) {
-          for (final variant in purchase.variants!) {
-            print('Variant ID B: ${variant.id}');
-          }
-        }
-      }
-    } catch (e, s) {
-      talker.error(e);
-      talker.error(s);
+    } catch (e) {
+      rethrow;
     }
-    return [];
   }
 
   @override
@@ -5337,5 +5347,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         policy: OfflineFirstGetPolicy.alwaysHydrate,
         query:
             brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
+  }
+
+  @override
+  Future<models.Purchase?> getPurchase({required String purchaseId}) async {
+    return (await repository.get<Purchase>(
+      query: brick.Query(where: [brick.Where('id').isExactly(purchaseId)]),
+    ))
+        .firstOrNull;
   }
 }

@@ -14,8 +14,11 @@ class ImportPurchaseDates extends OfflineFirstWithSupabaseModel {
   final String? lastRequestDate;
   final String? branchId;
   final String? requestType;
+  @Supabase(foreignKey: 'purchase_id')
+  final String? purchaseId;
   ImportPurchaseDates(
       {String? id,
+      this.purchaseId,
       required this.lastRequestDate,
       required this.branchId,
       required this.requestType})

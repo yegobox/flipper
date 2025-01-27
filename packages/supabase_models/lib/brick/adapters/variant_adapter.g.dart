@@ -74,7 +74,8 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       taskCd: data['task_cd'] as String?,
       dclDe: data['dcl_de'] as String?,
       hsCd: data['hs_cd'] as String?,
-      imptItemSttsCd: data['impt_item_stts_cd'] as String?);
+      imptItemSttsCd: data['impt_item_stts_cd'] as String?,
+      pchsSttsCd: data['pchs_stts_cd'] as String?);
 }
 
 Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
@@ -146,7 +147,8 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'task_cd': instance.taskCd,
     'dcl_de': instance.dclDe,
     'hs_cd': instance.hsCd,
-    'impt_item_stts_cd': instance.imptItemSttsCd
+    'impt_item_stts_cd': instance.imptItemSttsCd,
+    'pchs_stts_cd': instance.pchsSttsCd
   };
 }
 
@@ -259,7 +261,9 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
       hsCd: data['hs_cd'] == null ? null : data['hs_cd'] as String?,
       imptItemSttsCd: data['impt_item_stts_cd'] == null
           ? null
-          : data['impt_item_stts_cd'] as String?)
+          : data['impt_item_stts_cd'] as String?,
+      pchsSttsCd:
+          data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -334,7 +338,8 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'task_cd': instance.taskCd,
     'dcl_de': instance.dclDe,
     'hs_cd': instance.hsCd,
-    'impt_item_stts_cd': instance.imptItemSttsCd
+    'impt_item_stts_cd': instance.imptItemSttsCd,
+    'pchs_stts_cd': instance.pchsSttsCd
   };
 }
 
@@ -602,6 +607,10 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'imptItemSttsCd': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'impt_item_stts_cd',
+    ),
+    'pchsSttsCd': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'pchs_stts_cd',
     )
   };
   @override
@@ -991,6 +1000,12 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'imptItemSttsCd': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'impt_item_stts_cd',
+      iterable: false,
+      type: String,
+    ),
+    'pchsSttsCd': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'pchs_stts_cd',
       iterable: false,
       type: String,
     )
