@@ -44,42 +44,42 @@ class CronService {
         }
       }
     });
-    Timer.periodic(Duration(minutes: 10), (Timer t) async {
-      final URI = await ProxyService.box.getServerUrl();
-      final tinNumber = ProxyService.box.tin();
-      final bhfId = await ProxyService.box.bhfId();
-      final branchId = ProxyService.box.getBranchId()!;
+    // Timer.periodic(Duration(minutes: 10), (Timer t) async {
+    //   final URI = await ProxyService.box.getServerUrl();
+    //   final tinNumber = ProxyService.box.tin();
+    //   final bhfId = await ProxyService.box.bhfId();
+    //   final branchId = ProxyService.box.getBranchId()!;
 
-      CustomerPatch.patchCustomer(
-        URI: URI!,
-        tinNumber: tinNumber,
-        bhfId: bhfId!,
-        branchId: branchId,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-      PatchTransactionItem.patchTransactionItem(
-        URI: URI,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-        tinNumber: tinNumber,
-        bhfId: bhfId,
-      );
-      VariantPatch.patchVariant(
-        URI: URI,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-      StockPatch.patchStock(
-        URI: URI,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-    });
+    //   CustomerPatch.patchCustomer(
+    //     URI: URI!,
+    //     tinNumber: tinNumber,
+    //     bhfId: bhfId!,
+    //     branchId: branchId,
+    //     sendPort: (message) {
+    //       ProxyService.notification.sendLocalNotification(body: message);
+    //     },
+    //   );
+    //   PatchTransactionItem.patchTransactionItem(
+    //     URI: URI,
+    //     sendPort: (message) {
+    //       ProxyService.notification.sendLocalNotification(body: message);
+    //     },
+    //     tinNumber: tinNumber,
+    //     bhfId: bhfId,
+    //   );
+    //   VariantPatch.patchVariant(
+    //     URI: URI,
+    //     sendPort: (message) {
+    //       ProxyService.notification.sendLocalNotification(body: message);
+    //     },
+    //   );
+    //   StockPatch.patchStock(
+    //     URI: URI,
+    //     sendPort: (message) {
+    //       ProxyService.notification.sendLocalNotification(body: message);
+    //     },
+    //   );
+    // });
 
     ProxyService.box.remove(key: "customPhoneNumberForPayment");
     List<ConnectivityResult> results = await Connectivity().checkConnectivity();
@@ -139,7 +139,7 @@ class CronService {
     Business? business = await ProxyService.strategy.getBusiness();
     String? token;
 
-    if (!Platform.isWindows && !isMacOs && !isIos && business!=null) {
+    if (!Platform.isWindows && !isMacOs && !isIos && business != null) {
       token = await FirebaseMessaging.instance.getToken();
 
       business?.deviceToken = token.toString();

@@ -39,21 +39,14 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
   bool _isLoading = false;
   Map<String, TextEditingController> _searchControllers = {};
   Map<String, bool> _showSearchResults = {};
-
-  // Add map to store original names
   Map<String, String> _originalNames = {};
 
   Future<void> _handleApproval(Variant item) async {
     setState(() => _isLoading = true);
     try {
-      // Implement your approval logic here
       item.imptItemSttsCd = "3";
-
       item.ebmSynced = false;
-
       final URI = await ProxyService.box.getServerUrl();
-
-      /// update this single item modfied
       await VariantPatch.patchVariant(
         URI: URI!,
         identifier: item.id,
@@ -87,8 +80,7 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
   Future<void> _handleRejection(Variant item) async {
     setState(() => _isLoading = true);
     try {
-      // Implement your rejection logic here
-      await Future.delayed(const Duration(seconds: 1)); // Simulated API call
+      await Future.delayed(const Duration(seconds: 1));
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Item rejected successfully'),
@@ -135,7 +127,6 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
           data: (variants) => variants.isEmpty
               ? const SizedBox.shrink()
               : Material(
-                  // Add Material widget for proper elevation
                   elevation: 8,
                   child: Container(
                     width: width,
@@ -172,7 +163,6 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
   }
 
   Widget _buildVariantSearchCell(Variant item, double width) {
-    // Store original name when creating the controller
     _searchControllers.putIfAbsent(
       item.id,
       () {
@@ -182,7 +172,7 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
     );
 
     return Stack(
-      clipBehavior: Clip.none, // Allow search results to overflow
+      clipBehavior: Clip.none,
       children: [
         TextFormField(
           controller: _searchControllers[item.id],
@@ -197,7 +187,6 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
               onPressed: () {
                 setState(() {
                   if (_showSearchResults[item.id] == true) {
-                    // Restore original name when closing search
                     _searchControllers[item.id]?.text =
                         _originalNames[item.id] ?? '';
                     _showSearchResults[item.id] = false;
@@ -219,9 +208,9 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
         ),
         if (_showSearchResults[item.id] == true)
           Positioned(
-            top: 48, // Adjust to position right below the input
+            top: 48,
             left: 0,
-            right: 0, // Add right constraint
+            right: 0,
             child: _buildSearchResults(item.id, item.branchId!, width),
           ),
       ],
@@ -260,13 +249,19 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
                 );
               }
 
-              if (!snapshot.hasData || snapshot.data == null) {
+              if (!snapshot.hasData ||
+                  snapshot.data == null ||
+                  snapshot.data!.isEmpty) {
                 return const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      Icon(Icons.hourglass_empty, size: 48, color: Colors.grey),
                       SizedBox(height: 16),
-                      Text('No Data.'),
+                      Text(
+                        'No Data Found',
+                        style: TextStyle(color: Colors.grey, fontSize: 18),
+                      ),
                     ],
                   ),
                 );
@@ -393,13 +388,20 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
   }
 
   Widget _buildDataTable(List<Variant> itemList, double availableWidth) {
-    // Calculate column widths based on available width
-    final itemNameWidth = availableWidth * 0.25; // 25% of width
-    final hsCodeWidth = availableWidth * 0.15; // 15% of width
-    final quantityWidth = availableWidth * 0.15; // 15% of width
-    final statusWidth = availableWidth * 0.25; // 25% of width
-    final actionsWidth = availableWidth * 0.20; // 20% of width
-    //print("Items Length:${itemList.length}");
+    if (itemList.isEmpty) {
+      return const Center(
+        child: Text(
+          'No Data Found',
+          style: TextStyle(color: Colors.grey, fontSize: 18),
+        ),
+      );
+    }
+
+    final itemNameWidth = availableWidth * 0.25;
+    final hsCodeWidth = availableWidth * 0.15;
+    final quantityWidth = availableWidth * 0.15;
+    final statusWidth = availableWidth * 0.25;
+    final actionsWidth = availableWidth * 0.20;
 
     return Card(
       elevation: 2,

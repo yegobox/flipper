@@ -96,6 +96,8 @@ abstract class RealmInterface {
     String? productId,
     String? variantId,
     int? page,
+    String? purchaseId,
+    bool includePurchases = false,
     int? itemsPerPage,
     String? name,
     String? bcd,
@@ -103,6 +105,7 @@ abstract class RealmInterface {
     String? imptItemsttsCd,
   });
   FutureOr<Configurations?> getByTaxType({required String taxtype});
+  FutureOr<Purchase?> getPurchase({required String purchaseId});
 
   FutureOr<void> addAccess({
     required int userId,
@@ -303,7 +306,7 @@ abstract class RealmInterface {
   FutureOr<List<Stock>> stocks({required int branchId});
   Future<Stock> getStockById({required String id});
 
-  Future<List<Purchase>> selectPurchases(
+  Future<List<Variant>> selectPurchases(
       {required String bhfId,
       required int tin,
       required String lastReqDt,

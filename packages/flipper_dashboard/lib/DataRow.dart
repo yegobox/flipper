@@ -1,8 +1,10 @@
-import 'package:flipper_models/helper_models.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class DataRowWidget extends StatefulHookConsumerWidget {
   const DataRowWidget({
@@ -14,15 +16,13 @@ class DataRowWidget extends StatefulHookConsumerWidget {
     required this.acceptPurchases,
     required this.selectSale,
     required this.finalSalesList,
-    required this.salesList,
   }) : super(key: key);
 
   final TextEditingController nameController;
   final TextEditingController supplyPriceController;
   final TextEditingController retailPriceController;
-  final void Function(Variant? selectedItem, Purchase saleList) selectSale;
+  final void Function(Variant? selectedItem) selectSale;
   final List<Variant> finalSalesList;
-  final List<Purchase> salesList;
   final VoidCallback saveItemName;
   final VoidCallback acceptPurchases;
 
@@ -31,43 +31,336 @@ class DataRowWidget extends StatefulHookConsumerWidget {
 }
 
 class _DataRowWidgetState extends ConsumerState<DataRowWidget> {
-  Variant? selectedItemList;
+  final Talker talker = TalkerFlutter.init();
+  final Map<String, double> _editedRetailPrices = {};
+  final Map<String, double> _editedSupplyPrices = {};
+  late _DataSource _dataSource;
+  @override
+  void initState() {
+    super.initState();
+    _dataSource = _DataSource(
+      widget.finalSalesList,
+      _editedRetailPrices,
+      _editedSupplyPrices,
+      talker,
+      _updateDataGrid,
+    );
+  }
 
-  int? _hoveredRowIndex;
+  void _updateDataGrid() {
+    setState(() {
+      _dataSource.updatePrices();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: MediaQuery.of(context).size.width - 80,
-          ),
-          child: DataTable(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(1),
-              border:
-                  Border.all(color: theme.dividerColor.withValues(alpha: 0.2)),
+      child: Container(
+        width: double.infinity,
+        child: widget.finalSalesList.isEmpty
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    'No Data Available',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              )
+            : SfDataGrid(
+                source: _dataSource,
+                columns: _buildColumns(),
+                columnWidthMode: ColumnWidthMode.fill,
+                headerRowHeight: 56.0,
+                rowHeight: 48.0,
+                selectionMode: SelectionMode.single,
+                onCellTap: (DataGridCellTapDetails details) {
+                  if (details.rowColumnIndex.rowIndex > 0) {
+                    final item = widget
+                        .finalSalesList[details.rowColumnIndex.rowIndex - 1];
+                    _showEditDialog(context, item);
+                  }
+                },
+              ),
+      ),
+    );
+  }
+
+  void _showEditDialog(BuildContext context, Variant item) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: SingleChildScrollView(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 600),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                _buildItemsTable(item),
+                const SizedBox(height: 24),
+                _buildDialogActions(context),
+              ],
             ),
-            columnSpacing: 32.0,
-            headingRowHeight: 56.0,
-            headingRowColor: WidgetStateProperty.all(
-              theme.primaryColor.withValues(alpha: 0.1),
-            ),
-            columns: _buildColumns(),
-            rows: _buildRows(theme),
           ),
+        ),
+      ),
+    ).then((_) {
+      _updateDataGrid();
+    });
+  }
+
+  Widget _buildItemsTable(Variant item) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Table Header Section
+            Text(
+              'Item Details',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade800,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Theme(
+              data: Theme.of(context).copyWith(
+                dividerColor: Colors.grey.shade200,
+                dataTableTheme: DataTableThemeData(
+                  headingTextStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                    fontSize: 15,
+                  ),
+                  dataTextStyle: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              child: DataTable(
+                headingRowHeight: 56,
+                horizontalMargin: 12,
+                columnSpacing: 16,
+                headingRowColor: WidgetStateProperty.all(Colors.grey.shade100),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade200),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                columns: const [
+                  DataColumn(
+                    label: Text('Item Name'),
+                    tooltip: 'Item Name',
+                  ),
+                  DataColumn(
+                    label: Text('Qty'),
+                    tooltip: 'Quantity',
+                  ),
+                  DataColumn(
+                    label: Text('Supply'),
+                    tooltip: 'Supply Price',
+                  ),
+                  DataColumn(
+                    label: Text('Retail'),
+                    tooltip: 'Retail Price',
+                  ),
+                ],
+                rows: [
+                  DataRow(
+                    cells: [
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Icon(
+                                Icons.inventory_2,
+                                color: Colors.blue.shade400,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                item.name,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w500),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            item.stock!.currentStock.toString(),
+                            style: TextStyle(
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataCell(_buildPriceTextField(
+                        initialValue:
+                            _editedSupplyPrices[item.id]?.toString() ??
+                                item.supplyPrice?.toString() ??
+                                '',
+                        hintText: 'Supply',
+                        onChanged: (value) {
+                          final supplyPrice = double.tryParse(value);
+                          if (supplyPrice != null) {
+                            _editedSupplyPrices[item.id] = supplyPrice;
+                            _updateDataGrid();
+                          }
+                        },
+                      )),
+                      DataCell(_buildPriceTextField(
+                        initialValue:
+                            _editedRetailPrices[item.id]?.toString() ??
+                                item.retailPrice?.toString() ??
+                                '',
+                        hintText: 'Retail',
+                        onChanged: (value) {
+                          final retailPrice = double.tryParse(value);
+                          if (retailPrice != null) {
+                            _editedRetailPrices[item.id] = retailPrice;
+                            _updateDataGrid();
+                          }
+                        },
+                      )),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  List<DataColumn> _buildColumns() {
+  Widget _buildPriceTextField({
+    required String initialValue,
+    required String hintText,
+    required Function(String) onChanged,
+  }) {
+    return SizedBox(
+      width: 100,
+      child: TextFormField(
+        initialValue: initialValue,
+        keyboardType: TextInputType.number,
+        style: const TextStyle(fontSize: 13),
+        decoration: InputDecoration(
+          hintText: hintText,
+          prefixText: '\RWF ',
+          prefixStyle: const TextStyle(color: Colors.black87),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.blue.shade400, width: 2),
+          ),
+          filled: true,
+          fillColor: Colors.grey.shade50,
+        ),
+        onChanged: onChanged,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Required';
+          }
+          if (double.tryParse(value) == null) {
+            return 'Invalid number';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildDialogActions(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        FlipperButtonFlat(
+          textColor: Colors.red,
+          onPressed: () => Navigator.of(context).pop(),
+          text: 'Cancel',
+        ),
+        const SizedBox(width: 16),
+        FlipperButton(
+          textColor: Colors.black,
+          onPressed: () {
+            _editedRetailPrices.forEach((id, retailPrice) {
+              final variant = widget.finalSalesList.firstWhere(
+                (v) => v.id == id,
+                orElse: () => throw Exception('Variant not found'),
+              );
+              variant.retailPrice = retailPrice;
+              ProxyService.strategy.updateVariant(updatables: [variant]);
+            });
+
+            _editedSupplyPrices.forEach((id, supplyPrice) {
+              final variant = widget.finalSalesList.firstWhere(
+                (v) => v.id == id,
+                orElse: () => throw Exception('Variant not found'),
+              );
+              variant.supplyPrice = supplyPrice;
+              ProxyService.strategy.updateVariant(updatables: [variant]);
+            });
+
+            //widget.saveItemName();
+
+            talker.log(
+                'Prices updated for items: ${_editedRetailPrices.keys.join(', ')}');
+            Navigator.of(context).pop();
+          },
+          text: 'Save Changes',
+        ),
+      ],
+    );
+  }
+
+  List<GridColumn> _buildColumns() {
     const headerStyle = TextStyle(
       fontWeight: FontWeight.w600,
       fontSize: 16.0,
@@ -75,295 +368,213 @@ class _DataRowWidgetState extends ConsumerState<DataRowWidget> {
     );
 
     return [
-      DataColumn(
-        label: Flexible(
-          child: Text(
-            'Supplier Name',
+      GridColumn(
+        columnName: 'itemName',
+        label: Container(
+          padding: const EdgeInsets.all(8.0),
+          alignment: Alignment.centerLeft,
+          child: const Text(
+            'Item Name',
             style: headerStyle,
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        tooltip: 'Name of the supplier',
       ),
-      DataColumn(
-        label: Flexible(
-          child: Text(
-            'Supplier TIN',
+      GridColumn(
+        columnName: 'quantity',
+        label: Container(
+          padding: const EdgeInsets.all(8.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Quantity',
             style: headerStyle,
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        tooltip: 'Tax Identification Number',
       ),
-      DataColumn(
-        label: Flexible(
-          child: Text(
-            'Total Taxable Amount',
+      GridColumn(
+        columnName: 'supplyPrice',
+        label: Container(
+          padding: const EdgeInsets.all(8.0),
+          alignment: Alignment.centerRight,
+          child: const Text(
+            'Supply Price',
             style: headerStyle,
             overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.right,
           ),
         ),
-        tooltip: 'Total amount subject to tax',
-        numeric: true,
+      ),
+      GridColumn(
+        columnName: 'retailPrice',
+        label: Container(
+          padding: const EdgeInsets.all(8.0),
+          alignment: Alignment.centerRight,
+          child: const Text(
+            'Retail Price',
+            style: headerStyle,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+      GridColumn(
+        columnName: 'status',
+        label: Container(
+          padding: const EdgeInsets.all(8.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Status',
+            style: headerStyle,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+      GridColumn(
+        columnName: 'actions',
+        label: Container(
+          padding: const EdgeInsets.all(8.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Actions',
+            style: headerStyle,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ),
     ];
   }
+}
 
-  List<DataRow> _buildRows(ThemeData theme) {
-    return List.generate(widget.salesList.length, (index) {
-      final item = widget.salesList[index];
-
-      return DataRow(
-        color:
-            WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-          if (_hoveredRowIndex == index) {
-            return theme.hoverColor;
-          }
-          return index.isEven ? theme.scaffoldBackgroundColor : Colors.white;
-        }),
-        onSelectChanged: (_) => _showEditDialog(context, item),
-        cells: [
-          _buildDataCell(item.spplrNm, alignment: Alignment.centerLeft),
-          _buildDataCell(item.spplrTin),
-          _buildDataCell(
-            item.totTaxAmt.toRwf(),
-            alignment: Alignment.centerRight,
-          ),
-        ],
-      );
-    });
+class _DataSource extends DataGridSource {
+  _DataSource(this.finalSalesList, this.editedRetailPrices,
+      this.editedSupplyPrices, this.talker, this.updateStatus) {
+    buildDataGridRows();
   }
 
-  DataCell _buildDataCell(String text,
-      {Alignment alignment = Alignment.center}) {
-    return DataCell(
-      Align(
-        alignment: alignment,
-        child: Text(
-          text,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-          style: const TextStyle(
-            fontSize: 14.0,
-            letterSpacing: 0.3,
-          ),
+  final List<Variant> finalSalesList;
+  final Map<String, double> editedRetailPrices;
+  final Map<String, double> editedSupplyPrices;
+  final Talker talker;
+  final VoidCallback updateStatus;
+
+  List<DataGridRow> dataGridRows = [];
+
+  void buildDataGridRows() {
+    dataGridRows = finalSalesList.map<DataGridRow>((variant) {
+      return DataGridRow(cells: [
+        DataGridCell<String>(columnName: 'itemName', value: variant.name),
+        DataGridCell<int>(
+            columnName: 'quantity',
+            value: (variant.stock?.currentStock ?? 0).toInt()),
+        DataGridCell<double>(
+            columnName: 'supplyPrice',
+            value:
+                editedSupplyPrices[variant.id] ?? variant.supplyPrice ?? 0.0),
+        DataGridCell<double>(
+            columnName: 'retailPrice',
+            value:
+                editedRetailPrices[variant.id] ?? variant.retailPrice ?? 0.0),
+        DataGridCell<Widget>(
+          columnName: 'status',
+          value: _buildStatusWidget(variant),
         ),
-      ),
-    );
-  }
-
-  void _showEditDialog(BuildContext context, Purchase item) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+        DataGridCell<Widget>(
+          columnName: 'actions',
+          value: Row(
             children: [
-              _buildDialogHeader(context),
-              _buildEditForm(),
-              _buildItemsTable(item),
-              _buildDialogActions(context),
+              IconButton(
+                icon: const Icon(Icons.check, color: Colors.green),
+                onPressed: () => _onStatusChange(variant.id, "02"),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.red),
+                onPressed: () => _onStatusChange(variant.id, "04"),
+              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDialogHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade800,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Edit Item Details',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEditForm() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildTextField(
-              widget.nameController,
-              'Item Name',
-              prefixIcon: Icons.inventory,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildTextField(
-              widget.supplyPriceController,
-              'Supply Price',
-              prefixIcon: Icons.attach_money,
-              keyboardType: TextInputType.number,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildTextField(
-              widget.retailPriceController,
-              'Retail Price',
-              prefixIcon: Icons.point_of_sale,
-              keyboardType: TextInputType.number,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label, {
-    IconData? prefixIcon,
-    TextInputType? keyboardType,
-    String? Function(String?)? validator,
-    bool isPassword = false,
-    String? hintText,
-    bool autoFocus = false,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: isPassword,
-      autofocus: autoFocus,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hintText,
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade400, width: 1.2),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade400, width: 1.2),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.blue, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
-        ),
-        filled: true,
-        fillColor: Colors.grey.shade100,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      ),
-      validator: validator,
-      style: const TextStyle(
-        fontSize: 16.0,
-        fontWeight: FontWeight.w500,
-      ),
-    );
-  }
-
-  Widget _buildItemsTable(Purchase saleList) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return DataTable(
-            headingRowColor: WidgetStateProperty.all(Colors.grey.shade50),
-            columns: [
-              DataColumn(label: SizedBox(child: const Text('Item Name'))),
-              DataColumn(
-                  label: SizedBox(child: const Text('Quantity')),
-                  numeric: true),
-              DataColumn(
-                  label: SizedBox(child: const Text('Price')), numeric: true),
-              DataColumn(
-                  label: SizedBox(child: const Text('Total Tax')),
-                  numeric: true),
-            ],
-            rows: _buildItemRows(saleList),
-          );
-        },
-      ),
-    );
-  }
-
-  List<DataRow> _buildItemRows(Purchase saleList) {
-    return saleList.variants!.map((item) {
-      widget.finalSalesList.add(item);
-      return DataRow(
-        selected: selectedItemList == item,
-        onSelectChanged: (selected) {
-          setState(() {
-            selectedItemList = selected == true ? item : null;
-          });
-          widget.selectSale(selectedItemList, saleList);
-        },
-        cells: [
-          DataCell(
-              Text(item.itemNm ?? item.name, overflow: TextOverflow.ellipsis)),
-          DataCell(Text(item.qty.toString())),
-          DataCell(Text(item.prc!.toRwf())),
-          DataCell(Text(item.totAmt!.toRwf())),
-        ],
-      );
+      ]);
     }).toList();
   }
 
-  Widget _buildDialogActions(BuildContext context) {
+  Widget _buildStatusWidget(Variant variant) {
+    Color badgeColor;
+    String statusText;
+
+    switch (variant.pchsSttsCd) {
+      case "01":
+        badgeColor = Colors.orange..withValues(alpha: 0.2);
+        statusText = 'Pending';
+        break;
+      case "02":
+        badgeColor = Colors.green..withValues(alpha: 0.2);
+        statusText = 'Accepted';
+        break;
+      case "04":
+        badgeColor = Colors.red..withValues(alpha: 0.2);
+        statusText = 'Canceled';
+        break;
+      default:
+        badgeColor = Colors.grey..withValues(alpha: 0.2);
+        statusText = 'Unknown';
+    }
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+        color: badgeColor,
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          const SizedBox(width: 16),
-          FlipperButton(
-            onPressed: () {
-              widget.saveItemName();
-              Navigator.of(context).pop();
-            },
-            text: 'Save Changes',
-            textColor: Colors.black,
-          ),
-        ],
+      child: Text(
+        statusText,
+        style: TextStyle(
+          color: variant.pchsSttsCd == "01"
+              ? Colors.orange
+              : variant.pchsSttsCd == "02"
+                  ? Colors.green
+                  : Colors.red,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
+  }
+
+  void _onStatusChange(String id, String status) {
+    final variant = finalSalesList.firstWhere((v) => v.id == id);
+    variant.pchsSttsCd = status;
+    updateStatus();
+  }
+
+  @override
+  List<DataGridRow> get rows => dataGridRows;
+
+  @override
+  DataGridRowAdapter buildRow(DataGridRow row) {
+    return DataGridRowAdapter(
+      cells: row.getCells().map<Widget>((dataGridCell) {
+        return Container(
+          alignment: dataGridCell.columnName == 'retailPrice' ||
+                  dataGridCell.columnName == 'supplyPrice'
+              ? Alignment.centerRight
+              : Alignment.centerLeft,
+          padding: const EdgeInsets.all(8.0),
+          child: dataGridCell.columnName == 'status' ||
+                  dataGridCell.columnName == 'actions'
+              ? dataGridCell.value
+              : Text(
+                  dataGridCell.value.toString(),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    fontSize: 14.0,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+        );
+      }).toList(),
+    );
+  }
+
+  void updatePrices() {
+    buildDataGridRows();
+    notifyListeners();
   }
 }

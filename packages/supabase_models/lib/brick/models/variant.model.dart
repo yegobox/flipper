@@ -128,10 +128,13 @@ class Variant extends OfflineFirstWithSupabaseModel {
   @Sqlite(ignore: true)
   @Supabase(ignore: true)
   final double? taxAmt;
+
+  String? pchsSttsCd;
   // end of fields to ignore
 
   Variant({
     String? id,
+    this.pchsSttsCd,
     this.qty,
     this.stock,
     this.stockId,

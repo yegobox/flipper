@@ -1,6 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20250127184733.migration.dart';
 part '20250104131208.migration.dart';
 part '20250102092703.migration.dart';
 part '20250102092919.migration.dart';
@@ -21,9 +22,11 @@ part '20250123095657.migration.dart';
 part '20250124153826.migration.dart';
 part '20250124180016.migration.dart';
 part '20250124185812.migration.dart';
+part '20250126102159.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
+  const Migration20250127184733(),
   const Migration20250104131208(),
   const Migration20250102092703(),
   const Migration20250102092919(),
@@ -43,12 +46,12 @@ final migrations = <Migration>{
   const Migration20250123095657(),
   const Migration20250124153826(),
   const Migration20250124180016(),
-  const Migration20250124185812()
+  const Migration20250124185812(),
+  const Migration20250126102159()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema =
-    Schema(20250124185812, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250127184733, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -66,7 +69,8 @@ final schema =
     SchemaColumn('id', Column.varchar, unique: true),
     SchemaColumn('last_request_date', Column.varchar),
     SchemaColumn('branch_id', Column.varchar),
-    SchemaColumn('request_type', Column.varchar)
+    SchemaColumn('request_type', Column.varchar),
+    SchemaColumn('purchase_id', Column.varchar)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
@@ -416,7 +420,8 @@ final schema =
     SchemaColumn('task_cd', Column.varchar),
     SchemaColumn('dcl_de', Column.varchar),
     SchemaColumn('hs_cd', Column.varchar),
-    SchemaColumn('impt_item_stts_cd', Column.varchar)
+    SchemaColumn('impt_item_stts_cd', Column.varchar),
+    SchemaColumn('pchs_stts_cd', Column.varchar)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true),
     SchemaIndex(columns: ['purchase_id'], unique: false)

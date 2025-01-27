@@ -1726,20 +1726,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<List<brick.Variant>> variants(
-      {required int branchId,
-      String? productId,
-      String? variantId,
-      int? page,
-      String? bcd,
-      int? itemsPerPage,
-      String? name,
-      String? imptItemsttsCd}) {
-    // TODO: implement variants
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<bool> isBranchEnableForPayment({required String currentBranchId}) {
     // TODO: implement isBranchEnableForPayment
     throw UnimplementedError();
@@ -1832,16 +1818,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<List<brick.Purchase>> selectPurchases(
-      {required String bhfId,
-      required int tin,
-      required String lastReqDt,
-      required String url}) {
-    // TODO: implement selectPurchases
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> addTransactionItem(
       {required brick.ITransaction transaction,
       required bool partOfComposite,
@@ -1879,6 +1855,38 @@ class Capella with Booting implements RealmInterface {
   @override
   FutureOr<List<brick.Stock>> stocks({required int branchId}) {
     // TODO: implement stocks
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<brick.Purchase?> getPurchase({required String purchaseId}) {
+    // TODO: implement getPurchase
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Variant>> variants(
+      {required int branchId,
+      String? productId,
+      String? variantId,
+      int? page,
+      String? purchaseId,
+      bool includePurchases = false,
+      int? itemsPerPage,
+      String? name,
+      String? bcd,
+      String? imptItemsttsCd}) {
+    // TODO: implement variants
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Variant>> selectPurchases(
+      {required String bhfId,
+      required int tin,
+      required String lastReqDt,
+      required String url}) {
+    // TODO: implement selectPurchases
     throw UnimplementedError();
   }
 }
