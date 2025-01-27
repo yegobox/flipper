@@ -31,10 +31,16 @@ class DataRowWidget extends StatefulHookConsumerWidget {
 }
 
 class _DataRowWidgetState extends ConsumerState<DataRowWidget> {
-  final Talker talker = TalkerFlutter.init();
+  // Maps to store edited retail and supply prices
   final Map<String, double> _editedRetailPrices = {};
   final Map<String, double> _editedSupplyPrices = {};
+
+  // Talker instance for logging
+  final Talker talker = TalkerFlutter.init();
+
+  // Data source for the SfDataGrid
   late _DataSource _dataSource;
+
   @override
   void initState() {
     super.initState();
@@ -61,9 +67,9 @@ class _DataRowWidgetState extends ConsumerState<DataRowWidget> {
       child: Container(
         width: double.infinity,
         child: widget.finalSalesList.isEmpty
-            ? const Center(
+            ? Center(
                 child: Padding(
-                  padding: EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: Text(
                     'No Data Available',
                     style: TextStyle(
@@ -115,6 +121,7 @@ class _DataRowWidgetState extends ConsumerState<DataRowWidget> {
         ),
       ),
     ).then((_) {
+      // Update the DataGrid when the dialog is closed
       _updateDataGrid();
     });
   }
@@ -141,6 +148,8 @@ class _DataRowWidgetState extends ConsumerState<DataRowWidget> {
               ),
             ),
             const SizedBox(height: 16),
+
+            // Data Table
             Theme(
               data: Theme.of(context).copyWith(
                 dividerColor: Colors.grey.shade200,
@@ -502,21 +511,22 @@ class _DataSource extends DataGridSource {
 
     switch (variant.pchsSttsCd) {
       case "01":
-        badgeColor = Colors.orange..withValues(alpha: 0.2);
+        badgeColor = Colors.orange.withOpacity(0.2);
         statusText = 'Pending';
         break;
       case "02":
-        badgeColor = Colors.green..withValues(alpha: 0.2);
+        badgeColor = Colors.green.withOpacity(0.2);
         statusText = 'Accepted';
         break;
       case "04":
-        badgeColor = Colors.red..withValues(alpha: 0.2);
+        badgeColor = Colors.red.withOpacity(0.2);
         statusText = 'Canceled';
         break;
       default:
-        badgeColor = Colors.grey..withValues(alpha: 0.2);
+        badgeColor = Colors.grey.withOpacity(0.2);
         statusText = 'Unknown';
     }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -526,11 +536,7 @@ class _DataSource extends DataGridSource {
       child: Text(
         statusText,
         style: TextStyle(
-          color: variant.pchsSttsCd == "01"
-              ? Colors.orange
-              : variant.pchsSttsCd == "02"
-                  ? Colors.green
-                  : Colors.red,
+          color: badgeColor.withOpacity(1.0),
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -538,8 +544,11 @@ class _DataSource extends DataGridSource {
   }
 
   void _onStatusChange(String id, String status) {
+    //TODO: finalize updating the purchase changing the status of it.
     final variant = finalSalesList.firstWhere((v) => v.id == id);
     variant.pchsSttsCd = status;
+    talker.log(
+        'Updating status for variant: ${variant.name} from ${variant.pchsSttsCd} to $status');
     updateStatus();
   }
 
