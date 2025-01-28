@@ -75,6 +75,9 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       dclDe: data['dcl_de'] as String?,
       hsCd: data['hs_cd'] as String?,
       imptItemSttsCd: data['impt_item_stts_cd'] as String?,
+      taxblAmt: data['taxbl_amt'] as double?,
+      taxAmt: data['tax_amt'] as double?,
+      totAmt: data['tot_amt'] as double?,
       pchsSttsCd: data['pchs_stts_cd'] as String?);
 }
 
@@ -148,6 +151,9 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'dcl_de': instance.dclDe,
     'hs_cd': instance.hsCd,
     'impt_item_stts_cd': instance.imptItemSttsCd,
+    'taxbl_amt': instance.taxblAmt,
+    'tax_amt': instance.taxAmt,
+    'tot_amt': instance.totAmt,
     'pchs_stts_cd': instance.pchsSttsCd
   };
 }
@@ -262,6 +268,9 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
       imptItemSttsCd: data['impt_item_stts_cd'] == null
           ? null
           : data['impt_item_stts_cd'] as String?,
+      taxblAmt: data['taxbl_amt'] == null ? null : data['taxbl_amt'] as double?,
+      taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as double?,
+      totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as double?,
       pchsSttsCd:
           data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?)
     ..primaryKey = data['_brick_id'] as int;
@@ -339,6 +348,9 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'dcl_de': instance.dclDe,
     'hs_cd': instance.hsCd,
     'impt_item_stts_cd': instance.imptItemSttsCd,
+    'taxbl_amt': instance.taxblAmt,
+    'tax_amt': instance.taxAmt,
+    'tot_amt': instance.totAmt,
     'pchs_stts_cd': instance.pchsSttsCd
   };
 }
@@ -607,6 +619,18 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'imptItemSttsCd': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'impt_item_stts_cd',
+    ),
+    'taxblAmt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'taxbl_amt',
+    ),
+    'taxAmt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'tax_amt',
+    ),
+    'totAmt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'tot_amt',
     ),
     'pchsSttsCd': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -1002,6 +1026,24 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       columnName: 'impt_item_stts_cd',
       iterable: false,
       type: String,
+    ),
+    'taxblAmt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'taxbl_amt',
+      iterable: false,
+      type: double,
+    ),
+    'taxAmt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'tax_amt',
+      iterable: false,
+      type: double,
+    ),
+    'totAmt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'tot_amt',
+      iterable: false,
+      type: double,
     ),
     'pchsSttsCd': const RuntimeSqliteColumnDefinition(
       association: false,

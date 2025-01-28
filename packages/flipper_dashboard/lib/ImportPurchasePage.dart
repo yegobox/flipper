@@ -5,7 +5,6 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/realm_model_export.dart' as brick;
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +23,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     with Refresh {
   DateTime _selectedDate = DateTime.now();
   Future<List<Variant>>? _futureImportResponse;
-  Future<List<Variant>>? _futurePurchaseResponse;
+  Future<List<Variant>>? _futurePurchaseResponse; // Added for purchase data
   Variant? _selectedItem;
   Variant? _selectedPurchaseItem;
   final TextEditingController _nameController = TextEditingController();
@@ -63,8 +62,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
       lastReqDt: convertedDate,
     );
-    setState(() => importList = data);
-    return data;
+    return data; // Return data directly
   }
 
   Future<List<Variant>> _fetchDataPurchase(
@@ -81,8 +79,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
         url: url!,
       );
       talker.warning(rwResponse);
-      setState(() => salesList = rwResponse);
-      return rwResponse;
+      return rwResponse; // Return data directly
     } catch (e, s) {
       talker.warning(e);
       talker.warning(s);
@@ -173,69 +170,6 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     }
   }
 
-  Future<void> _acceptPurchase({required brick.CoreViewModel model}) async {
-    try {
-      setState(() => isLoading = true);
-
-      // Use the pendingTransaction provider
-      final pendingTransaction =
-          await ref.read(pendingTransactionProvider.future);
-
-      for (final variantItem in salesList) {
-        variantItem.retailPrice ??= variantItem.prc;
-
-        model.saveTransaction(
-          variation: variantItem,
-          amountTotal: variantItem.retailPrice!,
-          customItem: false,
-          currentStock: variantItem.stock!.currentStock!,
-          pendingTransaction: pendingTransaction,
-          partOfComposite: false,
-          compositePrice: 0,
-        );
-
-        ProxyService.strategy.updateTransaction(
-          transaction: pendingTransaction,
-          status: PARKED,
-          sarTyCd: "6",
-          receiptNumber: randomNumber(),
-          reference: ref.toString(),
-          invoiceNumber: randomNumber(),
-          receiptType: TransactionType.purchase,
-          customerTin: ProxyService.box.tin().toString(),
-          customerBhfId: await ProxyService.box.bhfId() ?? "00",
-          subTotal: pendingTransaction.subTotal! + (variantItem.splyAmt ?? 0),
-          cashReceived:
-              -(pendingTransaction.subTotal! + (variantItem.splyAmt ?? 0)),
-          customerName: (await ProxyService.strategy.getBusiness())!.name,
-        );
-        Purchase? purchase = await ProxyService.strategy
-            .getPurchase(purchaseId: variantItem.purchaseId!);
-        // get the related purchase
-        await ProxyService.tax.savePurchases(
-          item: purchase!,
-          bhfId: (await ProxyService.box.bhfId()) ?? "00",
-          rcptTyCd: "P",
-          URI: await ProxyService.box.getServerUrl() ?? "",
-        );
-
-        ProxyService.strategy.updateTransaction(
-          transaction: pendingTransaction,
-          status: COMPLETE,
-        );
-        refreshTransactionItems(transactionId: pendingTransaction.id);
-      }
-      setState(() => isLoading = false);
-      toast("Purchases saved successfully!");
-      Navigator.maybePop(context);
-    } catch (e, s) {
-      talker.error(e);
-      talker.error(s);
-      toast("Internal error, could not save purchases");
-      setState(() => isLoading = false);
-    }
-  }
-
   Future<void> _acceptAllImport() async {
     try {
       setState(() => isLoading = true);
@@ -315,16 +249,41 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                           selectedItem: _selectedItem,
                           finalItemList: finalItemList,
                         )
-                      : PurchaseSaleWidget(
-                          formKey: _importFormKey,
-                          nameController: _nameController,
-                          supplyPriceController: _supplyPriceController,
-                          retailPriceController: _retailPriceController,
-                          saveItemName: _saveItemName,
-                          acceptPurchases: () => _acceptPurchase(model: model),
-                          selectSale: (Variant? selectedItem) =>
-                              _selectItemPurchase(selectedItem),
-                          finalSalesList: salesList,
+                      : FutureBuilder<List<Variant>>(
+                          future: _futurePurchaseResponse,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('Error: ${snapshot.error}'));
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return Center(child: Text('No data available'));
+                            } else {
+                              salesList = snapshot.data!;
+                              return PurchaseSaleWidget(
+                                formKey: _importFormKey,
+                                nameController: _nameController,
+                                supplyPriceController: _supplyPriceController,
+                                retailPriceController: _retailPriceController,
+                                saveItemName: _saveItemName,
+                                acceptPurchases: (
+                                    {required List<Variant> variants}) async {
+                                  final pendingTransaction = await ref
+                                      .read(pendingTransactionProvider.future);
+                                  model.acceptPurchase(
+                                    variants: variants,
+                                    pendingTransaction: pendingTransaction,
+                                  );
+                                },
+                                selectSale: (Variant? selectedItem) =>
+                                    _selectItemPurchase(selectedItem),
+                                finalSalesList: salesList,
+                              );
+                            }
+                          },
                         ),
                 ],
               ),

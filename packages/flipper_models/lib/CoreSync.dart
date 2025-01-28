@@ -664,16 +664,21 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       models.Configurations? taxType,
       String? bcd,
       String? saleListId,
-      String? pchsSttsCd}) async {
+      String? pchsSttsCd,
+      double? totAmt,
+      double? taxAmt,
+      double? taxblAmt}) async {
     final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
 
     return Variant(
       spplrNm: spplrNm ?? "",
       agntNm: agntNm ?? "",
+      totAmt: totAmt,
       netWt: netWt ?? 0,
       totWt: totWt ?? 0,
       pchsSttsCd: pchsSttsCd,
+      taxblAmt: taxblAmt,
       invcFcurAmt: invcFcurAmt ?? 0,
       invcFcurCd: invcFcurCd ?? "",
       exptNatCd: exptNatCd ?? "",
@@ -698,8 +703,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       itemStdNm: product?.name ?? name,
       addInfo: "A",
       pkg: pkg ?? 1,
+      taxAmt: taxAmt,
       splyAmt: supplierPrice,
-      itemClsCd: "5020230602",
+      itemClsCd: itemClasses?[product?.barCode] ?? "5020230602",
       itemCd: createItemCode
           ? await itemCode(
               countryCode: orgnNatCd ?? "RW",
@@ -792,7 +798,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       bool ebmSynced = false,
       String? saleListId,
       Purchase? purchase,
-      String? pchsSttsCd}) async {
+      String? pchsSttsCd,
+      double? totAmt,
+      double? taxAmt,
+      double? taxblAmt}) async {
     try {
       final String productName = product.name;
       if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
@@ -817,6 +826,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           exptNatCd: exptNatCd,
           pchsSttsCd: pchsSttsCd,
           pkg: pkg,
+          taxblAmt: taxblAmt,
+          taxAmt: taxAmt,
+          totAmt: totAmt,
           createItemCode: createItemCode,
           taxTypes: taxTypes,
           saleListId: saleListId,
@@ -5162,14 +5174,28 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         for (Purchase purchase in saleList) {
           final futures = purchase.variants?.map((variant) async {
             // Create a product for each variant
+            final barCode = variant.bcd?.isNotEmpty == true
+                ? variant.bcd!
+                : randomNumber().toString();
+            talker.warning({barCode: variant.taxTyCd!});
             await createProduct(
               saleListId: purchase.id,
               businessId: businessId,
               branchId: branchId,
+              pkgUnitCd: variant.pkgUnitCd,
+              qty: variant.qty ?? 1,
               tinNumber: tinNumber,
+              taxblAmt: variant.taxblAmt,
               bhFId: bhfId,
+              spplrItemCd: variant.itemCd,
+              itemClasses: {barCode: variant.itemClsCd ?? ""},
+              supplyPrice: variant.splyAmt!,
+              retailPrice: variant.prc!,
               purchase: purchase,
               createItemCode: false,
+              taxTypes: {barCode: variant.taxTyCd!},
+              totAmt: variant.totAmt,
+              taxAmt: variant.taxAmt,
 
               /// se this new variant created to 2 to not show it directly until is approved.
               pchsSttsCd: "01",
@@ -5181,7 +5207,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
                 businessId: businessId,
                 createdAt: DateTime.now(),
                 spplrNm: purchase.spplrNm,
-                barCode: variant.bcd,
+                barCode: barCode,
               ),
             );
 

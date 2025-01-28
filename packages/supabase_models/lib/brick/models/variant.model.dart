@@ -119,15 +119,12 @@ class Variant extends OfflineFirstWithSupabaseModel {
   @Sqlite(ignore: true)
   @Supabase(ignore: true)
   final double? dcAmt;
-  @Sqlite(ignore: true)
-  @Supabase(ignore: true)
-  final double? totAmt;
-  @Sqlite(ignore: true)
-  @Supabase(ignore: true)
+
   final double? taxblAmt;
-  @Sqlite(ignore: true)
-  @Supabase(ignore: true)
+
   final double? taxAmt;
+
+  final double? totAmt;
 
   String? pchsSttsCd;
   // end of fields to ignore
@@ -213,86 +210,94 @@ class Variant extends OfflineFirstWithSupabaseModel {
   // fromJson method
   factory Variant.fromJson(Map<String, dynamic> json) {
     try {
+      // Parse safely with type checks and default values
+      T parseOrDefault<T>(dynamic value, T defaultValue) {
+        if (value == null) return defaultValue;
+        if (value is T) return value;
+        return defaultValue;
+      }
+
       return Variant(
-        id: json['id'] ?? const Uuid().v4(),
-        name: json['name'] as String? ?? '',
-        color: json['color'] as String? ?? '',
-        sku: json['sku'] as String? ?? '',
-        productId: json['productId'] as String? ?? '',
-        unit: json['unit'] as String? ?? '',
-        qty: (json['qty'] as num?)?.toDouble() ?? 1,
-        productName: json['productName'] as String? ?? '',
-        branchId: json['branchId'] as int? ?? 0,
-        taxName: json['taxName'] as String? ?? '',
-        taxPercentage: (json['taxPercentage'] as num?)?.toDouble() ?? 0.0,
-        itemSeq: json['itemSeq'] as int? ?? 1,
-        isrccCd: json['isrccCd'] as String? ?? '',
-        isrccNm: json['isrccNm'] as String? ?? '',
+        id: parseOrDefault<String>(json['id'], const Uuid().v4()),
+        name: parseOrDefault<String>(json['name'], ''),
+        color: parseOrDefault<String>(json['color'], ''),
+        sku: parseOrDefault<String>(json['sku'], ''),
+        productId: parseOrDefault<String>(json['productId'], ''),
+        unit: parseOrDefault<String>(json['unit'], ''),
+        qty: (json['qty'] as num?)?.toDouble() ?? 1.0,
+        productName: parseOrDefault<String>(json['productName'], ''),
+        branchId: parseOrDefault<int>(json['branchId'], 0),
+        taxName: parseOrDefault<String>(json['taxName'], ''),
+        taxPercentage:
+            (json['taxPercentage'] as num?)?.toDouble() ?? 1.0, // Default to 1
+        itemSeq: parseOrDefault<int>(json['itemSeq'], 1),
+        isrccCd: parseOrDefault<String>(json['isrccCd'], ''),
+        isrccNm: parseOrDefault<String>(json['isrccNm'], ''),
         isrcRt: (json['isrcRt'] as num?)?.toInt() ?? 0,
         isrcAmt: (json['isrcAmt'] as num?)?.toInt() ?? 0,
-        taxTyCd: json['taxTyCd'] as String? ?? '',
-        bcd: json['bcd'] as String? ?? '',
-        itemClsCd: json['itemClsCd'] as String? ?? '',
-        itemTyCd: json['itemTyCd'] as String? ?? '',
-        itemStdNm: json['itemStdNm'] as String? ?? '',
-        orgnNatCd: json['orgnNatCd'] as String? ?? '',
+        taxTyCd: parseOrDefault<String>(json['taxTyCd'], ''),
+        bcd: parseOrDefault<String>(json['bcd'], ''),
+        itemClsCd: parseOrDefault<String>(json['itemClsCd'], ''),
+        itemTyCd: parseOrDefault<String>(json['itemTyCd'], ''),
+        itemStdNm: parseOrDefault<String>(json['itemStdNm'], ''),
+        orgnNatCd: parseOrDefault<String>(json['orgnNatCd'], ''),
         pkg: (json['pkg'] as num?)?.toInt() ?? 1,
-        itemCd: json['itemCd'] as String? ?? '',
-        pkgUnitCd: json['pkgUnitCd'] as String? ?? '',
-        qtyUnitCd: json['qtyUnitCd'] as String? ?? '',
-        itemNm: json['itemNm'] as String? ?? '',
+        itemCd: parseOrDefault<String>(json['itemCd'], ''),
+        pkgUnitCd: parseOrDefault<String>(json['pkgUnitCd'], ''),
+        qtyUnitCd: parseOrDefault<String>(json['qtyUnitCd'], ''),
+        itemNm: parseOrDefault<String>(json['itemNm'], ''),
         prc: (json['prc'] as num?)?.toDouble() ?? 0.0,
         splyAmt: (json['splyAmt'] as num?)?.toDouble() ?? 0.0,
-        tin: json['tin'] as int? ?? 0,
-        bhfId: json['bhfId'] as String? ?? '',
+        tin: parseOrDefault<int>(json['tin'], 0),
+        bhfId: parseOrDefault<String>(json['bhfId'], ''),
         dftPrc: (json['dftPrc'] as num?)?.toDouble() ?? 0.0,
-        addInfo: json['addInfo'] as String? ?? '',
-        isrcAplcbYn: json['isrcAplcbYn'] as String? ?? 'Y',
-        useYn: json['useYn'] as String? ?? '',
-        regrId: json['regrId'] as String? ?? '',
-        regrNm: json['regrNm'] as String? ?? '',
-        modrId: json['modrId'] as String? ?? '',
-        modrNm: json['modrNm'] as String? ?? '',
-        lastTouched: json['lastTouched'] != null
+        addInfo: parseOrDefault<String>(json['addInfo'], ''),
+        isrcAplcbYn: parseOrDefault<String>(json['isrcAplcbYn'], 'Y'),
+        useYn: parseOrDefault<String>(json['useYn'], ''),
+        regrId: parseOrDefault<String>(json['regrId'], ''),
+        regrNm: parseOrDefault<String>(json['regrNm'], ''),
+        modrId: parseOrDefault<String>(json['modrId'], ''),
+        modrNm: parseOrDefault<String>(json['modrNm'], ''),
+        lastTouched: (json['lastTouched'] != null)
             ? DateTime.tryParse(json['lastTouched'] as String)
             : null,
         supplyPrice: (json['supplyPrice'] as num?)?.toDouble() ?? 0.0,
         retailPrice: (json['retailPrice'] as num?)?.toDouble() ?? 0.0,
-        spplrItemClsCd: json['spplrItemClsCd'] as String? ?? '',
-        spplrItemCd: json['spplrItemCd'] as String? ?? '',
-        spplrItemNm: json['spplrItemNm'] as String? ?? '',
-        ebmSynced: json['ebmSynced'] as bool? ?? false,
+        spplrItemClsCd: parseOrDefault<String>(json['spplrItemClsCd'], ''),
+        spplrItemCd: parseOrDefault<String>(json['spplrItemCd'], ''),
+        spplrItemNm: parseOrDefault<String>(json['spplrItemNm'], ''),
+        ebmSynced: parseOrDefault<bool>(json['ebmSynced'], false),
         dcRt: (json['dcRt'] as num?)?.toDouble() ?? 0.0,
-        expirationDate: json['expirationDate'] != null
+        expirationDate: (json['expirationDate'] != null)
             ? DateTime.tryParse(json['expirationDate'] as String)
             : null,
         totWt: (json['totWt'] as num?)?.toInt() ?? 0,
         netWt: (json['netWt'] as num?)?.toInt() ?? 0,
-        spplrNm: json['spplrNm'] as String? ?? '',
-        agntNm: json['agntNm'] as String? ?? '',
+        spplrNm: parseOrDefault<String>(json['spplrNm'], ''),
+        agntNm: parseOrDefault<String>(json['agntNm'], ''),
         invcFcurAmt: (json['invcFcurAmt'] as num?)?.toInt() ?? 0,
-        invcFcurCd: json['invcFcurCd'] as String? ?? '',
+        invcFcurCd: parseOrDefault<String>(json['invcFcurCd'], ''),
         invcFcurExcrt: (json['invcFcurExcrt'] as num?)?.toDouble() ?? 0.0,
-        exptNatCd: json['exptNatCd'] as String? ?? '',
-        dclNo: json['dclNo'] as String? ?? '',
-        taskCd: json['taskCd'] as String? ?? '',
-        dclDe: json['dclDe'] as String? ?? '',
-        hsCd: json['hsCd'] as String? ?? '',
-        imptItemSttsCd: json['imptItemsttsCd'] as String? ?? '',
-        barCode: json['barCode'] as String? ?? '',
-        bcdU: json['bcdU'] as String? ?? '',
+        exptNatCd: parseOrDefault<String>(json['exptNatCd'], ''),
+        dclNo: parseOrDefault<String>(json['dclNo'], ''),
+        taskCd: parseOrDefault<String>(json['taskCd'], ''),
+        dclDe: parseOrDefault<String>(json['dclDe'], ''),
+        hsCd: parseOrDefault<String>(json['hsCd'], ''),
+        imptItemSttsCd: parseOrDefault<String>(json['imptItemSttsCd'], ''),
+        barCode: parseOrDefault<String>(json['barCode'], ''),
+        bcdU: parseOrDefault<String>(json['bcdU'], ''),
         quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
-        category: json['category'] as String? ?? '',
+        category: parseOrDefault<String>(json['category'], ''),
         totAmt: (json['totAmt'] as num?)?.toDouble() ?? 0.0,
         taxblAmt: (json['taxblAmt'] as num?)?.toDouble() ?? 0.0,
         taxAmt: (json['taxAmt'] as num?)?.toDouble() ?? 0.0,
         dcAmt: (json['dcAmt'] as num?)?.toDouble() ?? 0.0,
-        purchaseId: json['purchaseId'] as String? ?? '',
+        purchaseId: parseOrDefault<String>(json['purchaseId'], ''),
       );
     } catch (e, s) {
       print('Error parsing Variant JSON: $e');
       print(s);
-      throw FormatException('Failed to parse Variant: $e');
+      throw FormatException('Failed to parse Variant JSON: $e');
     }
   }
 
@@ -364,6 +369,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'dcAmt': dcAmt,
       'purchaseId': purchaseId,
       "lastTouched": lastTouched?.toIso8601String(),
+      'qty': qty
     };
   }
 

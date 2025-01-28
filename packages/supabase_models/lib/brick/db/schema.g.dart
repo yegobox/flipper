@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250127184733.migration.dart';
+part '20250128051600.migration.dart';
 part '20250104131208.migration.dart';
 part '20250102092703.migration.dart';
 part '20250102092919.migration.dart';
@@ -23,10 +23,12 @@ part '20250124153826.migration.dart';
 part '20250124180016.migration.dart';
 part '20250124185812.migration.dart';
 part '20250126102159.migration.dart';
+part '20250127184733.migration.dart';
+part '20250128050524.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250127184733(),
+  const Migration20250128051600(),
   const Migration20250104131208(),
   const Migration20250102092703(),
   const Migration20250102092919(),
@@ -47,11 +49,13 @@ final migrations = <Migration>{
   const Migration20250124153826(),
   const Migration20250124180016(),
   const Migration20250124185812(),
-  const Migration20250126102159()
+  const Migration20250126102159(),
+  const Migration20250127184733(),
+  const Migration20250128050524()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250127184733, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250128051600, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -421,6 +425,9 @@ final schema = Schema(20250127184733, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('dcl_de', Column.varchar),
     SchemaColumn('hs_cd', Column.varchar),
     SchemaColumn('impt_item_stts_cd', Column.varchar),
+    SchemaColumn('taxbl_amt', Column.Double),
+    SchemaColumn('tax_amt', Column.Double),
+    SchemaColumn('tot_amt', Column.Double),
     SchemaColumn('pchs_stts_cd', Column.varchar)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true),
