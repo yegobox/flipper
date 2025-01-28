@@ -7,12 +7,14 @@ import 'package:flipper_models/firebase_options.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/UniversalProduct.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/helper_models.dart' show Uuid;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'dart:async';
 import 'package:supabase_models/brick/repository.dart' as brick;
 import 'package:supabase_models/brick/repository.dart';
@@ -272,69 +274,86 @@ class IsolateHandler with StockPatch {
     String bhfid, {
     required String dbPath,
   }) async {
+    Database? db;
     try {
-      final db = sqlite3.open(dbPath);
+      db = sqlite3.open(dbPath);
       final result =
-          db.select("Select * from Business where server_id = $businessId");
+          db.select("SELECT * FROM Business WHERE server_id = $businessId");
+
+      if (result.isEmpty) {
+        print('Business not found');
+        return;
+      }
 
       Business business = Business.fromMap(result.single);
-      final url = URI + "/itemClass/selectItemsClass";
+      final url = "$URI/itemClass/selectItemsClass";
 
       final headers = {"Content-Type": "application/json"};
+      final now = DateTime.now();
+      final lastReqDt = DateFormat('yyyyMMddHHmmss').format(now);
       final body = jsonEncode({
         "tin": business.tinNumber,
         "bhfId": bhfid,
-        "lastReqDt": "20210523000000",
+        "lastReqDt": lastReqDt,
       });
 
       final response =
           await http.post(Uri.parse(url), headers: headers, body: body);
       if (response.statusCode == 200) {
-        final jsonResponse = json.decode(response.body);
+        try {
+          final jsonResponse = json.decode(response.body);
 
-        if (jsonResponse['data'] != null &&
-            jsonResponse['data']['itemClsList'] != null) {
-          final List<dynamic> itemClsList = jsonResponse['data']['itemClsList'];
+          if (jsonResponse is Map<String, dynamic> &&
+              jsonResponse['data'] is Map<String, dynamic> &&
+              jsonResponse['data']['itemClsList'] is List) {
+            final List<dynamic> itemClsList =
+                jsonResponse['data']['itemClsList'];
 
-          for (var item in itemClsList) {
-            final UniversalProduct product = UniversalProduct.fromJson(item);
-            final result = db.select(
-                "SELECT * FROM UnversalProduct WHERE item_cls_cd = ?",
-                [product.itemClsCd]);
+            db.execute('BEGIN TRANSACTION');
+            try {
+              for (var item in itemClsList) {
+                final UniversalProduct product =
+                    UniversalProduct.fromJson(item);
+                final result = db.select(
+                    "SELECT * FROM UnversalProduct WHERE item_cls_cd = ?", // Typo kept here
+                    [product.itemClsCd]);
 
-            if (result.isEmpty) {
-              final unii = UnversalProduct(
-                itemClsCd: product.itemClsCd,
-                itemClsLvl: product.itemClsLvl,
-                itemClsNm: product.itemClsNm,
-                branchId: branchId,
-                businessId: businessId,
-                useYn: product.useYn,
-                mjrTgYn: product.mjrTgYn,
-                taxTyCd: product.taxTyCd,
-              );
-
-              db.execute(
-                  "INSERT INTO UnversalProduct (id, item_cls_cd, item_cls_lvl, item_cls_nm, branch_id, business_id, use_yn, mjr_tg_yn, tax_ty_cd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                  [
-                    unii.id,
-                    unii.itemClsCd,
-                    unii.itemClsLvl,
-                    unii.itemClsNm,
-                    unii.branchId,
-                    unii.businessId,
-                    unii.useYn,
-                    unii.mjrTgYn,
-                    unii.taxTyCd
-                  ]);
+                if (result.isEmpty) {
+                  db.execute(
+                      "INSERT INTO UnversalProduct (id, item_cls_cd, item_cls_lvl, item_cls_nm, branch_id, business_id, use_yn, mjr_tg_yn, tax_ty_cd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", // Typo kept here
+                      [
+                        const Uuid().v4(),
+                        product.itemClsCd,
+                        product.itemClsLvl,
+                        product.itemClsNm,
+                        branchId,
+                        businessId,
+                        product.useYn,
+                        product.mjrTgYn,
+                        product.taxTyCd
+                      ]);
+                }
+              }
+              db.execute('COMMIT');
+            } catch (e) {
+              db.execute('ROLLBACK');
+              rethrow;
             }
+          } else {
+            print('Invalid JSON structure');
           }
-        } else {
-          print('No data found in the response.');
+        } catch (e) {
+          print('Failed to decode JSON: $e');
         }
       } else {
         print('Failed to load data. Status code: ${response.statusCode}');
       }
-    } catch (e) {}
+    } on http.ClientException catch (e) {
+      print('Network error: $e');
+    } catch (e) {
+      print('Unexpected error: $e');
+    } finally {
+      db?.dispose();
+    }
   }
 }
