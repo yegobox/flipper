@@ -188,8 +188,7 @@ mixin TransactionMixin {
       required double currentStock,
       required bool partOfComposite}) async {
     try {
-      String name = variation.productName ?? "N/A";
-
+     
       TransactionItem? existTransactionItem = await ProxyService.strategy
           .getTransactionItemByVariantId(
               variantId: variation.id, transactionId: pendingTransaction.id);
@@ -197,7 +196,7 @@ mixin TransactionMixin {
       await addTransactionItems(
         variationId: variation.id,
         pendingTransaction: pendingTransaction,
-        name: name,
+        name: variation.name,
         variation: variation,
         currentStock: currentStock,
         amountTotal: amountTotal,
