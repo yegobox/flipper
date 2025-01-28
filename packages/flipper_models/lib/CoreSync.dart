@@ -2408,107 +2408,126 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<List<Variant>> selectImportItems(
-      {required int tin,
-      required String bhfId,
-      required String lastReqDt}) async {
-    /// Take response save them into Variant's model
+  Future<List<Variant>> selectImportItems({
+    required int tin,
+    required String bhfId,
+    required String lastReqDt,
+  }) async {
     try {
-      Branch? activeBranch =
+      // Fetch active branch and business details
+      final activeBranch =
           await branch(serverId: ProxyService.box.getBranchId()!);
-      Business? business =
+      if (activeBranch == null) throw Exception("Active branch not found");
+
+      final business =
           await getBusinessById(businessId: ProxyService.box.getBusinessId()!);
+      if (business == null) throw Exception("Business details not found");
 
-      // get last request date
-      final lastReqDate = await repository.get<ImportPurchaseDates>(
-          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-          query: brick.Query(where: [
-            brick.Where('branchId').isExactly(activeBranch!.id),
-            brick.Where('lastRequestDate').isExactly(lastReqDt),
-            brick.Where('requestType').isExactly("IMPORT"),
-          ]));
+      // Fetch last request date for import items
+      final lastRequestRecords = await repository.get<ImportPurchaseDates>(
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        query: brick.Query(where: [
+          brick.Where('branchId').isExactly(activeBranch.id),
+          brick.Where('lastRequestDate').isExactly(lastReqDt),
+          brick.Where('requestType').isExactly("IMPORT"),
+        ]),
+      );
 
-      /// if is same date do nothing
-      if (lastReqDate.isNotEmpty) {
-        if (lastReqDate.first.lastRequestDate == lastReqDt) {
-          final variantsReceived = await variants(
-              branchId: ProxyService.box.getBranchId()!, imptItemsttsCd: "2");
+      // If the last request date is the same, check if there are imported variants
+      if (lastRequestRecords.isNotEmpty &&
+          lastRequestRecords.first.lastRequestDate == lastReqDt) {
+        final existingVariants = await variants(
+          branchId: ProxyService.box.getBranchId()!,
+          imptItemsttsCd: "2",
+        );
 
-          return variantsReceived;
+        if (existingVariants.isNotEmpty) {
+          return existingVariants;
         }
       }
+
+      // Fetch new data from the API if no existing records
       final response = await ProxyService.tax.selectImportItems(
         tin: tin,
         bhfId: bhfId,
         lastReqDt: lastReqDt,
-        URI: await ProxyService.box.getServerUrl() ?? "",
+        URI: (await ProxyService.box.getServerUrl() ?? ""),
       );
 
-      /// save lastReqDt
-      repository.upsert<ImportPurchaseDates>(ImportPurchaseDates(
-          lastRequestDate: lastReqDt,
-          branchId: activeBranch.id,
-          requestType: "IMPORT"));
-      for (Variant item in response.data?.itemList ?? []) {
-        /// save the item in our system, rely on the name as when user
-        /// typed to edit a name we helped a user to search through
-        /// existing product and use the name that exist,
-        /// that way we will be updating the product's variant with no question
-        /// otherwise then create a complete new product.
+      if (response.data?.itemList == null) {
+        throw Exception("No data received from the server");
+      }
 
-        await createProduct(
-          // TODO: check if this bhfId change as we switch branches.
-          bhFId: (await ProxyService.box.bhfId()) ?? "00",
-          tinNumber: business!.tinNumber!,
-          businessId: ProxyService.box.getBusinessId()!,
-          branchId: ProxyService.box.getBranchId()!,
-          totWt: item.totWt,
-          netWt: item.netWt,
-          spplrNm: item.spplrNm,
-
-          agntNm: item.agntNm,
-          invcFcurAmt: item.invcFcurAmt,
-          invcFcurCd: item.invcFcurCd,
-          invcFcurExcrt: item.invcFcurExcrt,
-          exptNatCd: item.exptNatCd,
-          pkg: item.pkg!,
-          qty: item.qty ?? 1,
-          qtyUnitCd: item.qtyUnitCd,
-          pkgUnitCd: "BJ",
-          createItemCode: true,
-          dclNo: item.dclNo,
-          taskCd: item.taskCd,
-          dclDe: item.dclDe,
-          orgnNatCd: item.orgnNatCd,
-          hsCd: item.hsCd,
-          imptItemsttsCd: item.imptItemSttsCd,
-          product: Product(
-            color: randomizeColor(),
-            name: item.itemNm!,
-            lastTouched: DateTime.now(),
-            branchId: ProxyService.box.getBranchId()!,
-            businessId: ProxyService.box.getBusinessId()!,
-            createdAt: DateTime.now(),
-            spplrNm: item.spplrNm,
+      // Save the last request date
+      if (response.data!.itemList!.isNotEmpty) {
+        await repository.upsert<ImportPurchaseDates>(
+          ImportPurchaseDates(
+            lastRequestDate: lastReqDt,
+            branchId: activeBranch.id,
+            requestType: "IMPORT",
           ),
-          supplyPrice: item.supplyPrice ?? 0,
-          retailPrice: item.retailPrice ?? 0,
-          itemSeq: item.itemSeq!,
-
-          ebmSynced: true,
-          spplrItemCd: item.hsCd,
-          spplrItemClsCd: item.hsCd,
         );
       }
 
-      /// imptItemsttsCd: "2" means imported items are not yet accepted yet.
-      final variantsReceived = await variants(
-          branchId: ProxyService.box.getBranchId()!, imptItemsttsCd: "2");
-      return variantsReceived;
-    } catch (e, s) {
-      print(s.toString());
+      // Save each imported item into the system
+      for (final item in response.data!.itemList!) {
+        await saveVariant(item, business, activeBranch.serverId!);
+      }
+
+      // Return the newly imported variants
+      return await variants(
+        branchId: ProxyService.box.getBranchId()!,
+        imptItemsttsCd: "2",
+      );
+    } catch (e, stackTrace) {
+      print("Error in selectImportItems: $e\n$stackTrace");
       rethrow;
     }
+  }
+
+// Helper method to save a variant
+  Future<void> saveVariant(
+      Variant item, Business business, int branchId) async {
+    await createProduct(
+      bhFId: (await ProxyService.box.bhfId()) ?? "00",
+      tinNumber: business.tinNumber!,
+      businessId: ProxyService.box.getBusinessId()!,
+      branchId: branchId,
+      totWt: item.totWt,
+      netWt: item.netWt,
+      spplrNm: item.spplrNm,
+      agntNm: item.agntNm,
+      invcFcurAmt: item.invcFcurAmt,
+      invcFcurCd: item.invcFcurCd,
+      invcFcurExcrt: item.invcFcurExcrt,
+      exptNatCd: item.exptNatCd,
+      pkg: item.pkg!,
+      qty: item.qty ?? 1,
+      qtyUnitCd: item.qtyUnitCd,
+      pkgUnitCd: "BJ",
+      createItemCode: true,
+      dclNo: item.dclNo,
+      taskCd: item.taskCd,
+      dclDe: item.dclDe,
+      orgnNatCd: item.orgnNatCd,
+      hsCd: item.hsCd,
+      imptItemsttsCd: item.imptItemSttsCd,
+      product: Product(
+        color: randomizeColor(),
+        name: item.itemNm!,
+        lastTouched: DateTime.now(),
+        branchId: branchId,
+        businessId: ProxyService.box.getBusinessId()!,
+        createdAt: DateTime.now(),
+        spplrNm: item.spplrNm,
+      ),
+      supplyPrice: item.supplyPrice ?? 0,
+      retailPrice: item.retailPrice ?? 0,
+      itemSeq: item.itemSeq!,
+      ebmSynced: true,
+      spplrItemCd: item.hsCd,
+      spplrItemClsCd: item.hsCd,
+    );
   }
 
   @override
@@ -3622,7 +3641,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     bool includePurchases = false,
   }) async {
     List<Variant> variants = await repository.get<Variant>(
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
       query: brick.Query(where: [
         if (variantId != null)
           brick.Where('id').isExactly(variantId)

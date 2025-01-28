@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:nfc_manager/nfc_manager.dart';
+// import 'package:nfc_manager/nfc_manager.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:stacked/stacked.dart';
 
@@ -56,20 +56,20 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   bool isMobile = Platform.isIOS || Platform.isAndroid;
 
   Future<void> _startNFC() async {
-    if (isMobile && await NfcManager.instance.isAvailable()) {
-      try {
-        AppService().nfc.stopNfc();
-        AppService().nfc.startNFC(
-              callback: (nfcData) => AppService.cleanedDataController.add(
-                nfcData.split(RegExp(r"NFC_DATA:|en|\\x02")).last,
-              ),
-              textData: "",
-              write: false,
-            );
-      } catch (e) {
-        print("Error starting NFC: $e");
-      }
-    }
+    // if (isMobile && await NfcManager.instance.isAvailable()) {
+    //   try {
+    //     AppService().nfc.stopNfc();
+    //     AppService().nfc.startNFC(
+    //           callback: (nfcData) => AppService.cleanedDataController.add(
+    //             nfcData.split(RegExp(r"NFC_DATA:|en|\\x02")).last,
+    //           ),
+    //           textData: "",
+    //           write: false,
+    //         );
+    //   } catch (e) {
+    //     print("Error starting NFC: $e");
+    //   }
+    // }
   }
 
   void _disableScreenshots() async {
@@ -141,33 +141,37 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   }
 
   Future<void> _startNFCForModel(CoreViewModel model) async {
-    if (await NfcManager.instance.isAvailable()) {
-      AppService().nfc.startNFC(
-            callback: (nfcData) {
-              AppService.cleanedDataController
-                  .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
-            },
-            textData: "",
-            write: false,
-          );
+    // TODO: nfc_manager was causing iPhone to freeze so disable it now.
+    // if (await NfcManager.instance.isAvailable()) {
+    //   AppService().nfc.startNFC(
+    //         callback: (nfcData) {
+    //           AppService.cleanedDataController
+    //               .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
+    //         },
+    //         textData: "",
+    //         write: false,
+    //       );
 
-      AppService.cleanedData.listen((data) async {
-        final branchId = ProxyService.box.getBranchId()!;
-        log("listened to data");
-        final pendingTransaction = ref.watch(pendingTransactionProvider(
-            (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
-        log(data);
-        List<String> parts = data.split(':');
-        String firstPart = parts[0];
+    //   AppService.cleanedData.listen((data) async {
+    //     final branchId = ProxyService.box.getBranchId()!;
+    //     log("listened to data");
+    //     final pendingTransaction = ref.watch(pendingTransactionProvider((
+    //       mode: TransactionType.sale,
+    //       isExpense: false,
+    //       branchId: branchId
+    //     )));
+    //     log(data);
+    //     List<String> parts = data.split(':');
+    //     String firstPart = parts[0];
 
-        await model.sellWithCard(
-          tenantId: firstPart,
-          pendingTransaction: pendingTransaction.value!,
-        );
+    //     await model.sellWithCard(
+    //       tenantId: firstPart,
+    //       pendingTransaction: pendingTransaction.value!,
+    //     );
 
-        showToast(context, 'Sale recorded successfully.');
-      });
-    }
+    //     showToast(context, 'Sale recorded successfully.');
+    //   });
+    // }
   }
 
   Widget _buildScaffold(BuildContext context, CoreViewModel model) {
