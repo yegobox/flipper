@@ -3644,6 +3644,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           if (!includePurchases) ...[
             brick.Where('imptItemSttsCd').isNot("2"),
             brick.Where('imptItemSttsCd').isNot("4"),
+            //TODO: there is a bug in brick where comparing to 01 is not working
+            // brick.Where('pchsSttsCd').isNot("01"),
+            // brick.Where('pchsSttsCd').isNot("04"),
           ],
 
           /// 01 is waiting for approval.
@@ -3660,7 +3663,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // Pagination logic (if needed)
     if (page != null && itemsPerPage != null) {
       final offset = page * itemsPerPage;
-      return variants.skip(offset).take(itemsPerPage).toList();
+      return variants
+          .where((variant) =>
+              variant.pchsSttsCd != "01" && variant.pchsSttsCd != "04")
+          .skip(offset)
+          .take(itemsPerPage)
+          .toList();
     }
 
     return variants;

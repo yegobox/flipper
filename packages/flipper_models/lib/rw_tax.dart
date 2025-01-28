@@ -837,7 +837,7 @@ class RWTax with NetworkHelper implements TaxApi {
     required String bhfId,
     required List<Variant> variants,
     required Business business,
-   required  String pchsSttsCd, 
+    required String pchsSttsCd,
   }) async {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'trnsPurchase/savePurchases')
@@ -873,6 +873,10 @@ class RWTax with NetworkHelper implements TaxApi {
         if (respond.resultCd == "894" || respond.resultCd != "000") {
           throw Exception(respond.resultMsg);
         }
+        // update variant with the new rcptTyCd
+        Variant variant = variants.first;
+        variant.pchsSttsCd = pchsSttsCd;
+        ProxyService.strategy.updateVariant(updatables: [variant]);
         return respond;
       } else {
         throw Exception(
