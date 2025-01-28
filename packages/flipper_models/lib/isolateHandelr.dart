@@ -315,7 +315,7 @@ class IsolateHandler with StockPatch {
                 final UniversalProduct product =
                     UniversalProduct.fromJson(item);
                 final result = db.select(
-                    "SELECT * FROM UnversalProduct WHERE item_cls_cd = ?", // Typo kept here
+                    "SELECT * FROM UnversalProduct WHERE item_cls_cd = ?",
                     [product.itemClsCd]);
 
                 if (result.isEmpty) {
