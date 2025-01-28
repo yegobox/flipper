@@ -24,7 +24,8 @@ class DataRowWidget extends StatefulHookConsumerWidget {
   final void Function(Variant? selectedItem) selectSale;
   final List<Variant> finalSalesList;
   final VoidCallback saveItemName;
-  final void Function(List<Variant> acceptedVariants) acceptPurchases;
+  final void Function(List<Variant> acceptedVariants, String pchsSttsCd)
+      acceptPurchases;
 
   @override
   _DataRowWidgetState createState() => _DataRowWidgetState();
@@ -471,7 +472,8 @@ class _DataSource extends DataGridSource {
   final Map<String, double> editedSupplyPrices;
   final Talker talker;
   final VoidCallback updateStatus;
-  final void Function(List<Variant> acceptedVariants) acceptPurchases;
+  final void Function(List<Variant> acceptedVariants, String pchsSttsCd)
+      acceptPurchases;
 
   List<DataGridRow> dataGridRows = [];
 
@@ -556,7 +558,7 @@ class _DataSource extends DataGridSource {
     variant.pchsSttsCd = status;
 
     // Call the acceptPurchases callback with the updated list of variants
-    acceptPurchases([variant]);
+    acceptPurchases([variant], status);
 
     talker.log(
         'Updating status for variant: ${variant.name} from ${variant.pchsSttsCd} to $status');

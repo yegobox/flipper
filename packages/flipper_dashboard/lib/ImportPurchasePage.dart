@@ -270,12 +270,14 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                 retailPriceController: _retailPriceController,
                                 saveItemName: _saveItemName,
                                 acceptPurchases: (
-                                    {required List<Variant> variants}) async {
+                                    {required List<Variant> variants,
+                                    required String pchsSttsCd}) async {
                                   final pendingTransaction = await ref
                                       .read(pendingTransactionProvider.future);
                                   model.acceptPurchase(
                                     variants: variants,
                                     pendingTransaction: pendingTransaction,
+                                    pchsSttsCd: pchsSttsCd,
                                   );
                                 },
                                 selectSale: (Variant? selectedItem) =>

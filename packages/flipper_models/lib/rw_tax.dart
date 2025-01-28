@@ -837,6 +837,7 @@ class RWTax with NetworkHelper implements TaxApi {
     required String bhfId,
     required List<Variant> variants,
     required Business business,
+   required  String pchsSttsCd, 
   }) async {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'trnsPurchase/savePurchases')
