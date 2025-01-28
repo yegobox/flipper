@@ -1,7 +1,6 @@
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/helperModels/RwApiResponse.dart' as api;
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 
 abstract class TaxApi {
@@ -12,6 +11,8 @@ abstract class TaxApi {
     required String URI,
     required String bhfId,
     String rcptTyCd = "S",
+    required List<Variant> variants,
+    required Business business,
   });
   Future<RwApiResponse> saveStockItems(
       {required ITransaction transaction,

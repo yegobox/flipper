@@ -910,8 +910,9 @@ class CoreViewModel extends FlipperBaseModel
     return rwResponse;
   }
 
-  Future<void> acceptPurchase() async {
-    brick.ITransaction? pendingTransaction = null;
+  Future<void> acceptPurchase(
+      {required List<Variant> variants,
+      required ITransaction pendingTransaction}) async {
     try {
       isLoading = true;
       notifyListeners();
@@ -919,89 +920,56 @@ class CoreViewModel extends FlipperBaseModel
       talker.warning("salesListLenghts" + salesList.length.toString());
       final ref = randomNumber();
 
-      for (Purchase supplier in salesList) {
-        for (Variant item in supplier.variants!) {
-          item.retailPrice ??= item.prc;
-          talker.warning(
-              "Retail Prices while saving item in our DB:: ${item.retailPrice}");
+      for (Variant variant in variants) {
+        variant.retailPrice ??= variant.prc;
+        talker.warning(
+            "Retail Prices while saving item in our DB:: ${variant.retailPrice}");
 
-          brick.Product? product = await ProxyService.strategy.createProduct(
-            createItemCode: true,
-            businessId: ProxyService.box.getBusinessId()!,
-            branchId: ProxyService.box.getBranchId()!,
-            tinNumber: ProxyService.box.tin(),
-            bhFId: (await ProxyService.box.bhfId()) ?? "00",
-            product: brick.Product(
-              color: "#e74c3c",
-              name: item.itemNm ?? item.name,
-              lastTouched: DateTime.now(),
-              branchId: ProxyService.box.getBranchId()!,
-              businessId: ProxyService.box.getBusinessId()!,
-              createdAt: DateTime.now(),
-              spplrNm: supplier.spplrNm,
-            ),
-            supplyPrice: item.splyAmt ?? 0.0,
-            retailPrice: item.retailPrice ?? item.prc ?? 0.0,
-            itemSeq: item.itemSeq ?? 1,
-            ebmSynced: false,
-          );
+        talker.warning("Variant ${variant.id}");
 
-          talker.warning("Created Product ${product!.id}");
-          brick.Variant? variant = (await ProxyService.strategy.variants(
-                  productId: product.id,
-                  branchId: ProxyService.box.getBranchId()!))
-              .firstOrNull;
-
-          talker.warning("Variant ${variant?.id}");
-          pendingTransaction = await ProxyService.strategy.manageTransaction(
-            transactionType: TransactionType.purchase,
-            isExpense: true,
-            branchId: ProxyService.box.getBranchId()!,
-          );
-
-          if (variant != null) {
-            saveTransaction(
-              variation: variant,
-              amountTotal: variant.retailPrice!,
-              customItem: false,
-              currentStock: variant.stock!.currentStock!,
-              pendingTransaction: pendingTransaction,
-              partOfComposite: false,
-              compositePrice: 0,
-            );
-
-            final bhfId = await ProxyService.box.bhfId() ?? "00";
-
-            ProxyService.strategy.updateTransaction(
-              transaction: pendingTransaction,
-              status: PARKED,
-              sarTyCd: "6",
-              receiptNumber: ref,
-              reference: ref.toString(),
-              invoiceNumber: ref,
-              receiptType: TransactionType.purchase,
-              customerTin: ProxyService.box.tin().toString(),
-              customerBhfId: bhfId,
-              subTotal: pendingTransaction.subTotal! + (item.splyAmt ?? 0.0),
-              cashReceived:
-                  -(pendingTransaction.subTotal! + (item.splyAmt ?? 0.0)),
-              customerName: (await ProxyService.strategy.getBusiness())!.name,
-            );
-          }
-
-          await ProxyService.tax.savePurchases(
-              item: supplier,
-              bhfId: (await ProxyService.box.bhfId()) ?? "00",
-              rcptTyCd: "P",
-              URI: await ProxyService.box.getServerUrl() ?? "");
-        }
-
-        ProxyService.strategy.updateTransaction(
-          transaction: pendingTransaction!,
-          status: COMPLETE,
+        saveTransaction(
+          variation: variant,
+          amountTotal: variant.retailPrice!,
+          customItem: false,
+          currentStock: variant.stock!.currentStock!,
+          pendingTransaction: pendingTransaction,
+          partOfComposite: false,
+          compositePrice: 0,
         );
-        // refreshTransactionItems(transactionId: pendingTransaction.id);
+        final business = (await ProxyService.strategy
+            .getBusiness(businessId: ProxyService.box.getBusinessId()));
+        ProxyService.strategy.updateTransaction(
+          transaction: pendingTransaction,
+          status: PARKED,
+          sarTyCd: "6",
+          receiptNumber: randomNumber(),
+          reference: ref.toString(),
+          invoiceNumber: randomNumber(),
+          receiptType: TransactionType.purchase,
+          customerTin: ProxyService.box.tin().toString(),
+          customerBhfId: await ProxyService.box.bhfId() ?? "00",
+          subTotal: pendingTransaction.subTotal! + (variant.splyAmt ?? 0),
+          cashReceived:
+              -(pendingTransaction.subTotal! + (variant.splyAmt ?? 0)),
+          customerName: business!.name,
+        );
+
+        Purchase? purchase = await ProxyService.strategy
+            .getPurchase(purchaseId: variant.purchaseId!);
+        await ProxyService.tax.savePurchases(
+            item: purchase!,
+            business: business,
+            variants: [variant],
+            bhfId: (await ProxyService.box.bhfId()) ?? "00",
+            rcptTyCd: "P",
+            URI: await ProxyService.box.getServerUrl() ?? "");
       }
+
+      ProxyService.strategy.updateTransaction(
+        transaction: pendingTransaction,
+        status: COMPLETE,
+      );
+      // refreshTransactionItems(transactionId: pendingTransaction.id);
 
       isLoading = false;
       notifyListeners();

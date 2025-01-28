@@ -191,7 +191,10 @@ abstract class RealmInterface {
       double supplyPrice = 0,
       double retailPrice = 0,
       int itemSeq = 1,
-      bool ebmSynced = false});
+      bool ebmSynced = false,
+      String? pchsSttsCd,
+      double? totAmt,
+      double? taxAmt});
 
   Stream<ITransaction> manageTransactionStream(
       {required String transactionType,

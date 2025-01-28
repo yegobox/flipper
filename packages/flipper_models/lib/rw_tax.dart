@@ -835,31 +835,34 @@ class RWTax with NetworkHelper implements TaxApi {
     required String URI,
     String rcptTyCd = "S",
     required String bhfId,
+    required List<Variant> variants,
+    required Business business,
   }) async {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'trnsPurchase/savePurchases')
         .toString();
 
-    final repository = Repository();
-    List<Business> businesses =
-        await repository.get<Business>(query: Query.where('isDefault', true));
-    Business? business = businesses.first;
     Map<String, dynamic> data = item.toJson();
     data['tin'] = business.tinNumber ?? 999909695;
     data['bhfId'] = bhfId;
     data['pchsDt'] = convertDateToString(DateTime.now()).substring(0, 8);
     data['invcNo'] = item.spplrInvcNo;
     data['regrId'] = randomNumber().toString();
-    data['pchsSttsCd'] = '02';
+    data['pchsSttsCd'] = '02'; // purchase status 02= approved.
     data['modrNm'] = randomNumber().toString();
     data['orgInvcNo'] = item.spplrInvcNo;
     data['regrNm'] = randomNumber();
-    data['pchsTyCd'] = 'N';
+    data['totItemCnt'] = variants.length;
+    data['pchsTyCd'] = 'N'; // transaction type N=normal
     data['cfmDt'] = convertDateToString(DateTime.now());
     data['regTyCd'] = 'A';
     data['modrId'] = randomNumber();
     // P is refund after sale
     data['rcptTyCd'] = rcptTyCd;
+    data['itemList'] = variants.map((variant) {
+      variant.qty = variant.stock?.currentStock ?? 0;
+      return variant.toJson();
+    }).toList();
     final talker = Talker();
     try {
       final response = await sendPostRequest(url, data);

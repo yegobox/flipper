@@ -24,7 +24,7 @@ class DataRowWidget extends StatefulHookConsumerWidget {
   final void Function(Variant? selectedItem) selectSale;
   final List<Variant> finalSalesList;
   final VoidCallback saveItemName;
-  final VoidCallback acceptPurchases;
+  final void Function(List<Variant> acceptedVariants) acceptPurchases;
 
   @override
   _DataRowWidgetState createState() => _DataRowWidgetState();
@@ -50,6 +50,7 @@ class _DataRowWidgetState extends ConsumerState<DataRowWidget> {
       _editedSupplyPrices,
       talker,
       _updateDataGrid,
+      widget.acceptPurchases,
     );
   }
 
@@ -454,8 +455,14 @@ class _DataRowWidgetState extends ConsumerState<DataRowWidget> {
 }
 
 class _DataSource extends DataGridSource {
-  _DataSource(this.finalSalesList, this.editedRetailPrices,
-      this.editedSupplyPrices, this.talker, this.updateStatus) {
+  _DataSource(
+    this.finalSalesList,
+    this.editedRetailPrices,
+    this.editedSupplyPrices,
+    this.talker,
+    this.updateStatus,
+    this.acceptPurchases,
+  ) {
     buildDataGridRows();
   }
 
@@ -464,6 +471,7 @@ class _DataSource extends DataGridSource {
   final Map<String, double> editedSupplyPrices;
   final Talker talker;
   final VoidCallback updateStatus;
+  final void Function(List<Variant> acceptedVariants) acceptPurchases;
 
   List<DataGridRow> dataGridRows = [];
 
@@ -544,9 +552,12 @@ class _DataSource extends DataGridSource {
   }
 
   void _onStatusChange(String id, String status) {
-    //TODO: finalize updating the purchase changing the status of it.
     final variant = finalSalesList.firstWhere((v) => v.id == id);
     variant.pchsSttsCd = status;
+
+    // Call the acceptPurchases callback with the updated list of variants
+    acceptPurchases([variant]);
+
     talker.log(
         'Updating status for variant: ${variant.name} from ${variant.pchsSttsCd} to $status');
     updateStatus();
