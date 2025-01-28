@@ -13,6 +13,7 @@ abstract class TaxApi {
     String rcptTyCd = "S",
     required List<Variant> variants,
     required Business business,
+    required  String pchsSttsCd,
   });
   Future<RwApiResponse> saveStockItems(
       {required ITransaction transaction,

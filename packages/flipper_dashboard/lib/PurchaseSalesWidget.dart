@@ -9,7 +9,9 @@ class PurchaseSaleWidget extends StatefulWidget {
   final TextEditingController supplyPriceController;
   final TextEditingController retailPriceController;
   final void Function() saveItemName;
-  final void Function({required List<Variant> variants}) acceptPurchases;
+  final void Function(
+      {required List<Variant> variants,
+      required String pchsSttsCd}) acceptPurchases;
   final void Function(Variant? selectedItem) selectSale;
   final List<Variant> finalSalesList;
 
@@ -45,7 +47,8 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
                 children: [
                   FlipperButton(
                     onPressed: () {
-                      widget.acceptPurchases(variants: widget.finalSalesList);
+                      widget.acceptPurchases(
+                          variants: widget.finalSalesList, pchsSttsCd: '02');
                     },
                     text: 'Accept All Purchases',
                     textColor: Colors.black,
@@ -62,8 +65,9 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
                     supplyPriceController: widget.supplyPriceController,
                     retailPriceController: widget.retailPriceController,
                     saveItemName: widget.saveItemName,
-                    acceptPurchases: (List<Variant> variants) =>
-                        widget.acceptPurchases(variants: variants),
+                    acceptPurchases: (List<Variant> variants, pchsSttsCd) =>
+                        widget.acceptPurchases(
+                            variants: variants, pchsSttsCd: pchsSttsCd),
                     selectSale: (variant) => widget.selectSale(variant),
                     finalSalesList: widget.finalSalesList,
                   ),

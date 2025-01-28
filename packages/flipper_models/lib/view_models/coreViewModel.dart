@@ -912,7 +912,8 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> acceptPurchase(
       {required List<Variant> variants,
-      required ITransaction pendingTransaction}) async {
+      required ITransaction pendingTransaction,
+      required String pchsSttsCd}) async {
     try {
       isLoading = true;
       notifyListeners();
@@ -957,12 +958,14 @@ class CoreViewModel extends FlipperBaseModel
         Purchase? purchase = await ProxyService.strategy
             .getPurchase(purchaseId: variant.purchaseId!);
         await ProxyService.tax.savePurchases(
-            item: purchase!,
-            business: business,
-            variants: [variant],
-            bhfId: (await ProxyService.box.bhfId()) ?? "00",
-            rcptTyCd: "P",
-            URI: await ProxyService.box.getServerUrl() ?? "");
+          item: purchase!,
+          business: business,
+          variants: [variant],
+          bhfId: (await ProxyService.box.bhfId()) ?? "00",
+          rcptTyCd: "P",
+          URI: await ProxyService.box.getServerUrl() ?? "",
+          pchsSttsCd: pchsSttsCd,
+        );
       }
 
       ProxyService.strategy.updateTransaction(
