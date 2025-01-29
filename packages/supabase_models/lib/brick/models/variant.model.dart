@@ -283,7 +283,10 @@ class Variant extends OfflineFirstWithSupabaseModel {
         taskCd: parseOrDefault<String>(json['taskCd'], ''),
         dclDe: parseOrDefault<String>(json['dclDe'], ''),
         hsCd: parseOrDefault<String>(json['hsCd'], ''),
-        imptItemSttsCd: parseOrDefault<String>(json['imptItemSttsCd'], ''),
+
+        /// because rra api in reponse return imptItemsttsCd yet when they request data
+        /// they want imptItemSttsCd when receiving data we use imptItemsttsCd not imptItemSttsCd
+        imptItemSttsCd: parseOrDefault<String>(json['imptItemsttsCd'], ''),
         barCode: parseOrDefault<String>(json['barCode'], ''),
         bcdU: parseOrDefault<String>(json['bcdU'], ''),
         quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,

@@ -44,12 +44,21 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
 
   Future<void> _fetchData() async {
     setState(() => isLoading = true);
-    if (isImport) {
-      _futureImportResponse = _fetchDataImport(selectedDate: _selectedDate);
-    } else {
-      _futurePurchaseResponse = _fetchDataPurchase(selectedDate: _selectedDate);
+    try {
+      if (isImport) {
+        _futureImportResponse = _fetchDataImport(selectedDate: _selectedDate);
+        await _futureImportResponse;
+      } else {
+        _futurePurchaseResponse =
+            _fetchDataPurchase(selectedDate: _selectedDate);
+        await _futurePurchaseResponse;
+      }
+    } catch (e) {
+      // Handle any errors that occur during the fetch
+      talker.warning(e);
+    } finally {
+      setState(() => isLoading = false);
     }
-    setState(() => isLoading = false);
   }
 
   Future<List<Variant>> _fetchDataImport(

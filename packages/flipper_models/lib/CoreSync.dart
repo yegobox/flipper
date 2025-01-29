@@ -2455,7 +2455,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       );
 
       if (response.data?.itemList == null) {
-        throw Exception("No data received from the server");
+        return [];
       }
 
       // Save the last request date
@@ -2471,7 +2471,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
       // Save each imported item into the system
       for (final item in response.data!.itemList!) {
-        await saveVariant(item, business, activeBranch.serverId!);
+        if (item.imptItemSttsCd!.isNotEmpty) {
+          await saveVariant(item, business, activeBranch.serverId!);
+        }
       }
 
       // Return the newly imported variants
