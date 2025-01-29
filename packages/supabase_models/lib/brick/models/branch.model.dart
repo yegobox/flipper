@@ -15,7 +15,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
   final int? serverId;
   final String? location;
   final String? description;
-  final bool? active;
+  bool? active;
   final int? businessId;
   final String? latitude;
   final String? longitude;
