@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:flipper_models/providers/variants_provider.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class ImportSalesWidget extends StatefulHookConsumerWidget {
   final Future<List<Variant>>? futureResponse;
@@ -37,15 +38,20 @@ class ImportSalesWidget extends StatefulHookConsumerWidget {
 
 class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
   bool _isLoading = false;
-  Map<String, TextEditingController> _searchControllers = {};
-  Map<String, bool> _showSearchResults = {};
-  Map<String, String> _originalNames = {};
+  late VariantDataSource _variantDataSource;
+
+  @override
+  void initState() {
+    super.initState();
+    _variantDataSource = VariantDataSource([], this);
+  }
 
   Future<void> _handleApproval(Variant item) async {
     setState(() => _isLoading = true);
     try {
       item.imptItemSttsCd = "3";
       item.ebmSynced = false;
+      await ProxyService.strategy.updateVariant(updatables: [item]);
       final URI = await ProxyService.box.getServerUrl();
       await VariantPatch.patchVariant(
         URI: URI!,
@@ -65,6 +71,7 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
           item: item, URI: await ProxyService.box.getServerUrl() ?? "");
       item.ebmSynced = true;
       ProxyService.strategy.updateVariant(updatables: [item]);
+      _variantDataSource.updateDataSource();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -80,13 +87,37 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
   Future<void> _handleRejection(Variant item) async {
     setState(() => _isLoading = true);
     try {
-      await Future.delayed(const Duration(seconds: 1));
+      item.imptItemSttsCd = "4";
+      item.ebmSynced = false;
+      await ProxyService.strategy.updateVariant(updatables: [item]);
+
+      final URI = await ProxyService.box.getServerUrl();
+      await VariantPatch.patchVariant(
+        URI: URI!,
+        identifier: item.id,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
+      await StockPatch.patchStock(
+        identifier: item.id,
+        URI: URI,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
+      await ProxyService.tax.updateImportItems(
+          item: item, URI: await ProxyService.box.getServerUrl() ?? "");
+
+      item.ebmSynced = true;
+      ProxyService.strategy.updateVariant(updatables: [item]);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Item rejected successfully'),
           backgroundColor: Colors.orange,
         ),
       );
+      _variantDataSource.updateDataSource();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -97,124 +128,6 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
     } finally {
       setState(() => _isLoading = false);
     }
-  }
-
-  void _updateVariant(Variant originalItem, Variant selectedVariant) {
-    setState(() {
-      final index = widget.finalItemList.indexOf(originalItem);
-      if (index != -1) {
-        widget.finalItemList[index] = selectedVariant.copyWith(
-          imptItemSttsCd: originalItem.imptItemSttsCd,
-          stock: originalItem.stock,
-        );
-      }
-      _showSearchResults[originalItem.id] = false;
-      _searchControllers[originalItem.id]?.text = selectedVariant.name;
-    });
-  }
-
-  Widget _buildSearchResults(String itemId, int branchId, double width) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final searchQuery = _searchControllers[itemId]?.text ?? '';
-        final variantSearch = ref.watch(variantProvider(
-          transactionId: itemId,
-          branchId: branchId,
-          key: searchQuery,
-        ));
-
-        return variantSearch.when(
-          data: (variants) => variants.isEmpty
-              ? const SizedBox.shrink()
-              : Material(
-                  elevation: 8,
-                  child: Container(
-                    width: width,
-                    constraints: const BoxConstraints(maxHeight: 200),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: variants.length,
-                      itemBuilder: (context, index) {
-                        final variant = variants[index];
-                        return ListTile(
-                          title: Text(variant.name),
-                          subtitle: Text(variant.hsCd?.toString() ?? ''),
-                          onTap: () {
-                            final originalItem =
-                                widget.finalItemList.firstWhere(
-                              (item) => item.id == itemId,
-                            );
-                            _updateVariant(originalItem, variant);
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Text('Error: $error'),
-        );
-      },
-    );
-  }
-
-  Widget _buildVariantSearchCell(Variant item, double width) {
-    _searchControllers.putIfAbsent(
-      item.id,
-      () {
-        _originalNames[item.id] = item.itemNm ?? item.name;
-        return TextEditingController(text: item.itemNm ?? item.name);
-      },
-    );
-
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        TextFormField(
-          controller: _searchControllers[item.id],
-          decoration: InputDecoration(
-            hintText: 'Search variants...',
-            suffixIcon: IconButton(
-              icon: Icon(
-                _showSearchResults[item.id] == true
-                    ? Icons.close
-                    : Icons.search,
-              ),
-              onPressed: () {
-                setState(() {
-                  if (_showSearchResults[item.id] == true) {
-                    _searchControllers[item.id]?.text =
-                        _originalNames[item.id] ?? '';
-                    _showSearchResults[item.id] = false;
-                  } else {
-                    _showSearchResults[item.id] = true;
-                  }
-                });
-              },
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          onChanged: (value) {
-            setState(() {
-              _showSearchResults[item.id] = value.isNotEmpty;
-            });
-          },
-        ),
-        if (_showSearchResults[item.id] == true)
-          Positioned(
-            top: 48,
-            left: 0,
-            right: 0,
-            child: _buildSearchResults(item.id, item.branchId!, width),
-          ),
-      ],
-    );
   }
 
   @override
@@ -272,6 +185,8 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
                 ..clear()
                 ..addAll(itemList);
 
+              _variantDataSource = VariantDataSource(itemList, this);
+
               return SizedBox(
                 width: constraints.maxWidth,
                 child: Form(
@@ -281,7 +196,7 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
                       _buildInputRow(),
                       const SizedBox(height: 16),
                       Expanded(
-                        child: _buildDataTable(itemList, constraints.maxWidth),
+                        child: _buildDataGrid(),
                       ),
                     ],
                   ),
@@ -387,190 +302,235 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
     );
   }
 
-  Widget _buildDataTable(List<Variant> itemList, double availableWidth) {
-    if (itemList.isEmpty) {
-      return const Center(
-        child: Text(
-          'No Data Found',
-          style: TextStyle(color: Colors.grey, fontSize: 18),
-        ),
-      );
-    }
-
-    final itemNameWidth = availableWidth * 0.25;
-    final hsCodeWidth = availableWidth * 0.15;
-    final quantityWidth = availableWidth * 0.15;
-    final statusWidth = availableWidth * 0.25;
-    final actionsWidth = availableWidth * 0.20;
-
+  Widget _buildDataGrid() {
     return Card(
       elevation: 2,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 200),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade200),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              columnSpacing: 24.0,
-              headingRowHeight: 56.0,
-              dataRowHeight: 52.0,
-              horizontalMargin: 16.0,
-              columns: [
-                DataColumn(
-                  label: SizedBox(
-                    width: itemNameWidth,
-                    child: const Text(
-                      'Item Name',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                DataColumn(
-                  label: SizedBox(
-                    width: hsCodeWidth,
-                    child: const Text(
-                      'HS Code',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                DataColumn(
-                  label: SizedBox(
-                    width: quantityWidth,
-                    child: const Text(
-                      'Quantity',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                DataColumn(
-                  label: SizedBox(
-                    width: statusWidth,
-                    child: const Text(
-                      'Status',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                DataColumn(
-                  label: SizedBox(
-                    width: actionsWidth,
-                    child: const Text(
-                      'Actions',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-              ],
-              rows: List<DataRow>.generate(
-                itemList.length,
-                (index) {
-                  final item = itemList[index];
-                  final isWaitingApproval = item.imptItemSttsCd == "2";
-
-                  return DataRow(
-                    selected: item == widget.selectedItem,
-                    onSelectChanged: _isLoading
-                        ? null
-                        : (selected) =>
-                            widget.selectItem(selected == true ? item : null),
-                    color: isWaitingApproval
-                        ? WidgetStateProperty.all(Colors.orange.shade50)
-                        : null,
-                    cells: [
-                      DataCell(
-                        SizedBox(
-                          width: itemNameWidth,
-                          child: _buildVariantSearchCell(item, itemNameWidth),
-                        ),
-                      ),
-                      DataCell(
-                        SizedBox(
-                          width: hsCodeWidth,
-                          child: Text(item.hsCd?.toString() ?? ''),
-                        ),
-                      ),
-                      DataCell(
-                        SizedBox(
-                          width: quantityWidth,
-                          child:
-                              Text('${item.stock!.rsdQty} ${item.qtyUnitCd}'),
-                        ),
-                      ),
-                      DataCell(
-                        SizedBox(
-                          width: statusWidth,
-                          child: isWaitingApproval
-                              ? Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.orange.shade100,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Text(
-                                    'Waiting Approval',
-                                    style: TextStyle(
-                                      color: Colors.orange,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                )
-                              : const Text('Processed'),
-                        ),
-                      ),
-                      DataCell(
-                        SizedBox(
-                          width: actionsWidth,
-                          child: isWaitingApproval
-                              ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.check_circle_outline,
-                                        color: Colors.green,
-                                      ),
-                                      onPressed: _isLoading
-                                          ? null
-                                          : () => _handleApproval(item),
-                                      tooltip: 'Approve',
-                                      constraints: const BoxConstraints(),
-                                      padding: const EdgeInsets.all(8),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.cancel_outlined,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: _isLoading
-                                          ? null
-                                          : () => _handleRejection(item),
-                                      tooltip: 'Reject',
-                                      constraints: const BoxConstraints(),
-                                      padding: const EdgeInsets.all(8),
-                                    ),
-                                  ],
-                                )
-                              : const Text('-'),
-                        ),
-                      ),
-                    ],
-                  );
-                },
+      child: SfDataGrid(
+        source: _variantDataSource,
+        selectionMode: SelectionMode.single,
+        columnWidthMode: ColumnWidthMode.fill,
+        onSelectionChanged: (addedRows, removedRows) {
+          if (addedRows.isNotEmpty) {
+            final selectedVariant = _variantDataSource
+                .getVariantAt(_variantDataSource.rows.indexOf(addedRows.first));
+            widget.selectItem(selectedVariant);
+          } else {
+            widget.selectItem(null);
+          }
+        },
+        columns: [
+          GridColumn(
+            columnName: 'itemName',
+            label: Container(
+              padding: const EdgeInsets.all(8),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Item Name',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
-        ),
+          GridColumn(
+            columnName: 'hsCode',
+            label: Container(
+              padding: const EdgeInsets.all(8),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'HS Code',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          GridColumn(
+            columnName: 'quantity',
+            label: Container(
+              padding: const EdgeInsets.all(8),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Quantity',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          GridColumn(
+            columnName: 'retailPrice',
+            label: Container(
+              padding: const EdgeInsets.all(8),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Retail Price',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          GridColumn(
+            columnName: 'supplyPrice',
+            label: Container(
+              padding: const EdgeInsets.all(8),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Supply Price',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          GridColumn(
+            columnName: 'status',
+            label: Container(
+              padding: const EdgeInsets.all(8),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Status',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          GridColumn(
+            columnName: 'actions',
+            label: Container(
+              padding: const EdgeInsets.all(8),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Actions',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+}
+
+class VariantDataSource extends DataGridSource {
+  final List<Variant> _variants;
+  final ImportSalesWidgetState _state;
+  List<DataGridRow> _dataGridRows = [];
+
+  VariantDataSource(this._variants, this._state) {
+    updateDataSource();
+  }
+
+  void updateDataSource() {
+    _dataGridRows = _variants.map<DataGridRow>((variant) {
+      return DataGridRow(cells: [
+        DataGridCell<String>(
+          columnName: 'itemName',
+          value: variant.itemNm ?? variant.name,
+        ),
+        DataGridCell<String>(
+          columnName: 'hsCode',
+          value: variant.hsCd?.toString() ?? '',
+        ),
+        DataGridCell<String>(
+          columnName: 'quantity',
+          value: '${variant.stock!.currentStock} ${variant.qtyUnitCd}',
+        ),
+        DataGridCell<double>(
+          columnName: 'retailPrice',
+          value: variant.retailPrice ?? 0.0,
+        ),
+        DataGridCell<double>(
+          columnName: 'supplyPrice',
+          value: variant.supplyPrice ?? 0.0,
+        ),
+        DataGridCell<Widget>(
+          columnName: 'status',
+          value: _buildStatusWidget(variant),
+        ),
+        DataGridCell<Widget>(
+          columnName: 'actions',
+          value: _buildActionsWidget(variant),
+        ),
+      ]);
+    }).toList();
+    notifyListeners();
+  }
+
+  Widget _buildStatusWidget(Variant variant) {
+    final isWaitingApproval = variant.imptItemSttsCd == "2";
+    if (isWaitingApproval) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade100,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: const Text(
+          'Waiting Approval',
+          style: TextStyle(
+            color: Colors.orange,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }
+    return const Text('Processed');
+  }
+
+  Widget _buildActionsWidget(Variant variant) {
+    final isWaitingApproval = variant.imptItemSttsCd == "2";
+    if (!isWaitingApproval) {
+      return const Text('-');
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+          onPressed:
+              _state._isLoading ? null : () => _state._handleApproval(variant),
+          tooltip: 'Approve',
+          constraints: const BoxConstraints(),
+          padding: const EdgeInsets.all(8),
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          icon: const Icon(Icons.cancel_outlined, color: Colors.red),
+          onPressed:
+              _state._isLoading ? null : () => _state._handleRejection(variant),
+          tooltip: 'Reject',
+          constraints: const BoxConstraints(),
+          padding: const EdgeInsets.all(8),
+        ),
+      ],
+    );
+  }
+
+  Variant? getVariantAt(int index) {
+    if (index >= 0 && index < _variants.length) {
+      return _variants[index];
+    }
+    return null;
+  }
+
+  @override
+  List<DataGridRow> get rows => _dataGridRows;
+
+  @override
+  DataGridRowAdapter? buildRow(DataGridRow row) {
+    return DataGridRowAdapter(
+      cells: row.getCells().map<Widget>((dataGridCell) {
+        if (dataGridCell.value is Widget) {
+          return Container(
+            padding: const EdgeInsets.all(8),
+            alignment: Alignment.centerLeft,
+            child: dataGridCell.value as Widget,
+          );
+        }
+        return Container(
+          padding: const EdgeInsets.all(8),
+          alignment: Alignment.centerLeft,
+          child: Text(
+            dataGridCell.value.toString(),
+            overflow: TextOverflow.ellipsis,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  @override
+  bool shouldRecalculateColumnWidths() => true;
 }
