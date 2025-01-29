@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/DataView.dart';
+import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';

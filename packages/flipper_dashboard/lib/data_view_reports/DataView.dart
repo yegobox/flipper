@@ -1,10 +1,10 @@
 import 'package:flipper_dashboard/DateCoreWidget.dart';
-import 'package:flipper_dashboard/DynamicDataSource.dart';
-import 'package:flipper_dashboard/HeaderTransactionItem.dart';
+import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
+import 'package:flipper_dashboard/data_view_reports/HeaderTransactionItem.dart';
 import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/RowsPerPageInput.dart';
-import 'package:flipper_dashboard/TransactionDataSource.dart';
-import 'package:flipper_dashboard/TransactionItemDataSource.dart';
+import 'package:flipper_dashboard/data_view_reports/TransactionDataSource.dart';
+import 'package:flipper_dashboard/data_view_reports/TransactionItemDataSource.dart';
 
 import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
@@ -20,7 +20,7 @@ import 'package:stacked/stacked.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
-import 'package:flipper_dashboard/StockRecount.dart';
+import 'package:flipper_dashboard/data_view_reports/StockRecount.dart';
 
 class DataView extends StatefulHookConsumerWidget {
   const DataView({
@@ -370,7 +370,7 @@ class DataViewState extends ConsumerState<DataView>
     return widget.transactionItems!.fold<double>(
       0.0,
       (sum, item) =>
-          sum + ((item.qty * item.price) - (item.qty * item.splyAmt!)),
+          sum + ((item.qty * item.price) - (item.qty * item.price)),
     );
   }
 
@@ -381,7 +381,7 @@ class DataViewState extends ConsumerState<DataView>
       0.0,
       (sum, item) =>
           sum +
-          (((item.qty * item.price) - (item.qty * item.splyAmt!)) * 18 / 118),
+          (((item.qty * item.price) - (item.qty * item.price)) * 18 / 118),
     );
     return grossProfit - taxAmount;
   }

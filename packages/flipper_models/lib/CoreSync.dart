@@ -273,6 +273,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         useYn: variation.useYn,
         regrId: variation.regrId,
         regrNm: variation.regrNm,
+
         modrId: variation.modrId,
         modrNm: variation.modrNm,
         branchId: ProxyService.box.getBranchId(),

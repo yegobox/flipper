@@ -250,6 +250,7 @@ mixin TransactionMixin {
         transaction: pendingTransaction,
         lastTouched: DateTime.now(),
         discount: 0.0,
+        
         compositePrice: partOfComposite ? compositePrice ?? 0.0 : 0.0,
         quantity: computedQty,
         currentStock: currentStock,
