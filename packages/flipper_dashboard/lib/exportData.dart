@@ -317,7 +317,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       try {
         if (value is num) {
           cell.setValue(value);
-          cell.numberFormat = config.currencyFormat ?? r'#,##0.00';
+          cell.numberFormat = config.currencyFormat;
         } else {
           cell.setText(value.toString());
         }

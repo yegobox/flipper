@@ -2973,8 +2973,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           startDate == endDate ? endDate.add(Duration(days: 1)) : endDate;
       conditions.add(
         brick.Where('lastTouched').isBetween(
-          startDate.toUtc().toString().substring(0, 10),
-          endRange.toUtc().toString().substring(0, 10),
+          startDate.toIso8601String(),
+          endRange.toUtc().toIso8601String(),
         ),
       );
     }
@@ -3784,67 +3784,86 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<void> savePaymentType(
-      {TransactionPaymentRecord? paymentRecord,
-      String? transactionId,
-      double amount = 0.0,
-      String? paymentMethod,
-      required bool singlePaymentOnly}) async {
-    /// check if there is TransactionPaymentRecord with amount 0 delete it as we might not need it
-    /// by default we add payment method with 0.0 amount if this method was not updated with real money they we need to delete it to avoid confusion.
+  FutureOr<void> savePaymentType({
+    TransactionPaymentRecord? paymentRecord,
+    String? transactionId,
+    double amount = 0.0,
+    String? paymentMethod,
+    required bool singlePaymentOnly,
+  }) async {
+    // Input validation
+    if (transactionId == null) {
+      throw ArgumentError('transactionId cannot be null');
+    }
 
-    final transactionPaymentRecordWithAmount0 =
-        (await repository.get<TransactionPaymentRecord>(
-                policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-                query: brick.Query(where: [
-                  brick.Where('transactionId').isExactly(transactionId),
-                  brick.Where('amount').isExactly(0.0),
-                ])))
-            .firstOrNull;
+    if (paymentMethod == null && paymentRecord == null) {
+      throw ArgumentError(
+          'Either paymentMethod or paymentRecord must be provided');
+    }
+
+    // 1. Delete records with amount 0
+    final transactionPaymentRecordWithAmount0 = await repository
+        .get<TransactionPaymentRecord>(
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+          query: brick.Query(where: [
+            brick.Where('transactionId').isExactly(transactionId),
+            brick.Where('amount').isExactly(0.0),
+          ]),
+        )
+        .then((records) => records.firstOrNull);
+
     if (transactionPaymentRecordWithAmount0 != null) {
       await repository.delete<TransactionPaymentRecord>(
-          transactionPaymentRecordWithAmount0,
-          query: brick.Query(
-            action: QueryAction.delete,
-          ));
+        transactionPaymentRecordWithAmount0,
+        query: brick.Query(action: QueryAction.delete),
+      );
     }
 
-    /// if is single payment delete any other payments, this is to handle case where a user switched from one payment method to another
-    /// but he ended up one payment method choosen, in this case we delete other and save the one he is at.
-    /// if multiple payment is choosen this is not applied.
+    // 2. Handle single payment mode
     if (singlePaymentOnly) {
-      final transactionPaymentRecords =
-          (await repository.get<TransactionPaymentRecord>(
-              query: brick.Query(where: [
-        brick.Where('transactionId').isExactly(transactionId),
-      ])));
+      final existingRecords = await repository.get<TransactionPaymentRecord>(
+        query: brick.Query(where: [
+          brick.Where('transactionId').isExactly(transactionId),
+        ]),
+      );
 
-      for (TransactionPaymentRecord record in transactionPaymentRecords) {
-        await repository.delete<TransactionPaymentRecord>(record,
-            query: brick.Query(
-              action: QueryAction.delete,
-            ));
-      }
+      await Future.wait(
+        existingRecords
+            .map((record) => repository.delete<TransactionPaymentRecord>(
+                  record,
+                  query: brick.Query(action: QueryAction.delete),
+                )),
+      );
     }
 
-    final transactionPaymentRecord =
-        (await repository.get<TransactionPaymentRecord>(
-                query: brick.Query(where: [
-      brick.Where('transactionId').isExactly(transactionId),
-      brick.Where('paymentMethod').isExactly(paymentMethod),
-    ])))
-            .firstOrNull;
+    // 3. Handle payment record update or creation
+    if (paymentRecord != null) {
+      await repository.upsert<TransactionPaymentRecord>(paymentRecord);
+      return;
+    }
 
-    if (transactionPaymentRecord != null) {
-      transactionPaymentRecord.paymentMethod = paymentMethod;
-      transactionPaymentRecord.amount = amount;
+    // 4. Handle payment method update or creation
+    final existingPaymentRecord = await repository
+        .get<TransactionPaymentRecord>(
+          query: brick.Query(where: [
+            brick.Where('transactionId').isExactly(transactionId),
+            brick.Where('paymentMethod').isExactly(paymentMethod),
+          ]),
+        )
+        .then((records) => records.firstOrNull);
+
+    if (existingPaymentRecord != null) {
+      existingPaymentRecord
+        ..paymentMethod = paymentMethod
+        ..amount = amount;
+
       await repository.upsert<TransactionPaymentRecord>(
-          transactionPaymentRecord,
-          query: brick.Query(
-            action: QueryAction.insert,
-          ));
-    } else if (transactionId != 0) {
-      final transactionPaymentRecord = TransactionPaymentRecord(
+        existingPaymentRecord,
+        query: brick.Query(
+            action: QueryAction.update), // Changed from insert to update
+      );
+    } else {
+      final newPaymentRecord = TransactionPaymentRecord(
         createdAt: DateTime.now(),
         amount: amount,
         transactionId: transactionId,
@@ -3852,13 +3871,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       );
 
       await repository.upsert<TransactionPaymentRecord>(
-          transactionPaymentRecord,
-          query: brick.Query(
-            action: QueryAction.insert,
-          ));
-    }
-    if (paymentRecord != null) {
-      await repository.upsert<TransactionPaymentRecord>(paymentRecord);
+        newPaymentRecord,
+        query: brick.Query(action: QueryAction.insert),
+      );
     }
   }
 
