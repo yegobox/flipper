@@ -18,7 +18,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   int? branchId;
 
   String? status;
-  
+
   String? transactionType;
   @Supabase(defaultValue: "0.0")
   double? subTotal;
@@ -72,7 +72,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   ITransaction({
     this.ticketName,
     String? id,
-    this.categoryId,
+    String? categoryId,
     this.transactionNumber,
     this.reference,
     required this.branchId,
@@ -85,11 +85,11 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     DateTime? createdAt,
     this.receiptType,
     required this.updatedAt,
-    this.customerId,
+    String? customerId,
     this.customerType,
     this.note,
     this.lastTouched,
-    this.supplierId,
+    int? supplierId,
     this.ebmSynced,
     required this.isIncome,
     required this.isExpense,
@@ -103,5 +103,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.totalReceiptNumber,
     this.invoiceNumber,
   })  : id = id ?? const Uuid().v4(),
+        customerId =
+            (customerId != null && customerId.isEmpty) ? null : customerId,
+        categoryId =
+            (categoryId != null && categoryId.isEmpty) ? null : categoryId,
         createdAt = createdAt ?? DateTime.now();
 }
