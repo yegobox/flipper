@@ -3919,7 +3919,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<void> addBusiness(
+  Future<void> addBusiness(
       {required int id,
       required int userId,
       required int serverId,
@@ -3962,50 +3962,64 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       int? businessTypeId,
       DateTime? lastTouched,
       DateTime? deletedAt,
-      required String encryptionKey}) {
-    repository.upsert<Business>(Business(
-      serverId: serverId,
-      name: name,
-      currency: currency,
-      categoryId: categoryId,
-      latitude: latitude,
-      longitude: longitude,
-      timeZone: timeZone,
-      country: country,
-      businessUrl: businessUrl,
-      hexColor: hexColor,
-      imageUrl: imageUrl,
-      type: type,
-      active: active,
-      chatUid: chatUid,
-      metadata: metadata,
-      role: role,
-      userId: userId,
-      lastSeen: lastSeen,
-      firstName: firstName,
-      lastName: lastName,
-      deviceToken: deviceToken,
-      backUpEnabled: backUpEnabled,
-      subscriptionPlan: subscriptionPlan,
-      nextBillingDate: nextBillingDate,
-      previousBillingDate: previousBillingDate,
-      isLastSubscriptionPaymentSucceeded: isLastSubscriptionPaymentSucceeded,
-      backupFileId: backupFileId,
-      email: email,
-      lastDbBackup: lastDbBackup,
-      fullName: fullName,
-      tinNumber: tinNumber,
-      bhfId: bhfId,
-      dvcSrlNo: dvcSrlNo,
-      adrs: adrs,
-      taxEnabled: taxEnabled,
-      taxServerUrl: taxServerUrl,
-      isDefault: isDefault,
-      businessTypeId: businessTypeId,
-      lastTouched: lastTouched,
-      deletedAt: deletedAt,
-      encryptionKey: encryptionKey,
-    ));
+      required String encryptionKey}) async {
+    Business? exist =
+        await ProxyService.strategy.getBusiness(businessId: serverId);
+
+    if (exist != null) {
+      exist.tinNumber = tinNumber;
+
+      repository.upsert<Business>(exist);
+
+      Business? dd =
+          await ProxyService.strategy.getBusiness(businessId: serverId);
+
+      talker.warning("tin number:${dd?.tinNumber ?? ""}");
+    } else {
+      repository.upsert<Business>(Business(
+        serverId: serverId,
+        name: name,
+        currency: currency,
+        categoryId: categoryId,
+        latitude: latitude,
+        longitude: longitude,
+        timeZone: timeZone,
+        country: country,
+        businessUrl: businessUrl,
+        hexColor: hexColor,
+        imageUrl: imageUrl,
+        type: type,
+        active: active,
+        chatUid: chatUid,
+        tinNumber: tinNumber,
+        metadata: metadata,
+        role: role,
+        userId: userId,
+        lastSeen: lastSeen,
+        firstName: firstName,
+        lastName: lastName,
+        deviceToken: deviceToken,
+        backUpEnabled: backUpEnabled,
+        subscriptionPlan: subscriptionPlan,
+        nextBillingDate: nextBillingDate,
+        previousBillingDate: previousBillingDate,
+        isLastSubscriptionPaymentSucceeded: isLastSubscriptionPaymentSucceeded,
+        backupFileId: backupFileId,
+        email: email,
+        lastDbBackup: lastDbBackup,
+        fullName: fullName,
+        bhfId: bhfId,
+        dvcSrlNo: dvcSrlNo,
+        adrs: adrs,
+        taxEnabled: taxEnabled,
+        taxServerUrl: taxServerUrl,
+        isDefault: isDefault,
+        businessTypeId: businessTypeId,
+        lastTouched: lastTouched,
+        deletedAt: deletedAt,
+        encryptionKey: encryptionKey,
+      ));
+    }
   }
 
   @override
@@ -4184,13 +4198,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         brick.Query(where: [brick.Where('serverId').isExactly(businessId)]);
     final business = await repository.get<Business>(query: query);
     if (business.firstOrNull != null) {
-      final businessUpdate = business.first.copyWith(
-        serverId: business.first.serverId,
-        name: name,
-        active: active,
-        isDefault: isDefault,
-        backupFileId: backupFileId,
-      );
+      Business businessUpdate = business.first;
+      businessUpdate.isDefault = isDefault;
+      businessUpdate.active = active;
+      businessUpdate.backupFileId = backupFileId;
+
       repository.upsert<Business>(businessUpdate);
     }
   }
@@ -4205,12 +4217,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         brick.Query(where: [brick.Where('serverId').isExactly(branchId)]);
     final branch = await repository.get<Branch>(query: query);
     if (branch.firstOrNull != null) {
-      final branchUpdate = branch.first.copyWith(
-        serverId: branch.first.serverId,
-        name: name,
-        active: active,
-        isDefault: isDefault,
-      );
+      Branch branchUpdate = branch.first;
+      branchUpdate.active = active;
+      branchUpdate.isDefault = isDefault;
+
       repository.upsert<Branch>(branchUpdate);
     }
   }

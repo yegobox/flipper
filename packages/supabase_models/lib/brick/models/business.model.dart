@@ -162,6 +162,7 @@ class Business extends OfflineFirstWithSupabaseModel {
       longitude: longitude ?? this.longitude,
       userId: userId ?? this.userId,
       timeZone: timeZone ?? this.timeZone,
+      tinNumber: tinNumber,
       country: country ?? this.country,
       businessUrl: businessUrl ?? this.businessUrl,
       hexColor: hexColor ?? this.hexColor,
