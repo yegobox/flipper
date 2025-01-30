@@ -472,7 +472,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           query: brick.Query(where: [
         brick.Where('businessId').isExactly(businessId),
         brick.Or('active').isExactly(active),
-        brick.Or('active').isExactly(false)
       ]));
     } catch (e, s) {
       talker.error(e);
