@@ -46,8 +46,8 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:cbl/cbl.dart'
-    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+// import 'package:cbl/cbl.dart'
+//     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
@@ -145,20 +145,20 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  AsyncCollection? accessCollection;
-
-  @override
-  AsyncCollection? branchCollection;
-
-  @override
-  AsyncCollection? businessCollection;
+  // @override
+  // AsyncCollection? accessCollection;
 
   // @override
-  // DatabaseProvider? capella;
+  // AsyncCollection? branchCollection;
 
-  @override
-  AsyncCollection? permissionCollection;
+  // @override
+  // AsyncCollection? businessCollection;
+
+  // // @override
+  // // DatabaseProvider? capella;
+
+  // @override
+  // AsyncCollection? permissionCollection;
 
   @override
   ReceivePort? receivePort;

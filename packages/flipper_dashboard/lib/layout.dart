@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/ProductListWidget.dart';
 import 'package:flipper_dashboard/SearchFieldWidget.dart';
 import 'package:flipper_dashboard/TenantWidget.dart';
 import 'package:flipper_dashboard/TransactionWidget.dart';
+import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
