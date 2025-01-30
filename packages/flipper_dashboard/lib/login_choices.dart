@@ -144,7 +144,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
         child: Container(
           padding: const EdgeInsets.all(20.0),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.grey[100],
+            color: isSelected
+                ? Colors.blue.withValues(alpha: .1)
+                : Colors.grey[100],
             borderRadius: BorderRadius.circular(12.0),
             border: Border.all(
               color: isSelected ? Colors.blue : Colors.transparent,
@@ -153,7 +155,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                        color: Colors.blue.withOpacity(0.3), blurRadius: 8.0)
+                        color: Colors.blue.withValues(alpha: 0.3),
+                        blurRadius: 8.0)
                   ]
                 : null,
           ),
