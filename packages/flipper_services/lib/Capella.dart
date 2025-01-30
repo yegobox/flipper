@@ -3,7 +3,7 @@ import 'dart:isolate';
 
 import 'dart:typed_data';
 import 'package:flipper_models/RealmInterface.dart';
-import 'package:flipper_models/power_sync/schema.dart';
+// import 'package:flipper_models/power_sync/schema.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 // import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -20,8 +20,8 @@ import 'package:flipper_services/constants.dart';
 // import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:http/http.dart' as http;
-import 'package:cbl/cbl.dart'
-    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+// import 'package:cbl/cbl.dart'
+//     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'DatabaseProvider.dart';
@@ -32,7 +32,7 @@ import 'package:flipper_services/replicator_provider.dart'
 
 class Capella with Booting implements RealmInterface {
   @override
-  DatabaseProvider? capella;
+  // DatabaseProvider? capella;
   bool offlineLogin = false;
 
   @override
@@ -42,33 +42,33 @@ class Capella with Booting implements RealmInterface {
   SendPort? sendPort;
 
   /// define models
-  @override
-  AsyncCollection? branchCollection;
-  @override
-  AsyncCollection? businessCollection;
-  @override
-  AsyncCollection? accessCollection;
-  @override
-  AsyncCollection? permissionCollection;
+  // @override
+  // AsyncCollection? branchCollection;
+  // @override
+  // AsyncCollection? businessCollection;
+  // @override
+  // AsyncCollection? accessCollection;
+  // @override
+  // AsyncCollection? permissionCollection;
   late String apihub;
   late String commApi;
 
   // TODO: implement countersCollection
-  Future<AsyncCollection> getCountersCollection() async {
-    final database = capella!.database!;
-    final collection = await database.collection(countersTable, scope);
+  // Future<AsyncCollection> getCountersCollection() async {
+  //   final database = capella!.database!;
+  //   final collection = await database.collection(countersTable, scope);
 
-    return collection ?? await database.createCollection(countersTable, scope);
-  }
+  //   return collection ?? await database.createCollection(countersTable, scope);
+  // }
 
-  // get configurations collection
-  Future<AsyncCollection> getConfigurationsCollection() async {
-    final database = capella!.database!;
-    final collection = await database.collection(configurationsTable, scope);
+  // // get configurations collection
+  // Future<AsyncCollection> getConfigurationsCollection() async {
+  //   final database = capella!.database!;
+  //   final collection = await database.collection(configurationsTable, scope);
 
-    return collection ??
-        await database.createCollection(configurationsTable, scope);
-  }
+  //   return collection ??
+  //       await database.createCollection(configurationsTable, scope);
+  // }
 
   void _setApiEndpoints() {
     if (foundation.kDebugMode) {
@@ -89,16 +89,16 @@ class Capella with Booting implements RealmInterface {
     /// end of creation of indexes
     // final config = ValueIndexConfiguration(['branchId', 'receiptType']);
     // await collection!.createIndex('branchIdReceiptType', config);
-    branchCollection =
-        await capella?.database!.createCollection(branchesTable, scope);
+    // branchCollection =
+    //     await capella?.database!.createCollection(branchesTable, scope);
 
-    businessCollection =
-        await capella?.database?.createCollection(businessesTable, scope);
+    // businessCollection =
+    //     await capella?.database?.createCollection(businessesTable, scope);
 
-    accessCollection =
-        await capella?.database!.createCollection(accessesTable, scope);
+    // accessCollection =
+    //     await capella?.database!.createCollection(accessesTable, scope);
 
-    await capella?.database!.createCollection(countersTable, scope);
+    // await capella?.database!.createCollection(countersTable, scope);
 
     // init replicator
   }

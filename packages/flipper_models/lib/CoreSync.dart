@@ -154,8 +154,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   AsyncCollection? businessCollection;
 
-  @override
-  DatabaseProvider? capella;
+  // @override
+  // DatabaseProvider? capella;
 
   @override
   AsyncCollection? permissionCollection;

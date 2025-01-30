@@ -39,11 +39,11 @@ abstract class DataMigratorToLocal {
 }
 
 abstract class RealmInterface {
-  DatabaseProvider? capella;
-  AsyncCollection? branchCollection;
-  AsyncCollection? businessCollection;
-  AsyncCollection? accessCollection;
-  AsyncCollection? permissionCollection;
+  // DatabaseProvider? capella;
+  // AsyncCollection? branchCollection;
+  // AsyncCollection? businessCollection;
+  // AsyncCollection? accessCollection;
+  // AsyncCollection? permissionCollection;
   Future<List<Product>> products({required int branchId});
   Future<void> startReplicator();
 
