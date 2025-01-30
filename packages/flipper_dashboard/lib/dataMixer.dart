@@ -4,7 +4,7 @@ import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';

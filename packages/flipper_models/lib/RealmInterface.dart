@@ -19,8 +19,8 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-import 'package:cbl/src/database/collection.dart'
-    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+// import 'package:cbl/src/database/collection.dart'
+//     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 enum ClearData { Business, Branch }
 

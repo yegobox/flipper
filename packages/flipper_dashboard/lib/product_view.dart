@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
+import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
@@ -52,13 +53,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   void _loadMoreVariants() {
-    ref
-        .read(
-            outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier)
-        .loadVariants(
-          scanMode: ref.read(scanningModeProvider),
-          searchString: ref.read(searchStringProvider),
-        );
+    ref.read(
+        outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier);
   }
 
   @override
@@ -84,12 +80,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   void _loadInitialProducts() {
-    ref
-        .read(productsProvider(ProxyService.box.getBranchId() ?? 0).notifier)
-        .loadProducts(
-          searchString: ref.read(searchStringProvider),
-          scanMode: ref.read(scanningModeProvider),
-        );
+    ref.read(productsProvider(ProxyService.box.getBranchId() ?? 0).notifier);
   }
 
   Widget _buildMainContent(BuildContext context, ProductViewModel model) {
