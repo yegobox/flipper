@@ -6,31 +6,7 @@ import 'package:flipper_services/database_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-//         curl --location --request PUT 'localhost:4985/flipper/' \
-// --header 'Content-Type: application/json' \
-// --header 'Authorization: Basic YWRtaW46dW13YW5hNzg5' \
-// --data-raw '{
-//     "bucket": "flipper",
-//     "name": "flipper",
-//     "guest": {
-//         "disabled": true
-//     },
-//     "import_docs": true,
-//     "num_index_replicas": 0,
-//     "enable_shared_bucket_access": true
-// }'
 
-// curl \
-//   --location \
-//   --request PUT \
-//   'http://127.0.0.1:4985/flipper/_config/' \
-//   --header 'Authorization: Basic YWRtaW46dW13YW5hNzg5' \
-//   --header 'Content-Type: application/json' \
-//   --data-raw '{
-//     "enable_shared_bucket_access": true,
-//     "import_docs": true
-//   }'
-// https://docs.couchbase.com/cloud/app-services/channels/channels.html
 final class CustomConflictResolver extends ConflictResolver {
   @override
   Document resolve(Conflict conflict) {

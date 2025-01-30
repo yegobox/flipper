@@ -27,7 +27,7 @@ dependencies:
   pubnub: ^4.3.1
   feather_icons: ^1.1.0-nullsafety.0
   flex_color_scheme: ^4.2.0
-  image_picker: ^0.8.7+5
+  # image_picker: ^0.8.7+5
   file_picker: ^8.0.7
   firebase_ui_auth: ^1.16.0
   azlistview: ^2.0.0
