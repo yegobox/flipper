@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/ProductListWidget.dart';
 import 'package:flipper_dashboard/SearchFieldWidget.dart';
 import 'package:flipper_dashboard/TenantWidget.dart';
@@ -177,11 +178,12 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
       case 1: // Inventory
         return Expanded(
           child: Center(
-            child: Text('Inventory Content'),
+            child: Ai(),
           ),
         );
       case 2: // Tickets
         return const TransactionWidget();
+
       default:
         return Expanded(
           child: Center(
@@ -213,7 +215,8 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
             buildSideMenu(),
             const SizedBox(width: 20),
             buildMainContent(isScanningMode),
-            buildProductSection(),
+            if (ref.read(selectedMenuItemProvider.notifier).state != 1)
+              buildProductSection(),
           ],
         ),
       ),

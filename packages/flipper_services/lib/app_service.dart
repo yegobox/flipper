@@ -147,7 +147,7 @@ class AppService with ListenableServiceMixin {
 
   Future<bool> isSocialLoggedin() async {
     if (ProxyService.box.getDefaultApp() == "2") {
-      int businessId = ProxyService.box.getBusinessId()!;
+      // int businessId = ProxyService.box.getBusinessId()!;
       // return await ProxyService.strategy
       //     .isTokenValid(businessId: businessId, tokenType: socialApp);
     }
