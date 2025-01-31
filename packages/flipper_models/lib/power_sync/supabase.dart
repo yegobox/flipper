@@ -66,6 +66,7 @@ Future<void> loadSupabase() async {
     injectfy.registerSingleton<OfflineFirstWithSupabaseRepository>(
         () => repository);
   } else {
+    print("IN PROD MODE");
     // Production initialization
     await Repository.initializeSupabaseAndConfigure(
       supabaseUrl: AppSecrets.superbaseurl,
