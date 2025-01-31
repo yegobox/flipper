@@ -1,7 +1,6 @@
 import 'package:flipper_dashboard/IncomingOrders.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/power_sync/schema.dart';
-import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flipper_services/constants.dart';
@@ -19,9 +18,8 @@ void main() {
   final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
   group('IncomingOrdersWidget Integration Tests', () {
     setUpAll(() async {
-      mock.setUp();
       await initializeDependenciesForTest();
-      await loadSupabase();
+      mock.setUp();
     });
     tearDownAll(() async {
       mock.tearDown;
