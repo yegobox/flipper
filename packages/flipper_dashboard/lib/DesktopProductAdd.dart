@@ -12,6 +12,8 @@ import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/TableVariants.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_dashboard/create/browsePhotos.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';

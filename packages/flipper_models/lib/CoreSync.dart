@@ -17,6 +17,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:flipper_models/helper_models.dart' as ext;
@@ -46,19 +47,23 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:cbl/cbl.dart'
-    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+import 'package:injectfy/injectfy.dart';
+
+// import 'package:cbl/cbl.dart'
+//     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
 
 class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   final String apihub = AppSecrets.apihubProd;
-  final repository = Repository();
+  final OfflineFirstWithSupabaseRepository repository =
+      Injectfy.get<OfflineFirstWithSupabaseRepository>();
   bool offlineLogin = false;
 
   bool isInIsolate() {
@@ -145,20 +150,20 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  @override
-  AsyncCollection? accessCollection;
+  // @override
+  // AsyncCollection? accessCollection;
 
-  @override
-  AsyncCollection? branchCollection;
+  // @override
+  // AsyncCollection? branchCollection;
 
-  @override
-  AsyncCollection? businessCollection;
+  // @override
+  // AsyncCollection? businessCollection;
 
-  @override
-  DatabaseProvider? capella;
+  // // @override
+  // // DatabaseProvider? capella;
 
-  @override
-  AsyncCollection? permissionCollection;
+  // @override
+  // AsyncCollection? permissionCollection;
 
   @override
   ReceivePort? receivePort;
@@ -236,6 +241,20 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     if (item != null) {
       // Use the provided `TransactionItem`
       transactionItem = item;
+      transactionItem.qty = quantity; // Update quantity
+
+      // Check if retailPrice is not null before performing calculations
+      if (variation?.retailPrice != null) {
+        transactionItem.taxblAmt =
+            variation!.retailPrice! * quantity; // Recalculate taxblAmt
+        transactionItem.totAmt =
+            variation.retailPrice! * quantity; // Recalculate totAmt
+        transactionItem.remainingStock = currentStock - quantity;
+      } else {
+        // Handle the case where retailPrice is null
+        throw ArgumentError(
+            'Retail price is required for transaction item calculations');
+      }
     } else {
       // Create a new `TransactionItem` from the `variation` object
       final double price = variation!.retailPrice!;
@@ -472,7 +491,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           query: brick.Query(where: [
         brick.Where('businessId').isExactly(businessId),
         brick.Or('active').isExactly(active),
-        brick.Or('active').isExactly(false)
       ]));
     } catch (e, s) {
       talker.error(e);
@@ -4498,7 +4516,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   Future<RealmInterface> configureLocal(
       {required bool useInMemory, required storage.LocalStorage box}) async {
-    return this as RealmInterface;
+    try {
+      await loadSupabase();
+      return this;
+    } catch (e) {
+      return this;
+    }
   }
 
   @override
