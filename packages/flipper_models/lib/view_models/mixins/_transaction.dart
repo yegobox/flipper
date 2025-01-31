@@ -188,7 +188,6 @@ mixin TransactionMixin {
       required double currentStock,
       required bool partOfComposite}) async {
     try {
-     
       TransactionItem? existTransactionItem = await ProxyService.strategy
           .getTransactionItemByVariantId(
               variantId: variation.id, transactionId: pendingTransaction.id);
@@ -250,7 +249,6 @@ mixin TransactionMixin {
         transaction: pendingTransaction,
         lastTouched: DateTime.now(),
         discount: 0.0,
-        
         compositePrice: partOfComposite ? compositePrice ?? 0.0 : 0.0,
         quantity: computedQty,
         currentStock: currentStock,
@@ -283,7 +281,7 @@ mixin TransactionMixin {
       doneWithTransaction: false,
       qty: quantity,
       taxblAmt: variation.retailPrice! * quantity,
-      price: amountTotal / quantity,
+      price: variation.retailPrice!,
       totAmt: variation.retailPrice! * quantity,
       prc: item.prc + variation.retailPrice! * quantity,
       splyAmt: variation.supplyPrice,

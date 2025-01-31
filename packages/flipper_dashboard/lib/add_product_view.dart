@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flipper_dashboard/create/retail_price.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/product_form.dart';
+import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';

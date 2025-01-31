@@ -61,6 +61,11 @@ import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_services/DeviceIdService.dart' as dev;
+import 'package:mockito/mockito.dart';
+
+class MockFirebaseCrashlytics extends Mock implements FirebaseCrashlytics {}
+
+class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
 
 @module
 abstract class ServicesModule {
@@ -69,7 +74,8 @@ abstract class ServicesModule {
   @Named('coresync')
   Future<RealmInterface> provideSyncInterface(LocalStorage box) async {
     return await CoreSync().configureLocal(
-        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
+        useInMemory:
+            bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false),
         box: box);
   }
 
@@ -113,7 +119,28 @@ abstract class ServicesModule {
   }
 
   @singleton
-  FirebaseCrashlytics get crashlytics => FirebaseCrashlytics.instance;
+  FirebaseFirestore get firestore {
+    const testEnv = String.fromEnvironment('FLUTTER_TEST_ENV');
+    if (testEnv == 'true') {
+      // Return a mock instance during tests
+      return MockFirebaseFirestore();
+    } else {
+      // Return the real instance in production
+      return FirebaseFirestore.instance;
+    }
+  }
+
+  @singleton
+  FirebaseCrashlytics get crashlytics {
+    const testEnv = String.fromEnvironment('FLUTTER_TEST_ENV');
+    if (testEnv == 'true') {
+      // Return a mock instance during tests
+      return MockFirebaseCrashlytics();
+    } else {
+      // Return the real instance in production
+      return FirebaseCrashlytics.instance;
+    }
+  }
 
   @lazySingleton
   SupabaseInterface get supa {
@@ -132,9 +159,6 @@ abstract class ServicesModule {
     }
     return crash;
   }
-
-  @singleton
-  FirebaseFirestore get firestore => FirebaseFirestore.instance;
 
   @preResolve
   @LazySingleton()

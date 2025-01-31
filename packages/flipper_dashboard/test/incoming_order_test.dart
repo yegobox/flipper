@@ -17,11 +17,6 @@ void main() {
   group('IncomingOrdersWidget Integration Tests', () {
     setUpAll(() async {
       await initializeDependenciesForTest();
-
-      // init db
-
-      // CreateMockdata()
-      //     .createAndSaveMockStockRequests(realm: ProxyService.strategy.realm!);
     });
     tearDownAll(() async {
       ProxyService.strategy.deleteAll<Product>(tableName: productsTable);

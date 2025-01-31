@@ -6,8 +6,8 @@ import 'package:flipper_services/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:flipper_services/proxy.dart';
-import 'package:cbl/cbl.dart'
-    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+// import 'package:cbl/cbl.dart'
+//     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:receipt/print.dart';
 

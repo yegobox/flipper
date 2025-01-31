@@ -5,3 +5,4 @@ environment:
 
 dev_dependencies:
   melos: ^6.2.0
+  patrol: ^3.14.0

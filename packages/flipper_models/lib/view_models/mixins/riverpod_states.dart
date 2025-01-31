@@ -1,5 +1,7 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
+import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -68,18 +70,18 @@ class CustomerSearchStringNotifier extends StateNotifier<String> {
   }
 }
 
-final searchStringProvider =
-    StateNotifierProvider.autoDispose<SearchStringNotifier, String>((ref) {
-  return SearchStringNotifier();
-});
+// final searchStringProvider =
+//     StateNotifierProvider.autoDispose<SearchStringNotifier, String>((ref) {
+//   return SearchStringNotifier();
+// });
 
-class SearchStringNotifier extends StateNotifier<String> {
-  SearchStringNotifier() : super("");
+// class SearchStringNotifier extends StateNotifier<String> {
+//   SearchStringNotifier() : super("");
 
-  void emitString({required String value}) {
-    state = value;
-  }
-}
+//   void emitString({required String value}) {
+//     state = value;
+//   }
+// }
 
 enum SellingMode {
   forOrdering,
@@ -296,91 +298,6 @@ class TransactionItemsNotifier
   }
 }
 
-final outerVariantsProvider = StateNotifierProvider.autoDispose
-    .family<OuterVariantsNotifier, AsyncValue<List<Variant>>, int>(
-  (ref, branchId) {
-    final productsNotifier = OuterVariantsNotifier(branchId);
-    final scanMode = ref.watch(scanningModeProvider);
-    final searchString = ref.watch(searchStringProvider);
-    productsNotifier.loadVariants(
-        scanMode: scanMode,
-        searchString: searchString,
-        searchOnly: searchString.isNotEmpty);
-    return productsNotifier;
-  },
-);
-
-///The code will now first try to filter the variants based on the search string in the name field.
-/// If no match is found in name, it will then search in the productName field.
-/// This ensures that the filter prioritizes searching by name and only searches by productName if no matching name is found.
-/// With this modification, the OuterVariantsNotifier will filter variants as you intended, giving priority to filtering by name first and then falling back to productName if necessary.
-class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
-    with TransactionMixin {
-  int branchId;
-  int _currentPage = 0;
-  final int _itemsPerPage = ProxyService.box.itemPerPage()!;
-  bool _hasMore = true;
-  bool _isLoading = false;
-
-  OuterVariantsNotifier(this.branchId) : super(AsyncLoading());
-
-  Future<void> loadVariants({
-    required bool scanMode,
-    required String searchString,
-    bool searchOnly = false,
-  }) async {
-    if (_isLoading || (!_hasMore && !searchOnly)) return;
-
-    _isLoading = true;
-    try {
-      List<Variant> variants;
-
-      if (searchOnly) {
-        // Fetch all variants for search purposes
-        variants = await ProxyService.strategy.variants(branchId: branchId);
-      } else {
-        // Fetch paginated variants
-        variants = await ProxyService.strategy.variants(
-          branchId: branchId,
-          page: _currentPage,
-          itemsPerPage: _itemsPerPage,
-        );
-      }
-
-      // Apply search if searchString is not empty
-      final filteredVariants = searchString.isNotEmpty
-          ? variants
-              // match the variant name
-              .where((variant) =>
-                  variant.name
-                      .toLowerCase()
-                      .contains(searchString.toLowerCase()) ||
-                  // match the productName
-                  variant.productName!
-                      .toLowerCase()
-                      .contains(searchString.toLowerCase()) ||
-                  (variant.bcd != null &&
-                      variant.bcd!.contains(searchString.toLowerCase())))
-              .toList()
-          : variants;
-
-      // Update pagination info if not searching
-      if (!searchOnly) {
-        _currentPage++;
-        _hasMore = filteredVariants.length == _itemsPerPage;
-      }
-
-      _isLoading = false;
-
-      final currentState = state.value ?? [];
-      state = AsyncValue.data([...currentState, ...filteredVariants]);
-    } catch (error) {
-      state = AsyncValue.error(error, StackTrace.current);
-      _isLoading = false;
-    }
-  }
-}
-
 final matchedProductProvider = Provider.autoDispose<Product?>((ref) {
   final productsState =
       ref.watch(productsProvider(ProxyService.box.getBranchId()!));
@@ -394,116 +311,6 @@ final matchedProductProvider = Provider.autoDispose<Product?>((ref) {
     },
     orElse: () => null,
   );
-});
-
-final productsProvider = StateNotifierProvider.autoDispose
-    .family<ProductsNotifier, AsyncValue<List<Product>>, int>((ref, branchId) {
-  final productsNotifier = ProductsNotifier(branchId, ref);
-  final searchString = ref.watch(searchStringProvider);
-  final scanMode = ref.watch(scanningModeProvider);
-  if (!scanMode) {
-    productsNotifier.loadProducts(
-        searchString: searchString, scanMode: scanMode);
-  }
-  return productsNotifier;
-});
-
-class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
-    with TransactionMixin {
-  final int branchId;
-  final StateNotifierProviderRef<ProductsNotifier, AsyncValue<List<Product>>>
-      ref;
-
-  ProductsNotifier(this.branchId, this.ref) : super(AsyncLoading());
-
-  void expanded(Product? product) {
-    if (product == null) {
-      return;
-    }
-
-    state.maybeWhen(
-      data: (currentData) {
-        final updatedProducts = currentData.map((p) {
-          // Update the searchMatch property to true for the expanded product
-          if (p.id == product.id && !p.searchMatch!) {
-            p.searchMatch = true;
-          } else {
-            // Set searchMatch to false for other products
-            p.searchMatch = false;
-          }
-          return p;
-        }).toList();
-
-        // Check if the products list actually changed before updating the state
-        if (!listEquals(currentData, updatedProducts)) {
-          state = AsyncData(updatedProducts);
-        }
-      },
-      orElse: () {},
-    );
-  }
-
-  Future<void> loadProducts({
-    required String searchString,
-    required bool scanMode,
-  }) async {
-    try {
-      List<Product> products =
-          await ProxyService.strategy.productsFuture(branchId: branchId);
-
-      // Fetch additional products beyond the initial 20 items
-      if (searchString.isNotEmpty) {
-        Product? additionalProducts = await ProxyService.strategy.getProduct(
-            name: searchString,
-            branchId: ProxyService.box.getBranchId()!,
-            businessId: ProxyService.box.getBusinessId()!);
-
-        // Filter out null products and cast non-null products to Product type
-        products.addAll([additionalProducts!]);
-      }
-
-      // Apply search filter to the merged list
-      List<Product> matchingProducts = products
-          .where((product) =>
-              product.name.toLowerCase().contains(searchString.toLowerCase()))
-          .toList();
-
-      state = AsyncData(matchingProducts);
-
-      if (matchingProducts.isNotEmpty) {
-        // If there's at least one matching product, expand the first one
-        Product matchingProduct = matchingProducts.first;
-        expanded(matchingProduct);
-      } else {
-        state = AsyncData(products);
-      }
-    } catch (error) {
-      if (mounted) state = AsyncError(error, StackTrace.current);
-    }
-  }
-
-  void addProducts({required List<Product> products}) {
-    final currentData = state.value ?? [];
-    final List<Product> updatedProducts = [...currentData, ...products];
-    state = AsyncData(updatedProducts);
-  }
-
-  void deleteProduct({required int productId}) {
-    state.maybeWhen(
-      data: (currentData) {
-        final updatedProducts =
-            currentData.where((product) => product.id != productId).toList();
-        state = AsyncData(updatedProducts);
-      },
-      orElse: () {},
-    );
-  }
-}
-
-// scanning
-final scanningModeProvider =
-    StateNotifierProvider.autoDispose<ScanningModeNotifier, bool>((ref) {
-  return ScanningModeNotifier();
 });
 
 class ScanningModeNotifier extends StateNotifier<bool> {

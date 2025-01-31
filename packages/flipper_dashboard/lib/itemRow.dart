@@ -257,6 +257,7 @@ class _RowItemState extends ConsumerState<RowItem>
     } catch (e, s) {
       talker.warning("Error while clicking: $e");
       talker.error(s);
+
       rethrow;
     }
   }
