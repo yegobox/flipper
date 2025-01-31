@@ -4,6 +4,7 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
+import 'package:mock_supabase_http_client/mock_supabase_http_client.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -30,7 +31,8 @@ class TestRepository extends OfflineFirstWithSupabaseRepository {
     );
 
     final provider = SupabaseProvider(
-      SupabaseClient(mock.serverUrl, mock.apiKey, httpClient: client),
+      // SupabaseClient(mock.serverUrl, mock.apiKey, httpClient: client),
+      SupabaseClient('https://mock.supabase.co', "fakeAnonKey", httpClient: MockSupabaseHttpClient()),
       modelDictionary: supabaseModelDictionary,
     );
 

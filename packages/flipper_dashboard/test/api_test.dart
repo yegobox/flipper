@@ -13,9 +13,8 @@ void main() {
   final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
   group('Purchase with Variants', () {
     setUp(() async {
-      mock.setUp();
       await initializeDependenciesForTest();
-      await loadSupabase();
+      mock.setUp();
     });
     tearDown(mock.tearDown);
 
@@ -94,7 +93,7 @@ void main() {
     });
   });
   group('Isar Realm API!', () {
-     setUp(() async {
+    setUp(() async {
       mock.setUp();
       await initializeDependenciesForTest();
       await loadSupabase();

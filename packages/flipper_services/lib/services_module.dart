@@ -120,8 +120,8 @@ abstract class ServicesModule {
 
   @singleton
   FirebaseFirestore get firestore {
-    const testEnv = String.fromEnvironment('FLUTTER_TEST_ENV');
-    if (testEnv == 'true') {
+    const testEnv = const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+    if (testEnv) {
       // Return a mock instance during tests
       return MockFirebaseFirestore();
     } else {
@@ -132,8 +132,8 @@ abstract class ServicesModule {
 
   @singleton
   FirebaseCrashlytics get crashlytics {
-    const testEnv = String.fromEnvironment('FLUTTER_TEST_ENV');
-    if (testEnv == 'true') {
+    const testEnv = const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+    if (testEnv) {
       // Return a mock instance during tests
       return MockFirebaseCrashlytics();
     } else {
