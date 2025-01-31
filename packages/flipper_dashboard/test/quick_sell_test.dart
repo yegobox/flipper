@@ -7,20 +7,23 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'TestApp.dart';
 
 // flutter test test/quick_sell_test.dart  --dart-define=FLUTTER_TEST_ENV=true
+
+import 'package:mockito/mockito.dart';
+
+class MockRef extends Mock implements WidgetRef {}
+
 void main() {
   group('QuickSellingView Tests', () {
     late GlobalKey<FormState> formKey;
     late TextEditingController discountController;
     late TextEditingController deliveryNoteCotroller;
     late TextEditingController customerNameController;
-    // final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
     late TextEditingController receivedAmountController;
     late TextEditingController customerPhoneNumberController;
     late TextEditingController paymentTypeController;
 
     setUpAll(() async {
       await initializeDependenciesForTest();
-      // mock.setUp();
     });
 
     setUp(() {
@@ -36,56 +39,44 @@ void main() {
     testWidgets('QuickSellingView displays correctly',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderScope(
-          child: TestApp(
-            child: QuickSellingView(
-              deliveryNoteCotroller: deliveryNoteCotroller,
-              formKey: formKey,
-              customerNameController: customerNameController,
-              discountController: discountController,
-              receivedAmountController: receivedAmountController,
-              customerPhoneNumberController: customerPhoneNumberController,
-              paymentTypeController: paymentTypeController,
-            ),
+        TestApp(
+          child: QuickSellingView(
+            deliveryNoteCotroller: deliveryNoteCotroller,
+            formKey: formKey,
+            customerNameController: customerNameController,
+            discountController: discountController,
+            receivedAmountController: receivedAmountController,
+            customerPhoneNumberController: customerPhoneNumberController,
+            paymentTypeController: paymentTypeController,
           ),
         ),
       );
       await tester.pumpAndSettle();
+
       // Ensure that the initial values of the text fields are shown
-      // (You'll need to verify these based on how your app handles initial values)
-      // expect(find.text('Grand Total: \ 0'), findsOneWidget);
       expect(find.text('Discount'), findsOneWidget);
       expect(find.text('Received Amount'), findsOneWidget);
       expect(find.text('Customer Phone number'), findsOneWidget);
       expect(find.text('Payment Method'), findsOneWidget);
     });
 
-    // Test for updating the total when an item is added
-    // (This will need to be implemented with a mock item and triggering the addition logic)
-    testWidgets('QuickSellingView updates total when item added',
-        (WidgetTester tester) async {
-      // TODO: Implement this test after setting up your item addition logic
-    });
-
-    /// Validating form fields
     testWidgets('QuickSellingView validates form fields',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderScope(
-          child: TestApp(
-            child: QuickSellingView(
-              deliveryNoteCotroller: deliveryNoteCotroller,
-              formKey: formKey,
-              customerNameController: customerPhoneNumberController,
-              discountController: discountController,
-              receivedAmountController: receivedAmountController,
-              customerPhoneNumberController: customerPhoneNumberController,
-              paymentTypeController: paymentTypeController,
-            ),
+        TestApp(
+          child: QuickSellingView(
+            deliveryNoteCotroller: deliveryNoteCotroller,
+            formKey: formKey,
+            customerNameController: customerNameController,
+            discountController: discountController,
+            receivedAmountController: receivedAmountController,
+            customerPhoneNumberController: customerPhoneNumberController,
+            paymentTypeController: paymentTypeController,
           ),
         ),
       );
 
+      // Trigger form validation
       formKey.currentState!.validate();
       await tester.pumpAndSettle();
 
@@ -95,5 +86,7 @@ void main() {
       expect(
           find.text('Please select or enter a payment method'), findsOneWidget);
     });
+
+    // Additional tests for user interactions and state updates can be added here
   });
 }
