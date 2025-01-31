@@ -61,6 +61,9 @@ import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_services/DeviceIdService.dart' as dev;
+import 'package:mockito/mockito.dart';
+
+class MockFirebaseCrashlytics extends Mock implements FirebaseCrashlytics {}
 
 @module
 abstract class ServicesModule {
@@ -113,7 +116,15 @@ abstract class ServicesModule {
   }
 
   @singleton
-  FirebaseCrashlytics get crashlytics => FirebaseCrashlytics.instance;
+  FirebaseCrashlytics get crashlytics {
+    if (bool.fromEnvironment('FLUTTER_TEST_ENV')) {
+      // Return a mock instance during tests
+      return MockFirebaseCrashlytics();
+    } else {
+      // Return the real instance in production
+      return FirebaseCrashlytics.instance;
+    }
+  }
 
   @lazySingleton
   SupabaseInterface get supa {

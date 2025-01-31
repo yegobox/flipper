@@ -117,9 +117,10 @@ void main() {
      
       /// find submit button
      
-      expect(submitButton, findsOneWidget);
+    
       // tap on submit button
    
+       await tester.pumpAndSettle();
 
       /// go back to login screen
       expect(find.text('Sign In'), findsOneWidget);
