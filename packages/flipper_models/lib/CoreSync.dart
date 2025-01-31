@@ -2200,7 +2200,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   FutureOr<List<models.StockRequest>> requests({required int branchId}) async {
     return await repository.get<StockRequest>(
         query: brick.Query(where: [
-      brick.Where('branchId').isExactly(branchId),
+      brick.Where('mainBranchId').isExactly(branchId),
       brick.Or('status').isExactly(RequestStatus.pending),
       brick.Or('status').isExactly(RequestStatus.partiallyApproved),
     ]));
