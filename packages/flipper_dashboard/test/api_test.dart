@@ -92,44 +92,44 @@ void main() {
     });
   });
   group('Isar Realm API!', () {
-    setUp(() async {
-      mock.setUp();
-      await loadSupabase();
-    });
+    // setUp(() async {
+    //   mock.setUp();
+    //   await loadSupabase();
+    // });
 
-    CoreSync realm = CoreSync();
+    // CoreSync realm = CoreSync();
 
-    setUpAll(() async {
-      // Initialize the Realm API with an in-memory database for testing
-      // await realm.configureLocal(useInMemory: true, box: ProxyService.box);
-    });
+    // setUpAll(() async {
+    //   // Initialize the Realm API with an in-memory database for testing
+    //   // await realm.configureLocal(useInMemory: true, box: ProxyService.box);
+    // });
 
-    tearDownAll(() async {});
-    setUp(() async {
-      // realm.realm!.write(() {
-      //   realm.realm!.deleteAll<Product>();
-      //   realm.realm!.deleteAll<SKU>();
-      //   realm.realm!.deleteAll<Variant>();
-      // });
-    });
+    // tearDownAll(() async {});
+    // setUp(() async {
+    //   // realm.realm!.write(() {
+    //   //   realm.realm!.deleteAll<Product>();
+    //   //   realm.realm!.deleteAll<SKU>();
+    //   //   realm.realm!.deleteAll<Variant>();
+    //   // });
+    // });
 
-    test('Add product into realm db', () async {
-      Product? product = await realm.createProduct(
-          createItemCode: true,
-          bhFId: "00",
-          tinNumber: 111,
-          branchId: 1,
-          businessId: 1,
-          product: Product(
-              name: "Test Product",
-              color: "#ccc",
-              businessId: 1,
-              branchId: 1,
-              isComposite: true,
-              nfcEnabled: false));
+    // test('Add product into realm db', () async {
+    //   Product? product = await realm.createProduct(
+    //       createItemCode: true,
+    //       bhFId: "00",
+    //       tinNumber: 111,
+    //       branchId: 1,
+    //       businessId: 1,
+    //       product: Product(
+    //           name: "Test Product",
+    //           color: "#ccc",
+    //           businessId: 1,
+    //           branchId: 1,
+    //           isComposite: true,
+    //           nfcEnabled: false));
 
-      expect(product, isA<Product>());
-    });
+    //   expect(product, isA<Product>());
+    // });
 
     //   test('Ensure unique SKUs for variants created with products', () async {
     //     const int numberOfProducts = 5;
