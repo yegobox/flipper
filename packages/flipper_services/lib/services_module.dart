@@ -74,7 +74,7 @@ abstract class ServicesModule {
   @Named('coresync')
   Future<RealmInterface> provideSyncInterface(LocalStorage box) async {
     return await CoreSync().configureLocal(
-        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
+        useInMemory: String.fromEnvironment('FLUTTER_TEST_ENV') == 'true',
         box: box);
   }
 

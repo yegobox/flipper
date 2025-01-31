@@ -92,8 +92,12 @@ void main() {
     });
   });
   group('Isar Realm API!', () {
+    setUp(() async {
+      mock.setUp();
+      await loadSupabase();
+    });
+
     CoreSync realm = CoreSync();
-    setUp(mock.setUp);
 
     setUpAll(() async {
       // Initialize the Realm API with an in-memory database for testing
