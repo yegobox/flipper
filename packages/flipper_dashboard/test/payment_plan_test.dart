@@ -9,9 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 void main() {
   group('PaymentPlan Widget Tests', () {
     setUpAll(() async {
-      // Initialize dependencies for test environment
       await initializeDependenciesForTest();
-      // CreateMockdata().mockBusiness(local: ProxyService.strategy.realm!);
     });
 
     testWidgets('Initial Price is Correct', (WidgetTester tester) async {
@@ -41,7 +39,6 @@ void main() {
       final updatedPriceFinder = find.text('48,000 RWF/year');
       expect(updatedPriceFinder, findsOneWidget);
     });
-
     testWidgets('Additional Devices Input Works', (WidgetTester tester) async {
       await tester
           .pumpWidget(ProviderScope(child: MaterialApp(home: PaymentPlanUI())));
@@ -69,7 +66,6 @@ void main() {
       final updatedDeviceCountFinder = find.text('0');
       expect(updatedDeviceCountFinder, findsOneWidget);
     });
-
     testWidgets('Proceed Button is Tappable', (WidgetTester tester) async {
       await tester
           .pumpWidget(ProviderScope(child: MaterialApp(home: PaymentPlanUI())));
@@ -80,7 +76,9 @@ void main() {
       expect(proceedButtonFinder, findsOneWidget);
 
       final button = tester.widget<ElevatedButton>(find.ancestor(
-          of: proceedButtonFinder, matching: find.byType(ElevatedButton)));
+        of: proceedButtonFinder,
+        matching: find.byType(ElevatedButton),
+      ));
       expect(button.onPressed, isNotNull);
     });
 
@@ -91,9 +89,8 @@ void main() {
 
       final plans = {
         'Mobile only': '5,000 RWF/month',
-        'Mobile + Desktop': '30,000 RWF/month',
-        '3 Devices': '120,000 RWF/month',
-        'Custom': '120,000+ RWF/month',
+        'Mobile + Desktop': '120,000 RWF/month',
+        'Entreprise': '1,500,000+ RWF/month',
       };
 
       for (var plan in plans.keys) {
@@ -107,7 +104,6 @@ void main() {
         expect(priceFinder, findsOneWidget);
       }
     });
-
     testWidgets('Additional Devices Input Boundary Conditions',
         (WidgetTester tester) async {
       await tester
@@ -132,7 +128,6 @@ void main() {
       final updatedDeviceCountFinder = find.text('2');
       expect(updatedDeviceCountFinder, findsOneWidget);
     });
-
     testWidgets('Toggle Between Monthly and Yearly Plans',
         (WidgetTester tester) async {
       await tester
@@ -151,7 +146,6 @@ void main() {
       final monthlyPriceFinder = find.textContaining('5,000 RWF/month');
       expect(monthlyPriceFinder, findsOneWidget);
     });
-
     testWidgets('Proceed Button Triggers Action', (WidgetTester tester) async {
       await tester.pumpWidget(ProviderScope(
           overrides: [], child: MaterialApp(home: PaymentPlanUI())));
@@ -162,7 +156,7 @@ void main() {
       await tester.tap(proceedButtonFinder);
       await tester.pumpAndSettle();
 
-      // Note: You may need to add additional assertions here to verify the action triggered by the button
+      // Add additional assertions here to verify the action triggered by the button
     });
   });
 }
