@@ -1,5 +1,6 @@
-import 'package:flipper_models/CoreSync.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_rw/dependencyInitializer.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/brick.g.dart';
 import 'package:brick_supabase/src/supabase_provider.dart';
 import 'package:test/test.dart';
@@ -13,6 +14,7 @@ void main() {
   group('Purchase with Variants', () {
     setUp(() async {
       mock.setUp();
+      await initializeDependenciesForTest();
       await loadSupabase();
     });
     tearDown(mock.tearDown);
@@ -92,78 +94,56 @@ void main() {
     });
   });
   group('Isar Realm API!', () {
-    // setUp(() async {
-    //   mock.setUp();
-    //   await loadSupabase();
-    // });
+    test('Add product into realm db', () async {
+      Product? product = await ProxyService.strategy.createProduct(
+          createItemCode: true,
+          bhFId: "00",
+          tinNumber: 111,
+          branchId: 1,
+          businessId: 1,
+          product: Product(
+              name: "Test Product",
+              color: "#ccc",
+              businessId: 1,
+              branchId: 1,
+              isComposite: true,
+              nfcEnabled: false));
 
-    // CoreSync realm = CoreSync();
+      expect(product, isA<Product>());
+    });
 
-    // setUpAll(() async {
-    //   // Initialize the Realm API with an in-memory database for testing
-    //   // await realm.configureLocal(useInMemory: true, box: ProxyService.box);
-    // });
+    test('Ensure unique SKUs for variants created with products', () async {
+      const int numberOfProducts = 5;
+      final skuSet = <String>{}; // Set to store unique SKUs
 
-    // tearDownAll(() async {});
-    // setUp(() async {
-    //   // realm.realm!.write(() {
-    //   //   realm.realm!.deleteAll<Product>();
-    //   //   realm.realm!.deleteAll<SKU>();
-    //   //   realm.realm!.deleteAll<Variant>();
-    //   // });
-    // });
+      // Add multiple products
+      for (int i = 0; i < numberOfProducts; i++) {
+        await ProxyService.strategy.createProduct(
+            createItemCode: false,
+            bhFId: "00",
+            tinNumber: 111,
+            branchId: 1,
+            businessId: 1,
+            product: Product(
+                name: "Product $i",
+                color: "#ccc",
+                businessId: 1,
+                branchId: 1,
+                isComposite: true,
+                nfcEnabled: false));
+      }
 
-    // test('Add product into realm db', () async {
-    //   Product? product = await realm.createProduct(
-    //       createItemCode: true,
-    //       bhFId: "00",
-    //       tinNumber: 111,
-    //       branchId: 1,
-    //       businessId: 1,
-    //       product: Product(
-    //           name: "Test Product",
-    //           color: "#ccc",
-    //           businessId: 1,
-    //           branchId: 1,
-    //           isComposite: true,
-    //           nfcEnabled: false));
+      // Query all variants to check SKUs
+      final variants = await ProxyService.strategy.variants(branchId: 1);
+      for (var variant in variants) {
+        if (skuSet.contains(variant.sku)) {
+          fail('Duplicate SKU found: ${variant.sku}');
+        }
+        skuSet.add(variant.sku!);
+      }
 
-    //   expect(product, isA<Product>());
-    // });
-
-    //   test('Ensure unique SKUs for variants created with products', () async {
-    //     const int numberOfProducts = 5;
-    //     final skuSet = <String>{}; // Set to store unique SKUs
-
-    //     // Add multiple products
-    //     for (int i = 0; i < numberOfProducts; i++) {
-    //       await realm.createProduct(
-    //           bhFId: "00",
-    //           tinNumber: 111,
-    //           branchId: 1,
-    //           businessId: 1,
-    //           product: Product(
-    //               name: "Product $i",
-    //               color: "#ccc",
-    //
-    //               businessId: 1,
-    //               branchId: 1,
-    //               isComposite: true,
-    //               nfcEnabled: false));
-    //     }
-
-    //     // Query all variants to check SKUs
-    //     final variants =
-    //         realm.realm!.query<Variant>(r'branchId == $0', [1]).toList();
-    //     for (var variant in variants) {
-    //       if (skuSet.contains(variant.sku)) {
-    //         fail('Duplicate SKU found: ${variant.sku}');
-    //       }
-    //       skuSet.add(variant.sku!);
-    //     }
-
-    //     expect(skuSet.length, numberOfProducts * 1,
-    //         reason: 'Not all SKUs are unique');
-    //   });
+      expect(skuSet.length, numberOfProducts * 1,
+          reason: 'Not all SKUs are unique');
+    });
   });
 }
