@@ -1846,7 +1846,7 @@ SPEC CHECKSUMS:
   device_info_plus: 71ffc6ab7634ade6267c7a93088ed7e4f74e5896
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
-  file_picker: 9b3292d7c8bc68c8a7bf8eb78f730e49c8efc517
+  file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Firebase: 374a441a91ead896215703a674d58cdb3e9d772b
   firebase_analytics: a5c6ef5a435d22870fe3cfdcb424f390f56ff752
   firebase_auth: ecd44c57a46c4942b58f13615e0bbb178ccff47a

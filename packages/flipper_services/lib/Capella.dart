@@ -23,8 +23,8 @@ import 'package:http/http.dart' as http;
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
-import 'package:flipper_services/database_provider.dart'
-    if (dart.library.html) 'DatabaseProvider.dart';
+// import 'package:flipper_services/database_provider.dart'
+//     if (dart.library.html) 'DatabaseProvider.dart';
 
 // ignore: unused_import
 import 'package:flipper_services/replicator_provider.dart'
@@ -32,7 +32,7 @@ import 'package:flipper_services/replicator_provider.dart'
 
 class Capella with Booting implements RealmInterface {
   @override
-  // DatabaseProvider? capella;
+  // ignore: override_on_non_overriding_member
   bool offlineLogin = false;
 
   @override
@@ -41,15 +41,6 @@ class Capella with Booting implements RealmInterface {
   @override
   SendPort? sendPort;
 
-  /// define models
-  // @override
-  // AsyncCollection? branchCollection;
-  // @override
-  // AsyncCollection? businessCollection;
-  // @override
-  // AsyncCollection? accessCollection;
-  // @override
-  // AsyncCollection? permissionCollection;
   late String apihub;
   late String commApi;
 
