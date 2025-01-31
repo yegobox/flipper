@@ -94,6 +94,12 @@ void main() {
     });
   });
   group('Isar Realm API!', () {
+     setUp(() async {
+      mock.setUp();
+      await initializeDependenciesForTest();
+      await loadSupabase();
+    });
+    tearDown(mock.tearDown);
     test('Add product into realm db', () async {
       Product? product = await ProxyService.strategy.createProduct(
           createItemCode: true,
