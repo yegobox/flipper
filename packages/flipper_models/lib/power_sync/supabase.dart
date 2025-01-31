@@ -48,7 +48,7 @@ class TestRepository extends OfflineFirstWithSupabaseRepository {
 }
 
 bool isTestEnvironment() {
-  return String.fromEnvironment('FLUTTER_TEST_ENV') == 'true';
+  return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
 }
 
 Future<void> loadSupabase() async {
