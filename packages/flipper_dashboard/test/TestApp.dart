@@ -10,7 +10,7 @@ class TestApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProviderScope(
       child: MaterialApp(
-        home: child,
+        home: Scaffold(body: child),
         localizationsDelegates: [
           // Add your localization delegates here
         ],
