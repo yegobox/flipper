@@ -6,10 +6,15 @@ import 'package:test/test.dart';
 import 'package:brick_supabase/testing.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:flipper_models/power_sync/supabase.dart';
+
 void main() {
   final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
   group('Purchase with Variants', () {
-    setUp(mock.setUp);
+    setUp(() async {
+      mock.setUp();
+      await loadSupabase();
+    });
     tearDown(mock.tearDown);
 
     test('#getPurchaseWithVariants', () async {
