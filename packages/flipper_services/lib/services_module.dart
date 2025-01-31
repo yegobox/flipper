@@ -117,7 +117,8 @@ abstract class ServicesModule {
 
   @singleton
   FirebaseCrashlytics get crashlytics {
-    if (bool.fromEnvironment('FLUTTER_TEST_ENV') == true) {
+    const testEnv = String.fromEnvironment('FLUTTER_TEST_ENV');
+    if (testEnv == 'true') {
       // Return a mock instance during tests
       return MockFirebaseCrashlytics();
     } else {
