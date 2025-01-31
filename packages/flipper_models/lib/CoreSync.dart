@@ -2248,8 +2248,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     int numberOfPayments = 1,
     required HttpClientInterface flipperHttpClient,
   }) async {
-    final repository = brick.Repository();
-
     try {
       final num = ProxyService.box.numberOfPayments() ?? numberOfPayments;
       // compute next billing date
@@ -2257,12 +2255,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           ? DateTime.now().add(Duration(days: 365 * num))
           : DateTime.now().add(Duration(days: 30 * num));
       // Fetch existing plan and addons
-      final existingPlanAddons =
-          await _fetchExistingAddons(repository, businessId);
+      final existingPlanAddons = await _fetchExistingAddons(businessId);
 
       // Process new addons if provided
       final updatedAddons = await _processNewAddons(
-        repository: repository,
         businessId: businessId,
         existingAddons: existingPlanAddons,
         newAddonNames: addons,
@@ -2271,7 +2267,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
       // Create or update the plan
       final updatedPlan = await _upsertPlan(
-        repository: repository,
         businessId: businessId,
         selectedPlan: selectedPlan,
         numberOfPayments: numberOfPayments,
@@ -2293,7 +2288,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   Future<List<models.PlanAddon>> _fetchExistingAddons(
-    brick.Repository repository,
     int businessId,
   ) async {
     try {
@@ -2315,7 +2309,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   Future<List<models.PlanAddon>> _processNewAddons({
-    required brick.Repository repository,
     required int businessId,
     required List<models.PlanAddon> existingAddons,
     required List<String>? newAddonNames,
@@ -2337,7 +2330,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
       // Create temporary plan for foreign key relationship
       await _createTemporaryPlan(
-        repository: repository,
         businessId: businessId,
         isYearlyPlan: isYearlyPlan,
         addons: updatedAddons,
@@ -2351,7 +2343,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   Future<void> _createTemporaryPlan({
-    required brick.Repository repository,
     required int businessId,
     required bool isYearlyPlan,
     required List<models.PlanAddon> addons,
@@ -2368,7 +2359,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   Future<Plan> _upsertPlan({
-    required brick.Repository repository,
     required int businessId,
     required String selectedPlan,
     required int additionalDevices,
