@@ -65,6 +65,8 @@ import 'package:mockito/mockito.dart';
 
 class MockFirebaseCrashlytics extends Mock implements FirebaseCrashlytics {}
 
+class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
+
 @module
 abstract class ServicesModule {
   @preResolve
@@ -116,6 +118,18 @@ abstract class ServicesModule {
   }
 
   @singleton
+  FirebaseFirestore get firestore {
+    const testEnv = String.fromEnvironment('FLUTTER_TEST_ENV');
+    if (testEnv == 'true') {
+      // Return a mock instance during tests
+      return MockFirebaseFirestore();
+    } else {
+      // Return the real instance in production
+      return FirebaseFirestore.instance;
+    }
+  }
+
+  @singleton
   FirebaseCrashlytics get crashlytics {
     const testEnv = String.fromEnvironment('FLUTTER_TEST_ENV');
     if (testEnv == 'true') {
@@ -144,9 +158,6 @@ abstract class ServicesModule {
     }
     return crash;
   }
-
-  @singleton
-  FirebaseFirestore get firestore => FirebaseFirestore.instance;
 
   @preResolve
   @LazySingleton()
