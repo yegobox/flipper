@@ -12,29 +12,30 @@ class CreateMockdata {
   Future<void> mockTransactions() async {
     for (var i = 0; i < 1000; i++) {
       await ProxyService.strategy.create<ITransaction>(
-          data: ITransaction(
-        lastTouched: DateTime(2023, 10, 28),
-        supplierId: 1,
-        reference: "2333",
-        transactionNumber: "3333",
-        status: COMPLETE,
-        transactionType: 'local',
-        subTotal: 0,
-        cashReceived: 0,
-        updatedAt: DateTime(2023, 10, 28),
-        customerChangeDue: 0.0,
-        paymentType: "Cash",
-        branchId: 1,
-        createdAt: DateTime(2023, 10, 28),
-        receiptType: "Standard",
-        customerId: "101",
-        customerType: "Regular",
-        note: "Initial transaction",
-        ebmSynced: false,
-        isIncome: true,
-        isExpense: false,
-        isRefunded: false,
-      ));
+        data: ITransaction(
+          lastTouched: DateTime(2023, 10, 28),
+          supplierId: 1,
+          reference: "2333",
+          transactionNumber: "3333",
+          status: COMPLETE,
+          transactionType: 'local',
+          subTotal: 0,
+          cashReceived: 0,
+          updatedAt: DateTime(2023, 10, 28),
+          customerChangeDue: 0.0,
+          paymentType: "Cash",
+          branchId: 1,
+          createdAt: DateTime(2023, 10, 28),
+          receiptType: "Standard",
+          customerId: "101",
+          customerType: "Regular",
+          note: "Initial transaction",
+          ebmSynced: false,
+          isIncome: true,
+          isExpense: false,
+          isRefunded: false,
+        ),
+      );
     }
   }
 
