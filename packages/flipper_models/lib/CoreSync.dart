@@ -46,6 +46,8 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:injectfy/injectfy.dart';
+
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
@@ -58,7 +60,7 @@ import 'package:uuid/uuid.dart';
 
 class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   final String apihub = AppSecrets.apihubProd;
-  final repository = Repository();
+  final Repository repository = Injectfy.get<Repository>();
   bool offlineLogin = false;
 
   bool isInIsolate() {
