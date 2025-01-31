@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/IncomingOrders.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/power_sync/schema.dart';
+import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flipper_services/constants.dart';
@@ -9,16 +10,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:supabase_models/brick/brick.g.dart';
+import 'package:brick_supabase/testing.dart';
 
 // flutter test test/incoming_order_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
+  final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
   group('IncomingOrdersWidget Integration Tests', () {
     setUpAll(() async {
+      mock.setUp();
       await initializeDependenciesForTest();
+      await loadSupabase();
     });
     tearDownAll(() async {
+      mock.tearDown;
       ProxyService.strategy.deleteAll<Product>(tableName: productsTable);
       ProxyService.strategy.deleteAll<Variant>(tableName: variantTable);
       ProxyService.strategy.deleteAll<Stock>(tableName: stocksTable);
