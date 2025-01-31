@@ -3,8 +3,6 @@ import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:supabase_models/brick/brick.g.dart';
-import 'package:brick_supabase/testing.dart';
 
 import 'TestApp.dart';
 
@@ -15,14 +13,14 @@ void main() {
     late TextEditingController discountController;
     late TextEditingController deliveryNoteCotroller;
     late TextEditingController customerNameController;
-    final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
+    // final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
     late TextEditingController receivedAmountController;
     late TextEditingController customerPhoneNumberController;
     late TextEditingController paymentTypeController;
 
     setUpAll(() async {
       await initializeDependenciesForTest();
-      mock.setUp();
+      // mock.setUp();
     });
 
     setUp(() {
