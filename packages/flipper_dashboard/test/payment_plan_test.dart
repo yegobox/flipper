@@ -1,5 +1,4 @@
 import 'package:flipper_dashboard/payment/PaymentPlan.dart';
-import 'package:flipper_mocks/flipper_mocks.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +12,6 @@ void main() {
       // Initialize dependencies for test environment
       await initializeDependenciesForTest();
       // CreateMockdata().mockBusiness(local: ProxyService.strategy.realm!);
-      await CreateMockdata().ensureRealmInitialized();
     });
 
     testWidgets('Initial Price is Correct', (WidgetTester tester) async {

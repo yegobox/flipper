@@ -62,15 +62,16 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 
 class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   final String apihub = AppSecrets.apihubProd;
-  final OfflineFirstWithSupabaseRepository repository =
-      Injectfy.get<OfflineFirstWithSupabaseRepository>();
+
   bool offlineLogin = false;
 
+  @override
+  final OfflineFirstWithSupabaseRepository repository;
+
+  CoreSync() : repository = Injectfy.get<OfflineFirstWithSupabaseRepository>();
   bool isInIsolate() {
     return Isolate.current.debugName != null;
   }
-
-  CoreSync({SupabaseClient? client});
 
   // Future<void> _supa({required String tableName, required int id}) async {
   //   await ProxyService.supa.init();
