@@ -48,12 +48,13 @@ class TestRepository extends OfflineFirstWithSupabaseRepository {
 }
 
 bool isTestEnvironment() {
-  return String.fromEnvironment('FLUTTER_TEST_ENV') == 'true';
+  return bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
 }
 
 Future<void> loadSupabase() async {
   final injectfy = Injectfy.instance;
   if (isTestEnvironment()) {
+    print("IN TEST MODE");
     // Initialize the FFI loader for sqflite
     sqfliteFfiInit();
     final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
