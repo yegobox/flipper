@@ -66,6 +66,7 @@ dependencies:
   
   printing: ^5.13.4
   pdf: ^3.11.1
+  injectfy: ^1.0.1
   
 
 dependency_overrides:
