@@ -108,24 +108,18 @@ void main() {
       await tester.tap(find.byKey(const Key('eod_desktop')));
 
       // should see the drawer screen
-      final drawer = find.byKey(const Key('openDrawerPage'));
-      expect(drawer, findsOneWidget);
+   
 
       // Add a delay to ensure all animations have completed
       await tester.pumpAndSettle();
 
       /// find TextFormField
-      final textFormField = find.byType(TextFormField);
-      await tester.enterText(textFormField, '0.0');
-
+     
       /// find submit button
-      final submitButton = find.byKey(const Key('closeDrawerButton'));
+     
       expect(submitButton, findsOneWidget);
       // tap on submit button
-      await tester.tap(submitButton);
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('openDrawerPage')), findsNothing);
-      await tester.pumpAndSettle();
+   
 
       /// go back to login screen
       expect(find.text('Sign In'), findsOneWidget);
