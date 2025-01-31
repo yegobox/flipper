@@ -3,7 +3,6 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -373,19 +372,20 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _toggleNFC(Tenant tenant, FlipperBaseModel model) async {
-    try {
-      await AppService().nfc.stopNfc();
-    } catch (e) {}
-    AppService().nfc.startNFC(
-          callback: (nfcData) async {
-            nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
-            showToast(context, 'NFC card added to ${tenant.name}');
-            model.loadTenants();
-          },
-          textData:
-              "${tenant.id}:${ProxyService.box.getBusinessId()}:${ProxyService.box.getBranchId()}:${tenant.phoneNumber}",
-          write: true,
-        );
+    // TODO: migrate to new https://pub.dev/packages/flutter_nfc_kit/versions/3.6.0-rc.6/example
+    // try {
+    //   await AppService().nfc.stopNfc();
+    // } catch (e) {}
+    // AppService().nfc.startNFC(
+    //       callback: (nfcData) async {
+    //         nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
+    //         showToast(context, 'NFC card added to ${tenant.name}');
+    //         model.loadTenants();
+    //       },
+    //       textData:
+    //           "${tenant.id}:${ProxyService.box.getBusinessId()}:${ProxyService.box.getBranchId()}:${tenant.phoneNumber}",
+    //       write: true,
+    //     );
   }
 
   void _showDeleteConfirmation(
