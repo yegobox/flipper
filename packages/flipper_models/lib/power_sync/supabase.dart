@@ -48,7 +48,7 @@ class TestRepository extends OfflineFirstWithSupabaseRepository {
 }
 
 bool isTestEnvironment() {
-  return const String.fromEnvironment('FLUTTER_TEST_ENV') == 'true';
+  return bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
 }
 
 Future<void> loadSupabase() async {
@@ -62,16 +62,20 @@ Future<void> loadSupabase() async {
     await repository.initialize();
 
     // Register the test repository with the DI framework
-    injectfy.registerSingleton<TestRepository>(() => repository);
+    injectfy.registerSingleton<OfflineFirstWithSupabaseRepository>(
+        () => repository);
   } else {
     // Production initialization
     await Repository.initializeSupabaseAndConfigure(
       supabaseUrl: AppSecrets.superbaseurl,
       supabaseAnonKey: AppSecrets.supabaseAnonKey,
     );
+
     final repository = Repository();
+    await repository.initialize();
 
     // Register the production repository with the DI framework
-    injectfy.registerSingleton<Repository>(() => repository);
+    injectfy.registerSingleton<OfflineFirstWithSupabaseRepository>(
+        () => repository);
   }
 }

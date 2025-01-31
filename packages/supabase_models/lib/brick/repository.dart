@@ -17,6 +17,7 @@ export 'package:brick_core/query.dart'
 const dbFileName = "flipper_v3.sqlite";
 const queueName = "brick_offline_queue.sqlite";
 
+
 class Repository extends OfflineFirstWithSupabaseRepository {
   static late Repository? _singleton;
 

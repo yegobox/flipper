@@ -55,13 +55,15 @@ import 'package:injectfy/injectfy.dart';
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
 
 class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   final String apihub = AppSecrets.apihubProd;
-  final Repository repository = Injectfy.get<Repository>();
+  final OfflineFirstWithSupabaseRepository repository =
+      Injectfy.get<OfflineFirstWithSupabaseRepository>();
   bool offlineLogin = false;
 
   bool isInIsolate() {
@@ -4500,7 +4502,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   Future<RealmInterface> configureLocal(
       {required bool useInMemory, required storage.LocalStorage box}) async {
-    await loadSupabase();
+    // await loadSupabase();
     return this as RealmInterface;
   }
 
