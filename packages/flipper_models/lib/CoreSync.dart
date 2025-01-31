@@ -240,6 +240,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     if (item != null) {
       // Use the provided `TransactionItem`
       transactionItem = item;
+      transactionItem.qty = quantity; // Update quantity
+      transactionItem.taxblAmt =
+          variation!.retailPrice! * quantity; // Recalculate taxblAmt
+      transactionItem.totAmt =
+          variation.retailPrice! * quantity; // Recalculate totAmt
+      transactionItem.remainingStock = currentStock - quantity;
     } else {
       // Create a new `TransactionItem` from the `variation` object
       final double price = variation!.retailPrice!;
