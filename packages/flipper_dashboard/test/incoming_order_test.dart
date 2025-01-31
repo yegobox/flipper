@@ -9,20 +9,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:supabase_models/brick/brick.g.dart';
-import 'package:brick_supabase/testing.dart';
 
 // flutter test test/incoming_order_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
+
   group('IncomingOrdersWidget Integration Tests', () {
     setUpAll(() async {
       await initializeDependenciesForTest();
-      mock.setUp();
     });
     tearDownAll(() async {
-      mock.tearDown;
       ProxyService.strategy.deleteAll<Product>(tableName: productsTable);
       ProxyService.strategy.deleteAll<Variant>(tableName: variantTable);
       ProxyService.strategy.deleteAll<Stock>(tableName: stocksTable);
