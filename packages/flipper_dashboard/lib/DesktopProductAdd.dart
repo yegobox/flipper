@@ -393,6 +393,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
                       !ref.watch(isCompositeProvider)
                           ? TableVariants(
+                              onDateChanged: (String variantId, DateTime date) {
+                                _dates[variantId] = TextEditingController(
+                                    text: date.toIso8601String());
+                              },
                               unversalProducts:
                                   ref.watch(universalProductsNames).value,
                               units:

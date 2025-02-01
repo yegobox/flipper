@@ -651,7 +651,7 @@ abstract class RealmInterface {
     String? productName,
     String? unit,
     String? pkgUnitCd,
-    bool? ebmSynced,
+    bool? ebmSynced, DateTime? expirationDate,
   });
   FutureOr<void> updateTenant({
     required String tenantId,
