@@ -39,7 +39,7 @@ class TableVariants extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: .1),
+                    color: Colors.black.withOpacity(.1),
                     spreadRadius: 2,
                     blurRadius: 5,
                     offset: const Offset(0, 3),
@@ -52,22 +52,21 @@ class TableVariants extends StatelessWidget {
                   constraints: BoxConstraints(
                     minWidth: constraints.maxWidth,
                   ),
-                  child: SingleChildScrollView(
-                    child: DataTable(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!, width: 1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      columns: _buildColumns(),
-                      rows: model.scannedVariants.reversed.map((variant) {
-                        return _buildRow(context, model, variant);
-                      }).toList(),
+                  child: DataTable(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!, width: 1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
+                    columnSpacing: 12, // Adjust spacing between columns
+                    columns: _buildColumns(),
+                    rows: model.scannedVariants.reversed.map((variant) {
+                      return _buildRow(context, model, variant);
+                    }).toList(),
                   ),
                 ),
               ),
             ),
-            // Modified Positioned Widget: Show only if at least one item selected.
+            // Show delete button only if at least one item is selected
             if (model.scannedVariants
                 .any((variant) => model.isSelected(variant.id)))
               Positioned(
@@ -84,32 +83,41 @@ class TableVariants extends StatelessWidget {
   List<DataColumn> _buildColumns() {
     return [
       DataColumn(
-          label: Checkbox(
-              value: model.selectAll(model.scannedVariants),
-              onChanged: (bool? value) => model.toggleSelectAll(
-                  model.scannedVariants, value ?? false))),
+        label: Checkbox(
+          value: model.selectAll(model.scannedVariants),
+          onChanged: (bool? value) =>
+              model.toggleSelectAll(model.scannedVariants, value ?? false),
+        ),
+      ),
       const DataColumn(
-          label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold))),
+        label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
       const DataColumn(
-          label: Text('Price', style: TextStyle(fontWeight: FontWeight.bold))),
+        label: Text('Price', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
       const DataColumn(
-          label:
-              Text('Quantity', style: TextStyle(fontWeight: FontWeight.bold))),
+        label: Text('Quantity', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
       const DataColumn(
-          label: Text('Tax', style: TextStyle(fontWeight: FontWeight.bold))),
+        label: Text('Tax', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
       const DataColumn(
-          label:
-              Text('Discount', style: TextStyle(fontWeight: FontWeight.bold))),
+        label: Text('Discount', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
       const DataColumn(
-          label: Text('Unit', style: TextStyle(fontWeight: FontWeight.bold))),
+        label: Text('Unit', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
       const DataColumn(
-          label: Text('Classification',
-              style: TextStyle(fontWeight: FontWeight.bold))),
+        label: Text('Classification',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
       const DataColumn(
-          label: Text('Expiration',
-              style: TextStyle(fontWeight: FontWeight.bold))),
+        label:
+            Text('Expiration', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
       const DataColumn(
-          label: Text('Action', style: TextStyle(fontWeight: FontWeight.bold))),
+        label: Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
     ];
   }
 
@@ -159,12 +167,17 @@ class TableVariants extends StatelessWidget {
             }
           },
         )),
-        DataCell(UniversalProductDropdown(
-          context: context,
-          model: model,
-          variant: variant,
-          unitsAsyncValue: unversalProducts,
-        )),
+        DataCell(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 150), // Limit width
+            child: UniversalProductDropdown(
+              context: context,
+              model: model,
+              variant: variant,
+              unitsAsyncValue: unversalProducts,
+            ),
+          ),
+        ),
         DataCell(TextFormField(
           controller: model.getDateController(variant.id),
           decoration:
@@ -173,14 +186,16 @@ class TableVariants extends StatelessWidget {
           onTap: () async {
             final date = await model.pickDate(context);
             if (date != null) {
-              // model.updateDateController(variant.id, date);
+              model.updateDateController(variant.id, date);
             }
           },
         )),
-        DataCell(IconButton(
-          icon: const Icon(Icons.delete, color: Colors.redAccent),
-          onPressed: () => model.removeVariant(id: variant.id),
-        )),
+        DataCell(
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.redAccent),
+            onPressed: () => model.removeVariant(id: variant.id),
+          ),
+        ),
       ],
     );
   }
