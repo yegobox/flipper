@@ -32,7 +32,8 @@ class TestRepository extends OfflineFirstWithSupabaseRepository {
 
     final provider = SupabaseProvider(
       // SupabaseClient(mock.serverUrl, mock.apiKey, httpClient: client),
-      SupabaseClient('https://mock.supabase.co', "fakeAnonKey", httpClient: MockSupabaseHttpClient()),
+      SupabaseClient('https://mock.supabase.co', "fakeAnonKey",
+          httpClient: MockSupabaseHttpClient()),
       modelDictionary: supabaseModelDictionary,
     );
 
@@ -65,8 +66,7 @@ Future<void> loadSupabase() async {
     await repository.initialize();
 
     // Register the test repository with the DI framework
-    injectfy.registerSingleton<OfflineFirstWithSupabaseRepository>(
-        () => repository);
+    injectfy.registerSingleton<TestRepository>(() => repository);
   } else {
     print("IN PROD MODE");
     // Production initialization
@@ -75,11 +75,9 @@ Future<void> loadSupabase() async {
       supabaseAnonKey: AppSecrets.supabaseAnonKey,
     );
 
-    final repository = Repository();
-    await repository.initialize();
+    await Repository().initialize();
 
     // Register the production repository with the DI framework
-    injectfy.registerSingleton<OfflineFirstWithSupabaseRepository>(
-        () => repository);
+    // injectfy.registerSingleton<Repository>(() => repository);
   }
 }
