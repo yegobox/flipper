@@ -38,7 +38,6 @@ class OuterVariants extends _$OuterVariants {
         page: _currentPage,
         itemsPerPage: _itemsPerPage,
       );
-
       final filteredVariants = searchString.isNotEmpty
           ? variants
               .where((variant) =>
