@@ -290,7 +290,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   int? itemPerPage() {
-    return prefs.getInt('itemPerPage') ?? 250;
+    return prefs.getInt('itemPerPage') ?? 1000;
   }
 
   @override
