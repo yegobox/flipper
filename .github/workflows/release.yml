@@ -71,7 +71,6 @@ jobs:
 
       - run: |
           cd apps/flipper
-          dart run realm install
           cd ../..
           cd packages/flipper_dashboard
           flutter test --dart-define=FLUTTER_TEST_ENV=true
@@ -132,7 +131,6 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
           cd apps/flipper
-          dart run realm install
           flutter test --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart
   build-and-release-windows-debug:
     name: "Build windows-DEBUG"
@@ -379,7 +377,7 @@ jobs:
       # - run: sdkmanager --install "build-tools;30.0.3"
       - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.7
         with:
-          cmd:  cd apps/flipper &&  dart run realm install &&  flutter test --dart-define=FLUTTER_TEST_ENV=true  integration_test/smoke_android_test.dart
+          cmd:  cd apps/flipper  &&  flutter test --dart-define=FLUTTER_TEST_ENV=true  integration_test/smoke_android_test.dart
           api: 25
           cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
           tag: google_apis

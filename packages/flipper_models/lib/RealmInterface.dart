@@ -12,6 +12,7 @@ import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
 // import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
@@ -39,6 +40,7 @@ abstract class DataMigratorToLocal {
 }
 
 abstract class RealmInterface {
+  OfflineFirstWithSupabaseRepository get repository;
   // DatabaseProvider? capella;
   // AsyncCollection? branchCollection;
   // AsyncCollection? businessCollection;

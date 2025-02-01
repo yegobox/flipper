@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/all_models.dart'; // Import your model
 
 void main() {
+  // ignore: unused_local_variable
   Variant? selectedPurchaseItem;
-  List<Purchase> finalItemListPurchase = [];
   // Mock data for testing
   List<Purchase>? finalSaleList = [
     Purchase(
