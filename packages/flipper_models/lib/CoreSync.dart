@@ -2984,7 +2984,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     final queryString = brick.Query(where: conditions);
 
     return await repository.get<ITransaction>(
-      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       query: queryString,
     );
   }
@@ -3031,7 +3031,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // Directly return the stream from the repository
     return repository
         .subscribe<ITransaction>(
-            query: queryString, policy: OfflineFirstGetPolicy.alwaysHydrate)
+            query: queryString,
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
         .map((data) {
       print('Transaction stream data: ${data.length} records');
       return data;
