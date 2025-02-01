@@ -3646,7 +3646,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     bool includePurchases = false,
   }) async {
     List<Variant> variants = await repository.get<Variant>(
-      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      //TODO: make this configurable.
+      policy: OfflineFirstGetPolicy.localOnly,
       query: brick.Query(where: [
         if (variantId != null)
           brick.Where('id').isExactly(variantId)

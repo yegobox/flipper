@@ -75,7 +75,7 @@ Future<void> loadSupabase() async {
       supabaseAnonKey: AppSecrets.supabaseAnonKey,
     );
 
-    await Repository().initialize();
+   final repository= await Repository().initialize();
 
     // Register the production repository with the DI framework
     // injectfy.registerSingleton<Repository>(() => repository);
