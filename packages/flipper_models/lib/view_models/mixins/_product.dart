@@ -65,10 +65,6 @@ mixin ProductMixin {
             ? 0
             : double.parse(rates![variations[i]]!.text);
 
-        variations[i].expirationDate = dates?[variations[i].id] == null
-            ? null
-            : DateTime.tryParse(dates![variations[i].id]!.text);
-
         variations[i].color = currentColor;
         variations[i].pkg = 1;
         variations[i].itemCd = await ProxyService.strategy.itemCode(

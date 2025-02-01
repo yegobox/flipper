@@ -317,14 +317,21 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       Map<String, TextEditingController>? dates}) async {
     if (editmode) {
       try {
-        ProxyService.strategy.updateVariant(
-          updatables: scannedVariants,
-          newRetailPrice: newRetailPrice,
-          rates: rates?.map((key, value) => MapEntry(key, value.text)),
-          dates: dates?.map((key, value) => MapEntry(key, value.text)),
-          supplyPrice: supplyPrice != 0 ? supplyPrice : null,
-          retailPrice: retailPrice != 0 ? retailPrice : null,
-        );
+        for (var variant in scannedVariants) {
+          if (dates != null && dates.containsKey(variant.id)) {
+            variant.expirationDate =
+                DateFormat('yyyy-MM-dd').parse(dates[variant.id]!.text);
+          }
+          ProxyService.strategy.updateVariant(
+            updatables: scannedVariants,
+            expirationDate: variant.expirationDate,
+            newRetailPrice: newRetailPrice,
+            rates: rates?.map((key, value) => MapEntry(key, value.text)),
+            dates: dates?.map((key, value) => MapEntry(key, value.text)),
+            supplyPrice: supplyPrice != 0 ? supplyPrice : null,
+            retailPrice: retailPrice != 0 ? retailPrice : null,
+          );
+        }
       } catch (e) {
         talker.error(e);
         rethrow;

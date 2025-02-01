@@ -7,6 +7,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class TableVariants extends StatelessWidget {
   final ScannViewModel model;
@@ -15,6 +16,7 @@ class TableVariants extends StatelessWidget {
   final FocusNode scannedInputFocusNode;
   final List<IUnit> units;
   final AsyncValue<List<UnversalProduct>>? unversalProducts;
+  final Function(String variantId, DateTime date) onDateChanged;
 
   const TableVariants({
     Key? key,
@@ -24,6 +26,7 @@ class TableVariants extends StatelessWidget {
     required this.scannedInputFocusNode,
     required this.unversalProducts,
     required this.units,
+    required this.onDateChanged,
   }) : super(key: key);
 
   @override
@@ -180,12 +183,17 @@ class TableVariants extends StatelessWidget {
         ),
         DataCell(TextFormField(
           controller: model.getDateController(variant.id),
-          decoration:
-              const InputDecoration(suffixIcon: Icon(Icons.calendar_today)),
+          decoration: InputDecoration(
+            suffixIcon: const Icon(Icons.calendar_today),
+            hintText: variant.expirationDate != null
+                ? DateFormat('MMMM dd, yyyy').format(variant.expirationDate!)
+                : 'Select Date',
+          ),
           readOnly: true,
           onTap: () async {
             final date = await model.pickDate(context);
             if (date != null) {
+              onDateChanged(variant.id, date);
               model.updateDateController(variant.id, date);
             }
           },
