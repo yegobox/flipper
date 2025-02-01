@@ -199,8 +199,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       Navigator.maybePop(context);
     } catch (e) {
       ref.read(loadingProvider.notifier).stopLoading();
-      toast("Failed to save product: ${e.toString()}");
-      // Don't close the dialog automatically on error
+      toast("We did not close normally, check if your product is saved");
+      Navigator.maybePop(context);
+      rethrow;
     }
   }
 
@@ -699,6 +700,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   talker.warning("onAddVariant called successfully");
                 } catch (e, s) {
                   talker.error("Error in onAddVariant: $e", s);
+                  toast("We faced unexpted, close this window and open again");
                 }
 
                 scannedInputController.clear();
