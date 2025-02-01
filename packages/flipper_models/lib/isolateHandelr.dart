@@ -27,12 +27,19 @@ mixin VariantPatch {
       required Function(String) sendPort,
       String? identifier}) async {
     List<Variant> variants = [];
+    final branchId = ProxyService.box.getBranchId();
     if (identifier != null) {
       variants = await repository.get<Variant>(
-          query: brick.Query(where: [Where('id').isExactly(identifier)]));
+          query: brick.Query(where: [
+        Where('id').isExactly(identifier),
+        Where('branchId').isExactly(branchId)
+      ]));
     } else {
       variants = await repository.get<Variant>(
-          query: brick.Query(where: [Where('ebmSynced').isExactly(false)]));
+          query: brick.Query(where: [
+        Where('ebmSynced').isExactly(false),
+        Where('branchId').isExactly(branchId)
+      ]));
     }
 
     for (Variant variant in variants) {
@@ -68,12 +75,19 @@ mixin StockPatch {
       required Function(String) sendPort,
       String? identifier}) async {
     List<Variant> variants = [];
+    final branchId = ProxyService.box.getBranchId();
     if (identifier != null) {
       variants = await repository.get<Variant>(
-          query: brick.Query(where: [Where('id').isExactly(identifier)]));
+          query: brick.Query(where: [
+        Where('id').isExactly(identifier),
+        Where('branchId').isExactly(branchId)
+      ]));
     } else {
       variants = await repository.get<Variant>(
-          query: brick.Query(where: [Where('ebmSynced').isExactly(false)]));
+          query: brick.Query(where: [
+        Where('ebmSynced').isExactly(false),
+        Where('branchId').isExactly(branchId)
+      ]));
     }
 
     for (Variant variant in variants) {
@@ -105,12 +119,14 @@ mixin PatchTransactionItem {
       required Function(String) sendPort,
       required int tinNumber,
       required String bhfId}) async {
+    final branchId = ProxyService.box.getBranchId();
     final transactions = await repository.get<ITransaction>(
         query: brick.Query(where: [
       Where('ebmSynced').isExactly(false),
       Where('status').isExactly(COMPLETE),
       Where('customerName').isNot(null),
-      Where('customerTin').isNot(null)
+      Where('customerTin').isNot(null),
+      Where('branchId').isExactly(branchId)
     ]));
     for (ITransaction transaction in transactions) {
       double taxB = 0;

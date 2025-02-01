@@ -35,9 +35,7 @@ import 'package:injectfy/injectfy.dart';
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
-import 'package:uuid/uuid.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
-
 
 class Capella with Booting implements RealmInterface {
   @override
@@ -1597,6 +1595,7 @@ class Capella with Booting implements RealmInterface {
       double? retailPrice,
       Map<String, String>? rates,
       double? supplyPrice,
+      DateTime? expirationDate,
       Map<String, String>? dates,
       String? selectedProductType,
       String? productId,
