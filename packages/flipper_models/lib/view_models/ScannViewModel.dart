@@ -137,7 +137,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       required double retailPrice,
       required double supplyPrice,
       required bool editmode,
-     
       required String countryCode}) async {
     int branchId = ProxyService.box.getBranchId()!;
     Business? business = await ProxyService.strategy
@@ -167,7 +166,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       prc: retailPrice,
       qty: 1,
       dcRt: 0,
-      
+
       // bcd is bar code
       bcd: barCode,
       sku: barCode,
@@ -330,6 +329,20 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         talker.error(e);
         rethrow;
       }
+    }
+  }
+  // OLJ
+
+  void updateDateController(String id, DateTime date) {
+    if (_dateControllers.containsKey(id)) {
+      _dateControllers[id]!.text = DateFormat('yyyy-MM-dd').format(date);
+      // Update the variant's expiration date
+      scannedVariants.forEach((variant) {
+        if (variant.id == id) {
+          variant.expirationDate = date;
+        }
+      });
+      notifyListeners();
     }
   }
 }
