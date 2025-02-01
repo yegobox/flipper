@@ -137,7 +137,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       required double retailPrice,
       required double supplyPrice,
       required bool editmode,
-     
       required String countryCode}) async {
     int branchId = ProxyService.box.getBranchId()!;
     Business? business = await ProxyService.strategy
@@ -167,7 +166,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       prc: retailPrice,
       qty: 1,
       dcRt: 0,
-      
+
       // bcd is bar code
       bcd: barCode,
       sku: barCode,
@@ -318,18 +317,39 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       Map<String, TextEditingController>? dates}) async {
     if (editmode) {
       try {
-        ProxyService.strategy.updateVariant(
-          updatables: scannedVariants,
-          newRetailPrice: newRetailPrice,
-          rates: rates?.map((key, value) => MapEntry(key, value.text)),
-          dates: dates?.map((key, value) => MapEntry(key, value.text)),
-          supplyPrice: supplyPrice != 0 ? supplyPrice : null,
-          retailPrice: retailPrice != 0 ? retailPrice : null,
-        );
+        for (var variant in scannedVariants) {
+          if (dates != null && dates.containsKey(variant.id)) {
+            variant.expirationDate =
+                DateFormat('yyyy-MM-dd').parse(dates[variant.id]!.text);
+          }
+          ProxyService.strategy.updateVariant(
+            updatables: scannedVariants,
+            expirationDate: variant.expirationDate,
+            newRetailPrice: newRetailPrice,
+            rates: rates?.map((key, value) => MapEntry(key, value.text)),
+            dates: dates?.map((key, value) => MapEntry(key, value.text)),
+            supplyPrice: supplyPrice != 0 ? supplyPrice : null,
+            retailPrice: retailPrice != 0 ? retailPrice : null,
+          );
+        }
       } catch (e) {
         talker.error(e);
         rethrow;
       }
+    }
+  }
+  // OLJ
+
+  void updateDateController(String id, DateTime date) {
+    if (_dateControllers.containsKey(id)) {
+      _dateControllers[id]!.text = DateFormat('yyyy-MM-dd').format(date);
+      // Update the variant's expiration date
+      scannedVariants.forEach((variant) {
+        if (variant.id == id) {
+          variant.expirationDate = date;
+        }
+      });
+      notifyListeners();
     }
   }
 }

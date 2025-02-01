@@ -4250,6 +4250,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? productName,
       String? unit,
       String? pkgUnitCd,
+      DateTime? expirationDate,
       bool? ebmSynced}) async {
     if (variantId != null) {
       Variant? variant = await getVariant(id: variantId);
@@ -4284,6 +4285,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       }
       updatables[i].bhfId = updatables[i].bhfId ?? "00";
       updatables[i].itemNm = updatables[i].name;
+      updatables[i].expirationDate = expirationDate;
 
       updatables[i].ebmSynced = false;
       updatables[i].retailPrice =
