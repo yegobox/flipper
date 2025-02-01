@@ -45,9 +45,10 @@ class OuterVariants extends _$OuterVariants {
                   variant.name
                       .toLowerCase()
                       .contains(searchString.toLowerCase()) ||
-                  variant.productName!
-                      .toLowerCase()
-                      .contains(searchString.toLowerCase()) ||
+                  (variant.productName != null &&
+                      variant.productName!
+                          .toLowerCase()
+                          .contains(searchString.toLowerCase())) ||
                   (variant.bcd != null &&
                       variant.bcd!.contains(searchString.toLowerCase())))
               .toList()
