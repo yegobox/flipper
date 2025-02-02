@@ -324,6 +324,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           }
           ProxyService.strategy.updateVariant(
             updatables: scannedVariants,
+            color: color,
             expirationDate: variant.expirationDate,
             newRetailPrice: newRetailPrice,
             rates: rates?.map((key, value) => MapEntry(key, value.text)),
