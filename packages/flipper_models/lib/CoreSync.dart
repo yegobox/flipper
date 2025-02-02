@@ -5448,4 +5448,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     ))
         .firstOrNull;
   }
+
+  @override
+  Future<void> deleteFailedQueue() async {
+    await repository.deleteUnprocessedRequests();
+  }
 }

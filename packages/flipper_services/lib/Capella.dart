@@ -1890,4 +1890,10 @@ class Capella with Booting implements RealmInterface {
     // TODO: implement selectPurchases
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> deleteFailedQueue() {
+    // TODO: implement deleteFailedQueue
+    throw UnimplementedError();
+  }
 }

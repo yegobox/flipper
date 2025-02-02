@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http show Request;
 import 'package:supabase_models/brick/brick.g.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 import 'db/schema.g.dart';
+import 'package:mock_supabase_http_client/mock_supabase_http_client.dart';
 import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
 export 'package:brick_core/query.dart'
@@ -16,7 +17,6 @@ export 'package:brick_core/query.dart'
 
 const dbFileName = "flipper_v3.sqlite";
 const queueName = "brick_offline_queue.sqlite";
-
 
 class Repository extends OfflineFirstWithSupabaseRepository {
   static late Repository? _singleton;
@@ -54,11 +54,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       databaseFactory:
           Platform.isWindows ? databaseFactoryFfi : databaseFactory,
       databasePath: queuePath,
-      onReattempt: (http.Request re, o) {
-        // print("Request status: $o");
-        print("here");
-        // print("Object: ${re.body}");
-      },
+      onReattempt: (http.Request re, o) {},
       onRequestException: (request, object) {
         // Deal with failed requests see https://github.com/GetDutchie/brick/issues/527
         print("Offline request exception: $request");
@@ -72,15 +68,22 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       httpClient: client,
     );
 
-    final provider = SupabaseProvider(
-      supabase.client,
-      modelDictionary: supabaseModelDictionary,
-    );
+    final provider = DatabasePath.isTestEnvironment()
+        ? SupabaseProvider(
+            // SupabaseClient(mock.serverUrl, mock.apiKey, httpClient: client),
+            SupabaseClient('https://mock.supabase.co', "fakeAnonKey",
+                httpClient: MockSupabaseHttpClient()),
+            modelDictionary: supabaseModelDictionary,
+          )
+        : SupabaseProvider(
+            supabase.client,
+            modelDictionary: supabaseModelDictionary,
+          );
 
     _singleton = Repository._(
       supabaseProvider: provider,
       sqliteProvider: SqliteProvider(
-        dbPath,
+        DatabasePath.isTestEnvironment() ? inMemoryDatabasePath : dbPath,
         databaseFactory:
             Platform.isWindows ? databaseFactoryFfi : databaseFactory,
         modelDictionary: sqliteModelDictionary,
@@ -89,5 +92,39 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       offlineRequestQueue: queue,
       memoryCacheProvider: MemoryCacheProvider(),
     );
+  }
+
+  Future<void> deleteUnprocessedRequests() async {
+    try {
+      // Retrieve unprocessed requests
+      final requests =
+          await offlineRequestQueue.requestManager.unprocessedRequests();
+
+      // Extract the primary key column name
+      final primaryKeyColumn =
+          offlineRequestQueue.requestManager.primaryKeyColumn;
+
+      // Create a list to hold the futures for deletion operations
+      final List<Future<void>> deletionFutures = [];
+
+      // Iterate through the unprocessed requests
+      for (final request in requests) {
+        // Retrieve the request ID using the primary key column
+        final requestId = request[primaryKeyColumn] as int;
+
+        // Add the deletion future to the list
+        deletionFutures.add(
+          offlineRequestQueue.requestManager
+              .deleteUnprocessedRequest(requestId),
+        );
+      }
+
+      // Wait for all deletion operations to complete
+      await Future.wait(deletionFutures);
+
+      print("All unprocessed requests have been deleted.");
+    } catch (e) {
+      print("An error occurred while deleting unprocessed requests: $e");
+    }
   }
 }

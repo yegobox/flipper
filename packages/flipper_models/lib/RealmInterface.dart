@@ -878,4 +878,5 @@ abstract class RealmInterface {
 
   Future<double> fetchCost(int branchId);
   Future<List<BusinessAnalytic>> analytics({required int branchId});
+  Future<void> deleteFailedQueue();
 }
