@@ -22,7 +22,6 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 
@@ -38,70 +37,13 @@ class ProductEntryScreen extends StatefulHookConsumerWidget {
 }
 
 class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
-  int _portraitCrossAxisCount = 4;
-  int _landscapeCrossAxisCount = 5;
-  double _borderRadius = 30;
-  double _blurRadius = 5;
-  double _iconSize = 24;
   Color pickerColor = Colors.amber;
+  bool isColorPicked = false;
 
   Map<String, TextEditingController> _rates = {};
   Map<String, TextEditingController> _dates = {};
 
   String selectedPackageUnitValue = "BJ: Bucket Bucket";
-
-  void changeColor(Color color) => setState(() => pickerColor = color);
-
-  Widget pickerLayoutBuilder(
-      BuildContext context, List<Color> colors, PickerItem child) {
-    Orientation orientation = MediaQuery.of(context).orientation;
-
-    return SizedBox(
-      width: 300,
-      height: orientation == Orientation.portrait ? 360 : 240,
-      child: GridView.count(
-        crossAxisCount: orientation == Orientation.portrait
-            ? _portraitCrossAxisCount
-            : _landscapeCrossAxisCount,
-        crossAxisSpacing: 5,
-        mainAxisSpacing: 5,
-        children: [for (Color color in colors) child(color)],
-      ),
-    );
-  }
-
-  Widget pickerItemBuilder(
-      Color color, bool isCurrentColor, void Function() changeColor) {
-    return Container(
-      margin: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_borderRadius),
-        color: color,
-        boxShadow: [
-          BoxShadow(
-              color: color.withAlpha((0.8 * 255).round()),
-              offset: const Offset(1, 2),
-              blurRadius: _blurRadius)
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: changeColor,
-          borderRadius: BorderRadius.circular(_borderRadius),
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 250),
-            opacity: isCurrentColor ? 1 : 0,
-            child: Icon(
-              Icons.done,
-              size: _iconSize,
-              color: useWhiteForeground(color) ? Colors.white : Colors.black,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   TextEditingController productNameController = TextEditingController();
   TextEditingController retailPriceController = TextEditingController();
@@ -151,7 +93,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
       if (widget.productId != null) {
         await model.bulkUpdateVariants(true,
-            color: model.currentColor,
+            color: pickerColor.toHex(),
             selectedProductType: selectedProductType,
             newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
             rates: _rates,
@@ -163,6 +105,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                 ? "RW"
                 : countryOfOriginController.text,
             rates: _rates,
+            color: pickerColor.toHex(),
             dates: _dates,
             retailPrice: double.tryParse(retailPriceController.text) ?? 0,
             supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
@@ -575,16 +518,28 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                 Container(
                   width: 200,
                   height: 200,
-                  color: Colors.grey[300],
-                  child: Center(
-                    child: Icon(
-                      Icons.image,
-                      size: 50,
-                      color: Colors.grey[500],
-                    ),
+                  decoration: BoxDecoration(
+                    color: isColorPicked ? pickerColor : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(4),
                   ),
+                  child: isColorPicked
+                      ? null
+                      : Center(
+                          child: Icon(
+                            Icons.image,
+                            size: 50,
+                            color: Colors.grey[500],
+                          ),
+                        ),
                 ),
-              Browsephotos()
+              Browsephotos(
+                onColorSelected: (Color color) {
+                  setState(() {
+                    pickerColor = color;
+                    isColorPicked = true;
+                  });
+                },
+              )
             ],
           );
         });

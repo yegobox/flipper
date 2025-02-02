@@ -4310,7 +4310,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (await ProxyService.strategy
           .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!)) {
         StockPatch.patchStock(
-          URI: (await ProxyService.box.getServerUrl())!,
+          URI: (await ProxyService.box.getServerUrl()) ?? "",
           sendPort: (message) {
             ProxyService.notification.sendLocalNotification(body: message);
           },
