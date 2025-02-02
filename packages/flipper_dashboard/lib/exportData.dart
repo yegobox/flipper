@@ -18,6 +18,18 @@ import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:open_filex/open_filex.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
+class PaymentSummary {
+  final String method;
+  final double amount;
+  final int count;
+
+  const PaymentSummary({
+    required this.method,
+    required this.amount,
+    required this.count,
+  });
+}
+
 mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final GlobalKey<SfDataGridState> workBookKey = GlobalKey<SfDataGridState>();
   void addFooter(DataGridPdfHeaderFooterExportDetails headerFooterExport,
@@ -252,7 +264,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             _addExpensesSheet(
                 workbook, expenses, styler, config.currencyFormat);
           }
-          _addPaymentMethodSheet(workbook, config, styler);
+          await _addPaymentMethodSheet(workbook, config, styler);
         }
 
         filePath = await _saveExcelFile(workbook);
@@ -382,81 +394,215 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   Future<void> _addPaymentMethodSheet(
-      excel.Workbook workbook, ExportConfig config, ExcelStyler styler) async {
-    final paymentMethodSheet =
-        workbook.worksheets.addWithName('Payment Methods');
+    excel.Workbook workbook,
+    ExportConfig config,
+    ExcelStyler styler,
+  ) async {
+    final sheetName = 'Payment Methods';
+
+    try {
+      // Initialize sheet
+      final paymentMethodSheet = workbook.worksheets.addWithName(sheetName);
+      await _initializeSheet(paymentMethodSheet, styler);
+
+      // Process transactions
+      final paymentData = await _processTransactions(config.transactions);
+
+      if (paymentData.isEmpty) {
+        talker.warning('No payment totals to write to sheet');
+        return;
+      }
+
+      // Write data and format sheet
+      await _writeDataToSheet(
+        sheet: paymentMethodSheet,
+        paymentData: paymentData,
+        config: config,
+      );
+
+      _formatSheet(paymentMethodSheet);
+      _addTotalRow(paymentMethodSheet, paymentData.length + 2, config);
+
+      talker.debug('Successfully completed payment method sheet generation');
+    } catch (e, stack) {
+      talker.error('Error in payment method sheet generation: $e');
+      talker.error(stack);
+      rethrow;
+    }
+  }
+
+  Future<void> _initializeSheet(
+    excel.Worksheet sheet,
+    ExcelStyler styler,
+  ) async {
+    // Clear any existing data
+    sheet.clear();
+
     final headerStyle = styler.createStyle(
       fontColor: '#FFFFFF',
       backColor: '#4472C4',
       fontSize: 14,
     );
 
-    paymentMethodSheet.getRangeByIndex(1, 1).setText('Payment Type');
-    paymentMethodSheet.getRangeByIndex(1, 2).setText('Amount Received');
-    paymentMethodSheet.getRangeByIndex(1, 1, 1, 2).cellStyle = headerStyle;
+    // Set headers
+    sheet.getRangeByIndex(1, 1).setText('Payment Type');
+    sheet.getRangeByIndex(1, 2).setText('Amount Received');
+    sheet.getRangeByIndex(1, 3).setText('Transaction Count');
+    sheet.getRangeByIndex(1, 4).setText('% of Total');
 
-    // Group transactions by payment type and sum the amounts
-    final paymentTypeTotals = SplayTreeMap<String, double>();
+    // Apply header style
+    final headerRange = sheet.getRangeByIndex(1, 1, 1, 4);
+    headerRange.cellStyle = headerStyle;
+  }
 
-    for (var transaction in config.transactions) {
-      final List<TransactionPaymentRecord> paymentTypes = await ProxyService
-          .strategy
-          .getPaymentType(transactionId: transaction.id);
+  Future<List<PaymentSummary>> _processTransactions(
+    List<ITransaction> transactions,
+  ) async {
+    final paymentTotals = <String, PaymentSummary>{};
+    talker.debug('Processing ${transactions.length} transactions');
 
-      if (paymentTypes.isNotEmpty) {
-        for (var paymentType in paymentTypes) {
-          if (paymentType.paymentMethod != null && paymentType.amount != null) {
-            final String rawMethod = paymentType.paymentMethod!;
-            final String normalizedMethod = normalizePaymentMethod(rawMethod);
-            final double amount = paymentType.amount!;
+    for (final transaction in transactions) {
+      try {
+        final paymentTypes = await ProxyService.strategy.getPaymentType(
+          transactionId: transaction.id,
+        );
 
-            // Use update method to add the amount, with a default value of 0.0
-            paymentTypeTotals.update(
-                normalizedMethod, (value) => value + amount,
-                ifAbsent: () => amount);
-          } else {
-            talker.error(
-                "Invalid payment data for transaction: ${transaction.id}");
+        talker.debug(
+          'Transaction ${transaction.id}: Found ${paymentTypes.length} payment records',
+        );
+
+        for (final paymentType in paymentTypes) {
+          if (!_isValidPayment(paymentType)) {
+            talker.warning(
+                'Invalid payment data for transaction: ${transaction.id}');
+            continue;
           }
+
+          _updatePaymentTotals(paymentTotals, paymentType);
         }
+      } catch (e, stack) {
+        talker.error('Error processing transaction ${transaction.id}: $e');
+        talker.error(stack);
       }
     }
 
-    talker.warning(paymentTypeTotals);
-    int rowIndex = 2;
-    int lastRow = paymentMethodSheet.getLastRow();
-    if (lastRow == -1) {
-      // If the sheet is empty, start from the first row
-      lastRow = 1;
-      rowIndex = lastRow;
+    // Sort by amount descending
+    final sortedData = paymentTotals.values.toList()
+      ..sort((a, b) => b.amount.compareTo(a.amount));
+
+    talker.debug('Final payment totals processed: ${sortedData.length}');
+    return sortedData;
+  }
+
+  bool _isValidPayment(TransactionPaymentRecord payment) {
+    return payment.paymentMethod != null && payment.amount != null;
+  }
+
+  void _updatePaymentTotals(
+    Map<String, PaymentSummary> totals,
+    TransactionPaymentRecord payment,
+  ) {
+    final method = normalizePaymentMethod(payment.paymentMethod!);
+    final amount = payment.amount!;
+
+    totals.update(
+      method,
+      (existing) => PaymentSummary(
+        method: method,
+        amount: existing.amount + amount,
+        count: existing.count + 1,
+      ),
+      ifAbsent: () => PaymentSummary(
+        method: method,
+        amount: amount,
+        count: 1,
+      ),
+    );
+
+    talker.debug('Updated payment total: $method = ${totals[method]?.amount}');
+  }
+
+  Future<void> _writeDataToSheet({
+    required excel.Worksheet sheet,
+    required List<PaymentSummary> paymentData,
+    required ExportConfig config,
+  }) async {
+    int rowIndex = 2; // Start below headers
+    final totalAmount = paymentData.fold<double>(
+      0,
+      (sum, data) => sum + data.amount,
+    );
+
+    for (final data in paymentData) {
+      try {
+        // Payment Type (Column A)
+        sheet.getRangeByIndex(rowIndex, 1).setText(data.method);
+
+        // Amount (Column B)
+        final amountCell = sheet.getRangeByIndex(rowIndex, 2);
+        amountCell.setNumber(data.amount);
+        amountCell.numberFormat = config.currencyFormat;
+
+        // Transaction Count (Column C)
+        final countCell = sheet.getRangeByIndex(rowIndex, 3);
+        countCell.setNumber(data.count.toDouble());
+        countCell.numberFormat = '#,##0';
+
+        // Percentage (Column D)
+        final percentCell = sheet.getRangeByIndex(rowIndex, 4);
+        percentCell.setNumber(data.amount / totalAmount);
+        percentCell.numberFormat = '0.00%';
+
+        talker.debug('Wrote row for ${data.method}: ${data.amount}');
+        rowIndex++;
+      } catch (e) {
+        talker.warning('Error writing row for ${data.method}: $e');
+      }
+    }
+  }
+
+  void _formatSheet(excel.Worksheet sheet) {
+    // Auto-fit columns
+    for (int i = 1; i <= 4; i++) {
+      sheet.autoFitColumn(i);
     }
 
-    try {
-      if (paymentTypeTotals.isNotEmpty) {
-        paymentTypeTotals.forEach((paymentType, totalAmount) {
-          if (rowIndex > lastRow) {
-            paymentMethodSheet.insertRow(rowIndex);
-          }
-          paymentMethodSheet.getRangeByIndex(rowIndex, 1).setText(paymentType);
-          final cell = paymentMethodSheet.getRangeByIndex(rowIndex, 2);
-          cell.setNumber(totalAmount);
+    // Set minimum widths if needed
+    if (sheet.getRangeByIndex(1, 1).columnWidth < 15) {
+      sheet.getRangeByIndex(1, 1).columnWidth = 15;
+    }
+    if (sheet.getRangeByIndex(1, 2).columnWidth < 12) {
+      sheet.getRangeByIndex(1, 2).columnWidth = 12;
+    }
 
-          // Apply the number format safely
-          try {
-            cell.numberFormat = config.currencyFormat;
-          } catch (e) {
-            // talker.error("Failed to apply number format: $e");
-            // talker.error(e);
-            cell.numberFormat = r'#,##0.00'; // Fallback to a default format
-          }
+    // Hide unused columns
+    for (int col = 5; col <= sheet.getLastColumn(); col++) {
+      sheet.getRangeByIndex(1, col).columnWidth = 0;
+    }
+  }
 
-          rowIndex++;
-        });
-        for (int i = 1; i <= 2; i++) {
-          paymentMethodSheet.autoFitColumn(i);
-        }
-      }
-    } catch (e) {}
+  void _addTotalRow(
+    excel.Worksheet sheet,
+    int lastDataRow,
+    ExportConfig config,
+  ) {
+    // Total label
+    sheet.getRangeByIndex(lastDataRow, 1).setText('Total');
+
+    // Sum amounts
+    final totalCell = sheet.getRangeByIndex(lastDataRow, 2);
+    totalCell.setFormula('=SUM(B2:B${lastDataRow - 1})');
+    totalCell.numberFormat = config.currencyFormat;
+
+    // Sum transaction counts
+    final totalCountCell = sheet.getRangeByIndex(lastDataRow, 3);
+    totalCountCell.setFormula('=SUM(C2:C${lastDataRow - 1})');
+    totalCountCell.numberFormat = '#,##0';
+
+    // Total percentage (should be 100%)
+    final totalPercentCell = sheet.getRangeByIndex(lastDataRow, 4);
+    totalPercentCell.setNumber(1);
+    totalPercentCell.numberFormat = '0.00%';
   }
 
   void _addExpensesSheet(excel.Workbook workbook, List<ITransaction> expenses,

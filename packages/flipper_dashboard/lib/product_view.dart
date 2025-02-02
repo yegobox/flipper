@@ -125,7 +125,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                 return _buildVariantsGrid(context, model, variants: variants);
               },
               error: (_, __) => const SizedBox.shrink(),
-              loading: () => Center(child: const Text('Loading...')),
+              loading: () => Center(child: const Text('Loading')),
             );
       },
     );

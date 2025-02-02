@@ -17,7 +17,6 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
-import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:flipper_models/helper_models.dart' as ext;
@@ -37,7 +36,6 @@ import 'package:supabase_models/brick/databasePath.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/repository.dart' as brick;
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'dart:typed_data';
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -47,15 +45,11 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:injectfy/injectfy.dart';
 
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
-import 'package:flipper_services/database_provider.dart'
-    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 import 'package:uuid/uuid.dart';
-import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
@@ -65,10 +59,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   bool offlineLogin = false;
 
-  @override
-  final OfflineFirstWithSupabaseRepository repository;
+  final Repository repository = Repository();
 
-  CoreSync() : repository = Injectfy.get<OfflineFirstWithSupabaseRepository>();
+  CoreSync();
   bool isInIsolate() {
     return Isolate.current.debugName != null;
   }
@@ -2991,7 +2984,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     final queryString = brick.Query(where: conditions);
 
     return await repository.get<ITransaction>(
-      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       query: queryString,
     );
   }
@@ -3038,7 +3031,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // Directly return the stream from the repository
     return repository
         .subscribe<ITransaction>(
-            query: queryString, policy: OfflineFirstGetPolicy.alwaysHydrate)
+            query: queryString,
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
         .map((data) {
       print('Transaction stream data: ${data.length} records');
       return data;
@@ -3653,7 +3647,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     bool includePurchases = false,
   }) async {
     List<Variant> variants = await repository.get<Variant>(
-      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      //TODO: make this configurable.
+      policy: OfflineFirstGetPolicy.localOnly,
       query: brick.Query(where: [
         if (variantId != null)
           brick.Where('id').isExactly(variantId)
@@ -4315,7 +4310,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       if (await ProxyService.strategy
           .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!)) {
         StockPatch.patchStock(
-          URI: (await ProxyService.box.getServerUrl())!,
+          URI: (await ProxyService.box.getServerUrl()) ?? "",
           sendPort: (message) {
             ProxyService.notification.sendLocalNotification(body: message);
           },
@@ -4510,7 +4505,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<RealmInterface> configureLocal(
       {required bool useInMemory, required storage.LocalStorage box}) async {
     try {
-      await loadSupabase();
+      // await loadSupabase();
       return this;
     } catch (e) {
       return this;
