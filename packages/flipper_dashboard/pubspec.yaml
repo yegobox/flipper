@@ -95,7 +95,7 @@ dependencies:
   syncfusion_flutter_core: ^28.1.41
   syncfusion_officechart: ^28.1.41
   
-  flutter_colorpicker: ^1.1.0
+  flex_color_picker: ^3.7.0
   # realm: ^20.0.0
   
   sizer: ^2.0.15

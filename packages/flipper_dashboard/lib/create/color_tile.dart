@@ -134,7 +134,13 @@ class ColorTileState extends ConsumerState<ColorTile> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Browsephotos(),
+                    Browsephotos(
+                      onColorSelected: (Color color) {
+                        setState(() {
+                          //pickerColor = color;
+                        });
+                      },
+                    ),
                     Container(
                       width: 10,
                     ),

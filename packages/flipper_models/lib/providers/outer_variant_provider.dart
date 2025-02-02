@@ -27,41 +27,41 @@ class OuterVariants extends _$OuterVariants {
     if (_isLoading || !_hasMore) return [];
 
     _isLoading = true;
+    print('Loading variants for branchId: $branchId');
 
     try {
       final searchString = ref.watch(searchStringProvider);
+      print('Search string: $searchString');
 
-      // Fetch variants from the API
       final variants = await ProxyService.strategy.variants(
         branchId: branchId,
         page: _currentPage,
         itemsPerPage: _itemsPerPage,
       );
-
-      // Apply search filtering
       final filteredVariants = searchString.isNotEmpty
           ? variants
               .where((variant) =>
                   variant.name
                       .toLowerCase()
                       .contains(searchString.toLowerCase()) ||
-                  variant.productName!
-                      .toLowerCase()
-                      .contains(searchString.toLowerCase()) ||
+                  (variant.productName != null &&
+                      variant.productName!
+                          .toLowerCase()
+                          .contains(searchString.toLowerCase())) ||
                   (variant.bcd != null &&
                       variant.bcd!.contains(searchString.toLowerCase())))
               .toList()
           : variants;
 
-      // Update pagination state
       _currentPage++;
       _hasMore = filteredVariants.length == _itemsPerPage;
 
-      // Return the filtered variants
+      print('Loaded ${filteredVariants.length} variants');
       return filteredVariants;
     } catch (error) {
-      // Handle errors
-      throw error;
+      print('Error loading variants: $error');
+      state = AsyncValue.error(error, StackTrace.current);
+      return [];
     } finally {
       _isLoading = false;
     }
