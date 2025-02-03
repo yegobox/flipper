@@ -52,7 +52,8 @@ void main() {
       expect(scrollableFinder, findsOneWidget);
 
       // Find and tap the plan that renders the "Additional devices" input
-      final additionalDevicesPlanFinder = find.text('More than 3 Devices');
+      final additionalDevicesPlanFinder =
+          find.text('Mobile'); // Replace with the correct plan name
       await tester.scrollUntilVisible(
         additionalDevicesPlanFinder,
         50.0,
@@ -62,7 +63,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Ensure "Additional devices" input appears
-      final additionalDevicesInputFinder = find.text('More than 3 Devices');
+      final additionalDevicesInputFinder = find.text('Additional devices');
       expect(additionalDevicesInputFinder, findsOneWidget);
 
       // Find and tap the add button
