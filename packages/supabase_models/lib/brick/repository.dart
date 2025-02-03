@@ -67,6 +67,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
     if (DatabasePath.isTestEnvironment()) {
       // Use the mocked client in a test environment
+      await mock.setUp();
       supabaseClient =
           SupabaseClient(mock.serverUrl, mock.apiKey, httpClient: client);
     } else {
