@@ -9,14 +9,16 @@ import 'package:http/http.dart' as http show Request;
 import 'package:supabase_models/brick/brick.g.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 import 'db/schema.g.dart';
-import 'package:mock_supabase_http_client/mock_supabase_http_client.dart';
 import 'package:path/path.dart';
+import 'package:mockito/mockito.dart';
 // ignore: depend_on_referenced_packages
 export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
 const dbFileName = "flipper_v3.sqlite";
 const queueName = "brick_offline_queue.sqlite";
+
+class MockSupabaseClient extends Mock implements SupabaseClient {}
 
 class Repository extends OfflineFirstWithSupabaseRepository {
   static late Repository? _singleton;
@@ -62,23 +64,25 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       },
     );
 
-    final supabase = await Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
-      httpClient: client,
-    );
+    final SupabaseClient supabaseClient;
 
-    final provider = DatabasePath.isTestEnvironment()
-        ? SupabaseProvider(
-            // SupabaseClient(mock.serverUrl, mock.apiKey, httpClient: client),
-            SupabaseClient('https://mock.supabase.co', "fakeAnonKey",
-                httpClient: MockSupabaseHttpClient()),
-            modelDictionary: supabaseModelDictionary,
-          )
-        : SupabaseProvider(
-            supabase.client,
-            modelDictionary: supabaseModelDictionary,
-          );
+    if (DatabasePath.isTestEnvironment()) {
+      // Use the mocked client in a test environment
+      supabaseClient = MockSupabaseClient();
+    } else {
+      // Initialize the real Supabase client in a non-test environment
+      supabaseClient = (await Supabase.initialize(
+        url: supabaseUrl,
+        anonKey: supabaseAnonKey,
+        httpClient: client,
+      ))
+          .client;
+    }
+
+    final provider = SupabaseProvider(
+      supabaseClient,
+      modelDictionary: supabaseModelDictionary,
+    );
 
     _singleton = Repository._(
       supabaseProvider: provider,

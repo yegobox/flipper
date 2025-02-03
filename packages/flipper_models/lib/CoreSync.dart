@@ -4262,16 +4262,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // loop through all variants and update all with retailPrice and supplyPrice
 
     for (var i = 0; i < updatables.length; i++) {
-      Product? product = await getProduct(
-          id: updatables[i].productId!,
-          branchId: updatables[i].branchId!,
-          businessId: ProxyService.box.getBusinessId()!);
-      updatables[i].productName = product?.name ?? updatables[i].productName;
+      final name = (productName ?? updatables[i].productName)!;
+      updatables[i].productName = name;
       if (updatables[i].stock == null) {
         await addStockToVariant(variant: updatables[i]);
       }
 
-      product?.name = updatables[i].name;
+      updatables[i].name = name;
       double rate = rates?[updatables[i].id] == null
           ? 0
           : double.parse(rates![updatables[i].id]!);
@@ -4279,7 +4276,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         updatables[i].color = color;
       }
       updatables[i].bhfId = updatables[i].bhfId ?? "00";
-      updatables[i].itemNm = updatables[i].name;
+      updatables[i].itemNm = name;
       updatables[i].expirationDate = expirationDate;
 
       updatables[i].ebmSynced = false;
