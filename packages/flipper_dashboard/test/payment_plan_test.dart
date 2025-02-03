@@ -43,29 +43,43 @@ void main() {
       await tester
           .pumpWidget(ProviderScope(child: MaterialApp(home: PaymentPlanUI())));
 
+      // Ensure UI settles
+      await tester.pumpAndSettle();
+
+      // Try to find the scrollable container
+      final scrollableFinder = find.byType(Scrollable);
+      expect(scrollableFinder, findsOneWidget);
+
+      // Find and tap "Custom" plan
       final customPlanFinder = find.text('Custom');
       await tester.scrollUntilVisible(customPlanFinder, 50.0,
-          scrollable: find.byType(Scrollable));
+          scrollable: scrollableFinder);
       await tester.tap(customPlanFinder);
       await tester.pumpAndSettle();
 
+      // Ensure "Additional devices" input appears
       final additionalDevicesInputFinder = find.text('Additional devices');
       expect(additionalDevicesInputFinder, findsOneWidget);
 
+      // Find and tap the add button
       final addButtonFinder = find.byIcon(Icons.add);
+      expect(addButtonFinder, findsOneWidget);
       await tester.tap(addButtonFinder);
       await tester.pumpAndSettle();
 
-      final deviceCountFinder = find.text('1');
-      expect(deviceCountFinder, findsOneWidget);
+      // Verify device count increased
+      expect(find.text('1'), findsOneWidget);
 
+      // Find and tap the remove button
       final removeButtonFinder = find.byIcon(Icons.remove);
+      expect(removeButtonFinder, findsOneWidget);
       await tester.tap(removeButtonFinder);
       await tester.pumpAndSettle();
 
-      final updatedDeviceCountFinder = find.text('0');
-      expect(updatedDeviceCountFinder, findsOneWidget);
+      // Verify device count decreased
+      expect(find.text('0'), findsOneWidget);
     });
+
     testWidgets('Proceed Button is Tappable', (WidgetTester tester) async {
       await tester
           .pumpWidget(ProviderScope(child: MaterialApp(home: PaymentPlanUI())));
