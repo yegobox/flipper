@@ -40,8 +40,9 @@ void main() {
       expect(updatedPriceFinder, findsOneWidget);
     });
     testWidgets('Additional Devices Input Works', (WidgetTester tester) async {
-      await tester
-          .pumpWidget(ProviderScope(child: MaterialApp(home: PaymentPlanUI())));
+      await tester.pumpWidget(
+        ProviderScope(child: MaterialApp(home: PaymentPlanUI())),
+      );
 
       // Ensure UI settles
       await tester.pumpAndSettle();
@@ -50,15 +51,18 @@ void main() {
       final scrollableFinder = find.byType(Scrollable);
       expect(scrollableFinder, findsOneWidget);
 
-      // Find and tap "Custom" plan
-      final customPlanFinder = find.text('Custom');
-      await tester.scrollUntilVisible(customPlanFinder, 50.0,
-          scrollable: scrollableFinder);
-      await tester.tap(customPlanFinder);
+      // Find and tap the plan that renders the "Additional devices" input
+      final additionalDevicesPlanFinder = find.text('More than 3 Devices');
+      await tester.scrollUntilVisible(
+        additionalDevicesPlanFinder,
+        50.0,
+        scrollable: scrollableFinder,
+      );
+      await tester.tap(additionalDevicesPlanFinder);
       await tester.pumpAndSettle();
 
       // Ensure "Additional devices" input appears
-      final additionalDevicesInputFinder = find.text('Additional devices');
+      final additionalDevicesInputFinder = find.text('More than 3 Devices');
       expect(additionalDevicesInputFinder, findsOneWidget);
 
       // Find and tap the add button
