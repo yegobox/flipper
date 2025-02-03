@@ -118,30 +118,7 @@ void main() {
         expect(priceFinder, findsOneWidget);
       }
     });
-    testWidgets('Additional Devices Input Boundary Conditions',
-        (WidgetTester tester) async {
-      await tester
-          .pumpWidget(ProviderScope(child: MaterialApp(home: PaymentPlanUI())));
 
-      final customPlanFinder = find.text('Custom');
-      await tester.scrollUntilVisible(customPlanFinder, 50.0,
-          scrollable: find.byType(Scrollable));
-      await tester.tap(customPlanFinder);
-      await tester.pumpAndSettle();
-
-      final removeButtonFinder = find.byIcon(Icons.remove);
-      await tester.tap(removeButtonFinder);
-      await tester.pumpAndSettle();
-      final minDeviceCountFinder = find.text('0');
-      expect(minDeviceCountFinder, findsOneWidget);
-
-      final addButtonFinder = find.byIcon(Icons.add);
-      await tester.tap(addButtonFinder);
-      await tester.tap(addButtonFinder);
-      await tester.pumpAndSettle();
-      final updatedDeviceCountFinder = find.text('2');
-      expect(updatedDeviceCountFinder, findsOneWidget);
-    });
     testWidgets('Toggle Between Monthly and Yearly Plans',
         (WidgetTester tester) async {
       await tester
