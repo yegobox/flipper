@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:brick_supabase/testing.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
@@ -10,15 +11,12 @@ import 'package:supabase_models/brick/brick.g.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
-import 'package:mockito/mockito.dart';
 // ignore: depend_on_referenced_packages
 export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
 const dbFileName = "flipper_v3.sqlite";
 const queueName = "brick_offline_queue.sqlite";
-
-class MockSupabaseClient extends Mock implements SupabaseClient {}
 
 class Repository extends OfflineFirstWithSupabaseRepository {
   static late Repository? _singleton;
@@ -65,10 +63,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     );
 
     final SupabaseClient supabaseClient;
+    final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
 
     if (DatabasePath.isTestEnvironment()) {
       // Use the mocked client in a test environment
-      supabaseClient = MockSupabaseClient();
+      supabaseClient =
+          SupabaseClient(mock.serverUrl, mock.apiKey, httpClient: client);
     } else {
       // Initialize the real Supabase client in a non-test environment
       supabaseClient = (await Supabase.initialize(
