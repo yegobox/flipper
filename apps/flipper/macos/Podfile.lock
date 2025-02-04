@@ -1731,7 +1731,7 @@ SPEC CHECKSUMS:
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   connectivity_plus: b21496ab28d1324eb59885d888a4d83b98531f01
   desktop_webview_auth: d7fba72ef3ee2292cf66d464eede3c1a4690da83
-  device_info_plus: a56e6e74dbbd2bb92f2da12c64ddd4f67a749041
+  device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   file_selector_macos: 6280b52b459ae6c590af5d78fc35c7267a3c4b31
   Firebase: 374a441a91ead896215703a674d58cdb3e9d772b
@@ -1785,7 +1785,7 @@ SPEC CHECKSUMS:
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
   Sentry: e9215d7b17f7902692b4f8700e061e4f853e3521
   sentry_flutter: ba644c90ccccb202066a5218a593d1c35584cd37
-  share_plus: 11c7b7fa7020465584eca3ff6392c5bc1e399d6e
+  share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   smart_auth: e10f1d22af5d9e1a51964fb1826cb177f993a7e1
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
