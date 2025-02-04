@@ -32,5 +32,6 @@ dependency_overrides:
   json_annotation: ^4.9.0
   sqlite3: ^2.7.2
   device_info_plus: ^11.2.2
-  # drift: ^2.24.0
+  drift: ^2.24.0
+  drift_flutter: ^0.2.4
   

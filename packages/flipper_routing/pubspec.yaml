@@ -27,7 +27,8 @@ dependency_overrides:
   sqlite3: ^2.7.2
   stacked: ^3.4.2
   device_info_plus: ^11.2.2
-  # drift: ^2.24.0
+  drift: ^2.24.0
+  drift_flutter: ^0.2.4
   
 dev_dependencies:
   flutter_test:

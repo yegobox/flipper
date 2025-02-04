@@ -15,7 +15,8 @@ dependency_overrides:
   http: ^1.2.2
   meta: ^1.11.0
   device_info_plus: ^11.2.2
-  # drift: ^2.24.0
+  drift: ^2.24.0
+  drift_flutter: ^0.2.4
   
   web: ^1.0.0
   
