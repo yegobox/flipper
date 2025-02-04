@@ -24,7 +24,8 @@ dependencies:
   mockito: ^5.4.5
 dependency_overrides: 
   brick_offline_first_build: ^3.3.0
-
+  device_info_plus: ^11.2.2
+  drift: ^2.24.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

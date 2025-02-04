@@ -1,7 +1,7 @@
 name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 1.170.4252223233153+1738567436
+version: 1.170.4252223233154+1738684704
 
 
 environment:
@@ -52,7 +52,6 @@ dependencies:
   cupertino_icons: ^1.0.2
   connectivity_plus: ^6.0.5
   #google_mobile_ads: ^5.0.0
-  # device_info_plus: ^10.1.0
   provider: ^6.0.1
   gap: ^2.0.0
   barcode: ">=2.2.3 <3.0.0"
@@ -116,7 +115,7 @@ dependencies:
   fast_cached_network_image: ^1.1.1
   flutter_chat_ui: ^1.6.10
   firebase_remote_config: ^5.1.3
-  share_plus: ^9.0.0
+  share_plus: ^10.1.4
   firebase_messaging: ^15.2.0
   country_code_picker: ^3.0.0
   firebase_ui_localizations: ^1.9.0
@@ -124,7 +123,6 @@ dependencies:
     sdk: flutter
   flutter_localization: ^0.2.2
   get_storage: ^2.1.1
-  # js: ^0.6.3
   flutter_web_plugins:
     sdk: flutter
   args:
@@ -132,11 +130,11 @@ dependencies:
   markdown:
   string_scanner:
   pdf: ^3.11.1
-  printing: ^5.13.4
+  printing: ^5.14.0
   ffi: ">=2.0.0 <3.0.0"
   pdf_widget_wrapper: '>=1.0.0 <2.0.0'
   plugin_platform_interface: ^2.1.0
-  web: ^0.5.1
+  web: ^1.1.0
   archive: ^3.1.0
   bidi: ^2.0.10
   crypto: ^3.0.0
@@ -149,7 +147,7 @@ dependencies:
   win32: ^5.0.0
   qr: ^3.0.0
   flutter_bloc: ^8.0.1
-  flutter_keyboard_visibility: ^6.0.0
+  
   bloc: ^8.0.1
   flipper_dashboard: any
   flipper_models: any
@@ -157,11 +155,11 @@ dependencies:
   flipper_services: any
   flipper_login: any
   sqlite3_flutter_libs: ^0.5.29
-  amplify_core: ^2.5.0
-  amplify_api: ^2.5.0
-  amplify_flutter: ^2.5.0
-  amplify_auth_cognito: ^2.5.0
-  amplify_storage_s3: ^2.5.0
+  amplify_core: ^2.6.0
+  amplify_api: ^2.6.0
+  amplify_flutter: ^2.6.0
+  amplify_auth_cognito: ^2.6.0
+  amplify_storage_s3: ^2.6.0
   shared_preferences: ^2.3.2
   easy_localization: ^3.0.7 
   # cloud_firestore: ^5.4.3
@@ -172,10 +170,12 @@ dependencies:
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.12.0
-  web: ^0.5.1
+  web: ^1.1.0
   sqlite3: ^2.7.2
   stacked_services: ^1.6.0
   stacked: ^3.4.2
+  device_info_plus: ^11.2.2
+  drift: ^2.24.0
   
  
 dev_dependencies:
@@ -215,7 +215,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.3303.0
+  msix_version: 1.170.3304.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"

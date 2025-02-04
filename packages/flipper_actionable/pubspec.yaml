@@ -18,6 +18,8 @@ dependency_overrides:
   web: ^1.0.0
   json_annotation: ^4.9.0
   sqlite3: ^2.7.2
+  device_info_plus: ^11.2.2
+  drift: ^2.24.0
   
 dev_dependencies:
   flutter_test:

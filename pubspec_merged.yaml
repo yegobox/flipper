@@ -71,7 +71,6 @@ dependencies:
   flipper_login: any
   connectivity_plus: ^6.0.5
   #google_mobile_ads: ^5.0.0
-  # device_info_plus: ^10.1.0
   provider: ^6.0.1
   gap: ^2.0.0
   barcode: ">=2.2.3 <3.0.0"
@@ -164,7 +163,7 @@ dependencies:
   #TODO: added flipper_dashboard here only becase we need customAppBar
   
   firebase_remote_config: ^5.1.3
-  share_plus: ^9.0.0
+  share_plus: ^10.1.4
   firebase_messaging: ^15.2.0
   image: ^4.0.17
   firebase_auth: ^5.4.0
@@ -224,7 +223,6 @@ dependencies:
     sdk: flutter
   flutter_localization: ^0.2.2
   get_storage: ^2.1.1
-  js: ^0.6.3
   flutter_web_plugins:
     sdk: flutter
   args:
@@ -232,11 +230,11 @@ dependencies:
   markdown:
   string_scanner:
   pdf: ^3.11.1
-  printing: ^5.13.4
+  printing: ^5.14.0
   ffi: ">=2.0.0 <3.0.0"
   pdf_widget_wrapper: '>=1.0.0 <2.0.0'
   plugin_platform_interface: ^2.1.0
-  web: ^0.5.1
+  web: ^1.1.0
   archive: ^3.1.0
   bidi: ^2.0.10
   crypto: ^3.0.0
@@ -253,12 +251,12 @@ dependencies:
   flutter_bloc: ^8.0.1
   form_bloc:
     path: "../"
-  flutter_keyboard_visibility: ^6.0.0
+  
   bloc: ^8.0.1
-  amplify_core: ^2.5.0
-  amplify_api: ^2.5.0
-  amplify_flutter: ^2.5.0
-  amplify_auth_cognito: ^2.5.0
+  amplify_core: ^2.6.0
+  amplify_api: ^2.6.0
+  amplify_flutter: ^2.6.0
+  amplify_auth_cognito: ^2.6.0
   amplify_storage_s3: ^2.5.0
   
   
