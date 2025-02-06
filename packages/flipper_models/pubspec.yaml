@@ -22,8 +22,8 @@ dependencies:
   flipper_routing: ^1.0.0
   connectivity_plus: ^6.0.5
   
-  sentry: ^8.6.0
-  sentry_flutter: ^8.10.1
+  sentry: ^8.13.0
+  sentry_flutter: ^8.13.0
   
   path_provider: ^2.1.5
   http: ^1.2.2
@@ -50,7 +50,7 @@ dependencies:
   amplify_storage_s3: ^2.6.0
   async: ^2.11.0
   mime: ^1.0.6
-  firebase_core: ^3.10.0
+  firebase_core: ^3.11.0
   sqlite3_flutter_libs: ^0.5.29
   permission_handler: ^11.3.1
   cloud_firestore_odm: ^1.0.0-dev.88
