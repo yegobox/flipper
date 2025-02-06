@@ -84,7 +84,7 @@ jobs:
 
       - name: Build and Package
         run: |
-          dart pub global activate melos 6.2.0
+          dart pub global activate melos 6.3.2
           melos bootstrap
           cd apps/flipper
           flutter clean

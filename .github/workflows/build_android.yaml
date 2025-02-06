@@ -58,7 +58,7 @@ jobs:
         run: git submodule update --init
       - name: Load melos
         run: |
-          dart pub global activate melos 6.2.0
+          dart pub global activate melos 6.3.2
           melos bootstrap
       - name: Configure Missing files
         run: |
