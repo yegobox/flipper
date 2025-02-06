@@ -172,7 +172,7 @@ dependencies:
   firebase_analytics: ^11.4.0
   firebase_crashlytics: ^4.3.2
   location: ^6.0.2
-  google_sign_in: ^6.2.1
+  google_sign_in: ^6.2.2
   http: ">=0.13.0 <2.0.0"
   path_provider: ^2.1.5
   path: ^1.8.1

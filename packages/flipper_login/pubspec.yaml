@@ -42,7 +42,7 @@ dependencies:
   sentry_flutter: ^8.13.0
   flipper_models: any
   # realm: ^20.0.0
-  google_sign_in: ^6.2.1
+  google_sign_in: ^6.2.2
   firebase_ui_oauth_apple: ^1.3.0
 
   
