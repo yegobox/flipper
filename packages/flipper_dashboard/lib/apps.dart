@@ -339,7 +339,9 @@ class _AppsState extends ConsumerState<Apps> {
     log(transactions.length.toString(), name: 'render transactions on gauge');
     DateTime startingDate = _calculateStartingDate(transactionPeriod);
     return transactions
-        .where((transaction) => transaction.createdAt!.isAfter(startingDate))
+        .where((transaction) =>
+            transaction.createdAt!.isAfter(startingDate) ||
+            transaction.createdAt!.isAtSameMomentAs(startingDate))
         .toList();
   }
 

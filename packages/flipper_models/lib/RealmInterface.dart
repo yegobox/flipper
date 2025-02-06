@@ -197,6 +197,7 @@ abstract class RealmInterface {
       bool ebmSynced = false,
       String? pchsSttsCd,
       double? totAmt,
+      String? itemCd,
       double? taxAmt});
 
   Stream<ITransaction> manageTransactionStream(

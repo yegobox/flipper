@@ -47,7 +47,7 @@ dependencies:
   amplify_api: ^2.6.0
   amplify_flutter: ^2.6.0
   amplify_auth_cognito: ^2.6.0
-  amplify_storage_s3: ^2.5.0
+  amplify_storage_s3: ^2.6.0
   async: ^2.11.0
   mime: ^1.0.6
   firebase_core: ^3.10.0
@@ -77,8 +77,7 @@ dependency_overrides:
   sqlite3: ^2.7.2
   stacked_services: ^1.6.0
   device_info_plus: ^11.2.2
-  drift: ^2.24.0
-  drift_flutter: ^0.2.4
+  
   # amplify_db_common:
   #   git:
   #     url: https://github.com/aws-amplify/amplify-flutter.git

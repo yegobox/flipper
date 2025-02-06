@@ -12,7 +12,7 @@ class UnitOfMeasureDropdown extends StatelessWidget {
     Key? key,
     required this.items,
     required this.selectedItem,
-     this.onChanged,
+    this.onChanged,
     this.isLoading = false,
     this.error,
   }) : super(key: key);
@@ -34,11 +34,12 @@ class UnitOfMeasureDropdown extends StatelessWidget {
     return Container(
       width: double.infinity,
       child: DropdownSearch<String>(
-        items: items,
+        items: (a, b) => items,
         selectedItem: selectedItem,
         onChanged: onChanged,
-        dropdownDecoratorProps: const DropDownDecoratorProps(
-          dropdownSearchDecoration: InputDecoration(
+        compareFn: (String i, String s) => i == s,
+        decoratorProps: const DropDownDecoratorProps(
+          decoration: InputDecoration(
             border: OutlineInputBorder(
               borderSide: BorderSide.none,
             ),

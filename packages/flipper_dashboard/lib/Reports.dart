@@ -255,7 +255,7 @@ class ReportsDashboard extends HookConsumerWidget {
           final index = entry.key.toDouble(); // Cast index to double
           final analytic = entry.value;
           return FlSpot(
-              index, analytic.value.toDouble()); // Cast value to double
+              index, analytic.price.toDouble()); // Cast value to double
         }).toList();
 
         return Card(

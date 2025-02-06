@@ -79,7 +79,7 @@ dependencies:
   badges: ^3.1.2
   community_charts_flutter: ^1.0.2
   
-  dropdown_search: ^5.0.6
+  dropdown_search: ^6.0.2
   loading_animation_widget: ^1.2.0+4
   email_validator_flutter: ^1.0.0
   #TODO: because this is community package, I have applied for community licence
@@ -125,8 +125,7 @@ dependency_overrides:
   json_annotation: ^4.9.0
   sqlite3: ^2.7.2
   device_info_plus: ^11.2.2
-  drift: ^2.24.0
-  drift_flutter: ^0.2.4
+  
 
 flutter:
   # The following line ensures that the Material Icons font is

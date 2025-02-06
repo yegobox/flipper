@@ -32,7 +32,7 @@ class DataView extends StatefulHookConsumerWidget {
     required this.showDetailedReport,
     required this.rowsPerPage,
     this.transactionItems,
-    this.showPluReport = true,
+    this.showDetailed = true,
     this.onTapRowShowRefundModal = true,
     this.onTapRowShowRecountModal = false,
   });
@@ -44,7 +44,7 @@ class DataView extends StatefulHookConsumerWidget {
   final bool showDetailedReport;
   final int rowsPerPage;
   final List<TransactionItem>? transactionItems;
-  final bool showPluReport;
+  final bool showDetailed;
   final bool onTapRowShowRefundModal;
   final bool onTapRowShowRecountModal;
 
@@ -166,7 +166,7 @@ class DataViewState extends ConsumerState<DataView>
   Widget _buildHeader() {
     return Row(
       children: [
-        if (widget.showPluReport) _buildReportTypeSwitch(),
+        if (widget.showDetailed) _buildReportTypeSwitch(),
         _buildRowsPerPageInput(),
         if (widget.showDetailedReport) datePicker(),
         _buildExportButton(),
@@ -194,7 +194,7 @@ class DataViewState extends ConsumerState<DataView>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            ref.read(toggleBooleanValueProvider) ? 'PLU Report' : 'ZReport',
+            ref.read(toggleBooleanValueProvider) ? 'Detailed' : 'Summarized',
             style: TextStyle(
               fontSize: 16.0,
               fontWeight: FontWeight.w500,
@@ -358,19 +358,20 @@ class DataViewState extends ConsumerState<DataView>
     }
 
     exportDataGrid(
-      isStockRecount: isStockRecount,
-      config: config,
-      headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
-      expenses: expenses,
-    );
+        isStockRecount: isStockRecount,
+        config: config,
+        headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
+        expenses: expenses,
+        bottomEndOfRowTitle: widget.showDetailed == true
+            ? "Total Gross Profit"
+            : "Closing balance");
   }
 
   double _calculateGrossProfit() {
     if (widget.transactionItems == null) return 0;
     return widget.transactionItems!.fold<double>(
       0.0,
-      (sum, item) =>
-          sum + ((item.qty * item.price) - (item.qty * item.price)),
+      (sum, item) => sum + ((item.qty * item.price) - (item.qty * item.price)),
     );
   }
 

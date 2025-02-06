@@ -45,7 +45,7 @@ dependencies:
   google_fonts: ^6.1.0
   shared_preferences: ^2.3.2
   newrelic_mobile: ^1.0.5
-  flutter_local_notifications: ^19.0.0-dev.4
+  flutter_local_notifications: ^19.0.0-dev.5
  
   window_manager: ^0.4.0
   launcher_entry: ^0.1.1
@@ -66,8 +66,7 @@ dependency_overrides:
   sqlite3: ^2.7.2
   package_info_plus: ^8.1.1
   device_info_plus: ^11.2.2
-  drift: ^2.24.0
-  drift_flutter: ^0.2.4
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

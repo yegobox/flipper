@@ -1,7 +1,7 @@
 name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 1.170.4252223233162+1738695022
+version: 1.170.4252223233163+1738835010
 
 
 environment:
@@ -15,7 +15,7 @@ dependencies:
   sentry_flutter: ^8.10.1
   
   firebase_crashlytics: ^4.3.0
-  flutter_local_notifications: ^19.0.0-dev.4
+  flutter_local_notifications: ^19.0.0-dev.5
   intl: ^0.19.0
   injectable: ^2.5.0
   get_it: ^7.7.0
@@ -80,7 +80,7 @@ dependencies:
   badges: ^3.1.2
   community_charts_flutter: ^1.0.2
   
-  dropdown_search: ^5.0.6
+  dropdown_search: ^6.0.2
   loading_animation_widget: ^1.2.0+4
   email_validator_flutter: ^1.0.0
   #TODO: because this is community package, I have applied for community licence
@@ -175,8 +175,7 @@ dependency_overrides:
   stacked_services: ^1.6.0
   stacked: ^3.4.2
   device_info_plus: ^11.2.2
-  drift: ^2.24.0
-  drift_flutter: ^0.2.4
+  
   
  
 dev_dependencies:
@@ -216,7 +215,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.3312.0
+  msix_version: 1.170.3313.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"

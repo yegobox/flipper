@@ -23,6 +23,11 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
+        <property
+            android:name="android.adservices.AD_SERVICES_CONFIG"
+            android:resource="@xml/gma_ad_services_config"
+            tools:replace="android:resource" />
+
         <!-- Configure admob-->
         <meta-data
             android:name="com.google.android.gms.version"
@@ -30,6 +35,8 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-2256315296357491~9455533288" />
+
+            
 
         <activity
             android:name=".MainActivity"

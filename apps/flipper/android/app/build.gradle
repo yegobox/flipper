@@ -34,7 +34,7 @@ if (keystorePropertiesFile.exists()) {
 }
 android {
     namespace "rw.flipper"
-    compileSdkVersion 34
+    compileSdkVersion 35
     testOptions {
         execution "ANDROIDX_TEST_ORCHESTRATOR"
     }
@@ -42,6 +42,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -63,11 +64,12 @@ android {
         minSdkVersion 24
         // minSdkVersion flutter.minSdkVersion
         // targetSdkVersion flutter.targetSdkVersion
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "pl.leancode.patrol.PatrolJUnitRunner"
         testInstrumentationRunnerArguments clearPackageData: "true"
+        multiDexEnabled true
 
     }
     signingConfigs {
@@ -98,12 +100,17 @@ flutter {
 dependencies {
     implementation 'com.google.android.gms:play-services-base:18.5.0'
     implementation 'com.google.android.gms:play-services-auth:21.2.0'
-    implementation 'com.google.android.gms:play-services-ads:23.3.0'
+    implementation ('com.google.android.gms:play-services-ads:23.3.0') {
+        exclude group: 'com.google.android.gms', module: 'play-services-measurement-api'
+    }
     implementation platform('com.google.firebase:firebase-bom:33.3.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-firestore'
-
     implementation 'com.google.firebase:firebase-auth-ktx'
 
     androidTestUtil "androidx.test:orchestrator:1.4.2"
+
+    // Desugaring library for supporting Java on old devices
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'
 }
+

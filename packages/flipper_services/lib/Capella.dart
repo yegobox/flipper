@@ -1779,6 +1779,7 @@ class Capella with Booting implements RealmInterface {
     String? qtyUnitCd,
     int? totWt,
     int? netWt,
+    String? itemCd,
     String? spplrNm,
     String? agntNm,
     int? invcFcurAmt,

@@ -110,7 +110,7 @@ dependencies:
   badges: ^3.1.2
   community_charts_flutter: ^1.0.2
   
-  dropdown_search: ^5.0.6
+  dropdown_search: ^6.0.2
   loading_animation_widget: ^1.2.0+4
   email_validator_flutter: ^1.0.0
   #TODO: because this is community package, I have applied for community licence
@@ -184,7 +184,7 @@ dependencies:
   
   shared_preferences: ^2.3.2
   newrelic_mobile: ^1.0.5
-  flutter_local_notifications: ^19.0.0-dev.4
+  flutter_local_notifications: ^19.0.0-dev.5
   
   window_manager: ^0.4.0
   launcher_entry: ^0.1.1
@@ -257,7 +257,7 @@ dependencies:
   amplify_api: ^2.6.0
   amplify_flutter: ^2.6.0
   amplify_auth_cognito: ^2.6.0
-  amplify_storage_s3: ^2.5.0
+  amplify_storage_s3: ^2.6.0
   
   
 

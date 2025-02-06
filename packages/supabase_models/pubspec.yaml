@@ -25,8 +25,7 @@ dependencies:
 dependency_overrides: 
   brick_offline_first_build: ^3.3.0
   device_info_plus: ^11.2.2
-  drift: ^2.24.0
-  drift_flutter: ^0.2.4
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

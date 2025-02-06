@@ -63,7 +63,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
 
   Future<List<Variant>> _fetchDataImport(
       {required DateTime selectedDate}) async {
-    final convertedDate = convertDateToString(selectedDate);
+    final convertedDate = selectedDate.toYYYYMMddHH0000();
     final business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     final data = await ProxyService.strategy.selectImportItems(
@@ -77,7 +77,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   Future<List<Variant>> _fetchDataPurchase(
       {required DateTime selectedDate}) async {
     try {
-      final convertedDate = convertDateToString(selectedDate);
+      final convertedDate = selectedDate.toYYYYMMddHH0000();
       final business = await ProxyService.strategy
           .getBusiness(businessId: ProxyService.box.getBusinessId()!);
       final url = await ProxyService.box.getServerUrl();
@@ -95,9 +95,6 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       rethrow;
     }
   }
-
-  String convertDateToString(DateTime date) =>
-      DateFormat('yyyyMMddHHmmss').format(date);
 
   void _pickDate() async {
     final pickedDate = await showDatePicker(
@@ -135,17 +132,11 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     });
   }
 
-  void _selectItemPurchase(Variant? item) {
+  Map<String, Variant> itemMapper = {};
+  void _asignPurchaseItem(
+      {required Variant itemToAssign, required Variant itemFromPurchase}) {
     setState(() {
-      _selectedPurchaseItem = item;
-      if (item != null) {
-        _nameController.text = item.itemNm ?? item.name;
-        _supplyPriceController.text = item.prc.toString();
-      } else {
-        _nameController.clear();
-        _supplyPriceController.clear();
-        _retailPriceController.clear();
-      }
+      itemMapper.putIfAbsent(itemToAssign.id, () => itemFromPurchase);
     });
   }
 
@@ -219,7 +210,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                       children: [
                         Expanded(
                           child: Text(
-                            'Import From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
+                            isImport
+                                ? 'Import From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}'
+                                : 'Purchase From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
                             style: TextStyle(fontSize: 16),
                           ),
                         ),
@@ -261,10 +254,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                       : FutureBuilder<List<Variant>>(
                           future: _futurePurchaseResponse,
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
-                            } else if (snapshot.hasError) {
+                            if (snapshot.hasError) {
                               return Center(
                                   child: Text('Error: ${snapshot.error}'));
                             } else if (!snapshot.hasData ||
@@ -285,12 +275,16 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                       .read(pendingTransactionProvider.future);
                                   model.acceptPurchase(
                                     variants: variants,
+                                    itemMapper: itemMapper,
                                     pendingTransaction: pendingTransaction,
                                     pchsSttsCd: pchsSttsCd,
                                   );
                                 },
-                                selectSale: (Variant? selectedItem) =>
-                                    _selectItemPurchase(selectedItem),
+                                selectSale: (Variant? itemToAssign,
+                                        Variant? itemFromPurchase) =>
+                                    _asignPurchaseItem(
+                                        itemToAssign: itemToAssign!,
+                                        itemFromPurchase: itemFromPurchase!),
                                 finalSalesList: salesList,
                               );
                             }

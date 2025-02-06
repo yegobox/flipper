@@ -913,13 +913,13 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> acceptPurchase(
       {required List<Variant> variants,
       required ITransaction pendingTransaction,
-      required String pchsSttsCd}) async {
+      required String pchsSttsCd,
+      Map<String, Variant>? itemMapper}) async {
     try {
       isLoading = true;
       notifyListeners();
 
       talker.warning("salesListLenghts" + salesList.length.toString());
-      final ref = randomNumber();
 
       for (Variant variant in variants) {
         variant.retailPrice ??= variant.prc;
@@ -944,7 +944,7 @@ class CoreViewModel extends FlipperBaseModel
           status: PARKED,
           sarTyCd: "6",
           receiptNumber: randomNumber(),
-          reference: ref.toString(),
+          reference: randomNumber().toString(),
           invoiceNumber: randomNumber(),
           receiptType: TransactionType.purchase,
           customerTin: ProxyService.box.tin().toString(),
@@ -966,6 +966,26 @@ class CoreViewModel extends FlipperBaseModel
           URI: await ProxyService.box.getServerUrl() ?? "",
           pchsSttsCd: pchsSttsCd,
         );
+        //TODO: if it is canceled handle it, delete item from our local as well.
+        itemMapper?.forEach(
+            (String itemToAssignId, Variant variantFromPurchase) async {
+          Variant? variant =
+              await ProxyService.strategy.getVariant(id: itemToAssignId);
+
+          /// update the rerevant stock
+          if (variant != null) {
+            await ProxyService.strategy.updateStock(
+                stockId: variant.stock!.id,
+                rsdQty: variantFromPurchase.stock!.currentStock,
+                initialStock: variantFromPurchase.stock!.currentStock,
+                currentStock: variantFromPurchase.stock!.currentStock,
+                value: variantFromPurchase.stock!.currentStock! *
+                    variantFromPurchase.retailPrice!);
+            // delete the purchase item
+            await ProxyService.strategy
+                .delete(id: variantFromPurchase.id, endPoint: 'variant');
+          }
+        });
       }
 
       ProxyService.strategy.updateTransaction(

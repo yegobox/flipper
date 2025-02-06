@@ -680,7 +680,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? pchsSttsCd,
       double? totAmt,
       double? taxAmt,
-      double? taxblAmt}) async {
+      double? taxblAmt,
+      String? itemCd}) async {
     final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
 
@@ -698,6 +699,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       dclNo: dclNo ?? "",
       taskCd: taskCd ?? "",
       dclDe: dclDe ?? "",
+
       hsCd: hsCd ?? "",
       imptItemSttsCd: imptItemsttsCd ?? "",
       lastTouched: DateTime.now(),
@@ -727,7 +729,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               quantityUnit: "BJ",
               branchId: branchId,
             )
-          : null,
+          : itemCd,
       modrNm: name,
       modrId: number,
       pkgUnitCd: pkgUnitCd ?? "BJ",
@@ -814,7 +816,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String? pchsSttsCd,
       double? totAmt,
       double? taxAmt,
-      double? taxblAmt}) async {
+      double? taxblAmt,
+      String? itemCd}) async {
     try {
       final String productName = product.name;
       if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
@@ -842,6 +845,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           taxblAmt: taxblAmt,
           taxAmt: taxAmt,
           totAmt: totAmt,
+          itemCd: itemCd,
           createItemCode: createItemCode,
           taxTypes: taxTypes,
           saleListId: saleListId,
@@ -3001,7 +3005,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     DateTime? startDate,
     DateTime? endDate,
   }) {
-    talker.warning("Loading transaction with $status && branchId $branchId");
     final List<brick.Where> conditions = [
       brick.Where('status').isExactly(status ?? COMPLETE),
       brick.Where('subTotal').isGreaterThan(0),
@@ -3012,10 +3015,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // talker.warning(conditions.toString());
     if (startDate != null && endDate != null) {
       if (startDate == endDate) {
+        // Ensure we include the entire day
+        DateTime endOfDay = startDate.add(Duration(days: 1));
+
         conditions.add(
           brick.Where('lastTouched').isBetween(
             startDate.toUtc().toIso8601String(),
-            startDate.add(Duration(days: 1)).toUtc().toIso8601String(),
+            endOfDay.toUtc().toIso8601String(),
           ),
         );
       } else {
@@ -3031,8 +3037,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // Directly return the stream from the repository
     return repository
         .subscribe<ITransaction>(
-            query: queryString,
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
+            query: queryString, policy: OfflineFirstGetPolicy.alwaysHydrate)
         .map((data) {
       print('Transaction stream data: ${data.length} records');
       return data;
@@ -3913,13 +3918,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       DateTime? lastTouched}) async {
     Stock? stock = await getStockById(id: stockId);
 
-    stock.currentStock = currentStock ?? qty ?? stock.currentStock;
-    stock.rsdQty = rsdQty ?? stock.rsdQty;
-    stock.initialStock = initialStock ?? qty ?? stock.initialStock;
+    stock.currentStock =
+        (stock.currentStock ?? 0) + (currentStock ?? qty ?? rsdQty ?? 0);
+    stock.rsdQty = (stock.rsdQty ?? 0) + (rsdQty ?? qty ?? 0);
+    stock.initialStock =
+        (stock.initialStock ?? 0) + (initialStock ?? qty ?? rsdQty ?? 0);
     stock.ebmSynced = ebmSynced ?? stock.ebmSynced;
     stock.value = value ?? stock.value;
     stock.lastTouched = lastTouched ?? stock.lastTouched;
-    repository.upsert(stock);
+    await repository.upsert(stock);
   }
 
   @override
@@ -4269,6 +4276,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       }
 
       updatables[i].name = name;
+      updatables[i].itemStdNm = name;
+      updatables[i].spplrItemNm = name;
       double rate = rates?[updatables[i].id] == null
           ? 0
           : double.parse(rates![updatables[i].id]!);
@@ -5250,6 +5259,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               tinNumber: tinNumber,
               taxblAmt: variant.taxblAmt,
               bhFId: bhfId,
+              itemCd: variant.itemCd,
               spplrItemCd: variant.itemCd,
               itemClasses: {barCode: variant.itemClsCd ?? ""},
               supplyPrice: variant.splyAmt!,
@@ -5424,10 +5434,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<List<BusinessAnalytic>> analytics({required int branchId}) async {
-    return await repository.get<BusinessAnalytic>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
-        query:
-            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
+    try {
+      final data = await repository.get<BusinessAnalytic>(
+          policy: OfflineFirstGetPolicy.alwaysHydrate,
+          query: brick.Query(
+              where: [brick.Where('branchId').isExactly(branchId)]));
+      return data;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override
