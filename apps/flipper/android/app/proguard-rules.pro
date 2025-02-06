@@ -1,0 +1,13 @@
+# Keep Google Play Services Credentials API classes
+-keep class com.google.android.gms.auth.api.credentials.** { *; }
+-keep class com.google.android.gms.auth.api.credentials.Credential { *; }
+-keep class com.google.android.gms.auth.api.credentials.Credential$Builder { *; }
+-keep class com.google.android.gms.auth.api.credentials.CredentialPickerConfig { *; }
+-keep class com.google.android.gms.auth.api.credentials.CredentialPickerConfig$Builder { *; }
+-keep class com.google.android.gms.auth.api.credentials.CredentialRequest { *; }
+-keep class com.google.android.gms.auth.api.credentials.CredentialRequest$Builder { *; }
+-keep class com.google.android.gms.auth.api.credentials.CredentialRequestResponse { *; }
+-keep class com.google.android.gms.auth.api.credentials.Credentials { *; }
+-keep class com.google.android.gms.auth.api.credentials.CredentialsClient { *; }
+-keep class com.google.android.gms.auth.api.credentials.HintRequest { *; }
+-keep class com.google.android.gms.auth.api.credentials.HintRequest$Builder { *; }
