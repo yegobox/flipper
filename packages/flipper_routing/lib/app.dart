@@ -754,3 +754,6 @@ class App {}
 // d0d742ef-4c6a-4cc7-9bd5-a3a4de5bc44e
 
 //62c494a9-53d3-4de2-a37a-055ec06fa606 
+
+// accounting research:
+// https://chat.deepseek.com/a/chat/s/d2353971-acce-41b8-875b-2bbb4cb66efe
