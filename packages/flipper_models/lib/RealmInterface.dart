@@ -308,6 +308,7 @@ abstract class RealmInterface {
     required int branchId,
     String? id,
     bool? active,
+    bool fetchRemote = false,
   });
 
   FutureOr<List<Stock>> stocks({required int branchId});

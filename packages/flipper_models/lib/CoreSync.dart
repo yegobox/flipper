@@ -4171,10 +4171,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required int branchId,
     String? id,
     bool? active,
+    bool fetchRemote = false,
   }) async {
     final items = await repository.get<TransactionItem>(
-        // TODO: switch to local only when in prod.
-        policy: OfflineFirstGetPolicy.localOnly,
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : OfflineFirstGetPolicy.localOnly,
         query: brick.Query(where: [
           if (transactionId != null)
             brick.Where('transactionId').isExactly(transactionId),

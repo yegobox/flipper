@@ -117,29 +117,37 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
   Widget buildTransactionButtons(CoreViewModel model) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: 16.0), // Add horizontal padding
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
-        mainAxisAlignment:
-            MainAxisAlignment.spaceAround, // Use spaceAround for better spacing
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          FlipperButton(
-            text: 'Cash In',
-            color: Colors.green,
-            onPressed: () {
-              model.newTransactionPressed = true;
-              model.newTransactionType = TransactionType.cashIn;
-              model.notifyListeners();
-            },
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: FlipperButton(
+                text: TransactionType.cashIn,
+                color: Colors.green,
+                onPressed: () {
+                  model.newTransactionPressed = true;
+                  model.newTransactionType = TransactionType.cashIn;
+                  model.notifyListeners();
+                },
+              ),
+            ),
           ),
-          FlipperButton(
-            text: TransactionType.cashOut,
-            color: const Color(0xFFFF0331),
-            onPressed: () {
-              model.newTransactionPressed = true;
-              model.newTransactionType = TransactionType.cashOut;
-              model.notifyListeners();
-            },
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: FlipperButton(
+                text: TransactionType.cashOut,
+                color: const Color(0xFFFF0331),
+                onPressed: () {
+                  model.newTransactionPressed = true;
+                  model.newTransactionType = TransactionType.cashOut;
+                  model.notifyListeners();
+                },
+              ),
+            ),
           ),
         ],
       ),

@@ -1346,6 +1346,7 @@ class Capella with Booting implements RealmInterface {
     required int branchId,
     String? id,
     bool? active,
+    bool fetchRemote = false,
   }) {
     // TODO: implement transactionItems
     throw UnimplementedError();

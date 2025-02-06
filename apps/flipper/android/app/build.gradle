@@ -1,5 +1,6 @@
 plugins {
     id "com.android.application"
+    // id "com.android.application" version "8.8.0" apply false
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
     id "com.google.gms.google-services"
@@ -111,6 +112,10 @@ dependencies {
     androidTestUtil "androidx.test:orchestrator:1.4.2"
 
     // Desugaring library for supporting Java on old devices
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'
+    // https://github.com/flutter/flutter/issues/110658
+    implementation 'androidx.window:window:1.0.0'
+    implementation 'androidx.window:window-java:1.0.0'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+   
 }
 
