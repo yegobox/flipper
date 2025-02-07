@@ -19,7 +19,7 @@ dependencies:
   firebase_auth: ^5.4.2
   geolocator: ^13.0.2
   geocode: ^1.0.3
-  firebase_analytics: ^11.4.0
+  firebase_analytics: ^11.4.2
   firebase_crashlytics: ^4.3.2
   location: ^6.0.2
   google_sign_in: ^6.2.2
