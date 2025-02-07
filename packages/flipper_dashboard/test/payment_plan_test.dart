@@ -16,10 +16,6 @@ void main() {
   group('PaymentPlan Widget Tests', () {
     setUpAll(() async {
       await initializeDependenciesForTest();
-
-      // Register a mock RouterService with locator
-      final mockRouterService = MockRouterService();
-      locator.registerSingleton<RouterService>(mockRouterService);
     });
     tearDownAll(() {
       locator.unregister<RouterService>();
@@ -77,7 +73,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Ensure "Additional devices" input appears
-      final additionalDevicesInputFinder = find.text('Additional devices');
+      // final additionalDevicesInputFinder = find.text('Additional devices');
       //this line makes the test fail!
       //expect(additionalDevicesInputFinder, findsOneWidget);
 
