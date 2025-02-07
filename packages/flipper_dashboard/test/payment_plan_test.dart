@@ -3,9 +3,7 @@ import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:mockito/mockito.dart';
-import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class MockRouterService extends Mock implements RouterService {}
@@ -18,7 +16,7 @@ void main() {
       await initializeDependenciesForTest();
     });
     tearDownAll(() {
-      locator.unregister<RouterService>();
+      // locator.unregister<RouterService>();
     });
 
     testWidgets('Initial Price is Correct', (WidgetTester tester) async {
