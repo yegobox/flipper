@@ -14,6 +14,7 @@
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
                      android:maxSdkVersion="29" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
         tools:replace="android:label"
@@ -22,6 +23,18 @@
         android:fullBackupContent="false"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- https://github.com/Levi-Lesches/flutter_local_notifications/blob/readme-refactor/flutter_local_notifications/docs/android-setup.md -->
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+            <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
+
+      
 
         <!-- Configure admob-->
         <meta-data
@@ -30,6 +43,12 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-2256315296357491~9455533288" />
+
+        <meta-data
+            android:name="com.google.android.gms.ads.adservices.config"
+            android:resource="@xml/gma_ad_services_config"/>
+
+            
 
         <activity
             android:name=".MainActivity"

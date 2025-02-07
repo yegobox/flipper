@@ -197,6 +197,7 @@ abstract class RealmInterface {
       bool ebmSynced = false,
       String? pchsSttsCd,
       double? totAmt,
+      String? itemCd,
       double? taxAmt});
 
   Stream<ITransaction> manageTransactionStream(
@@ -307,6 +308,7 @@ abstract class RealmInterface {
     required int branchId,
     String? id,
     bool? active,
+    bool fetchRemote = false,
   });
 
   FutureOr<List<Stock>> stocks({required int branchId});
@@ -878,4 +880,5 @@ abstract class RealmInterface {
 
   Future<double> fetchCost(int branchId);
   Future<List<BusinessAnalytic>> analytics({required int branchId});
+  Future<void> deleteFailedQueue();
 }

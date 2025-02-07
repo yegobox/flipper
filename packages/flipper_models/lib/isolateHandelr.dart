@@ -18,7 +18,9 @@ import 'package:intl/intl.dart';
 import 'dart:async';
 import 'package:supabase_models/brick/repository.dart' as brick;
 import 'package:supabase_models/brick/repository.dart';
-import 'package:sqlite3/sqlite3.dart';
+
+import 'package:sqlite3/sqlite3.dart'
+    if (dart.library.html) 'package:flipper_models/web_sqlite_stub.dart';
 
 final repository = Repository();
 mixin VariantPatch {

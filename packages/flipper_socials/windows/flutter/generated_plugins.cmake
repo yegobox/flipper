@@ -5,7 +5,6 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   amplify_db_common
   app_links
-  cbl_flutter_ce
   cloud_firestore
   connectivity_plus
   desktop_webview_auth
@@ -15,20 +14,20 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_localization
   geolocator_windows
   local_auth_windows
-  local_notifier
   permission_handler_windows
   printing
-  realm
-  screen_retriever
+  screen_retriever_windows
+  sentry_flutter
   share_plus
   smart_auth
+  sqlite3_flutter_libs
   tray_manager
   url_launcher_windows
   window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
-  sentry_flutter
+  flutter_local_notifications_windows
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

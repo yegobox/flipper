@@ -1,18 +1,24 @@
-import 'dart:convert';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flipper_models/providers/ai_provider.dart';
 
-class Ai extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
+
+class Ai extends ConsumerStatefulWidget {
+  // Changed to ConsumerStatefulWidget
   @override
-  _AiState createState() => _AiState();
+  ConsumerState<Ai> createState() => _AiState(); // Changed to ConsumerState
 }
 
-class _AiState extends State<Ai> {
+class _AiState extends ConsumerState<Ai> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
   bool _showSidebar = true;
+  // Default branch ID, replace with your logic to select the branch
+
   Widget _buildInputField() {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -130,43 +136,25 @@ class _AiState extends State<Ai> {
 
     _scrollToBottom();
 
-    const String apiUrl = "https://api.deepseek.com/v1/chat/completions";
-    const String apiKey = "your-api-key";
+    // Construct the prompt using the user's message and get gemini ai response
+    final geminiResponse =
+        await ref.read(geminiBusinessAnalyticsResponseProvider(
+      ProxyService.box.getBranchId()!, // Pass branchId from widget in here
+      message,
+    ).future);
 
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $apiKey"
-        },
-        body: jsonEncode({
-          "model": "deepseek-chat",
-          "messages": _messages
-              .map((m) => {"role": m["role"], "content": m["text"]})
-              .toList(),
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        String botReply = responseData["choices"][0]["message"]["content"];
-
-        setState(() {
-          _messages.add({"role": "bot", "text": botReply});
-        });
-
-        _scrollToBottom();
-      }
-    } catch (e) {
-      print("Error: $e");
-    }
+    // Add the bot's reply to the messages
+    setState(() {
+      _messages.add({"role": "bot", "text": geminiResponse});
+    });
 
     setState(() {
       _isLoading = false;
     });
 
     _controller.clear();
+
+    _scrollToBottom();
   }
 
   void _scrollToBottom() {
@@ -252,24 +240,46 @@ class _AiState extends State<Ai> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment
+                  .spaceBetween, // Added to push the copy icon to the end
               children: [
-                CircleAvatar(
-                  backgroundColor: isUser ? Colors.blue[700] : Colors.grey[100],
-                  radius: 16,
-                  child: Icon(
-                    isUser ? Icons.person : Icons.smart_toy,
-                    size: 20,
-                    color: isUser ? Colors.white : Colors.blue[600],
-                  ),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor:
+                          isUser ? Colors.blue[700] : Colors.grey[100],
+                      radius: 16,
+                      child: Icon(
+                        isUser ? Icons.person : Icons.smart_toy,
+                        size: 20,
+                        color: isUser ? Colors.white : Colors.blue[600],
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      isUser ? 'You' : 'Aurora Ai',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: isUser ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 12),
-                Text(
-                  isUser ? 'You' : 'DeepSeek',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: isUser ? Colors.white : Colors.black87,
+                if (!isUser) // Show copy icon for bot messages only
+                  IconButton(
+                    icon: Icon(Icons.copy,
+                        color: isUser ? Colors.white : Colors.blue[600]),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(minWidth: 32, minHeight: 32),
+                    onPressed: () {
+                      // Copy the message to the clipboard
+                      Clipboard.setData(ClipboardData(text: message["text"]!));
+                      // Show a snackbar to indicate that the text has been copied
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Copied to clipboard')),
+                      );
+                    },
                   ),
-                ),
               ],
             ),
             SizedBox(height: 12),

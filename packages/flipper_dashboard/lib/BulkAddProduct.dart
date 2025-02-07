@@ -350,11 +350,12 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
         return Container(
           width: double.infinity,
           child: DropdownSearch<String>(
-            items: itemClsCdList,
+            items: (a, b) => itemClsCdList,
             selectedItem: selectedValue ??
                 (itemClsCdList.isNotEmpty ? itemClsCdList.first : null),
-            dropdownDecoratorProps: DropDownDecoratorProps(
-              dropdownSearchDecoration: InputDecoration(
+            compareFn: (String i, String s) => i == s,
+            decoratorProps: DropDownDecoratorProps(
+              decoration: InputDecoration(
                 border: OutlineInputBorder(
                   borderSide: BorderSide.none,
                 ),

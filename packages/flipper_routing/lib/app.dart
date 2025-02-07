@@ -558,6 +558,7 @@ class App {}
 /// TODO: learn about integeation test or get some ideas
 /// https://github.com/ubuntu/app-center/blob/main/packages/app_center/integration_test/app_center_test.dart
 /// git commit -am "test direct-build-windows test direct-build-android"
+/// 
 /// git commit -am "test direct-build-windows"
 /// git commit -am "test direct-build-android"
 /// 
@@ -745,3 +746,15 @@ class App {}
 // https://medium.com/team-rockstars-it/the-easiest-way-to-build-a-flutter-ios-app-using-github-actions-plus-a-key-takeaway-for-developers-48cf2ad7c72a
 // App of reference:
 // https://www.projectmanager.com/software/dashboard
+
+// TODO: on my watch: https://pub.dev/packages/ditto_live when they support windows that will be my trigger
+// see how others are using it https://github.com/ente-io/ente/commit/18cc16bcc00590f8852d02237d4f1bbe79b0c0b4
+
+
+// d0d742ef-4c6a-4cc7-9bd5-a3a4de5bc44e
+
+//62c494a9-53d3-4de2-a37a-055ec06fa606 
+
+// accounting research:
+// https://chat.deepseek.com/a/chat/s/d2353971-acce-41b8-875b-2bbb4cb66efe
+// https://pub.dev/packages/smart_auth

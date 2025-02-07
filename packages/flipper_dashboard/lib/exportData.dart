@@ -13,7 +13,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
-import 'dart:collection';
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:open_filex/open_filex.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -216,6 +215,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     List<ITransaction>? expenses,
     bool isStockRecount = false,
     required String headerTitle,
+    required String bottomEndOfRowTitle,
   }) async {
     try {
       ref.read(isProcessingProvider.notifier).startProcessing();
@@ -257,7 +257,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               drawer: drawer,
               headerTitle: headerTitle);
 
-          _addClosingBalanceRow(reportSheet, styler, config.currencyFormat);
+          _addClosingBalanceRow(reportSheet, styler, config.currencyFormat,
+              bottomEndOfRowTitle: bottomEndOfRowTitle);
           _formatColumns(reportSheet, config.currencyFormat);
 
           if (expenses != null && expenses.isNotEmpty) {
@@ -352,7 +353,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   void _addClosingBalanceRow(
-      excel.Worksheet sheet, ExcelStyler styler, String currencyFormat) {
+      excel.Worksheet sheet, ExcelStyler styler, String currencyFormat,
+      {required String bottomEndOfRowTitle}) {
     final balanceStyle = styler.createStyle(
         fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
     final firstDataRow = _getFirstDataRow(sheet);
@@ -361,7 +363,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     sheet.insertRow(closingBalanceRow);
 
-    sheet.getRangeByName('A$closingBalanceRow').setText('Closing Balance');
+    sheet.getRangeByName('A$closingBalanceRow').setText(bottomEndOfRowTitle);
     sheet.getRangeByName('A$closingBalanceRow').cellStyle = balanceStyle;
 
     final lastColumnLetter = String.fromCharCode(64 + sheet.getLastColumn());

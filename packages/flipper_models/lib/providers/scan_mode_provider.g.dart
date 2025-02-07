@@ -21,7 +21,7 @@ final scanningModeProvider =
 );
 
 typedef _$ScanningMode = AutoDisposeNotifier<bool>;
-String _$searchStringHash() => r'15c12147c6943c70959422d983862e1300ce6830';
+String _$searchStringHash() => r'23a12d0f8dcea3722ba0895fadeec888580de0df';
 
 /// See also [SearchString].
 @ProviderFor(SearchString)

@@ -17,7 +17,7 @@ dependencies:
   stacked: ^3.4.2
   url_strategy: ^0.2.0
   logger: ^1.1.0
-  firebase_ui_auth: ^1.16.0
+  firebase_ui_auth: ^1.16.1
   flipper_actionable: 0.0.1
 dependency_overrides:
   http: ^1.2.2
@@ -26,6 +26,8 @@ dependency_overrides:
   json_annotation: ^4.9.0
   sqlite3: ^2.7.2
   stacked: ^3.4.2
+  device_info_plus: ^11.2.2
+  
   
 dev_dependencies:
   flutter_test:

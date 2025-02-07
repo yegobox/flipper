@@ -1346,6 +1346,7 @@ class Capella with Booting implements RealmInterface {
     required int branchId,
     String? id,
     bool? active,
+    bool fetchRemote = false,
   }) {
     // TODO: implement transactionItems
     throw UnimplementedError();
@@ -1779,6 +1780,7 @@ class Capella with Booting implements RealmInterface {
     String? qtyUnitCd,
     int? totWt,
     int? netWt,
+    String? itemCd,
     String? spplrNm,
     String? agntNm,
     int? invcFcurAmt,
@@ -1888,6 +1890,12 @@ class Capella with Booting implements RealmInterface {
       required String lastReqDt,
       required String url}) {
     // TODO: implement selectPurchases
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteFailedQueue() {
+    // TODO: implement deleteFailedQueue
     throw UnimplementedError();
   }
 }

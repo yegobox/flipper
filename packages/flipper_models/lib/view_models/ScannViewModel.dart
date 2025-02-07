@@ -314,7 +314,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       required String selectedProductType,
       Map<String, TextEditingController>? rates,
       required double newRetailPrice,
-      Map<String, TextEditingController>? dates}) async {
+      Map<String, TextEditingController>? dates,
+      required String productName}) async {
     if (editmode) {
       try {
         for (var variant in scannedVariants) {
@@ -325,6 +326,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           ProxyService.strategy.updateVariant(
             updatables: scannedVariants,
             color: color,
+            productName: productName.isEmpty ? null : productName,
             expirationDate: variant.expirationDate,
             newRetailPrice: newRetailPrice,
             rates: rates?.map((key, value) => MapEntry(key, value.text)),

@@ -18,6 +18,9 @@ command:
     workspaceChangelog: true
 
 scripts:
+  get_deps:
+    run: melos exec -- flutter pub deps
+    description: List sub dependencies
   flipper:
     run: melos exec --scope="*flipper_data_table*" -- flutter packages pub publish -f
   lint:all:
