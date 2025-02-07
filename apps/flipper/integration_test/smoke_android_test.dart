@@ -108,19 +108,17 @@ void main() {
       await tester.tap(find.byKey(const Key('eod_desktop')));
 
       // should see the drawer screen
-   
 
       // Add a delay to ensure all animations have completed
       await tester.pumpAndSettle();
 
       /// find TextFormField
-     
+
       /// find submit button
-     
-    
+
       // tap on submit button
-   
-       await tester.pumpAndSettle();
+
+      await tester.pumpAndSettle();
 
       /// go back to login screen
       expect(find.text('Sign In'), findsOneWidget);

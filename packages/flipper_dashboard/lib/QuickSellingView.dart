@@ -128,6 +128,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     });
 
     return ViewModelBuilder.nonReactive(
+      
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
           return context.isSmallDevice
