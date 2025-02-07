@@ -11,3 +11,4 @@
 -keep class com.google.android.gms.auth.api.credentials.CredentialsClient { *; }
 -keep class com.google.android.gms.auth.api.credentials.HintRequest { *; }
 -keep class com.google.android.gms.auth.api.credentials.HintRequest$Builder { *; }
+-keep class fman.ge.smart_auth.** { *; }
