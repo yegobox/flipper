@@ -303,7 +303,7 @@ jobs:
   android-integration-test:
     name: integration on Android
     needs: [unit-testing]
-    runs-on: macOS-12
+    runs-on: macOS-14
     # runs-on: macos-latest
     strategy:
       matrix:
@@ -389,7 +389,7 @@ jobs:
     name: "Google Deploy"
     needs: [unit-testing,android-integration-test, integration-testing-windows]
     # runs-on: ubuntu-22.04
-    runs-on: macOS-12
+    runs-on: macOS-14
     steps:
       - run: git config --global core.autocrlf false
       # Set up Flutter.
