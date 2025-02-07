@@ -8,12 +8,14 @@ part 'variants_provider.g.dart';
 @riverpod
 Future<List<Variant>> variant(
   Ref ref, {
-  required String transactionId,
   required int branchId,
   String? key,
 }) async {
-  return await ProxyService.strategy.variants(
+  print('Fetching variants for branchId: $branchId');
+  final variants = await ProxyService.strategy.variants(
     name: key,
     branchId: branchId,
   );
+  print('Fetched ${variants.length} variants for branchId: $branchId');
+  return variants;
 }

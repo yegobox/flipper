@@ -28,11 +28,12 @@ class UniversalProductDropdown extends StatelessWidget {
             return Container(
               width: double.infinity,
               child: DropdownSearch<String>(
-                items: itemClsCdList,
+                items: (a, b) => itemClsCdList,
+                compareFn: (String i, String s) => i == s,
                 selectedItem:
                     itemClsCdList.isNotEmpty ? itemClsCdList.first : null,
-                dropdownDecoratorProps: const DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
+                decoratorProps: const DropDownDecoratorProps(
+                  decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderSide: BorderSide.none,
                     ),

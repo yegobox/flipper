@@ -15,7 +15,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.24.3"
+          flutter-version: "3.27.1"
           channel: stable
       - run: flutter doctor -v
 
@@ -40,7 +40,7 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
-          dart pub global activate melos 6.2.0
+          dart pub global activate melos 6.3.2
           melos bootstrap
           cd apps/flipper
           flutter build web

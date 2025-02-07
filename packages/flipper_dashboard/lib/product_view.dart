@@ -257,7 +257,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             child: DataView(
               onTapRowShowRefundModal: false,
               onTapRowShowRecountModal: true,
-              showPluReport: false,
+              showDetailed: false,
               startDate: startDate ?? DateTime.now(),
               endDate: endDate ?? DateTime.now(),
               variants: variants,

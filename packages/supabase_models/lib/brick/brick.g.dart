@@ -34,6 +34,7 @@ import '../brick/models/import_purchase_dates.model.dart';
 import '../brick/models/stock.model.dart';
 import '../brick/models/counter.model.dart';
 import '../brick/models/category.model.dart';
+import '../brick/models/business_analytic.model.dart';
 import '../brick/models/universalProduct.model.dart';
 import '../brick/models/conversation.model.dart';
 import '../brick/models/customer_payments.model.dart';
@@ -72,13 +73,13 @@ import '../brick/models/product.model.dart';
 import '../brick/models/asset.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/drawer.model.dart';
-import '../brick/models/business_analytic.model.dart';
 
 part 'adapters/item_code_adapter.g.dart';
 part 'adapters/import_purchase_dates_adapter.g.dart';
 part 'adapters/stock_adapter.g.dart';
 part 'adapters/counter_adapter.g.dart';
 part 'adapters/category_adapter.g.dart';
+part 'adapters/business_analytic_adapter.g.dart';
 part 'adapters/unversal_product_adapter.g.dart';
 part 'adapters/conversation_adapter.g.dart';
 part 'adapters/customer_payments_adapter.g.dart';
@@ -117,7 +118,6 @@ part 'adapters/product_adapter.g.dart';
 part 'adapters/assets_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 part 'adapters/drawers_adapter.g.dart';
-part 'adapters/business_analytic_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
@@ -126,6 +126,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Stock: StockAdapter(),
   Counter: CounterAdapter(),
   Category: CategoryAdapter(),
+  BusinessAnalytic: BusinessAnalyticAdapter(),
   UnversalProduct: UnversalProductAdapter(),
   Conversation: ConversationAdapter(),
   CustomerPayments: CustomerPaymentsAdapter(),
@@ -163,8 +164,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter(),
-  BusinessAnalytic: BusinessAnalyticAdapter()
+  Drawers: DrawersAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -175,6 +175,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Stock: StockAdapter(),
   Counter: CounterAdapter(),
   Category: CategoryAdapter(),
+  BusinessAnalytic: BusinessAnalyticAdapter(),
   UnversalProduct: UnversalProductAdapter(),
   Conversation: ConversationAdapter(),
   CustomerPayments: CustomerPaymentsAdapter(),
@@ -212,7 +213,6 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter(),
-  BusinessAnalytic: BusinessAnalyticAdapter()
+  Drawers: DrawersAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

@@ -60,7 +60,7 @@ class TransactionListState extends ConsumerState<TransactionList>
             );
           }
 
-          // If it is PLU report, we get gross profit as we sum up the qty * price
+          // If it is Detailed, we get gross profit as we sum up the qty * price
           return DataView(
             transactions: !showDetailed ? data as List<ITransaction> : null,
             transactionItems:

@@ -14,52 +14,52 @@ void main() {
 
     test('#getPurchaseWithVariants', () async {
       // Create mock Variant data
-      final variant1 = Variant(
-        id: const Uuid().v4(),
-        name: 'Variant 1',
-        purchaseId: '1', // Link to the Purchase
-        taxPercentage: 18.0,
-      );
-      final variant2 = Variant(
-        id: const Uuid().v4(),
-        name: 'Variant 2',
-        purchaseId: '1', // Link to the Purchase
-        taxPercentage: 18.0,
-      );
+      // final variant1 = Variant(
+      //   id: const Uuid().v4(),
+      //   name: 'Variant 1',
+      //   purchaseId: '1', // Link to the Purchase
+      //   taxPercentage: 18.0,
+      // );
+      // final variant2 = Variant(
+      //   id: const Uuid().v4(),
+      //   name: 'Variant 2',
+      //   purchaseId: '1', // Link to the Purchase
+      //   taxPercentage: 18.0,
+      // );
 
-      // Create mock Purchase data with Variants
-      final purchase = Purchase(
-        branchId: 1,
-        id: '1',
-        spplrTin: '123456789',
-        spplrNm: 'Supplier Name',
-        spplrBhfId: 'BH123',
-        spplrInvcNo: 1001,
-        rcptTyCd: 'RCPT001',
-        pmtTyCd: 'PMT001',
-        cfmDt: '2023-10-01',
-        salesDt: '2023-10-01',
-        totItemCnt: 2,
-        taxblAmtA: 100.0,
-        taxblAmtB: 200.0,
-        taxblAmtC: 300.0,
-        taxblAmtD: 400.0,
-        taxRtA: 10.0,
-        taxRtB: 20.0,
-        taxRtC: 30.0,
-        taxRtD: 40.0,
-        taxAmtA: 10.0,
-        taxAmtB: 40.0,
-        taxAmtC: 90.0,
-        taxAmtD: 160.0,
-        totTaxblAmt: 1000.0,
-        totTaxAmt: 300.0,
-        totAmt: 1300.0,
-        variants: [variant1, variant2], // Include Variants in the Purchase
-      );
+      // // Create mock Purchase data with Variants
+      // final purchase = Purchase(
+      //   branchId: 1,
+      //   id: '1',
+      //   spplrTin: '123456789',
+      //   spplrNm: 'Supplier Name',
+      //   spplrBhfId: 'BH123',
+      //   spplrInvcNo: 1001,
+      //   rcptTyCd: 'RCPT001',
+      //   pmtTyCd: 'PMT001',
+      //   cfmDt: '2023-10-01',
+      //   salesDt: '2023-10-01',
+      //   totItemCnt: 2,
+      //   taxblAmtA: 100.0,
+      //   taxblAmtB: 200.0,
+      //   taxblAmtC: 300.0,
+      //   taxblAmtD: 400.0,
+      //   taxRtA: 10.0,
+      //   taxRtB: 20.0,
+      //   taxRtC: 30.0,
+      //   taxRtD: 40.0,
+      //   taxAmtA: 10.0,
+      //   taxAmtB: 40.0,
+      //   taxAmtC: 90.0,
+      //   taxAmtD: 160.0,
+      //   totTaxblAmt: 1000.0,
+      //   totTaxAmt: 300.0,
+      //   totAmt: 1300.0,
+      //   variants: [variant1, variant2], // Include Variants in the Purchase
+      // );
 
       // Mock Supabase request and response
-      final req = SupabaseRequest<Purchase>();
+      // final req = SupabaseRequest<Purchase>();
       // final resp = SupabaseResponse([
       //   await mock.serialize(purchase),
       // ]);

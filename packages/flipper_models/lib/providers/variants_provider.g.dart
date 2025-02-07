@@ -6,7 +6,7 @@ part of 'variants_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$variantHash() => r'945186b1c19e79fa1a1a94060141a1f96e5becd8';
+String _$variantHash() => r'3e2e489d243c719820d5c9dd4e6682ada1c203b8';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -40,12 +40,10 @@ class VariantFamily extends Family<AsyncValue<List<Variant>>> {
 
   /// See also [variant].
   VariantProvider call({
-    required String transactionId,
     required int branchId,
     String? key,
   }) {
     return VariantProvider(
-      transactionId: transactionId,
       branchId: branchId,
       key: key,
     );
@@ -56,7 +54,6 @@ class VariantFamily extends Family<AsyncValue<List<Variant>>> {
     covariant VariantProvider provider,
   ) {
     return call(
-      transactionId: provider.transactionId,
       branchId: provider.branchId,
       key: provider.key,
     );
@@ -81,13 +78,11 @@ class VariantFamily extends Family<AsyncValue<List<Variant>>> {
 class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
   /// See also [variant].
   VariantProvider({
-    required String transactionId,
     required int branchId,
     String? key,
   }) : this._internal(
           (ref) => variant(
             ref as VariantRef,
-            transactionId: transactionId,
             branchId: branchId,
             key: key,
           ),
@@ -99,7 +94,6 @@ class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
                   : _$variantHash,
           dependencies: VariantFamily._dependencies,
           allTransitiveDependencies: VariantFamily._allTransitiveDependencies,
-          transactionId: transactionId,
           branchId: branchId,
           key: key,
         );
@@ -111,12 +105,10 @@ class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
     required super.allTransitiveDependencies,
     required super.debugGetCreateSourceHash,
     required super.from,
-    required this.transactionId,
     required this.branchId,
     required this.key,
   }) : super.internal();
 
-  final String transactionId;
   final int branchId;
   final String? key;
 
@@ -133,7 +125,6 @@ class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
-        transactionId: transactionId,
         branchId: branchId,
         key: key,
       ),
@@ -148,7 +139,6 @@ class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
   @override
   bool operator ==(Object other) {
     return other is VariantProvider &&
-        other.transactionId == transactionId &&
         other.branchId == branchId &&
         other.key == key;
   }
@@ -156,7 +146,6 @@ class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, transactionId.hashCode);
     hash = _SystemHash.combine(hash, branchId.hashCode);
     hash = _SystemHash.combine(hash, key.hashCode);
 
@@ -167,9 +156,6 @@ class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 mixin VariantRef on AutoDisposeFutureProviderRef<List<Variant>> {
-  /// The parameter `transactionId` of this provider.
-  String get transactionId;
-
   /// The parameter `branchId` of this provider.
   int get branchId;
 
@@ -181,8 +167,6 @@ class _VariantProviderElement
     extends AutoDisposeFutureProviderElement<List<Variant>> with VariantRef {
   _VariantProviderElement(super.provider);
 
-  @override
-  String get transactionId => (origin as VariantProvider).transactionId;
   @override
   int get branchId => (origin as VariantProvider).branchId;
   @override

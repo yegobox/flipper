@@ -1,8 +1,9 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250128051600.migration.dart';
 part '20250104131208.migration.dart';
+part '20250127184733.migration.dart';
+part '20250124185812.migration.dart';
 part '20250102092703.migration.dart';
 part '20250102092919.migration.dart';
 part '20250102125905.migration.dart';
@@ -12,24 +13,26 @@ part '20250110094310.migration.dart';
 part '20250101092622.migration.dart';
 part '20250114144814.migration.dart';
 part '20250102130727.migration.dart';
+part '20250128051600.migration.dart';
 part '20250102124844.migration.dart';
+part '20250124180016.migration.dart';
+part '20250124153826.migration.dart';
 part '20250123095625.migration.dart';
 part '20250102110336.migration.dart';
+part '20250126102159.migration.dart';
 part '20250102144742.migration.dart';
+part '20250128050524.migration.dart';
 part '20250114114345.migration.dart';
 part '20250109125327.migration.dart';
 part '20250123095657.migration.dart';
-part '20250124153826.migration.dart';
-part '20250124180016.migration.dart';
-part '20250124185812.migration.dart';
-part '20250126102159.migration.dart';
-part '20250127184733.migration.dart';
-part '20250128050524.migration.dart';
+part '20250205095332.migration.dart';
+part '20250205114646.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250128051600(),
   const Migration20250104131208(),
+  const Migration20250127184733(),
+  const Migration20250124185812(),
   const Migration20250102092703(),
   const Migration20250102092919(),
   const Migration20250102125905(),
@@ -39,23 +42,25 @@ final migrations = <Migration>{
   const Migration20250101092622(),
   const Migration20250114144814(),
   const Migration20250102130727(),
+  const Migration20250128051600(),
   const Migration20250102124844(),
+  const Migration20250124180016(),
+  const Migration20250124153826(),
   const Migration20250123095625(),
   const Migration20250102110336(),
+  const Migration20250126102159(),
   const Migration20250102144742(),
+  const Migration20250128050524(),
   const Migration20250114114345(),
   const Migration20250109125327(),
   const Migration20250123095657(),
-  const Migration20250124153826(),
-  const Migration20250124180016(),
-  const Migration20250124185812(),
-  const Migration20250126102159(),
-  const Migration20250127184733(),
-  const Migration20250128050524()
+  const Migration20250205095332(),
+  const Migration20250205114646()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250128051600, generatorVersion: 1, tables: <SchemaTable>{
+final schema =
+    Schema(20250205114646, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -123,6 +128,21 @@ final schema = Schema(20250128051600, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('branch_id', Column.integer),
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('last_touched', Column.datetime)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
+  SchemaTable('BusinessAnalytic', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('date', Column.datetime),
+    SchemaColumn('item_name', Column.varchar),
+    SchemaColumn('price', Column.num),
+    SchemaColumn('profit', Column.num),
+    SchemaColumn('units_sold', Column.integer),
+    SchemaColumn('tax_rate', Column.num),
+    SchemaColumn('traffic_count', Column.integer),
+    SchemaColumn('branch_id', Column.integer)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
@@ -970,18 +990,6 @@ final schema = Schema(20250128051600, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer)
-  }, indices: <SchemaIndex>{
-    SchemaIndex(columns: ['id'], unique: true)
-  }),
-  SchemaTable('BusinessAnalytic', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('id', Column.varchar, unique: true),
-    SchemaColumn('date', Column.datetime),
-    SchemaColumn('value', Column.num),
-    SchemaColumn('type', Column.varchar),
-    SchemaColumn('branch_id', Column.integer),
-    SchemaColumn('business_id', Column.integer)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   })

@@ -6,7 +6,7 @@ part of 'outer_variant_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$outerVariantsHash() => r'a78410d8d69c9a5636d9796bdf9c730751a2885f';
+String _$outerVariantsHash() => r'ccc810583801ebea2e25ea735d5973aaab0ae393';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -173,7 +173,7 @@ class _OuterVariantsProviderElement
   int get branchId => (origin as OuterVariantsProvider).branchId;
 }
 
-String _$productsHash() => r'46c0e6844b54f828472767c4daac4fbda2efe8d1';
+String _$productsHash() => r'8b22654ea21af89c94e9bf4369d356c54f94bd0c';
 
 abstract class _$Products
     extends BuildlessAutoDisposeAsyncNotifier<List<Product>> {

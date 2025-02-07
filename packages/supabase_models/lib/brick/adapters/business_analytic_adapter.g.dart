@@ -8,10 +8,13 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSupabase(
   return BusinessAnalytic(
       id: data['id'] as String?,
       date: DateTime.parse(data['date'] as String),
-      value: data['value'] as num,
-      type: data['type'] as String,
-      branchId: data['branch_id'] as int?,
-      businessId: data['business_id'] as int?);
+      itemName: data['item_name'] as String,
+      price: data['price'] as num,
+      profit: data['profit'] as num,
+      unitsSold: data['units_sold'] as int,
+      taxRate: data['tax_rate'] as num,
+      trafficCount: data['traffic_count'] as int,
+      branchId: data['branch_id'] as int?);
 }
 
 Future<Map<String, dynamic>> _$BusinessAnalyticToSupabase(
@@ -21,10 +24,13 @@ Future<Map<String, dynamic>> _$BusinessAnalyticToSupabase(
   return {
     'id': instance.id,
     'date': instance.date.toIso8601String(),
-    'value': instance.value,
-    'type': instance.type,
-    'branch_id': instance.branchId,
-    'business_id': instance.businessId
+    'item_name': instance.itemName,
+    'price': instance.price,
+    'profit': instance.profit,
+    'units_sold': instance.unitsSold,
+    'tax_rate': instance.taxRate,
+    'traffic_count': instance.trafficCount,
+    'branch_id': instance.branchId
   };
 }
 
@@ -34,11 +40,13 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSqlite(Map<String, dynamic> data,
   return BusinessAnalytic(
       id: data['id'] as String,
       date: DateTime.parse(data['date'] as String),
-      value: data['value'] as num,
-      type: data['type'] as String,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?)
+      itemName: data['item_name'] as String,
+      price: data['price'] as num,
+      profit: data['profit'] as num,
+      unitsSold: data['units_sold'] as int,
+      taxRate: data['tax_rate'] as num,
+      trafficCount: data['traffic_count'] as int,
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -49,10 +57,13 @@ Future<Map<String, dynamic>> _$BusinessAnalyticToSqlite(
   return {
     'id': instance.id,
     'date': instance.date.toIso8601String(),
-    'value': instance.value,
-    'type': instance.type,
-    'branch_id': instance.branchId,
-    'business_id': instance.businessId
+    'item_name': instance.itemName,
+    'price': instance.price,
+    'profit': instance.profit,
+    'units_sold': instance.unitsSold,
+    'tax_rate': instance.taxRate,
+    'traffic_count': instance.trafficCount,
+    'branch_id': instance.branchId
   };
 }
 
@@ -75,21 +86,33 @@ class BusinessAnalyticAdapter
       association: false,
       columnName: 'date',
     ),
-    'value': const RuntimeSupabaseColumnDefinition(
+    'itemName': const RuntimeSupabaseColumnDefinition(
       association: false,
-      columnName: 'value',
+      columnName: 'item_name',
     ),
-    'type': const RuntimeSupabaseColumnDefinition(
+    'price': const RuntimeSupabaseColumnDefinition(
       association: false,
-      columnName: 'type',
+      columnName: 'price',
+    ),
+    'profit': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'profit',
+    ),
+    'unitsSold': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'units_sold',
+    ),
+    'taxRate': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'tax_rate',
+    ),
+    'trafficCount': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'traffic_count',
     ),
     'branchId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'branch_id',
-    ),
-    'businessId': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'business_id',
     )
   };
   @override
@@ -116,27 +139,45 @@ class BusinessAnalyticAdapter
       iterable: false,
       type: DateTime,
     ),
-    'value': const RuntimeSqliteColumnDefinition(
+    'itemName': const RuntimeSqliteColumnDefinition(
       association: false,
-      columnName: 'value',
+      columnName: 'item_name',
+      iterable: false,
+      type: String,
+    ),
+    'price': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'price',
       iterable: false,
       type: num,
     ),
-    'type': const RuntimeSqliteColumnDefinition(
+    'profit': const RuntimeSqliteColumnDefinition(
       association: false,
-      columnName: 'type',
+      columnName: 'profit',
       iterable: false,
-      type: String,
+      type: num,
+    ),
+    'unitsSold': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'units_sold',
+      iterable: false,
+      type: int,
+    ),
+    'taxRate': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'tax_rate',
+      iterable: false,
+      type: num,
+    ),
+    'trafficCount': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'traffic_count',
+      iterable: false,
+      type: int,
     ),
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'branch_id',
-      iterable: false,
-      type: int,
-    ),
-    'businessId': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'business_id',
       iterable: false,
       type: int,
     )
