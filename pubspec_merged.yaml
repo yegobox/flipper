@@ -166,7 +166,7 @@ dependencies:
   share_plus: ^10.1.4
   firebase_messaging: ^15.2.2
   image: ^4.0.17
-  firebase_auth: ^5.4.0
+  firebase_auth: ^5.4.2
   geolocator: ^13.0.2
   geocode: ^1.0.3
   firebase_analytics: ^11.4.0
