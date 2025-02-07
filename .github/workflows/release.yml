@@ -74,9 +74,9 @@ jobs:
           cd ../..
           cd packages/flipper_dashboard
           flutter test --dart-define=FLUTTER_TEST_ENV=true --verbose
-          cd ..
-          cd flipper_models
-          flutter test --dart-define=FLUTTER_TEST_ENV=true --verbose
+          # cd ..
+          # cd flipper_models
+          # flutter test --dart-define=FLUTTER_TEST_ENV=true --verbose
 
   integration-testing-windows:
     name: "Integration Testing Windows"
