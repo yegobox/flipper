@@ -757,3 +757,4 @@ class App {}
 
 // accounting research:
 // https://chat.deepseek.com/a/chat/s/d2353971-acce-41b8-875b-2bbb4cb66efe
+// https://pub.dev/packages/smart_auth
