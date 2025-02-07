@@ -374,7 +374,7 @@ jobs:
       - run: echo $ANDROID_HOME
       - run: sdkmanager platform-tools
       # - run: sdkmanager --install "ndk;23.1.7779620"
-      # - run: sdkmanager --install "build-tools;30.0.3"
+      - run: sdkmanager --install "platforms;android-35"
       - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.7
         with:
           cmd: cd apps/flipper  &&  flutter test --dart-define=FLUTTER_TEST_ENV=true  integration_test/smoke_android_test.dart
