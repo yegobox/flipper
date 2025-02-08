@@ -18,6 +18,7 @@ class Orders extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final suppliers = ref.watch(branchesProvider((includeSelf: false)));
     final selectedSupplier = useState<Branch?>(null);
+    final theme = Theme.of(context);
 
     return PopScope(
       canPop: false,
@@ -26,7 +27,6 @@ class Orders extends HookConsumerWidget {
         if (!didPop) {
           ProxyService.box.writeBool(key: 'isOrdering', value: true);
         }
-
         ref.read(previewingCart.notifier).state = false;
         onWillPop(
           context: context,
@@ -37,19 +37,22 @@ class Orders extends HookConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.close),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text('Select Supplier',
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          elevation: 1,
+          title: Text(
+            'Select Supplier',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          elevation: 0,
+          backgroundColor: theme.colorScheme.surface,
           actions: [
             Padding(
-              padding: const EdgeInsets.only(right: 8.0),
+              padding: const EdgeInsets.only(right: 16.0),
               child: ShopIconWithStatus(
-                statusColor: Colors.green,
+                statusColor: theme.colorScheme.primary,
               ),
             )
           ],
@@ -73,11 +76,18 @@ class Orders extends HookConsumerWidget {
       List<Branch> suppliers, ValueNotifier<Branch?> selectedSupplier) {
     return Row(
       children: [
-        Expanded(
-          flex: 1,
+        Container(
+          width: 280,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(
+              right: BorderSide(
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+              ),
+            ),
+          ),
           child: _buildSupplierList(context, suppliers, selectedSupplier, ref),
         ),
-        VerticalDivider(thickness: 1, width: 1, color: Colors.grey[300]),
         Expanded(
           flex: 5,
           child: _buildProductsView(context, ref, selectedSupplier.value),
@@ -89,12 +99,29 @@ class Orders extends HookConsumerWidget {
   Widget _buildMobileLayout(BuildContext context, WidgetRef ref,
       List<Branch> suppliers, ValueNotifier<Branch?> selectedSupplier) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Text(
+            'Choose Your Supplier',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Select a supplier to view their available products',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
+                ),
+          ),
+          const SizedBox(height: 24),
           _buildSupplierDropdown(suppliers, selectedSupplier, ref, context),
-          const SizedBox(height: 20),
+          const SizedBox(height: 32),
           _buildViewProductsButton(context, ref, selectedSupplier.value),
         ],
       ),
@@ -103,29 +130,81 @@ class Orders extends HookConsumerWidget {
 
   Widget _buildSupplierList(BuildContext context, List<Branch> suppliers,
       ValueNotifier<Branch?> selectedSupplier, WidgetRef ref) {
-    return ListView.builder(
-      itemCount: suppliers.length,
-      itemBuilder: (context, index) {
-        final supplier = suppliers[index];
-        return ListTile(
-          title: Text(
-            supplier.name ?? "-",
-            style: TextStyle(
-              fontWeight: selectedSupplier.value == supplier
-                  ? FontWeight.bold
-                  : FontWeight.normal,
-            ),
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Suppliers',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${suppliers.length} available',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
           ),
-          selected: selectedSupplier.value == supplier,
-          selectedTileColor: Colors.grey[100],
-          onTap: () {
-            selectedSupplier.value = supplier;
-            ref
-                .read(selectedSupplierProvider.notifier)
-                .setSupplier(supplier: supplier);
-          },
-        );
-      },
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: suppliers.length,
+            itemBuilder: (context, index) {
+              final supplier = suppliers[index];
+              final isSelected = selectedSupplier.value == supplier;
+
+              return Material(
+                color: isSelected
+                    ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                    : Colors.transparent,
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  title: Text(
+                    supplier.name ?? "-",
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
+                      color: isSelected
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  leading: CircleAvatar(
+                    backgroundColor: isSelected
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.surfaceContainerHighest,
+                    child: Icon(
+                      Icons.store_rounded,
+                      color: isSelected
+                          ? theme.colorScheme.onPrimary
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  onTap: () {
+                    selectedSupplier.value = supplier;
+                    ref
+                        .read(selectedSupplierProvider.notifier)
+                        .setSupplier(supplier: supplier);
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -135,24 +214,32 @@ class Orders extends HookConsumerWidget {
     WidgetRef ref,
     BuildContext context,
   ) {
-    return CustomSupplierDropdown(
-      suppliers: suppliers,
-      selectedSupplier: selectedSupplier.value,
-      onChanged: (Branch? newValue) {
-        selectedSupplier.value = newValue;
-        if (newValue != null) {
-          ref
-              .read(selectedSupplierProvider.notifier)
-              .setSupplier(supplier: newValue);
-        }
-      },
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
+        ),
+      ),
+      child: CustomSupplierDropdown(
+        suppliers: suppliers,
+        selectedSupplier: selectedSupplier.value,
+        onChanged: (Branch? newValue) {
+          selectedSupplier.value = newValue;
+          if (newValue != null) {
+            ref
+                .read(selectedSupplierProvider.notifier)
+                .setSupplier(supplier: newValue);
+          }
+        },
+      ),
     );
   }
 
   Widget _buildViewProductsButton(
       BuildContext context, WidgetRef ref, Branch? selectedSupplier) {
     return FlipperButton(
-      textColor: Colors.black,
+      textColor: Theme.of(context).colorScheme.onPrimary,
       onPressed: selectedSupplier == null
           ? null
           : () {
@@ -172,9 +259,26 @@ class Orders extends HookConsumerWidget {
       BuildContext context, WidgetRef ref, Branch? selectedSupplier) {
     if (selectedSupplier == null) {
       return Center(
-        child: Text(
-          'Please select a supplier',
-          style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.store_rounded,
+              size: 48,
+              color:
+                  Theme.of(context).colorScheme.onSurface.withValues(alpha: .2),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Select a supplier to view products',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.6),
+                  ),
+            ),
+          ],
         ),
       );
     }

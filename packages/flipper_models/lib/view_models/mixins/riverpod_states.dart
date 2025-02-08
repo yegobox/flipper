@@ -223,11 +223,6 @@ final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
       ? (mode: TransactionType.cashOut, isExpense: true)
       : (mode: TransactionType.sale, isExpense: false))));
 
-  // Cancel any ongoing operations when the provider is disposed
-  ref.onDispose(() {
-    // talker.info("TransactionItemsProvider disposed");
-  });
-
   return TransactionItemsNotifier(
     transactionId: transaction.value?.id,
     ref: ref,
