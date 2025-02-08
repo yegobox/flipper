@@ -46,22 +46,22 @@ class Orders extends HookConsumerWidget {
               style: TextStyle(fontWeight: FontWeight.bold)),
           elevation: 1,
           actions: [
-            // Padding(
-            //   padding: const EdgeInsets.only(right: 8.0),
-            //   child: ShopIconWithStatus(
-            //     statusColor: Colors.green,
-            //   ),
-            // )
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: ShopIconWithStatus(
+                statusColor: Colors.green,
+              ),
+            )
           ],
         ),
         body: LayoutBuilder(
           builder: (context, constraints) {
             if (constraints.maxWidth > 600) {
               return _buildDesktopLayout(
-                  context, ref, suppliers.value!, selectedSupplier);
+                  context, ref, suppliers.value ?? [], selectedSupplier);
             } else {
               return _buildMobileLayout(
-                  context, ref, suppliers.value!, selectedSupplier);
+                  context, ref, suppliers.value ?? [], selectedSupplier);
             }
           },
         ),
