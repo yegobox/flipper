@@ -111,7 +111,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   // a field that maps directly to the foreign key column
   // so that Brick can notify Supabase of the association.
   // @Sqlite(ignore: true)
-  String?  stockRequestId;
+  String?  stockRequestId => stockRequest?.id;
   TransactionItem({
     this.splyAmt,
     this.stockRequest,
