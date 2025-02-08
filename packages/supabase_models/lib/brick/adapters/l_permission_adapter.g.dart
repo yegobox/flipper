@@ -6,8 +6,8 @@ Future<LPermission> _$LPermissionFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return LPermission(
       id: data['id'] as String?,
-      name: data['name'] as String?,
-      userId: data['user_id'] as int?);
+      name: data['name'] == null ? null : data['name'] as String?,
+      userId: data['user_id'] == null ? null : data['user_id'] as int?);
 }
 
 Future<Map<String, dynamic>> _$LPermissionToSupabase(LPermission instance,

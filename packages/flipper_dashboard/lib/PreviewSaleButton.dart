@@ -44,11 +44,9 @@ class PreviewSaleButton extends ConsumerWidget {
       }
     } else if (mode == SellingMode.forOrdering && previewCart != null) {
       try {
-        loadingNotifier.startLoading(); // Start loading for the Pay button
         previewCart?.call();
       } catch (e) {
-        loadingNotifier.stopLoading(); // Stop loading on error
-        // Handle error (e.g., show a snackbar or dialog)
+        loadingNotifier.stopLoading();
       }
     }
   }

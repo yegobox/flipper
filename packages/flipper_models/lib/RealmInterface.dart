@@ -471,7 +471,7 @@ abstract class RealmInterface {
       {required Branch branch, required bool isOnline});
 
   Future<void> refreshSession({required int branchId, int? refreshRate = 5});
-  String createStockRequest(List<TransactionItem> items,
+  Future<String> createStockRequest(List<TransactionItem> items,
       {required String deliveryNote,
       DateTime? deliveryDate,
       required int mainBranchId});

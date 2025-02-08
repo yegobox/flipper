@@ -6,24 +6,29 @@ Future<Customer> _$CustomerFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Customer(
       id: data['id'] as String?,
-      custNm: data['cust_nm'] as String?,
-      email: data['email'] as String?,
-      telNo: data['tel_no'] as String?,
-      adrs: data['adrs'] as String?,
-      branchId: data['branch_id'] as int?,
+      custNm: data['cust_nm'] == null ? null : data['cust_nm'] as String?,
+      email: data['email'] == null ? null : data['email'] as String?,
+      telNo: data['tel_no'] == null ? null : data['tel_no'] as String?,
+      adrs: data['adrs'] == null ? null : data['adrs'] as String?,
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       updatedAt: data['updated_at'] == null
           ? null
-          : DateTime.tryParse(data['updated_at'] as String),
-      custNo: data['cust_no'] as String?,
+          : data['updated_at'] == null
+              ? null
+              : DateTime.tryParse(data['updated_at'] as String),
+      custNo: data['cust_no'] == null ? null : data['cust_no'] as String?,
       custTin: data['cust_tin'] == null ? null : data['cust_tin'] as String?,
-      regrNm: data['regr_nm'] as String?,
-      regrId: data['regr_id'] as String?,
-      modrNm: data['modr_nm'] as String?,
-      modrId: data['modr_id'] as String?,
-      ebmSynced: data['ebm_synced'] as bool?,
-      bhfId: data['bhf_id'] as String?,
-      useYn: data['use_yn'] as String?,
-      customerType: data['customer_type'] as String?);
+      regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
+      regrId: data['regr_id'] == null ? null : data['regr_id'] as String?,
+      modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
+      modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
+      ebmSynced:
+          data['ebm_synced'] == null ? null : data['ebm_synced'] as bool?,
+      bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
+      useYn: data['use_yn'] == null ? null : data['use_yn'] as String?,
+      customerType: data['customer_type'] == null
+          ? null
+          : data['customer_type'] as String?);
 }
 
 Future<Map<String, dynamic>> _$CustomerToSupabase(Customer instance,

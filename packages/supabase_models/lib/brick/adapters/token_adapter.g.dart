@@ -6,19 +6,26 @@ Future<Token> _$TokenFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Token(
       id: data['id'] as String?,
-      name: data['name'] as String?,
-      type: data['type'] as String?,
-      token: data['token'] as String?,
+      name: data['name'] == null ? null : data['name'] as String?,
+      type: data['type'] == null ? null : data['type'] as String?,
+      token: data['token'] == null ? null : data['token'] as String?,
       validFrom: data['valid_from'] == null
           ? null
-          : DateTime.tryParse(data['valid_from'] as String),
+          : data['valid_from'] == null
+              ? null
+              : DateTime.tryParse(data['valid_from'] as String),
       validUntil: data['valid_until'] == null
           ? null
-          : DateTime.tryParse(data['valid_until'] as String),
-      businessId: data['business_id'] as int?,
+          : data['valid_until'] == null
+              ? null
+              : DateTime.tryParse(data['valid_until'] as String),
+      businessId:
+          data['business_id'] == null ? null : data['business_id'] as int?,
       lastTouched: data['last_touched'] == null
           ? null
-          : DateTime.tryParse(data['last_touched'] as String));
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String));
 }
 
 Future<Map<String, dynamic>> _$TokenToSupabase(Token instance,

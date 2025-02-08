@@ -6,16 +6,20 @@ Future<Category> _$CategoryFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Category(
       id: data['id'] as String?,
-      active: data['active'] as bool?,
+      active: data['active'] == null ? null : data['active'] as bool?,
       focused: data['focused'] as bool,
-      name: data['name'] as String?,
-      branchId: data['branch_id'] as int?,
+      name: data['name'] == null ? null : data['name'] as String?,
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       deletedAt: data['deleted_at'] == null
           ? null
-          : DateTime.tryParse(data['deleted_at'] as String),
+          : data['deleted_at'] == null
+              ? null
+              : DateTime.tryParse(data['deleted_at'] as String),
       lastTouched: data['last_touched'] == null
           ? null
-          : DateTime.tryParse(data['last_touched'] as String));
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String));
 }
 
 Future<Map<String, dynamic>> _$CategoryToSupabase(Category instance,

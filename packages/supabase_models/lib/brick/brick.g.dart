@@ -11,6 +11,8 @@ import 'package:brick_supabase/brick_supabase.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:uuid/uuid.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/brick/models/stockRequest.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/stock.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/variant.model.dart';

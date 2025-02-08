@@ -186,7 +186,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         SizedBox(height: 8.0),
-        ...request.items.map((item) => _buildItemRow(item)),
+        ...request.transactionItems!.map((item) => _buildItemRow(item)),
       ],
     );
   }
@@ -396,7 +396,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
   }
 
   int _calculateTotalQuantity(StockRequest request) {
-    return request.items.fold<int>(
+    return request.transactionItems!.fold<int>(
       0,
       (int sum, TransactionItem item) => sum + (item.quantityRequested ?? 0),
     );

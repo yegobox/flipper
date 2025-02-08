@@ -6,30 +6,40 @@ Future<StockRequest> _$StockRequestFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return StockRequest(
       id: data['id'] as String?,
-      mainBranchId: data['main_branch_id'] as int?,
-      subBranchId: data['sub_branch_id'] as int?,
+      mainBranchId: data['main_branch_id'] == null
+          ? null
+          : data['main_branch_id'] as int?,
+      subBranchId:
+          data['sub_branch_id'] == null ? null : data['sub_branch_id'] as int?,
       createdAt: data['created_at'] == null
           ? null
-          : DateTime.tryParse(data['created_at'] as String),
-      status: data['status'] as String?,
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String),
+      status: data['status'] == null ? null : data['status'] as String?,
       deliveryDate: data['delivery_date'] == null
           ? null
-          : DateTime.tryParse(data['delivery_date'] as String),
-      deliveryNote: data['delivery_note'] as String?,
-      orderNote: data['order_note'] as String?,
-      customerReceivedOrder: data['customer_received_order'] as bool?,
+          : data['delivery_date'] == null
+              ? null
+              : DateTime.tryParse(data['delivery_date'] as String),
+      deliveryNote: data['delivery_note'] == null
+          ? null
+          : data['delivery_note'] as String?,
+      orderNote:
+          data['order_note'] == null ? null : data['order_note'] as String?,
+      customerReceivedOrder: data['customer_received_order'] == null
+          ? null
+          : data['customer_received_order'] as bool?,
       driverRequestDeliveryConfirmation:
-          data['driver_request_delivery_confirmation'] as bool?,
-      driverId: data['driver_id'] as int?,
-      items: await Future.wait<TransactionItem>(data['items']
-              ?.map((d) => TransactionItemAdapter()
-                  .fromSupabase(d, provider: provider, repository: repository))
-              .toList()
-              .cast<Future<TransactionItem>>() ??
-          []),
+          data['driver_request_delivery_confirmation'] == null
+              ? null
+              : data['driver_request_delivery_confirmation'] as bool?,
+      driverId: data['driver_id'] == null ? null : data['driver_id'] as int?,
       updatedAt: data['updated_at'] == null
           ? null
-          : DateTime.tryParse(data['updated_at'] as String));
+          : data['updated_at'] == null
+              ? null
+              : DateTime.tryParse(data['updated_at'] as String));
 }
 
 Future<Map<String, dynamic>> _$StockRequestToSupabase(StockRequest instance,
@@ -48,10 +58,6 @@ Future<Map<String, dynamic>> _$StockRequestToSupabase(StockRequest instance,
     'driver_request_delivery_confirmation':
         instance.driverRequestDeliveryConfirmation,
     'driver_id': instance.driverId,
-    'items': await Future.wait<Map<String, dynamic>>(instance.items
-        .map((s) => TransactionItemAdapter()
-            .toSupabase(s, provider: provider, repository: repository))
-        .toList()),
     'updated_at': instance.updatedAt?.toIso8601String()
   };
 }
@@ -90,8 +96,8 @@ Future<StockRequest> _$StockRequestFromSqlite(Map<String, dynamic> data,
               ? null
               : data['driver_request_delivery_confirmation'] == 1,
       driverId: data['driver_id'] == null ? null : data['driver_id'] as int?,
-      items: (await provider.rawQuery(
-              'SELECT DISTINCT `f_TransactionItem_brick_id` FROM `_brick_StockRequest_items` WHERE l_StockRequest_brick_id = ?',
+      transactionItems: (await provider.rawQuery(
+              'SELECT DISTINCT `f_TransactionItem_brick_id` FROM `_brick_StockRequest_transaction_items` WHERE l_StockRequest_brick_id = ?',
               [data['_brick_id'] as int]).then((results) {
         final ids = results.map((r) => r['f_TransactionItem_brick_id']);
         return Future.wait<TransactionItem>(ids.map((primaryKey) => repository!
@@ -130,7 +136,7 @@ Future<Map<String, dynamic>> _$StockRequestToSqlite(StockRequest instance,
             ? null
             : (instance.driverRequestDeliveryConfirmation! ? 1 : 0),
     'driver_id': instance.driverId,
-    'items': jsonEncode(instance.items),
+    'transaction_items': jsonEncode(instance.transactionItems),
     'updated_at': instance.updatedAt?.toIso8601String()
   };
 }
@@ -190,9 +196,9 @@ class StockRequestAdapter
       association: false,
       columnName: 'driver_id',
     ),
-    'items': const RuntimeSupabaseColumnDefinition(
+    'transactionItems': const RuntimeSupabaseColumnDefinition(
       association: true,
-      columnName: 'items',
+      columnName: 'transaction_items',
       associationType: Map,
       associationIsNullable: false,
     ),
@@ -279,9 +285,9 @@ class StockRequestAdapter
       iterable: false,
       type: int,
     ),
-    'items': const RuntimeSqliteColumnDefinition(
+    'transactionItems': const RuntimeSqliteColumnDefinition(
       association: true,
-      columnName: 'items',
+      columnName: 'transaction_items',
       iterable: true,
       type: Map,
     ),
@@ -311,27 +317,27 @@ class StockRequestAdapter
   @override
   Future<void> afterSave(instance, {required provider, repository}) async {
     if (instance.primaryKey != null) {
-      final itemsOldColumns = await provider.rawQuery(
-          'SELECT `f_TransactionItem_brick_id` FROM `_brick_StockRequest_items` WHERE `l_StockRequest_brick_id` = ?',
+      final transactionItemsOldColumns = await provider.rawQuery(
+          'SELECT `f_TransactionItem_brick_id` FROM `_brick_StockRequest_transaction_items` WHERE `l_StockRequest_brick_id` = ?',
           [instance.primaryKey]);
-      final itemsOldIds =
-          itemsOldColumns.map((a) => a['f_TransactionItem_brick_id']);
-      final itemsNewIds =
-          instance.items.map((s) => s.primaryKey).whereType<int>();
-      final itemsIdsToDelete =
-          itemsOldIds.where((id) => !itemsNewIds.contains(id));
+      final transactionItemsOldIds = transactionItemsOldColumns
+          .map((a) => a['f_TransactionItem_brick_id']);
+      final transactionItemsNewIds =
+          instance.transactionItems.map((s) => s.primaryKey).whereType<int>();
+      final transactionItemsIdsToDelete = transactionItemsOldIds
+          .where((id) => !transactionItemsNewIds.contains(id));
 
-      await Future.wait<void>(itemsIdsToDelete.map((id) async {
+      await Future.wait<void>(transactionItemsIdsToDelete.map((id) async {
         return await provider.rawExecute(
-            'DELETE FROM `_brick_StockRequest_items` WHERE `l_StockRequest_brick_id` = ? AND `f_TransactionItem_brick_id` = ?',
+            'DELETE FROM `_brick_StockRequest_transaction_items` WHERE `l_StockRequest_brick_id` = ? AND `f_TransactionItem_brick_id` = ?',
             [instance.primaryKey, id]).catchError((e) => null);
       }));
 
-      await Future.wait<int?>(instance.items.map((s) async {
+      await Future.wait<int?>(instance.transactionItems.map((s) async {
         final id = s.primaryKey ??
             await provider.upsert<TransactionItem>(s, repository: repository);
         return await provider.rawInsert(
-            'INSERT OR IGNORE INTO `_brick_StockRequest_items` (`l_StockRequest_brick_id`, `f_TransactionItem_brick_id`) VALUES (?, ?)',
+            'INSERT OR IGNORE INTO `_brick_StockRequest_transaction_items` (`l_StockRequest_brick_id`, `f_TransactionItem_brick_id`) VALUES (?, ?)',
             [instance.primaryKey, id]);
       }));
     }

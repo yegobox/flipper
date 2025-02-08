@@ -6,14 +6,18 @@ Future<UnversalProduct> _$UnversalProductFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return UnversalProduct(
       id: data['id'] as String?,
-      itemClsCd: data['item_cls_cd'] as String?,
-      itemClsNm: data['item_cls_nm'] as String?,
-      itemClsLvl: data['item_cls_lvl'] as int?,
-      taxTyCd: data['tax_ty_cd'] as String?,
-      mjrTgYn: data['mjr_tg_yn'] as String?,
-      useYn: data['use_yn'] as String?,
-      businessId: data['business_id'] as int?,
-      branchId: data['branch_id'] as int?);
+      itemClsCd:
+          data['item_cls_cd'] == null ? null : data['item_cls_cd'] as String?,
+      itemClsNm:
+          data['item_cls_nm'] == null ? null : data['item_cls_nm'] as String?,
+      itemClsLvl:
+          data['item_cls_lvl'] == null ? null : data['item_cls_lvl'] as int?,
+      taxTyCd: data['tax_ty_cd'] == null ? null : data['tax_ty_cd'] as String?,
+      mjrTgYn: data['mjr_tg_yn'] == null ? null : data['mjr_tg_yn'] as String?,
+      useYn: data['use_yn'] == null ? null : data['use_yn'] as String?,
+      businessId:
+          data['business_id'] == null ? null : data['business_id'] as int?,
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?);
 }
 
 Future<Map<String, dynamic>> _$UnversalProductToSupabase(

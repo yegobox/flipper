@@ -401,7 +401,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  String createStockRequest(List<TransactionItem> items,
+   Future<String> createStockRequest(List<TransactionItem> items,
       {required String deliveryNote,
       DateTime? deliveryDate,
       required int mainBranchId}) {

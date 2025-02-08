@@ -4754,28 +4754,40 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  String createStockRequest(List<models.TransactionItem> items,
+  Future<String> createStockRequest(List<models.TransactionItem> items,
       {required String deliveryNote,
       DateTime? deliveryDate,
-      required int mainBranchId}) {
-    String orderId = const Uuid().v4();
-    for (TransactionItem item in items) {
-      repository.upsert<TransactionItem>(item);
-    }
+      required int mainBranchId}) async {
+    try {
+      String orderId = const Uuid().v4();
+      final stockRequest = StockRequest(
+        id: orderId,
+        deliveryDate: deliveryDate,
+        deliveryNote: deliveryNote,
+        mainBranchId: mainBranchId,
+        subBranchId: ProxyService.box.getBranchId(),
+        status: RequestStatus.pending,
+        updatedAt: DateTime.now().toUtc().toLocal(),
+        createdAt: DateTime.now().toUtc().toLocal(),
+      );
+      StockRequest request = await repository.upsert(stockRequest);
+      for (TransactionItem item in items) {
+        item.stockRequest = request;
+        await repository.upsert(item);
+      }
 
-    final stockRequest = StockRequest(
-      id: orderId,
-      deliveryDate: deliveryDate,
-      deliveryNote: deliveryNote,
-      mainBranchId: mainBranchId,
-      subBranchId: ProxyService.box.getBranchId(),
-      status: RequestStatus.pending,
-      items: items,
-      updatedAt: DateTime.now().toUtc().toLocal(),
-      createdAt: DateTime.now().toUtc().toLocal(),
-    );
-    repository.upsert(stockRequest);
-    return orderId;
+      // testing
+      // List<StockRequest> requests = await repository.get<StockRequest>(
+      //     query: brick.Query(where: [brick.Where('id').isExactly(orderId)]));
+      // for (StockRequest request in requests) {
+      //   talker
+      //       .warning("Length Stock Request:${request.transactionItems.length}");
+      // }
+      return orderId;
+    } catch (e, s) {
+      talker.error(s);
+      rethrow;
+    }
   }
 
   @override

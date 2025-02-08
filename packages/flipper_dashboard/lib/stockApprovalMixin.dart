@@ -12,7 +12,7 @@ mixin StockRequestApprovalLogic {
     List<TransactionItem> itemsNeedingApproval = [];
     bool isFullyApproved = true;
 
-    for (var item in request.items) {
+    for (var item in request.transactionItems ?? []) {
       if (await _canApproveItem(item: item)) {
         _approveItem(
             item: item, subBranchId: request.subBranchId!, context: context);
@@ -23,7 +23,7 @@ mixin StockRequestApprovalLogic {
     }
     // TODO: re-implement this as using request.items.first.variantId! is not the right way.
     Variant? variant = await ProxyService.strategy
-        .getVariant(id: request.items.first.variantId!);
+        .getVariant(id: request.transactionItems!.first.variantId!);
 
     if (!isFullyApproved) {
       bool partialApprovalResult = await _handlePartialApproval(
@@ -128,7 +128,8 @@ mixin StockRequestApprovalLogic {
   }
 
   bool _atLeastOneItemApproved({required StockRequest request}) {
-    return request.items.any((item) => (item.quantityApproved ?? 0) > 0);
+    return request.transactionItems!
+        .any((item) => (item.quantityApproved ?? 0) > 0);
   }
 
   Future<void> _finalizeApproval(

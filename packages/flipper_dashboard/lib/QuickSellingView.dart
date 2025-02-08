@@ -11,13 +11,13 @@ import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/services.dart';
 
 import 'package:stacked/stacked.dart';
-import 'package:flipper_ui/style_widget/button.dart';
 
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -120,7 +120,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       try {
         transactionItems = items;
         if (items.isNotEmpty) {
-          ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
+          if (!isOrdering && mounted) {
+            ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
+          }
         }
       } catch (e) {
         talker.error(e);
@@ -128,7 +130,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     });
 
     return ViewModelBuilder.nonReactive(
-      
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
           return context.isSmallDevice
@@ -267,48 +268,27 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _deliveryNote() {
-    return TextFormField(
-      controller: widget.deliveryNoteCotroller,
-      keyboardType: TextInputType.text,
-      maxLines: 1,
-      decoration: InputDecoration(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: StyledTextFormField.create(
+        context: context,
         labelText: 'Delivery Note',
         hintText: 'Enter any special instructions for delivery',
-        labelStyle: TextStyle(color: Theme.of(context).primaryColor),
-        prefixIcon:
-            Icon(Icons.local_shipping, color: Theme.of(context).primaryColor),
-        suffixIcon: IconButton(
-          icon: Icon(Icons.clear, color: Colors.grey),
-          onPressed: () => widget.deliveryNoteCotroller.clear(),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: BorderSide(color: Theme.of(context).primaryColor),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide:
-              BorderSide(color: Theme.of(context).primaryColor, width: 2.0),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: BorderSide(
-              color: Theme.of(context).colorScheme.error, width: 2.0),
-        ),
-        filled: true,
-        fillColor: Colors.grey[100],
-      ),
-      onChanged: (value) => null,
-      validator: (String? value) {
-        if (value == null || value.isEmpty) {
+        controller: widget.deliveryNoteCotroller,
+        keyboardType: TextInputType.multiline,
+        maxLines: 3,
+        minLines: 1,
+        prefixIcon: Icons.local_shipping,
+        onChanged: (value) {
+          setState(() {});
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return null;
+          }
           return null;
-        }
-        return null;
-      },
+        },
+      ),
     );
   }
 
@@ -533,13 +513,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             SizedBox(width: 10, height: 5),
             Expanded(
               flex: 3,
-              child: TextFormField(
+              child: StyledTextFormField.create(
+                context: context,
+                labelText: 'Amount',
+                hintText: 'Enter Amount',
                 controller: ref.read(paymentMethodsProvider)[index].controller,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Amount',
-                  border: OutlineInputBorder(),
-                ),
+                keyboardType: TextInputType.multiline,
+                maxLines: 3,
+                minLines: 1,
                 onChanged: (value) {
                   final amount = double.tryParse(value) ?? 0.0;
                   ref.read(paymentMethodsProvider)[index].amount = amount;

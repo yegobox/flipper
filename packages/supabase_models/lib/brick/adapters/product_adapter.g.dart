@@ -7,34 +7,52 @@ Future<Product> _$ProductFromSupabase(Map<String, dynamic> data,
   return Product(
       id: data['id'] as String?,
       name: data['name'] as String,
-      description: data['description'] as String?,
-      taxId: data['tax_id'] as String?,
+      description:
+          data['description'] == null ? null : data['description'] as String?,
+      taxId: data['tax_id'] == null ? null : data['tax_id'] as String?,
       color: data['color'] as String,
       businessId: data['business_id'] as int,
       branchId: data['branch_id'] as int,
-      supplierId: data['supplier_id'] as String?,
-      categoryId: data['category_id'] as int?,
+      supplierId:
+          data['supplier_id'] == null ? null : data['supplier_id'] as String?,
+      categoryId:
+          data['category_id'] == null ? null : data['category_id'] as int?,
       createdAt: data['created_at'] == null
           ? null
-          : DateTime.tryParse(data['created_at'] as String),
-      unit: data['unit'] as String?,
-      imageUrl: data['image_url'] as String?,
-      expiryDate: data['expiry_date'] as String?,
-      barCode: data['bar_code'] as String?,
-      nfcEnabled: data['nfc_enabled'] as bool? ?? false,
-      bindedToTenantId: data['binded_to_tenant_id'] as String?,
-      isFavorite: data['is_favorite'] as bool? ?? false,
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String),
+      unit: data['unit'] == null ? null : data['unit'] as String?,
+      imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
+      expiryDate:
+          data['expiry_date'] == null ? null : data['expiry_date'] as String?,
+      barCode: data['bar_code'] == null ? null : data['bar_code'] as String?,
+      nfcEnabled: data['nfc_enabled'] == null
+          ? null
+          : data['nfc_enabled'] as bool? ?? false,
+      bindedToTenantId: data['binded_to_tenant_id'] == null
+          ? null
+          : data['binded_to_tenant_id'] as String?,
+      isFavorite: data['is_favorite'] == null
+          ? null
+          : data['is_favorite'] as bool? ?? false,
       lastTouched: data['last_touched'] == null
           ? null
-          : DateTime.tryParse(data['last_touched'] as String),
-      spplrNm: data['spplr_nm'] as String?,
-      isComposite: data['is_composite'] as bool? ?? false,
-      composites: await Future.wait<Composite>(data['composites']
-              ?.map((d) => CompositeAdapter()
-                  .fromSupabase(d, provider: provider, repository: repository))
-              .toList()
-              .cast<Future<Composite>>() ??
-          []));
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String),
+      spplrNm: data['spplr_nm'] == null ? null : data['spplr_nm'] as String?,
+      isComposite: data['is_composite'] == null
+          ? null
+          : data['is_composite'] as bool? ?? false,
+      composites: data['composites'] == null
+          ? null
+          : await Future.wait<Composite>(data['composites']
+                  ?.map((d) => CompositeAdapter().fromSupabase(d,
+                      provider: provider, repository: repository))
+                  .toList()
+                  .cast<Future<Composite>>() ??
+              []));
 }
 
 Future<Map<String, dynamic>> _$ProductToSupabase(Product instance,

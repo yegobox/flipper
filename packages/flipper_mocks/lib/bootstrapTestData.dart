@@ -67,7 +67,7 @@ class CreateMockdata {
           mainBranchId: 1,
           subBranchId: 2,
           status: 'pending',
-          items: [
+          transactionItems: [
             TransactionItem(
               lastTouched: DateTime.now(),
               itemNm: "itemNm",
@@ -85,7 +85,7 @@ class CreateMockdata {
           mainBranchId: 1,
           subBranchId: 2,
           status: 'pending',
-          items: [
+          transactionItems: [
             TransactionItem(
               lastTouched: DateTime.now(),
               itemNm: "itemNm",
