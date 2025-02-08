@@ -1607,7 +1607,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<String> getIdToken() async {
+  Future<String> getFirebaseToken() async {
     return await FirebaseAuth.instance.currentUser?.getIdToken() ?? "NONE";
   }
 
@@ -2573,7 +2573,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         "businessId": ProxyService.box.getBusinessId()!,
         "URI": await ProxyService.box.getServerUrl(),
         "bhfId": await ProxyService.box.bhfId(),
-        'tinNumber': business!.tinNumber,
+        'tinNumber': business?.tinNumber,
         'encryptionKey': ProxyService.box.encryptionKey(),
         'dbPath':
             path.join((await DatabasePath.getDatabaseDirectory()), dbFileName),

@@ -371,20 +371,39 @@ jobs:
     
       - name: Install Android SDK
         uses: malinskiy/action-android/install-sdk@release/0.1.7
+
       - run: echo $ANDROID_HOME
-      - run: sdkmanager platform-tools
-      # - run: sdkmanager --install "ndk;23.1.7779620"
-      - run: sdkmanager --install "platforms;android-35"
-      - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.7
+
+      - name: Install Android platform tools
+        run: sdkmanager platform-tools
+
+      # Uncomment the following lines if you need to install NDK or specific Android platforms
+      # - name: Install Android NDK
+      #   run: sdkmanager --install "ndk;23.1.7779620"
+      # - name: Install Android Platform
+      #   run: sdkmanager --install "platforms;android-35"
+
+      - name: Run tests on Android emulator
+        uses: malinskiy/action-android/emulator-run-cmd@release/0.1.7
         with:
-          cmd: cd apps/flipper  &&  flutter test --dart-define=FLUTTER_TEST_ENV=true  integration_test/smoke_android_test.dart
+          cmd: |
+            cd apps/flipper
+            flutter test --dart-define=FLUTTER_TEST_ENV=true integration_test/smoke_android_test.dart
           api: 25
-          cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
+          cmdOptions: |
+            -no-snapshot-save
+            -noaudio
+            -no-boot-anim
+            -cores 2
+            -memory 3072
+            -no-window
           tag: google_apis
           abi: x86
           # abi: x86_64
           bootTimeout: 820
-      - run: sleep 30
+
+      - name: Wait for emulator to stabilize
+        run: sleep 30
   fastlane-deploy:
     name: "Google Deploy"
     needs: [unit-testing,android-integration-test, integration-testing-windows]

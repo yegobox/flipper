@@ -548,7 +548,7 @@ abstract class RealmInterface {
 
   SendPort? sendPort;
   ReceivePort? receivePort;
-  Future<String> getIdToken();
+  Future<String> getFirebaseToken();
 
   Future<void> sendMessageToIsolate();
   Future<void> spawnIsolate(dynamic isolateHandler);

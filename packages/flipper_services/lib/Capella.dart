@@ -560,7 +560,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<String> getIdToken() {
+  Future<String> getFirebaseToken() {
     // TODO: implement getIdToken
     throw UnimplementedError();
   }
