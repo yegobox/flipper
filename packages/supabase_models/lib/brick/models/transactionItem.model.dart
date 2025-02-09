@@ -1,7 +1,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
-import 'package:supabase_models/brick/models/stockRequest.model.dart';
+import 'package:supabase_models/brick/models/stockRequests.model.dart';
 import 'package:uuid/uuid.dart';
 
 // Date,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count
@@ -105,7 +105,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
 
   // Define the relationship with StockRequest
   @Supabase(ignore: true)
-  StockRequest? stockRequest;
+  InventoryRequest? stockRequest;
 
   // If the association will be created by the app, specify
   // a field that maps directly to the foreign key column

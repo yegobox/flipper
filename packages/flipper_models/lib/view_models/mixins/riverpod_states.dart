@@ -865,7 +865,7 @@ final branchSelectionProvider =
 );
 
 final stockRequestsProvider = StreamProvider.autoDispose
-    .family<List<StockRequest>, ({String filter})>((ref, params) {
+    .family<List<InventoryRequest>, ({String filter})>((ref, params) {
   final branchId = ProxyService.box.getBranchId();
   final (:filter) = params;
   if (branchId == null) {

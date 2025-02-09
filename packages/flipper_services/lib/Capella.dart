@@ -289,12 +289,6 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Stream<double> stockValue({required branchId}) {
-    // TODO: implement stockValue
-    throw UnimplementedError();
-  }
-
-  @override
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) {
     // TODO: implement uploadPdfToS3
     throw UnimplementedError();
@@ -401,7 +395,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-   Future<String> createStockRequest(List<TransactionItem> items,
+  Future<String> createStockRequest(List<TransactionItem> items,
       {required String deliveryNote,
       DateTime? deliveryDate,
       required int mainBranchId}) {
@@ -726,13 +720,13 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  List<StockRequest> requests({required int branchId}) {
+  List<InventoryRequest> requests({required int branchId}) {
     // TODO: implement requests
     throw UnimplementedError();
   }
 
   @override
-  Stream<List<StockRequest>> requestsStream(
+  Stream<List<InventoryRequest>> requestsStream(
       {required int branchId, required String filter}) {
     // TODO: implement requestsStream
     throw UnimplementedError();

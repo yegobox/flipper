@@ -11,17 +11,17 @@ import 'package:brick_supabase/brick_supabase.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:uuid/uuid.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/stockRequest.model.dart';
+import 'package:supabase_models/brick/models/stockRequests.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/stock.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/variant.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/transactionItem.model.dart';
-// ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/composite.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/plan_addon.model.dart';// GENERATED CODE DO NOT EDIT
+import 'package:supabase_models/brick/models/plan_addon.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/brick/models/transactionItem.model.dart';// GENERATED CODE DO NOT EDIT
 // ignore: unused_import
 import 'dart:convert';
 import 'package:brick_sqlite/brick_sqlite.dart' show SqliteModel, SqliteAdapter, SqliteModelDictionary, RuntimeSqliteColumnDefinition, SqliteProvider;
@@ -61,7 +61,6 @@ import '../brick/models/pin.model.dart';
 import '../brick/models/access.model.dart';
 import '../brick/models/customer.model.dart';
 import '../brick/models/report.model.dart';
-import '../brick/models/stockRequest.model.dart';
 import '../brick/models/appNotification.model.dart';
 import '../brick/models/discount.model.dart';
 import '../brick/models/business.model.dart';
@@ -75,6 +74,7 @@ import '../brick/models/product.model.dart';
 import '../brick/models/asset.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/drawer.model.dart';
+import '../brick/models/stockRequests.model.dart';
 
 part 'adapters/item_code_adapter.g.dart';
 part 'adapters/import_purchase_dates_adapter.g.dart';
@@ -106,7 +106,6 @@ part 'adapters/pin_adapter.g.dart';
 part 'adapters/access_adapter.g.dart';
 part 'adapters/customer_adapter.g.dart';
 part 'adapters/report_adapter.g.dart';
-part 'adapters/stock_request_adapter.g.dart';
 part 'adapters/app_notification_adapter.g.dart';
 part 'adapters/discount_adapter.g.dart';
 part 'adapters/business_adapter.g.dart';
@@ -120,6 +119,7 @@ part 'adapters/product_adapter.g.dart';
 part 'adapters/assets_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 part 'adapters/drawers_adapter.g.dart';
+part 'adapters/inventory_request_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
@@ -153,7 +153,6 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Access: AccessAdapter(),
   Customer: CustomerAdapter(),
   Report: ReportAdapter(),
-  StockRequest: StockRequestAdapter(),
   AppNotification: AppNotificationAdapter(),
   Discount: DiscountAdapter(),
   Business: BusinessAdapter(),
@@ -166,7 +165,8 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter()
+  Drawers: DrawersAdapter(),
+  InventoryRequest: InventoryRequestAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -202,7 +202,6 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Access: AccessAdapter(),
   Customer: CustomerAdapter(),
   Report: ReportAdapter(),
-  StockRequest: StockRequestAdapter(),
   AppNotification: AppNotificationAdapter(),
   Discount: DiscountAdapter(),
   Business: BusinessAdapter(),
@@ -215,6 +214,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter()
+  Drawers: DrawersAdapter(),
+  InventoryRequest: InventoryRequestAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

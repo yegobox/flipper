@@ -63,7 +63,7 @@ class CreateMockdata {
       var variant = variants.isNotEmpty ? variants.first : null;
 
       final mockStockRequests = [
-        StockRequest(
+        InventoryRequest(
           mainBranchId: 1,
           subBranchId: 2,
           status: 'pending',
@@ -81,7 +81,7 @@ class CreateMockdata {
             ),
           ],
         ),
-        StockRequest(
+        InventoryRequest(
           mainBranchId: 1,
           subBranchId: 2,
           status: 'pending',
@@ -102,7 +102,8 @@ class CreateMockdata {
       ];
 
       for (var stockRequest in mockStockRequests) {
-        await ProxyService.strategy.create<StockRequest>(data: stockRequest);
+        await ProxyService.strategy
+            .create<InventoryRequest>(data: stockRequest);
       }
     }
   }

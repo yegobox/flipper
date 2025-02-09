@@ -8,11 +8,12 @@ import 'package:flipper_models/realm_model_export.dart';
 
 mixin StockRequestApprovalLogic {
   Future<void> approveRequest(
-      {required StockRequest request, required BuildContext context}) async {
+      {required InventoryRequest request,
+      required BuildContext context}) async {
     List<TransactionItem> itemsNeedingApproval = [];
     bool isFullyApproved = true;
 
-    for (var item in request.transactionItems ?? []) {
+    for (var item in request.transactionItems) {
       if (await _canApproveItem(item: item)) {
         _approveItem(
             item: item, subBranchId: request.subBranchId!, context: context);
@@ -23,7 +24,7 @@ mixin StockRequestApprovalLogic {
     }
     // TODO: re-implement this as using request.items.first.variantId! is not the right way.
     Variant? variant = await ProxyService.strategy
-        .getVariant(id: request.transactionItems!.first.variantId!);
+        .getVariant(id: request.transactionItems.first.variantId!);
 
     if (!isFullyApproved) {
       bool partialApprovalResult = await _handlePartialApproval(
@@ -115,7 +116,7 @@ mixin StockRequestApprovalLogic {
 
   Future<bool> _handlePartialApproval(
       {required List<TransactionItem> items,
-      required StockRequest request,
+      required InventoryRequest request,
       required Variant variant,
       required BuildContext context}) async {
     bool partialApprovalResult = await _showPartialApprovalDialog(
@@ -127,13 +128,13 @@ mixin StockRequestApprovalLogic {
     return true;
   }
 
-  bool _atLeastOneItemApproved({required StockRequest request}) {
-    return request.transactionItems!
+  bool _atLeastOneItemApproved({required InventoryRequest request}) {
+    return request.transactionItems
         .any((item) => (item.quantityApproved ?? 0) > 0);
   }
 
   Future<void> _finalizeApproval(
-      {required StockRequest request,
+      {required InventoryRequest request,
       required bool isFullyApproved,
       required BuildContext context}) async {
     await ProxyService.strategy.updateStockRequest(
@@ -155,7 +156,7 @@ mixin StockRequestApprovalLogic {
 
   Future<bool> _showPartialApprovalDialog(
       {required List<TransactionItem> items,
-      required StockRequest request,
+      required InventoryRequest request,
       required Variant variant,
       required BuildContext context}) async {
     List<int?> approvedQuantities = List.filled(items.length, null);
@@ -299,7 +300,7 @@ mixin StockRequestApprovalLogic {
   Future<void> _handleApproveButtonPress(
       {required List<TransactionItem> items,
       required List<int?> approvedQuantities,
-      required StockRequest request,
+      required InventoryRequest request,
       required BuildContext context}) async {
     if (approvedQuantities.any((qty) => qty != null && qty > 0)) {
       for (int i = 0; i < items.length; i++) {
@@ -320,7 +321,7 @@ mixin StockRequestApprovalLogic {
   Future<void> _processApprovedItem(
       {required TransactionItem item,
       required int approvedQuantity,
-      required StockRequest request}) async {
+      required InventoryRequest request}) async {
     // item.quantityApproved = approvedQuantity;
     await ProxyService.strategy.updateTransactionItem(
       transactionItemId: item.id,

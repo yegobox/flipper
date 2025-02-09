@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250208225912.migration.dart';
+part '20250209090109.migration.dart';
 part '20250104131208.migration.dart';
 part '20250127184733.migration.dart';
 part '20250205114646.migration.dart';
@@ -32,7 +32,7 @@ part '20250208181424.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250208225912(),
+  const Migration20250209090109(),
   const Migration20250104131208(),
   const Migration20250127184733(),
   const Migration20250205114646(),
@@ -63,7 +63,7 @@ final migrations = <Migration>{
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250208225912, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250209090109, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -366,9 +366,9 @@ final schema = Schema(20250208225912, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('ebm_synced', Column.boolean),
     SchemaColumn('part_of_composite', Column.boolean),
     SchemaColumn('composite_price', Column.Double),
-    SchemaColumn('stock_request_StockRequest_brick_id', Column.integer,
+    SchemaColumn('stock_request_InventoryRequest_brick_id', Column.integer,
         isForeignKey: true,
-        foreignTableName: 'StockRequest',
+        foreignTableName: 'InventoryRequest',
         onDeleteCascade: false,
         onDeleteSetDefault: false),
     SchemaColumn('stock_request_id', Column.varchar)
@@ -681,44 +681,6 @@ final schema = Schema(20250208225912, generatorVersion: 1, tables: <SchemaTable>
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
-  SchemaTable('_brick_StockRequest_transaction_items', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('l_StockRequest_brick_id', Column.integer,
-        isForeignKey: true,
-        foreignTableName: 'StockRequest',
-        onDeleteCascade: true,
-        onDeleteSetDefault: false),
-    SchemaColumn('f_TransactionItem_brick_id', Column.integer,
-        isForeignKey: true,
-        foreignTableName: 'TransactionItem',
-        onDeleteCascade: true,
-        onDeleteSetDefault: false)
-  }, indices: <SchemaIndex>{
-    SchemaIndex(
-        columns: ['l_StockRequest_brick_id', 'f_TransactionItem_brick_id'],
-        unique: true)
-  }),
-  SchemaTable('StockRequest', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('id', Column.varchar, unique: true),
-    SchemaColumn('main_branch_id', Column.integer),
-    SchemaColumn('sub_branch_id', Column.integer),
-    SchemaColumn('created_at', Column.datetime),
-    SchemaColumn('status', Column.varchar),
-    SchemaColumn('delivery_date', Column.datetime),
-    SchemaColumn('delivery_note', Column.varchar),
-    SchemaColumn('order_note', Column.varchar),
-    SchemaColumn('customer_received_order', Column.boolean),
-    SchemaColumn('driver_request_delivery_confirmation', Column.boolean),
-    SchemaColumn('driver_id', Column.integer),
-    SchemaColumn('transaction_items', Column.varchar),
-    SchemaColumn('updated_at', Column.datetime),
-    SchemaColumn('item_counts', Column.num)
-  }, indices: <SchemaIndex>{
-    SchemaIndex(columns: ['id'], unique: true)
-  }),
   SchemaTable('AppNotification', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -1000,6 +962,47 @@ final schema = Schema(20250208225912, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('deleted_at', Column.datetime),
     SchemaColumn('business_id', Column.integer),
     SchemaColumn('branch_id', Column.integer)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
+  SchemaTable('_brick_InventoryRequest_transaction_items',
+      columns: <SchemaColumn>{
+        SchemaColumn('_brick_id', Column.integer,
+            autoincrement: true, nullable: false, isPrimaryKey: true),
+        SchemaColumn('l_InventoryRequest_brick_id', Column.integer,
+            isForeignKey: true,
+            foreignTableName: 'InventoryRequest',
+            onDeleteCascade: true,
+            onDeleteSetDefault: false),
+        SchemaColumn('f_TransactionItem_brick_id', Column.integer,
+            isForeignKey: true,
+            foreignTableName: 'TransactionItem',
+            onDeleteCascade: true,
+            onDeleteSetDefault: false)
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: [
+          'l_InventoryRequest_brick_id',
+          'f_TransactionItem_brick_id'
+        ], unique: true)
+      }),
+  SchemaTable('InventoryRequest', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('main_branch_id', Column.integer),
+    SchemaColumn('sub_branch_id', Column.integer),
+    SchemaColumn('created_at', Column.datetime),
+    SchemaColumn('status', Column.varchar),
+    SchemaColumn('delivery_date', Column.datetime),
+    SchemaColumn('delivery_note', Column.varchar),
+    SchemaColumn('order_note', Column.varchar),
+    SchemaColumn('customer_received_order', Column.boolean),
+    SchemaColumn('driver_request_delivery_confirmation', Column.boolean),
+    SchemaColumn('driver_id', Column.integer),
+    SchemaColumn('transaction_items', Column.varchar),
+    SchemaColumn('updated_at', Column.datetime),
+    SchemaColumn('item_counts', Column.num)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   })

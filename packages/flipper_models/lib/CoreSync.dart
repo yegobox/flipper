@@ -2199,8 +2199,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<List<models.StockRequest>> requests({required int branchId}) async {
-    return await repository.get<StockRequest>(
+  FutureOr<List<models.InventoryRequest>> requests(
+      {required int branchId}) async {
+    return await repository.get<InventoryRequest>(
         query: brick.Query(where: [
       brick.Where('mainBranchId').isExactly(branchId),
       brick.Or('status').isExactly(RequestStatus.pending),
@@ -2209,10 +2210,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Stream<List<StockRequest>> requestsStream(
+  Stream<List<InventoryRequest>> requestsStream(
       {required int branchId, required String filter}) {
     if (filter == RequestStatus.approved) {
-      final query = repository.subscribe<StockRequest>(
+      final query = repository.subscribe<InventoryRequest>(
           query: brick.Query(where: [
         brick.Where('mainBranchId').isExactly(branchId),
         brick.Where('status').isExactly(RequestStatus.approved),
@@ -2222,7 +2223,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           .map((changes) => changes.toList())
           .debounceTime(Duration(milliseconds: 100));
     } else {
-      final query = repository.subscribe<StockRequest>(
+      final query = repository.subscribe<InventoryRequest>(
           query: brick.Query(where: [
         brick.Where('mainBranchId').isExactly(branchId),
         brick.Or('status').isExactly(RequestStatus.pending),
@@ -3377,7 +3378,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // }
     // if (tableName == stockRequestsTable) {
     //   realm!.write(() {
-    //     realm!.deleteAll<StockRequest>();
+    //     realm!.deleteAll<StockRequests>();
     //   });
     // }
     if (tableName == transactionItemsTable) {
@@ -4671,7 +4672,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       {required String stockRequestId,
       DateTime? updatedAt,
       String? status}) async {
-    final stockRequest = (await repository.get<StockRequest>(
+    final stockRequest = (await repository.get<InventoryRequest>(
       query: brick.Query(where: [
         brick.Where('id').isExactly(stockRequestId),
       ]),
@@ -4680,7 +4681,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     if (stockRequest != null) {
       stockRequest.updatedAt = updatedAt ?? stockRequest.updatedAt;
       stockRequest.status = status ?? stockRequest.status;
-      repository.upsert<StockRequest>(stockRequest);
+      repository.upsert<InventoryRequest>(stockRequest);
     }
   }
 
@@ -4760,7 +4761,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       required int mainBranchId}) async {
     try {
       String orderId = const Uuid().v4();
-      final stockRequest = StockRequest(
+      final stockRequest = InventoryRequest(
         id: orderId,
         itemCounts: items.length,
         deliveryDate: deliveryDate,
@@ -4771,7 +4772,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         updatedAt: DateTime.now().toUtc().toLocal(),
         createdAt: DateTime.now().toUtc().toLocal(),
       );
-      StockRequest request = await repository.upsert(stockRequest);
+      InventoryRequest request = await repository.upsert(stockRequest);
       for (TransactionItem item in items) {
         item.stockRequest = request;
         await repository.upsert(item);

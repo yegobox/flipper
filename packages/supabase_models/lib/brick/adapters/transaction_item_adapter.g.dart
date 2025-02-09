@@ -258,12 +258,12 @@ Future<TransactionItem> _$TransactionItemFromSqlite(Map<String, dynamic> data,
       compositePrice: data['composite_price'] == null
           ? null
           : data['composite_price'] as double?,
-      stockRequest: data['stock_request_StockRequest_brick_id'] == null
+      stockRequest: data['stock_request_InventoryRequest_brick_id'] == null
           ? null
-          : (data['stock_request_StockRequest_brick_id'] > -1
-              ? (await repository?.getAssociation<StockRequest>(
+          : (data['stock_request_InventoryRequest_brick_id'] > -1
+              ? (await repository?.getAssociation<InventoryRequest>(
                   Query.where('primaryKey',
-                      data['stock_request_StockRequest_brick_id'] as int,
+                      data['stock_request_InventoryRequest_brick_id'] as int,
                       limit1: true),
                 ))
                   ?.first
@@ -335,9 +335,9 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(TransactionItem instance,
         ? null
         : (instance.partOfComposite! ? 1 : 0),
     'composite_price': instance.compositePrice,
-    'stock_request_StockRequest_brick_id': instance.stockRequest != null
+    'stock_request_InventoryRequest_brick_id': instance.stockRequest != null
         ? instance.stockRequest!.primaryKey ??
-            await provider.upsert<StockRequest>(instance.stockRequest!,
+            await provider.upsert<InventoryRequest>(instance.stockRequest!,
                 repository: repository)
         : null,
     'stock_request_id': instance.stockRequestId
@@ -914,9 +914,9 @@ class TransactionItemAdapter
     ),
     'stockRequest': const RuntimeSqliteColumnDefinition(
       association: true,
-      columnName: 'stock_request_StockRequest_brick_id',
+      columnName: 'stock_request_InventoryRequest_brick_id',
       iterable: false,
-      type: StockRequest,
+      type: InventoryRequest,
     ),
     'stockRequestId': const RuntimeSqliteColumnDefinition(
       association: false,
