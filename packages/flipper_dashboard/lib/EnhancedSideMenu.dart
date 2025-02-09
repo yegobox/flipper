@@ -45,7 +45,7 @@ class EnhancedSideMenu extends ConsumerWidget {
                 ref.read(selectedMenuItemProvider.notifier).state = 0;
               },
             ),
-            // const SizedBox(height: 8),
+           
             SideMenuItemDataTile(
               hasSelectedLine: true,
               highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
@@ -67,7 +67,7 @@ class EnhancedSideMenu extends ConsumerWidget {
                 ref.read(selectedMenuItemProvider.notifier).state = 1;
               },
             ),
-            // const SizedBox(height: 8),
+           
             SideMenuItemDataTile(
               hasSelectedLine: true,
               highlightSelectedColor: Colors.blue.withValues(alpha: .1),
