@@ -106,6 +106,7 @@ abstract class RealmInterface {
     String? bcd,
     // this define if we are ready to show item on dashboard,
     String? imptItemsttsCd,
+    bool fetchRemote = false,
   });
   FutureOr<Configurations?> getByTaxType({required String taxtype});
   FutureOr<Purchase?> getPurchase({required String purchaseId});

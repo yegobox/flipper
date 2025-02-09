@@ -1872,6 +1872,7 @@ class Capella with Booting implements RealmInterface {
       int? itemsPerPage,
       String? name,
       String? bcd,
+      bool fetchRemote = false,
       String? imptItemsttsCd}) {
     // TODO: implement variants
     throw UnimplementedError();
