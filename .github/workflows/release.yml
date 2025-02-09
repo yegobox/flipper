@@ -341,13 +341,11 @@ jobs:
         run: |
           echo "Setting up Android SDK..."
           export ANDROID_HOME=$HOME/Library/Android/sdk
-          export PATH=$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           
-          echo "Ensuring cmdline-tools are installed..."
-          if [ ! -d "$ANDROID_HOME/cmdline-tools/latest" ]; then
-            mkdir -p $ANDROID_HOME/cmdline-tools
-            yes | sdkmanager --install "cmdline-tools;latest"
-          fi
+          echo "Ensuring required system images are installed..."
+          yes | sdkmanager --install "platform-tools" "emulator" "system-images;android-31;google_apis;x86_64"
           echo "Android SDK setup complete."
 
       - name: Create AVD (If Not Cached)
@@ -355,8 +353,9 @@ jobs:
         run: |
           echo "Creating AVD..."
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;x86_64" --force
+          echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;x86_64" --device "pixel_4"
           echo "AVD created."
+
 
 
       - name: Start Emulator and Wait for Boot
