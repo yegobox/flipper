@@ -413,10 +413,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           .writeString(key: 'currentSaleCustomerPhoneNumber', value: value),
       validator: (String? value) {
         if (value == null || value.isEmpty) {
+          ref.read(payButtonLoadingProvider.notifier).stopLoading();
           return 'Please enter a phone number';
         }
         final phoneExp = RegExp(r'^[1-9]\d{8}$');
         if (!phoneExp.hasMatch(value)) {
+          ref.read(payButtonLoadingProvider.notifier).stopLoading();
           return 'Please enter a valid 9-digit phone number without a leading zero';
         }
         return null;
