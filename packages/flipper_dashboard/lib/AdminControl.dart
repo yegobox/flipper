@@ -56,7 +56,7 @@ class _AdminControlState extends State<AdminControl> {
 
   Future<void> toggleForceUPSERT(bool value) async {
     try {
-      ProxyService.strategy.variants(
+     await ProxyService.strategy.variants(
           branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
       await ProxyService.box.writeBool(
           key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
