@@ -377,11 +377,19 @@ jobs:
       - name: Install Android platform tools
         run: sdkmanager platform-tools
 
-      # Uncomment the following lines if you need to install NDK or specific Android platforms
-      # - name: Install Android NDK
-      #   run: sdkmanager --install "ndk;23.1.7779620"
-      # - name: Install Android Platform
-      #   run: sdkmanager --install "platforms;android-35"
+      - name: Install Android Emulator
+        run: sdkmanager "emulator"
+
+      - name: Install System Image
+        run: sdkmanager "system-images;android-31;google_apis;x86_64"
+
+      - name: Create AVD
+        run: |
+          echo "no" | avdmanager create avd --force \
+            --name "test_avd" \
+            --package "system-images;android-31;google_apis;x86_64" \
+            --abi "google_apis/x86_64" \
+            --device "pixel"
 
       - name: Run tests on Android emulator
         uses: malinskiy/action-android/emulator-run-cmd@release/0.1.7
@@ -389,21 +397,23 @@ jobs:
           cmd: |
             cd apps/flipper
             flutter test --dart-define=FLUTTER_TEST_ENV=true integration_test/smoke_android_test.dart
-          api: 25
+          api: 31
           cmdOptions: |
             -no-snapshot-save
             -noaudio
             -no-boot-anim
-            -cores 2
-            -memory 3072
+            -cores 4
+            -memory 4096
             -no-window
+            -accel on
           tag: google_apis
-          abi: x86
-          # abi: x86_64
-          bootTimeout: 820
+          abi: x86_64
+          bootTimeout: 1200
 
-      - name: Wait for emulator to stabilize
-        run: sleep 30
+      - name: Capture Emulator Logs
+        run: |
+          $ANDROID_HOME/platform-tools/adb logcat -d > emulator_logs.txt
+          cat emulator_logs.txt
   fastlane-deploy:
     name: "Google Deploy"
     needs: [unit-testing,android-integration-test, integration-testing-windows]
