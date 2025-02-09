@@ -81,7 +81,7 @@ jobs:
   integration-testing-windows:
     name: "Integration Testing Windows"
     runs-on: windows-2022
-    needs: [unit-testing,android-integration-test]
+    needs: [unit-testing,integration-on-android]
     steps:
       - name: Export pub environment variable on Windows
         run: |
@@ -134,7 +134,7 @@ jobs:
           flutter test --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart
   build-and-release-windows-debug:
     name: "Build windows-DEBUG"
-    needs: [unit-testing, android-integration-test,integration-testing-windows]
+    needs: [unit-testing, integration-on-android,integration-testing-windows]
     runs-on: windows-2022
     steps:
       - name: Export pub environment variable on Windows
@@ -227,7 +227,7 @@ jobs:
           upload_release_asset: false
   build-and-release-windows-prod:
     name: "Build windows-PROD"
-    needs: [unit-testing, android-integration-test,integration-testing-windows]
+    needs: [unit-testing, integration-on-android,integration-testing-windows]
     runs-on: windows-2022
     steps:
       - name: Export pub environment variable on Windows
@@ -421,7 +421,7 @@ jobs:
 
   fastlane-deploy:
     name: "Google Deploy"
-    needs: [unit-testing,android-integration-test, integration-testing-windows]
+    needs: [unit-testing,integration-on-android, integration-testing-windows]
     # runs-on: ubuntu-22.04
     runs-on: macOS-14
     steps:
