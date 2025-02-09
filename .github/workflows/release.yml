@@ -302,7 +302,7 @@ jobs:
 
 
   integration-on-android:
-    needs: [unit-testing]
+    # needs: [unit-testing]
     runs-on: macOS-14
     strategy:
       matrix:
