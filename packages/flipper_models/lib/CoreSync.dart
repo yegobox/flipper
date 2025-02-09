@@ -4775,7 +4775,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       );
       InventoryRequest request = await repository.upsert(stockRequest);
       for (TransactionItem item in items) {
-        item.stockRequest = request;
+        item.inventoryRequest = request;
         await repository.upsert(item);
       }
 

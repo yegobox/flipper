@@ -29,7 +29,7 @@ export 'unit.model.dart';
 export 'universalProduct.model.dart';
 export 'transactionItem.model.dart';
 // export 'access.model.dart';
-export 'stockRequests.model.dart';
+export 'inventory_request.model.dart';
 export 'transaction_payment_record.model.dart';
 export 'flipperSaleCompagin.dart';
 export 'discount.model.dart';

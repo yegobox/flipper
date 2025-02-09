@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250209090109.migration.dart';
+part '20250209152800.migration.dart';
 part '20250104131208.migration.dart';
 part '20250127184733.migration.dart';
 part '20250205114646.migration.dart';
@@ -28,11 +28,10 @@ part '20250128050524.migration.dart';
 part '20250114114345.migration.dart';
 part '20250109125327.migration.dart';
 part '20250123095657.migration.dart';
-part '20250208181424.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250209090109(),
+  const Migration20250209152800(),
   const Migration20250104131208(),
   const Migration20250127184733(),
   const Migration20250205114646(),
@@ -58,12 +57,11 @@ final migrations = <Migration>{
   const Migration20250128050524(),
   const Migration20250114114345(),
   const Migration20250109125327(),
-  const Migration20250123095657(),
-  const Migration20250208181424()
+  const Migration20250123095657()
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250209090109, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250209152800, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -366,12 +364,12 @@ final schema = Schema(20250209090109, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('ebm_synced', Column.boolean),
     SchemaColumn('part_of_composite', Column.boolean),
     SchemaColumn('composite_price', Column.Double),
-    SchemaColumn('stock_request_InventoryRequest_brick_id', Column.integer,
+    SchemaColumn('inventory_request_InventoryRequest_brick_id', Column.integer,
         isForeignKey: true,
         foreignTableName: 'InventoryRequest',
         onDeleteCascade: false,
         onDeleteSetDefault: false),
-    SchemaColumn('stock_request_id', Column.varchar)
+    SchemaColumn('inventory_request_id', Column.varchar)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),

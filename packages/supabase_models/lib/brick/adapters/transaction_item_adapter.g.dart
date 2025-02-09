@@ -159,7 +159,7 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
     'ebm_synced': instance.ebmSynced,
     'part_of_composite': instance.partOfComposite,
     'composite_price': instance.compositePrice,
-    'stock_request_id': instance.stockRequestId
+    'inventory_request_id': instance.inventoryRequestId
   };
 }
 
@@ -258,16 +258,19 @@ Future<TransactionItem> _$TransactionItemFromSqlite(Map<String, dynamic> data,
       compositePrice: data['composite_price'] == null
           ? null
           : data['composite_price'] as double?,
-      stockRequest: data['stock_request_InventoryRequest_brick_id'] == null
-          ? null
-          : (data['stock_request_InventoryRequest_brick_id'] > -1
-              ? (await repository?.getAssociation<InventoryRequest>(
-                  Query.where('primaryKey',
-                      data['stock_request_InventoryRequest_brick_id'] as int,
-                      limit1: true),
-                ))
-                  ?.first
-              : null))
+      inventoryRequest:
+          data['inventory_request_InventoryRequest_brick_id'] == null
+              ? null
+              : (data['inventory_request_InventoryRequest_brick_id'] > -1
+                  ? (await repository?.getAssociation<InventoryRequest>(
+                      Query.where(
+                          'primaryKey',
+                          data['inventory_request_InventoryRequest_brick_id']
+                              as int,
+                          limit1: true),
+                    ))
+                      ?.first
+                  : null))
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -335,12 +338,13 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(TransactionItem instance,
         ? null
         : (instance.partOfComposite! ? 1 : 0),
     'composite_price': instance.compositePrice,
-    'stock_request_InventoryRequest_brick_id': instance.stockRequest != null
-        ? instance.stockRequest!.primaryKey ??
-            await provider.upsert<InventoryRequest>(instance.stockRequest!,
+    'inventory_request_InventoryRequest_brick_id': instance.inventoryRequest !=
+            null
+        ? instance.inventoryRequest!.primaryKey ??
+            await provider.upsert<InventoryRequest>(instance.inventoryRequest!,
                 repository: repository)
         : null,
-    'stock_request_id': instance.stockRequestId
+    'inventory_request_id': instance.inventoryRequestId
   };
 }
 
@@ -571,9 +575,9 @@ class TransactionItemAdapter
       association: false,
       columnName: 'composite_price',
     ),
-    'stockRequestId': const RuntimeSupabaseColumnDefinition(
+    'inventoryRequestId': const RuntimeSupabaseColumnDefinition(
       association: false,
-      columnName: 'stock_request_id',
+      columnName: 'inventory_request_id',
     )
   };
   @override
@@ -912,15 +916,15 @@ class TransactionItemAdapter
       iterable: false,
       type: double,
     ),
-    'stockRequest': const RuntimeSqliteColumnDefinition(
+    'inventoryRequest': const RuntimeSqliteColumnDefinition(
       association: true,
-      columnName: 'stock_request_InventoryRequest_brick_id',
+      columnName: 'inventory_request_InventoryRequest_brick_id',
       iterable: false,
       type: InventoryRequest,
     ),
-    'stockRequestId': const RuntimeSqliteColumnDefinition(
+    'inventoryRequestId': const RuntimeSqliteColumnDefinition(
       association: false,
-      columnName: 'stock_request_id',
+      columnName: 'inventory_request_id',
       iterable: false,
       type: String,
     )

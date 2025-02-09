@@ -11,7 +11,7 @@ import 'package:brick_supabase/brick_supabase.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:uuid/uuid.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/stockRequests.model.dart';
+import 'package:supabase_models/brick/models/inventory_request.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/stock.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
@@ -74,7 +74,7 @@ import '../brick/models/product.model.dart';
 import '../brick/models/asset.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/drawer.model.dart';
-import '../brick/models/stockRequests.model.dart';
+import '../brick/models/inventory_request.model.dart';
 
 part 'adapters/item_code_adapter.g.dart';
 part 'adapters/import_purchase_dates_adapter.g.dart';
