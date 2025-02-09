@@ -325,57 +325,6 @@ jobs:
           flutter-version: "3.27.1"
           channel: stable
 
-      - name: Configure Git with PAT
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          git config --global user.email "info@yegobox.com"
-          git config --global user.name "YEGOBOX"
-          git config --global credential.helper store
-          echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
-
-      - name: Initialize Submodules
-        run: git submodule update --init
-
-      - name: Load Melos
-        run: |
-          dart pub global activate melos 6.3.2
-          melos bootstrap
-
-      - name: Configure Missing Files
-        env:
-          INDEX: ${{ secrets.INDEX }}
-          CONFIGDART: ${{ secrets.CONFIGDART }}
-          SECRETS: ${{ secrets.SECRETS }}
-          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
-          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-        run: |
-          echo "$INDEX" >> apps/flipper/web/index.html
-          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
-          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-          git config --global core.autocrlf false
-          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
-          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
-
-      - name: Configure Keystore
-        env:
-          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
-          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
-          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
-          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
-          GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-        run: |
-          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
-          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
-          echo "storeFile=key.jks" >> key.properties
-          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
-          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
-          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
-        working-directory: apps/flipper/android
-
       - name: Gradle Cache
         uses: gradle/gradle-build-action@v2
 
@@ -388,30 +337,40 @@ jobs:
             ~/.android/adb*
           key: avd-${{ matrix.api-level }}
 
-      - name: Create AVD and Generate Snapshot for Caching
+      - name: Create AVD (If Not Cached)
         if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: ${{ matrix.api-level }}
-          target: ${{ matrix.target }}
-          arch: x86_64
-          profile: pixel
-          force-avd-creation: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: false
-          script: echo "Generated AVD snapshot for caching."
-
-      - name: Link AVD Directory
         run: |
-          mkdir -p ~/.android
-          ln -s ~/.config/android/avd ~/.android/avd
+          echo "Creating AVD..."
+          echo "no" | avdmanager create avd -n test -k "system-images;android-${{ matrix.api-level }};google_apis;x86_64" --force
+          echo "AVD created."
 
       - name: Start Emulator and Wait for Boot
         run: |
-          $ANDROID_HOME/emulator/emulator -avd emulator-5554 -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none &
+          echo "Starting emulator..."
+          nohup $ANDROID_HOME/emulator/emulator -avd test -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none > /dev/null 2>&1 &
+
+          echo "Waiting for emulator to be available..."
           adb wait-for-device
-          adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
-        timeout-minutes: 5
+          for i in {1..30}; do
+            adb devices | grep "emulator-5554" && break
+            echo "Waiting for emulator..."
+            sleep 5
+          done
+
+          echo "Checking if emulator is booted..."
+          for i in {1..30}; do
+            BOOT_COMPLETE=$(adb -s emulator-5554 shell getprop sys.boot_completed | tr -d '\r')
+            if [[ "$BOOT_COMPLETE" == "1" ]]; then
+              echo "Emulator booted!"
+              break
+            fi
+            echo "Still waiting for boot..."
+            sleep 5
+          done
+
+          echo "Pressing unlock key..."
+          adb shell input keyevent 82
+        timeout-minutes: 10
 
       - name: Verify Emulator Status
         run: adb devices
@@ -429,12 +388,6 @@ jobs:
           script: |
             cd apps/flipper
             flutter test --dart-define=FLUTTER_TEST_ENV=true integration_test/smoke_android_test.dart
-
-      - name: Capture Emulator Logs
-        run: |
-          adb logcat -d > emulator_logs.txt
-          cat emulator_logs.txt
-
 
   fastlane-deploy:
     name: "Google Deploy"
