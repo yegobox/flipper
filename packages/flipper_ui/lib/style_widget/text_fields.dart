@@ -7,6 +7,7 @@ class AppInputDecoration {
     required String labelText,
     required String hintText,
     IconData? prefixIcon,
+    Widget? suffixIcon, 
     TextEditingController? controller,
     VoidCallback? onClearPressed,
   }) {
@@ -28,18 +29,20 @@ class AppInputDecoration {
               size: 22.0,
             )
           : null,
-      suffixIcon: controller != null &&
-              controller.text.isNotEmpty &&
-              onClearPressed != null
-          ? IconButton(
-              icon: Icon(
-                Icons.clear,
-                color: Colors.grey.shade600,
-                size: 20.0,
-              ),
-              onPressed: onClearPressed,
-            )
-          : null,
+      suffixIcon:
+          suffixIcon ?? // Use custom suffixIcon if provided, otherwise default to clear button
+              (controller != null &&
+                      controller.text.isNotEmpty &&
+                      onClearPressed != null
+                  ? IconButton(
+                      icon: Icon(
+                        Icons.clear,
+                        color: Colors.grey.shade600,
+                        size: 20.0,
+                      ),
+                      onPressed: onClearPressed,
+                    )
+                  : null),
       border: _buildBorder(context, opacity: 0.5),
       enabledBorder: _buildBorder(context, opacity: 0.3),
       focusedBorder: _buildBorder(context, opacity: 1.0, width: 2.0),
@@ -62,7 +65,7 @@ class AppInputDecoration {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(4.0),
       borderSide: BorderSide(
-        color: Theme.of(context).primaryColor.withValues(alpha: opacity),
+        color: Theme.of(context).primaryColor.withOpacity(opacity),
         width: width,
       ),
     );
@@ -100,6 +103,7 @@ class StyledTextFormField {
     int? maxLines,
     int? minLines,
     IconData? prefixIcon,
+    Widget? suffixIcon,
     String? Function(String?)? validator,
     void Function(String)? onChanged,
   }) {
@@ -116,6 +120,7 @@ class StyledTextFormField {
         labelText: labelText,
         hintText: hintText,
         prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon, // Pass the custom suffixIcon
         controller: controller,
         onClearPressed: controller != null
             ? () {

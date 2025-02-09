@@ -26,9 +26,11 @@ class StockRequest extends OfflineFirstWithSupabaseModel {
   // @OfflineFirst(where: {'stockRequestId': "id"})
   final List<TransactionItem> transactionItems;
   DateTime? updatedAt;
+  num? itemCounts;
   StockRequest({
     String? id,
     this.mainBranchId,
+    this.itemCounts,
     this.subBranchId,
     this.createdAt,
     this.status,

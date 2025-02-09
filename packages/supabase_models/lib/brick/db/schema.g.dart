@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250208211930.migration.dart';
+part '20250208225912.migration.dart';
 part '20250104131208.migration.dart';
 part '20250127184733.migration.dart';
 part '20250205114646.migration.dart';
@@ -32,7 +32,7 @@ part '20250208181424.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250208211930(),
+  const Migration20250208225912(),
   const Migration20250104131208(),
   const Migration20250127184733(),
   const Migration20250205114646(),
@@ -63,7 +63,7 @@ final migrations = <Migration>{
 };
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250208211930, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250208225912, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -370,7 +370,8 @@ final schema = Schema(20250208211930, generatorVersion: 1, tables: <SchemaTable>
         isForeignKey: true,
         foreignTableName: 'StockRequest',
         onDeleteCascade: false,
-        onDeleteSetDefault: false)
+        onDeleteSetDefault: false),
+    SchemaColumn('stock_request_id', Column.varchar)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
@@ -713,7 +714,8 @@ final schema = Schema(20250208211930, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('driver_request_delivery_confirmation', Column.boolean),
     SchemaColumn('driver_id', Column.integer),
     SchemaColumn('transaction_items', Column.varchar),
-    SchemaColumn('updated_at', Column.datetime)
+    SchemaColumn('updated_at', Column.datetime),
+    SchemaColumn('item_counts', Column.num)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),

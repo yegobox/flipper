@@ -4762,6 +4762,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       String orderId = const Uuid().v4();
       final stockRequest = StockRequest(
         id: orderId,
+        itemCounts: items.length,
         deliveryDate: deliveryDate,
         deliveryNote: deliveryNote,
         mainBranchId: mainBranchId,
@@ -4777,12 +4778,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       }
 
       // testing
-      // List<StockRequest> requests = await repository.get<StockRequest>(
-      //     query: brick.Query(where: [brick.Where('id').isExactly(orderId)]));
-      // for (StockRequest request in requests) {
-      //   talker
-      //       .warning("Length Stock Request:${request.transactionItems.length}");
-      // }
+
       return orderId;
     } catch (e, s) {
       talker.error(s);

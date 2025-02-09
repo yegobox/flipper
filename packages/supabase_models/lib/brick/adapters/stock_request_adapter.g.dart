@@ -39,7 +39,9 @@ Future<StockRequest> _$StockRequestFromSupabase(Map<String, dynamic> data,
           ? null
           : data['updated_at'] == null
               ? null
-              : DateTime.tryParse(data['updated_at'] as String));
+              : DateTime.tryParse(data['updated_at'] as String),
+      itemCounts:
+          data['item_counts'] == null ? null : data['item_counts'] as num?);
 }
 
 Future<Map<String, dynamic>> _$StockRequestToSupabase(StockRequest instance,
@@ -58,7 +60,8 @@ Future<Map<String, dynamic>> _$StockRequestToSupabase(StockRequest instance,
     'driver_request_delivery_confirmation':
         instance.driverRequestDeliveryConfirmation,
     'driver_id': instance.driverId,
-    'updated_at': instance.updatedAt?.toIso8601String()
+    'updated_at': instance.updatedAt?.toIso8601String(),
+    'item_counts': instance.itemCounts
   };
 }
 
@@ -98,7 +101,9 @@ Future<StockRequest> _$StockRequestFromSqlite(Map<String, dynamic> data,
       driverId: data['driver_id'] == null ? null : data['driver_id'] as int?,
       transactionItems: (await provider.rawQuery(
               'SELECT DISTINCT `f_TransactionItem_brick_id` FROM `_brick_StockRequest_transaction_items` WHERE l_StockRequest_brick_id = ?',
-              [data['_brick_id'] as int]).then((results) {
+              [
+            data['_brick_id'] as int
+          ]).then((results) {
         final ids = results.map((r) => r['f_TransactionItem_brick_id']);
         return Future.wait<TransactionItem>(ids.map((primaryKey) => repository!
             .getAssociation<TransactionItem>(
@@ -112,7 +117,9 @@ Future<StockRequest> _$StockRequestFromSqlite(Map<String, dynamic> data,
           ? null
           : data['updated_at'] == null
               ? null
-              : DateTime.tryParse(data['updated_at'] as String))
+              : DateTime.tryParse(data['updated_at'] as String),
+      itemCounts:
+          data['item_counts'] == null ? null : data['item_counts'] as num?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -137,7 +144,8 @@ Future<Map<String, dynamic>> _$StockRequestToSqlite(StockRequest instance,
             : (instance.driverRequestDeliveryConfirmation! ? 1 : 0),
     'driver_id': instance.driverId,
     'transaction_items': jsonEncode(instance.transactionItems),
-    'updated_at': instance.updatedAt?.toIso8601String()
+    'updated_at': instance.updatedAt?.toIso8601String(),
+    'item_counts': instance.itemCounts
   };
 }
 
@@ -205,6 +213,10 @@ class StockRequestAdapter
     'updatedAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'updated_at',
+    ),
+    'itemCounts': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'item_counts',
     )
   };
   @override
@@ -296,6 +308,12 @@ class StockRequestAdapter
       columnName: 'updated_at',
       iterable: false,
       type: DateTime,
+    ),
+    'itemCounts': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'item_counts',
+      iterable: false,
+      type: num,
     )
   };
   @override

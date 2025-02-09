@@ -339,7 +339,8 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(TransactionItem instance,
         ? instance.stockRequest!.primaryKey ??
             await provider.upsert<StockRequest>(instance.stockRequest!,
                 repository: repository)
-        : null
+        : null,
+    'stock_request_id': instance.stockRequestId
   };
 }
 
@@ -916,6 +917,12 @@ class TransactionItemAdapter
       columnName: 'stock_request_StockRequest_brick_id',
       iterable: false,
       type: StockRequest,
+    ),
+    'stockRequestId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'stock_request_id',
+      iterable: false,
+      type: String,
     )
   };
   @override
