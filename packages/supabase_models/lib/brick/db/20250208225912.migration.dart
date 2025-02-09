@@ -10,28 +10,28 @@ part of 'schema.g.dart';
 // The migration version must **always** mirror the file name
 
 const List<MigrationCommand> _migration_20250208225912_up = [
-  DropTable('_brick_StockRequest_items'),
-  DropColumn('items', onTable: 'StockRequest'),
-  InsertTable('_brick_StockRequest_transaction_items'),
-  InsertColumn('stock_request_id', Column.varchar, onTable: 'TransactionItem'),
-  InsertForeignKey('_brick_StockRequest_transaction_items', 'StockRequest',
-      foreignKeyColumn: 'l_StockRequest_brick_id',
-      onDeleteCascade: true,
-      onDeleteSetDefault: false),
-  InsertForeignKey('_brick_StockRequest_transaction_items', 'TransactionItem',
-      foreignKeyColumn: 'f_TransactionItem_brick_id',
-      onDeleteCascade: true,
-      onDeleteSetDefault: false),
-  InsertColumn('transaction_items', Column.varchar, onTable: 'StockRequest'),
+  // DropTable('_brick_StockRequest_items'),
+  // DropColumn('items', onTable: 'StockRequest'),
+  // InsertTable('_brick_StockRequest_transaction_items'),
+  // InsertColumn('stock_request_id', Column.varchar, onTable: 'TransactionItem'),
+  // InsertForeignKey('_brick_StockRequest_transaction_items', 'StockRequest',
+  //     foreignKeyColumn: 'l_StockRequest_brick_id',
+  //     onDeleteCascade: true,
+  //     onDeleteSetDefault: false),
+  // InsertForeignKey('_brick_StockRequest_transaction_items', 'TransactionItem',
+  //     foreignKeyColumn: 'f_TransactionItem_brick_id',
+  //     onDeleteCascade: true,
+  //     onDeleteSetDefault: false),
+  // InsertColumn('transaction_items', Column.varchar, onTable: 'StockRequest'),
   InsertColumn('item_counts', Column.num, onTable: 'StockRequest'),
-  CreateIndex(
-      columns: ['l_StockRequest_brick_id', 'f_TransactionItem_brick_id'],
-      onTable: '_brick_StockRequest_transaction_items',
-      unique: true),
-  CreateIndex(
-      columns: ['l_StockRequest_brick_id', 'f_TransactionItem_brick_id'],
-      onTable: '_brick_StockRequest_items',
-      unique: true)
+  // CreateIndex(
+  //     columns: ['l_StockRequest_brick_id', 'f_TransactionItem_brick_id'],
+  //     onTable: '_brick_StockRequest_transaction_items',
+  //     unique: true),
+  // CreateIndex(
+  //     columns: ['l_StockRequest_brick_id', 'f_TransactionItem_brick_id'],
+  //     onTable: '_brick_StockRequest_items',
+  //     unique: true)
 ];
 
 const List<MigrationCommand> _migration_20250208225912_down = [
