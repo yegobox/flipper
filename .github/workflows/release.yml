@@ -337,12 +337,27 @@ jobs:
             ~/.android/adb*
           key: avd-${{ matrix.api-level }}
 
+      - name: Set Up Android SDK
+        run: |
+          echo "Setting up Android SDK..."
+          export ANDROID_HOME=$HOME/Library/Android/sdk
+          export PATH=$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          
+          echo "Ensuring cmdline-tools are installed..."
+          if [ ! -d "$ANDROID_HOME/cmdline-tools/latest" ]; then
+            mkdir -p $ANDROID_HOME/cmdline-tools
+            yes | sdkmanager --install "cmdline-tools;latest"
+          fi
+          echo "Android SDK setup complete."
+
       - name: Create AVD (If Not Cached)
         if: steps.avd-cache.outputs.cache-hit != 'true'
         run: |
           echo "Creating AVD..."
-          echo "no" | avdmanager create avd -n test -k "system-images;android-${{ matrix.api-level }};google_apis;x86_64" --force
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;x86_64" --force
           echo "AVD created."
+
 
       - name: Start Emulator and Wait for Boot
         run: |
