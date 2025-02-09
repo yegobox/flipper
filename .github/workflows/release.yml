@@ -400,6 +400,22 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
+
+      - name: Link AVD Directory
+        run: |
+          mkdir -p ~/.android
+          ln -s ~/.config/android/avd ~/.android/avd
+
+      - name: Start Emulator and Wait for Boot
+        run: |
+          $ANDROID_HOME/emulator/emulator -avd emulator-5554 -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none &
+          adb wait-for-device
+          adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
+        timeout-minutes: 5
+
+      - name: Verify Emulator Status
+        run: adb devices
+
       - name: Run Tests on Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -416,8 +432,9 @@ jobs:
 
       - name: Capture Emulator Logs
         run: |
-          $ANDROID_HOME/platform-tools/adb logcat -d > emulator_logs.txt
+          adb logcat -d > emulator_logs.txt
           cat emulator_logs.txt
+
 
   fastlane-deploy:
     name: "Google Deploy"
