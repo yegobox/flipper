@@ -358,33 +358,18 @@ jobs:
 
 
 
-      - name: Start Emulator and Wait for Boot
+      - name: Start Emulator
         run: |
           echo "Starting emulator..."
-          nohup $ANDROID_HOME/emulator/emulator -avd test -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none > /dev/null 2>&1 &
-
+          $ANDROID_HOME/emulator/emulator -avd test -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 2048 &
           echo "Waiting for emulator to be available..."
           adb wait-for-device
-          for i in {1..30}; do
-            adb devices | grep "emulator-5554" && break
-            echo "Waiting for emulator..."
-            sleep 5
-          done
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global animator_duration_scale 0
+          echo "Emulator is ready!"
+        timeout-minutes: 15
 
-          echo "Checking if emulator is booted..."
-          for i in {1..30}; do
-            BOOT_COMPLETE=$(adb -s emulator-5554 shell getprop sys.boot_completed | tr -d '\r')
-            if [[ "$BOOT_COMPLETE" == "1" ]]; then
-              echo "Emulator booted!"
-              break
-            fi
-            echo "Still waiting for boot..."
-            sleep 5
-          done
-
-          echo "Pressing unlock key..."
-          adb shell input keyevent 82
-        timeout-minutes: 10
 
       - name: Verify Emulator Status
         run: adb devices
