@@ -2662,6 +2662,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               // Store the sendPort for communication with isolate
               sendPort = message;
               print('SendPort received');
+              return;
             }
             String identifier = message as String;
             List<String> separator = identifier.split(":");
