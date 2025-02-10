@@ -348,15 +348,11 @@ jobs:
           yes | sdkmanager --install "platform-tools" "emulator" "system-images;android-31;google_apis;x86_64"
           echo "Android SDK setup complete."
 
-      - name: Create AVD (If Not Cached)
-        if: steps.avd-cache.outputs.cache-hit != 'true'
+      - name: Create AVD
         run: |
           echo "Creating AVD..."
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;x86_64" --device "pixel_4"
+          echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;arm64-v8a" --force
           echo "AVD created."
-
-
 
       - name: Start Emulator
         run: |
@@ -369,6 +365,7 @@ jobs:
           adb shell settings put global animator_duration_scale 0
           echo "Emulator is ready!"
         timeout-minutes: 15
+
 
 
       - name: Verify Emulator Status
