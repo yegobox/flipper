@@ -339,25 +339,31 @@ jobs:
 
       - name: Install Android SDK Tools
         run: |
-          echo "Installing Android SDK Tools..."
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          cd $ANDROID_HOME/cmdline-tools
-          wget https://dl.google.com/android/repository/commandlinetools-mac-9477386_latest.zip
-          unzip commandlinetools-mac-9477386_latest.zip
-          mv cmdline-tools latest
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          echo "Installing Android SDK Command-line Tools..."
+          mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
+          curl -o sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-mac-10406996_latest.zip
+          unzip sdk-tools.zip -d "$ANDROID_HOME/cmdline-tools/latest"
+          rm sdk-tools.zip
+          echo "Android SDK Tools installed successfully."
 
-          echo "Accepting licenses..."
-          yes | sdkmanager --licenses || true
+      - name: Accept Android SDK Licenses
+        run: |
+          echo "Accepting Android SDK licenses..."
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          mkdir -p "$ANDROID_HOME/licenses"
+          echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\n" > "$ANDROID_HOME/licenses/android-sdk-license"
+          echo -e "d56f5187479451eabf01fb78af6dfcb131a6481e\n" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+          echo "All licenses accepted."
 
-          echo "Installing required Android components..."
-          sdkmanager --sdk_root=$ANDROID_HOME --install \
+      - name: Install Required Android Components
+        run: |
+          echo "Installing Android components..."
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install \
             "platform-tools" \
             "platforms;android-31" \
             "system-images;android-31;google_apis;arm64-v8a" \
             "emulator"
-          
-          echo "Android SDK Tools installed!"
+          echo "Android components installed."
 
       - name: Create AVD
         run: |
@@ -378,6 +384,7 @@ jobs:
           adb shell settings put global animator_duration_scale 0
           echo "Emulator is ready!"
         timeout-minutes: 15
+
 
 
       - name: Verify Emulator Status
