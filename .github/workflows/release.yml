@@ -346,8 +346,17 @@ jobs:
           unzip commandlinetools-mac-9477386_latest.zip
           mv cmdline-tools latest
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-          sdkmanager --sdk_root=$ANDROID_HOME --install "platform-tools" "platforms;android-31" "system-images;android-31;google_apis;arm64-v8a" "emulator"
-          yes | sdkmanager --licenses
+
+          echo "Accepting licenses..."
+          yes | sdkmanager --licenses || true
+
+          echo "Installing required Android components..."
+          sdkmanager --sdk_root=$ANDROID_HOME --install \
+            "platform-tools" \
+            "platforms;android-31" \
+            "system-images;android-31;google_apis;arm64-v8a" \
+            "emulator"
+          
           echo "Android SDK Tools installed!"
 
       - name: Create AVD
@@ -369,6 +378,7 @@ jobs:
           adb shell settings put global animator_duration_scale 0
           echo "Emulator is ready!"
         timeout-minutes: 15
+
 
       - name: Verify Emulator Status
         run: adb devices
