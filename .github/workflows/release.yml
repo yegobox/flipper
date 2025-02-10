@@ -368,22 +368,30 @@ jobs:
       - name: Create AVD
         run: |
           echo "Creating AVD..."
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-          echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;arm64-v8a" --force
+          sdkmanager --install "system-images;android-31;google_apis;arm64-v8a"
+          echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;arm64-v8a" --device "pixel_4"
           echo "AVD created."
+
 
       - name: Start Emulator
         run: |
           echo "Starting emulator..."
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-          $ANDROID_HOME/emulator/emulator -avd test -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 2048 &
+          nohup $ANDROID_HOME/emulator/emulator -avd test -no-window -noaudio -no-boot-anim -gpu off -memory 2048 -no-snapshot-load &
           echo "Waiting for emulator to be available..."
           adb wait-for-device
           adb shell settings put global window_animation_scale 0
           adb shell settings put global transition_animation_scale 0
           adb shell settings put global animator_duration_scale 0
           echo "Emulator is ready!"
-        timeout-minutes: 15
+        timeout-minutes: 10
+
+      - name: Debug Emulator
+        run: |
+          echo "Checking running AVDs..."
+          $ANDROID_HOME/emulator/emulator -list-avds
+          echo "Checking if AVD is running..."
+          adb devices
 
 
 
