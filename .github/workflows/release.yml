@@ -339,12 +339,22 @@ jobs:
 
       - name: Install Android SDK Tools
         run: |
-          echo "Installing Android SDK Command-line Tools..."
-          mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
-          curl -o sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-mac-10406996_latest.zip
-          unzip sdk-tools.zip -d "$ANDROID_HOME/cmdline-tools/latest"
-          rm sdk-tools.zip
-          echo "Android SDK Tools installed successfully."
+          export ANDROID_HOME=$HOME/Library/Android/sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+
+          # Install cmdline-tools if not installed
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          cd $ANDROID_HOME/cmdline-tools
+          curl -o commandlinetools-mac.zip https://dl.google.com/android/repository/commandlinetools-mac-9477386_latest.zip
+          unzip -q commandlinetools-mac.zip
+          rm commandlinetools-mac.zip
+          mv cmdline-tools latest
+
+          echo "Android SDK installed."
+
+          # Verify sdkmanager is working
+          sdkmanager --version
+
 
       - name: Accept Android SDK Licenses
         run: |
@@ -367,10 +377,12 @@ jobs:
 
       - name: Create AVD
         run: |
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           echo "Creating AVD..."
           sdkmanager --install "system-images;android-31;google_apis;arm64-v8a"
           echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;arm64-v8a" --device "pixel_4"
           echo "AVD created."
+
 
 
       - name: Start Emulator
@@ -386,12 +398,12 @@ jobs:
           echo "Emulator is ready!"
         timeout-minutes: 10
 
-      - name: Debug Emulator
+      - name: Debug SDK
         run: |
-          echo "Checking running AVDs..."
-          $ANDROID_HOME/emulator/emulator -list-avds
-          echo "Checking if AVD is running..."
-          adb devices
+          echo "Checking sdkmanager..."
+          which sdkmanager
+          sdkmanager --list
+
 
 
 
