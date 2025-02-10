@@ -370,9 +370,6 @@ jobs:
             echo "Emulator is ready!"
           timeout-minutes: 15
 
-
-
-
       - name: Verify Emulator Status
         run: adb devices
 
