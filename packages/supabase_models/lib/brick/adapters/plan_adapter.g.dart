@@ -5,19 +5,32 @@ Future<Plan> _$PlanFromSupabase(Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Plan(
-      id: data['id'] as String?,
-      businessId: data['business_id'] as int?,
-      selectedPlan: data['selected_plan'] as String?,
-      additionalDevices: data['additional_devices'] as int?,
-      isYearlyPlan: data['is_yearly_plan'] as bool?,
-      totalPrice: data['total_price'] as int?,
+      id: data['id'] == null ? null : data['id'] as String?,
+      businessId:
+          data['business_id'] == null ? null : data['business_id'] as int?,
+      selectedPlan: data['selected_plan'] == null
+          ? null
+          : data['selected_plan'] as String?,
+      additionalDevices: data['additional_devices'] == null
+          ? null
+          : data['additional_devices'] as int?,
+      isYearlyPlan: data['is_yearly_plan'] == null
+          ? null
+          : data['is_yearly_plan'] as bool?,
+      totalPrice:
+          data['total_price'] == null ? null : data['total_price'] as int?,
       createdAt: data['created_at'] == null
           ? null
-          : DateTime.tryParse(data['created_at'] as String),
-      paymentCompletedByUser:
-          data['payment_completed_by_user'] as bool? ?? false,
-      rule: data['rule'] as String?,
-      paymentMethod: data['payment_method'] as String?,
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String),
+      paymentCompletedByUser: data['payment_completed_by_user'] == null
+          ? null
+          : data['payment_completed_by_user'] as bool? ?? false,
+      rule: data['rule'] == null ? null : data['rule'] as String?,
+      paymentMethod: data['payment_method'] == null
+          ? null
+          : data['payment_method'] as String?,
       addons: await Future.wait<PlanAddon>(data['addons']
               ?.map((d) => PlanAddonAdapter()
                   .fromSupabase(d, provider: provider, repository: repository))
@@ -26,8 +39,12 @@ Future<Plan> _$PlanFromSupabase(Map<String, dynamic> data,
           []),
       nextBillingDate: data['next_billing_date'] == null
           ? null
-          : DateTime.tryParse(data['next_billing_date'] as String),
-      numberOfPayments: data['number_of_payments'] as int?);
+          : data['next_billing_date'] == null
+              ? null
+              : DateTime.tryParse(data['next_billing_date'] as String),
+      numberOfPayments: data['number_of_payments'] == null
+          ? null
+          : data['number_of_payments'] as int?);
 }
 
 Future<Map<String, dynamic>> _$PlanToSupabase(Plan instance,

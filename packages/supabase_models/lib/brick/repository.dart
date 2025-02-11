@@ -15,7 +15,7 @@ import 'package:path/path.dart';
 export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
-const dbFileName = "flipper_v3.sqlite";
+const dbFileName = "flipper_v4.sqlite";
 const queueName = "brick_offline_queue.sqlite";
 
 class Repository extends OfflineFirstWithSupabaseRepository {
@@ -51,8 +51,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     final queuePath = join(directory, queueName);
 
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
-      databaseFactory:
-          Platform.isWindows ? databaseFactoryFfi : databaseFactory,
+      databaseFactory: Platform.isWindows || DatabasePath.isTestEnvironment()
+          ? databaseFactoryFfi
+          : databaseFactory,
       databasePath: queuePath,
       onReattempt: (http.Request re, o) {},
       onRequestException: (request, object) {
@@ -89,8 +90,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       supabaseProvider: provider,
       sqliteProvider: SqliteProvider(
         DatabasePath.isTestEnvironment() ? inMemoryDatabasePath : dbPath,
-        databaseFactory:
-            Platform.isWindows ? databaseFactoryFfi : databaseFactory,
+        databaseFactory: Platform.isWindows || DatabasePath.isTestEnvironment()
+            ? databaseFactoryFfi
+            : databaseFactory,
         modelDictionary: sqliteModelDictionary,
       ),
       migrations: migrations,

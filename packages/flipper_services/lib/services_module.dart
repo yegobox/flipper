@@ -165,7 +165,7 @@ abstract class ServicesModule {
   Future<LocalStorage> box() async {
     const isTest =
         const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
-    talker.warning("running in test env: $isTest");
+    // talker.warning("running in test env: $isTest");
 
     if (isTest) {
       return await SharedPreferenceStorageMock().initializePreferences();

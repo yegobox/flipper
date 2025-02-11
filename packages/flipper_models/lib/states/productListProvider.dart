@@ -1,11 +1,8 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -58,91 +55,50 @@ final productFromSupplier =
     FutureProvider.autoDispose<List<Variant>>((ref) async {
   final supplier = ref.watch(selectedSupplierProvider);
 
-  String idToken = await ProxyService.strategy.getIdToken();
-  // talker.warning("idToken $idToken");
-
+  // Get the Supabase URL and headers
+  // String idToken = await ProxyService.strategy.getFirebaseToken();
   var headers = {
-    'Authorization': 'Bearer $idToken',
-    'Content-Type': 'application/json'
+    // 'Authorization': 'Bearer $idToken',
+    'Content-Type': 'application/json',
+    'apikey': AppSecrets.supabaseAnonKey,
   };
+  
   talker.warning("Supplier Id: ${supplier.value?.serverId}");
 
-  var data = json.encode({
-    "structuredQuery": {
-      "from": [
-        {"collectionId": AppSecrets.queryableModel}
-      ],
-      "where": {
-        "compositeFilter": {
-          "op": "AND",
-          "filters": [
-            {
-              "fieldFilter": {
-                "field": {"fieldPath": "branch_id"},
-                "op": "EQUAL",
-                "value": {"integerValue": supplier.value?.serverId}
-              }
-            },
-            {
-              "fieldFilter": {
-                "field": {"fieldPath": "product_name"},
-                "op": "NOT_EQUAL",
-                "value": {"stringValue": "temp"}
-              }
-            }
-          ]
-        }
-      }
-    }
-  });
+  // Construct the Supabase URL with query parameters
+  final supabaseUrl =
+      '${AppSecrets.newApiEndPoints}${supplier.value?.serverId}&limit=100&pchs_stts_cd=neq.01&pchs_stts_cd=neq.04&impt_item_stts_cd=neq.2&impt_item_stts_cd=neq.4';
 
   var dio = Dio();
   try {
-    var response = await dio.post(
-      AppSecrets.apiEndPoints,
+    // Make the GET request to Supabase
+    var response = await dio.get(
+      supabaseUrl,
       options: Options(headers: headers),
-      data: data,
     );
 
-    final List<dynamic> documents = response.data ?? [];
+    // Parse the response data
+    final List<dynamic> data = response.data ?? [];
 
-    // Filtering out any documents that don't have a 'document' field
-    List<Variant> variants = documents
-        .where(
-            (item) => item['document'] != null) // Safeguard for null documents
-        .map<Variant>((item) {
-      var fields = item['document']?['fields'] ?? {};
-
-      // Safely retrieve values with null checks
-      String name = fields['name']?['stringValue'] ?? 'Unknown';
-      String productName = fields['product_name']?['stringValue'] ?? 'Unknown';
-      String productId =
-          fields['product_id']?['integerValue']?.toString() ?? '';
-      int branchId = int.tryParse(
-              fields['branch_id']?['integerValue']?.toString() ?? '0') ??
-          0;
-      int id =
-          int.tryParse(fields['id']?['integerValue']?.toString() ?? '0') ?? 0;
-      String color = fields['color']?['stringValue'] ?? '#FFFFFF';
-
-      int retailPrice = fields['retail_price']?['doubleValue'] ?? 0.0;
-      int supplyPrice = fields['supply_price']?['doubleValue'] ?? 0.0;
-
+    // Map the data to the Variant model
+    List<Variant> variants = data.map<Variant>((item) {
       return Variant(
-        name: name,
-        productName: productName,
-        productId: productId,
-        branchId: branchId,
-        color: color,
-        retailPrice: retailPrice.toDouble(),
-        supplyPrice: supplyPrice.toDouble(),
+        id: item['id']?.toString() ?? '',
+        name: item['name'] ?? 'Unknown',
+        productName: item['product_name'] ?? 'Unknown',
+        productId: item['product_id']?.toString() ?? '',
+        branchId: item['branch_id'] ?? 0,
+        color: item['color'] ?? '#FFFFFF',
+        retailPrice: (item['retail_price'] as num?)?.toDouble() ?? 0.0,
+        supplyPrice: (item['supply_price'] as num?)?.toDouble() ?? 0.0,
+        // Add other fields as needed
       );
     }).toList();
 
     return variants;
   } on DioException catch (e) {
     Talker().error('DioException in productFromSupplier: ${e.message}');
-    return []; // Return an empty list instead of throwing
+    return []; // Return an empty list on error
   } catch (e, s) {
     Talker().error('Error in productFromSupplier: $e');
     Talker().error('Stack trace: $s');

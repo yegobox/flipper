@@ -158,7 +158,7 @@ class _GeminiResponseProviderElement
 }
 
 String _$geminiBusinessAnalyticsResponseHash() =>
-    r'1cc3d87df4c59339e5a6c97d616cdcbdd65dc092';
+    r'58820bd284bae9c2b1d7000cbe0f2d9aa10b3537';
 
 /// See also [geminiBusinessAnalyticsResponse].
 @ProviderFor(geminiBusinessAnalyticsResponse)

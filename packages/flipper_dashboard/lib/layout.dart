@@ -1,12 +1,11 @@
 import 'package:flipper_dashboard/Ai.dart';
+import 'package:flipper_dashboard/EnhancedSideMenu.dart';
 import 'package:flipper_dashboard/ProductListWidget.dart';
 import 'package:flipper_dashboard/SearchFieldWidget.dart';
-import 'package:flipper_dashboard/TenantWidget.dart';
 import 'package:flipper_dashboard/TransactionWidget.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
 import 'package:flipper_dashboard/apps.dart';
 import 'package:flipper_dashboard/checkout.dart';
@@ -93,75 +92,7 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
     }
 
     return Container(
-      child: SideMenu(
-        mode: SideMenuMode.compact,
-        builder: (data) {
-          return SideMenuData(
-            header: SizedBox(
-              child: Image.asset(
-                'assets/logo.png',
-                package: 'flipper_dashboard',
-                width: 40,
-                height: 40,
-              ),
-            ),
-            items: [
-              SideMenuItemDataTile(
-                hasSelectedLine: false,
-                highlightSelectedColor: Colors.black12,
-                borderRadius: BorderRadius.circular(2),
-                title: 'Sales',
-                isSelected: ref.watch(selectedMenuItemProvider) == 0,
-                icon: Icon(
-                  Icons.shopping_cart,
-                  color: ref.watch(selectedMenuItemProvider) == 2
-                      ? Colors.white
-                      : Colors.grey,
-                ),
-                onTap: () {
-                  print('Sales menu item tapped');
-                  ref.read(selectedMenuItemProvider.notifier).state = 0;
-                },
-              ),
-              SideMenuItemDataTile(
-                highlightSelectedColor: Colors.black12,
-                borderRadius: BorderRadius.circular(2),
-                hasSelectedLine: false,
-                title: 'Inventory',
-                isSelected: ref.watch(selectedMenuItemProvider) == 1,
-                icon: Icon(
-                  Icons.inventory,
-                  color: ref.watch(selectedMenuItemProvider) == 2
-                      ? Colors.white
-                      : Colors.grey,
-                ),
-                onTap: () {
-                  print('Inventory menu item tapped');
-                  ref.read(selectedMenuItemProvider.notifier).state = 1;
-                },
-              ),
-              SideMenuItemDataTile(
-                highlightSelectedColor: Colors.black12,
-                hasSelectedLine: false,
-                borderRadius: BorderRadius.circular(2),
-                title: 'Tickets',
-                isSelected: ref.watch(selectedMenuItemProvider) == 2,
-                icon: Icon(
-                  Icons.receipt,
-                  color: ref.watch(selectedMenuItemProvider) == 2
-                      ? Colors.white
-                      : Colors.grey,
-                ),
-                onTap: () {
-                  print('Tickets menu item tapped');
-                  ref.read(selectedMenuItemProvider.notifier).state = 2;
-                },
-              ),
-            ],
-            footer: const TenantWidget(),
-          );
-        },
-      ),
+      child: EnhancedSideMenu(),
     );
   }
 

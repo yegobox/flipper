@@ -1,38 +1,52 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<StockRequest> _$StockRequestFromSupabase(Map<String, dynamic> data,
+Future<InventoryRequest> _$InventoryRequestFromSupabase(
+    Map<String, dynamic> data,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
-  return StockRequest(
+  return InventoryRequest(
       id: data['id'] as String?,
-      mainBranchId: data['main_branch_id'] as int?,
-      subBranchId: data['sub_branch_id'] as int?,
+      mainBranchId: data['main_branch_id'] == null
+          ? null
+          : data['main_branch_id'] as int?,
+      subBranchId:
+          data['sub_branch_id'] == null ? null : data['sub_branch_id'] as int?,
       createdAt: data['created_at'] == null
           ? null
-          : DateTime.tryParse(data['created_at'] as String),
-      status: data['status'] as String?,
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String),
+      status: data['status'] == null ? null : data['status'] as String?,
       deliveryDate: data['delivery_date'] == null
           ? null
-          : DateTime.tryParse(data['delivery_date'] as String),
-      deliveryNote: data['delivery_note'] as String?,
-      orderNote: data['order_note'] as String?,
-      customerReceivedOrder: data['customer_received_order'] as bool?,
+          : data['delivery_date'] == null
+              ? null
+              : DateTime.tryParse(data['delivery_date'] as String),
+      deliveryNote: data['delivery_note'] == null
+          ? null
+          : data['delivery_note'] as String?,
+      orderNote:
+          data['order_note'] == null ? null : data['order_note'] as String?,
+      customerReceivedOrder: data['customer_received_order'] == null
+          ? null
+          : data['customer_received_order'] as bool?,
       driverRequestDeliveryConfirmation:
-          data['driver_request_delivery_confirmation'] as bool?,
-      driverId: data['driver_id'] as int?,
-      items: await Future.wait<TransactionItem>(data['items']
-              ?.map((d) => TransactionItemAdapter()
-                  .fromSupabase(d, provider: provider, repository: repository))
-              .toList()
-              .cast<Future<TransactionItem>>() ??
-          []),
+          data['driver_request_delivery_confirmation'] == null
+              ? null
+              : data['driver_request_delivery_confirmation'] as bool?,
+      driverId: data['driver_id'] == null ? null : data['driver_id'] as int?,
       updatedAt: data['updated_at'] == null
           ? null
-          : DateTime.tryParse(data['updated_at'] as String));
+          : data['updated_at'] == null
+              ? null
+              : DateTime.tryParse(data['updated_at'] as String),
+      itemCounts:
+          data['item_counts'] == null ? null : data['item_counts'] as num?);
 }
 
-Future<Map<String, dynamic>> _$StockRequestToSupabase(StockRequest instance,
+Future<Map<String, dynamic>> _$InventoryRequestToSupabase(
+    InventoryRequest instance,
     {required SupabaseProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
@@ -48,18 +62,15 @@ Future<Map<String, dynamic>> _$StockRequestToSupabase(StockRequest instance,
     'driver_request_delivery_confirmation':
         instance.driverRequestDeliveryConfirmation,
     'driver_id': instance.driverId,
-    'items': await Future.wait<Map<String, dynamic>>(instance.items
-        .map((s) => TransactionItemAdapter()
-            .toSupabase(s, provider: provider, repository: repository))
-        .toList()),
-    'updated_at': instance.updatedAt?.toIso8601String()
+    'updated_at': instance.updatedAt?.toIso8601String(),
+    'item_counts': instance.itemCounts
   };
 }
 
-Future<StockRequest> _$StockRequestFromSqlite(Map<String, dynamic> data,
+Future<InventoryRequest> _$InventoryRequestFromSqlite(Map<String, dynamic> data,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
-  return StockRequest(
+  return InventoryRequest(
       id: data['id'] as String,
       mainBranchId: data['main_branch_id'] == null
           ? null
@@ -90,9 +101,11 @@ Future<StockRequest> _$StockRequestFromSqlite(Map<String, dynamic> data,
               ? null
               : data['driver_request_delivery_confirmation'] == 1,
       driverId: data['driver_id'] == null ? null : data['driver_id'] as int?,
-      items: (await provider.rawQuery(
-              'SELECT DISTINCT `f_TransactionItem_brick_id` FROM `_brick_StockRequest_items` WHERE l_StockRequest_brick_id = ?',
-              [data['_brick_id'] as int]).then((results) {
+      transactionItems: (await provider.rawQuery(
+              'SELECT DISTINCT `f_TransactionItem_brick_id` FROM `_brick_InventoryRequest_transaction_items` WHERE l_InventoryRequest_brick_id = ?',
+              [
+            data['_brick_id'] as int
+          ]).then((results) {
         final ids = results.map((r) => r['f_TransactionItem_brick_id']);
         return Future.wait<TransactionItem>(ids.map((primaryKey) => repository!
             .getAssociation<TransactionItem>(
@@ -106,11 +119,14 @@ Future<StockRequest> _$StockRequestFromSqlite(Map<String, dynamic> data,
           ? null
           : data['updated_at'] == null
               ? null
-              : DateTime.tryParse(data['updated_at'] as String))
+              : DateTime.tryParse(data['updated_at'] as String),
+      itemCounts:
+          data['item_counts'] == null ? null : data['item_counts'] as num?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$StockRequestToSqlite(StockRequest instance,
+Future<Map<String, dynamic>> _$InventoryRequestToSqlite(
+    InventoryRequest instance,
     {required SqliteProvider provider,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
@@ -130,15 +146,16 @@ Future<Map<String, dynamic>> _$StockRequestToSqlite(StockRequest instance,
             ? null
             : (instance.driverRequestDeliveryConfirmation! ? 1 : 0),
     'driver_id': instance.driverId,
-    'items': jsonEncode(instance.items),
-    'updated_at': instance.updatedAt?.toIso8601String()
+    'transaction_items': jsonEncode(instance.transactionItems),
+    'updated_at': instance.updatedAt?.toIso8601String(),
+    'item_counts': instance.itemCounts
   };
 }
 
-/// Construct a [StockRequest]
-class StockRequestAdapter
-    extends OfflineFirstWithSupabaseAdapter<StockRequest> {
-  StockRequestAdapter();
+/// Construct a [InventoryRequest]
+class InventoryRequestAdapter
+    extends OfflineFirstWithSupabaseAdapter<InventoryRequest> {
+  InventoryRequestAdapter();
 
   @override
   final supabaseTableName = 'stock_requests';
@@ -190,15 +207,19 @@ class StockRequestAdapter
       association: false,
       columnName: 'driver_id',
     ),
-    'items': const RuntimeSupabaseColumnDefinition(
+    'transactionItems': const RuntimeSupabaseColumnDefinition(
       association: true,
-      columnName: 'items',
+      columnName: 'transaction_items',
       associationType: Map,
       associationIsNullable: false,
     ),
     'updatedAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'updated_at',
+    ),
+    'itemCounts': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'item_counts',
     )
   };
   @override
@@ -279,9 +300,9 @@ class StockRequestAdapter
       iterable: false,
       type: int,
     ),
-    'items': const RuntimeSqliteColumnDefinition(
+    'transactionItems': const RuntimeSqliteColumnDefinition(
       association: true,
-      columnName: 'items',
+      columnName: 'transaction_items',
       iterable: true,
       type: Map,
     ),
@@ -290,13 +311,20 @@ class StockRequestAdapter
       columnName: 'updated_at',
       iterable: false,
       type: DateTime,
+    ),
+    'itemCounts': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'item_counts',
+      iterable: false,
+      type: num,
     )
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      StockRequest instance, DatabaseExecutor executor) async {
+      InventoryRequest instance, DatabaseExecutor executor) async {
     final results = await executor.rawQuery('''
-        SELECT * FROM `StockRequest` WHERE id = ? LIMIT 1''', [instance.id]);
+        SELECT * FROM `InventoryRequest` WHERE id = ? LIMIT 1''',
+        [instance.id]);
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -307,58 +335,58 @@ class StockRequestAdapter
   }
 
   @override
-  final String tableName = 'StockRequest';
+  final String tableName = 'InventoryRequest';
   @override
   Future<void> afterSave(instance, {required provider, repository}) async {
     if (instance.primaryKey != null) {
-      final itemsOldColumns = await provider.rawQuery(
-          'SELECT `f_TransactionItem_brick_id` FROM `_brick_StockRequest_items` WHERE `l_StockRequest_brick_id` = ?',
+      final transactionItemsOldColumns = await provider.rawQuery(
+          'SELECT `f_TransactionItem_brick_id` FROM `_brick_InventoryRequest_transaction_items` WHERE `l_InventoryRequest_brick_id` = ?',
           [instance.primaryKey]);
-      final itemsOldIds =
-          itemsOldColumns.map((a) => a['f_TransactionItem_brick_id']);
-      final itemsNewIds =
-          instance.items.map((s) => s.primaryKey).whereType<int>();
-      final itemsIdsToDelete =
-          itemsOldIds.where((id) => !itemsNewIds.contains(id));
+      final transactionItemsOldIds = transactionItemsOldColumns
+          .map((a) => a['f_TransactionItem_brick_id']);
+      final transactionItemsNewIds =
+          instance.transactionItems.map((s) => s.primaryKey).whereType<int>();
+      final transactionItemsIdsToDelete = transactionItemsOldIds
+          .where((id) => !transactionItemsNewIds.contains(id));
 
-      await Future.wait<void>(itemsIdsToDelete.map((id) async {
+      await Future.wait<void>(transactionItemsIdsToDelete.map((id) async {
         return await provider.rawExecute(
-            'DELETE FROM `_brick_StockRequest_items` WHERE `l_StockRequest_brick_id` = ? AND `f_TransactionItem_brick_id` = ?',
+            'DELETE FROM `_brick_InventoryRequest_transaction_items` WHERE `l_InventoryRequest_brick_id` = ? AND `f_TransactionItem_brick_id` = ?',
             [instance.primaryKey, id]).catchError((e) => null);
       }));
 
-      await Future.wait<int?>(instance.items.map((s) async {
+      await Future.wait<int?>(instance.transactionItems.map((s) async {
         final id = s.primaryKey ??
             await provider.upsert<TransactionItem>(s, repository: repository);
         return await provider.rawInsert(
-            'INSERT OR IGNORE INTO `_brick_StockRequest_items` (`l_StockRequest_brick_id`, `f_TransactionItem_brick_id`) VALUES (?, ?)',
+            'INSERT OR IGNORE INTO `_brick_InventoryRequest_transaction_items` (`l_InventoryRequest_brick_id`, `f_TransactionItem_brick_id`) VALUES (?, ?)',
             [instance.primaryKey, id]);
       }));
     }
   }
 
   @override
-  Future<StockRequest> fromSupabase(Map<String, dynamic> input,
+  Future<InventoryRequest> fromSupabase(Map<String, dynamic> input,
           {required provider,
           covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$StockRequestFromSupabase(input,
+      await _$InventoryRequestFromSupabase(input,
           provider: provider, repository: repository);
   @override
-  Future<Map<String, dynamic>> toSupabase(StockRequest input,
+  Future<Map<String, dynamic>> toSupabase(InventoryRequest input,
           {required provider,
           covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$StockRequestToSupabase(input,
+      await _$InventoryRequestToSupabase(input,
           provider: provider, repository: repository);
   @override
-  Future<StockRequest> fromSqlite(Map<String, dynamic> input,
+  Future<InventoryRequest> fromSqlite(Map<String, dynamic> input,
           {required provider,
           covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$StockRequestFromSqlite(input,
+      await _$InventoryRequestFromSqlite(input,
           provider: provider, repository: repository);
   @override
-  Future<Map<String, dynamic>> toSqlite(StockRequest input,
+  Future<Map<String, dynamic>> toSqlite(InventoryRequest input,
           {required provider,
           covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$StockRequestToSqlite(input,
+      await _$InventoryRequestToSqlite(input,
           provider: provider, repository: repository);
 }

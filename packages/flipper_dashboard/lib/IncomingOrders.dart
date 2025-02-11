@@ -42,7 +42,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
   }
 
   Widget _buildRequestCard(
-      BuildContext context, WidgetRef ref, StockRequest request) {
+      BuildContext context, WidgetRef ref, InventoryRequest request) {
     int totalQuantity = _calculateTotalQuantity(request);
 
     return Card(
@@ -91,7 +91,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
     );
   }
 
-  Widget _buildRequestHeader(StockRequest request, int totalQuantity) {
+  Widget _buildRequestHeader(InventoryRequest request, int totalQuantity) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -132,7 +132,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
     );
   }
 
-  Widget _buildBranchInfo(StockRequest request) {
+  Widget _buildBranchInfo(InventoryRequest request) {
     // final mainBranch =
     //     (ProxyService.strategy.branch(serverId: request.mainBranchId!))?.name ??
     //         'Unknown';
@@ -177,7 +177,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
     );
   }
 
-  Widget _buildItemsList(StockRequest request) {
+  Widget _buildItemsList(InventoryRequest request) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -186,7 +186,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         SizedBox(height: 8.0),
-        ...request.items.map((item) => _buildItemRow(item)),
+        ...request.transactionItems!.map((item) => _buildItemRow(item)),
       ],
     );
   }
@@ -230,7 +230,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
     );
   }
 
-  Widget _buildStatusInfo(StockRequest request) {
+  Widget _buildStatusInfo(InventoryRequest request) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
@@ -259,7 +259,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
 
   // New widget for displaying additional information
 
-  Widget _buildAdditionalInfo(StockRequest request) {
+  Widget _buildAdditionalInfo(InventoryRequest request) {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -323,7 +323,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
   }
 
   Widget _buildActionRow(
-      BuildContext context, WidgetRef ref, StockRequest request) {
+      BuildContext context, WidgetRef ref, InventoryRequest request) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -335,7 +335,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
   }
 
   Widget _buildApproveButton(
-      BuildContext context, WidgetRef ref, StockRequest request) {
+      BuildContext context, WidgetRef ref, InventoryRequest request) {
     return FlipperIconButton(
       icon: Icons.check_circle_outline,
       text: 'Approve',
@@ -347,7 +347,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
   }
 
   Widget _buildVoidButton(
-      BuildContext context, WidgetRef ref, StockRequest request) {
+      BuildContext context, WidgetRef ref, InventoryRequest request) {
     return FlipperIconButton(
       icon: Icons.cancel_outlined,
       iconColor: Colors.red,
@@ -356,7 +356,8 @@ class IncomingOrdersWidget extends HookConsumerWidget
     );
   }
 
-  void _voidRequest(BuildContext context, WidgetRef ref, StockRequest request) {
+  void _voidRequest(
+      BuildContext context, WidgetRef ref, InventoryRequest request) {
     // Show confirmation dialog
     showDialog(
       context: context,
@@ -389,14 +390,14 @@ class IncomingOrdersWidget extends HookConsumerWidget
   }
 
   void _handleApproveRequest(
-      BuildContext context, WidgetRef ref, StockRequest request) {
+      BuildContext context, WidgetRef ref, InventoryRequest request) {
     approveRequest(request: request, context: context);
     final stringValue = ref.watch(stringProvider);
     ref.refresh(stockRequestsProvider((filter: stringValue)));
   }
 
-  int _calculateTotalQuantity(StockRequest request) {
-    return request.items.fold<int>(
+  int _calculateTotalQuantity(InventoryRequest request) {
+    return request.transactionItems.fold<int>(
       0,
       (int sum, TransactionItem item) => sum + (item.quantityRequested ?? 0),
     );

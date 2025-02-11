@@ -123,7 +123,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
         return SizedBox(
           width: 200,
           child: PreviewSaleButton(
-            digitalPaymentEnabled: digitalPaymentEnabled, // Pass the bool value
+            digitalPaymentEnabled: digitalPaymentEnabled, 
             transactionId: transaction.value?.id ?? "",
             wording: ref.watch(previewingCart)
                 ? "Place order"

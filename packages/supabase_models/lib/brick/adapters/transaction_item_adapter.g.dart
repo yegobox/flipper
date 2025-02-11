@@ -7,64 +7,97 @@ Future<TransactionItem> _$TransactionItemFromSupabase(Map<String, dynamic> data,
   return TransactionItem(
       id: data['id'] as String?,
       name: data['name'] as String,
-      quantityRequested: data['quantity_requested'] as int?,
-      quantityApproved: data['quantity_approved'] as int?,
-      quantityShipped: data['quantity_shipped'] as int?,
-      transactionId: data['transaction_id'] as String?,
-      variantId: data['variant_id'] as String?,
+      quantityRequested: data['quantity_requested'] == null
+          ? null
+          : data['quantity_requested'] as int?,
+      quantityApproved: data['quantity_approved'] == null
+          ? null
+          : data['quantity_approved'] as int?,
+      quantityShipped: data['quantity_shipped'] == null
+          ? null
+          : data['quantity_shipped'] as int?,
+      transactionId: data['transaction_id'] == null
+          ? null
+          : data['transaction_id'] as String?,
+      variantId:
+          data['variant_id'] == null ? null : data['variant_id'] as String?,
       qty: data['qty'] as double,
       price: data['price'] as double,
       discount: data['discount'] as double,
-      remainingStock: data['remaining_stock'] as double?,
+      remainingStock: data['remaining_stock'] == null
+          ? null
+          : data['remaining_stock'] as double?,
       createdAt: data['created_at'] == null
           ? null
-          : DateTime.tryParse(data['created_at'] as String),
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String),
       updatedAt: data['updated_at'] == null
           ? null
-          : DateTime.tryParse(data['updated_at'] as String),
-      isRefunded: data['is_refunded'] as bool?,
-      doneWithTransaction: data['done_with_transaction'] as bool?,
-      active: data['active'] as bool?,
-      dcRt: data['dc_rt'] as double?,
-      dcAmt: data['dc_amt'] as double?,
-      taxblAmt: data['taxbl_amt'] as double?,
-      taxAmt: data['tax_amt'] as double?,
-      totAmt: data['tot_amt'] as double?,
-      itemSeq: data['item_seq'] as int?,
-      isrccCd: data['isrcc_cd'] as String?,
-      isrccNm: data['isrcc_nm'] as String?,
-      isrcRt: data['isrc_rt'] as int?,
-      isrcAmt: data['isrc_amt'] as int?,
-      taxTyCd: data['tax_ty_cd'] as String?,
-      bcd: data['bcd'] as String?,
-      itemClsCd: data['item_cls_cd'] as String?,
-      itemTyCd: data['item_ty_cd'] as String?,
-      itemStdNm: data['item_std_nm'] as String?,
-      orgnNatCd: data['orgn_nat_cd'] as String?,
-      pkg: data['pkg'] as String?,
-      itemCd: data['item_cd'] as String?,
-      pkgUnitCd: data['pkg_unit_cd'] as String?,
-      qtyUnitCd: data['qty_unit_cd'] as String?,
+          : data['updated_at'] == null
+              ? null
+              : DateTime.tryParse(data['updated_at'] as String),
+      isRefunded:
+          data['is_refunded'] == null ? null : data['is_refunded'] as bool?,
+      doneWithTransaction: data['done_with_transaction'] == null
+          ? null
+          : data['done_with_transaction'] as bool?,
+      active: data['active'] == null ? null : data['active'] as bool?,
+      dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as double?,
+      dcAmt: data['dc_amt'] == null ? null : data['dc_amt'] as double?,
+      taxblAmt: data['taxbl_amt'] == null ? null : data['taxbl_amt'] as double?,
+      taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as double?,
+      totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as double?,
+      itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
+      isrccCd: data['isrcc_cd'] == null ? null : data['isrcc_cd'] as String?,
+      isrccNm: data['isrcc_nm'] == null ? null : data['isrcc_nm'] as String?,
+      isrcRt: data['isrc_rt'] == null ? null : data['isrc_rt'] as int?,
+      isrcAmt: data['isrc_amt'] == null ? null : data['isrc_amt'] as int?,
+      taxTyCd: data['tax_ty_cd'] == null ? null : data['tax_ty_cd'] as String?,
+      bcd: data['bcd'] == null ? null : data['bcd'] as String?,
+      itemClsCd:
+          data['item_cls_cd'] == null ? null : data['item_cls_cd'] as String?,
+      itemTyCd:
+          data['item_ty_cd'] == null ? null : data['item_ty_cd'] as String?,
+      itemStdNm:
+          data['item_std_nm'] == null ? null : data['item_std_nm'] as String?,
+      orgnNatCd:
+          data['orgn_nat_cd'] == null ? null : data['orgn_nat_cd'] as String?,
+      pkg: data['pkg'] == null ? null : data['pkg'] as String?,
+      itemCd: data['item_cd'] == null ? null : data['item_cd'] as String?,
+      pkgUnitCd:
+          data['pkg_unit_cd'] == null ? null : data['pkg_unit_cd'] as String?,
+      qtyUnitCd:
+          data['qty_unit_cd'] == null ? null : data['qty_unit_cd'] as String?,
       itemNm: data['item_nm'] as String,
       prc: data['prc'] as double,
-      splyAmt: data['sply_amt'] as double?,
-      tin: data['tin'] as int?,
-      bhfId: data['bhf_id'] as String?,
-      dftPrc: data['dft_prc'] as double?,
-      addInfo: data['add_info'] as String?,
-      isrcAplcbYn: data['isrc_aplcb_yn'] as String?,
-      useYn: data['use_yn'] as String?,
-      regrId: data['regr_id'] as String?,
-      regrNm: data['regr_nm'] as String?,
-      modrId: data['modr_id'] as String?,
-      modrNm: data['modr_nm'] as String?,
+      splyAmt: data['sply_amt'] == null ? null : data['sply_amt'] as double?,
+      tin: data['tin'] == null ? null : data['tin'] as int?,
+      bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
+      dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as double?,
+      addInfo: data['add_info'] == null ? null : data['add_info'] as String?,
+      isrcAplcbYn: data['isrc_aplcb_yn'] == null
+          ? null
+          : data['isrc_aplcb_yn'] as String?,
+      useYn: data['use_yn'] == null ? null : data['use_yn'] as String?,
+      regrId: data['regr_id'] == null ? null : data['regr_id'] as String?,
+      regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
+      modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
+      modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
       lastTouched: data['last_touched'] == null
           ? null
-          : DateTime.tryParse(data['last_touched'] as String),
-      branchId: data['branch_id'] as int?,
-      ebmSynced: data['ebm_synced'] as bool?,
-      partOfComposite: data['part_of_composite'] as bool?,
-      compositePrice: data['composite_price'] as double?);
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String),
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+      ebmSynced:
+          data['ebm_synced'] == null ? null : data['ebm_synced'] as bool?,
+      partOfComposite: data['part_of_composite'] == null
+          ? null
+          : data['part_of_composite'] as bool?,
+      compositePrice: data['composite_price'] == null
+          ? null
+          : data['composite_price'] as double?);
 }
 
 Future<Map<String, dynamic>> _$TransactionItemToSupabase(
@@ -125,7 +158,8 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
     'branch_id': instance.branchId,
     'ebm_synced': instance.ebmSynced,
     'part_of_composite': instance.partOfComposite,
-    'composite_price': instance.compositePrice
+    'composite_price': instance.compositePrice,
+    'inventory_request_id': instance.inventoryRequestId
   };
 }
 
@@ -223,7 +257,20 @@ Future<TransactionItem> _$TransactionItemFromSqlite(Map<String, dynamic> data,
           : data['part_of_composite'] == 1,
       compositePrice: data['composite_price'] == null
           ? null
-          : data['composite_price'] as double?)
+          : data['composite_price'] as double?,
+      inventoryRequest:
+          data['inventory_request_InventoryRequest_brick_id'] == null
+              ? null
+              : (data['inventory_request_InventoryRequest_brick_id'] > -1
+                  ? (await repository?.getAssociation<InventoryRequest>(
+                      Query.where(
+                          'primaryKey',
+                          data['inventory_request_InventoryRequest_brick_id']
+                              as int,
+                          limit1: true),
+                    ))
+                      ?.first
+                  : null))
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -290,7 +337,14 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(TransactionItem instance,
     'part_of_composite': instance.partOfComposite == null
         ? null
         : (instance.partOfComposite! ? 1 : 0),
-    'composite_price': instance.compositePrice
+    'composite_price': instance.compositePrice,
+    'inventory_request_InventoryRequest_brick_id': instance.inventoryRequest !=
+            null
+        ? instance.inventoryRequest!.primaryKey ??
+            await provider.upsert<InventoryRequest>(instance.inventoryRequest!,
+                repository: repository)
+        : null,
+    'inventory_request_id': instance.inventoryRequestId
   };
 }
 
@@ -520,6 +574,10 @@ class TransactionItemAdapter
     'compositePrice': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'composite_price',
+    ),
+    'inventoryRequestId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'inventory_request_id',
     )
   };
   @override
@@ -857,6 +915,18 @@ class TransactionItemAdapter
       columnName: 'composite_price',
       iterable: false,
       type: double,
+    ),
+    'inventoryRequest': const RuntimeSqliteColumnDefinition(
+      association: true,
+      columnName: 'inventory_request_InventoryRequest_brick_id',
+      iterable: false,
+      type: InventoryRequest,
+    ),
+    'inventoryRequestId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'inventory_request_id',
+      iterable: false,
+      type: String,
     )
   };
   @override

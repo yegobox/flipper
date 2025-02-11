@@ -15,7 +15,9 @@ Future<Ebm> _$EbmFromSupabase(Map<String, dynamic> data,
       branchId: data['branch_id'] as int,
       lastTouched: data['last_touched'] == null
           ? null
-          : DateTime.tryParse(data['last_touched'] as String));
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String));
 }
 
 Future<Map<String, dynamic>> _$EbmToSupabase(Ebm instance,

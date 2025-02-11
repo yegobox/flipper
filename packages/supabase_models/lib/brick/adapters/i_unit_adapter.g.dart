@@ -6,14 +6,17 @@ Future<IUnit> _$IUnitFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return IUnit(
       id: data['id'] as String?,
-      branchId: data['branch_id'] as int?,
-      name: data['name'] as String?,
-      value: data['value'] as String?,
-      active: data['active'] as bool? ?? false,
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+      name: data['name'] == null ? null : data['name'] as String?,
+      value: data['value'] == null ? null : data['value'] as String?,
+      active: data['active'] == null ? null : data['active'] as bool? ?? false,
       lastTouched: data['last_touched'] == null
           ? null
-          : DateTime.tryParse(data['last_touched'] as String),
-      createdAt: data['created_at'] as String?);
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String),
+      createdAt:
+          data['created_at'] == null ? null : data['created_at'] as String?);
 }
 
 Future<Map<String, dynamic>> _$IUnitToSupabase(IUnit instance,

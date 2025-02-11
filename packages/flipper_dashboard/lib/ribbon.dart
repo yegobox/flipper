@@ -172,10 +172,10 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
           cashierId: ProxyService.box.getUserId()!,
         );
         _routerService
-            .navigateTo(DrawerScreenRoute(open: "close", drawer: drawer));
+            .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));
       } else {
-        _routerService.navigateTo(LoginRoute());
         await logOut();
+        _routerService.replaceWith(LoginRoute());
       }
     }
   }

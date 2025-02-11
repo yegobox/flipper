@@ -178,6 +178,12 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           BorderSide(color: Theme.of(context).colorScheme.primary),
         ),
         overlayColor: WidgetStateProperty.all(Colors.transparent),
+        // Add this to customize the border radius
+        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+        ),
       ),
       segments: const <ButtonSegment<ViewMode>>[
         ButtonSegment<ViewMode>(

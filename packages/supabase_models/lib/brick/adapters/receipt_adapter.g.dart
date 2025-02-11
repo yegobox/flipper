@@ -6,28 +6,42 @@ Future<Receipt> _$ReceiptFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Receipt(
       id: data['id'] as String?,
-      resultCd: data['result_cd'] as String?,
-      resultMsg: data['result_msg'] as String?,
-      resultDt: data['result_dt'] as String?,
-      rcptNo: data['rcpt_no'] as int?,
-      intrlData: data['intrl_data'] as String?,
-      rcptSign: data['rcpt_sign'] as String?,
-      totRcptNo: data['tot_rcpt_no'] as int?,
-      vsdcRcptPbctDate: data['vsdc_rcpt_pbct_date'] as String?,
-      sdcId: data['sdc_id'] as String?,
-      mrcNo: data['mrc_no'] as String?,
-      qrCode: data['qr_code'] as String?,
-      receiptType: data['receipt_type'] as String?,
-      branchId: data['branch_id'] as int?,
-      transactionId: data['transaction_id'] as String?,
+      resultCd: data['result_cd'] == null ? null : data['result_cd'] as String?,
+      resultMsg:
+          data['result_msg'] == null ? null : data['result_msg'] as String?,
+      resultDt: data['result_dt'] == null ? null : data['result_dt'] as String?,
+      rcptNo: data['rcpt_no'] == null ? null : data['rcpt_no'] as int?,
+      intrlData:
+          data['intrl_data'] == null ? null : data['intrl_data'] as String?,
+      rcptSign: data['rcpt_sign'] == null ? null : data['rcpt_sign'] as String?,
+      totRcptNo:
+          data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
+      vsdcRcptPbctDate: data['vsdc_rcpt_pbct_date'] == null
+          ? null
+          : data['vsdc_rcpt_pbct_date'] as String?,
+      sdcId: data['sdc_id'] == null ? null : data['sdc_id'] as String?,
+      mrcNo: data['mrc_no'] == null ? null : data['mrc_no'] as String?,
+      qrCode: data['qr_code'] == null ? null : data['qr_code'] as String?,
+      receiptType:
+          data['receipt_type'] == null ? null : data['receipt_type'] as String?,
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+      transactionId: data['transaction_id'] == null
+          ? null
+          : data['transaction_id'] as String?,
       lastTouched: data['last_touched'] == null
           ? null
-          : DateTime.tryParse(data['last_touched'] as String),
-      invcNo: data['invc_no'] as int?,
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String),
+      invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
       whenCreated: data['when_created'] == null
           ? null
-          : DateTime.tryParse(data['when_created'] as String),
-      invoiceNumber: data['invoice_number'] as int?);
+          : data['when_created'] == null
+              ? null
+              : DateTime.tryParse(data['when_created'] as String),
+      invoiceNumber: data['invoice_number'] == null
+          ? null
+          : data['invoice_number'] as int?);
 }
 
 Future<Map<String, dynamic>> _$ReceiptToSupabase(Receipt instance,

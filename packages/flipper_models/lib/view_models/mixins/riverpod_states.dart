@@ -223,11 +223,6 @@ final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
       ? (mode: TransactionType.cashOut, isExpense: true)
       : (mode: TransactionType.sale, isExpense: false))));
 
-  // Cancel any ongoing operations when the provider is disposed
-  ref.onDispose(() {
-    // talker.info("TransactionItemsProvider disposed");
-  });
-
   return TransactionItemsNotifier(
     transactionId: transaction.value?.id,
     ref: ref,
@@ -870,7 +865,7 @@ final branchSelectionProvider =
 );
 
 final stockRequestsProvider = StreamProvider.autoDispose
-    .family<List<StockRequest>, ({String filter})>((ref, params) {
+    .family<List<InventoryRequest>, ({String filter})>((ref, params) {
   final branchId = ProxyService.box.getBranchId();
   final (:filter) = params;
   if (branchId == null) {

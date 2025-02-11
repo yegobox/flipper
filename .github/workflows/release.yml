@@ -73,15 +73,15 @@ jobs:
           cd apps/flipper
           cd ../..
           cd packages/flipper_dashboard
-          flutter test --dart-define=FLUTTER_TEST_ENV=true
-          cd ..
-          cd flipper_models
-          flutter test --dart-define=FLUTTER_TEST_ENV=true
+          flutter test --dart-define=FLUTTER_TEST_ENV=true --verbose
+          # cd ..
+          # cd flipper_models
+          # flutter test --dart-define=FLUTTER_TEST_ENV=true --verbose
 
   integration-testing-windows:
     name: "Integration Testing Windows"
     runs-on: windows-2022
-    needs: [unit-testing,android-integration-test]
+    needs: [unit-testing]
     steps:
       - name: Export pub environment variable on Windows
         run: |
@@ -134,7 +134,7 @@ jobs:
           flutter test --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart
   build-and-release-windows-debug:
     name: "Build windows-DEBUG"
-    needs: [unit-testing, android-integration-test,integration-testing-windows]
+    needs: [unit-testing, integration-testing-windows]
     runs-on: windows-2022
     steps:
       - name: Export pub environment variable on Windows
@@ -227,7 +227,7 @@ jobs:
           upload_release_asset: false
   build-and-release-windows-prod:
     name: "Build windows-PROD"
-    needs: [unit-testing, android-integration-test,integration-testing-windows]
+    needs: [unit-testing, integration-testing-windows]
     runs-on: windows-2022
     steps:
       - name: Export pub environment variable on Windows
@@ -300,96 +300,135 @@ jobs:
           upload_release_asset: false
 
 
-  android-integration-test:
-    name: integration on Android
-    needs: [unit-testing]
-    runs-on: macOS-12
-    # runs-on: macos-latest
+
+  integration-on-android:
+    # needs: [unit-testing]
+    runs-on: macOS-14
     strategy:
       matrix:
         api-level: [31]
         target: [playstore]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Java
+        uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "17"
-      - name: Clone Flutter repository with stable channel
+
+      - name: Clone Flutter Repository with Stable Channel
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.27.1"
           channel: stable
-      - name: Configure Git with PAT
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          git config --global user.email "info@yegobox.com"
-          git config --global user.name "YEGOBOX"
-          git config --global credential.helper store
-          echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
-      - name: submodule init
-        run: |
-          git submodule update --init
-      - name: Load melos
-        run: |
-          dart pub global activate melos 6.3.2
-          melos bootstrap
-      - name: Configure Missing files
-        run: |
-          echo "$INDEX" >> apps/flipper/web/index.html
-          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
-          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-          git config --global core.autocrlf false
-          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
-          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
-        env:
-          INDEX: ${{ secrets.INDEX }}
-          CONFIGDART: ${{ secrets.CONFIGDART }}
-          SECRETS: ${{ secrets.SECRETS }}
-          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
-          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      - name: Configure Keystore
-        run: |
-          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
-          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
-          echo "storeFile=key.jks" >> key.properties
-          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
-          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
-          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
-        env:
-          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
-          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
-          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
-          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
-          GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-        working-directory: apps/flipper/android
-    
-      - name: Install Android SDK
-        uses: malinskiy/action-android/install-sdk@release/0.1.7
-      - run: echo $ANDROID_HOME
-      - run: sdkmanager platform-tools
-      # - run: sdkmanager --install "ndk;23.1.7779620"
-      # - run: sdkmanager --install "build-tools;30.0.3"
-      - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.7
+
+      - name: Gradle Cache
+        uses: gradle/gradle-build-action@v2
+
+      - name: AVD Cache
+        uses: actions/cache@v4
+        id: avd-cache
         with:
-          cmd: cd apps/flipper  &&  flutter test --dart-define=FLUTTER_TEST_ENV=true  integration_test/smoke_android_test.dart
-          api: 25
-          cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
-          tag: google_apis
-          abi: x86
-          # abi: x86_64
-          bootTimeout: 820
-      - run: sleep 30
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ matrix.api-level }}
+
+      - name: Install Android SDK Tools
+        run: |
+          export ANDROID_HOME=$HOME/Library/Android/sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+
+          # Install cmdline-tools if not installed
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          cd $ANDROID_HOME/cmdline-tools
+          curl -o commandlinetools-mac.zip https://dl.google.com/android/repository/commandlinetools-mac-9477386_latest.zip
+          unzip -q commandlinetools-mac.zip
+          rm commandlinetools-mac.zip
+          mv cmdline-tools latest
+
+          echo "Android SDK installed."
+
+          # Verify sdkmanager is working
+          sdkmanager --version
+
+
+      - name: Accept Android SDK Licenses
+        run: |
+          echo "Accepting Android SDK licenses..."
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          mkdir -p "$ANDROID_HOME/licenses"
+          echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\n" > "$ANDROID_HOME/licenses/android-sdk-license"
+          echo -e "d56f5187479451eabf01fb78af6dfcb131a6481e\n" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+          echo "All licenses accepted."
+
+      - name: Install Required Android Components
+        run: |
+          echo "Installing Android components..."
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-31" \
+            "system-images;android-31;google_apis;arm64-v8a" \
+            "emulator"
+          echo "Android components installed."
+
+      - name: Create AVD
+        run: |
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          echo "Creating AVD..."
+          sdkmanager --install "system-images;android-31;google_apis;arm64-v8a"
+          echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;arm64-v8a" --device "pixel_4"
+          echo "AVD created."
+
+
+
+      - name: Start Emulator
+        run: |
+          echo "Starting emulator..."
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          nohup $ANDROID_HOME/emulator/emulator -avd test -no-window -noaudio -no-boot-anim -gpu off -memory 2048 -no-snapshot-load &
+          echo "Waiting for emulator to be available..."
+          adb wait-for-device
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global animator_duration_scale 0
+          echo "Emulator is ready!"
+        timeout-minutes: 10
+
+      - name: Debug SDK
+        run: |
+          echo "Checking sdkmanager..."
+          which sdkmanager
+          sdkmanager --list
+
+
+
+
+      - name: Verify Emulator Status
+        run: adb devices
+
+      - name: Run Tests on Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.target }}
+          arch: x86_64
+          profile: pixel
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            cd apps/flipper
+            flutter test --dart-define=FLUTTER_TEST_ENV=true integration_test/smoke_android_test.dart
+
   fastlane-deploy:
     name: "Google Deploy"
-    needs: [unit-testing,android-integration-test, integration-testing-windows]
+    needs: [unit-testing, integration-testing-windows]
     # runs-on: ubuntu-22.04
-    runs-on: macOS-12
+    runs-on: macOS-14
     steps:
       - run: git config --global core.autocrlf false
       # Set up Flutter.

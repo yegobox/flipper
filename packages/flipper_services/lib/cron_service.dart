@@ -29,6 +29,11 @@ class CronService {
   ///
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
+    /// when app start load data to keep stock up to date and everything.
+    ProxyService.strategy
+        .variants(branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+
+    /// end of pulling
     await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
 
     Timer.periodic(Duration(minutes: 1), (Timer t) async {

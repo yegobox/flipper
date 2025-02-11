@@ -6,11 +6,13 @@ Future<Report> _$ReportFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Report(
       id: data['id'] as String?,
-      branchId: data['branch_id'] as int?,
-      businessId: data['business_id'] as int?,
-      filename: data['filename'] as String?,
-      s3Url: data['s3_url'] as String?,
-      downloaded: data['downloaded'] as bool?);
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+      businessId:
+          data['business_id'] == null ? null : data['business_id'] as int?,
+      filename: data['filename'] == null ? null : data['filename'] as String?,
+      s3Url: data['s3_url'] == null ? null : data['s3_url'] as String?,
+      downloaded:
+          data['downloaded'] == null ? null : data['downloaded'] as bool?);
 }
 
 Future<Map<String, dynamic>> _$ReportToSupabase(Report instance,

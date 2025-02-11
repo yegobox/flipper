@@ -6,11 +6,14 @@ Future<PlanAddon> _$PlanAddonFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return PlanAddon(
       id: data['id'] as String?,
-      planId: data['plan_id'] as int?,
-      addonName: data['addon_name'] as String?,
+      planId: data['plan_id'] == null ? null : data['plan_id'] as int?,
+      addonName:
+          data['addon_name'] == null ? null : data['addon_name'] as String?,
       createdAt: data['created_at'] == null
           ? null
-          : DateTime.tryParse(data['created_at'] as String));
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String));
 }
 
 Future<Map<String, dynamic>> _$PlanAddonToSupabase(PlanAddon instance,

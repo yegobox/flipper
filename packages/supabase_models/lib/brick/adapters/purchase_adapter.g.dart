@@ -6,12 +6,14 @@ Future<Purchase> _$PurchaseFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Purchase(
       id: data['id'] as String?,
-      variants: await Future.wait<Variant>(data['variants']
-              ?.map((d) => VariantAdapter()
-                  .fromSupabase(d, provider: provider, repository: repository))
-              .toList()
-              .cast<Future<Variant>>() ??
-          []),
+      variants: data['variants'] == null
+          ? null
+          : await Future.wait<Variant>(data['variants']
+                  ?.map((d) => VariantAdapter().fromSupabase(d,
+                      provider: provider, repository: repository))
+                  .toList()
+                  .cast<Future<Variant>>() ??
+              []),
       spplrTin: data['spplr_tin'] as String,
       spplrNm: data['spplr_nm'] as String,
       spplrBhfId: data['spplr_bhf_id'] as String,
@@ -20,7 +22,8 @@ Future<Purchase> _$PurchaseFromSupabase(Map<String, dynamic> data,
       pmtTyCd: data['pmt_ty_cd'] as String,
       cfmDt: data['cfm_dt'] as String,
       salesDt: data['sales_dt'] as String,
-      stockRlsDt: data['stock_rls_dt'] as String?,
+      stockRlsDt:
+          data['stock_rls_dt'] == null ? null : data['stock_rls_dt'] as String?,
       totItemCnt: data['tot_item_cnt'] as int,
       taxblAmtA: data['taxbl_amt_a'] as num,
       taxblAmtB: data['taxbl_amt_b'] as num,
@@ -37,8 +40,8 @@ Future<Purchase> _$PurchaseFromSupabase(Map<String, dynamic> data,
       totTaxblAmt: data['tot_taxbl_amt'] as num,
       totTaxAmt: data['tot_tax_amt'] as num,
       totAmt: data['tot_amt'] as num,
-      branchId: data['branch_id'] as int?,
-      remark: data['remark'] as String?);
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+      remark: data['remark'] == null ? null : data['remark'] as String?);
 }
 
 Future<Map<String, dynamic>> _$PurchaseToSupabase(Purchase instance,

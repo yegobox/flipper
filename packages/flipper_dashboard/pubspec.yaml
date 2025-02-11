@@ -20,8 +20,8 @@ dependencies:
   pubnub: ^4.3.1
   feather_icons: ^1.1.0-nullsafety.0
   flex_color_scheme: ^4.2.0
-  # image_picker: ^0.8.7+5
-  file_picker: ^8.3.1
+  # image_picker: ^1.1.2
+  file_picker: ^8.3.3
   firebase_ui_auth: ^1.16.1
   stacked: ^3.4.2
   azlistview: ^2.0.0
@@ -59,7 +59,7 @@ dependencies:
   flutter_svg: ^2.0.0
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
-  fluentui_system_icons: ^1.1.252
+  fluentui_system_icons: ^1.1.273
   flipper_socials: 1.0.0+1
   flipper_localize: ^1.0.0-dev
   tray_manager: ^0.2.3

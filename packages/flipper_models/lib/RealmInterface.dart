@@ -106,6 +106,7 @@ abstract class RealmInterface {
     String? bcd,
     // this define if we are ready to show item on dashboard,
     String? imptItemsttsCd,
+    bool fetchRemote = false,
   });
   FutureOr<Configurations?> getByTaxType({required String taxtype});
   FutureOr<Purchase?> getPurchase({required String purchaseId});
@@ -431,9 +432,9 @@ abstract class RealmInterface {
 
   FutureOr<bool> isAdmin({required int userId, required String appFeature});
   FutureOr<List<Access>> access({required int userId, String? featureName});
-  Stream<List<StockRequest>> requestsStream(
+  Stream<List<InventoryRequest>> requestsStream(
       {required int branchId, required String filter});
-  FutureOr<List<StockRequest>> requests({required int branchId});
+  FutureOr<List<InventoryRequest>> requests({required int branchId});
   FutureOr<Tenant?> getTenant({int? userId, int? pin});
 
   Future<({String url, int userId, String customerCode})> subscribe(
@@ -471,7 +472,7 @@ abstract class RealmInterface {
       {required Branch branch, required bool isOnline});
 
   Future<void> refreshSession({required int branchId, int? refreshRate = 5});
-  String createStockRequest(List<TransactionItem> items,
+  Future<String> createStockRequest(List<TransactionItem> items,
       {required String deliveryNote,
       DateTime? deliveryDate,
       required int mainBranchId});
@@ -548,7 +549,7 @@ abstract class RealmInterface {
 
   SendPort? sendPort;
   ReceivePort? receivePort;
-  Future<String> getIdToken();
+  Future<String> getFirebaseToken();
 
   Future<void> sendMessageToIsolate();
   Future<void> spawnIsolate(dynamic isolateHandler);

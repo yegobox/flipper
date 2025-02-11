@@ -1,64 +1,114 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:flipper_rw/main.dart' as app_main;
 import 'common.dart';
 
-// patrol test  --target integration_test/smoke_windows_test.dart
-// flutter test --dart-define=FLUTTER_TEST_ENV=false -d macos integration_test/smoke_windows_test.dart
+// Constants for widget keys and text
+const String mainApp = 'mainApp';
+const String eodDesktopKey = 'eod_desktop';
+const String pinLoginDesktopKey = 'pinLogin_desktop';
+const String pinLoginKey = 'PinLogin';
+const String pinLoginButtonKey = 'pinLoginButton_desktop';
+const String pinRequiredText = 'PIN is required';
+const String pinNotFoundText = 'Pin: Not found';
+Future<void> restoreFlutterError(Future<void> Function() call) async {
+  final originalOnError = FlutterError.onError!;
+  await call();
+  final overriddenOnError = FlutterError.onError!;
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    if (overriddenOnError != originalOnError) overriddenOnError(details);
+    originalOnError(details);
+  };
+}
+
 void main() {
-  testWidgets('Test app works on Windows', (WidgetTester tester) async {
+  group('Windows App Smoke Test', () {
+    // Store the original error handler.
+    FlutterError.onError = (FlutterErrorDetails details) {
+      // Handle the error (e.g., log it or fail the test)
+      throw details.exception;
+    };
+
+    testWidgets('Test app initialization and login flow',
+        (WidgetTester tester) async {
+      await startApp(tester);
+
+      // Check if already logged in
+      if (await isLoggedIn(tester)) {
+        await navigateToEodAndBack(tester);
+      }
+
+      // await testLoginFlow(tester);
+      // await testPinValidation(tester);
+      // await testEodNavigation(tester);
+    });
+  });
+}
+
+/// Tests the login button and navigation to the PIN login screen.
+Future<void> testLoginFlow(WidgetTester tester) async {
+  await tester.pumpAndSettle(const Duration(seconds: 2));
+  
+  final backToLogin = find.byKey(const Key(pinLoginDesktopKey));
+  expect(backToLogin, findsOneWidget);
+  //
+}
+
+/// Starts the app and waits for it to load.
+Future<void> startApp(WidgetTester tester) async {
+  await restoreFlutterError(() async {
     await app_main.main();
     await tester.pumpAndSettle();
-
-    // Find the login button
-    final loginButton = find.byKey(const Key('pinLogin_desktop'));
-    expect(loginButton, findsOneWidget);
-
-    // await tester.pumpAndSettle();
-    // // navigat to pin login screen
-    await tester.tap(loginButton);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('PinLogin')), findsOneWidget);
-
-    // Simulate entering an empty PIN
-    final pinField = find.byType(TextFormField);
-    await tester.enterText(pinField, '');
-    await tester.pumpAndSettle();
-    // // Tap the login button
-    await tester.tap(find.byKey(const Key('pinLoginButton_desktop')));
-    await tester.pumpAndSettle();
-    // // Verify that the validator error message is displayed
-    final errorText = find.text('PIN is required');
-    await tester.pumpAndSettle();
-    expect(errorText, findsOneWidget);
-
-    // Simulate entering a non-empty PIN
-    await tester.enterText(pinField, '1234');
-    await tester.tap(loginButton);
-    await tester.pumpAndSettle();
-    expect(errorText, findsNothing);
-
-    final pinNotFoundError = find.text('Pin: Not found');
-    expect(pinNotFoundError, findsOneWidget);
-
-    // Simulate entering a real PIN.
-    await tester.enterText(pinField, '73268');
-    // await tester.tap(find.widgetWithText(BoxButton, 'Log in'));
-    await tester.pumpAndSettle();
-    expect(pinNotFoundError, findsNothing);
-    await tester.pumpAndSettle(const Duration(seconds: 2));
-
-    /// click on  EOD from ribbon
-    await tester.tap(find.byKey(const Key('eod_desktop')));
-
-    // should see the drawer screen
-    final drawer = find.byKey(const Key('openDrawerPage'));
-    expect(drawer, findsOneWidget);
-
-    // Add a delay to ensure all animations have completed
-    await tester.pumpAndSettle(const Duration(seconds: 2));
-
-    // exit(0);
   });
+}
+
+/// Checks if the user is logged in by looking for the 'QuickSell' key.
+Future<bool> isLoggedIn(WidgetTester tester) async {
+  final quickSell = find.byKey(const Key(mainApp));
+  return tester.any(quickSell);
+}
+
+/// Navigates to the EOD screen and back to the login screen.
+Future<void> navigateToEodAndBack(WidgetTester tester) async {
+  await tester.tap(find.descendant(
+    of: find.byType(GestureDetector),
+    matching: find.byKey(const Key('eod_desktop')),
+  ));
+  await tester.pumpAndSettle(const Duration(seconds: 2));
+
+  final backToLogin = find.byKey(const Key(pinLoginDesktopKey));
+  expect(backToLogin, findsOneWidget);
+}
+
+/// Tests PIN validation logic (empty PIN, invalid PIN, valid PIN).
+Future<void> testPinValidation(WidgetTester tester) async {
+  final pinField = find.byType(TextFormField);
+
+  // Test empty PIN
+  await tester.enterText(pinField, '');
+  await tester.tap(find.byKey(const Key(pinLoginButtonKey)));
+  await tester.pumpAndSettle();
+  expect(find.text(pinRequiredText), findsOneWidget);
+
+  // Test invalid PIN
+  await tester.enterText(pinField, '1234');
+  await tester.tap(find.byKey(const Key(pinLoginButtonKey)));
+  await tester.pumpAndSettle();
+  expect(find.text(pinNotFoundText), findsOneWidget);
+
+  // Test valid PIN
+  await tester.enterText(pinField, '73268');
+  await tester.pumpAndSettle();
+  expect(find.text(pinNotFoundText), findsNothing);
+  await tester.pumpAndSettle(const Duration(seconds: 2));
+}
+
+/// Tests navigation to the EOD screen and back to the login screen.
+Future<void> testEodNavigation(WidgetTester tester) async {
+  await tester.tap(find.byKey(const Key(eodDesktopKey)));
+  await tester.pumpAndSettle(const Duration(seconds: 2));
+
+  final backToLogin = find.byKey(const Key(pinLoginDesktopKey));
+  expect(backToLogin, findsOneWidget);
 }

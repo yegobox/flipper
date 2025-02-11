@@ -6,10 +6,11 @@ Future<SKU> _$SKUFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return SKU(
       id: data['id'] as String?,
-      sku: data['sku'] as int?,
-      branchId: data['branch_id'] as int?,
-      businessId: data['business_id'] as int?,
-      consumed: data['consumed'] as bool?);
+      sku: data['sku'] == null ? null : data['sku'] as int?,
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+      businessId:
+          data['business_id'] == null ? null : data['business_id'] as int?,
+      consumed: data['consumed'] == null ? null : data['consumed'] as bool?);
 }
 
 Future<Map<String, dynamic>> _$SKUToSupabase(SKU instance,

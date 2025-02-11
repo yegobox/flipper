@@ -120,6 +120,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.nonReactive(
+      key: Key('mainApp'),
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) {
         _viewModelReadyLogic(model);

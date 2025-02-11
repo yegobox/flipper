@@ -1,6 +1,7 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:talker/talker.dart';
+import 'package:supabase_models/brick/databasePath.dart';
 
 abstract class Crash {
   Future<void> initializeFlutterFire();
@@ -67,7 +68,9 @@ class CrashlitycsTalkerObserver extends TalkerObserver implements Crash {
 
   @override
   void onLog(TalkerData log) {
-    crashlytics.log(log.generateTextMessage());
+    if (!DatabasePath.isTestEnvironment()) {
+      crashlytics.log(log.generateTextMessage());
+    }
   }
 
   @override

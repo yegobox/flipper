@@ -6,16 +6,22 @@ Future<PColor> _$PColorFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return PColor(
       id: data['id'] as String?,
-      name: data['name'] as String?,
-      colors: data['colors']?.toList().cast<String>(),
-      branchId: data['branch_id'] as int?,
+      name: data['name'] == null ? null : data['name'] as String?,
+      colors: data['colors'] == null
+          ? null
+          : data['colors']?.toList().cast<String>(),
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
       active: data['active'] as bool,
       lastTouched: data['last_touched'] == null
           ? null
-          : DateTime.tryParse(data['last_touched'] as String),
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String),
       deletedAt: data['deleted_at'] == null
           ? null
-          : DateTime.tryParse(data['deleted_at'] as String));
+          : data['deleted_at'] == null
+              ? null
+              : DateTime.tryParse(data['deleted_at'] as String));
 }
 
 Future<Map<String, dynamic>> _$PColorToSupabase(PColor instance,
