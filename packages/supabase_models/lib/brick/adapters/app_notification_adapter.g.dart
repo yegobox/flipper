@@ -6,10 +6,11 @@ Future<AppNotification> _$AppNotificationFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return AppNotification(
       id: data['id'] as String?,
-      type: data['type'] as String?,
-      message: data['message'] as String?,
-      identifier: data['identifier'] as int?,
-      completed: data['completed'] as bool?);
+      type: data['type'] == null ? null : data['type'] as String?,
+      message: data['message'] == null ? null : data['message'] as String?,
+      identifier:
+          data['identifier'] == null ? null : data['identifier'] as int?,
+      completed: data['completed'] == null ? null : data['completed'] as bool?);
 }
 
 Future<Map<String, dynamic>> _$AppNotificationToSupabase(

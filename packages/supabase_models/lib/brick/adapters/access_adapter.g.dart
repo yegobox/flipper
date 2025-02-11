@@ -6,19 +6,26 @@ Future<Access> _$AccessFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Access(
       id: data['id'] as String?,
-      branchId: data['branch_id'] as int?,
-      businessId: data['business_id'] as int?,
-      userId: data['user_id'] as int?,
-      featureName: data['feature_name'] as String?,
-      userType: data['user_type'] as String?,
-      accessLevel: data['access_level'] as String?,
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+      businessId:
+          data['business_id'] == null ? null : data['business_id'] as int?,
+      userId: data['user_id'] == null ? null : data['user_id'] as int?,
+      featureName:
+          data['feature_name'] == null ? null : data['feature_name'] as String?,
+      userType: data['user_type'] == null ? null : data['user_type'] as String?,
+      accessLevel:
+          data['access_level'] == null ? null : data['access_level'] as String?,
       createdAt: data['created_at'] == null
           ? null
-          : DateTime.tryParse(data['created_at'] as String),
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String),
       expiresAt: data['expires_at'] == null
           ? null
-          : DateTime.tryParse(data['expires_at'] as String),
-      status: data['status'] as String?);
+          : data['expires_at'] == null
+              ? null
+              : DateTime.tryParse(data['expires_at'] as String),
+      status: data['status'] == null ? null : data['status'] as String?);
 }
 
 Future<Map<String, dynamic>> _$AccessToSupabase(Access instance,

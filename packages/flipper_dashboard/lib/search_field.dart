@@ -184,7 +184,7 @@ class SearchFieldState extends ConsumerState<SearchField>
     );
   }
 
-  IconButton orderButton(List<StockRequest> orders) {
+  IconButton orderButton(List<InventoryRequest> orders) {
     return IconButton(
       onPressed: _handleReceiveOrderToggle,
       icon: _buildOrderIcon(orders),
@@ -198,7 +198,7 @@ class SearchFieldState extends ConsumerState<SearchField>
     _routerService.navigateTo(OrdersRoute());
   }
 
-  Widget _buildOrderIcon(List<StockRequest> orders) {
+  Widget _buildOrderIcon(List<InventoryRequest> orders) {
     return badges.Badge(
       badgeContent: Text(orders.length.toString(),
           style: const TextStyle(color: Colors.white)),

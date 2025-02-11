@@ -6,18 +6,26 @@ Future<Counter> _$CounterFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Counter(
       id: data['id'] as String?,
-      businessId: data['business_id'] as int?,
-      branchId: data['branch_id'] as int?,
-      receiptType: data['receipt_type'] as String?,
-      totRcptNo: data['tot_rcpt_no'] as int?,
-      curRcptNo: data['cur_rcpt_no'] as int?,
-      invcNo: data['invc_no'] as int?,
+      businessId:
+          data['business_id'] == null ? null : data['business_id'] as int?,
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+      receiptType:
+          data['receipt_type'] == null ? null : data['receipt_type'] as String?,
+      totRcptNo:
+          data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
+      curRcptNo:
+          data['cur_rcpt_no'] == null ? null : data['cur_rcpt_no'] as int?,
+      invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
       lastTouched: data['last_touched'] == null
           ? null
-          : DateTime.tryParse(data['last_touched'] as String),
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String),
       createdAt: data['created_at'] == null
           ? null
-          : DateTime.tryParse(data['created_at'] as String));
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String));
 }
 
 Future<Map<String, dynamic>> _$CounterToSupabase(Counter instance,

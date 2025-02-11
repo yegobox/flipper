@@ -6,9 +6,8 @@ import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'stock_requests'),
-  sqliteConfig: SqliteSerializable(),
 )
-class StockRequest extends OfflineFirstWithSupabaseModel {
+class InventoryRequest extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
   final String id;
@@ -23,11 +22,15 @@ class StockRequest extends OfflineFirstWithSupabaseModel {
   bool? customerReceivedOrder = false;
   bool? driverRequestDeliveryConfirmation = false;
   int? driverId;
-  final List<TransactionItem> items;
-  DateTime? updatedAt; // Optional field for tracking last update
-  StockRequest({
+  @Supabase(ignore: true)
+  // @OfflineFirst(where: {'stockRequestId': "id"})
+  final List<TransactionItem> transactionItems;
+  DateTime? updatedAt;
+  num? itemCounts;
+  InventoryRequest({
     String? id,
     this.mainBranchId,
+    this.itemCounts,
     this.subBranchId,
     this.createdAt,
     this.status,
@@ -37,7 +40,8 @@ class StockRequest extends OfflineFirstWithSupabaseModel {
     this.customerReceivedOrder,
     this.driverRequestDeliveryConfirmation,
     this.driverId,
-    required this.items,
+    List<TransactionItem>? transactionItems,
     this.updatedAt,
-  }) : id = id ?? const Uuid().v4();
+  })  : id = id ?? const Uuid().v4(),
+        transactionItems = transactionItems ?? [];
 }

@@ -6,16 +6,20 @@ Future<Branch> _$BranchFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Branch(
       id: data['id'] as String?,
-      name: data['name'] as String?,
-      serverId: data['server_id'] as int?,
-      location: data['location'] as String?,
-      description: data['description'] as String?,
-      active: data['active'] as bool?,
-      businessId: data['business_id'] as int?,
-      latitude: data['latitude'] as String?,
-      longitude: data['longitude'] as String?,
-      isDefault: data['is_default'] as bool?,
-      isOnline: data['is_online'] as bool?);
+      name: data['name'] == null ? null : data['name'] as String?,
+      serverId: data['server_id'] == null ? null : data['server_id'] as int?,
+      location: data['location'] == null ? null : data['location'] as String?,
+      description:
+          data['description'] == null ? null : data['description'] as String?,
+      active: data['active'] == null ? null : data['active'] as bool?,
+      businessId:
+          data['business_id'] == null ? null : data['business_id'] as int?,
+      latitude: data['latitude'] == null ? null : data['latitude'] as String?,
+      longitude:
+          data['longitude'] == null ? null : data['longitude'] as String?,
+      isDefault:
+          data['is_default'] == null ? null : data['is_default'] as bool?,
+      isOnline: data['is_online'] == null ? null : data['is_online'] as bool?);
 }
 
 Future<Map<String, dynamic>> _$BranchToSupabase(Branch instance,

@@ -6,22 +6,31 @@ Future<Tenant> _$TenantFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Tenant(
       id: data['id'] as String?,
-      name: data['name'] as String?,
-      phoneNumber: data['phone_number'] as String?,
-      email: data['email'] as String?,
+      name: data['name'] == null ? null : data['name'] as String?,
+      phoneNumber:
+          data['phone_number'] == null ? null : data['phone_number'] as String?,
+      email: data['email'] == null ? null : data['email'] as String?,
       nfcEnabled: data['nfc_enabled'] as bool,
-      businessId: data['business_id'] as int?,
-      userId: data['user_id'] as int?,
-      imageUrl: data['image_url'] as String?,
+      businessId:
+          data['business_id'] == null ? null : data['business_id'] as int?,
+      userId: data['user_id'] == null ? null : data['user_id'] as int?,
+      imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
       lastTouched: data['last_touched'] == null
           ? null
-          : DateTime.tryParse(data['last_touched'] as String),
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String),
       deletedAt: data['deleted_at'] == null
           ? null
-          : DateTime.tryParse(data['deleted_at'] as String),
-      pin: data['pin'] as int?,
-      sessionActive: data['session_active'] as bool?,
-      isDefault: data['is_default'] as bool?,
+          : data['deleted_at'] == null
+              ? null
+              : DateTime.tryParse(data['deleted_at'] as String),
+      pin: data['pin'] == null ? null : data['pin'] as int?,
+      sessionActive: data['session_active'] == null
+          ? null
+          : data['session_active'] as bool?,
+      isDefault:
+          data['is_default'] == null ? null : data['is_default'] as bool?,
       isLongPressed: data['is_long_pressed'] as bool,
       type: data['type'] as String);
 }

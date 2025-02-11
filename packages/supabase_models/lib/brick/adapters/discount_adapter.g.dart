@@ -6,9 +6,9 @@ Future<Discount> _$DiscountFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Discount(
       id: data['id'] as String?,
-      name: data['name'] as String?,
-      amount: data['amount'] as double?,
-      branchId: data['branch_id'] as int?);
+      name: data['name'] == null ? null : data['name'] as String?,
+      amount: data['amount'] == null ? null : data['amount'] as double?,
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?);
 }
 
 Future<Map<String, dynamic>> _$DiscountToSupabase(Discount instance,

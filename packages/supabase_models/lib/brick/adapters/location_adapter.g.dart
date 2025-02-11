@@ -6,22 +6,29 @@ Future<Location> _$LocationFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Location(
       id: data['id'] as String?,
-      serverId: data['server_id'] as int?,
-      active: data['active'] as bool?,
-      description: data['description'] as String?,
-      name: data['name'] as String?,
-      businessId: data['business_id'] as int?,
-      longitude: data['longitude'] as String?,
-      latitude: data['latitude'] as String?,
-      location: data['location'] as String?,
+      serverId: data['server_id'] == null ? null : data['server_id'] as int?,
+      active: data['active'] == null ? null : data['active'] as bool?,
+      description:
+          data['description'] == null ? null : data['description'] as String?,
+      name: data['name'] == null ? null : data['name'] as String?,
+      businessId:
+          data['business_id'] == null ? null : data['business_id'] as int?,
+      longitude:
+          data['longitude'] == null ? null : data['longitude'] as String?,
+      latitude: data['latitude'] == null ? null : data['latitude'] as String?,
+      location: data['location'] == null ? null : data['location'] as String?,
       isDefault: data['is_default'] as bool,
       lastTouched: data['last_touched'] == null
           ? null
-          : DateTime.tryParse(data['last_touched'] as String),
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String),
       deletedAt: data['deleted_at'] == null
           ? null
-          : DateTime.tryParse(data['deleted_at'] as String),
-      isOnline: data['is_online'] as bool?);
+          : data['deleted_at'] == null
+              ? null
+              : DateTime.tryParse(data['deleted_at'] as String),
+      isOnline: data['is_online'] == null ? null : data['is_online'] as bool?);
 }
 
 Future<Map<String, dynamic>> _$LocationToSupabase(Location instance,

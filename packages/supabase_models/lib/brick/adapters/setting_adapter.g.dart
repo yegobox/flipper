@@ -6,30 +6,53 @@ Future<Setting> _$SettingFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Setting(
       id: data['id'] as String?,
-      email: data['email'] as String?,
-      userId: data['user_id'] as int?,
+      email: data['email'] == null ? null : data['email'] as String?,
+      userId: data['user_id'] == null ? null : data['user_id'] as int?,
       openReceiptFileOSaleComplete:
-          data['open_receipt_file_o_sale_complete'] as bool?,
-      autoPrint: data['auto_print'] as bool?,
-      sendDailyReport: data['send_daily_report'] as bool?,
-      defaultLanguage: data['default_language'] as String?,
-      attendnaceDocCreated: data['attendnace_doc_created'] as bool?,
-      isAttendanceEnabled: data['is_attendance_enabled'] as bool?,
-      type: data['type'] as String?,
-      enrolledInBot: data['enrolled_in_bot'] as bool?,
-      deviceToken: data['device_token'] as String?,
-      businessPhoneNumber: data['business_phone_number'] as String?,
-      autoRespond: data['auto_respond'] as bool?,
-      token: data['token'] as String?,
-      hasPin: data['has_pin'] as bool?,
-      businessId: data['business_id'] as int?,
-      createdAt: data['created_at'] as String?,
+          data['open_receipt_file_o_sale_complete'] == null
+              ? null
+              : data['open_receipt_file_o_sale_complete'] as bool?,
+      autoPrint:
+          data['auto_print'] == null ? null : data['auto_print'] as bool?,
+      sendDailyReport: data['send_daily_report'] == null
+          ? null
+          : data['send_daily_report'] as bool?,
+      defaultLanguage: data['default_language'] == null
+          ? null
+          : data['default_language'] as String?,
+      attendnaceDocCreated: data['attendnace_doc_created'] == null
+          ? null
+          : data['attendnace_doc_created'] as bool?,
+      isAttendanceEnabled: data['is_attendance_enabled'] == null
+          ? null
+          : data['is_attendance_enabled'] as bool?,
+      type: data['type'] == null ? null : data['type'] as String?,
+      enrolledInBot: data['enrolled_in_bot'] == null
+          ? null
+          : data['enrolled_in_bot'] as bool?,
+      deviceToken:
+          data['device_token'] == null ? null : data['device_token'] as String?,
+      businessPhoneNumber: data['business_phone_number'] == null
+          ? null
+          : data['business_phone_number'] as String?,
+      autoRespond:
+          data['auto_respond'] == null ? null : data['auto_respond'] as bool?,
+      token: data['token'] == null ? null : data['token'] as String?,
+      hasPin: data['has_pin'] == null ? null : data['has_pin'] as bool?,
+      businessId:
+          data['business_id'] == null ? null : data['business_id'] as int?,
+      createdAt:
+          data['created_at'] == null ? null : data['created_at'] as String?,
       lastTouched: data['last_touched'] == null
           ? null
-          : DateTime.tryParse(data['last_touched'] as String),
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String),
       deletedAt: data['deleted_at'] == null
           ? null
-          : DateTime.tryParse(data['deleted_at'] as String));
+          : data['deleted_at'] == null
+              ? null
+              : DateTime.tryParse(data['deleted_at'] as String));
 }
 
 Future<Map<String, dynamic>> _$SettingToSupabase(Setting instance,

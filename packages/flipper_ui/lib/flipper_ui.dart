@@ -19,6 +19,7 @@ export '/widget/separated_flex.dart';
 export '/widget/spacing.dart';
 
 export 'style_widget/button.dart';
+export 'style_widget/text_fields.dart';
 export 'style_widget/ShopIconWithStatus.dart';
 export 'style_widget/divider.dart';
 export 'style_widget/icon_button.dart';

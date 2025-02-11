@@ -55,96 +55,17 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   Future<void> toggleForceUPSERT(bool value) async {
-    /// get product attempt to save'em in sqlite.
-    final repository = Repository();
-
     try {
-      // List<Variant> variants = ProxyService.strategy
-      //     .variants(branchId: ProxyService.box.getBranchId()!);
-      // talker.warning("I Expect ${variants.length} variants When seeding");
-
-      // fake variant
-      final variant = models.Variant(
-        id: "11111",
-        name: 'Per Item',
-        color: '#e74c3c',
-        sku: 'sku',
-        productId: "randomNumber()",
-        unit: 'Per Item',
-        productName: 'Custom Amount',
-        branchId: ProxyService.box.getBranchId()!,
-        taxName: 'N/A',
-        taxPercentage: 18.0,
-        itemSeq: 1,
-        isrccCd: '00',
-        isrccNm: '00',
-        isrcRt: 0,
-        isrcAmt: 0,
-        taxTyCd: 'B',
-        bcd: '00',
-        itemClsCd: '5020230602',
-        itemTyCd: '1',
-        itemStdNm: 'Custom Amount',
-        orgnNatCd: 'RW',
-        pkg: 1,
-        itemCd: '00',
-        pkgUnitCd: 'CT',
-        qtyUnitCd: 'BX',
-        itemNm: 'Custom Amount',
-        prc: 0,
-        splyAmt: 0,
-        tin: ProxyService.box.tin(),
-        bhfId: (await ProxyService.box.bhfId()) ?? "00",
-        dftPrc: 0,
-        addInfo: 'A',
-        isrcAplcbYn: 'N',
-        useYn: 'N',
-        regrId: '00',
-        regrNm: '00',
-        modrId: '00',
-        modrNm: '00',
-        lastTouched: DateTime.now(),
-        supplyPrice: 0,
-        retailPrice: 0,
-        spplrItemClsCd: '5020230602',
-        spplrItemCd: '00',
-        spplrItemNm: 'Custom Amount',
-        ebmSynced: false,
-        dcRt: 0,
-        expirationDate: DateTime.now(),
-      );
-
-      Stock stock = Stock(
-        // variant: v,
-        id: Uuid().v4(),
-        currentStock: 110,
-
-        branchId: ProxyService.box.getBranchId()!,
-        active: true,
-        value: 0,
-        rsdQty: 0,
-        lastTouched: DateTime.now(),
-        ebmSynced: false,
-      );
-      final vStock = await repository.upsert<Stock>(stock);
-      final v = await repository.upsert<models.Variant>(variant);
-      v.stock = vStock;
-      v.stockId = vStock.id;
-      final ff = await repository.upsert<Variant>(v);
-      print("StockLoaded:${ff.stock!.currentStock ?? 1000}");
-    } catch (e, s) {
-      print(e);
-      print(s);
-    }
-    try {
+     await ProxyService.strategy.variants(
+          branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
       await ProxyService.box.writeBool(
           key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
 
       setState(() {
         forceUPSERT = ProxyService.box.forceUPSERT();
       });
-    } catch (e, s) {
-      talker.error(e, s);
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -419,8 +340,8 @@ class _AdminControlState extends State<AdminControl> {
               color: Colors.deepPurple,
             ),
             SwitchSettingsCard(
-              title: 'Force Upsert',
-              subtitle: 'Enable force upsert mode',
+              title: 'Hydrate Data',
+              subtitle: 'Refresh Data',
               icon: Icons.sync_problem,
               value: forceUPSERT,
               onChanged: toggleForceUPSERT,

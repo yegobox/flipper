@@ -14,7 +14,7 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSupabase(
       unitsSold: data['units_sold'] as int,
       taxRate: data['tax_rate'] as num,
       trafficCount: data['traffic_count'] as int,
-      branchId: data['branch_id'] as int?);
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?);
 }
 
 Future<Map<String, dynamic>> _$BusinessAnalyticToSupabase(

@@ -11,13 +11,13 @@ import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/services.dart';
 
 import 'package:stacked/stacked.dart';
-import 'package:flipper_ui/style_widget/button.dart';
 
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -120,7 +120,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       try {
         transactionItems = items;
         if (items.isNotEmpty) {
-          ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
+          if (!isOrdering && mounted) {
+            ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
+          }
         }
       } catch (e) {
         talker.error(e);
@@ -219,9 +221,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           Row(
             children: [
               if (!isOrdering) ...[
-                // Commenting this as manual discount is not supported, it need to be saved per item for now.
-                // Expanded(child: _buildDiscountField()),
-                // SizedBox(width: 16.0),
                 Expanded(
                     child: _buildReceivedAmountField(
                         transactionId: transactionId)),
@@ -266,48 +265,27 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _deliveryNote() {
-    return TextFormField(
-      controller: widget.deliveryNoteCotroller,
-      keyboardType: TextInputType.text,
-      maxLines: 1,
-      decoration: InputDecoration(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: StyledTextFormField.create(
+        context: context,
         labelText: 'Delivery Note',
         hintText: 'Enter any special instructions for delivery',
-        labelStyle: TextStyle(color: Theme.of(context).primaryColor),
-        prefixIcon:
-            Icon(Icons.local_shipping, color: Theme.of(context).primaryColor),
-        suffixIcon: IconButton(
-          icon: Icon(Icons.clear, color: Colors.grey),
-          onPressed: () => widget.deliveryNoteCotroller.clear(),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: BorderSide(color: Theme.of(context).primaryColor),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide:
-              BorderSide(color: Theme.of(context).primaryColor, width: 2.0),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: BorderSide(
-              color: Theme.of(context).colorScheme.error, width: 2.0),
-        ),
-        filled: true,
-        fillColor: Colors.grey[100],
-      ),
-      onChanged: (value) => null,
-      validator: (String? value) {
-        if (value == null || value.isEmpty) {
+        controller: widget.deliveryNoteCotroller,
+        keyboardType: TextInputType.multiline,
+        maxLines: 3,
+        minLines: 1,
+        prefixIcon: Icons.local_shipping,
+        onChanged: (value) {
+          setState(() {});
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return null;
+          }
           return null;
-        }
-        return null;
-      },
+        },
+      ),
     );
   }
 
@@ -355,113 +333,92 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildReceivedAmountField({required String transactionId}) {
-    return TextFormField(
-      controller: widget.receivedAmountController,
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
+    return StyledTextFormField.create(
+        context: context,
         labelText: 'Received Amount',
-        labelStyle: const TextStyle(color: Colors.black),
+        hintText: 'Received Amount',
+        controller: widget.receivedAmountController,
+        keyboardType: TextInputType.number,
+        maxLines: 3,
+        minLines: 1,
         suffixIcon: Icon(FeatherIcons.dollarSign, color: Colors.blue),
-        border: OutlineInputBorder(),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-        ),
-      ),
-      onChanged: (value) => setState(() {
-        final receivedAmount = double.tryParse(value);
+        onChanged: (value) => setState(() {
+              final receivedAmount = double.tryParse(value);
 
-        if (receivedAmount != null) {
-          ref.read(paymentMethodsProvider)[0].controller.text = value;
-          if (ref.read(paymentMethodsProvider).length == 1) {
-            /// if it is one payment method just swap
-            ref.read(paymentMethodsProvider.notifier).addPaymentMethod(Payment(
-                amount: receivedAmount,
-                method: ref.read(paymentMethodsProvider)[0].method));
+              if (receivedAmount != null) {
+                ref.read(paymentMethodsProvider)[0].controller.text = value;
+                if (ref.read(paymentMethodsProvider).length == 1) {
+                  /// if it is one payment method just swap
+                  ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
+                      Payment(
+                          amount: receivedAmount,
+                          method: ref.read(paymentMethodsProvider)[0].method));
 
-            talker.warning(ref.read(paymentMethodsProvider).first.amount);
-            talker.warning(ref.read(paymentMethodsProvider).first.method);
-            return;
+                  talker.warning(ref.read(paymentMethodsProvider).first.amount);
+                  talker.warning(ref.read(paymentMethodsProvider).first.method);
+                  return;
+                }
+                for (Payment payment in ref.read(paymentMethodsProvider)) {
+                  ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
+                      Payment(amount: receivedAmount, method: payment.method));
+                }
+                updatePaymentAmounts(transactionId: transactionId);
+              } // Update payment amounts after received amount changes
+            }),
+        validator: (String? value) {
+          if (value == null || value.isEmpty) {
+            ref.read(payButtonLoadingProvider.notifier).stopLoading();
+            return 'Please enter received amount';
           }
-          for (Payment payment in ref.read(paymentMethodsProvider)) {
-            ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
-                Payment(amount: receivedAmount, method: payment.method));
+          final number = double.tryParse(value);
+          if (number == null) {
+            ref.read(payButtonLoadingProvider.notifier).stopLoading();
+            return 'Please enter a valid number';
           }
-          updatePaymentAmounts(transactionId: transactionId);
-        } // Update payment amounts after received amount changes
-      }),
-      validator: (String? value) {
-        if (value == null || value.isEmpty) {
-          ref.read(payButtonLoadingProvider.notifier).stopLoading();
-          return 'Please enter received amount';
-        }
-        final number = double.tryParse(value);
-        if (number == null) {
-          ref.read(payButtonLoadingProvider.notifier).stopLoading();
-          return 'Please enter a valid number';
-        }
-        if (number < totalAfterDiscountAndShipping) {
-          ref.read(payButtonLoadingProvider.notifier).stopLoading();
-          return 'You are receiving less than the total due';
-        }
-        return null;
-      },
-    );
+          if (number < totalAfterDiscountAndShipping) {
+            ref.read(payButtonLoadingProvider.notifier).stopLoading();
+            return 'You are receiving less than the total due';
+          }
+          return null;
+        });
   }
 
   Widget _customerNameField() {
-    return TextFormField(
+    return StyledTextFormField.create(
+      context: context,
+      labelText: 'Customer  Name',
+      hintText: 'Customer  Name',
       controller: widget.customerNameController,
+      keyboardType: TextInputType.text,
+      maxLines: 3,
+      minLines: 1,
+      suffixIcon: Icon(FluentIcons.person_20_regular, color: Colors.blue),
       onChanged: (value) {
         ProxyService.box.writeString(key: "customerName", value: value);
       },
-      decoration: InputDecoration(
-        labelText: 'Customer  Name',
-        labelStyle: const TextStyle(color: Colors.black),
-        suffixIcon: Icon(FluentIcons.person_20_regular, color: Colors.blue),
-        border: OutlineInputBorder(),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-        ),
-      ),
     );
   }
 
   Widget _buildCustomerPhoneField() {
-    return TextFormField(
+    return StyledTextFormField.create(
+      context: context,
+      labelText: 'Customer Phone number',
+      hintText: 'Customer Phone number',
       controller: widget.customerPhoneNumberController,
       keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        labelText: 'Customer Phone number',
-        labelStyle: const TextStyle(color: Colors.black),
-        suffixIcon: Icon(FluentIcons.call_20_regular, color: Colors.blue),
-        border: OutlineInputBorder(),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-        ),
-      ),
+      maxLines: 3,
+      minLines: 1,
+      suffixIcon: Icon(FluentIcons.call_20_regular, color: Colors.blue),
       onChanged: (value) => ProxyService.box
           .writeString(key: 'currentSaleCustomerPhoneNumber', value: value),
       validator: (String? value) {
         if (value == null || value.isEmpty) {
+          ref.read(payButtonLoadingProvider.notifier).stopLoading();
           return 'Please enter a phone number';
         }
         final phoneExp = RegExp(r'^[1-9]\d{8}$');
         if (!phoneExp.hasMatch(value)) {
+          ref.read(payButtonLoadingProvider.notifier).stopLoading();
           return 'Please enter a valid 9-digit phone number without a leading zero';
         }
         return null;
@@ -532,13 +489,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             SizedBox(width: 10, height: 5),
             Expanded(
               flex: 3,
-              child: TextFormField(
+              child: StyledTextFormField.create(
+                context: context,
+                labelText: 'Amount',
+                hintText: 'Enter Amount',
                 controller: ref.read(paymentMethodsProvider)[index].controller,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Amount',
-                  border: OutlineInputBorder(),
-                ),
+                keyboardType: TextInputType.multiline,
+                maxLines: 3,
+                minLines: 1,
                 onChanged: (value) {
                   final amount = double.tryParse(value) ?? 0.0;
                   ref.read(paymentMethodsProvider)[index].amount = amount;

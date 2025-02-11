@@ -206,7 +206,8 @@ class _RowItemState extends ConsumerState<RowItem>
 
       // Manage transaction
       final pendingTransaction = await ProxyService.strategy.manageTransaction(
-        transactionType: TransactionType.sale,
+        transactionType:
+            isOrdering ? TransactionType.cashOut : TransactionType.sale,
         isExpense: isOrdering,
         branchId: branchId,
       );

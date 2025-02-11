@@ -6,32 +6,52 @@ Future<Conversation> _$ConversationFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Conversation(
       id: data['id'] as String?,
-      userName: data['user_name'] as String?,
-      body: data['body'] as String?,
-      avatar: data['avatar'] as String?,
-      channelType: data['channel_type'] as String?,
-      fromNumber: data['from_number'] as String?,
-      toNumber: data['to_number'] as String?,
+      userName: data['user_name'] == null ? null : data['user_name'] as String?,
+      body: data['body'] == null ? null : data['body'] as String?,
+      avatar: data['avatar'] == null ? null : data['avatar'] as String?,
+      channelType:
+          data['channel_type'] == null ? null : data['channel_type'] as String?,
+      fromNumber:
+          data['from_number'] == null ? null : data['from_number'] as String?,
+      toNumber: data['to_number'] == null ? null : data['to_number'] as String?,
       createdAt: data['created_at'] == null
           ? null
-          : DateTime.tryParse(data['created_at'] as String),
-      messageType: data['message_type'] as String?,
-      phoneNumberId: data['phone_number_id'] as String?,
-      messageId: data['message_id'] as String?,
-      respondedBy: data['responded_by'] as String?,
-      conversationId: data['conversation_id'] as String?,
-      businessPhoneNumber: data['business_phone_number'] as String?,
-      businessId: data['business_id'] as int?,
+          : data['created_at'] == null
+              ? null
+              : DateTime.tryParse(data['created_at'] as String),
+      messageType:
+          data['message_type'] == null ? null : data['message_type'] as String?,
+      phoneNumberId: data['phone_number_id'] == null
+          ? null
+          : data['phone_number_id'] as String?,
+      messageId:
+          data['message_id'] == null ? null : data['message_id'] as String?,
+      respondedBy:
+          data['responded_by'] == null ? null : data['responded_by'] as String?,
+      conversationId: data['conversation_id'] == null
+          ? null
+          : data['conversation_id'] as String?,
+      businessPhoneNumber: data['business_phone_number'] == null
+          ? null
+          : data['business_phone_number'] as String?,
+      businessId:
+          data['business_id'] == null ? null : data['business_id'] as int?,
       scheduledAt: data['scheduled_at'] == null
           ? null
-          : DateTime.tryParse(data['scheduled_at'] as String),
-      delivered: data['delivered'] as bool?,
+          : data['scheduled_at'] == null
+              ? null
+              : DateTime.tryParse(data['scheduled_at'] as String),
+      delivered: data['delivered'] == null ? null : data['delivered'] as bool?,
       lastTouched: data['last_touched'] == null
           ? null
-          : DateTime.tryParse(data['last_touched'] as String),
+          : data['last_touched'] == null
+              ? null
+              : DateTime.tryParse(data['last_touched'] as String),
       deletedAt: data['deleted_at'] == null
           ? null
-          : DateTime.tryParse(data['deleted_at'] as String));
+          : data['deleted_at'] == null
+              ? null
+              : DateTime.tryParse(data['deleted_at'] as String));
 }
 
 Future<Map<String, dynamic>> _$ConversationToSupabase(Conversation instance,
