@@ -81,7 +81,7 @@ jobs:
   integration-testing-windows:
     name: "Integration Testing Windows"
     runs-on: windows-2022
-    needs: [unit-testing,integration-on-android]
+    needs: [unit-testing]
     steps:
       - name: Export pub environment variable on Windows
         run: |
