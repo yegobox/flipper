@@ -268,8 +268,10 @@ class RWTax with NetworkHelper implements TaxApi {
         .toString();
 
     try {
-      if (variation.tin == null) {
-        return RwApiResponse(resultCd: "000", resultMsg: "Invalid tin");
+      if (variation.tin == null ||
+          variation.itemTyCd == null ||
+          variation.itemTyCd?.isEmpty == true) {
+        return RwApiResponse(resultCd: "000", resultMsg: "Invalid Data");
       }
 
       /// first remove fields for imports

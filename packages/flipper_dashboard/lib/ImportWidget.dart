@@ -59,6 +59,9 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
 
       /// Avoid self-update of the stock
       if (variantToUpdate != null && variantToUpdate.id != item.id) {
+        variantToUpdate.ebmSynced = false;
+        await ProxyService.strategy
+            .updateVariant(updatables: [variantToUpdate]);
         talker.warning("KEE${item.stock!.currentStock}");
         await ProxyService.strategy.updateStock(
           stockId: variantToUpdate.stock!.id,

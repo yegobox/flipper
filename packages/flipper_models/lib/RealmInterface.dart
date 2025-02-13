@@ -100,7 +100,7 @@ abstract class RealmInterface {
     String? variantId,
     int? page,
     String? purchaseId,
-    bool includePurchases = false,
+    bool excludeApprovedInWaitingOrCanceledItems = false,
     int? itemsPerPage,
     String? name,
     String? bcd,

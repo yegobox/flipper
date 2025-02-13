@@ -2427,7 +2427,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required String lastReqDt,
   }) async {
     try {
-      // Fetch active branch and business details
       final activeBranch =
           await branch(serverId: ProxyService.box.getBranchId()!);
       if (activeBranch == null) throw Exception("Active branch not found");
@@ -2452,11 +2451,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         final existingVariants = await variants(
           branchId: ProxyService.box.getBranchId()!,
           imptItemsttsCd: "2",
+          excludeApprovedInWaitingOrCanceledItems: true,
         );
 
         if (existingVariants.isNotEmpty) {
           return existingVariants;
         }
+
+        //return ealry as as continuing might fetch new data from api
+        return [];
       }
 
       // Fetch new data from the API if no existing records
@@ -3657,48 +3660,52 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     String? purchaseId,
     int? itemsPerPage,
     String? imptItemsttsCd,
-    bool includePurchases = false,
+    bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
   }) async {
+    final query = brick.Query(where: [
+      if (variantId != null)
+        brick.Where('id').isExactly(variantId)
+      else if (name != null) ...[
+        brick.Where('name').contains(name),
+        brick.Where('branchId').isExactly(branchId),
+      ] else if (bcd != null) ...[
+        brick.Where('bcd').isExactly(bcd),
+        brick.Where('branchId').isExactly(branchId),
+      ] else if (imptItemsttsCd != null) ...[
+        brick.Where('imptItemSttsCd').isExactly(imptItemsttsCd),
+        brick.Where('branchId').isExactly(branchId)
+      ] else ...[
+        brick.Where('branchId').isExactly(branchId),
+        if (!excludeApprovedInWaitingOrCanceledItems)
+          brick.Where('retailPrice').isGreaterThan(0),
+        brick.Where('name').isNot(TEMP_PRODUCT),
+        brick.Where('productName').isNot(CUSTOM_PRODUCT),
+        // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
+        if (!excludeApprovedInWaitingOrCanceledItems) ...[
+          brick.Where('imptItemSttsCd').isNot("2"),
+          brick.Where('imptItemSttsCd').isNot("4"),
+          brick.Where('imptItemSttsCd').isNot("3"),
+          //TODO: there is a bug in brick where comparing to 01 is not working
+          // brick.Where('pchsSttsCd').isNot("01"),
+          // brick.Where('pchsSttsCd').isNot("04"),
+        ],
+
+        /// 01 is waiting for approval.
+        if (excludeApprovedInWaitingOrCanceledItems)
+          brick.Where('pchsSttsCd').isExactly("01"),
+        if (productId != null) brick.Where('productId').isExactly(productId),
+        if (purchaseId != null) brick.Where('purchaseId').isExactly(purchaseId),
+        // Apply the purchaseId filter only if includePurchases is true
+        if (excludeApprovedInWaitingOrCanceledItems)
+          brick.Where('purchaseId').isNot(null),
+      ]
+    ]);
     List<Variant> variants = await repository.get<Variant>(
       policy: fetchRemote
           ? OfflineFirstGetPolicy.alwaysHydrate
           : OfflineFirstGetPolicy.localOnly,
-      query: brick.Query(where: [
-        if (variantId != null)
-          brick.Where('id').isExactly(variantId)
-        else if (name != null) ...[
-          brick.Where('name').contains(name),
-          brick.Where('branchId').isExactly(branchId),
-        ] else if (bcd != null) ...[
-          brick.Where('bcd').isExactly(bcd),
-          brick.Where('branchId').isExactly(branchId),
-        ] else if (imptItemsttsCd != null) ...[
-          brick.Where('imptItemSttsCd').isExactly(imptItemsttsCd),
-          brick.Where('branchId').isExactly(branchId)
-        ] else ...[
-          brick.Where('branchId').isExactly(branchId),
-          if (!includePurchases) brick.Where('retailPrice').isGreaterThan(0),
-          brick.Where('name').isNot(TEMP_PRODUCT),
-          brick.Where('productName').isNot(CUSTOM_PRODUCT),
-          // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled)
-          if (!includePurchases) ...[
-            brick.Where('imptItemSttsCd').isNot("2"),
-            brick.Where('imptItemSttsCd').isNot("4"),
-            //TODO: there is a bug in brick where comparing to 01 is not working
-            // brick.Where('pchsSttsCd').isNot("01"),
-            // brick.Where('pchsSttsCd').isNot("04"),
-          ],
-
-          /// 01 is waiting for approval.
-          if (includePurchases) brick.Where('pchsSttsCd').isExactly("01"),
-          if (productId != null) brick.Where('productId').isExactly(productId),
-          if (purchaseId != null)
-            brick.Where('purchaseId').isExactly(purchaseId),
-          // Apply the purchaseId filter only if includePurchases is true
-          if (includePurchases) brick.Where('purchaseId').isNot(null),
-        ]
-      ]),
+      query: query,
     );
 
     // Pagination logic (if needed)
@@ -5322,9 +5329,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         }
         // return purchases i.e all variants that has purchaseId that are not null
         // and the itemCd !=3; because 3 mean that this purchase has been accepted
-        return await variants(branchId: branchId, includePurchases: true);
+        return await variants(
+            branchId: branchId, excludeApprovedInWaitingOrCanceledItems: true);
       } else {
-        return await variants(includePurchases: true, branchId: branchId);
+        return await variants(
+            excludeApprovedInWaitingOrCanceledItems: true, branchId: branchId);
       }
     } catch (e) {
       rethrow;
