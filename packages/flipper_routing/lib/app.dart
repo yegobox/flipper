@@ -765,3 +765,5 @@ class App {}
 // ALTER TABLE TransactionItem DROP COLUMN inventory_request_InventoryRequest_brick_id;
 // ALTER TABLE TransactionItem DROP COLUMN inventory_request_InventoryRequest_brick_id;
 // ALTER TABLE InventoryRequest DROP COLUMN id;
+
+// https://docs.flutter.dev/release/breaking-changes/flutter-gradle-plugin-apply

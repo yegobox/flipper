@@ -180,8 +180,13 @@ class RWTax with NetworkHelper implements TaxApi {
 
       /// update the remaining stock of this item in rra
       variant.rsdQty = variant.stock!.currentStock;
-      if (variant.tin == null || variant.rsdQty == null) {
-        return RwApiResponse(resultCd: "000", resultMsg: "Invalid tin");
+      if (variant.tin == null ||
+          variant.rsdQty == null ||
+          variant.itemCd == null ||
+          variant.itemCd == 'null' ||
+          variant.itemCd?.isEmpty == true) {
+        return RwApiResponse(
+            resultCd: "000", resultMsg: "Invalid data while saving stock");
       }
       if (variant.productName == TEMP_PRODUCT) {
         return RwApiResponse(resultCd: "000", resultMsg: "Invalid product");

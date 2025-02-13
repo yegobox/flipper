@@ -30,8 +30,12 @@ class CronService {
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
     /// when app start load data to keep stock up to date and everything.
-    ProxyService.strategy
-        .variants(branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+    /// because this might override data offline if it where not synced this should be used
+    /// with caution, only do it if we are forcing upsert.
+    if (ProxyService.box.forceUPSERT()) {
+      ProxyService.strategy.variants(
+          branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+    }
 
     /// end of pulling
     await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
