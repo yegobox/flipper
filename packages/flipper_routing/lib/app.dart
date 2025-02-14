@@ -767,3 +767,5 @@ class App {}
 // ALTER TABLE InventoryRequest DROP COLUMN id;
 
 // https://docs.flutter.dev/release/breaking-changes/flutter-gradle-plugin-apply
+
+// https://github.com/tekartik/sqflite/issues/873

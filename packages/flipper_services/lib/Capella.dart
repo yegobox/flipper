@@ -1156,7 +1156,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<Ebm?> ebm({required int branchId}) {
+  Future<Ebm?> ebm({required int branchId, bool fetchRemote = false}) {
     // TODO: implement ebm
     throw UnimplementedError();
   }

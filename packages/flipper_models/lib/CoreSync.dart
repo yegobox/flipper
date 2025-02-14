@@ -1033,14 +1033,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       case 'transactionItem':
         final transactionItem = await transactionItems(
             id: id, branchId: ProxyService.box.getBranchId()!);
-
-        await repository.delete<TransactionItem>(
-          transactionItem.first,
-          query: brick.Query(
-              action: QueryAction.delete,
-              where: [brick.Where('id').isExactly(id)]),
-        );
-
+        if(transactionItem.isNotEmpty){
+          await repository.delete<TransactionItem>(
+            transactionItem.first,
+            query: brick.Query(
+                action: QueryAction.delete,
+                where: [brick.Where('id').isExactly(id)]),
+          );
+        }
         break;
       case 'customer':
         final customer =
@@ -1230,12 +1230,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Ebm?> ebm({required int branchId}) async {
+  Future<Ebm?> ebm({required int branchId, bool fetchRemote = false}) async {
     final repository = Repository();
     final query =
         brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
     final result = await repository.get<models.Ebm>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        query: query,
+        policy: fetchRemote == true
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     return result.firstOrNull;
   }
 
@@ -3685,7 +3688,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         if (!excludeApprovedInWaitingOrCanceledItems) ...[
           brick.Where('imptItemSttsCd').isNot("2"),
           brick.Where('imptItemSttsCd').isNot("4"),
-          brick.Where('imptItemSttsCd').isNot("3"),
           //TODO: there is a bug in brick where comparing to 01 is not working
           // brick.Where('pchsSttsCd').isNot("01"),
           // brick.Where('pchsSttsCd').isNot("04"),

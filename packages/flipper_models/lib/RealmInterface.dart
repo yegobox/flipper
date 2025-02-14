@@ -363,7 +363,7 @@ abstract class RealmInterface {
   FutureOr<({double income, double expense})> getTransactionsAmountsSum(
       {required String period});
 
-  Future<models.Ebm?> ebm({required int branchId});
+  Future<models.Ebm?> ebm({required int branchId, bool fetchRemote = false});
   Future<void> saveEbm(
       {required int branchId, required String severUrl, required String bhFId});
 

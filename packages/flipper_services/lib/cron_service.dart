@@ -32,6 +32,8 @@ class CronService {
     /// when app start load data to keep stock up to date and everything.
     /// because this might override data offline if it where not synced this should be used
     /// with caution, only do it if we are forcing upsert.
+    ProxyService.strategy
+        .ebm(branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
     if (ProxyService.box.forceUPSERT()) {
       ProxyService.strategy.variants(
           branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
