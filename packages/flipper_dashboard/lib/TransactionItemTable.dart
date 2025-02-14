@@ -222,8 +222,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   void _deleteItem(TransactionItem item, bool isOrdering) {
     if (!item.partOfComposite!) {
       _deleteSingleItem(item, isOrdering);
+      ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
+      ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
     } else {
       _deleteCompositeItems(item, isOrdering);
+      ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
     }
   }
 

@@ -43,7 +43,7 @@ dependencies:
   flipper_models: any
 
   google_fonts: ^6.1.0
-  shared_preferences: ^2.3.2
+  shared_preferences: ^2.5.2
   newrelic_mobile: ^1.1.7
   flutter_local_notifications: ^19.0.0-dev.5
  

@@ -100,7 +100,7 @@ abstract class RealmInterface {
     String? variantId,
     int? page,
     String? purchaseId,
-    bool includePurchases = false,
+    bool excludeApprovedInWaitingOrCanceledItems = false,
     int? itemsPerPage,
     String? name,
     String? bcd,
@@ -363,7 +363,7 @@ abstract class RealmInterface {
   FutureOr<({double income, double expense})> getTransactionsAmountsSum(
       {required String period});
 
-  Future<models.Ebm?> ebm({required int branchId});
+  Future<models.Ebm?> ebm({required int branchId, bool fetchRemote = false});
   Future<void> saveEbm(
       {required int branchId, required String severUrl, required String bhFId});
 
@@ -836,7 +836,7 @@ abstract class RealmInterface {
 
   FutureOr<List<LPermission>> permissions({required int userId});
 
-  getCounters({required int branchId}) {}
+  getCounters({required int branchId,  bool fetchRemote=false}) {}
 
   void notify({required AppNotification notification}) {}
 
@@ -882,4 +882,5 @@ abstract class RealmInterface {
   Future<double> fetchCost(int branchId);
   Future<List<BusinessAnalytic>> analytics({required int branchId});
   Future<void> deleteFailedQueue();
+  Future<int> queueLength();
 }

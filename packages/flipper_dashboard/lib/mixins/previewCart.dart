@@ -183,7 +183,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
 
       // Validate transaction
       if (transaction.subTotal == 0) {
-        throw Exception("No Payable");
+        throw Exception("Please add items in basket to complete a transaction");
       }
 
       final amount = double.tryParse(receivedAmountController.text) ?? 0;

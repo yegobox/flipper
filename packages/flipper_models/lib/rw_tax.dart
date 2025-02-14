@@ -180,8 +180,13 @@ class RWTax with NetworkHelper implements TaxApi {
 
       /// update the remaining stock of this item in rra
       variant.rsdQty = variant.stock!.currentStock;
-      if (variant.tin == null || variant.rsdQty == null) {
-        return RwApiResponse(resultCd: "000", resultMsg: "Invalid tin");
+      if (variant.tin == null ||
+          variant.rsdQty == null ||
+          variant.itemCd == null ||
+          variant.itemCd == 'null' ||
+          variant.itemCd?.isEmpty == true) {
+        return RwApiResponse(
+            resultCd: "000", resultMsg: "Invalid data while saving stock");
       }
       if (variant.productName == TEMP_PRODUCT) {
         return RwApiResponse(resultCd: "000", resultMsg: "Invalid product");
@@ -263,8 +268,10 @@ class RWTax with NetworkHelper implements TaxApi {
         .toString();
 
     try {
-      if (variation.tin == null) {
-        return RwApiResponse(resultCd: "000", resultMsg: "Invalid tin");
+      if (variation.tin == null ||
+          variation.itemTyCd == null ||
+          variation.itemTyCd?.isEmpty == true) {
+        return RwApiResponse(resultCd: "000", resultMsg: "Invalid Data");
       }
 
       /// first remove fields for imports
@@ -762,10 +769,11 @@ class RWTax with NetworkHelper implements TaxApi {
       Variant? stock = await ProxyService.strategy.getVariant(
         id: item.variantId!,
       );
-      ProxyService.strategy.updateStock(
-        stockId: stock!.id,
-        ebmSynced: false,
-      );
+      //TODO: this was wrong, we need to check if stock is being updated though!
+      // ProxyService.strategy.updateStock(
+      //   stockId: stock!.id,
+      //   ebmSynced: false,
+      // );
     }
   }
 

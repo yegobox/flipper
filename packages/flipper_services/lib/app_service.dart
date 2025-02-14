@@ -59,7 +59,7 @@ class AppService with ListenableServiceMixin {
   ///
   Future<bool> isLoggedIn() async {
     if (ProxyService.box.getUserId() == null) {
-      throw Exception();
+      throw Exception("Not logged in User is null");
     }
     return true;
   }

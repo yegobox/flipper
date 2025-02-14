@@ -30,8 +30,22 @@ class CronService {
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
     /// when app start load data to keep stock up to date and everything.
-    ProxyService.strategy
-        .variants(branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+    /// because this might override data offline if it where not synced this should be used
+    /// with caution, only do it if we are forcing upsert.
+    if(await ProxyService.strategy.queueLength()==0){
+      talker.warning("We got empty Queue we can hydrate the data");
+      ProxyService.strategy
+          .ebm(branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+      ProxyService.strategy
+          .getCounters(branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+      ProxyService.strategy.variants(
+          branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+    }
+
+    if (ProxyService.box.forceUPSERT()) {
+      ProxyService.strategy.variants(
+          branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+    }
 
     /// end of pulling
     await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
@@ -49,42 +63,42 @@ class CronService {
         }
       }
     });
-    // Timer.periodic(Duration(minutes: 10), (Timer t) async {
-    //   final URI = await ProxyService.box.getServerUrl();
-    //   final tinNumber = ProxyService.box.tin();
-    //   final bhfId = await ProxyService.box.bhfId();
-    //   final branchId = ProxyService.box.getBranchId()!;
+    Timer.periodic(Duration(minutes: 1), (Timer t) async {
+      final URI = await ProxyService.box.getServerUrl();
+      final tinNumber = ProxyService.box.tin();
+      final bhfId = await ProxyService.box.bhfId();
+      final branchId = ProxyService.box.getBranchId()!;
 
-    //   CustomerPatch.patchCustomer(
-    //     URI: URI!,
-    //     tinNumber: tinNumber,
-    //     bhfId: bhfId!,
-    //     branchId: branchId,
-    //     sendPort: (message) {
-    //       ProxyService.notification.sendLocalNotification(body: message);
-    //     },
-    //   );
-    //   PatchTransactionItem.patchTransactionItem(
-    //     URI: URI,
-    //     sendPort: (message) {
-    //       ProxyService.notification.sendLocalNotification(body: message);
-    //     },
-    //     tinNumber: tinNumber,
-    //     bhfId: bhfId,
-    //   );
-    //   VariantPatch.patchVariant(
-    //     URI: URI,
-    //     sendPort: (message) {
-    //       ProxyService.notification.sendLocalNotification(body: message);
-    //     },
-    //   );
-    //   StockPatch.patchStock(
-    //     URI: URI,
-    //     sendPort: (message) {
-    //       ProxyService.notification.sendLocalNotification(body: message);
-    //     },
-    //   );
-    // });
+      CustomerPatch.patchCustomer(
+        URI: URI!,
+        tinNumber: tinNumber,
+        bhfId: bhfId!,
+        branchId: branchId,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
+      PatchTransactionItem.patchTransactionItem(
+        URI: URI,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+        tinNumber: tinNumber,
+        bhfId: bhfId,
+      );
+      VariantPatch.patchVariant(
+        URI: URI,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
+      StockPatch.patchStock(
+        URI: URI,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
+    });
 
     ProxyService.box.remove(key: "customPhoneNumberForPayment");
     List<ConnectivityResult> results = await Connectivity().checkConnectivity();

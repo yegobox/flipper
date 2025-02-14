@@ -1010,10 +1010,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         }
         break;
       case 'variant':
-        final variant = await getVariant(id: id);
-        final stock = await getStockById(id: variant!.stockId!);
 
         try {
+          final variant = await getVariant(id: id);
+          final stock = await getStockById(id: variant!.stockId!);
+
           await repository.delete<Variant>(
             variant,
             query: brick.Query(
@@ -1033,14 +1034,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       case 'transactionItem':
         final transactionItem = await transactionItems(
             id: id, branchId: ProxyService.box.getBranchId()!);
-
-        await repository.delete<TransactionItem>(
-          transactionItem.first,
-          query: brick.Query(
-              action: QueryAction.delete,
-              where: [brick.Where('id').isExactly(id)]),
-        );
-
+        if(transactionItem.isNotEmpty){
+          await repository.delete<TransactionItem>(
+            transactionItem.first,
+            query: brick.Query(
+                action: QueryAction.delete,
+                where: [brick.Where('id').isExactly(id)]),
+          );
+        }
         break;
       case 'customer':
         final customer =
@@ -1230,12 +1231,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<Ebm?> ebm({required int branchId}) async {
+  Future<Ebm?> ebm({required int branchId, bool fetchRemote = false}) async {
     final repository = Repository();
     final query =
         brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
     final result = await repository.get<models.Ebm>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        query: query,
+        policy: fetchRemote == true
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     return result.firstOrNull;
   }
 
@@ -1367,12 +1371,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<List<Counter>> getCounters({required int branchId}) async {
+  Future<List<Counter>> getCounters({required int branchId,bool fetchRemote = false}) async {
     final repository = brick.Repository();
     final query =
         brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
     final counters = await repository.get<models.Counter>(
-        query: query, policy: OfflineFirstGetPolicy.localOnly);
+        query: query, policy: fetchRemote == true? OfflineFirstGetPolicy.alwaysHydrate: OfflineFirstGetPolicy.localOnly);
 
     return counters;
   }
@@ -2427,7 +2431,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required String lastReqDt,
   }) async {
     try {
-      // Fetch active branch and business details
       final activeBranch =
           await branch(serverId: ProxyService.box.getBranchId()!);
       if (activeBranch == null) throw Exception("Active branch not found");
@@ -2452,11 +2455,15 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         final existingVariants = await variants(
           branchId: ProxyService.box.getBranchId()!,
           imptItemsttsCd: "2",
+          excludeApprovedInWaitingOrCanceledItems: true,
         );
 
         if (existingVariants.isNotEmpty) {
           return existingVariants;
         }
+
+        //return ealry as as continuing might fetch new data from api
+        return [];
       }
 
       // Fetch new data from the API if no existing records
@@ -2510,6 +2517,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       branchId: branchId,
       totWt: item.totWt,
       netWt: item.netWt,
+      itemCd: item.itemCd,
       spplrNm: item.spplrNm,
       agntNm: item.agntNm,
       invcFcurAmt: item.invcFcurAmt,
@@ -2520,7 +2528,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       qty: item.qty ?? 1,
       qtyUnitCd: item.qtyUnitCd,
       pkgUnitCd: "BJ",
-      createItemCode: true,
+      createItemCode: item.itemCd?.isEmpty == true,
       dclNo: item.dclNo,
       taskCd: item.taskCd,
       dclDe: item.dclDe,
@@ -3656,48 +3664,51 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     String? purchaseId,
     int? itemsPerPage,
     String? imptItemsttsCd,
-    bool includePurchases = false,
+    bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
   }) async {
+    final query = brick.Query(where: [
+      if (variantId != null)
+        brick.Where('id').isExactly(variantId)
+      else if (name != null) ...[
+        brick.Where('name').contains(name),
+        brick.Where('branchId').isExactly(branchId),
+      ] else if (bcd != null) ...[
+        brick.Where('bcd').isExactly(bcd),
+        brick.Where('branchId').isExactly(branchId),
+      ] else if (imptItemsttsCd != null) ...[
+        brick.Where('imptItemSttsCd').isExactly(imptItemsttsCd),
+        brick.Where('branchId').isExactly(branchId)
+      ] else ...[
+        brick.Where('branchId').isExactly(branchId),
+        if (!excludeApprovedInWaitingOrCanceledItems)
+          brick.Where('retailPrice').isGreaterThan(0),
+        brick.Where('name').isNot(TEMP_PRODUCT),
+        brick.Where('productName').isNot(CUSTOM_PRODUCT),
+        // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
+        if (!excludeApprovedInWaitingOrCanceledItems) ...[
+          brick.Where('imptItemSttsCd').isNot("2"),
+          brick.Where('imptItemSttsCd').isNot("4"),
+          //TODO: there is a bug in brick where comparing to 01 is not working
+          // brick.Where('pchsSttsCd').isNot("01"),
+          // brick.Where('pchsSttsCd').isNot("04"),
+        ],
+
+        /// 01 is waiting for approval.
+        if (excludeApprovedInWaitingOrCanceledItems)
+          brick.Where('pchsSttsCd').isExactly("01"),
+        if (productId != null) brick.Where('productId').isExactly(productId),
+        if (purchaseId != null) brick.Where('purchaseId').isExactly(purchaseId),
+        // Apply the purchaseId filter only if includePurchases is true
+        if (excludeApprovedInWaitingOrCanceledItems)
+          brick.Where('purchaseId').isNot(null),
+      ]
+    ]);
     List<Variant> variants = await repository.get<Variant>(
       policy: fetchRemote
           ? OfflineFirstGetPolicy.alwaysHydrate
           : OfflineFirstGetPolicy.localOnly,
-      query: brick.Query(where: [
-        if (variantId != null)
-          brick.Where('id').isExactly(variantId)
-        else if (name != null) ...[
-          brick.Where('name').contains(name),
-          brick.Where('branchId').isExactly(branchId),
-        ] else if (bcd != null) ...[
-          brick.Where('bcd').isExactly(bcd),
-          brick.Where('branchId').isExactly(branchId),
-        ] else if (imptItemsttsCd != null) ...[
-          brick.Where('imptItemSttsCd').isExactly(imptItemsttsCd),
-          brick.Where('branchId').isExactly(branchId)
-        ] else ...[
-          brick.Where('branchId').isExactly(branchId),
-          if (!includePurchases) brick.Where('retailPrice').isGreaterThan(0),
-          brick.Where('name').isNot(TEMP_PRODUCT),
-          brick.Where('productName').isNot(CUSTOM_PRODUCT),
-          // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled)
-          if (!includePurchases) ...[
-            brick.Where('imptItemSttsCd').isNot("2"),
-            brick.Where('imptItemSttsCd').isNot("4"),
-            //TODO: there is a bug in brick where comparing to 01 is not working
-            // brick.Where('pchsSttsCd').isNot("01"),
-            // brick.Where('pchsSttsCd').isNot("04"),
-          ],
-
-          /// 01 is waiting for approval.
-          if (includePurchases) brick.Where('pchsSttsCd').isExactly("01"),
-          if (productId != null) brick.Where('productId').isExactly(productId),
-          if (purchaseId != null)
-            brick.Where('purchaseId').isExactly(purchaseId),
-          // Apply the purchaseId filter only if includePurchases is true
-          if (includePurchases) brick.Where('purchaseId').isNot(null),
-        ]
-      ]),
+      query: query,
     );
 
     // Pagination logic (if needed)
@@ -5284,7 +5295,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               supplyPrice: variant.splyAmt!,
               retailPrice: variant.prc!,
               purchase: purchase,
-              createItemCode: false,
+              createItemCode: variant.itemCd?.isEmpty == true,
               taxTypes: {barCode: variant.taxTyCd!},
               totAmt: variant.totAmt,
               taxAmt: variant.taxAmt,
@@ -5321,9 +5332,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         }
         // return purchases i.e all variants that has purchaseId that are not null
         // and the itemCd !=3; because 3 mean that this purchase has been accepted
-        return await variants(branchId: branchId, includePurchases: true);
+        return await variants(
+            branchId: branchId, excludeApprovedInWaitingOrCanceledItems: true);
       } else {
-        return await variants(includePurchases: true, branchId: branchId);
+        return await variants(
+            excludeApprovedInWaitingOrCanceledItems: true, branchId: branchId);
       }
     } catch (e) {
       rethrow;
@@ -5484,4 +5497,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<void> deleteFailedQueue() async {
     await repository.deleteUnprocessedRequests();
   }
+
+  @override
+  Future<int> queueLength() async {
+    return await repository.availableQueue();
+  }
+
+
 }
