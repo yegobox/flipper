@@ -769,10 +769,11 @@ class RWTax with NetworkHelper implements TaxApi {
       Variant? stock = await ProxyService.strategy.getVariant(
         id: item.variantId!,
       );
-      ProxyService.strategy.updateStock(
-        stockId: stock!.id,
-        ebmSynced: false,
-      );
+      //TODO: this was wrong, we need to check if stock is being updated though!
+      // ProxyService.strategy.updateStock(
+      //   stockId: stock!.id,
+      //   ebmSynced: false,
+      // );
     }
   }
 

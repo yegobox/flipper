@@ -836,7 +836,7 @@ abstract class RealmInterface {
 
   FutureOr<List<LPermission>> permissions({required int userId});
 
-  getCounters({required int branchId}) {}
+  getCounters({required int branchId,  bool fetchRemote=false}) {}
 
   void notify({required AppNotification notification}) {}
 
@@ -882,4 +882,5 @@ abstract class RealmInterface {
   Future<double> fetchCost(int branchId);
   Future<List<BusinessAnalytic>> analytics({required int branchId});
   Future<void> deleteFailedQueue();
+  Future<int> queueLength();
 }

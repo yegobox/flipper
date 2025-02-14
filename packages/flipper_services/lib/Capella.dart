@@ -146,7 +146,7 @@ class Capella with Booting implements RealmInterface {
   // }
 
   @override
-  Future<List<Counter>> getCounters({required int branchId}) async {
+  Future<List<Counter>> getCounters({required int branchId, bool fetchRemote =false}) async {
     throw UnimplementedError();
     // try {
     //   AsyncCollection? collection =
@@ -1891,6 +1891,12 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<void> deleteFailedQueue() {
     // TODO: implement deleteFailedQueue
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> queueLength() {
+    // TODO: implement queueLength
     throw UnimplementedError();
   }
 }

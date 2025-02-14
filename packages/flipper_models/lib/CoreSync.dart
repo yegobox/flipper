@@ -1010,10 +1010,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         }
         break;
       case 'variant':
-        final variant = await getVariant(id: id);
-        final stock = await getStockById(id: variant!.stockId!);
 
         try {
+          final variant = await getVariant(id: id);
+          final stock = await getStockById(id: variant!.stockId!);
+
           await repository.delete<Variant>(
             variant,
             query: brick.Query(
@@ -1370,12 +1371,12 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<List<Counter>> getCounters({required int branchId}) async {
+  Future<List<Counter>> getCounters({required int branchId,bool fetchRemote = false}) async {
     final repository = brick.Repository();
     final query =
         brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
     final counters = await repository.get<models.Counter>(
-        query: query, policy: OfflineFirstGetPolicy.localOnly);
+        query: query, policy: fetchRemote == true? OfflineFirstGetPolicy.alwaysHydrate: OfflineFirstGetPolicy.localOnly);
 
     return counters;
   }
@@ -5496,4 +5497,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<void> deleteFailedQueue() async {
     await repository.deleteUnprocessedRequests();
   }
+
+  @override
+  Future<int> queueLength() async {
+    return await repository.availableQueue();
+  }
+
+
 }

@@ -62,7 +62,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     super.initState();
     ref.read(paymentMethodsProvider)[0].controller.addListener(() async {
       await Future.delayed(Duration(seconds: 5));
-      updatePaymentAmounts(transactionId: "");
+     try{
+       updatePaymentAmounts(transactionId: "");
+     }catch(e){}
     });
   }
 

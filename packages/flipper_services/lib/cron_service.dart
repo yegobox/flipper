@@ -32,8 +32,16 @@ class CronService {
     /// when app start load data to keep stock up to date and everything.
     /// because this might override data offline if it where not synced this should be used
     /// with caution, only do it if we are forcing upsert.
-    ProxyService.strategy
-        .ebm(branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+    if(await ProxyService.strategy.queueLength()==0){
+      talker.warning("We got empty Queue we can hydrate the data");
+      ProxyService.strategy
+          .ebm(branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+      ProxyService.strategy
+          .getCounters(branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+      ProxyService.strategy.variants(
+          branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+    }
+
     if (ProxyService.box.forceUPSERT()) {
       ProxyService.strategy.variants(
           branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
