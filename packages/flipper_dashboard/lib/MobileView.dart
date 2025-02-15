@@ -24,7 +24,7 @@ class MobileView extends StatefulHookConsumerWidget {
 
 class _MobileViewState extends ConsumerState<MobileView> {
   final TextEditingController textEditController = TextEditingController();
-  final TextEditingController searchContrroller = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
   final TextEditingController discountController = TextEditingController();
   final TextEditingController receivedAmountController =
       TextEditingController();
@@ -35,6 +35,16 @@ class _MobileViewState extends ConsumerState<MobileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        backgroundColor: Theme.of(context).canvasColor,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -42,7 +52,7 @@ class _MobileViewState extends ConsumerState<MobileView> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: SearchField(
-                  controller: searchContrroller,
+                  controller: searchController,
                   showAddButton: true,
                   showDatePicker: false,
                   showIncomingButton: true,

@@ -17,7 +17,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/states/productListProvider.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:flipper_routing/app.locator.dart' show locator;
+import 'package:stacked_services/stacked_services.dart';
 class ProductListScreen extends StatefulHookConsumerWidget {
   const ProductListScreen({super.key});
 
@@ -34,12 +35,24 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
   @override
   Widget build(BuildContext context) {
     final isOrdering = ProxyService.box.isOrdering()!;
+    final theme = Theme.of(context);
 
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => ProductViewModel(),
       onViewModelReady: (model) {},
       builder: (context, model, child) {
         return Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_outlined),
+              onPressed: () => locator<RouterService>().back(),
+            ),
+            elevation: 0,
+            backgroundColor: theme.colorScheme.surface,
+            actions: [
+              // You can add any actions here, such as a refresh button.
+            ],
+          ),
           body: _buildBody(ref),
           floatingActionButton: _buildFloatingActionButton(ref, isOrdering),
         );

@@ -6,7 +6,7 @@ import 'package:flipper_dashboard/PurchaseCodeForm.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
-import 'package:flipper_models/states/selectedSupplierProvider.dart';
+import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -62,7 +62,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
       String orderId = await ProxyService.strategy.createStockRequest(items,
           deliveryNote: deliveryNote,
           deliveryDate: startDate,
-          mainBranchId: ref.read(selectedSupplierProvider).value!.serverId!);
+          mainBranchId: ref.read(selectedSupplierProvider)!.serverId!);
       await _markItemsAsDone(items, transaction);
       _changeTransactionStatus(transaction: transaction);
       await _refreshTransactionItems(transactionId: transaction.id);

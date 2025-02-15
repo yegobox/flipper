@@ -769,3 +769,5 @@ class App {}
 // https://docs.flutter.dev/release/breaking-changes/flutter-gradle-plugin-apply
 
 // https://github.com/tekartik/sqflite/issues/873
+
+// https://medium.com/@matheusdeveloper.henrique/flutter-integration-test-with-gcloud-firebase-testlab-and-github-actions-31ba1f2c173c

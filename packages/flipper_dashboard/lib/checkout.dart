@@ -81,7 +81,9 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   Widget build(BuildContext context) {
-    return _buildMainContent();
+    return Scaffold(
+      body: _buildMainContent(),
+    );
   }
 
   Widget _buildMainContent() {

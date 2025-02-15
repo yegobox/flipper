@@ -121,14 +121,14 @@ class SearchFieldState extends ConsumerState<SearchField>
                 children: [
                   toggleSearch(),
                   calc(model: model),
-                  if (deviceType != 'Phone' && deviceType != 'Phablet')
-                    orders.when(
-                      data: (orders) => widget.showOrderButton
-                          ? orderButton(orders)
-                          : const SizedBox.shrink(),
-                      loading: () => const SizedBox.shrink(),
-                      error: (err, stack) => Text('Error: $err'),
-                    ),
+                  //if (deviceType != 'Phone' && deviceType != 'Phablet')
+                  orders.when(
+                    data: (orders) => widget.showOrderButton
+                        ? orderButton(orders)
+                        : const SizedBox.shrink(),
+                    loading: () => const SizedBox.shrink(),
+                    error: (err, stack) => Text('Error: $err'),
+                  ),
                   if (widget.showIncomingButton &&
                       deviceType != 'Phone' &&
                       deviceType != 'Phablet')

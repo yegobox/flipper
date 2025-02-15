@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/mixins/base_cart_mixin.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
-import 'package:flipper_models/states/selectedSupplierProvider.dart';
+import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -41,7 +41,7 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
       items,
       deliveryNote: deliveryNote,
       deliveryDate: startDate,
-      mainBranchId: ref.read(selectedSupplierProvider).value!.serverId!,
+      mainBranchId: ref.read(selectedSupplierProvider)!.serverId!,
     );
 
     await _finalizeOrder(items, transaction);
