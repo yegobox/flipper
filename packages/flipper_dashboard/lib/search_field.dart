@@ -199,10 +199,7 @@ class SearchFieldState extends ConsumerState<SearchField>
   void _handleReceiveOrderToggle() {
     try {
       ProxyService.box.writeBool(key: 'isOrdering', value: true);
-      final transactionAsyncValue =
-          ref.watch(pendingTransactionStreamProvider(isExpense: true));
-      refreshPendingTransactionWithExpense(
-          transactionId: transactionAsyncValue.value?.id ?? "");
+
       _routerService.navigateTo(OrdersRoute());
     } catch (e) {
       print(e);
