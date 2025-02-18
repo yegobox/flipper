@@ -197,12 +197,16 @@ class SearchFieldState extends ConsumerState<SearchField>
   }
 
   void _handleReceiveOrderToggle() {
-    ProxyService.box.writeBool(key: 'isOrdering', value: true);
-    final transactionAsyncValue =
-        ref.watch(pendingTransactionStreamProvider(isExpense: true));
-    refreshPendingTransactionWithExpense(
-        transactionId: transactionAsyncValue.value!.id);
-    _routerService.navigateTo(OrdersRoute());
+    try {
+      ProxyService.box.writeBool(key: 'isOrdering', value: true);
+      final transactionAsyncValue =
+          ref.watch(pendingTransactionStreamProvider(isExpense: true));
+      refreshPendingTransactionWithExpense(
+          transactionId: transactionAsyncValue.value?.id ?? "");
+      _routerService.navigateTo(OrdersRoute());
+    } catch (e) {
+      print(e);
+    }
   }
 
   Widget _buildOrderIcon(List<InventoryRequest> orders) {
