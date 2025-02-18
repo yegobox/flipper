@@ -18,6 +18,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stringValue = ref.watch(stringProvider);
+    //  final incomingBranch = ref.watch(activeBranchProvider);
     final stockRequests =
         ref.watch(stockRequestsProvider((filter: stringValue)));
 
@@ -328,7 +329,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
           SizedBox(width: 12),
           Expanded(
             child: Text(
-              item.name ?? 'Unnamed Item',
+              item.name,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,

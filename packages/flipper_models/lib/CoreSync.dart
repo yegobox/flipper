@@ -2283,8 +2283,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return await repository.get<InventoryRequest>(
         query: brick.Query(where: [
       brick.Where('mainBranchId').isExactly(branchId),
-      brick.Or('status').isExactly(RequestStatus.pending),
-      brick.Or('status').isExactly(RequestStatus.partiallyApproved),
+      brick.Where('status').isExactly(RequestStatus.pending)
     ]));
   }
 
@@ -2305,8 +2304,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       final query = repository.subscribe<InventoryRequest>(
           query: brick.Query(where: [
         brick.Where('mainBranchId').isExactly(branchId),
-        brick.Or('status').isExactly(RequestStatus.pending),
-        brick.Or('status').isExactly(RequestStatus.partiallyApproved),
+        brick.Where('status').isExactly(RequestStatus.pending),
       ]));
 
       return query

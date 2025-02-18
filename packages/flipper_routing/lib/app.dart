@@ -771,4 +771,8 @@ class App {}
 
 // https://github.com/tekartik/sqflite/issues/873
 
+// copy all file names in a folder
+// ls -1 | tr '\n' '\n' | pbcopy
+// the bellow copy files with modifiet twists
+// ls -1 | grep -v 'g\.dart$' | grep '\.dart$' | awk '{printf "export \x27%s\x27;\n", $0}' | pbcopy
 // https://medium.com/@matheusdeveloper.henrique/flutter-integration-test-with-gcloud-firebase-testlab-and-github-actions-31ba1f2c173c

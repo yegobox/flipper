@@ -174,7 +174,21 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
         _routerService
             .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));
       } else {
+        showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder: (_) => Center(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text("We are logging you out."),
+            ],
+          )),
+        );
         await logOut();
+        Navigator.of(context).pop();
         _routerService.replaceWith(LoginRoute());
       }
     }
