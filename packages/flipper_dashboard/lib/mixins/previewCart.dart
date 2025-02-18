@@ -27,11 +27,7 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 mixin TransactionRefresherMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   Future<void> newTransaction() async {
-    
     await ref.refresh(pendingTransactionStreamProvider(isExpense: false));
-    final temp =
-        await ref.watch(pendingTransactionStreamProvider(isExpense: false));
-    print("IDD:::::${temp.value?.id}");
   }
 
   Future<void> refreshTransactionItems({required String transactionId}) async {
