@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flipper_dashboard/IncomingOrders.dart';
 import 'package:flipper_dashboard/MobileView.dart';
 import 'package:flipper_dashboard/OrderStatusSelector.dart';
+import 'package:flipper_dashboard/PaymentModeModal.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/bottomSheet.dart';
 import 'package:flipper_dashboard/payable_view.dart';
@@ -17,12 +18,14 @@ import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/ribbon.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart' as oldImplementationOfRiverpod;
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
+    as oldImplementationOfRiverpod;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 
 enum OrderStatus { pending, approved }
 
@@ -44,7 +47,8 @@ class CheckOutState extends ConsumerState<CheckOut>
         WidgetsBindingObserver,
         TextEditingControllersMixin,
         TransactionMixin,
-        PreviewcartMixin {
+        PreviewCartMixin,
+        TransactionRefresherMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
   late TabController tabController;
@@ -87,9 +91,8 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildMainContent() {
-    final branchId = ProxyService.box.getBranchId() ?? 0;
-    final transactionAsyncValue = ref.watch(oldImplementationOfRiverpod.pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
+    final transactionAsyncValue =
+        ref.watch(pendingTransactionStreamProvider(isExpense: false));
 
     return transactionAsyncValue.when(
       data: (transaction) => _buildDataWidget(transaction),
@@ -99,12 +102,6 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildDataWidget(ITransaction transaction) {
-    final branchId = ProxyService.box.getBranchId() ?? 0;
-    Future.microtask(() {
-      ref.refresh(oldImplementationOfRiverpod.pendingTransactionProvider(
-          (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
-    });
-
     return widget.isBigScreen
         ? _buildBigScreenLayout(transaction,
             showCart: ref.watch(oldImplementationOfRiverpod.previewingCart))
@@ -180,8 +177,9 @@ class CheckOutState extends ConsumerState<CheckOut>
               setState(() {
                 _selectedStatus = newStatus;
               });
-              ref.watch(oldImplementationOfRiverpod.stringProvider.notifier).updateString(
-                  newStatus == OrderStatus.approved
+              ref
+                  .watch(oldImplementationOfRiverpod.stringProvider.notifier)
+                  .updateString(newStatus == OrderStatus.approved
                       ? RequestStatus.approved
                       : RequestStatus.pending);
             },
@@ -248,8 +246,8 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
-  String getCartText() {
-    int count = int.parse(getCartItemCount());
+  String getCartText({required String transactionId}) {
+    int count = int.parse(getCartItemCount(transactionId: transactionId));
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
   }
 
@@ -270,27 +268,16 @@ class CheckOutState extends ConsumerState<CheckOut>
           ref.read(payButtonLoadingProvider.notifier).stopLoading();
         },
         transaction: transaction,
-        paymentMethods: ref.watch(oldImplementationOfRiverpod.paymentMethodsProvider),
+        paymentMethods:
+            ref.watch(oldImplementationOfRiverpod.paymentMethodsProvider),
       );
+      // await newTransaction();
+      await newTransaction();
     } catch (e) {
       ref.read(payButtonLoadingProvider.notifier).stopLoading();
-      await _refreshTransactionItems(transactionId: transaction.id);
+      await refreshTransactionItems(transactionId: transaction.id);
       rethrow;
     }
-  }
-  Future<void> _refreshTransactionItems({required String transactionId}) async {
-    ref.refresh(oldImplementationOfRiverpod.freshtransactionItemsProviderByIdProvider(
-        (transactionId: transactionId)));
-
-    ref.refresh(oldImplementationOfRiverpod.pendingTransactionProviderNonStream(
-        (isExpense: false, mode: TransactionType.sale)));
-    final branchId = ProxyService.box.getBranchId()!;
-
-    /// get new transaction id
-    ref.refresh(oldImplementationOfRiverpod.pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
-
-    ref.refresh(oldImplementationOfRiverpod.transactionItemsProvider((isExpense: false)));
   }
 
   Widget _buildSmallScreenLayout(ITransaction transaction,
@@ -326,8 +313,9 @@ class CheckOutState extends ConsumerState<CheckOut>
                         color: Colors.white,
                         child: PayableView(
                           transactionId: transaction.id,
-                          mode: oldImplementationOfRiverpod.SellingMode.forOrdering,
-                          wording: getCartText(),
+                          mode: oldImplementationOfRiverpod
+                              .SellingMode.forOrdering,
+                          wording: getCartText(transactionId: transaction.id),
                           model: model,
                           completeTransaction: (immediateCompletion) async {
                             await _handleCompleteTransaction(
@@ -354,9 +342,14 @@ class CheckOutState extends ConsumerState<CheckOut>
                                 },
                               );
                             } else {
-                              previewOrOrder(
-                                  isShopingFromWareHouse: false,
-                                  transaction: transaction);
+                              showPaymentModeModal(context, (provider) async {
+                                print(
+                                    'User selected Finance Provider: ${provider.name}');
+                                placeFinalOrder(
+                                    financeOption: provider,
+                                    isShoppingFromWareHouse: false,
+                                    transaction: transaction);
+                              });
                             }
                           },
                         ),

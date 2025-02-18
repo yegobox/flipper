@@ -23,6 +23,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:badges/badges.dart' as badges;
 
@@ -184,17 +185,23 @@ class SearchFieldState extends ConsumerState<SearchField>
     );
   }
 
-  IconButton orderButton(List<InventoryRequest> orders) {
+  IconButton orderButton(
+    List<InventoryRequest> orders,
+  ) {
     return IconButton(
-      onPressed: _handleReceiveOrderToggle,
+      onPressed: () {
+        _handleReceiveOrderToggle();
+      },
       icon: _buildOrderIcon(orders),
     );
   }
 
   void _handleReceiveOrderToggle() {
     ProxyService.box.writeBool(key: 'isOrdering', value: true);
-
-    refreshPendingTransactionWithExpense();
+    final transactionAsyncValue =
+        ref.watch(pendingTransactionStreamProvider(isExpense: true));
+    refreshPendingTransactionWithExpense(
+        transactionId: transactionAsyncValue.value!.id);
     _routerService.navigateTo(OrdersRoute());
   }
 

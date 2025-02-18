@@ -273,8 +273,10 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                 acceptPurchases: (
                                     {required List<Variant> variants,
                                     required String pchsSttsCd}) async {
-                                  final pendingTransaction = await ref
-                                      .read(pendingTransactionProvider.future);
+                                  final pendingTransaction = await ref.read(
+                                      pendingTransactionStreamProvider(
+                                              isExpense: true)
+                                          .future);
                                   model.acceptPurchase(
                                     variants: variants,
                                     itemMapper: itemMapper,

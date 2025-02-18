@@ -43,6 +43,8 @@ export 'import_purchase_dates.model.dart';
 export 'BranchPaymentIntegration.model.dart';
 export 'customer_payments.model.dart';
 export 'country.model.dart';
+export 'finance_provider.model.dart';
+export 'financing.model.dart';
 
 // non db models
 export 'ProgressData.dart';

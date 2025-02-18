@@ -57,10 +57,23 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
 }
 
 @riverpod
-Future<ITransaction> pendingTransaction(Ref ref) async {
+Stream<ITransaction> pendingTransactionStream(Ref ref,
+    {required bool isExpense}) {
+  return ProxyService.strategy.manageTransactionStream(
+    transactionType:  
+        isExpense ? TransactionType.purchase : TransactionType.sale,
+    isExpense: isExpense,
+    branchId: ProxyService.box.getBranchId()!,
+  );
+}
+
+@riverpod
+Future<ITransaction?> pendingTransaction(Ref ref,
+    {required bool isExpense}) async {
   return await ProxyService.strategy.manageTransaction(
-    transactionType: TransactionType.purchase,
-    isExpense: true,
+    transactionType:
+        isExpense ? TransactionType.purchase : TransactionType.sale,
+    isExpense: isExpense,
     branchId: ProxyService.box.getBranchId()!,
   );
 }

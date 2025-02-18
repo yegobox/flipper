@@ -1,7 +1,6 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 
 class SearchInputWithDropdown extends ConsumerStatefulWidget {
   const SearchInputWithDropdown({Key? key}) : super(key: key);
@@ -34,8 +34,8 @@ class _SearchInputWithDropdownState
   }
 
   Future<void> _initializeSearchBox() async {
-    final transaction = ref.read(pendingTransactionProviderNonStream(
-        (mode: TransactionType.sale, isExpense: false)));
+    final transaction =
+        ref.read(pendingTransactionStreamProvider(isExpense: false));
 
     if (transaction.value?.customerId != null) {
       final customer = await ProxyService.strategy.customers(
@@ -51,20 +51,18 @@ class _SearchInputWithDropdownState
   }
 
   Future<void> _removeCustomer() async {
-    final transaction = ref.read(pendingTransactionProviderNonStream((
-      mode: TransactionType.sale,
+    final transaction = ref.read(pendingTransactionStreamProvider(
       isExpense: false,
-    )));
+    ));
 
     if (transaction.value?.id != null) {
       await ProxyService.strategy.removeCustomerFromTransaction(
         transaction: transaction.value!,
       );
 
-      ref.invalidate(pendingTransactionProviderNonStream((
-        mode: TransactionType.sale,
+      ref.refresh(pendingTransactionStreamProvider(
         isExpense: false,
-      )));
+      ));
 
       setState(() {
         _searchController.clear();
@@ -146,10 +144,9 @@ class _SearchInputWithDropdownState
 
   @override
   Widget build(BuildContext context) {
-    final transaction = ref.watch(pendingTransactionProviderNonStream((
-      mode: TransactionType.sale,
+    final transaction = ref.watch(pendingTransactionStreamProvider(
       isExpense: false,
-    )));
+    ));
 
     final attachedCustomerFuture = ref.watch(
       customerProvider((id: transaction.value?.customerId ?? '')),
@@ -251,10 +248,9 @@ class _SearchInputWithDropdownState
                             title: "Customer added to the sale!",
                             onPressedOk: () {
                               // ignore: unused_result
-                              ref.refresh(pendingTransactionProviderNonStream((
-                                mode: TransactionType.sale,
+                              ref.refresh(pendingTransactionStreamProvider(
                                 isExpense: false,
-                              )));
+                              ));
                             },
                           );
 

@@ -1,4 +1,3 @@
-import 'package:flipper_dashboard/CustomSupplierDropdown.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -9,7 +8,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/ProductList.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
 import 'package:stacked_services/stacked_services.dart';
@@ -20,7 +18,6 @@ class Orders extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final suppliers = ref.watch(branchesProvider((includeSelf: false)));
-    final selectedSupplier = useState<Branch?>(null);
     final theme = Theme.of(context);
 
     return PopScope(
@@ -52,11 +49,9 @@ class Orders extends HookConsumerWidget {
         body: LayoutBuilder(
           builder: (context, constraints) {
             if (constraints.maxWidth > 600) {
-              return _buildDesktopLayout(
-                  context, ref, suppliers.value ?? [], selectedSupplier);
+              return _buildDesktopLayout(context, ref, suppliers.value ?? []);
             } else {
-              return _buildMobileLayout(
-                  context, ref, suppliers.value ?? [], selectedSupplier);
+              return _buildMobileLayout(context, ref, suppliers.value ?? []);
             }
           },
         ),
@@ -64,16 +59,16 @@ class Orders extends HookConsumerWidget {
     );
   }
 
-  Widget _buildDesktopLayout(BuildContext context, WidgetRef ref,
-      List<Branch> suppliers, ValueNotifier<Branch?> selectedSupplier) {
+  Widget _buildDesktopLayout(
+      BuildContext context, WidgetRef ref, List<Branch> suppliers) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         children: [
-          _buildSearchableSupplierField(suppliers, selectedSupplier, ref, context),
+          _buildSearchableSupplierField(suppliers, ref, context),
           const SizedBox(height: 24),
           Expanded(
-            child: _buildProductsView(context, ref, selectedSupplier.value),
+            child: ProductListScreen(),
           ),
         ],
       ),
@@ -81,11 +76,7 @@ class Orders extends HookConsumerWidget {
   }
 
   Widget _buildMobileLayout(
-      BuildContext context,
-      WidgetRef ref,
-      List<Branch> suppliers,
-      ValueNotifier<Branch?> selectedSupplier
-      ) {
+      BuildContext context, WidgetRef ref, List<Branch> suppliers) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -94,21 +85,21 @@ class Orders extends HookConsumerWidget {
           Text(
             'Choose Your Supplier',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(height: 8),
           Text(
             'Select a supplier to view their available products',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.6),
-            ),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
+                ),
           ),
           const SizedBox(height: 24),
-          _buildSearchableSupplierField(suppliers, selectedSupplier, ref, context),
+          _buildSearchableSupplierField(suppliers, ref, context),
           const SizedBox(height: 32),
           _buildViewProductsButton(context, ref),
         ],
@@ -117,23 +108,17 @@ class Orders extends HookConsumerWidget {
   }
 
   Widget _buildSearchableSupplierField(
-      List<Branch> suppliers,
-      ValueNotifier<Branch?> selectedSupplier,
-      WidgetRef ref,
-      BuildContext context
-      ) {
+      List<Branch> suppliers, WidgetRef ref, BuildContext context) {
     return TypeAheadField<Branch>(
       suggestionsCallback: (search) {
         return suppliers
             .where((supplier) =>
-            supplier.name!.toLowerCase().contains(search.toLowerCase()))
+                supplier.name!.toLowerCase().contains(search.toLowerCase()))
             .toList();
       },
       builder: (context, controller, focusNode) {
         // Initialize controller text with selected supplier if exists
-        if (selectedSupplier.value != null && controller.text.isEmpty) {
-          controller.text = selectedSupplier.value!.name!;
-        }
+
         return StyledTextFormField.create(
           focusNode: focusNode,
           context: context,
@@ -155,20 +140,16 @@ class Orders extends HookConsumerWidget {
       itemBuilder: (context, supplier) {
         return ListTile(
           title: Text(supplier.name!),
-          subtitle: Text( 'No address available'),
+          subtitle: Text('No address available'),
         );
       },
       onSelected: (supplier) {
-
-        ref
-            .read(selectedSupplierProvider.notifier)
-            .setSupplier(supplier);
+        ref.read(selectedSupplierProvider.notifier).setSupplier(supplier);
       },
-      emptyBuilder: (context) =>
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text('No suppliers found.'),
-          ),
+      emptyBuilder: (context) => Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text('No suppliers found.'),
+      ),
     );
   }
 
@@ -180,7 +161,7 @@ class Orders extends HookConsumerWidget {
       color: Theme.of(context).colorScheme.primary,
       radius: 4,
       onPressed: () {
-        if(selectedSupplier==null){
+        if (selectedSupplier == null) {
           showToast(context, "Choose supplier");
           return;
         }
@@ -194,35 +175,5 @@ class Orders extends HookConsumerWidget {
       },
       text: 'View Products',
     );
-  }
-
-  Widget _buildProductsView(
-      BuildContext context, WidgetRef ref, Branch? selectedSupplier) {
-    if (selectedSupplier == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.store_rounded,
-              size: 48,
-              color:
-              Theme.of(context).colorScheme.onSurface.withValues(alpha: .2),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Select a supplier to view products',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.6),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return const ProductListScreen();
   }
 }

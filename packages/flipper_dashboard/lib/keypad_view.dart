@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 
 class KeyPadView extends StatefulHookConsumerWidget {
   final CoreViewModel model;
@@ -191,7 +193,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     }
   }
 
-  Future<void> _handleNumberKey(String key) async {
+  Future<void> _handleNumberKey(String key, {ITransaction? transaction}) async {
     ref.read(keypadProvider.notifier).addKey(key);
     HapticFeedback.lightImpact();
     widget.model.keyboardKeyPressed(
@@ -202,20 +204,17 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       key: ref.watch(keypadProvider),
     );
 
-    ref.refresh(transactionItemsProvider((isExpense: false)));
+    ref.refresh(transactionItemsProvider(transactionId: transaction?.id));
   }
 
   Future<void> _handleSpecialKey(String key) async {
-    final branchId = ProxyService.box.getBranchId()!;
-    final transaction = ref.read(pendingTransactionProvider((
-      mode: widget.transactionType,
+    final transaction = ref.read(pendingTransactionStreamProvider(
       isExpense:
           widget.transactionType == TransactionType.cashOut ? true : false,
-      branchId: branchId,
-    )));
+    ));
 
     if (key == 'C') {
-      await _handleNumberKey(key);
+      await _handleNumberKey(key, transaction: transaction.value);
     } else if (key == 'Confirm') {
       await _handleConfirmKey(transaction);
     } else if (key == '+') {
@@ -308,7 +307,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         ref.read(keypadProvider.notifier).reset();
       },
     );
-    ref.refresh(transactionItemsProvider((isExpense: false)));
+    ref.refresh(transactionItemsProvider(transactionId: transaction.value?.id));
   }
 
   Future<void> HandleTransactionFromCashBook({
@@ -321,11 +320,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     widget.model.newTransactionPressed = false;
     final isExpense = (TransactionType.cashOut == widget.transactionType);
 
-    final transaction = await ProxyService.strategy.manageTransaction(
-      isExpense: isExpense,
-      transactionType: widget.transactionType,
-      branchId: ProxyService.box.getBranchId()!,
-    );
+    final transaction =
+        ref.watch(pendingTransactionStreamProvider(isExpense: isExpense));
 
     widget.model.keyboardKeyPressed(
       isExpense: widget.transactionType == TransactionType.cashOut,
@@ -346,7 +342,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
       isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
-      transaction: transaction,
+      transaction: transaction.value!,
       paymentType: paymentType,
       discount: discount.toDouble(),
       transactionType:
@@ -356,6 +352,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       categoryId: category?.id.toString(),
     );
 
-    ref.refresh(transactionItemsProvider((isExpense: false)));
+    ref.refresh(transactionItemsProvider(transactionId: transaction.value!.id));
+    ref.refresh(pendingTransactionStreamProvider(isExpense: false));
   }
 }

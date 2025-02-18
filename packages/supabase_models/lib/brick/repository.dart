@@ -100,11 +100,13 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       memoryCacheProvider: MemoryCacheProvider(),
     );
   }
+
   Future<int> availableQueue() async {
     final requests =
         await offlineRequestQueue.requestManager.unprocessedRequests();
     return requests.length;
   }
+
   Future<void> deleteUnprocessedRequests() async {
     try {
       // Retrieve unprocessed requests

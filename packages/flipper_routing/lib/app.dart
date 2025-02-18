@@ -17,6 +17,7 @@ import 'all_routes.dart';
     CustomRoute(page: Auth),
     CustomRoute(page: CountryPicker),
     CustomRoute(page: PhoneInputScreen),
+    CustomRoute(page: InventoryRequestMobileView),
     //End of login routes
 
     CustomRoute(page: AddProductView),

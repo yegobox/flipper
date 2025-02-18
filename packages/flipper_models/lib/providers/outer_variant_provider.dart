@@ -3,6 +3,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:collection/collection.dart';
+import 'dart:async';
 part 'outer_variant_provider.g.dart';
 
 @riverpod
@@ -24,43 +25,72 @@ class OuterVariants extends _$OuterVariants {
   }
 
   Future<List<Variant>> _loadVariants(int branchId) async {
+    // Early return if already loading or no more items to load
     if (_isLoading || !_hasMore) return [];
 
     _isLoading = true;
-    print('Loading variants for branchId: $branchId');
+    print('Loading variants for branchId: $branchId, page: $_currentPage');
 
     try {
       final searchString = ref.watch(searchStringProvider);
       print('Search string: $searchString');
 
-      final variants = await ProxyService.strategy.variants(
-        branchId: branchId,
-        page: _currentPage,
-        itemsPerPage: _itemsPerPage,
-      );
-      final filteredVariants = searchString.isNotEmpty
-          ? variants
-              .where((variant) =>
-                  variant.name
-                      .toLowerCase()
-                      .contains(searchString.toLowerCase()) ||
-                  (variant.productName != null &&
-                      variant.productName!
-                          .toLowerCase()
-                          .contains(searchString.toLowerCase())) ||
-                  (variant.bcd != null &&
-                      variant.bcd!.contains(searchString.toLowerCase())))
-              .toList()
-          : variants;
+      // Fetch variants from the API with a timeout
+      final variants = await ProxyService.strategy
+          .variants(
+            branchId: branchId,
+            page: _currentPage,
+            itemsPerPage: _itemsPerPage,
+          )
+          .timeout(
+              const Duration(seconds: 30)); // Add a timeout to prevent hanging
 
+      // If search string is empty, return all variants
+      if (searchString.isEmpty) {
+        _currentPage++;
+        _hasMore = variants.length == _itemsPerPage;
+        print('Loaded ${variants.length} variants (no search filter)');
+        return variants;
+      }
+
+      // Filter variants based on the search string
+      final filteredVariants = variants.where((variant) {
+        return variant.name
+                .toLowerCase()
+                .contains(searchString.toLowerCase()) ||
+            (variant.productName != null &&
+                variant.productName!
+                    .toLowerCase()
+                    .contains(searchString.toLowerCase())) ||
+            (variant.bcd != null &&
+                variant.bcd!
+                    .toLowerCase()
+                    .contains(searchString.toLowerCase()));
+      }).toList();
+
+      // If no matches, return the unfiltered list
+      if (filteredVariants.isEmpty) {
+        print('No matches found for search string: $searchString');
+        _currentPage++;
+        _hasMore = variants.length == _itemsPerPage;
+        return variants; // Return unfiltered list
+      }
+
+      // Update pagination state
       _currentPage++;
       _hasMore = filteredVariants.length == _itemsPerPage;
 
-      print('Loaded ${filteredVariants.length} variants');
+      print('Loaded ${filteredVariants.length} variants (filtered)');
       return filteredVariants;
-    } catch (error) {
+    } on TimeoutException {
+      print('Timeout: Variants loading took too long');
+      state = AsyncValue.error(
+          'Timeout: Variants loading took too long', StackTrace.current);
+      return [];
+    } catch (error, stackTrace) {
       print('Error loading variants: $error');
-      state = AsyncValue.error(error, StackTrace.current);
+      print('Stack trace: $stackTrace');
+      state = AsyncValue.error(error, stackTrace);
       return [];
     } finally {
       _isLoading = false;

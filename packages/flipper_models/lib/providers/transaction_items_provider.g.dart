@@ -6,7 +6,7 @@ part of 'transaction_items_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$transactionItemsHash() => r'4aaf54ea490b0aaed83633ebdd56b2001a3cd621';
+String _$transactionItemsHash() => r'a192e2483045fc15385bb7d9ae5d426d1b65ae75';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -40,12 +40,18 @@ class TransactionItemsFamily extends Family<AsyncValue<List<TransactionItem>>> {
 
   /// See also [transactionItems].
   TransactionItemsProvider call({
-    required String transactionId,
-    required int branchId,
+    String? transactionId,
+    String? requestId,
+    int? branchId,
+    bool fetchRemote = false,
+    bool doneWithTransaction = false,
   }) {
     return TransactionItemsProvider(
       transactionId: transactionId,
+      requestId: requestId,
       branchId: branchId,
+      fetchRemote: fetchRemote,
+      doneWithTransaction: doneWithTransaction,
     );
   }
 
@@ -55,7 +61,10 @@ class TransactionItemsFamily extends Family<AsyncValue<List<TransactionItem>>> {
   ) {
     return call(
       transactionId: provider.transactionId,
+      requestId: provider.requestId,
       branchId: provider.branchId,
+      fetchRemote: provider.fetchRemote,
+      doneWithTransaction: provider.doneWithTransaction,
     );
   }
 
@@ -79,13 +88,19 @@ class TransactionItemsProvider
     extends AutoDisposeFutureProvider<List<TransactionItem>> {
   /// See also [transactionItems].
   TransactionItemsProvider({
-    required String transactionId,
-    required int branchId,
+    String? transactionId,
+    String? requestId,
+    int? branchId,
+    bool fetchRemote = false,
+    bool doneWithTransaction = false,
   }) : this._internal(
           (ref) => transactionItems(
             ref as TransactionItemsRef,
             transactionId: transactionId,
+            requestId: requestId,
             branchId: branchId,
+            fetchRemote: fetchRemote,
+            doneWithTransaction: doneWithTransaction,
           ),
           from: transactionItemsProvider,
           name: r'transactionItemsProvider',
@@ -97,7 +112,10 @@ class TransactionItemsProvider
           allTransitiveDependencies:
               TransactionItemsFamily._allTransitiveDependencies,
           transactionId: transactionId,
+          requestId: requestId,
           branchId: branchId,
+          fetchRemote: fetchRemote,
+          doneWithTransaction: doneWithTransaction,
         );
 
   TransactionItemsProvider._internal(
@@ -108,11 +126,17 @@ class TransactionItemsProvider
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.transactionId,
+    required this.requestId,
     required this.branchId,
+    required this.fetchRemote,
+    required this.doneWithTransaction,
   }) : super.internal();
 
-  final String transactionId;
-  final int branchId;
+  final String? transactionId;
+  final String? requestId;
+  final int? branchId;
+  final bool fetchRemote;
+  final bool doneWithTransaction;
 
   @override
   Override overrideWith(
@@ -129,7 +153,10 @@ class TransactionItemsProvider
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         transactionId: transactionId,
+        requestId: requestId,
         branchId: branchId,
+        fetchRemote: fetchRemote,
+        doneWithTransaction: doneWithTransaction,
       ),
     );
   }
@@ -143,14 +170,20 @@ class TransactionItemsProvider
   bool operator ==(Object other) {
     return other is TransactionItemsProvider &&
         other.transactionId == transactionId &&
-        other.branchId == branchId;
+        other.requestId == requestId &&
+        other.branchId == branchId &&
+        other.fetchRemote == fetchRemote &&
+        other.doneWithTransaction == doneWithTransaction;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, transactionId.hashCode);
+    hash = _SystemHash.combine(hash, requestId.hashCode);
     hash = _SystemHash.combine(hash, branchId.hashCode);
+    hash = _SystemHash.combine(hash, fetchRemote.hashCode);
+    hash = _SystemHash.combine(hash, doneWithTransaction.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -161,10 +194,19 @@ class TransactionItemsProvider
 mixin TransactionItemsRef
     on AutoDisposeFutureProviderRef<List<TransactionItem>> {
   /// The parameter `transactionId` of this provider.
-  String get transactionId;
+  String? get transactionId;
+
+  /// The parameter `requestId` of this provider.
+  String? get requestId;
 
   /// The parameter `branchId` of this provider.
-  int get branchId;
+  int? get branchId;
+
+  /// The parameter `fetchRemote` of this provider.
+  bool get fetchRemote;
+
+  /// The parameter `doneWithTransaction` of this provider.
+  bool get doneWithTransaction;
 }
 
 class _TransactionItemsProviderElement
@@ -173,14 +215,21 @@ class _TransactionItemsProviderElement
   _TransactionItemsProviderElement(super.provider);
 
   @override
-  String get transactionId =>
+  String? get transactionId =>
       (origin as TransactionItemsProvider).transactionId;
   @override
-  int get branchId => (origin as TransactionItemsProvider).branchId;
+  String? get requestId => (origin as TransactionItemsProvider).requestId;
+  @override
+  int? get branchId => (origin as TransactionItemsProvider).branchId;
+  @override
+  bool get fetchRemote => (origin as TransactionItemsProvider).fetchRemote;
+  @override
+  bool get doneWithTransaction =>
+      (origin as TransactionItemsProvider).doneWithTransaction;
 }
 
 String _$transactionItemsStreamHash() =>
-    r'1f05c9aa10b3b728cd5b9bfc6cc0a79b6a477349';
+    r'cc92507f9fb0f9a1754794eda9570ff9e73b93e8';
 
 /// See also [transactionItemsStream].
 @ProviderFor(transactionItemsStream)
@@ -194,12 +243,18 @@ class TransactionItemsStreamFamily
 
   /// See also [transactionItemsStream].
   TransactionItemsStreamProvider call({
-    required String transactionId,
-    required int branchId,
+    String? transactionId,
+    int? branchId,
+    String? requestId,
+    bool fetchRemote = false,
+    bool doneWithTransaction = false,
   }) {
     return TransactionItemsStreamProvider(
       transactionId: transactionId,
       branchId: branchId,
+      requestId: requestId,
+      fetchRemote: fetchRemote,
+      doneWithTransaction: doneWithTransaction,
     );
   }
 
@@ -210,6 +265,9 @@ class TransactionItemsStreamFamily
     return call(
       transactionId: provider.transactionId,
       branchId: provider.branchId,
+      requestId: provider.requestId,
+      fetchRemote: provider.fetchRemote,
+      doneWithTransaction: provider.doneWithTransaction,
     );
   }
 
@@ -233,13 +291,19 @@ class TransactionItemsStreamProvider
     extends AutoDisposeStreamProvider<List<TransactionItem>> {
   /// See also [transactionItemsStream].
   TransactionItemsStreamProvider({
-    required String transactionId,
-    required int branchId,
+    String? transactionId,
+    int? branchId,
+    String? requestId,
+    bool fetchRemote = false,
+    bool doneWithTransaction = false,
   }) : this._internal(
           (ref) => transactionItemsStream(
             ref as TransactionItemsStreamRef,
             transactionId: transactionId,
             branchId: branchId,
+            requestId: requestId,
+            fetchRemote: fetchRemote,
+            doneWithTransaction: doneWithTransaction,
           ),
           from: transactionItemsStreamProvider,
           name: r'transactionItemsStreamProvider',
@@ -252,6 +316,9 @@ class TransactionItemsStreamProvider
               TransactionItemsStreamFamily._allTransitiveDependencies,
           transactionId: transactionId,
           branchId: branchId,
+          requestId: requestId,
+          fetchRemote: fetchRemote,
+          doneWithTransaction: doneWithTransaction,
         );
 
   TransactionItemsStreamProvider._internal(
@@ -263,10 +330,16 @@ class TransactionItemsStreamProvider
     required super.from,
     required this.transactionId,
     required this.branchId,
+    required this.requestId,
+    required this.fetchRemote,
+    required this.doneWithTransaction,
   }) : super.internal();
 
-  final String transactionId;
-  final int branchId;
+  final String? transactionId;
+  final int? branchId;
+  final String? requestId;
+  final bool fetchRemote;
+  final bool doneWithTransaction;
 
   @override
   Override overrideWith(
@@ -284,6 +357,9 @@ class TransactionItemsStreamProvider
         debugGetCreateSourceHash: null,
         transactionId: transactionId,
         branchId: branchId,
+        requestId: requestId,
+        fetchRemote: fetchRemote,
+        doneWithTransaction: doneWithTransaction,
       ),
     );
   }
@@ -297,7 +373,10 @@ class TransactionItemsStreamProvider
   bool operator ==(Object other) {
     return other is TransactionItemsStreamProvider &&
         other.transactionId == transactionId &&
-        other.branchId == branchId;
+        other.branchId == branchId &&
+        other.requestId == requestId &&
+        other.fetchRemote == fetchRemote &&
+        other.doneWithTransaction == doneWithTransaction;
   }
 
   @override
@@ -305,6 +384,9 @@ class TransactionItemsStreamProvider
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, transactionId.hashCode);
     hash = _SystemHash.combine(hash, branchId.hashCode);
+    hash = _SystemHash.combine(hash, requestId.hashCode);
+    hash = _SystemHash.combine(hash, fetchRemote.hashCode);
+    hash = _SystemHash.combine(hash, doneWithTransaction.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -315,10 +397,19 @@ class TransactionItemsStreamProvider
 mixin TransactionItemsStreamRef
     on AutoDisposeStreamProviderRef<List<TransactionItem>> {
   /// The parameter `transactionId` of this provider.
-  String get transactionId;
+  String? get transactionId;
 
   /// The parameter `branchId` of this provider.
-  int get branchId;
+  int? get branchId;
+
+  /// The parameter `requestId` of this provider.
+  String? get requestId;
+
+  /// The parameter `fetchRemote` of this provider.
+  bool get fetchRemote;
+
+  /// The parameter `doneWithTransaction` of this provider.
+  bool get doneWithTransaction;
 }
 
 class _TransactionItemsStreamProviderElement
@@ -327,10 +418,18 @@ class _TransactionItemsStreamProviderElement
   _TransactionItemsStreamProviderElement(super.provider);
 
   @override
-  String get transactionId =>
+  String? get transactionId =>
       (origin as TransactionItemsStreamProvider).transactionId;
   @override
-  int get branchId => (origin as TransactionItemsStreamProvider).branchId;
+  int? get branchId => (origin as TransactionItemsStreamProvider).branchId;
+  @override
+  String? get requestId => (origin as TransactionItemsStreamProvider).requestId;
+  @override
+  bool get fetchRemote =>
+      (origin as TransactionItemsStreamProvider).fetchRemote;
+  @override
+  bool get doneWithTransaction =>
+      (origin as TransactionItemsStreamProvider).doneWithTransaction;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

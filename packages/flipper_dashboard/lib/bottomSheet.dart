@@ -119,7 +119,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
                             qty: double.tryParse(newQtyController.text),
                             transactionItemId: transactionItem.id);
 
-                        ref.invalidate(transactionItemsProvider(
+                        ref.refresh(transactionItemsProvider(
                             transactionId: transactionId,
                             branchId: ProxyService.box.getBranchId()!));
                         Navigator.of(context).pop();
@@ -219,7 +219,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
                       transactionId: widget.transactionIdInt.toString(),
                     );
                   }
-                  ref.invalidate(transactionItemsProvider(
+                  ref.refresh(transactionItemsProvider(
                       transactionId: widget.transactionIdInt,
                       branchId: ProxyService.box.getBranchId()!));
                   widget.doneDelete();

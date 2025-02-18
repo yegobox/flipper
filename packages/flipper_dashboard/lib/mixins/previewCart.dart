@@ -21,23 +21,43 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:supabase_models/brick/repository.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 
-mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
+mixin TransactionRefresherMixin<T extends ConsumerStatefulWidget>
+    on ConsumerState<T> {
+  Future<void> newTransaction() async {
+    
+    await ref.refresh(pendingTransactionStreamProvider(isExpense: false));
+    final temp =
+        await ref.watch(pendingTransactionStreamProvider(isExpense: false));
+    print("IDD:::::${temp.value?.id}");
+  }
+
+  Future<void> refreshTransactionItems({required String transactionId}) async {
+    ref.refresh(transactionItemsProvider(transactionId: transactionId));
+
+    ref.refresh(pendingTransactionStreamProvider(isExpense: false));
+  }
+}
+
+mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixin, TextEditingControllersMixin {
-  /// this mthod will either preview or completeOrder
-  Future<void> previewOrOrder(
-      {bool isShopingFromWareHouse = true,
-      required ITransaction transaction}) async {
+  /// this method will either preview or completeOrder
+  Future<void> placeFinalOrder(
+      {bool isShoppingFromWareHouse = true,
+      required ITransaction transaction,
+      required FinanceProvider financeOption}) async {
     ref.read(previewingCart.notifier).state = !ref.read(previewingCart);
 
-    if (!isShopingFromWareHouse) {
+    if (!isShoppingFromWareHouse) {
       /// here we just navigate to Quick setting to preview what's on cart
       /// just return as nothing to be done.
       return;
     }
 
-    /// the code is reviewing the cart while shoping as external party e.g a sub branch
-    /// shoping to main warehouse
+    /// the code is reviewing the cart while shopping as external party e.g a sub branch
+    /// shopping to main warehouse
 
     try {
       String deliveryNote = deliveryNoteCotroller.text;
@@ -60,19 +80,14 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
 
       // ignore: unused_local_variable
       String orderId = await ProxyService.strategy.createStockRequest(items,
+          financeOption: financeOption,
+          transaction: transaction,
           deliveryNote: deliveryNote,
           deliveryDate: startDate,
           mainBranchId: ref.read(selectedSupplierProvider)!.serverId!);
       await _markItemsAsDone(items, transaction);
       _changeTransactionStatus(transaction: transaction);
       await _refreshTransactionItems(transactionId: transaction.id);
-
-      // locator<RouterService>()
-      //     .navigateTo(WaitingOrdersPlacedRoute(orderId: orderId));
-
-      /// when order is completed procced to waiting orders page
-
-      // print("Order placed with ${items.length} items in basket");
     } catch (e, s) {
       talker.info(e);
       talker.error(s);
@@ -96,18 +111,14 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _refreshTransactionItems({required String transactionId}) async {
-    ref.refresh(freshtransactionItemsProviderByIdProvider(
-        (transactionId: transactionId)));
+    ref.refresh(transactionItemsProvider(transactionId: transactionId));
 
-    ref.refresh(pendingTransactionProviderNonStream(
-        (isExpense: false, mode: TransactionType.sale)));
-    final branchId = ProxyService.box.getBranchId()!;
+    ref.refresh(pendingTransactionStreamProvider(isExpense: false));
 
     /// get new transaction id
-    ref.refresh(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
+    ref.refresh(pendingTransactionStreamProvider(isExpense: false));
 
-    ref.refresh(transactionItemsProvider((isExpense: false)));
+    ref.refresh(transactionItemsProvider(transactionId: transactionId));
   }
 
   Future<void> applyDiscount(ITransaction transaction) async {
@@ -173,7 +184,7 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     try {
       // Save payment methods
       for (var payment in paymentMethods) {
-        ProxyService.strategy.savePaymentType(
+        await ProxyService.strategy.savePaymentType(
           singlePaymentOnly: paymentMethods.length == 1,
           amount: payment.amount,
           transactionId: transaction.id,
@@ -292,15 +303,12 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
             transaction: transaction,
             context: context,
           );
-          final branchId = ProxyService.box.getBranchId()!;
 
           // Example: Stop loading from another widget or function
           ref.read(payButtonLoadingProvider.notifier).stopLoading();
-          ref.refresh(pendingTransactionProvider((
-            mode: TransactionType.sale,
+          ref.refresh(pendingTransactionStreamProvider(
             isExpense: false,
-            branchId: branchId
-          )));
+          ));
         } else {
           await finalizePayment(
             formKey: formKey,
@@ -313,14 +321,11 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
             onComplete: completeTransaction,
             discount: discount,
           );
-          final branchId = ProxyService.box.getBranchId()!;
 
           ref.read(payButtonLoadingProvider.notifier).stopLoading();
-          ref.refresh(pendingTransactionProvider((
-            mode: TransactionType.sale,
+          ref.refresh(pendingTransactionStreamProvider(
             isExpense: false,
-            branchId: branchId
-          )));
+          ));
         }
       },
       onError: (error) => talker.warning(error),
@@ -344,11 +349,11 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
         transaction: transaction,
         context: context,
       );
-      final branchId = ProxyService.box.getBranchId()!;
 
       ref.read(payButtonLoadingProvider.notifier).stopLoading();
-      ref.refresh(pendingTransactionProvider(
-          (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
+      ref.refresh(pendingTransactionStreamProvider(
+        isExpense: false,
+      ));
     } else {
       await finalizePayment(
         formKey: formKey,
@@ -361,11 +366,9 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
         onComplete: completeTransaction,
         discount: discount,
       );
-      final branchId = ProxyService.box.getBranchId()!;
 
       ref.read(payButtonLoadingProvider.notifier).stopLoading();
-      ref.refresh(pendingTransactionProvider(
-          (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
+      ref.refresh(pendingTransactionStreamProvider(isExpense: false));
     }
   }
 
@@ -489,13 +492,8 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
                             _refreshTransactionItems(
                                 transactionId: transaction.id);
                             Navigator.of(context).pop();
-                            final branchId = ProxyService.box.getBranchId()!;
-                            ref.refresh(pendingTransactionProvider(
-                              (
-                                mode: TransactionType.sale,
-                                isExpense: false,
-                                branchId: branchId
-                              ),
+                            ref.refresh(pendingTransactionStreamProvider(
+                              isExpense: false,
                             ));
                           },
                           onFailure: (context, state) {
@@ -584,18 +582,18 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     _routerService.navigateTo(TicketsListRoute(transaction: transaction));
   }
 
-  String getCartItemCount() {
+  String getCartItemCount({required String transactionId}) {
     return ref
-            .watch(transactionItemsProvider((isExpense: false)))
+            .watch(transactionItemsProvider(transactionId: transactionId))
             .value
             ?.length
             .toString() ??
         '0';
   }
 
-  double getSumOfItems() {
+  double getSumOfItems({String? transactionId}) {
     final transactionItems =
-        ref.watch(transactionItemsProvider((isExpense: false)));
+        ref.watch(transactionItemsProvider(transactionId: transactionId));
 
     // Check if the AsyncValue is in a data state (has data)
     if (transactionItems.hasValue) {

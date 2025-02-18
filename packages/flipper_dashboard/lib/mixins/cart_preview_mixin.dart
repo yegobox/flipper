@@ -15,13 +15,14 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, BaseCartMixin<T> {
   Future<void> previewOrOrder(
       {bool isShopingFromWareHouse = true,
+      required FinanceProvider financeOption,
       required ITransaction transaction}) async {
     ref.read(previewingCart.notifier).state = !ref.read(previewingCart);
 
     if (!isShopingFromWareHouse) return;
 
     try {
-      await _processWarehouseOrder(transaction);
+      await _processWarehouseOrder(transaction, financeOption);
     } catch (e, s) {
       talker.info(e);
       talker.error(s);
@@ -29,7 +30,8 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  Future<void> _processWarehouseOrder(ITransaction transaction) async {
+  Future<void> _processWarehouseOrder(
+      ITransaction transaction, FinanceProvider financeOption) async {
     final items = await _getActiveTransactionItems(transaction);
     if (items.isEmpty || ref.read(previewingCart)) return;
 
@@ -37,8 +39,10 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     final dateRange = ref.watch(dateRangeProvider);
     final startDate = dateRange.startDate;
 
-    String orderId = await ProxyService.strategy.createStockRequest(
+    await ProxyService.strategy.createStockRequest(
+      transaction: transaction,
       items,
+      financeOption: financeOption,
       deliveryNote: deliveryNote,
       deliveryDate: startDate,
       mainBranchId: ref.read(selectedSupplierProvider)!.serverId!,

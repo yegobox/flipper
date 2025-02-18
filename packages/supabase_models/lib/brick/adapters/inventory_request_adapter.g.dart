@@ -12,6 +12,11 @@ Future<InventoryRequest> _$InventoryRequestFromSupabase(
           : data['main_branch_id'] as int?,
       subBranchId:
           data['sub_branch_id'] == null ? null : data['sub_branch_id'] as int?,
+      branch: data['branch'] == null
+          ? null
+          : await BranchAdapter().fromSupabase(data['branch'],
+              provider: provider, repository: repository),
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
       createdAt: data['created_at'] == null
           ? null
           : data['created_at'] == null
@@ -42,7 +47,14 @@ Future<InventoryRequest> _$InventoryRequestFromSupabase(
               ? null
               : DateTime.tryParse(data['updated_at'] as String),
       itemCounts:
-          data['item_counts'] == null ? null : data['item_counts'] as num?);
+          data['item_counts'] == null ? null : data['item_counts'] as num?,
+      financing: data['financing'] == null
+          ? null
+          : await FinancingAdapter().fromSupabase(data['financing'],
+              provider: provider, repository: repository),
+      financingId: data['financing_id'] == null
+          ? null
+          : data['financing_id'] as String?);
 }
 
 Future<Map<String, dynamic>> _$InventoryRequestToSupabase(
@@ -53,6 +65,11 @@ Future<Map<String, dynamic>> _$InventoryRequestToSupabase(
     'id': instance.id,
     'main_branch_id': instance.mainBranchId,
     'sub_branch_id': instance.subBranchId,
+    'branch': instance.branch != null
+        ? await BranchAdapter().toSupabase(instance.branch!,
+            provider: provider, repository: repository)
+        : null,
+    'branch_id': instance.branchId,
     'created_at': instance.createdAt?.toIso8601String(),
     'status': instance.status,
     'delivery_date': instance.deliveryDate?.toIso8601String(),
@@ -63,7 +80,12 @@ Future<Map<String, dynamic>> _$InventoryRequestToSupabase(
         instance.driverRequestDeliveryConfirmation,
     'driver_id': instance.driverId,
     'updated_at': instance.updatedAt?.toIso8601String(),
-    'item_counts': instance.itemCounts
+    'item_counts': instance.itemCounts,
+    'financing': instance.financing != null
+        ? await FinancingAdapter().toSupabase(instance.financing!,
+            provider: provider, repository: repository)
+        : null,
+    'financing_id': instance.financingId
   };
 }
 
@@ -77,6 +99,17 @@ Future<InventoryRequest> _$InventoryRequestFromSqlite(Map<String, dynamic> data,
           : data['main_branch_id'] as int?,
       subBranchId:
           data['sub_branch_id'] == null ? null : data['sub_branch_id'] as int?,
+      branch: data['branch_Branch_brick_id'] == null
+          ? null
+          : (data['branch_Branch_brick_id'] > -1
+              ? (await repository?.getAssociation<Branch>(
+                  Query.where(
+                      'primaryKey', data['branch_Branch_brick_id'] as int,
+                      limit1: true),
+                ))
+                  ?.first
+              : null),
+      branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
       createdAt: data['created_at'] == null
           ? null
           : data['created_at'] == null
@@ -121,7 +154,19 @@ Future<InventoryRequest> _$InventoryRequestFromSqlite(Map<String, dynamic> data,
               ? null
               : DateTime.tryParse(data['updated_at'] as String),
       itemCounts:
-          data['item_counts'] == null ? null : data['item_counts'] as num?)
+          data['item_counts'] == null ? null : data['item_counts'] as num?,
+      financing: data['financing_Financing_brick_id'] == null
+          ? null
+          : (data['financing_Financing_brick_id'] > -1
+              ? (await repository?.getAssociation<Financing>(
+                  Query.where(
+                      'primaryKey', data['financing_Financing_brick_id'] as int,
+                      limit1: true),
+                ))
+                  ?.first
+              : null),
+      financingId:
+          data['financing_id'] == null ? null : data['financing_id'] as String?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -133,6 +178,12 @@ Future<Map<String, dynamic>> _$InventoryRequestToSqlite(
     'id': instance.id,
     'main_branch_id': instance.mainBranchId,
     'sub_branch_id': instance.subBranchId,
+    'branch_Branch_brick_id': instance.branch != null
+        ? instance.branch!.primaryKey ??
+            await provider.upsert<Branch>(instance.branch!,
+                repository: repository)
+        : null,
+    'branch_id': instance.branchId,
     'created_at': instance.createdAt?.toIso8601String(),
     'status': instance.status,
     'delivery_date': instance.deliveryDate?.toIso8601String(),
@@ -146,9 +197,17 @@ Future<Map<String, dynamic>> _$InventoryRequestToSqlite(
             ? null
             : (instance.driverRequestDeliveryConfirmation! ? 1 : 0),
     'driver_id': instance.driverId,
-    'transaction_items': jsonEncode(instance.transactionItems),
+    'transaction_items': instance.transactionItems != null
+        ? jsonEncode(instance.transactionItems)
+        : null,
     'updated_at': instance.updatedAt?.toIso8601String(),
-    'item_counts': instance.itemCounts
+    'item_counts': instance.itemCounts,
+    'financing_Financing_brick_id': instance.financing != null
+        ? instance.financing!.primaryKey ??
+            await provider.upsert<Financing>(instance.financing!,
+                repository: repository)
+        : null,
+    'financing_id': instance.financingId
   };
 }
 
@@ -174,6 +233,16 @@ class InventoryRequestAdapter
     'subBranchId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'sub_branch_id',
+    ),
+    'branch': const RuntimeSupabaseColumnDefinition(
+      association: true,
+      columnName: 'branch',
+      associationType: Branch,
+      associationIsNullable: true,
+    ),
+    'branchId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'branch_id',
     ),
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -211,7 +280,7 @@ class InventoryRequestAdapter
       association: true,
       columnName: 'transaction_items',
       associationType: Map,
-      associationIsNullable: false,
+      associationIsNullable: true,
     ),
     'updatedAt': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -220,6 +289,16 @@ class InventoryRequestAdapter
     'itemCounts': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'item_counts',
+    ),
+    'financing': const RuntimeSupabaseColumnDefinition(
+      association: true,
+      columnName: 'financing',
+      associationType: Financing,
+      associationIsNullable: true,
+    ),
+    'financingId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'financing_id',
     )
   };
   @override
@@ -251,6 +330,18 @@ class InventoryRequestAdapter
       columnName: 'sub_branch_id',
       iterable: false,
       type: int,
+    ),
+    'branch': const RuntimeSqliteColumnDefinition(
+      association: true,
+      columnName: 'branch_Branch_brick_id',
+      iterable: false,
+      type: Branch,
+    ),
+    'branchId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'branch_id',
+      iterable: false,
+      type: String,
     ),
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -317,6 +408,18 @@ class InventoryRequestAdapter
       columnName: 'item_counts',
       iterable: false,
       type: num,
+    ),
+    'financing': const RuntimeSqliteColumnDefinition(
+      association: true,
+      columnName: 'financing_Financing_brick_id',
+      iterable: false,
+      type: Financing,
+    ),
+    'financingId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'financing_id',
+      iterable: false,
+      type: String,
     )
   };
   @override
@@ -344,8 +447,10 @@ class InventoryRequestAdapter
           [instance.primaryKey]);
       final transactionItemsOldIds = transactionItemsOldColumns
           .map((a) => a['f_TransactionItem_brick_id']);
-      final transactionItemsNewIds =
-          instance.transactionItems.map((s) => s.primaryKey).whereType<int>();
+      final transactionItemsNewIds = instance.transactionItems
+              ?.map((s) => s.primaryKey)
+              .whereType<int>() ??
+          [];
       final transactionItemsIdsToDelete = transactionItemsOldIds
           .where((id) => !transactionItemsNewIds.contains(id));
 
@@ -355,13 +460,15 @@ class InventoryRequestAdapter
             [instance.primaryKey, id]).catchError((e) => null);
       }));
 
-      await Future.wait<int?>(instance.transactionItems.map((s) async {
-        final id = s.primaryKey ??
-            await provider.upsert<TransactionItem>(s, repository: repository);
-        return await provider.rawInsert(
-            'INSERT OR IGNORE INTO `_brick_InventoryRequest_transaction_items` (`l_InventoryRequest_brick_id`, `f_TransactionItem_brick_id`) VALUES (?, ?)',
-            [instance.primaryKey, id]);
-      }));
+      await Future.wait<int?>(instance.transactionItems?.map((s) async {
+            final id = s.primaryKey ??
+                await provider.upsert<TransactionItem>(s,
+                    repository: repository);
+            return await provider.rawInsert(
+                'INSERT OR IGNORE INTO `_brick_InventoryRequest_transaction_items` (`l_InventoryRequest_brick_id`, `f_TransactionItem_brick_id`) VALUES (?, ?)',
+                [instance.primaryKey, id]);
+          }) ??
+          []);
     }
   }
 

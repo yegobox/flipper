@@ -154,7 +154,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     //   AppService.cleanedData.listen((data) async {
     //     final branchId = ProxyService.box.getBranchId()!;
     //     log("listened to data");
-    //     final pendingTransaction = ref.watch(pendingTransactionProvider((
+    //     final pendingTransaction = ref.watch(pendingTransactionStreamProvider((
     //       mode: TransactionType.sale,
     //       isExpense: false,
     //       branchId: branchId

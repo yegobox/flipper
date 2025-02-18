@@ -1,9 +1,10 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 
 mixin Refresh<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> refreshTransactionItems({required String transactionId}) async {
@@ -11,31 +12,27 @@ mixin Refresh<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final isOrdering = ProxyService.box.isOrdering() ?? false;
 
       /// clear the current cart
-      ref.refresh(freshtransactionItemsProviderByIdProvider(
-          (transactionId: transactionId)));
+      ref.refresh(transactionItemsProvider(transactionId: transactionId));
 
-      ref.refresh(pendingTransactionProviderNonStream(
-          (isExpense: isOrdering, mode: TransactionType.sale)));
-final branchId = ProxyService.box.getBranchId()!;
+      ref.refresh(pendingTransactionStreamProvider(isExpense: isOrdering));
+
       /// get new transaction id
-      ref.refresh(pendingTransactionProvider(
-          (mode: TransactionType.sale, isExpense: isOrdering,branchId: branchId)));
+      ref.refresh(pendingTransactionStreamProvider(isExpense: isOrdering));
 
-      ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
+      ref.refresh(transactionItemsProvider(transactionId: transactionId));
       ref.read(loadingProvider.notifier).stopLoading();
     } catch (e) {}
   }
 
-  Future<void> refreshPendingTransactionWithExpense() async {
+  Future<void> refreshPendingTransactionWithExpense(
+      {required String transactionId}) async {
     /// clear the current cart
 
-    ref.refresh(pendingTransactionProviderNonStream(
-        (isExpense: true, mode: TransactionType.cashOut)));
-final branchId = ProxyService.box.getBranchId()!;
-    /// get new transaction id
-    ref.refresh(pendingTransactionProvider(
-        (mode: TransactionType.cashOut, isExpense: true,branchId: branchId)));
+    ref.refresh(pendingTransactionStreamProvider(isExpense: true));
 
-    ref.refresh(transactionItemsProvider((isExpense: true)));
+    /// get new transaction id
+    ref.refresh(pendingTransactionStreamProvider(isExpense: true));
+
+    ref.refresh(transactionItemsProvider(transactionId: transactionId));
   }
 }

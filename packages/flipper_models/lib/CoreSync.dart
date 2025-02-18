@@ -213,7 +213,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Future<void> addTransactionItem({
-    required ITransaction transaction,
+    ITransaction? transaction,
     required bool partOfComposite,
     required DateTime lastTouched,
     required double discount,
@@ -228,6 +228,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     try {
       // Validate that either `item` or `variation` is provided
       if (item == null && variation == null) {
+        throw ArgumentError('Either `item` or `variation` must be provided.');
+      }
+      if (transaction == null) {
         throw ArgumentError('Either `item` or `variation` must be provided.');
       }
 
@@ -1010,7 +1013,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         }
         break;
       case 'variant':
-
         try {
           final variant = await getVariant(id: id);
           final stock = await getStockById(id: variant!.stockId!);
@@ -1034,7 +1036,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       case 'transactionItem':
         final transactionItem = await transactionItems(
             id: id, branchId: ProxyService.box.getBranchId()!);
-        if(transactionItem.isNotEmpty){
+        if (transactionItem.isNotEmpty) {
           await repository.delete<TransactionItem>(
             transactionItem.first,
             query: brick.Query(
@@ -1371,12 +1373,16 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  Future<List<Counter>> getCounters({required int branchId,bool fetchRemote = false}) async {
+  Future<List<Counter>> getCounters(
+      {required int branchId, bool fetchRemote = false}) async {
     final repository = brick.Repository();
     final query =
         brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
     final counters = await repository.get<models.Counter>(
-        query: query, policy: fetchRemote == true? OfflineFirstGetPolicy.alwaysHydrate: OfflineFirstGetPolicy.localOnly);
+        query: query,
+        policy: fetchRemote == true
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.localOnly);
 
     return counters;
   }
@@ -2050,6 +2056,39 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         .toList();
   }
 
+  Stream<ITransaction?> _pendingTransactionStream({
+    required int branchId,
+    required String transactionType,
+    required bool isExpense,
+    bool includeSubTotalCheck = true,
+  }) {
+    try {
+      // Build the query
+      final query = brick.Query(where: [
+        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
+        brick.Where('isExpense',
+            value: isExpense, compare: brick.Compare.exact),
+        brick.Where('status', value: PENDING, compare: brick.Compare.exact),
+        brick.Where('transactionType',
+            value: transactionType, compare: brick.Compare.exact),
+        if (includeSubTotalCheck)
+          brick.Where('subTotal', value: 0, compare: brick.Compare.greaterThan),
+      ]);
+
+      /// Fetch transactions and map the list to return the first transaction (or null)
+      return repository
+          .subscribe<ITransaction>(
+              query: query, policy: OfflineFirstGetPolicy.localOnly)
+          .map((transactions) =>
+              transactions.isNotEmpty ? transactions.first : null);
+    } catch (e, s) {
+      // Log errors
+      talker.error('Error in _pendingTransactionStream: $e');
+      talker.error('Stack trace: $s');
+      rethrow;
+    }
+  }
+
   Future<ITransaction?> _pendingTransaction({
     required int branchId,
     required String transactionType,
@@ -2077,13 +2116,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         policy: OfflineFirstGetPolicy.localOnly,
       );
 
-      // If more than one transaction is found, delete the excess ones
-      if (transactions.length > 1) {
-        // for (int i = 1; i < transactions.length; i++) {
-        //   await repository.delete<ITransaction>(transactions[i]);
-        // }
-      }
-
       // Return the first transaction (if any)
       return transactions.isNotEmpty ? transactions.last : null;
     } catch (e, s) {
@@ -2094,78 +2126,121 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
+  bool _isProcessingTransactionNon = false;
+
+  bool _isProcessingTransaction = false;
+
   @override
-  FutureOr<ITransaction> manageTransaction(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId,
-      bool? includeSubTotalCheck = false}) async {
-    ITransaction? existTransaction = await _pendingTransaction(
+  Future<ITransaction?> manageTransaction({
+    required String transactionType,
+    required bool isExpense,
+    required int branchId,
+    bool includeSubTotalCheck = false,
+  }) async {
+    if (_isProcessingTransactionNon) return null;
+    _isProcessingTransactionNon = true;
+
+    try {
+      final existTransaction = await _pendingTransaction(
         branchId: branchId,
         isExpense: isExpense,
         transactionType: transactionType,
-        includeSubTotalCheck: includeSubTotalCheck!);
-    if (existTransaction == null) {
+        includeSubTotalCheck: includeSubTotalCheck,
+      );
+
+      if (existTransaction != null) return existTransaction;
+
+      final now = DateTime.now();
+      final randomRef = randomNumber().toString();
+
       final transaction = ITransaction(
-          lastTouched: DateTime.now(),
-          reference: randomNumber().toString(),
-          transactionNumber: randomNumber().toString(),
-          status: PENDING,
-          isExpense: isExpense,
-          isIncome: !isExpense,
-          transactionType: transactionType,
-          subTotal: 0.0,
-          cashReceived: 0.0,
-          updatedAt: DateTime.now(),
-          customerChangeDue: 0.0,
-          paymentType: ProxyService.box.paymentType() ?? "Cash",
-          branchId: branchId,
-          createdAt: DateTime.now());
+        lastTouched: now,
+        reference: randomRef,
+        transactionNumber: randomRef,
+        status: PENDING,
+        isExpense: isExpense,
+        isIncome: !isExpense,
+        transactionType: transactionType,
+        subTotal: 0.0,
+        cashReceived: 0.0,
+        updatedAt: now,
+        customerChangeDue: 0.0,
+        paymentType: ProxyService.box.paymentType() ?? "Cash",
+        branchId: branchId,
+        createdAt: now,
+      );
 
-      // save transaction to isar
-      repository.upsert<ITransaction>(transaction);
-
+      await repository.upsert<ITransaction>(transaction);
       return transaction;
-    } else {
-      return existTransaction;
+    } finally {
+      _isProcessingTransactionNon = false; // Ensures reset even on error
     }
   }
 
+  final Map<int, bool> _isProcessingTransactionMap = {};
+
   @override
-  Stream<ITransaction> manageTransactionStream(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId,
-      bool? includeSubTotalCheck = false}) async* {
-    final ITransaction? existTransaction = await _pendingTransaction(
+  Stream<ITransaction> manageTransactionStream({
+    required String transactionType,
+    required bool isExpense,
+    required int branchId,
+    bool includeSubTotalCheck = false,
+  }) async* {
+    _isProcessingTransactionMap[branchId] ??= false;
+
+    // Check for an existing transaction
+    ITransaction? transaction = await _pendingTransaction(
+      branchId: branchId,
+      isExpense: isExpense,
+      transactionType: transactionType,
+      includeSubTotalCheck: includeSubTotalCheck,
+    );
+
+    // If no transaction exists, create and insert a new one
+    if (transaction == null && !_isProcessingTransactionMap[branchId]!) {
+      _isProcessingTransactionMap[branchId] =
+          true; // Lock processing for this branch
+
+      transaction = ITransaction(
+        lastTouched: DateTime.now(),
+        reference: randomNumber().toString(),
+        transactionNumber: randomNumber().toString(),
+        status: PENDING,
+        isExpense: isExpense,
+        isIncome: !isExpense,
+        transactionType: transactionType,
+        subTotal: 0.0,
+        cashReceived: 0.0,
+        updatedAt: DateTime.now(),
+        customerChangeDue: 0.0,
+        paymentType: ProxyService.box.paymentType() ?? "Cash",
+        branchId: branchId,
+        createdAt: DateTime.now(),
+      );
+
+      await repository.upsert<ITransaction>(transaction);
+
+      _isProcessingTransactionMap[branchId] =
+          false; // Unlock processing for this branch
+    }
+    if (transaction != null) {
+      yield transaction;
+    }
+    // Listen for changes in the transaction data
+    while (true) {
+      final updatedTransaction = await _pendingTransaction(
         branchId: branchId,
         isExpense: isExpense,
         transactionType: transactionType,
-        includeSubTotalCheck: includeSubTotalCheck!);
+        includeSubTotalCheck: includeSubTotalCheck,
+      );
 
-    if (existTransaction == null) {
-      final transaction = ITransaction(
-          lastTouched: DateTime.now(),
-          reference: randomNumber().toString(),
-          transactionNumber: randomNumber().toString(),
-          status: PENDING,
-          isExpense: isExpense,
-          isIncome: !isExpense,
-          transactionType: transactionType,
-          subTotal: 0.0,
-          cashReceived: 0.0,
-          updatedAt: DateTime.now(),
-          customerChangeDue: 0.0,
-          paymentType: ProxyService.box.paymentType() ?? "Cash",
-          branchId: branchId,
-          createdAt: DateTime.now());
+      if (updatedTransaction != null) {
+        yield updatedTransaction;
+      }
 
-      // save transaction to isar
-      repository.upsert<ITransaction>(transaction);
-
-      yield transaction;
-    } else {
-      yield existTransaction;
+      // Add a delay to avoid busy-waiting
+      await Future.delayed(Duration(seconds: 1));
     }
   }
 
@@ -3141,7 +3216,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   Future<ITransaction> collectPayment({
     required double cashReceived,
-    required ITransaction transaction,
+    ITransaction? transaction,
     required String paymentType,
     required double discount,
     required int branchId,
@@ -3153,48 +3228,51 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     bool directlyHandleReceipt = false,
     required bool isIncome,
   }) async {
-    try {
-      // Fetch transaction items
-      List<TransactionItem> items = await transactionItems(
-        branchId: branchId,
-        transactionId: transaction.id,
-      );
-      double subTotalFinalized = cashReceived;
-      if (isIncome) {
-        // Update transaction details
-        final double subTotal =
-            items.fold(0, (num a, b) => a + (b.price * b.qty));
-        subTotalFinalized = !isIncome ? cashReceived : subTotal;
-        // Update stock and transaction items
-        await _updateStockAndItems(items: items, branchId: branchId);
+    if (transaction != null) {
+      try {
+        // Fetch transaction items
+        List<TransactionItem> items = await transactionItems(
+          branchId: branchId,
+          transactionId: transaction.id,
+        );
+        double subTotalFinalized = cashReceived;
+        if (isIncome) {
+          // Update transaction details
+          final double subTotal =
+              items.fold(0, (num a, b) => a + (b.price * b.qty));
+          subTotalFinalized = !isIncome ? cashReceived : subTotal;
+          // Update stock and transaction items
+          await _updateStockAndItems(items: items, branchId: branchId);
+        }
+        _updateTransactionDetails(
+          transaction: transaction,
+          isIncome: isIncome,
+          cashReceived: cashReceived,
+          subTotalFinalized: subTotalFinalized,
+          paymentType: paymentType,
+          isProformaMode: isProformaMode,
+          isTrainingMode: isTrainingMode,
+          transactionType: transactionType,
+          categoryId: categoryId,
+        );
+
+        // Save transaction
+        transaction.status = COMPLETE;
+        await repository.upsert(transaction);
+
+        // Handle receipt if required
+        if (directlyHandleReceipt) {
+          TaxController(object: transaction)
+              .handleReceipt(filterType: FilterType.NS);
+        }
+
+        return transaction;
+      } catch (e, s) {
+        talker.error(s);
+        rethrow;
       }
-      _updateTransactionDetails(
-        transaction: transaction,
-        isIncome: isIncome,
-        cashReceived: cashReceived,
-        subTotalFinalized: subTotalFinalized,
-        paymentType: paymentType,
-        isProformaMode: isProformaMode,
-        isTrainingMode: isTrainingMode,
-        transactionType: transactionType,
-        categoryId: categoryId,
-      );
-
-      // Save transaction
-      transaction.status = COMPLETE;
-      repository.upsert(transaction);
-
-      // Handle receipt if required
-      if (directlyHandleReceipt) {
-        TaxController(object: transaction)
-            .handleReceipt(filterType: FilterType.NS);
-      }
-
-      return transaction;
-    } catch (e, s) {
-      talker.error(s);
-      rethrow;
     }
+    throw Exception("transaction is null");
   }
 
   void _updateTransactionDetails({
@@ -3474,7 +3552,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   FutureOr<void> updateTransaction(
-      {required ITransaction transaction,
+      {required ITransaction? transaction,
       String? receiptType,
       double? subTotal,
       String? note,
@@ -3496,7 +3574,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       int? totalReceiptNumber,
       bool? isProformaMode,
       bool? isTrainingMode}) async {
-    if (receiptType != null) {
+    if (receiptType != null && transaction != null) {
       if (isProformaMode != null && isTrainingMode != null) {
         String receiptType = TransactionReceptType.NS;
         if (isProformaMode) {
@@ -4139,20 +4217,24 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   @override
   Stream<List<TransactionItem>> transactionItemsStreams({
     String? transactionId,
-    required int branchId,
+    int? branchId,
     DateTime? startDate,
     DateTime? endDate,
     bool? doneWithTransaction,
     bool? active,
+    String? requestId,
+    bool fetchRemote = false,
   }) {
     // Create a list of conditions for better readability and debugging
     final List<brick.Where> conditions = [
       // Always include branchId since it's required
-      brick.Where('branchId').isExactly(branchId),
+      if (branchId != null) brick.Where('branchId').isExactly(branchId),
 
       // Optional conditions
       if (transactionId != null)
         brick.Where('transactionId').isExactly(transactionId),
+      if (requestId != null)
+        brick.Where('inventoryRequestId').isExactly(requestId),
 
       // Date range handling
       if (startDate != null && endDate != null)
@@ -4180,7 +4262,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     // Return the stream directly from repository with mapping
     return repository.subscribe<TransactionItem>(
       query: queryString,
-      policy: OfflineFirstGetPolicy.localOnly,
+      policy: fetchRemote == true
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.localOnly,
     );
   }
 
@@ -4188,10 +4272,11 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   FutureOr<List<TransactionItem>> transactionItems({
     String? transactionId,
     bool? doneWithTransaction,
-    required int branchId,
+    int? branchId,
     String? id,
     bool? active,
     bool fetchRemote = false,
+    String? requestId,
   }) async {
     final items = await repository.get<TransactionItem>(
         policy: fetchRemote
@@ -4200,11 +4285,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         query: brick.Query(where: [
           if (transactionId != null)
             brick.Where('transactionId').isExactly(transactionId),
-          brick.Where('branchId').isExactly(branchId),
+          if (branchId != null) brick.Where('branchId').isExactly(branchId),
           if (id != null) brick.Where('id').isExactly(id),
           if (doneWithTransaction != null)
             brick.Where('doneWithTransaction').isExactly(doneWithTransaction),
           if (active != null) brick.Where('active').isExactly(active),
+          if (requestId != null)
+            brick.Where('inventoryRequestId').isExactly(requestId),
         ]));
     return items;
   }
@@ -4772,8 +4859,20 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<String> createStockRequest(List<models.TransactionItem> items,
       {required String deliveryNote,
       DateTime? deliveryDate,
+      required ITransaction transaction,
+      required FinanceProvider financeOption,
       required int mainBranchId}) async {
     try {
+      final financing = Financing(
+        requested: true,
+        financeProviderId: financeOption.id,
+        provider: financeOption,
+        status: 'pending',
+        amount: transaction.subTotal!,
+        approvalDate: DateTime.now(),
+      );
+      await repository.upsert(financing);
+      Branch branch = await activeBranch();
       String orderId = const Uuid().v4();
       final stockRequest = InventoryRequest(
         id: orderId,
@@ -4781,19 +4880,21 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         deliveryDate: deliveryDate,
         deliveryNote: deliveryNote,
         mainBranchId: mainBranchId,
+        branch: branch,
+        // transactionItems: items,
+        branchId: branch.id,
         subBranchId: ProxyService.box.getBranchId(),
         status: RequestStatus.pending,
         updatedAt: DateTime.now().toUtc().toLocal(),
         createdAt: DateTime.now().toUtc().toLocal(),
+        financing: financing,
+        financingId: financing.id,
       );
       InventoryRequest request = await repository.upsert(stockRequest);
       for (TransactionItem item in items) {
         item.inventoryRequest = request;
         await repository.upsert(item);
       }
-
-      // testing
-
       return orderId;
     } catch (e, s) {
       talker.error(s);
@@ -5503,5 +5604,10 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     return await repository.availableQueue();
   }
 
-
+  @override
+  Future<List<models.FinanceProvider>> financeProviders() async {
+    return await repository.get<FinanceProvider>(
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
+    );
+  }
 }

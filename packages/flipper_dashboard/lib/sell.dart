@@ -15,6 +15,8 @@ import 'widgets/quantity_widget.dart';
 import 'widgets/title_widget.dart';
 import 'widgets/variant_widget.dart';
 
+import 'package:flipper_models/providers/transactions_provider.dart';
+
 class Sell extends StatefulHookConsumerWidget {
   Sell({Key? key, required this.product}) : super(key: key);
   final Product product;
@@ -40,10 +42,8 @@ class SellState extends ConsumerState<Sell> {
       },
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        final branchId = ProxyService.box.getBranchId()!;
-        final pendingTransaction = ref.watch(pendingTransactionProvider(
-          /// defind this is an income by setting isExpense to false
-          (mode: TransactionType.sale, isExpense: false, branchId: branchId),
+        final pendingTransaction = ref.watch(pendingTransactionStreamProvider(
+          isExpense: false,
         ));
         return Scaffold(
           backgroundColor: Colors.white,
@@ -73,23 +73,10 @@ class SellState extends ConsumerState<Sell> {
                 showSimpleNotification(const Text('No item selected'),
                     background: Colors.red);
               }
-              final branchId = ProxyService.box.getBranchId()!;
 
               /// when we are ordering transaction type is cashOut
-              ref.refresh(pendingTransactionProvider(
-                (
-                  mode: TransactionType.cashOut,
-                  isExpense: true,
-                  branchId: branchId
-                ),
-              ));
-              ref.refresh(pendingTransactionProvider(
-                (
-                  mode: TransactionType.sale,
-                  isExpense: false,
-                  branchId: branchId
-                ),
-              ));
+              ref.refresh(pendingTransactionStreamProvider(isExpense: true));
+              ref.refresh(pendingTransactionStreamProvider(isExpense: false));
               _routerService.pop();
             },
             icon: Icons.close,

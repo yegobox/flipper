@@ -21,6 +21,8 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter/foundation.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -205,12 +207,9 @@ class _RowItemState extends ConsumerState<RowItem>
       ProxyService.box.writeBool(key: 'isOrdering', value: isOrdering);
 
       // Manage transaction
-      final pendingTransaction = await ProxyService.strategy.manageTransaction(
-        transactionType:
-            isOrdering ? TransactionType.cashOut : TransactionType.sale,
-        isExpense: isOrdering,
-        branchId: branchId,
-      );
+
+      final pendingTransaction =
+          ref.watch(pendingTransactionStreamProvider(isExpense: isOrdering));
 
       // Fetch product details
       final product = await ProxyService.strategy.getProduct(
@@ -233,7 +232,7 @@ class _RowItemState extends ConsumerState<RowItem>
               amountTotal: variant.retailPrice!,
               customItem: false,
               currentStock: variant.stock?.currentStock ?? 0,
-              pendingTransaction: pendingTransaction,
+              pendingTransaction: pendingTransaction.value!,
               partOfComposite: true,
               compositePrice: composite.actualPrice,
             );
@@ -246,15 +245,16 @@ class _RowItemState extends ConsumerState<RowItem>
           amountTotal: widget.variant?.retailPrice ?? 0,
           customItem: false,
           currentStock: widget.variant!.stock?.currentStock ?? 0,
-          pendingTransaction: pendingTransaction,
+          pendingTransaction: pendingTransaction.value!,
           partOfComposite: false,
         );
       }
       w?.log("TapOnItemAndSaveTransaction");
       // Ensure transaction items are refreshed immediately
-      refreshTransactionItems(transactionId: pendingTransaction.id);
+      refreshTransactionItems(transactionId: pendingTransaction.value!.id);
       // await Future.delayed(Duration.zero); // Force UI rebuild
-      ref.invalidate(transactionItemsProvider((isExpense: isOrdering)));
+      ref.refresh(transactionItemsProvider(
+          transactionId: pendingTransaction.value!.id));
     } catch (e, s) {
       talker.warning("Error while clicking: $e");
       talker.error(s);

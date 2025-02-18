@@ -2,7 +2,6 @@
 
 import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -13,6 +12,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 
 class Customers extends StatefulHookConsumerWidget {
   const Customers({Key? key}) : super(key: key);
@@ -29,8 +29,8 @@ class CustomersState extends ConsumerState<Customers> {
   Widget build(BuildContext context) {
     final searchKeyword = ref.watch(customerSearchStringProvider);
     final customersRef = ref.watch(customersProvider);
-    final transaction = ref.watch(pendingTransactionProviderNonStream(
-        (mode: TransactionType.sale, isExpense: false)));
+    final transaction =
+        ref.watch(pendingTransactionStreamProvider(isExpense: false));
 
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
@@ -50,8 +50,7 @@ class CustomersState extends ConsumerState<Customers> {
               onPressed: () {
                 // ref.refresh(customersProvider);
                 ///TODO: this is supposed to make SearchCustomer refresh but for somereason it is not,debug this further
-                ref.invalidate(pendingTransactionProviderNonStream(
-                    (mode: TransactionType.sale, isExpense: false)));
+                ref.refresh(pendingTransactionStreamProvider(isExpense: false));
                 _routerService.pop();
               },
             ),
