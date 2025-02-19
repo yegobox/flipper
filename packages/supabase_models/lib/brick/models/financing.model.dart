@@ -8,7 +8,6 @@ import 'finance_provider.model.dart';
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'purchase_financings'),
 )
-
 class Financing extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
@@ -17,9 +16,8 @@ class Financing extends OfflineFirstWithSupabaseModel {
   final String status;
   final FinanceProvider provider;
   final String financeProviderId;
-  final double amount;
+  num? amount;
   final DateTime approvalDate;
-
 
   Financing({
     String? id,
@@ -27,7 +25,7 @@ class Financing extends OfflineFirstWithSupabaseModel {
     required this.provider,
     required this.status,
     required this.financeProviderId,
-    required this.amount,
+    this.amount,
     required this.approvalDate,
-  }): id = id ?? const Uuid().v4();
+  }) : id = id ?? const Uuid().v4();
 }

@@ -33,6 +33,7 @@ part '20250215090308.migration.dart';
 part '20250215093115.migration.dart';
 part '20250215104421.migration.dart';
 part '20250215183344.migration.dart';
+part '20250219115845.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -67,12 +68,13 @@ final migrations = <Migration>{
   const Migration20250215090308(),
   const Migration20250215093115(),
   const Migration20250215104421(),
-  const Migration20250215183344()
+  const Migration20250215183344(),
+  const Migration20250219115845()
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema =
-    Schema(20250215183344, generatorVersion: 1, tables: <SchemaTable>{
+    Schema(20250219115845, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -1039,7 +1041,7 @@ final schema =
         onDeleteCascade: false,
         onDeleteSetDefault: false),
     SchemaColumn('finance_provider_id', Column.varchar),
-    SchemaColumn('amount', Column.Double),
+    SchemaColumn('amount', Column.num),
     SchemaColumn('approval_date', Column.datetime)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)

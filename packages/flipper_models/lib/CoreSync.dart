@@ -45,6 +45,7 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:synchronized/synchronized.dart';
 
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
@@ -2126,9 +2127,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     }
   }
 
-  bool _isProcessingTransactionNon = false;
-
   bool _isProcessingTransaction = false;
+  final Lock _transactionLock = Lock();
 
   @override
   Future<ITransaction?> manageTransaction({
@@ -2137,44 +2137,49 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required int branchId,
     bool includeSubTotalCheck = false,
   }) async {
-    if (_isProcessingTransactionNon) return null;
-    _isProcessingTransactionNon = true;
+    return await _transactionLock.synchronized(() async {
+      if (_isProcessingTransaction) return null; // Ensure return
 
-    try {
-      final existTransaction = await _pendingTransaction(
-        branchId: branchId,
-        isExpense: isExpense,
-        transactionType: transactionType,
-        includeSubTotalCheck: includeSubTotalCheck,
-      );
+      _isProcessingTransaction = true;
+      try {
+        final existTransaction = await _pendingTransaction(
+          branchId: branchId,
+          isExpense: isExpense,
+          transactionType: transactionType,
+          includeSubTotalCheck: includeSubTotalCheck,
+        );
 
-      if (existTransaction != null) return existTransaction;
+        if (existTransaction != null) return existTransaction;
 
-      final now = DateTime.now();
-      final randomRef = randomNumber().toString();
+        final now = DateTime.now();
+        final randomRef = randomNumber().toString();
 
-      final transaction = ITransaction(
-        lastTouched: now,
-        reference: randomRef,
-        transactionNumber: randomRef,
-        status: PENDING,
-        isExpense: isExpense,
-        isIncome: !isExpense,
-        transactionType: transactionType,
-        subTotal: 0.0,
-        cashReceived: 0.0,
-        updatedAt: now,
-        customerChangeDue: 0.0,
-        paymentType: ProxyService.box.paymentType() ?? "Cash",
-        branchId: branchId,
-        createdAt: now,
-      );
+        final transaction = ITransaction(
+          lastTouched: now,
+          reference: randomRef,
+          transactionNumber: randomRef,
+          status: PENDING,
+          isExpense: isExpense,
+          isIncome: !isExpense,
+          transactionType: transactionType,
+          subTotal: 0.0,
+          cashReceived: 0.0,
+          updatedAt: now,
+          customerChangeDue: 0.0,
+          paymentType: ProxyService.box.paymentType() ?? "Cash",
+          branchId: branchId,
+          createdAt: now,
+        );
 
-      await repository.upsert<ITransaction>(transaction);
-      return transaction;
-    } finally {
-      _isProcessingTransactionNon = false; // Ensures reset even on error
-    }
+        await repository.upsert<ITransaction>(transaction);
+        return transaction;
+      } catch (e) {
+        print('Error processing transaction: $e');
+        rethrow;
+      } finally {
+        _isProcessingTransaction = false;
+      }
+    });
   }
 
   final Map<int, bool> _isProcessingTransactionMap = {};

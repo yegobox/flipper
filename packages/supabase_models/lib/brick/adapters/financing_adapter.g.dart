@@ -11,7 +11,7 @@ Future<Financing> _$FinancingFromSupabase(Map<String, dynamic> data,
       provider: await FinanceProviderAdapter().fromSupabase(data['provider'],
           provider: provider, repository: repository),
       financeProviderId: data['finance_provider_id'] as String,
-      amount: data['amount'] as double,
+      amount: data['amount'] == null ? null : data['amount'] as num?,
       approvalDate: DateTime.parse(data['approval_date'] as String));
 }
 
@@ -44,7 +44,7 @@ Future<Financing> _$FinancingFromSqlite(Map<String, dynamic> data,
       ))!
           .first,
       financeProviderId: data['finance_provider_id'] as String,
-      amount: data['amount'] as double,
+      amount: data['amount'] == null ? null : data['amount'] as num?,
       approvalDate: DateTime.parse(data['approval_date'] as String))
     ..primaryKey = data['_brick_id'] as int;
 }
@@ -152,7 +152,7 @@ class FinancingAdapter extends OfflineFirstWithSupabaseAdapter<Financing> {
       association: false,
       columnName: 'amount',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'approvalDate': const RuntimeSqliteColumnDefinition(
       association: false,

@@ -114,11 +114,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   Widget build(BuildContext context) {
     final isOrdering = ProxyService.box.isOrdering() ?? false;
 
-    final transactionAsyncValue =
-        ref.watch(pendingTransactionStreamProvider(isExpense: false));
+    final transactionAsyncValue = ref.watch(pendingTransactionStreamProvider(
+        isExpense: ProxyService.box.isOrdering() ?? false));
 
     Future.microtask(() {
-      ref.refresh(pendingTransactionStreamProvider(isExpense: false));
+      ref.refresh(pendingTransactionStreamProvider(
+          isExpense: ProxyService.box.isOrdering() ?? false));
     });
 
     return ViewModelBuilder.nonReactive(

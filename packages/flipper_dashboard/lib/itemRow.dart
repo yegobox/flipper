@@ -253,8 +253,6 @@ class _RowItemState extends ConsumerState<RowItem>
       // Ensure transaction items are refreshed immediately
       refreshTransactionItems(transactionId: pendingTransaction.value!.id);
       // await Future.delayed(Duration.zero); // Force UI rebuild
-      ref.refresh(transactionItemsProvider(
-          transactionId: pendingTransaction.value!.id));
     } catch (e, s) {
       talker.warning("Error while clicking: $e");
       talker.error(s);

@@ -10,6 +10,7 @@ import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/bottomSheet.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
+import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -48,7 +49,7 @@ class CheckOutState extends ConsumerState<CheckOut>
         TextEditingControllersMixin,
         TransactionMixin,
         PreviewCartMixin,
-        TransactionRefresherMixin {
+        Refresh {
   late AnimationController _animationController;
   late Animation<double> _animation;
   late TabController tabController;
@@ -272,7 +273,7 @@ class CheckOutState extends ConsumerState<CheckOut>
             ref.watch(oldImplementationOfRiverpod.paymentMethodsProvider),
       );
       // await newTransaction();
-      await newTransaction();
+      await newTransaction(typeOfThisTransactionIsExpense: false);
     } catch (e) {
       ref.read(payButtonLoadingProvider.notifier).stopLoading();
       await refreshTransactionItems(transactionId: transaction.id);
