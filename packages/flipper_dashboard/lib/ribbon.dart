@@ -30,12 +30,15 @@ class IconText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       key: key,
       width: 80.0,
       height: 70.0,
       decoration: BoxDecoration(
-        color: isSelected ? Color(0xff006AFE) : Colors.white,
+        color: isSelected ? theme.primaryColor : colorScheme.surface,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -62,8 +65,10 @@ class IconText extends StatelessWidget {
 }
 
 class IconRow extends StatefulHookConsumerWidget {
+  const IconRow({super.key});
+
   @override
-  IconRowState createState() => IconRowState();
+  ConsumerState<IconRow> createState() => IconRowState();
 }
 
 class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
@@ -74,6 +79,9 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -104,8 +112,8 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
           ],
           onPressed: _onTogglePressed,
           isSelected: _isSelected,
-          color: Colors.white,
-          fillColor: Colors.white,
+          color: colorScheme.surface,
+          fillColor: colorScheme.surface,
         ),
       ],
     );
@@ -180,7 +188,7 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
           builder: (_) => Center(
               child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+            children: const [
               CircularProgressIndicator(),
               SizedBox(height: 16),
               Text("We are logging you out."),
