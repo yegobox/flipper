@@ -157,8 +157,6 @@ class PaginatedVariantsNotifier
   }
 }
 
-
-
 final matchedProductProvider = Provider.autoDispose<Product?>((ref) {
   final productsState =
       ref.watch(productsProvider(ProxyService.box.getBranchId()!));
@@ -229,7 +227,7 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 
       state = AsyncData(customers);
     } catch (error) {
-      state = AsyncError(error, StackTrace.current);
+      //state = AsyncError(error, StackTrace.current);
     }
   }
 

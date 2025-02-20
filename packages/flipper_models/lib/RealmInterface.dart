@@ -227,7 +227,7 @@ abstract class RealmInterface {
 
   Future<ITransaction> collectPayment({
     required double cashReceived,
-     ITransaction? transaction,
+    ITransaction? transaction,
     required String paymentType,
     required double discount,
     required int branchId,
@@ -438,7 +438,7 @@ abstract class RealmInterface {
   FutureOr<List<Access>> access({required int userId, String? featureName});
   Stream<List<InventoryRequest>> requestsStream(
       {required int branchId, required String filter});
-  FutureOr<List<InventoryRequest>> requests({required int branchId});
+  FutureOr<List<InventoryRequest>> requests({int? branchId, String? requestId});
   FutureOr<Tenant?> getTenant({int? userId, int? pin});
 
   Future<({String url, int userId, String customerCode})> subscribe(

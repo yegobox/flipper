@@ -169,15 +169,14 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   //TODO: add a filter of a businessId when looking for a branch to avoid query unreleated branches
   @override
   Future<Branch> activeBranch() async {
-    return (await repository.get<Branch>(
+    final branches = await repository.get<Branch>(
       policy: OfflineFirstGetPolicy.localOnly,
-      query: brick.Query(
-        where: [
-          brick.Where('isDefault').isExactly(true),
-        ],
-      ),
-    ))
-        .first;
+    );
+
+    return branches.firstWhere(
+      (branch) => branch.isDefault == true || branch.isDefault == 1,
+      orElse: () => throw Exception("No default branch found"),
+    );
   }
 
   @override
@@ -1053,6 +1052,32 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         if (customer != null) {
           await repository.delete<Customer>(
             customer,
+            query: brick.Query(
+                action: QueryAction.delete,
+                where: [brick.Where('id').isExactly(id)]),
+          );
+        }
+        break;
+      case 'stockRequest':
+        final request = (await requests(
+          requestId: id,
+        ))
+            .firstOrNull;
+        if (request != null) {
+          // get dependent first
+          final financing = await repository.get<Financing>(
+            query: brick.Query(
+                action: QueryAction.delete,
+                where: [brick.Where('id').isExactly(request.financingId)]),
+          );
+          await repository.delete<Financing>(
+            financing.first,
+            query: brick.Query(
+                action: QueryAction.delete,
+                where: [brick.Where('id').isExactly(financing.first.id)]),
+          );
+          await repository.delete<InventoryRequest>(
+            request,
             query: brick.Query(
                 action: QueryAction.delete,
                 where: [brick.Where('id').isExactly(id)]),
@@ -2284,12 +2309,21 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   FutureOr<List<models.InventoryRequest>> requests(
-      {required int branchId}) async {
-    return await repository.get<InventoryRequest>(
-        query: brick.Query(where: [
-      brick.Where('mainBranchId').isExactly(branchId),
-      brick.Where('status').isExactly(RequestStatus.pending)
-    ]));
+      {int? branchId, String? requestId}) async {
+    if (branchId != null) {
+      return await repository.get<InventoryRequest>(
+          query: brick.Query(where: [
+        brick.Where('mainBranchId').isExactly(branchId),
+        brick.Where('status').isExactly(RequestStatus.pending)
+      ]));
+    }
+    if (requestId != null) {
+      return await repository.get<InventoryRequest>(
+          query: brick.Query(where: [
+        brick.Where('id').isExactly(requestId),
+      ]));
+    }
+    throw Exception("Invalid parameter");
   }
 
   @override
@@ -2297,20 +2331,22 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       {required int branchId, required String filter}) {
     if (filter == RequestStatus.approved) {
       final query = repository.subscribe<InventoryRequest>(
+          policy: OfflineFirstGetPolicy.alwaysHydrate,
           query: brick.Query(where: [
-        brick.Where('mainBranchId').isExactly(branchId),
-        brick.Where('status').isExactly(RequestStatus.approved),
-      ]));
+            brick.Where('mainBranchId').isExactly(branchId),
+            brick.Where('status').isExactly(RequestStatus.approved),
+          ]));
 
       return query
           .map((changes) => changes.toList())
           .debounceTime(Duration(milliseconds: 100));
     } else {
       final query = repository.subscribe<InventoryRequest>(
+          policy: OfflineFirstGetPolicy.alwaysHydrate,
           query: brick.Query(where: [
-        brick.Where('mainBranchId').isExactly(branchId),
-        brick.Where('status').isExactly(RequestStatus.pending),
-      ]));
+            brick.Where('mainBranchId').isExactly(branchId),
+            brick.Where('status').isExactly(RequestStatus.pending),
+          ]));
 
       return query
           .map((changes) => changes.toList())

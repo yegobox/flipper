@@ -723,7 +723,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  List<InventoryRequest> requests({required int branchId}) {
+  List<InventoryRequest> requests({int? branchId, String? requestId}) {
     // TODO: implement requests
     throw UnimplementedError();
   }

@@ -1,3 +1,6 @@
+// ignore_for_file: unused_result
+
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
@@ -18,9 +21,10 @@ class IncomingOrdersWidget extends HookConsumerWidget
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stringValue = ref.watch(stringProvider);
-    //  final incomingBranch = ref.watch(activeBranchProvider);
     final stockRequests =
         ref.watch(stockRequestsProvider((filter: stringValue)));
+    final incomingBranchAsync =
+        ref.watch(activeBranchProvider); // Renamed to indicate AsyncValue
 
     return Container(
       decoration: BoxDecoration(
@@ -34,15 +38,42 @@ class IncomingOrdersWidget extends HookConsumerWidget
             if (requests.isEmpty) {
               return buildNoOrdersPlaceholder();
             }
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: requests.length,
-              itemBuilder: (context, index) => _buildRequestCard(
-                context,
-                ref,
-                requests[index],
-              ),
+
+            return incomingBranchAsync.when(
+              // Nested when!
+              data: (incomingBranch) {
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: requests.length,
+                  itemBuilder: (context, index) => _buildRequestCard(
+                    incomingBranch: incomingBranch, // No more !
+                    context,
+                    ref,
+                    requests[index],
+                  ),
+                );
+              },
+              loading: () => const Center(
+                  child: CircularProgressIndicator()), // Handle loading state
+              error: (err, stack) => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.error_outline, size: 48, color: Colors.red[400]),
+                    SizedBox(height: 16),
+                    Text(
+                      'Error loading branch',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      err.toString(),
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ), // Handle error state
             );
           },
           loading: () => const Center(
@@ -71,7 +102,9 @@ class IncomingOrdersWidget extends HookConsumerWidget
   }
 
   Widget _buildRequestCard(
-      BuildContext context, WidgetRef ref, InventoryRequest request) {
+      BuildContext context, WidgetRef ref, InventoryRequest request,
+      {required Branch incomingBranch}) {
+    // ... (rest of your _buildRequestCard widget - unchanged)
     return Card(
       elevation: 2,
       shadowColor: Colors.black26,
@@ -96,7 +129,8 @@ class IncomingOrdersWidget extends HookConsumerWidget
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildBranchInfo(request, ref),
+                  _buildBranchInfo(request, ref,
+                      incomingBranch: incomingBranch),
                   SizedBox(height: 16.0),
                   _buildItemsList(ref, request: request),
                   SizedBox(height: 16.0),
@@ -187,11 +221,8 @@ class IncomingOrdersWidget extends HookConsumerWidget
     );
   }
 
-  Widget _buildBranchInfo(
-    InventoryRequest request,
-    WidgetRef ref,
-  ) {
-    final incomingBranch = ref.watch(activeBranchProvider);
+  Widget _buildBranchInfo(InventoryRequest request, WidgetRef ref,
+      {required Branch incomingBranch}) {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -225,7 +256,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
                     'From', "${request.branch?.name}", Colors.green[700]!),
                 SizedBox(height: 8),
                 _buildBranchInfoRow(
-                    'To', "${incomingBranch.value?.name}", Colors.blue[700]!),
+                    'To', "${incomingBranch.name}", Colors.blue[700]!),
               ],
             ),
           ),
@@ -625,7 +656,6 @@ class IncomingOrdersWidget extends HookConsumerWidget
             ),
             ElevatedButton(
               onPressed: () async {
-                Navigator.of(context).pop();
                 try {
                   await ProxyService.strategy.delete(
                     id: request.id,
@@ -633,7 +663,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
                   );
                   final stringValue = ref.watch(stringProvider);
                   ref.refresh(stockRequestsProvider((filter: stringValue)));
-
+                  Navigator.of(context).pop();
                   // Show success snackbar
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -645,7 +675,8 @@ class IncomingOrdersWidget extends HookConsumerWidget
                       ),
                     ),
                   );
-                } catch (e) {
+                } catch (e, s) {
+                  talker.error(s);
                   // Show error snackbar
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

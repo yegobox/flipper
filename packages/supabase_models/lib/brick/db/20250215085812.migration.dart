@@ -11,7 +11,10 @@ part of 'schema.g.dart';
 
 const List<MigrationCommand> _migration_20250215085812_up = [
   InsertTable('Financing'),
-  InsertForeignKey('InventoryRequest', 'Financing', foreignKeyColumn: 'financing_Financing_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
+  InsertForeignKey('InventoryRequest', 'Financing',
+      foreignKeyColumn: 'financing_Financing_brick_id',
+      onDeleteCascade: true,
+      onDeleteSetDefault: true),
   InsertColumn('id', Column.varchar, onTable: 'Financing', unique: true),
   InsertColumn('requested', Column.boolean, onTable: 'Financing'),
   InsertColumn('status', Column.varchar, onTable: 'Financing'),
@@ -42,9 +45,9 @@ const List<MigrationCommand> _migration_20250215085812_down = [
 )
 class Migration20250215085812 extends Migration {
   const Migration20250215085812()
-    : super(
-        version: 20250215085812,
-        up: _migration_20250215085812_up,
-        down: _migration_20250215085812_down,
-      );
+      : super(
+          version: 20250215085812,
+          up: _migration_20250215085812_up,
+          down: _migration_20250215085812_down,
+        );
 }

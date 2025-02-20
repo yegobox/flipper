@@ -9,3 +9,4 @@ part 'active_branch_provider.g.dart';
 Future<Branch> activeBranch(Ref ref) async {
   return await ProxyService.strategy.activeBranch();
 }
+
