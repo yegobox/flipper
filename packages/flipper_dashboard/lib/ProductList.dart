@@ -2,6 +2,7 @@
 import 'package:flipper_dashboard/PaymentModeModal.dart';
 import 'package:flipper_dashboard/PreviewSaleButton.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
+import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
@@ -35,7 +36,8 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
         TransactionMixin,
         TextEditingControllersMixin,
         PreviewCartMixin,
-        Refresh {
+        Refresh,
+        SnackBarMixin {
   @override
   Widget build(BuildContext context) {
     final isOrdering = ProxyService.box.isOrdering()!;
@@ -230,19 +232,8 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
               isExpense: isOrdering,
               branchId: ProxyService.box.getBranchId()!);
       refreshTransactionItems(transactionId: newTransaction!.id);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Order Placed successfully'),
-          backgroundColor: Colors.blue,
-          duration: Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(
-            left: 350.0, // Adjust left margin
-            right: 350.0, // Adjust right margin
-            bottom: 20.0, // Adjust bottom margin if needed
-          ),
-        ),
-      );
+
+      showCustomSnackBar(context, 'Order Placed successfully');
     } catch (e) {
       talker.error(e);
     }

@@ -129,10 +129,13 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? pchsSttsCd;
   // end of fields to ignore
 
+  List<int>? branchIds;
+
   Variant({
     String? id,
     this.pchsSttsCd,
     this.qty,
+    this.branchIds,
     this.stock,
     this.stockId,
     required this.name,

@@ -1070,12 +1070,27 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
                 action: QueryAction.delete,
                 where: [brick.Where('id').isExactly(request.financingId)]),
           );
-          await repository.delete<Financing>(
-            financing.first,
-            query: brick.Query(
-                action: QueryAction.delete,
-                where: [brick.Where('id').isExactly(financing.first.id)]),
-          );
+          try {
+            final provider = await repository.get<FinanceProvider>(
+              query: brick.Query(action: QueryAction.delete, where: [
+                brick.Where('id').isExactly(financing.first.financeProviderId)
+              ]),
+            );
+            await repository.delete<FinanceProvider>(
+              provider.first,
+              query: brick.Query(
+                  action: QueryAction.delete,
+                  where: [brick.Where('id').isExactly(provider.first.id)]),
+            );
+            await repository.delete<Financing>(
+              financing.first,
+              query: brick.Query(
+                  action: QueryAction.delete,
+                  where: [brick.Where('id').isExactly(financing.first.id)]),
+            );
+          } catch (e) {
+            talker.warning(e);
+          }
           await repository.delete<InventoryRequest>(
             request,
             query: brick.Query(

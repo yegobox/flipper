@@ -14,8 +14,8 @@ class Financing extends OfflineFirstWithSupabaseModel {
   final String id;
   final bool requested;
   final String status;
-  final FinanceProvider provider;
-  final String financeProviderId;
+  FinanceProvider? provider;
+  String? financeProviderId;
   num? amount;
   final DateTime approvalDate;
 

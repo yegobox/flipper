@@ -35,7 +35,7 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   num? itemCounts;
 
   // stock financing
-  final Financing? financing;
+  Financing? financing;
   String? financingId;
   InventoryRequest({
     String? id,

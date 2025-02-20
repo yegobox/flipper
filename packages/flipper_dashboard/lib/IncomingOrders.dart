@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -13,9 +14,10 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:intl/intl.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
+// import 'SnackBarMixin.dart';
 
 class IncomingOrdersWidget extends HookConsumerWidget
-    with StockRequestApprovalLogic {
+    with StockRequestApprovalLogic, SnackBarMixin {
   const IncomingOrdersWidget({Key? key}) : super(key: key);
 
   @override
@@ -166,19 +168,8 @@ class IncomingOrdersWidget extends HookConsumerWidget
                     Clipboard.setData(
                         ClipboardData(text: request.id.toString()));
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Request ID copied to clipboard'),
-                        backgroundColor: Colors.blue,
-                        duration: Duration(seconds: 2),
-                        behavior: SnackBarBehavior.floating,
-                        margin: EdgeInsets.only(
-                          left: 350.0, // Adjust left margin
-                          right: 350.0, // Adjust right margin
-                          bottom: 20.0, // Adjust bottom margin if needed
-                        ),
-                      ),
-                    );
+                    showCustomSnackBar(
+                        context, 'Request ID copied to clipboard');
                   },
                   child: Padding(
                     padding: EdgeInsets.all(8),
@@ -665,29 +656,13 @@ class IncomingOrdersWidget extends HookConsumerWidget
                   ref.refresh(stockRequestsProvider((filter: stringValue)));
                   Navigator.of(context).pop();
                   // Show success snackbar
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Request voided successfully'),
-                      backgroundColor: Colors.green[600],
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  );
+
+                  showCustomSnackBar(context, 'Request voided successfully');
                 } catch (e, s) {
                   talker.error(s);
-                  // Show error snackbar
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to void request: ${e.toString()}'),
-                      backgroundColor: Colors.red[600],
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  );
+                  showCustomSnackBar(
+                      context, 'Failed to approve request: ${e.toString()}',
+                      backgroundColor: Colors.red[600]);
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -717,29 +692,10 @@ class IncomingOrdersWidget extends HookConsumerWidget
       final stringValue = ref.watch(stringProvider);
       ref.refresh(stockRequestsProvider((filter: stringValue)));
 
-      // Show success snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Request approved successfully'),
-          backgroundColor: Colors.green[600],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      );
+      showCustomSnackBar(context, "Request approved successfully");
     } catch (e) {
-      // Show error snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to approve request: ${e.toString()}'),
-          backgroundColor: Colors.red[600],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      );
+      showCustomSnackBar(context, 'Failed to approve request: ${e.toString()}',
+          backgroundColor: Colors.red[600]);
     }
   }
 

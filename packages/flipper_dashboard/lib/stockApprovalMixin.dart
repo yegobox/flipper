@@ -13,7 +13,10 @@ mixin StockRequestApprovalLogic {
     List<TransactionItem> itemsNeedingApproval = [];
     bool isFullyApproved = true;
 
-    for (var item in request.transactionItems ?? []) {
+    List<TransactionItem> items =
+        await ProxyService.strategy.transactionItems(requestId: request.id);
+
+    for (var item in items) {
       if (await _canApproveItem(item: item)) {
         _approveItem(
             item: item, subBranchId: request.subBranchId!, context: context);
@@ -22,9 +25,9 @@ mixin StockRequestApprovalLogic {
         itemsNeedingApproval.add(item);
       }
     }
-    // TODO: re-implement this as using request.items.first.variantId! is not the right way.
-    Variant? variant = await ProxyService.strategy
-        .getVariant(id: request.transactionItems!.first.variantId!);
+
+    Variant? variant =
+        await ProxyService.strategy.getVariant(id: items.first.variantId!);
 
     if (!isFullyApproved) {
       bool partialApprovalResult = await _handlePartialApproval(
@@ -77,11 +80,12 @@ mixin StockRequestApprovalLogic {
       {required String variantId, required int subBranchId}) async {
     Variant? variant = await ProxyService.strategy.getVariant(id: variantId);
     if (variant != null) {
-      // if (!variant.branchIds.contains(subBranchId)) {
-      // TODO: this logic will change in new version of flipper
+      if (!variant.branchIds!.contains(subBranchId)) {
+        // TODO: this logic will change in new version of flipper
 
-      //   variant.branchIds.add(subBranchId);
-      // }
+        variant.branchIds!.add(subBranchId);
+        ProxyService.strategy.updateVariant(updatables: [variant]);
+      }
     }
   }
 
