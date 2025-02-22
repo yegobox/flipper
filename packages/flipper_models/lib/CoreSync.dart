@@ -3701,7 +3701,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       item.taxAmt = taxAmt ?? item.taxAmt;
       item.isRefunded = isRefunded ?? item.isRefunded;
       item.ebmSynced = ebmSynced ?? item.ebmSynced;
-      item.quantityApproved = quantityApproved ?? item.quantityApproved;
+      item.quantityApproved = 0;
       item.quantityRequested = incrementQty == true
           ? (item.qty + 1).toInt()
           : qty?.toInt() ?? item.qty.toInt();

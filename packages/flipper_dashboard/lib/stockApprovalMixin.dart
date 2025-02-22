@@ -131,11 +131,6 @@ mixin StockRequestApprovalLogic {
     required InventoryRequest request,
   }) async {
     try {
-      await ProxyService.strategy.updateTransactionItem(
-        transactionItemId: item.id,
-        quantityApproved: item.quantityRequested,
-      );
-
       await _createSharedVariantAndStock(
         item: item,
         request: request,
@@ -212,7 +207,10 @@ mixin StockRequestApprovalLogic {
       newM!.stock = stock;
       newM.stockId = stock.id;
       await ProxyService.strategy.updateVariant(updatables: [newM]);
-
+      await ProxyService.strategy.updateTransactionItem(
+        transactionItemId: item.id,
+        quantityApproved: item.quantityRequested,
+      );
       // Update VariantBranch with newVariant's stockId
       // variantBranch.stockId = stock.id;
       // await ProxyService.strategy.updateVariant(updatables: [variantBranch]); // Use upsert instead
