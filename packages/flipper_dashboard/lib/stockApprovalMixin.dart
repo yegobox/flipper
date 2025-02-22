@@ -95,11 +95,17 @@ mixin StockRequestApprovalLogic {
       id: item.variantId!,
     );
 
-    return variant != null &&
-        variant.stock != null &&
-        variant.stock!.currentStock != null &&
-        item.quantityRequested != null &&
-        variant.stock!.currentStock! >= item.quantityRequested!;
+    if (variant == null || variant.stock?.currentStock == null) {
+      return false;
+    }
+
+    final double availableStock = variant.stock!.currentStock!;
+    final int quantityRequested = item.quantityRequested ?? 0;
+    final int quantityApproved = item.quantityApproved ?? 0;
+    final int remainingQuantityToApprove = quantityRequested - quantityApproved;
+
+    return remainingQuantityToApprove > 0 &&
+        availableStock >= remainingQuantityToApprove;
   }
 
   Future<bool> _processItemApproval(

@@ -730,7 +730,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   Stream<List<InventoryRequest>> requestsStream(
-      {required int branchId, required String filter}) {
+      {required int branchId, String? filter}) {
     // TODO: implement requestsStream
     throw UnimplementedError();
   }
@@ -1915,7 +1915,7 @@ class Capella with Booting implements RealmInterface {
     // TODO: implement financeProviders
     throw UnimplementedError();
   }
-  
+
   @override
   Future<brick.VariantBranch?> variantBranch({required String variantId}) {
     // TODO: implement variantBranch

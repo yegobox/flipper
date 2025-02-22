@@ -2318,7 +2318,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       return await repository.get<InventoryRequest>(
           query: brick.Query(where: [
         brick.Where('mainBranchId').isExactly(branchId),
-        brick.Where('status').isExactly(RequestStatus.pending)
+        brick.Where('status').isExactly(RequestStatus.pending),
+        brick.Or('status').isExactly(RequestStatus.partiallyApproved)
       ]));
     }
     if (requestId != null) {
@@ -2332,8 +2333,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   Stream<List<InventoryRequest>> requestsStream(
-      {required int branchId, required String filter}) {
-    if (filter == RequestStatus.approved) {
+      {required int branchId, String? filter}) {
+    if (filter != null && filter == RequestStatus.approved) {
       final query = repository.subscribe<InventoryRequest>(
           policy: OfflineFirstGetPolicy.alwaysHydrate,
           query: brick.Query(where: [
@@ -2350,6 +2351,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
           query: brick.Query(where: [
             brick.Where('mainBranchId').isExactly(branchId),
             brick.Where('status').isExactly(RequestStatus.pending),
+            brick.Or('status').isExactly(RequestStatus.partiallyApproved),
           ]));
 
       return query
@@ -3690,7 +3692,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       item.taxAmt = taxAmt ?? item.taxAmt;
       item.isRefunded = isRefunded ?? item.isRefunded;
       item.ebmSynced = ebmSynced ?? item.ebmSynced;
-      item.quantityApproved = quantityApproved ?? item.quantityApproved;
+      item.quantityApproved =
+          (item.quantityApproved ?? 0) + (quantityApproved ?? 0);
       item.quantityRequested = incrementQty == true
           ? (item.qty + 1).toInt()
           : qty?.toInt() ?? item.qty.toInt();

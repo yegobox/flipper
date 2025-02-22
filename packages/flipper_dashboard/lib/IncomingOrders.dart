@@ -25,8 +25,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
     final stringValue = ref.watch(stringProvider);
     final stockRequests =
         ref.watch(stockRequestsProvider((filter: stringValue)));
-    final incomingBranchAsync =
-        ref.watch(activeBranchProvider); // Renamed to indicate AsyncValue
+    final incomingBranchAsync = ref.watch(activeBranchProvider);
 
     return Container(
       decoration: BoxDecoration(
@@ -365,7 +364,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
-              'Qty: ${item.qty}',
+              'Qty: ${(item.qty - item.quantityApproved!)}',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.blue[700],

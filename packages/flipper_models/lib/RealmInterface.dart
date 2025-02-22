@@ -441,7 +441,7 @@ abstract class RealmInterface {
   FutureOr<bool> isAdmin({required int userId, required String appFeature});
   FutureOr<List<Access>> access({required int userId, String? featureName});
   Stream<List<InventoryRequest>> requestsStream(
-      {required int branchId, required String filter});
+      {required int branchId, String? filter});
   FutureOr<List<InventoryRequest>> requests({int? branchId, String? requestId});
   FutureOr<Tenant?> getTenant({int? userId, int? pin});
 

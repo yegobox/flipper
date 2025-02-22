@@ -729,7 +729,7 @@ final branchSelectionProvider =
 );
 
 final stockRequestsProvider = StreamProvider.autoDispose
-    .family<List<InventoryRequest>, ({String filter})>((ref, params) {
+    .family<List<InventoryRequest>, ({String? filter})>((ref, params) {
   final branchId = ProxyService.box.getBranchId();
   final (:filter) = params;
   if (branchId == null) {
@@ -756,14 +756,6 @@ final branchesProvider = FutureProvider.autoDispose
 
   return branches;
 });
-
-class StringState extends StateNotifier<String> {
-  StringState(String initialValue) : super(initialValue);
-
-  void updateString(String newString) {
-    state = newString;
-  }
-}
 
 class Payment {
   double amount;
@@ -831,8 +823,17 @@ final paymentMethodsProvider =
     StateNotifierProvider<PaymentMethodsNotifier, List<Payment>>(
   (ref) => PaymentMethodsNotifier(), // No need to pass initial list here
 );
-final stringProvider = StateNotifierProvider<StringState, String>((ref) {
-  return StringState(RequestStatus.pending);
+
+class StringState extends StateNotifier<String?> {
+  StringState(String? initialValue) : super(initialValue);
+
+  void updateString(String newString) {
+    state = newString;
+  }
+}
+
+final stringProvider = StateNotifierProvider<StringState, String?>((ref) {
+  return StringState(null);
 });
 
 final showProductsList = AutoDisposeStateProvider<bool>((ref) => true);
