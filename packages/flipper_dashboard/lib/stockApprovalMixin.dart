@@ -131,7 +131,7 @@ mixin StockRequestApprovalLogic {
     required InventoryRequest request,
   }) async {
     try {
-      await _createSharedVariantAndStock(
+      await _handleVariantAndStock(
         item: item,
         request: request,
       );
@@ -141,82 +141,85 @@ mixin StockRequestApprovalLogic {
     }
   }
 
-  Future<void> _createSharedVariantAndStock({
+  // Extracted common logic for variant and stock handling
+  Future<void> _handleVariantAndStock({
     required TransactionItem item,
     required InventoryRequest request,
   }) async {
-    try {
-      final Variant? originalVariant = await ProxyService.strategy
-          .getVariant(id: item.variantId!); // Fetch the original variant
+    final Variant? requestedVariant = await ProxyService.strategy
+        .getVariant(id: item.variantId!); // Fetch the original variant
 
-      if (originalVariant == null) {
-        talker.error('Original variant not found for ID: ${item.variantId!}');
-        throw Exception('Original variant not found');
-      }
-      originalVariant.isShared = true;
-      await ProxyService.strategy.updateVariant(updatables: [originalVariant]);
-      // Create a copy of the variant with a new ID
-      final String newVariantId = const Uuid().v4();
-      final String newModrId = const Uuid().v4().substring(0, 5);
-
-      /// before creating new copy if it is not the first time ordering from us
-      /// query the variant for re-use.
-      Variant newVariant;
-      Variant? newM;
-      Stock stock;
-      VariantBranch? existingVariantOrderedBefore = await ProxyService.strategy
-          .variantBranch(variantId: originalVariant.id);
-      if (existingVariantOrderedBefore != null) {
-        // get actual variant
-        newVariant = (await ProxyService.strategy
-            .getVariant(id: existingVariantOrderedBefore.newVariantId))!;
-        stock = newVariant.stock!;
-      } else {
-        newVariant = originalVariant.copyWith(
-            id: newVariantId,
-            modrId: newModrId,
-            isShared: true,
-            branchId: request.subBranchId!);
-        newM = await ProxyService.strategy.create<Variant>(data: newVariant);
-        Branch? me =
-            await ProxyService.strategy.branch(serverId: request.mainBranchId!);
-        // Create VariantBranch record
-        final VariantBranch variantBranch = VariantBranch(
-            variantId: originalVariant.id,
-            newVariantId: newVariantId,
-            sourceBranchId: me!.id,
-            destinationBranchId: request.branch!.id);
-
-        await ProxyService.strategy.create<VariantBranch>(data: variantBranch);
-        stock = await _createNewStockForSharedVariant(
-          item: item,
-          variant: newVariant,
-          destinationBranchId: request.branch!.serverId!,
-        );
-      }
-      //update main branch stock
-
-      await _updateMainBranchStock(
-          approvedQuantity: item.quantityRequested!,
-          variantId: originalVariant.id);
-      // update the newly variant with stock
-      if (newM != null) {
-        newM.stock = stock;
-        newM.stockId = stock.id;
-        await ProxyService.strategy.updateVariant(updatables: [newM]);
-      }
-
-      await ProxyService.strategy.updateTransactionItem(
-        transactionItemId: item.id,
-        quantityApproved: item.quantityRequested,
-      );
-      // Update VariantBranch with newVariant's stockId
-      // variantBranch.stockId = stock.id;
-      // await ProxyService.strategy.updateVariant(updatables: [variantBranch]); // Use upsert instead
-    } catch (e, s) {
-      talker.error('Error creating shared variant and stock', e, s);
-      throw Exception('Failed to create shared variant and stock');
+    if (requestedVariant == null) {
+      talker.error('Original variant not found for ID: ${item.variantId!}');
+      throw Exception('Original variant not found');
     }
+    requestedVariant.isShared = true;
+    await ProxyService.strategy.updateVariant(updatables: [requestedVariant]);
+    // Create a copy of the variant with a new ID
+    final String newVariantId = const Uuid().v4();
+    final String newModrId = const Uuid().v4().substring(0, 5);
+
+    /// before creating new copy if it is not the first time ordering from us
+    /// query the variant for re-use.
+    Variant newVariant;
+    Variant? newM;
+    Stock stock;
+
+    VariantBranch? existingVariantOrderedBefore = await ProxyService.strategy
+        .variantBranch(variantId: requestedVariant.id);
+    if (existingVariantOrderedBefore != null) {
+      // get actual variant
+      newVariant = (await ProxyService.strategy
+          .getVariant(id: existingVariantOrderedBefore.newVariantId))!;
+      stock = newVariant.stock!;
+    } else {
+      newVariant = requestedVariant.copyWith(
+          id: newVariantId,
+          modrId: newModrId,
+          isShared: true,
+          branchId: request.subBranchId!);
+      newM = await ProxyService.strategy.create<Variant>(data: newVariant);
+      Branch? me =
+          await ProxyService.strategy.branch(serverId: request.mainBranchId!);
+      // Create VariantBranch record
+      final VariantBranch variantBranch = VariantBranch(
+          variantId: requestedVariant.id,
+          newVariantId: newVariantId,
+          sourceBranchId: me!.id,
+          destinationBranchId: request.branch!.id);
+
+      await ProxyService.strategy.create<VariantBranch>(data: variantBranch);
+      stock = await _createNewStockForSharedVariant(
+        item: item,
+        variant: newVariant,
+        destinationBranchId: request.branch!.serverId!,
+      );
+    }
+    //update main branch stock
+
+    await _updateMainBranchStock(
+        isDeducting: false,
+        approvedQuantity: item.quantityRequested!,
+        variantId: newVariant.id);
+
+    await _updateMainBranchStock(
+        isDeducting: true,
+        approvedQuantity: item.quantityRequested!,
+        variantId: requestedVariant.id);
+    // update the newly variant with stock
+    if (newM != null) {
+      newM.stock = stock;
+      newM.stockId = stock.id;
+      await ProxyService.strategy.updateVariant(updatables: [newM]);
+    }
+
+    await ProxyService.strategy.updateTransactionItem(
+      transactionItemId: item.id,
+      quantityApproved: item.quantityRequested,
+    );
+    // Update VariantBranch with newVariant's stockId
+    // variantBranch.stockId = stock.id;
+    // await ProxyService.strategy.updateVariant(updatables: [variantBranch]); // Use upsert instead
   }
 
   Future<Stock> _createNewStockForSharedVariant({
@@ -575,22 +578,13 @@ mixin StockRequestApprovalLogic {
       for (int i = 0; i < items.length; i++) {
         if (approvedQuantities[i] != null) {
           final TransactionItem item = items[i];
-          final int approvedQuantity = approvedQuantities[i]!;
+          final int approvedQuantity = approvedQuantities[
+              i]!; // Correctly use the approved quantity from the dialog
 
-          // Fetch the latest Variant data for this item
-          final Variant? variant =
-              await ProxyService.strategy.getVariant(id: item.variantId!);
-          if (variant == null) {
-            // Handle variant not found error (show a message, skip this item, etc.)
-            talker.error('Variant not found for item: ${item.name}');
-            continue; // Skip to the next item
-          }
-
-          await _processApprovedItem(
+          await _processPartialApprovalItem(
             item: item,
             approvedQuantity: approvedQuantity,
             request: request,
-            variant: variant,
           );
         }
       }
@@ -612,31 +606,103 @@ mixin StockRequestApprovalLogic {
     }
   }
 
-  Future<void> _processApprovedItem({
+  Future<void> _processPartialApprovalItem({
     required TransactionItem item,
     required int approvedQuantity,
     required InventoryRequest request,
-    required Variant variant,
   }) async {
     try {
+      final Variant? requestedVariant =
+          await ProxyService.strategy.getVariant(id: item.variantId!);
+
+      if (requestedVariant == null) {
+        talker.error('Variant not found for ID: ${item.variantId!}');
+        throw Exception('Variant not found');
+      }
+      // First apply create the new variant copy and associated values
+      final Variant newVariant = await _handleVariantAndStockInternal(
+        item: item,
+        request: request,
+        variant: requestedVariant,
+        approvedQuantity: approvedQuantity,
+      );
+
+      //update main branch stock
+      await _updateMainBranchStock(
+          isDeducting: false,
+          approvedQuantity: approvedQuantity,
+          variantId: newVariant.id);
+
+      //update stock from main branch
+      await _updateMainBranchStock(
+          isDeducting: true,
+          approvedQuantity: approvedQuantity,
+          variantId: requestedVariant.id);
+
+      //lastly sync the transaction item to db.
       await ProxyService.strategy.updateTransactionItem(
         transactionItemId: item.id,
         quantityApproved: approvedQuantity,
       );
-
-      await _updateMainBranchStock(
-        variantId: item.variantId!,
-        approvedQuantity: approvedQuantity,
-      );
     } catch (e, s) {
-      talker.error('Error processing approved item', e, s);
-      throw Exception('Failed to process approved item');
+      talker.error('Error in _processPartialApprovalItem', e, s);
+      throw Exception('Failed to process partial approval item');
     }
+  }
+
+  // this function is created and will create variant and stock and update transactionitem and return
+  // new variant so that it could be updated.
+  Future<Variant> _handleVariantAndStockInternal({
+    required TransactionItem item,
+    required InventoryRequest request,
+    required Variant variant,
+    required int approvedQuantity,
+  }) async {
+    variant.isShared = true;
+    await ProxyService.strategy.updateVariant(updatables: [variant]);
+    // Create a copy of the variant with a new ID
+    final String newVariantId = const Uuid().v4();
+    final String newModrId = const Uuid().v4().substring(0, 5);
+
+    Variant newVariant;
+
+    VariantBranch? existingVariantOrderedBefore =
+        await ProxyService.strategy.variantBranch(variantId: variant.id);
+    if (existingVariantOrderedBefore != null) {
+      // get actual variant
+      newVariant = (await ProxyService.strategy
+          .getVariant(id: existingVariantOrderedBefore.newVariantId))!;
+      newVariant.stock!;
+    } else {
+      newVariant = variant.copyWith(
+          id: newVariantId,
+          modrId: newModrId,
+          isShared: true,
+          branchId: request.subBranchId!);
+      await ProxyService.strategy.create<Variant>(data: newVariant);
+      Branch? me =
+          await ProxyService.strategy.branch(serverId: request.mainBranchId!);
+      // Create VariantBranch record
+      final VariantBranch variantBranch = VariantBranch(
+          variantId: variant.id,
+          newVariantId: newVariantId,
+          sourceBranchId: me!.id,
+          destinationBranchId: request.branch!.id);
+
+      await ProxyService.strategy.create<VariantBranch>(data: variantBranch);
+      await _createNewStockForSharedVariant(
+        item: item,
+        variant: newVariant,
+        destinationBranchId: request.branch!.serverId!,
+      );
+    }
+    return newVariant;
   }
 
   Future<void> _updateMainBranchStock({
     required String variantId,
     required int approvedQuantity,
+    required isDeducting,
   }) async {
     try {
       final Variant? variant = await ProxyService.strategy.getVariant(
@@ -644,8 +710,9 @@ mixin StockRequestApprovalLogic {
       );
 
       if (variant?.stock != null) {
-        final updatedStock =
-            variant!.stock!.currentStock! - approvedQuantity.toDouble();
+        final updatedStock = isDeducting
+            ? (variant!.stock!.currentStock! - approvedQuantity.toDouble())
+            : (variant!.stock!.currentStock! + approvedQuantity.toDouble());
 
         await ProxyService.strategy.updateStock(
           stockId: variant.stock!.id,
