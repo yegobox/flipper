@@ -9,12 +9,12 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250114144814_up = [
-  InsertColumn('amount_payable', Column.Double, onTable: 'CustomerPayments')
+const List<MigrationCommand> _migration_20250221174519_up = [
+  InsertColumn('is_shared', Column.boolean, onTable: 'Variant')
 ];
 
-const List<MigrationCommand> _migration_20250114144814_down = [
-  DropColumn('amount_payable', onTable: 'CustomerPayments')
+const List<MigrationCommand> _migration_20250221174519_down = [
+  DropColumn('is_shared', onTable: 'Variant')
 ];
 
 //
@@ -22,15 +22,15 @@ const List<MigrationCommand> _migration_20250114144814_down = [
 //
 
 @Migratable(
-  version: '20250114144814',
-  up: _migration_20250114144814_up,
-  down: _migration_20250114144814_down,
+  version: '20250221174519',
+  up: _migration_20250221174519_up,
+  down: _migration_20250221174519_down,
 )
-class Migration20250114144814 extends Migration {
-  const Migration20250114144814()
+class Migration20250221174519 extends Migration {
+  const Migration20250221174519()
     : super(
-        version: 20250114144814,
-        up: _migration_20250114144814_up,
-        down: _migration_20250114144814_down,
+        version: 20250221174519,
+        up: _migration_20250221174519_up,
+        down: _migration_20250221174519_down,
       );
 }

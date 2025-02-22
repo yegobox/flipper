@@ -62,12 +62,14 @@ final productFromSupplier =
     'Content-Type': 'application/json',
     'apikey': AppSecrets.supabaseAnonKey,
   };
-  
-  talker.warning("Supplier Id: ${supplier?.serverId}");
+  if (supplier == null || supplier.serverId == null)
+    throw Exception("Select a supplier");
+
+  talker.warning("Supplier Id: ${supplier.serverId}");
 
   // Construct the Supabase URL with query parameters
   final supabaseUrl =
-      '${AppSecrets.newApiEndPoints}${supplier?.serverId}&limit=100&pchs_stts_cd=neq.01&pchs_stts_cd=neq.04&impt_item_stts_cd=neq.2&impt_item_stts_cd=neq.4';
+      '${AppSecrets.newApiEndPoints}${supplier.serverId}&limit=100&pchs_stts_cd=neq.01&pchs_stts_cd=neq.04&impt_item_stts_cd=neq.2&impt_item_stts_cd=neq.4';
 
   var dio = Dio();
   try {
@@ -96,8 +98,8 @@ final productFromSupplier =
     }).toList();
 
     return variants;
-  } on DioException catch (e) {
-    Talker().error('DioException in productFromSupplier: ${e.message}');
+  } on DioException {
+    //Talker().error('DioException in productFromSupplier: ${e.message}');
     return []; // Return an empty list on error
   } catch (e, s) {
     Talker().error('Error in productFromSupplier: $e');

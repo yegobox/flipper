@@ -21,7 +21,6 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter/foundation.dart';
-import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 
 Map<int, String> positionString = {

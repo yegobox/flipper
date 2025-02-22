@@ -1,8 +1,8 @@
+//PaymentModeModal.dart
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-
 
 class PaymentModeModal extends StatefulWidget {
   final List<FinanceProvider> financeProviders;
@@ -43,18 +43,19 @@ class _PaymentModeModalState extends State<PaymentModeModal> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(provider.name),
-
                       Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Text(
-                            'Credit (${provider.interestRate}%)',
-                            style: const TextStyle(color: Colors.orange, fontSize: 12),
-                          ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(5),
                         ),
+                        child: Text(
+                          'Credit (${provider.interestRate}%)',
+                          style: const TextStyle(
+                              color: Colors.orange, fontSize: 12),
+                        ),
+                      ),
                     ],
                   ),
                   value: provider.id,
@@ -71,13 +72,14 @@ class _PaymentModeModalState extends State<PaymentModeModal> {
       actions: [
         FlipperButtonFlat(
           onPressed: () => Navigator.of(context).pop(),
-         text: 'Cancel',
+          text: 'Cancel',
         ),
         FlipperButton(
           onPressed: () {
             if (_selectedPaymentMode != null) {
               widget.onPaymentModeSelected(_selectedPaymentMode!);
-              Navigator.of(context).pop();
+              // DO NOT pop here! Let the caller handle it.
+              // Navigator.of(context).pop();
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Please select a payment mode')),
@@ -90,10 +92,10 @@ class _PaymentModeModalState extends State<PaymentModeModal> {
       ],
     );
   }
-
 }
 
-Future<void> showPaymentModeModal(BuildContext context, Function(FinanceProvider) onPaymentModeSelected) async {
+Future<void> showPaymentModeModal(BuildContext context,
+    Function(FinanceProvider) onPaymentModeSelected) async {
   // Fetch finance providers using ProxyService.strategy
   final financeProviders = await ProxyService.strategy.financeProviders();
 
@@ -104,7 +106,7 @@ Future<void> showPaymentModeModal(BuildContext context, Function(FinanceProvider
         financeProviders: financeProviders,
         onPaymentModeSelected: (selectedMode) {
           final selectedProvider = financeProviders.firstWhere(
-                (provider) => provider.id == selectedMode,
+            (provider) => provider.id == selectedMode,
           );
           onPaymentModeSelected(selectedProvider);
         },

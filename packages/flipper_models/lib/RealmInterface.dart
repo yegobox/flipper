@@ -323,7 +323,11 @@ abstract class RealmInterface {
       required String url});
 
   Future<Variant?> getVariant(
-      {String? id, String? modrId, String? name, String? bcd});
+      {String? id,
+      String? modrId,
+      String? name,
+      String? bcd,
+      String? productId});
   Future<bool> isTaxEnabled({required int businessId});
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
@@ -534,7 +538,7 @@ abstract class RealmInterface {
 
   FutureOr<Drawers?> closeDrawer(
       {required Drawers drawer, required double eod});
-  FutureOr<void> saveStock({
+  FutureOr<Stock> saveStock({
     Variant? variant,
     required double rsdQty,
     required String productId,
@@ -891,4 +895,5 @@ abstract class RealmInterface {
   Future<int> queueLength();
 
   Future<List<FinanceProvider>> financeProviders();
+  Future<VariantBranch?> variantBranch({required String variantId});
 }

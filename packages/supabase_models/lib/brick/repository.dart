@@ -15,8 +15,8 @@ import 'package:path/path.dart';
 export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
-const dbFileName = "flipper_v6.sqlite";
-const queueName = "brick_offline_queue_v6.sqlite";
+const dbFileName = "flipper_v9.sqlite";
+const queueName = "brick_offline_queue_v9.sqlite";
 
 class Repository extends OfflineFirstWithSupabaseRepository {
   static late Repository? _singleton;

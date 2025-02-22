@@ -1,4 +1,4 @@
-// ignore_for_file: unused_result
+// OrderingView
 import 'package:flipper_dashboard/PaymentModeModal.dart';
 import 'package:flipper_dashboard/PreviewSaleButton.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
@@ -23,14 +23,14 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
 import 'package:stacked_services/stacked_services.dart';
 
-class ProductListScreen extends StatefulHookConsumerWidget {
-  const ProductListScreen({Key? key}) : super(key: key);
-
+class OrderingView extends StatefulHookConsumerWidget {
+  const OrderingView(this.transaction, {Key? key}) : super(key: key);
+  final ITransaction transaction;
   @override
   ProductListScreenState createState() => ProductListScreenState();
 }
 
-class ProductListScreenState extends ConsumerState<ProductListScreen>
+class ProductListScreenState extends ConsumerState<OrderingView>
     with
         Datamixer,
         TransactionMixin,
@@ -38,18 +38,147 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
         PreviewCartMixin,
         Refresh,
         SnackBarMixin {
+  // Add loading state
+  bool _isLoading = false;
+
+  Future<void> _showLoadingModal({String message = 'Processing...'}) async {
+    if (_isLoading) return; // Prevent multiple modals
+
+    _isLoading = true;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return PopScope(
+          canPop: false, // Prevent back button from closing
+          child: Dialog(
+            backgroundColor: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    message,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _hideLoadingModal() async {
+    if (_isLoading) {
+      Navigator.of(context, rootNavigator: true).pop();
+      _isLoading = false;
+    }
+  }
+
+  Future<void> _showSuccessDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.check_circle_outline,
+                color: Colors.green,
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Order Placed Successfully',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Your order has been processed and confirmed.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // ignore: unused_result
+                ref.refresh(pendingTransactionStreamProvider(isExpense: true));
+                Navigator.of(context).pop();
+                showCustomSnackBar(context, 'Order Placed successfully');
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showErrorDialog(String errorMessage) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: const Row(
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: Colors.red,
+              ),
+              SizedBox(width: 8),
+              Text('Error'),
+            ],
+          ),
+          content: Text(
+            'Failed to place order: ${errorMessage.length > 100 ? errorMessage.substring(0, 100) + '...' : errorMessage}',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  int count = 0;
+
   @override
   Widget build(BuildContext context) {
     final isOrdering = ProxyService.box.isOrdering()!;
     final theme = Theme.of(context);
-
+    final orderCount = ref
+        .watch(transactionItemsProvider(transactionId: widget.transaction.id))
+        .value
+        ?.length;
+    setState(() {
+      count = orderCount ?? 0;
+    });
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
         return Scaffold(
           appBar: _buildAppBar(theme: theme),
           body: _buildBody(ref, model: model),
-          floatingActionButton: _buildFloatingActionButton(ref, isOrdering),
+          floatingActionButton:
+              _buildFloatingActionButton(ref, isOrdering, orderCount: count),
         );
       },
     );
@@ -146,19 +275,8 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
     );
   }
 
-  Widget _buildFloatingActionButton(WidgetRef ref, bool isOrdering) {
-    final transaction =
-        ref.watch(pendingTransactionStreamProvider(isExpense: isOrdering));
-
-    if (transaction.value == null) return const SizedBox.shrink();
-
-    final orderCount = ref
-            .watch(
-                transactionItemsProvider(transactionId: transaction.value?.id))
-            .valueOrNull
-            ?.length ??
-        0;
-
+  Widget _buildFloatingActionButton(WidgetRef ref, bool isOrdering,
+      {required int orderCount}) {
     return Consumer(
       builder: (context, ref, _) {
         final digitalPaymentEnabled =
@@ -166,7 +284,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
 
         return _buildPreviewSaleButton(
           ref,
-          transaction.value!,
+          widget.transaction,
           orderCount,
           isOrdering,
           digitalPaymentEnabled,
@@ -204,16 +322,17 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
       if (!isPreviewing) {
         ref.read(previewingCart.notifier).state = true;
       } else {
-        _showPaymentModeModal(ref, transaction, isOrdering);
+        await _showPaymentModeModal(ref, transaction, isOrdering);
       }
     } else {
       toast("The cart is empty");
     }
   }
 
-  void _showPaymentModeModal(
-      WidgetRef ref, ITransaction transaction, bool isOrdering) {
+  Future<void> _showPaymentModeModal(
+      WidgetRef ref, ITransaction transaction, bool isOrdering) async {
     showPaymentModeModal(context, (provider) async {
+      // NOTE: Do NOT pop the payment mode modal here!
       await _handleOrderPlacement(ref, transaction, isOrdering, provider);
     });
   }
@@ -221,20 +340,37 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
   Future<void> _handleOrderPlacement(WidgetRef ref, ITransaction transaction,
       bool isOrdering, FinanceProvider financeOption) async {
     try {
+      Navigator.of(context, rootNavigator: true).pop();
+      // Show loading modal
+      _showLoadingModal(message: 'Placing your order...');
+
+      // Place the order
       await placeFinalOrder(
           transaction: transaction, financeOption: financeOption);
+
+      // Refresh the transaction state
+      // ignore: unused_result
       ref.refresh(pendingTransactionStreamProvider(isExpense: isOrdering));
       ref.read(previewingCart.notifier).state = false;
 
+      // Create new transaction
       ITransaction? newTransaction = await ProxyService.strategy
           .manageTransaction(
               transactionType: TransactionType.purchase,
               isExpense: isOrdering,
               branchId: ProxyService.box.getBranchId()!);
-      refreshTransactionItems(transactionId: newTransaction!.id);
 
-      showCustomSnackBar(context, 'Order Placed successfully');
+      await refreshTransactionItems(transactionId: newTransaction!.id);
+      setState(() {
+        count = 0;
+      });
+      // Hide loading modal and show success
+      await _hideLoadingModal();
+      await _showSuccessDialog();
     } catch (e) {
+      // Hide loading modal and show error
+      await _hideLoadingModal();
+      await _showErrorDialog(e.toString());
       talker.error(e);
     }
   }

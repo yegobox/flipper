@@ -1,11 +1,12 @@
 import 'package:flipper_models/providers/selected_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flipper_dashboard/ProductList.dart';
+import 'package:flipper_dashboard/OrderingView.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -19,7 +20,8 @@ class Orders extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final suppliers = ref.watch(branchesProvider((includeSelf: false)));
     final theme = Theme.of(context);
-
+    final pendingTransaction =
+        ref.watch(pendingTransactionStreamProvider(isExpense: true));
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic other) {
@@ -49,9 +51,11 @@ class Orders extends HookConsumerWidget {
         body: LayoutBuilder(
           builder: (context, constraints) {
             if (constraints.maxWidth > 600) {
-              return _buildDesktopLayout(context, ref, suppliers.value ?? []);
+              return _buildDesktopLayout(context, ref, suppliers.value ?? [],
+                  transaction: pendingTransaction.value);
             } else {
-              return _buildMobileLayout(context, ref, suppliers.value ?? []);
+              return _buildMobileLayout(context, ref, suppliers.value ?? [],
+                  transaction: pendingTransaction.value);
             }
           },
         ),
@@ -60,7 +64,9 @@ class Orders extends HookConsumerWidget {
   }
 
   Widget _buildDesktopLayout(
-      BuildContext context, WidgetRef ref, List<Branch> suppliers) {
+      BuildContext context, WidgetRef ref, List<Branch> suppliers,
+      {ITransaction? transaction}) {
+    if (transaction == null) return SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -68,7 +74,7 @@ class Orders extends HookConsumerWidget {
           _buildSearchableSupplierField(suppliers, ref, context),
           const SizedBox(height: 24),
           Expanded(
-            child: ProductListScreen(),
+            child: OrderingView(transaction),
           ),
         ],
       ),
@@ -76,7 +82,8 @@ class Orders extends HookConsumerWidget {
   }
 
   Widget _buildMobileLayout(
-      BuildContext context, WidgetRef ref, List<Branch> suppliers) {
+      BuildContext context, WidgetRef ref, List<Branch> suppliers,
+      {ITransaction? transaction}) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -101,7 +108,7 @@ class Orders extends HookConsumerWidget {
           const SizedBox(height: 24),
           _buildSearchableSupplierField(suppliers, ref, context),
           const SizedBox(height: 32),
-          _buildViewProductsButton(context, ref),
+          _buildViewProductsButton(context, ref, transaction: transaction),
         ],
       ),
     );
@@ -153,9 +160,10 @@ class Orders extends HookConsumerWidget {
     );
   }
 
-  Widget _buildViewProductsButton(BuildContext context, WidgetRef ref) {
+  Widget _buildViewProductsButton(BuildContext context, WidgetRef ref,
+      {ITransaction? transaction}) {
     final selectedSupplier = ref.watch(selectedSupplierProvider);
-
+    if (transaction == null) return SizedBox.shrink();
     return FlipperButton(
       textColor: Theme.of(context).colorScheme.onPrimary,
       color: Theme.of(context).colorScheme.primary,
@@ -169,7 +177,7 @@ class Orders extends HookConsumerWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const ProductListScreen(),
+            builder: (context) => OrderingView(transaction),
           ),
         );
       },

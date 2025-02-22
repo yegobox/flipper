@@ -109,6 +109,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             retailPrice: double.tryParse(retailPriceController.text) ?? 0,
             supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
             variations: model.scannedVariants,
+            product: productRef,
             selectedProductType: selectedProductType,
             packagingUnit: selectedPackageUnitValue.split(":")[0]);
       }

@@ -1105,7 +1105,7 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<ITransaction> collectPayment(
       {required double cashReceived,
-       ITransaction? transaction,
+      ITransaction? transaction,
       required String paymentType,
       required double discount,
       required int branchId,
@@ -1324,7 +1324,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  FutureOr<void> saveStock(
+  FutureOr<Stock> saveStock(
       {Variant? variant,
       required double rsdQty,
       required String productId,
@@ -1815,14 +1815,18 @@ class Capella with Booting implements RealmInterface {
 
   @override
   Future<brick.Variant?> getVariant(
-      {String? id, String? modrId, String? name, String? bcd}) {
+      {String? id,
+      String? modrId,
+      String? name,
+      String? bcd,
+      String? productId}) {
     // TODO: implement getVariantById
     throw UnimplementedError();
   }
 
   @override
   Future<void> addTransactionItem(
-      { brick.ITransaction? transaction,
+      {brick.ITransaction? transaction,
       required bool partOfComposite,
       required DateTime lastTouched,
       required double discount,
@@ -1909,6 +1913,12 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<List<brick.FinanceProvider>> financeProviders() {
     // TODO: implement financeProviders
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<brick.VariantBranch?> variantBranch({required String variantId}) {
+    // TODO: implement variantBranch
     throw UnimplementedError();
   }
 }

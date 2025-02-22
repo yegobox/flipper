@@ -34,12 +34,17 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   DateTime? updatedAt;
   num? itemCounts;
 
+  String? bhfId;
+  String? tinNumber;
+
   // stock financing
   Financing? financing;
   String? financingId;
   InventoryRequest({
     String? id,
     this.mainBranchId,
+    this.bhfId,
+    this.tinNumber,
     this.itemCounts,
     this.subBranchId,
     this.createdAt,

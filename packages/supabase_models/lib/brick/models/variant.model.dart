@@ -129,13 +129,13 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? pchsSttsCd;
   // end of fields to ignore
 
-  List<int>? branchIds;
+  bool? isShared;
 
   Variant({
     String? id,
-    this.pchsSttsCd,
+    String? pchsSttsCd,
+    bool? isShared,
     this.qty,
-    this.branchIds,
     this.stock,
     this.stockId,
     required this.name,
@@ -208,6 +208,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.dcAmt = 0.0,
   })  : id = id ?? const Uuid().v4(),
         imptItemSttsCd = imptItemSttsCd ?? '3',
+        isShared = isShared ?? false,
+        pchsSttsCd = pchsSttsCd ?? '3',
         modrId = modrId ?? const Uuid().v4().substring(0, 5);
 
   // fromJson method
@@ -454,9 +456,11 @@ class Variant extends OfflineFirstWithSupabaseModel {
     double? taxblAmt,
     double? taxAmt,
     String? purchaseId,
+    bool? isShared,
   }) {
     return Variant(
       id: id ?? this.id,
+      isShared: isShared ?? this.isShared,
       stock: stock ?? this.stock,
       stockId: stockId ?? this.stockId,
       taxPercentage: taxPercentage ?? this.taxPercentage,

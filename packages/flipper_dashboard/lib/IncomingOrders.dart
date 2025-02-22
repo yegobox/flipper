@@ -106,7 +106,6 @@ class IncomingOrdersWidget extends HookConsumerWidget
   Widget _buildRequestCard(
       BuildContext context, WidgetRef ref, InventoryRequest request,
       {required Branch incomingBranch}) {
-    // ... (rest of your _buildRequestCard widget - unchanged)
     return Card(
       elevation: 2,
       shadowColor: Colors.black26,
@@ -691,8 +690,6 @@ class IncomingOrdersWidget extends HookConsumerWidget
       approveRequest(request: request, context: context);
       final stringValue = ref.watch(stringProvider);
       ref.refresh(stockRequestsProvider((filter: stringValue)));
-
-      showCustomSnackBar(context, "Request approved successfully");
     } catch (e) {
       showCustomSnackBar(context, 'Failed to approve request: ${e.toString()}',
           backgroundColor: Colors.red[600]);

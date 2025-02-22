@@ -1,9 +1,18 @@
+// ignore_for_file: unused_result, unused_field
+
 import 'package:flipper_dashboard/BranchPerformance.dart';
+import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/Reports.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/transactionList.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
-    show buttonIndexProvider, selectedBranchProvider;
+    show
+        branchSelectionProvider,
+        branchesProvider,
+        businessesProvider,
+        buttonIndexProvider,
+        selectedBranchProvider;
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart' show TransactionPeriod;
@@ -71,8 +80,12 @@ class IconRow extends StatefulHookConsumerWidget {
   ConsumerState<IconRow> createState() => IconRowState();
 }
 
-class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
+class IconRowState extends ConsumerState<IconRow>
+    with CoreMiscellaneous, BranchSelectionMixin {
   final List<bool> _isSelected = [true, false, false, false, false];
+  String? _loadingItemId; // Add this
+  bool _isLoading = false;
+
   String _getDeviceType(BuildContext context) {
     return DeviceType.getDeviceType(context);
   }
@@ -157,7 +170,8 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
         context: context,
         builder: (_) => Dialog(
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(4))),
+            borderRadius: BorderRadius.all(Radius.circular(4)),
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 700),
             child: Padding(
@@ -182,24 +196,63 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
         _routerService
             .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));
       } else {
-        showDialog(
-          barrierDismissible: false,
+        // Show branch switching dialog with logout option
+        await showBranchSwitchDialog(
           context: context,
-          builder: (_) => Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text("We are logging you out."),
-            ],
-          )),
+          branches: await ProxyService.strategy.branches(
+              businessId: ProxyService.box.getBusinessId()!,
+              includeSelf: false),
+          loadingItemId: _loadingItemId,
+          setDefaultBranch: (branch) async {
+            setState(() {
+              _isLoading = true; // Correctly set loading state here
+            });
+            handleBranchSelection(
+              branch: branch,
+              context: context,
+              setLoadingState: (String? id) {
+                setState(() {
+                  _loadingItemId = id;
+                });
+              },
+              setDefaultBranch: _setDefaultBranch,
+              onComplete: () {
+                Navigator.of(context).pop(); // Close the dialog
+                setState(() {
+                  _isLoading = false; // Correctly set loading state here
+                });
+              },
+              setIsLoading: (bool value) {
+                setState(() {
+                  _isLoading = value;
+                });
+              },
+            );
+          },
+          onLogout: () async {
+            await showLogoutConfirmationDialog(
+              context,
+            );
+          },
+          setLoadingState: (String? id) {
+            setState(() {
+              _loadingItemId = id;
+            });
+          },
         );
-        await logOut();
-        Navigator.of(context).pop();
-        _routerService.replaceWith(LoginRoute());
       }
     }
+  }
+
+  Future<void> _setDefaultBranch(Branch branch) async {
+    ref.read(branchSelectionProvider.notifier).setLoading(true);
+    _refreshBusinessAndBranchProviders();
+    return Future.value(); // Return a completed Future<void>
+  }
+
+  void _refreshBusinessAndBranchProviders() {
+    ref.refresh(businessesProvider);
+    ref.refresh(branchesProvider((includeSelf: true)));
   }
 
   void _showBranchPerformanceMobile(BuildContext context) {

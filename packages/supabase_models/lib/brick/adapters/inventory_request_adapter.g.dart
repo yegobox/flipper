@@ -48,6 +48,9 @@ Future<InventoryRequest> _$InventoryRequestFromSupabase(
               : DateTime.tryParse(data['updated_at'] as String),
       itemCounts:
           data['item_counts'] == null ? null : data['item_counts'] as num?,
+      bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
+      tinNumber:
+          data['tin_number'] == null ? null : data['tin_number'] as String?,
       financing: data['financing'] == null
           ? null
           : await FinancingAdapter().fromSupabase(data['financing'],
@@ -81,6 +84,8 @@ Future<Map<String, dynamic>> _$InventoryRequestToSupabase(
     'driver_id': instance.driverId,
     'updated_at': instance.updatedAt?.toIso8601String(),
     'item_counts': instance.itemCounts,
+    'bhf_id': instance.bhfId,
+    'tin_number': instance.tinNumber,
     'financing': instance.financing != null
         ? await FinancingAdapter().toSupabase(instance.financing!,
             provider: provider, repository: repository)
@@ -155,6 +160,9 @@ Future<InventoryRequest> _$InventoryRequestFromSqlite(Map<String, dynamic> data,
               : DateTime.tryParse(data['updated_at'] as String),
       itemCounts:
           data['item_counts'] == null ? null : data['item_counts'] as num?,
+      bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
+      tinNumber:
+          data['tin_number'] == null ? null : data['tin_number'] as String?,
       financing: data['financing_Financing_brick_id'] == null
           ? null
           : (data['financing_Financing_brick_id'] > -1
@@ -202,6 +210,8 @@ Future<Map<String, dynamic>> _$InventoryRequestToSqlite(
         : null,
     'updated_at': instance.updatedAt?.toIso8601String(),
     'item_counts': instance.itemCounts,
+    'bhf_id': instance.bhfId,
+    'tin_number': instance.tinNumber,
     'financing_Financing_brick_id': instance.financing != null
         ? instance.financing!.primaryKey ??
             await provider.upsert<Financing>(instance.financing!,
@@ -289,6 +299,14 @@ class InventoryRequestAdapter
     'itemCounts': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'item_counts',
+    ),
+    'bhfId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'bhf_id',
+    ),
+    'tinNumber': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'tin_number',
     ),
     'financing': const RuntimeSupabaseColumnDefinition(
       association: true,
@@ -408,6 +426,18 @@ class InventoryRequestAdapter
       columnName: 'item_counts',
       iterable: false,
       type: num,
+    ),
+    'bhfId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'bhf_id',
+      iterable: false,
+      type: String,
+    ),
+    'tinNumber': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'tin_number',
+      iterable: false,
+      type: String,
     ),
     'financing': const RuntimeSqliteColumnDefinition(
       association: true,

@@ -285,7 +285,6 @@ mixin TransactionMixin {
       totAmt: variation.retailPrice! * quantity,
       prc: item.prc + variation.retailPrice! * quantity,
       splyAmt: variation.supplyPrice,
-      quantityApproved: 0,
       active: true,
       quantityRequested: quantity.toInt(),
       quantityShipped: 0,

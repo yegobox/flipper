@@ -36,7 +36,10 @@ mixin ProductMixin {
       required String countryofOrigin,
       required String productName,
       required String selectedProductType,
-      String? color}) async {
+      String? color,
+      Product? product}) async {
+    if (product == null) return;
+
     ///loop variations add pkgUnitCd this come from UI but a lot of
     ///EBM fields will be hard coded to simplify the UI, so we will loop the variation
     ///and add some missing fields to simplify the UI
@@ -44,18 +47,15 @@ mixin ProductMixin {
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     try {
       // find the related product to update its name
-      final product = await ProxyService.strategy.getProduct(
-          id: variations!.first.productId!,
-          branchId: ProxyService.box.getBranchId()!,
-          businessId: ProxyService.box.getBusinessId()!);
+
       ProxyService.strategy.updateProduct(
-        productId: product!.id,
+        productId: product.id,
         name: productName,
         branchId: ProxyService.box.getBranchId()!,
         businessId: ProxyService.box.getBusinessId()!,
       );
       List<Variant> updatables = [];
-      for (var i = 0; i < variations.length; i++) {
+      for (var i = 0; i < variations!.length; i++) {
         variations[i].pkgUnitCd = packagingUnit;
         final number = randomNumber().toString().substring(0, 5);
 
@@ -76,6 +76,7 @@ mixin ProductMixin {
             quantityUnit: "CT");
         variations[i].modrNm = number;
         variations[i].productName = productName;
+        variations[i].productId = product.id;
         variations[i].modrId = number;
         variations[i].prc = retailPrice;
         variations[i].supplyPrice = supplyPrice;
@@ -167,8 +168,6 @@ mixin ProductMixin {
 
       Category? activeCat = await ProxyService.strategy
           .activeCategory(branchId: ProxyService.box.getBranchId()!);
-      List<Variant> variants = await ProxyService.strategy.variants(
-          productId: mproduct.id, branchId: ProxyService.box.getBranchId()!);
 
       await ProxyService.strategy.updateProduct(
         productId: mproduct.id,
@@ -184,16 +183,6 @@ mixin ProductMixin {
           focused: false,
         );
       }
-
-      for (Variant variant in variants) {
-        await ProxyService.strategy.updateVariant(
-            updatables: [variant],
-            variantId: variant.id,
-            productName: productName,
-            productId: mproduct.id,
-            pkgUnitCd: "CT");
-      }
-
       return await ProxyService.strategy.getProduct(
           id: mproduct.id,
           branchId: ProxyService.box.getBranchId()!,
