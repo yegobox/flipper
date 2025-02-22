@@ -135,11 +135,6 @@ mixin StockRequestApprovalLogic {
         item: item,
         request: request,
       );
-
-      await _updateMainBranchStock(
-        variantId: item.variantId!,
-        approvedQuantity: item.quantityApproved!,
-      );
     } catch (e, s) {
       talker.error('Error in _approveItem', e, s);
       throw Exception('Failed to approve item');
@@ -159,7 +154,7 @@ mixin StockRequestApprovalLogic {
         throw Exception('Original variant not found');
       }
       originalVariant.isShared = true;
-      ProxyService.strategy.updateVariant(updatables: [originalVariant]);
+      await ProxyService.strategy.updateVariant(updatables: [originalVariant]);
       // Create a copy of the variant with a new ID
       final String newVariantId = const Uuid().v4();
       final String newModrId = const Uuid().v4().substring(0, 5);
@@ -199,14 +194,18 @@ mixin StockRequestApprovalLogic {
           destinationBranchId: request.branch!.serverId!,
         );
       }
+      //update main branch stock
 
-      _updateMainBranchStock(
+      await _updateMainBranchStock(
           approvedQuantity: item.quantityRequested!,
           variantId: originalVariant.id);
       // update the newly variant with stock
-      newM!.stock = stock;
-      newM.stockId = stock.id;
-      await ProxyService.strategy.updateVariant(updatables: [newM]);
+      if (newM != null) {
+        newM.stock = stock;
+        newM.stockId = stock.id;
+        await ProxyService.strategy.updateVariant(updatables: [newM]);
+      }
+
       await ProxyService.strategy.updateTransactionItem(
         transactionItemId: item.id,
         quantityApproved: item.quantityRequested,
