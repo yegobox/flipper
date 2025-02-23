@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250220143135_up = [
+const List<MigrationCommand> _migration_20250223143539_up = [
   InsertTable('ItemCode'),
   InsertTable('ImportPurchaseDates'),
   InsertTable('Stock'),
@@ -60,6 +60,7 @@ const List<MigrationCommand> _migration_20250220143135_up = [
   InsertTable('_brick_Plan_addons'),
   InsertTable('Plan'),
   InsertTable('Drawers'),
+  InsertTable('VariantBranch'),
   InsertColumn('id', Column.varchar, onTable: 'ItemCode', unique: true),
   InsertColumn('code', Column.varchar, onTable: 'ItemCode'),
   InsertColumn('created_at', Column.datetime, onTable: 'ItemCode'),
@@ -359,7 +360,7 @@ const List<MigrationCommand> _migration_20250220143135_up = [
   InsertColumn('tax_amt', Column.Double, onTable: 'Variant'),
   InsertColumn('tot_amt', Column.Double, onTable: 'Variant'),
   InsertColumn('pchs_stts_cd', Column.varchar, onTable: 'Variant'),
-  InsertColumn('branch_ids', Column.varchar, onTable: 'Variant'),
+  InsertColumn('is_shared', Column.boolean, onTable: 'Variant'),
   InsertForeignKey('_brick_Purchase_variants', 'Purchase',
       foreignKeyColumn: 'l_Purchase_brick_id',
       onDeleteCascade: true,
@@ -499,6 +500,8 @@ const List<MigrationCommand> _migration_20250220143135_up = [
       onTable: 'InventoryRequest'),
   InsertColumn('updated_at', Column.datetime, onTable: 'InventoryRequest'),
   InsertColumn('item_counts', Column.num, onTable: 'InventoryRequest'),
+  InsertColumn('bhf_id', Column.varchar, onTable: 'InventoryRequest'),
+  InsertColumn('tin_number', Column.varchar, onTable: 'InventoryRequest'),
   InsertForeignKey('InventoryRequest', 'Financing',
       foreignKeyColumn: 'financing_Financing_brick_id',
       onDeleteCascade: true,
@@ -740,6 +743,12 @@ const List<MigrationCommand> _migration_20250220143135_up = [
   InsertColumn('deleted_at', Column.datetime, onTable: 'Drawers'),
   InsertColumn('business_id', Column.integer, onTable: 'Drawers'),
   InsertColumn('branch_id', Column.integer, onTable: 'Drawers'),
+  InsertColumn('id', Column.varchar, onTable: 'VariantBranch', unique: true),
+  InsertColumn('variant_id', Column.varchar, onTable: 'VariantBranch'),
+  InsertColumn('new_variant_id', Column.varchar, onTable: 'VariantBranch'),
+  InsertColumn('source_branch_id', Column.varchar, onTable: 'VariantBranch'),
+  InsertColumn('destination_branch_id', Column.varchar,
+      onTable: 'VariantBranch'),
   CreateIndex(columns: ['id'], onTable: 'ItemCode', unique: true),
   CreateIndex(columns: ['code'], onTable: 'ItemCode', unique: false),
   CreateIndex(columns: ['id'], onTable: 'ImportPurchaseDates', unique: true),
@@ -805,10 +814,11 @@ const List<MigrationCommand> _migration_20250220143135_up = [
       onTable: '_brick_Plan_addons',
       unique: true),
   CreateIndex(columns: ['id'], onTable: 'Plan', unique: true),
-  CreateIndex(columns: ['id'], onTable: 'Drawers', unique: true)
+  CreateIndex(columns: ['id'], onTable: 'Drawers', unique: true),
+  CreateIndex(columns: ['id'], onTable: 'VariantBranch', unique: true)
 ];
 
-const List<MigrationCommand> _migration_20250220143135_down = [
+const List<MigrationCommand> _migration_20250223143539_down = [
   DropTable('ItemCode'),
   DropTable('ImportPurchaseDates'),
   DropTable('Stock'),
@@ -859,6 +869,7 @@ const List<MigrationCommand> _migration_20250220143135_down = [
   DropTable('_brick_Plan_addons'),
   DropTable('Plan'),
   DropTable('Drawers'),
+  DropTable('VariantBranch'),
   DropColumn('id', onTable: 'ItemCode'),
   DropColumn('code', onTable: 'ItemCode'),
   DropColumn('created_at', onTable: 'ItemCode'),
@@ -1141,7 +1152,7 @@ const List<MigrationCommand> _migration_20250220143135_down = [
   DropColumn('tax_amt', onTable: 'Variant'),
   DropColumn('tot_amt', onTable: 'Variant'),
   DropColumn('pchs_stts_cd', onTable: 'Variant'),
-  DropColumn('branch_ids', onTable: 'Variant'),
+  DropColumn('is_shared', onTable: 'Variant'),
   DropColumn('l_Purchase_brick_id', onTable: '_brick_Purchase_variants'),
   DropColumn('f_Variant_brick_id', onTable: '_brick_Purchase_variants'),
   DropColumn('id', onTable: 'Purchase'),
@@ -1259,6 +1270,8 @@ const List<MigrationCommand> _migration_20250220143135_down = [
   DropColumn('transaction_items', onTable: 'InventoryRequest'),
   DropColumn('updated_at', onTable: 'InventoryRequest'),
   DropColumn('item_counts', onTable: 'InventoryRequest'),
+  DropColumn('bhf_id', onTable: 'InventoryRequest'),
+  DropColumn('tin_number', onTable: 'InventoryRequest'),
   DropColumn('financing_Financing_brick_id', onTable: 'InventoryRequest'),
   DropColumn('financing_id', onTable: 'InventoryRequest'),
   DropColumn('id', onTable: 'Pin'),
@@ -1484,6 +1497,11 @@ const List<MigrationCommand> _migration_20250220143135_down = [
   DropColumn('deleted_at', onTable: 'Drawers'),
   DropColumn('business_id', onTable: 'Drawers'),
   DropColumn('branch_id', onTable: 'Drawers'),
+  DropColumn('id', onTable: 'VariantBranch'),
+  DropColumn('variant_id', onTable: 'VariantBranch'),
+  DropColumn('new_variant_id', onTable: 'VariantBranch'),
+  DropColumn('source_branch_id', onTable: 'VariantBranch'),
+  DropColumn('destination_branch_id', onTable: 'VariantBranch'),
   DropIndex('index_ItemCode_on_id'),
   DropIndex('index_ItemCode_on_code'),
   DropIndex('index_ImportPurchaseDates_on_id'),
@@ -1538,7 +1556,8 @@ const List<MigrationCommand> _migration_20250220143135_down = [
   DropIndex('index_Assets_on_id'),
   DropIndex('index__brick_Plan_addons_on_l_Plan_brick_id_f_PlanAddon_brick_id'),
   DropIndex('index_Plan_on_id'),
-  DropIndex('index_Drawers_on_id')
+  DropIndex('index_Drawers_on_id'),
+  DropIndex('index_VariantBranch_on_id')
 ];
 
 //
@@ -1546,15 +1565,15 @@ const List<MigrationCommand> _migration_20250220143135_down = [
 //
 
 @Migratable(
-  version: '20250220143135',
-  up: _migration_20250220143135_up,
-  down: _migration_20250220143135_down,
+  version: '20250223143539',
+  up: _migration_20250223143539_up,
+  down: _migration_20250223143539_down,
 )
-class Migration20250220143135 extends Migration {
-  const Migration20250220143135()
+class Migration20250223143539 extends Migration {
+  const Migration20250223143539()
       : super(
-          version: 20250220143135,
-          up: _migration_20250220143135_up,
-          down: _migration_20250220143135_down,
+          version: 20250223143539,
+          up: _migration_20250223143539_up,
+          down: _migration_20250223143539_down,
         );
 }

@@ -11,6 +11,7 @@ import 'package:brick_supabase/brick_supabase.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:uuid/uuid.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
+
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/inventory_request.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
@@ -36,6 +37,12 @@ import 'package:brick_sqlite/brick_sqlite.dart'
         SqliteModelDictionary,
         RuntimeSqliteColumnDefinition,
         SqliteProvider;
+import 'package:brick_supabase/brick_supabase.dart'
+    show
+        SupabaseProvider,
+        SupabaseModel,
+        SupabaseAdapter,
+        SupabaseModelDictionary;
 // ignore: unused_import, unused_shown_name
 import 'package:brick_offline_first/brick_offline_first.dart'
     show RuntimeOfflineFirstDefinition;
