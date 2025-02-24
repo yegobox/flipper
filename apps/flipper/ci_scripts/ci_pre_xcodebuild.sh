@@ -10,6 +10,11 @@ flutter --version || export PATH="$HOME/flutter/bin:$PATH"
 
 # Get dependencies
 flutter pub get
+# Install CocoaPods dependencies
+cd ios
+rm -rf Pods Podfile.lock
+pod install --repo-update
+cd ..
 
 # Generate iOS dependencies
 cd ios
