@@ -186,7 +186,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
-          name: windows-build
+          name: windows-build-eebug
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
           upload_release_asset: false
   build-and-release-windows-prod:
@@ -245,6 +245,7 @@ jobs:
         with:
           name: windows-build
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
+          upload_release_asset: true
   integration-on-android:
     # needs: [unit-testing]
     runs-on: macOS-14
