@@ -159,7 +159,7 @@ class PaginatedVariantsNotifier
 
 final matchedProductProvider = Provider.autoDispose<Product?>((ref) {
   final productsState =
-      ref.watch(productsProvider(ProxyService.box.getBranchId()!));
+      ref.watch(productsProvider(ProxyService.box.getBranchId() ?? 0));
   return productsState.maybeWhen(
     data: (products) {
       try {
@@ -198,7 +198,7 @@ class ReceiveOrderModeNotifier extends StateNotifier<bool> {
 
 final customersProvider = StateNotifierProvider.autoDispose<CustomersNotifier,
     AsyncValue<List<Customer>>>((ref) {
-  int branchId = ProxyService.box.getBranchId()!;
+  int branchId = ProxyService.box.getBranchId() ?? 0;
   final customersNotifier = CustomersNotifier(branchId);
   final searchString = ref.watch(searchStringProvider);
   customersNotifier.loadCustomers(searchString: searchString);
