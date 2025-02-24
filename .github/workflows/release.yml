@@ -14,7 +14,7 @@ on:
           - promote_to_production
           - production
   pull_request:
-    branches: 
+    branches:
       - main
 
 env:
@@ -60,7 +60,7 @@ jobs:
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           git config --global core.autocrlf false
-          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json 
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
@@ -119,7 +119,7 @@ jobs:
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
-          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/secrets.dart
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
         env:
@@ -127,42 +127,29 @@ jobs:
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}  
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart
+
   build-and-release-windows-debug:
-    name: "Build windows-DEBUG"
-    needs: [unit-testing]
+    name: "Build windows app-debug"
     runs-on: windows-2022
     steps:
-      - name: Export pub environment variable on Windows
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
-          fi
-        shell: bash
-      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
-      - name: Clone Flutter repository with stable channel
+
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.27.1"
           channel: stable
-      - run: flutter doctor -v
+          cache: true
 
-      - name: submodule init
-        run: |
-          git submodule update --init
-      - name: Load melos
-        run: |
-          dart pub global activate melos 6.3.2
-          melos bootstrap
       - name: Configure Missing files
         shell: bash
         run: |
@@ -178,39 +165,17 @@ jobs:
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      # Replace Visual Studio 17.12 with 17.10 to workaround Firebase issue
-      # https://github.com/firebase/flutterfire/issues/16536
-      # TODO: remove this visual studio change when https://github.com/firebase/flutterfire/issues/16536 is resolved.
-      - name: Cleanup Visual Studio Installer
-        continue-on-error: true
-        run: |
-          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\InstallCleanup.exe"
-        shell: pwsh
 
-      # Replace Visual Studio 17.12 with 17.10 to workaround Firebase issue
-      # https://github.com/firebase/flutterfire/issues/16536
-      - name: Install Visual Studio 2022 Enterprise
+      - name: Build and Package
         run: |
-          Invoke-WebRequest -Uri https://aka.ms/vs/17/release.ltsc.17.10/vs_enterprise.exe -OutFile vs_enterprise.exe
-          $process = Start-Process -FilePath '.\vs_enterprise.exe' -ArgumentList "--add", "Microsoft.VisualStudio.Workload.Azure", "--quiet", "--norestart", "--wait", "--includeRecommended" -Wait -PassThru
-          Write-Output $process.ExitCode
-          $process = Start-Process -FilePath '.\vs_enterprise.exe' -ArgumentList "--add", "Microsoft.VisualStudio.Workload.NativeDesktop", "--quiet", "--norestart", "--wait", "--includeRecommended" -Wait -PassThru
-          Write-Output $process.ExitCode
-        shell: pwsh
-        # End of issue
-      - run: |
+          dart pub global activate melos 6.3.2
+          melos bootstrap
           cd apps/flipper
+          flutter clean
           dart run msix:create -v --install-certificate false
-      - name: Configure Release (optional)
-        env:
-          VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
-        run: |
-          echo "## Release Notes" >> release_notes.txt
-          echo " - New features..." >> release_notes.txt
-          echo " - Bug fixes..." >> release_notes.txt
-     
+
       - name: Extract msix_version
         id: get_version
         shell: powershell
@@ -222,40 +187,27 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
-          name: windows-build-debug-${{ steps.get_version.outputs.version }}
+          name: windows-build-debug
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
           upload_release_asset: false
+
   build-and-release-windows-prod:
-    name: "Build windows-PROD"
-    needs: [unit-testing]
+    name: "Build windows app-store"
     runs-on: windows-2022
     steps:
-      - name: Export pub environment variable on Windows
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
-          fi
-        shell: bash
-      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
-      - name: Clone Flutter repository with stable channel
+
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.27.1"
           channel: stable
-      - run: flutter doctor -v
+          cache: true
 
-      - name: submodule init
-        run: |
-          git submodule update --init
-      - name: Load melos
-        run: |
-          dart pub global activate melos 6.3.2
-          melos bootstrap
       - name: Configure Missing files
         shell: bash
         run: |
@@ -271,19 +223,17 @@ jobs:
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      - run: |
-          
-          cd apps/flipper
-          dart run msix:create 	--store
-      - name: Configure Release (optional)
-        env:
-          VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
+
+      - name: Build and Package
         run: |
-          echo "## Release Notes" >> release_notes.txt
-          echo " - New features..." >> release_notes.txt
-          echo " - Bug fixes..." >> release_notes.txt
+          dart pub global activate melos 6.3.2
+          melos bootstrap
+          cd apps/flipper
+          flutter clean
+          dart run msix:create --store
+
       - name: Extract msix_version
         id: get_version
         shell: powershell
@@ -291,15 +241,14 @@ jobs:
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
       - name: Upload .msix to Release
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: windows-build-prod-${{ steps.get_version.outputs.version }}
-          path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          upload_release_asset: false
-
-
+          upload_url: ${{ github.server_url }}/${{ github.repository }}/releases
+          asset_path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
+          asset_name: flipper_rw.msix
+          asset_content_type: application/vnd.ms-msix
 
   integration-on-android:
     # needs: [unit-testing]
@@ -355,7 +304,6 @@ jobs:
           # Verify sdkmanager is working
           sdkmanager --version
 
-
       - name: Accept Android SDK Licenses
         run: |
           echo "Accepting Android SDK licenses..."
@@ -383,8 +331,6 @@ jobs:
           echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;arm64-v8a" --device "pixel_4"
           echo "AVD created."
 
-
-
       - name: Start Emulator
         run: |
           echo "Starting emulator..."
@@ -403,9 +349,6 @@ jobs:
           echo "Checking sdkmanager..."
           which sdkmanager
           sdkmanager --list
-
-
-
 
       - name: Verify Emulator Status
         run: adb devices
@@ -466,13 +409,13 @@ jobs:
           git config --global core.autocrlf false
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
-          
+
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
           dart pub global activate melos 6.3.2
@@ -509,9 +452,10 @@ jobs:
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         working-directory: apps/flipper/android
+
   slackNotification:
     name: Slack Notification
-    needs: [fastlane-deploy, build-and-release-windows-debug,build-and-release-windows-prod]
+    needs: [fastlane-deploy, build-and-release-windows-debug, build-and-release-windows-prod]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
