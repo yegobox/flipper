@@ -133,36 +133,23 @@ jobs:
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart
   build-and-release-windows-debug:
-    name: "Build windows-DEBUG"
-    needs: [unit-testing]
+    name: "Build windows app"
+    if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'test direct-build-windows')
     runs-on: windows-2022
     steps:
-      - name: Export pub environment variable on Windows
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
-          fi
-        shell: bash
-      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
-      - name: Clone Flutter repository with stable channel
+
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.27.1"
           channel: stable
-      - run: flutter doctor -v
+          cache: true
 
-      - name: submodule init
-        run: |
-          git submodule update --init
-      - name: Load melos
-        run: |
-          dart pub global activate melos 6.3.2
-          melos bootstrap
       - name: Configure Missing files
         shell: bash
         run: |
@@ -180,37 +167,15 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      # Replace Visual Studio 17.12 with 17.10 to workaround Firebase issue
-      # https://github.com/firebase/flutterfire/issues/16536
-      # TODO: remove this visual studio change when https://github.com/firebase/flutterfire/issues/16536 is resolved.
-      - name: Cleanup Visual Studio Installer
-        continue-on-error: true
-        run: |
-          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\InstallCleanup.exe"
-        shell: pwsh
 
-      # Replace Visual Studio 17.12 with 17.10 to workaround Firebase issue
-      # https://github.com/firebase/flutterfire/issues/16536
-      - name: Install Visual Studio 2022 Enterprise
+      - name: Build and Package
         run: |
-          Invoke-WebRequest -Uri https://aka.ms/vs/17/release.ltsc.17.10/vs_enterprise.exe -OutFile vs_enterprise.exe
-          $process = Start-Process -FilePath '.\vs_enterprise.exe' -ArgumentList "--add", "Microsoft.VisualStudio.Workload.Azure", "--quiet", "--norestart", "--wait", "--includeRecommended" -Wait -PassThru
-          Write-Output $process.ExitCode
-          $process = Start-Process -FilePath '.\vs_enterprise.exe' -ArgumentList "--add", "Microsoft.VisualStudio.Workload.NativeDesktop", "--quiet", "--norestart", "--wait", "--includeRecommended" -Wait -PassThru
-          Write-Output $process.ExitCode
-        shell: pwsh
-        # End of issue
-      - run: |
+          dart pub global activate melos 6.3.2
+          melos bootstrap
           cd apps/flipper
+          flutter clean
           dart run msix:create -v --install-certificate false
-      - name: Configure Release (optional)
-        env:
-          VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
-        run: |
-          echo "## Release Notes" >> release_notes.txt
-          echo " - New features..." >> release_notes.txt
-          echo " - Bug fixes..." >> release_notes.txt
-     
+
       - name: Extract msix_version
         id: get_version
         shell: powershell
@@ -222,40 +187,27 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
-          name: windows-build-debug-${{ steps.get_version.outputs.version }}
+          name: windows-build
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
           upload_release_asset: false
   build-and-release-windows-prod:
-    name: "Build windows-PROD"
-    needs: [unit-testing]
+    name: "Build windows app"
+    # if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'test direct-build-windows')
     runs-on: windows-2022
     steps:
-      - name: Export pub environment variable on Windows
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
-          fi
-        shell: bash
-      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
-      - name: Clone Flutter repository with stable channel
+
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.27.1"
           channel: stable
-      - run: flutter doctor -v
+          cache: true
 
-      - name: submodule init
-        run: |
-          git submodule update --init
-      - name: Load melos
-        run: |
-          dart pub global activate melos 6.3.2
-          melos bootstrap
       - name: Configure Missing files
         shell: bash
         run: |
@@ -273,17 +225,15 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      - run: |
-          
-          cd apps/flipper
-          dart run msix:create 	--store
-      - name: Configure Release (optional)
-        env:
-          VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
+
+      - name: Build and Package
         run: |
-          echo "## Release Notes" >> release_notes.txt
-          echo " - New features..." >> release_notes.txt
-          echo " - Bug fixes..." >> release_notes.txt
+          dart pub global activate melos 6.3.2
+          melos bootstrap
+          cd apps/flipper
+          flutter clean
+          dart run msix:create 	--store
+
       - name: Extract msix_version
         id: get_version
         shell: powershell
@@ -295,12 +245,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
-          name: windows-build-prod-${{ steps.get_version.outputs.version }}
+          name: windows-build
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          upload_release_asset: false
-
-
-
   integration-on-android:
     # needs: [unit-testing]
     runs-on: macOS-14
