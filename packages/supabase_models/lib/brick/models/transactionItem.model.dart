@@ -104,14 +104,14 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   double? compositePrice;
 
   // Define the relationship with StockRequest
-  @Supabase(ignore: true)
+  // @Supabase(ignore: true)
   InventoryRequest? inventoryRequest;
 
   // If the association will be created by the app, specify
   // a field that maps directly to the foreign key column
   // so that Brick can notify Supabase of the association.
   // @Sqlite(ignore: true)
-  String? get inventoryRequestId => inventoryRequest?.id;
+  String? inventoryRequestId;
   TransactionItem({
     this.splyAmt,
     this.inventoryRequest,
@@ -167,9 +167,11 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.isrccNm,
     this.isrcRt,
     this.isrcAmt,
+    String? inventoryRequestId,
     required this.prc,
   })  : id = id ?? const Uuid().v4(),
         createdAt = DateTime.now(),
+        inventoryRequestId = inventoryRequest?.id,
         updatedAt = DateTime.now();
 
   // toJson method

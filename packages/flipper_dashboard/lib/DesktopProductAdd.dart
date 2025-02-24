@@ -12,8 +12,6 @@ import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/TableVariants.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/providers/outer_variant_provider.dart';
-import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_dashboard/create/browsePhotos.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
@@ -111,6 +109,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             retailPrice: double.tryParse(retailPriceController.text) ?? 0,
             supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
             variations: model.scannedVariants,
+            product: productRef,
             selectedProductType: selectedProductType,
             packagingUnit: selectedPackageUnitValue.split(":")[0]);
       }
@@ -123,21 +122,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           inUpdateProcess: widget.productId != null,
           productName: model.kProductName!);
 
-      final searchKeyword = ref.watch(searchStringProvider);
-      final scanMode = ref.watch(scanningModeProvider);
-
-      await ref
-          .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
-          .loadProducts(searchString: searchKeyword, scanMode: scanMode);
-
       // Refresh the product list
-      ref.read(searchStringProvider.notifier).emitString(value: "search");
-      ref.read(searchStringProvider.notifier).emitString(value: "");
 
-      await ref
-          .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
-          .loadProducts(searchString: model.kProductName ?? "", scanMode: true);
-
+      final combinedNotifier = ref.read(refreshProvider);
+      combinedNotifier.performActions(productName: "", scanMode: true);
       ref.read(loadingProvider.notifier).stopLoading();
       toast("Product Saved Successfully");
       Navigator.maybePop(context);

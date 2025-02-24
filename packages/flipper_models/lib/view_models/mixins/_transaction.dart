@@ -97,7 +97,7 @@ mixin TransactionMixin {
       {required Function onComplete,
       required String bhfId}) async {
     // TODO: TODO: check if we are computing the stock's value propper.
-    ProxyService.strategy.collectPayment(
+    await ProxyService.strategy.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
@@ -116,7 +116,7 @@ mixin TransactionMixin {
             branchId: ProxyService.box.getBranchId()!))
         .firstOrNull;
 
-    ProxyService.strategy.updateTransaction(
+    await ProxyService.strategy.updateTransaction(
       transaction: transaction,
       sarTyCd: "11",
       customerName: customer == null
@@ -285,7 +285,6 @@ mixin TransactionMixin {
       totAmt: variation.retailPrice! * quantity,
       prc: item.prc + variation.retailPrice! * quantity,
       splyAmt: variation.supplyPrice,
-      quantityApproved: 0,
       active: true,
       quantityRequested: quantity.toInt(),
       quantityShipped: 0,

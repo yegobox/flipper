@@ -1,7 +1,6 @@
-
-
 import 'package:flipper_dashboard/checkout.dart';
 import 'package:flutter/material.dart';
+
 class OrderStatusSelector extends StatelessWidget {
   final OrderStatus selectedStatus;
   final Function(OrderStatus) onStatusChanged;
@@ -67,6 +66,11 @@ class OrderStatusSelector extends StatelessWidget {
       ),
       side: WidgetStateProperty.all(
         BorderSide(color: Theme.of(context).colorScheme.primary),
+      ),
+      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4.0),
+        ),
       ),
       overlayColor: WidgetStateProperty.all(Colors.transparent),
     );

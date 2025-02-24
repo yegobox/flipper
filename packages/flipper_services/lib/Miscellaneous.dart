@@ -25,8 +25,17 @@ mixin CoreMiscellaneous {
     }
     return appSupportDir;
   }
-
   Future<bool> logOut() async {
+    return await _performLogout();
+  }
+
+  // Non-static logout method
+  static Future<bool> logoutStatic() async {
+    return await _performLogout();
+  }
+
+  // Private helper method to reuse logout logic
+  static Future<bool> _performLogout() async {
     try {
       ProxyService.box.remove(key: 'authComplete');
       if (ProxyService.box.getUserId() != null &&
@@ -45,27 +54,14 @@ mixin CoreMiscellaneous {
         });
       }
 
-      // but for shared preference we can just clear them all
-      /// We do not clear all variable, this is because even on logout
-      /// a user log in back and there is values such as tinNumber,bhfId,URI that we will still need to re-use
-      /// therefore why the bellow line is commented out.
-
-      // await FirebaseAuth.instance.signOut();
-
-      /// refreshing the user token will invalidate any session
+      // Sign out from Firebase
       await FirebaseAuth.instance.signOut();
 
+      // Perform additional logout operations
       ProxyService.strategy.whoAmI();
-
       await ProxyService.strategy.amplifyLogout();
 
-      /// calling close on logout inroduced error where another attempt to login will fail since
-      /// the instance of realm is instantiated at app start level.
-      // resetDependencies(dispose: true);
-      /// wait to sync data for this eod
-      // await ProxyService.strategy.realm!.syncSession.waitForUpload();
-
-      /// get all business and unset default
+      // Unset default for all businesses and branches
       if (ProxyService.box.getBranchId() != null) {
         List<Business> businesses = await ProxyService.strategy
             .businesses(userId: ProxyService.box.getUserId() ?? 0);
@@ -86,10 +82,13 @@ mixin CoreMiscellaneous {
           );
         }
       }
+
+      // Remove user-specific data
       ProxyService.box.remove(key: 'userId');
       ProxyService.box.remove(key: 'getIsTokenRegistered');
       ProxyService.box.remove(key: 'defaultApp');
-      return Future.value(true);
+
+      return true;
     } catch (e, s) {
       log(e.toString());
       log(s.toString());

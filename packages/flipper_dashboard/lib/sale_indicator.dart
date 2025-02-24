@@ -1,8 +1,7 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/constants.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -29,9 +28,8 @@ class SaleIndicator extends StatefulHookConsumerWidget {
 class SaleIndicatorState extends ConsumerState<SaleIndicator> {
   @override
   Widget build(BuildContext context) {
-    final branchId = ProxyService.box.getBranchId()!;
-    final transaction = ref.watch(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
+    final transaction =
+        ref.watch(pendingTransactionStreamProvider(isExpense: false));
     return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (a, model, b) {

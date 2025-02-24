@@ -269,8 +269,8 @@ class DataViewState extends ConsumerState<DataView>
             children: [
               Text("Total:"),
               Text(widget.transactions
-                      ?.fold<double>(0,
-                          (sum, transaction) => sum + transaction.cashReceived!)
+                      ?.fold<double>(
+                          0, (sum, transaction) => sum + transaction.subTotal!)
                       .toRwf() ??
                   ""),
             ],

@@ -76,7 +76,7 @@ class KeyPadService with ListenableServiceMixin {
 
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
-        transactionId: transaction.id,
+        transactionId: transaction?.id,
         doneWithTransaction: false,
         active: true);
     _countTransactionItems.value = items.length;

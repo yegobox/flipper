@@ -34,10 +34,13 @@ class ReportsDashboard extends HookConsumerWidget {
             icon: Icon(Icons.refresh),
             onPressed: () {
               // Refresh all providers
-              ref.invalidate(totalSaleProvider);
-              ref.invalidate(stockValueProvider);
-              ref.invalidate(profitProvider);
-              ref.invalidate(fetchStockPerformanceProvider);
+              ref.refresh(
+                  totalSaleProvider(branchId: ProxyService.box.getBranchId()!));
+              ref.refresh(stockValueProvider(
+                  branchId: ProxyService.box.getBranchId()!));
+              ref.refresh(profitProvider(ProxyService.box.getBranchId()!));
+              ref.refresh(fetchStockPerformanceProvider(
+                  ProxyService.box.getBranchId()!));
             },
           ),
           IconButton(
@@ -52,10 +55,13 @@ class ReportsDashboard extends HookConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           // Refresh all providers
-          ref.invalidate(totalSaleProvider);
-          ref.invalidate(stockValueProvider);
-          ref.invalidate(profitProvider);
-          ref.invalidate(fetchStockPerformanceProvider);
+          ref.refresh(
+              totalSaleProvider(branchId: ProxyService.box.getBranchId()!));
+          ref.refresh(
+              stockValueProvider(branchId: ProxyService.box.getBranchId()!));
+          ref.refresh(profitProvider(ProxyService.box.getBranchId()!));
+          ref.refresh(
+              fetchStockPerformanceProvider(ProxyService.box.getBranchId()!));
         },
         child: SingleChildScrollView(
           physics: AlwaysScrollableScrollPhysics(),

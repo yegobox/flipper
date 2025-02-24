@@ -121,14 +121,14 @@ class SearchFieldState extends ConsumerState<SearchField>
                 children: [
                   toggleSearch(),
                   calc(model: model),
-                  if (deviceType != 'Phone' && deviceType != 'Phablet')
-                    orders.when(
-                      data: (orders) => widget.showOrderButton
-                          ? orderButton(orders)
-                          : const SizedBox.shrink(),
-                      loading: () => const SizedBox.shrink(),
-                      error: (err, stack) => Text('Error: $err'),
-                    ),
+                  //if (deviceType != 'Phone' && deviceType != 'Phablet')
+                  orders.when(
+                    data: (orders) => widget.showOrderButton
+                        ? orderButton(orders)
+                        : const SizedBox.shrink(),
+                    loading: () => const SizedBox.shrink(),
+                    error: (err, stack) => Text('Error: $err'),
+                  ),
                   if (widget.showIncomingButton &&
                       deviceType != 'Phone' &&
                       deviceType != 'Phablet')
@@ -184,18 +184,25 @@ class SearchFieldState extends ConsumerState<SearchField>
     );
   }
 
-  IconButton orderButton(List<InventoryRequest> orders) {
+  IconButton orderButton(
+    List<InventoryRequest> orders,
+  ) {
     return IconButton(
-      onPressed: _handleReceiveOrderToggle,
+      onPressed: () {
+        _handleReceiveOrderToggle();
+      },
       icon: _buildOrderIcon(orders),
     );
   }
 
   void _handleReceiveOrderToggle() {
-    ProxyService.box.writeBool(key: 'isOrdering', value: true);
+    try {
+      ProxyService.box.writeBool(key: 'isOrdering', value: true);
 
-    refreshPendingTransactionWithExpense();
-    _routerService.navigateTo(OrdersRoute());
+      _routerService.navigateTo(OrdersRoute());
+    } catch (e) {
+      print(e);
+    }
   }
 
   Widget _buildOrderIcon(List<InventoryRequest> orders) {

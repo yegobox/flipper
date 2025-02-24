@@ -1,9 +1,18 @@
+// ignore_for_file: unused_result, unused_field
+
 import 'package:flipper_dashboard/BranchPerformance.dart';
+import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/Reports.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/transactionList.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
-    show buttonIndexProvider, selectedBranchProvider;
+    show
+        branchSelectionProvider,
+        branchesProvider,
+        businessesProvider,
+        buttonIndexProvider,
+        selectedBranchProvider;
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart' show TransactionPeriod;
@@ -30,12 +39,15 @@ class IconText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       key: key,
       width: 80.0,
       height: 70.0,
       decoration: BoxDecoration(
-        color: isSelected ? Color(0xff006AFE) : Colors.white,
+        color: isSelected ? theme.primaryColor : colorScheme.surface,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -62,18 +74,27 @@ class IconText extends StatelessWidget {
 }
 
 class IconRow extends StatefulHookConsumerWidget {
+  const IconRow({super.key});
+
   @override
-  IconRowState createState() => IconRowState();
+  ConsumerState<IconRow> createState() => IconRowState();
 }
 
-class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
+class IconRowState extends ConsumerState<IconRow>
+    with CoreMiscellaneous, BranchSelectionMixin {
   final List<bool> _isSelected = [true, false, false, false, false];
+  String? _loadingItemId; // Add this
+  bool _isLoading = false;
+
   String _getDeviceType(BuildContext context) {
     return DeviceType.getDeviceType(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -104,8 +125,8 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
           ],
           onPressed: _onTogglePressed,
           isSelected: _isSelected,
-          color: Colors.white,
-          fillColor: Colors.white,
+          color: colorScheme.surface,
+          fillColor: colorScheme.surface,
         ),
       ],
     );
@@ -149,7 +170,8 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
         context: context,
         builder: (_) => Dialog(
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(4))),
+            borderRadius: BorderRadius.all(Radius.circular(4)),
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 700),
             child: Padding(
@@ -174,10 +196,63 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
         _routerService
             .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));
       } else {
-        await logOut();
-        _routerService.replaceWith(LoginRoute());
+        // Show branch switching dialog with logout option
+        await showBranchSwitchDialog(
+          context: context,
+          branches: await ProxyService.strategy.branches(
+              businessId: ProxyService.box.getBusinessId()!,
+              includeSelf: false),
+          loadingItemId: _loadingItemId,
+          setDefaultBranch: (branch) async {
+            setState(() {
+              _isLoading = true; // Correctly set loading state here
+            });
+            handleBranchSelection(
+              branch: branch,
+              context: context,
+              setLoadingState: (String? id) {
+                setState(() {
+                  _loadingItemId = id;
+                });
+              },
+              setDefaultBranch: _setDefaultBranch,
+              onComplete: () {
+                Navigator.of(context).pop(); // Close the dialog
+                setState(() {
+                  _isLoading = false; // Correctly set loading state here
+                });
+              },
+              setIsLoading: (bool value) {
+                setState(() {
+                  _isLoading = value;
+                });
+              },
+            );
+          },
+          onLogout: () async {
+            await showLogoutConfirmationDialog(
+              context,
+            );
+          },
+          setLoadingState: (String? id) {
+            setState(() {
+              _loadingItemId = id;
+            });
+          },
+        );
       }
     }
+  }
+
+  Future<void> _setDefaultBranch(Branch branch) async {
+    ref.read(branchSelectionProvider.notifier).setLoading(true);
+    _refreshBusinessAndBranchProviders();
+    return Future.value(); // Return a completed Future<void>
+  }
+
+  void _refreshBusinessAndBranchProviders() {
+    ref.refresh(businessesProvider);
+    ref.refresh(branchesProvider((includeSelf: true)));
   }
 
   void _showBranchPerformanceMobile(BuildContext context) {

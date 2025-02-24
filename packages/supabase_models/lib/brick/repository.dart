@@ -15,8 +15,8 @@ import 'package:path/path.dart';
 export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
-const dbFileName = "flipper_v4.sqlite";
-const queueName = "brick_offline_queue.sqlite";
+const dbFileName = "flipper_v10.sqlite";
+const queueName = "brick_offline_queue_v10.sqlite";
 
 class Repository extends OfflineFirstWithSupabaseRepository {
   static late Repository? _singleton;
@@ -99,6 +99,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       offlineRequestQueue: queue,
       memoryCacheProvider: MemoryCacheProvider(),
     );
+  }
+
+  Future<int> availableQueue() async {
+    final requests =
+        await offlineRequestQueue.requestManager.unprocessedRequests();
+    return requests.length;
   }
 
   Future<void> deleteUnprocessedRequests() async {

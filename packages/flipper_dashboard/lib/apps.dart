@@ -63,9 +63,9 @@ class _AppsState extends ConsumerState<Apps> {
         // elevation: 2,
       ),
       body: Container(
-        color: Colors.grey[50], // Light background for better contrast
+        color: Colors.grey[50],
         child: Column(
-          // spacing: 4,
+          spacing: 1,
           children: [
             _buildFilterRow(),
             Expanded(
@@ -124,7 +124,8 @@ class _AppsState extends ConsumerState<Apps> {
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+       //  spacing:1,
         children: [
           Expanded(
             child: Container(
@@ -213,11 +214,17 @@ class _AppsState extends ConsumerState<Apps> {
         'label': "Contacts"
       },
       {
+        'icon':Icons.store_rounded,
+        'color': Colors.green,
+        'page': "Orders",
+        'label': "Orders"
+      },
+      {
         'icon': Icons.call,
         'color': Colors.lightBlue,
         'page': "Support",
         'label': "Support"
-      },
+      }
     ];
 
     return GridView.builder(
@@ -422,8 +429,9 @@ class _AppsState extends ConsumerState<Apps> {
       case "Contacts":
         await _routerService.navigateTo(CustomersRoute());
         break;
+        //TODO: if a user is of type agent do not show this Order menu.
       case "Orders":
-        await _routerService.navigateTo(OrdersRoute());
+        await _routerService.navigateTo(InventoryRequestMobileViewRoute());
         break;
       default:
         await _routerService.navigateTo(CheckOutRoute(

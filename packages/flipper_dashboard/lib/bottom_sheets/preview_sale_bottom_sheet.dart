@@ -16,6 +16,8 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart';
 import '../add_customer_button.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 
 class PreviewSaleBottomSheet extends StatefulHookConsumerWidget {
   final bool reverse;
@@ -121,18 +123,18 @@ class PreviewSaleBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final branchId = ProxyService.box.getBranchId()!;
-    final transaction = ref.watch(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
-    final transactionItemsNotifier =
-        ref.watch(transactionItemsProvider((isExpense: false)).notifier);
+    final transaction =
+        ref.watch(pendingTransactionStreamProvider(isExpense: false));
+    final transactionItemsNotifier = ref
+        .watch(transactionItemsProvider(transactionId: transaction.value?.id));
 
-    final totalPayable = transactionItemsNotifier.totalPayable;
+    final totalPayable = transactionItemsNotifier.value
+        ?.fold<double>(0.0, (a, b) => a + (b.price * b.qty));
 
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        return transactionListView(transaction, context, model, totalPayable);
+        return transactionListView(transaction, context, model, totalPayable!);
       },
     );
   }
@@ -151,7 +153,8 @@ class PreviewSaleBottomSheetState
             shrinkWrap: true,
             itemCount: (ref
                         .watch(
-                          transactionItemsProvider((isExpense: false)),
+                          transactionItemsProvider(
+                              transactionId: transaction.value?.id),
                         )
                         .value ??
                     [])
@@ -161,7 +164,8 @@ class PreviewSaleBottomSheetState
             itemBuilder: (context, index) {
               final items = (ref
                       .watch(
-                        transactionItemsProvider((isExpense: false)),
+                        transactionItemsProvider(
+                            transactionId: transaction.value?.id),
                       )
                       .value ??
                   [])[index];
@@ -174,7 +178,8 @@ class PreviewSaleBottomSheetState
                     context: context,
                   );
                   ref.refresh(
-                    transactionItemsProvider((isExpense: false)),
+                    transactionItemsProvider(
+                        transactionId: transaction.value?.id),
                   );
                 },
                 items: items,
@@ -188,12 +193,8 @@ class PreviewSaleBottomSheetState
   }
 
   Padding buildPayable(double totalPayable, {required WidgetRef ref}) {
-    final branchId = ProxyService.box.getBranchId()!;
-    final transactionAsyncValue = ref.watch(pendingTransactionProvider((
-      mode: TransactionType.sale,
-      isExpense: false,
-      branchId: branchId,
-    )));
+    final transactionAsyncValue =
+        ref.watch(pendingTransactionStreamProvider(isExpense: false));
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),

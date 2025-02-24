@@ -17,6 +17,7 @@ import 'all_routes.dart';
     CustomRoute(page: Auth),
     CustomRoute(page: CountryPicker),
     CustomRoute(page: PhoneInputScreen),
+    CustomRoute(page: InventoryRequestMobileView),
     //End of login routes
 
     CustomRoute(page: AddProductView),
@@ -765,3 +766,16 @@ class App {}
 // ALTER TABLE TransactionItem DROP COLUMN inventory_request_InventoryRequest_brick_id;
 // ALTER TABLE TransactionItem DROP COLUMN inventory_request_InventoryRequest_brick_id;
 // ALTER TABLE InventoryRequest DROP COLUMN id;
+
+// https://docs.flutter.dev/release/breaking-changes/flutter-gradle-plugin-apply
+
+// https://github.com/tekartik/sqflite/issues/873
+
+// copy all file names in a folder
+// ls -1 | tr '\n' '\n' | pbcopy
+// the bellow copy files with modifiet twists
+// ls -1 | grep -v 'g\.dart$' | grep '\.dart$' | awk '{printf "export \x27%s\x27;\n", $0}' | pbcopy
+// https://medium.com/@matheusdeveloper.henrique/flutter-integration-test-with-gcloud-firebase-testlab-and-github-actions-31ba1f2c173c
+
+
+// TODO: check if ProxyService.strategy.updateStock( is being called propper

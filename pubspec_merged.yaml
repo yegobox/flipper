@@ -182,7 +182,7 @@ dependencies:
   timezone: ^0.10.0
   flutter_statusbarcolor_ns: ^0.5.0-flipper
   
-  shared_preferences: ^2.3.2
+  shared_preferences: ^2.5.2
   newrelic_mobile: ^1.1.7
   flutter_local_notifications: ^19.0.0-dev.5
   

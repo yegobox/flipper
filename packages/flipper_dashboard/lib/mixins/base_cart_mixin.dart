@@ -4,43 +4,38 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 
 mixin BaseCartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixin, TextEditingControllersMixin {
   Future<void> refreshTransactionItems({required String transactionId}) async {
-    ref.refresh(freshtransactionItemsProviderByIdProvider(
-        (transactionId: transactionId)));
+    ref.refresh(transactionItemsProvider(transactionId: transactionId));
 
-    ref.refresh(pendingTransactionProviderNonStream(
-        (isExpense: false, mode: TransactionType.sale)));
+    ref.refresh(pendingTransactionStreamProvider(isExpense: false));
 
-    final branchId = ProxyService.box.getBranchId()!;
-    ref.refresh(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
+    ref.refresh(pendingTransactionStreamProvider(isExpense: false));
 
-    ref.refresh(transactionItemsProvider((isExpense: false)));
+    ref.refresh(transactionItemsProvider(transactionId: transactionId));
   }
 
-  String getCartItemCount() {
+  String getCartItemCount({required String transactionId}) {
     return ref
-            .watch(transactionItemsProvider((isExpense: false)))
+            .watch(transactionItemsProvider(transactionId: transactionId))
             .value
             ?.length
             .toString() ??
         '0';
   }
 
-  double getSumOfItems() {
+  double getSumOfItems({required String transactionId}) {
     final transactionItems =
-        ref.watch(transactionItemsProvider((isExpense: false)));
+        ref.watch(transactionItemsProvider(transactionId: transactionId));
 
     if (transactionItems.hasValue) {
       return transactionItems.value!.fold(

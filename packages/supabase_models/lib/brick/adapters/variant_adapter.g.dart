@@ -112,9 +112,9 @@ Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
       taxblAmt: data['taxbl_amt'] == null ? null : data['taxbl_amt'] as double?,
       taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as double?,
       totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as double?,
-      pchsSttsCd: data['pchs_stts_cd'] == null
-          ? null
-          : data['pchs_stts_cd'] as String?);
+      pchsSttsCd:
+          data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?,
+      isShared: data['is_shared'] == null ? null : data['is_shared'] as bool?);
 }
 
 Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
@@ -190,7 +190,8 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'taxbl_amt': instance.taxblAmt,
     'tax_amt': instance.taxAmt,
     'tot_amt': instance.totAmt,
-    'pchs_stts_cd': instance.pchsSttsCd
+    'pchs_stts_cd': instance.pchsSttsCd,
+    'is_shared': instance.isShared
   };
 }
 
@@ -308,7 +309,8 @@ Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
       taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as double?,
       totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as double?,
       pchsSttsCd:
-          data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?)
+          data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?,
+      isShared: data['is_shared'] == null ? null : data['is_shared'] == 1)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -387,7 +389,8 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'taxbl_amt': instance.taxblAmt,
     'tax_amt': instance.taxAmt,
     'tot_amt': instance.totAmt,
-    'pchs_stts_cd': instance.pchsSttsCd
+    'pchs_stts_cd': instance.pchsSttsCd,
+    'is_shared': instance.isShared == null ? null : (instance.isShared! ? 1 : 0)
   };
 }
 
@@ -671,6 +674,10 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'pchsSttsCd': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'pchs_stts_cd',
+    ),
+    'isShared': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'is_shared',
     )
   };
   @override
@@ -1086,6 +1093,12 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       columnName: 'pchs_stts_cd',
       iterable: false,
       type: String,
+    ),
+    'isShared': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'is_shared',
+      iterable: false,
+      type: bool,
     )
   };
   @override

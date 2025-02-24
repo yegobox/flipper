@@ -35,6 +35,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
   bool isLoading = false;
   bool isImport = true;
+  final Map<String, Variant> _variantMap = {}; // Initialize the map here
 
   @override
   void initState() {
@@ -140,7 +141,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     });
   }
 
-  void _saveItemName() {
+  void _saveChangeMadeOnItem() {
     if (_importFormKey.currentState?.validate() ?? false) {
       if (isImport && _selectedItem != null) {
         setState(() {
@@ -245,11 +246,12 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                           nameController: _nameController,
                           supplyPriceController: _supplyPriceController,
                           retailPriceController: _retailPriceController,
-                          saveItemName: _saveItemName,
+                          saveChangeMadeOnItem: _saveChangeMadeOnItem,
                           acceptAllImport: _acceptAllImport,
                           selectItem: _selectItem,
                           selectedItem: _selectedItem,
                           finalItemList: finalItemList,
+                          variantMap: _variantMap,
                         )
                       : FutureBuilder<List<Variant>>(
                           future: _futurePurchaseResponse,
@@ -267,12 +269,14 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                 nameController: _nameController,
                                 supplyPriceController: _supplyPriceController,
                                 retailPriceController: _retailPriceController,
-                                saveItemName: _saveItemName,
+                                saveItemName: _saveChangeMadeOnItem,
                                 acceptPurchases: (
                                     {required List<Variant> variants,
                                     required String pchsSttsCd}) async {
-                                  final pendingTransaction = await ref
-                                      .read(pendingTransactionProvider.future);
+                                  final pendingTransaction = await ref.read(
+                                      pendingTransactionStreamProvider(
+                                              isExpense: true)
+                                          .future);
                                   model.acceptPurchase(
                                     variants: variants,
                                     itemMapper: itemMapper,

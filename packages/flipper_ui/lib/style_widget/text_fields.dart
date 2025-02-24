@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 class AppInputDecoration {
   static InputDecoration buildDecoration({
     required BuildContext context,
-    required String labelText,
+    String? labelText,
     required String hintText,
     IconData? prefixIcon,
-    Widget? suffixIcon, 
+    Widget? suffixIcon,
     TextEditingController? controller,
     VoidCallback? onClearPressed,
   }) {
@@ -15,7 +15,7 @@ class AppInputDecoration {
       labelText: labelText,
       hintText: hintText,
       hintStyle: TextStyle(
-        color: Theme.of(context).hintColor.withValues(alpha: .7),
+        color: Theme.of(context).hintColor.withOpacity(.7),
         fontSize: 14.0,
       ),
       labelStyle: TextStyle(
@@ -24,25 +24,22 @@ class AppInputDecoration {
       ),
       prefixIcon: prefixIcon != null
           ? Icon(
-              prefixIcon,
-              color: Theme.of(context).primaryColor,
-              size: 22.0,
-            )
+        prefixIcon,
+        color: Theme.of(context).primaryColor,
+        size: 22.0,
+      )
           : null,
-      suffixIcon:
-          suffixIcon ?? // Use custom suffixIcon if provided, otherwise default to clear button
-              (controller != null &&
-                      controller.text.isNotEmpty &&
-                      onClearPressed != null
-                  ? IconButton(
-                      icon: Icon(
-                        Icons.clear,
-                        color: Colors.grey.shade600,
-                        size: 20.0,
-                      ),
-                      onPressed: onClearPressed,
-                    )
-                  : null),
+      suffixIcon: suffixIcon ?? // Use custom suffixIcon if provided, otherwise default to clear button
+          (controller != null && controller.text.isNotEmpty && onClearPressed != null
+              ? IconButton(
+            icon: Icon(
+              Icons.clear,
+              color: Colors.grey.shade600,
+              size: 20.0,
+            ),
+            onPressed: onClearPressed,
+          )
+              : null),
       border: _buildBorder(context, opacity: 0.5),
       enabledBorder: _buildBorder(context, opacity: 0.3),
       focusedBorder: _buildBorder(context, opacity: 1.0, width: 2.0),
@@ -58,10 +55,10 @@ class AppInputDecoration {
   }
 
   static OutlineInputBorder _buildBorder(
-    BuildContext context, {
-    double opacity = 1.0,
-    double width = 1.0,
-  }) {
+      BuildContext context, {
+        double opacity = 1.0,
+        double width = 1.0,
+      }) {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(4.0),
       borderSide: BorderSide(
@@ -72,9 +69,9 @@ class AppInputDecoration {
   }
 
   static OutlineInputBorder _buildErrorBorder(
-    BuildContext context, {
-    double width = 1.0,
-  }) {
+      BuildContext context, {
+        double width = 1.0,
+      }) {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(4.0),
       borderSide: BorderSide(
@@ -96,9 +93,10 @@ class AppInputDecoration {
 class StyledTextFormField {
   static TextFormField create({
     required BuildContext context,
-    required String labelText,
+    String? labelText,
     required String hintText,
     TextEditingController? controller,
+    FocusNode? focusNode, // Add optional focusNode parameter
     TextInputType? keyboardType,
     int? maxLines,
     int? minLines,
@@ -109,6 +107,7 @@ class StyledTextFormField {
   }) {
     return TextFormField(
       controller: controller,
+      focusNode: focusNode, // Pass the optional focusNode
       keyboardType: keyboardType,
       maxLines: maxLines,
       minLines: minLines,
@@ -124,9 +123,9 @@ class StyledTextFormField {
         controller: controller,
         onClearPressed: controller != null
             ? () {
-                controller.clear();
-                // Note: You'll need to handle setState in the parent widget
-              }
+          controller.clear();
+          // Note: You'll need to handle setState in the parent widget
+        }
             : null,
       ),
     );

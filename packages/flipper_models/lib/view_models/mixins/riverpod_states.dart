@@ -5,11 +5,9 @@ import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:flutter/material.dart';
-import '_transaction.dart';
 import 'package:http/http.dart' as http;
 
 final coreViewModelProvider = ChangeNotifierProvider((ref) => CoreViewModel());
@@ -69,19 +67,6 @@ class CustomerSearchStringNotifier extends StateNotifier<String> {
     state = value;
   }
 }
-
-// final searchStringProvider =
-//     StateNotifierProvider.autoDispose<SearchStringNotifier, String>((ref) {
-//   return SearchStringNotifier();
-// });
-
-// class SearchStringNotifier extends StateNotifier<String> {
-//   SearchStringNotifier() : super("");
-
-//   void emitString({required String value}) {
-//     state = value;
-//   }
-// }
 
 enum SellingMode {
   forOrdering,
@@ -172,130 +157,9 @@ class PaginatedVariantsNotifier
   }
 }
 
-final pendingTransactionProviderNonStream = FutureProvider.autoDispose
-    .family<ITransaction, ({String mode, bool isExpense})>(
-  (ref, params) async {
-    final (:mode, :isExpense) = params;
-
-    // Access ProxyService to get the branch ID
-    final branchId = ProxyService.box.getBranchId() ?? 0;
-
-    // Return the result of manageTransaction directly
-    return await ProxyService.strategy.manageTransaction(
-      transactionType: mode,
-      isExpense: isExpense,
-      branchId: branchId,
-    );
-  },
-);
-final pendingTransactionProvider = StreamProvider.autoDispose
-    .family<ITransaction, ({String mode, bool isExpense, int branchId})>(
-  (ref, params) {
-    final (:mode, :isExpense, :branchId) = params;
-
-    // Return a stream from the manageTransaction method
-    return ProxyService.strategy.manageTransactionStream(
-      transactionType: mode,
-      isExpense: isExpense,
-      branchId: branchId,
-    );
-  },
-);
-final freshtransactionItemsProviderByIdProvider =
-    StateNotifierProvider.autoDispose.family<TransactionItemsNotifier,
-        AsyncValue<List<TransactionItem>>, ({String transactionId})>(
-  (ref, params) {
-    final (:transactionId) = params;
-
-    return TransactionItemsNotifier(
-      transactionId: transactionId,
-      ref: ref,
-    );
-  },
-);
-
-final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
-    TransactionItemsNotifier,
-    AsyncValue<List<TransactionItem>>,
-    ({bool isExpense})>((ref, params) {
-  final (:isExpense) = params;
-  final transaction = ref.watch(pendingTransactionProviderNonStream((isExpense
-      ? (mode: TransactionType.cashOut, isExpense: true)
-      : (mode: TransactionType.sale, isExpense: false))));
-
-  return TransactionItemsNotifier(
-    transactionId: transaction.value?.id,
-    ref: ref,
-  );
-});
-
-class TransactionItemsNotifier
-    extends StateNotifier<AsyncValue<List<TransactionItem>>> {
-  final String? transactionId;
-  final Ref ref;
-  bool _mounted = true;
-
-  TransactionItemsNotifier({
-    required this.transactionId,
-    required this.ref,
-  }) : super(const AsyncValue.loading()) {
-    _loadItems();
-  }
-
-  @override
-  void dispose() {
-    _mounted = false;
-    super.dispose();
-  }
-
-  Future<void> _loadItems() async {
-    await loadItems(currentTransaction: transactionId ?? "");
-  }
-
-  Future<List<TransactionItem>> loadItems(
-      {required String currentTransaction}) async {
-    if (!_mounted) return [];
-
-    try {
-      if (!mounted) return [];
-      state = const AsyncValue.loading();
-
-      final items = await ProxyService.strategy.transactionItems(
-          branchId: ProxyService.box.getBranchId()!,
-          transactionId: currentTransaction,
-          doneWithTransaction: false,
-          active: true);
-
-      if (!_mounted) return items;
-      state = AsyncValue.data(items);
-
-      return items;
-    } catch (error, stackTrace) {
-      if (!_mounted) return [];
-      talker.error("Error loading transaction items: $error");
-      state = AsyncValue.error(error, stackTrace);
-      rethrow;
-    }
-  }
-
-  int get counts {
-    return state.maybeWhen(
-      data: (items) => items.length,
-      orElse: () => 0,
-    );
-  }
-
-  double get totalPayable {
-    return state.maybeWhen(
-      data: (items) => items.fold(0, (a, b) => a + (b.price * b.qty)),
-      orElse: () => 0.0,
-    );
-  }
-}
-
 final matchedProductProvider = Provider.autoDispose<Product?>((ref) {
   final productsState =
-      ref.watch(productsProvider(ProxyService.box.getBranchId()!));
+      ref.watch(productsProvider(ProxyService.box.getBranchId() ?? 0));
   return productsState.maybeWhen(
     data: (products) {
       try {
@@ -334,7 +198,7 @@ class ReceiveOrderModeNotifier extends StateNotifier<bool> {
 
 final customersProvider = StateNotifierProvider.autoDispose<CustomersNotifier,
     AsyncValue<List<Customer>>>((ref) {
-  int branchId = ProxyService.box.getBranchId()!;
+  int branchId = ProxyService.box.getBranchId() ?? 0;
   final customersNotifier = CustomersNotifier(branchId);
   final searchString = ref.watch(searchStringProvider);
   customersNotifier.loadCustomers(searchString: searchString);
@@ -363,7 +227,7 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 
       state = AsyncData(customers);
     } catch (error) {
-      state = AsyncError(error, StackTrace.current);
+      //state = AsyncError(error, StackTrace.current);
     }
   }
 
@@ -865,7 +729,7 @@ final branchSelectionProvider =
 );
 
 final stockRequestsProvider = StreamProvider.autoDispose
-    .family<List<InventoryRequest>, ({String filter})>((ref, params) {
+    .family<List<InventoryRequest>, ({String? filter})>((ref, params) {
   final branchId = ProxyService.box.getBranchId();
   final (:filter) = params;
   if (branchId == null) {
@@ -892,14 +756,6 @@ final branchesProvider = FutureProvider.autoDispose
 
   return branches;
 });
-
-class StringState extends StateNotifier<String> {
-  StringState(String initialValue) : super(initialValue);
-
-  void updateString(String newString) {
-    state = newString;
-  }
-}
 
 class Payment {
   double amount;
@@ -967,15 +823,22 @@ final paymentMethodsProvider =
     StateNotifierProvider<PaymentMethodsNotifier, List<Payment>>(
   (ref) => PaymentMethodsNotifier(), // No need to pass initial list here
 );
-final stringProvider = StateNotifierProvider<StringState, String>((ref) {
-  return StringState(RequestStatus.pending);
+
+class StringState extends StateNotifier<String?> {
+  StringState(String? initialValue) : super(initialValue);
+
+  void updateString(String newString) {
+    state = newString;
+  }
+}
+
+final stringProvider = StateNotifierProvider<StringState, String?>((ref) {
+  return StringState(null);
 });
 
 final showProductsList = AutoDisposeStateProvider<bool>((ref) => true);
 List<ProviderBase> allProviders = [
   unsavedProductProvider,
-  customerSearchStringProvider,
-  searchStringProvider,
   sellingModeProvider,
   matchedProductProvider,
   scanningModeProvider,

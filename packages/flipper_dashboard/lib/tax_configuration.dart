@@ -94,7 +94,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
           appBar: widget.showheader
               ? CustomAppBar(
                   onPop: () async {
-                    ref.invalidate(transactionItemListProvider);
+                    ref.refresh(transactionItemListProvider);
                     _routerService.pop();
                   },
                   closeButton: CLOSEBUTTON.WIDGET,
