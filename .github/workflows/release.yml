@@ -14,7 +14,7 @@ on:
           - promote_to_production
           - production
   pull_request:
-    branches: 
+    branches:
       - main
 
 env:
@@ -60,7 +60,7 @@ jobs:
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           git config --global core.autocrlf false
-          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json 
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
@@ -127,11 +127,12 @@ jobs:
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}  
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart
+
   build-and-release-windows-debug:
     name: "Build windows app-debug"
     runs-on: windows-2022
@@ -164,7 +165,7 @@ jobs:
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
       - name: Build and Package
@@ -186,9 +187,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
-          name: windows-build-eebug
+          name: windows-build-debug
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
           upload_release_asset: false
+
   build-and-release-windows-prod:
     name: "Build windows app-store"
     runs-on: windows-2022
@@ -221,7 +223,7 @@ jobs:
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
       - name: Build and Package
@@ -230,7 +232,7 @@ jobs:
           melos bootstrap
           cd apps/flipper
           flutter clean
-          dart run msix:create 	--store
+          dart run msix:create --store
 
       - name: Extract msix_version
         id: get_version
@@ -239,13 +241,15 @@ jobs:
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
       - name: Upload .msix to Release
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: windows-build
-          path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          upload_release_asset: true
+          upload_url: ${{ github.event.repository.releases_url.replace('{/id}', '') }}
+          asset_path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
+          asset_name: flipper_rw.msix
+          asset_content_type: application/vnd.ms-msix
+
   integration-on-android:
     # needs: [unit-testing]
     runs-on: macOS-14
@@ -300,7 +304,6 @@ jobs:
           # Verify sdkmanager is working
           sdkmanager --version
 
-
       - name: Accept Android SDK Licenses
         run: |
           echo "Accepting Android SDK licenses..."
@@ -328,8 +331,6 @@ jobs:
           echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;arm64-v8a" --device "pixel_4"
           echo "AVD created."
 
-
-
       - name: Start Emulator
         run: |
           echo "Starting emulator..."
@@ -348,9 +349,6 @@ jobs:
           echo "Checking sdkmanager..."
           which sdkmanager
           sdkmanager --list
-
-
-
 
       - name: Verify Emulator Status
         run: adb devices
@@ -411,13 +409,13 @@ jobs:
           git config --global core.autocrlf false
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
-          
+
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
           dart pub global activate melos 6.3.2
@@ -454,9 +452,10 @@ jobs:
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         working-directory: apps/flipper/android
+
   slackNotification:
     name: Slack Notification
-    needs: [fastlane-deploy, build-and-release-windows-debug,build-and-release-windows-prod]
+    needs: [fastlane-deploy, build-and-release-windows-debug, build-and-release-windows-prod]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
