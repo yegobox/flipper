@@ -133,7 +133,7 @@ jobs:
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart
   build-and-release-windows-debug:
-    name: "Build windows app"
+    name: "Build windows app-debug"
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
@@ -190,7 +190,7 @@ jobs:
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
           upload_release_asset: false
   build-and-release-windows-prod:
-    name: "Build windows app"
+    name: "Build windows app-store"
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
