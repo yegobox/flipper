@@ -1,9 +1,12 @@
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/isolateHandelr.dart';
+import 'package:flipper_models/providers/variants_provider.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
-import 'package:flipper_models/providers/variants_provider.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class ImportSalesWidget extends StatefulHookConsumerWidget {
@@ -12,11 +15,12 @@ class ImportSalesWidget extends StatefulHookConsumerWidget {
   final TextEditingController nameController;
   final TextEditingController supplyPriceController;
   final TextEditingController retailPriceController;
-  final void Function() saveItemName;
+  final void Function() saveChangeMadeOnItem;
   final void Function() acceptAllImport;
   final void Function(Variant? selectedItem) selectItem;
   final Variant? selectedItem;
   final List<Variant> finalItemList;
+  final Map<String, Variant> variantMap;
 
   const ImportSalesWidget({
     super.key,
@@ -25,11 +29,12 @@ class ImportSalesWidget extends StatefulHookConsumerWidget {
     required this.nameController,
     required this.supplyPriceController,
     required this.retailPriceController,
-    required this.saveItemName,
+    required this.saveChangeMadeOnItem,
     required this.acceptAllImport,
     required this.selectItem,
     required this.selectedItem,
     required this.finalItemList,
+    required this.variantMap,
   });
 
   @override
@@ -39,6 +44,7 @@ class ImportSalesWidget extends StatefulHookConsumerWidget {
 class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
   bool _isLoading = false;
   late VariantDataSource _variantDataSource;
+  Variant? variantSelectedWhenClickingOnRow;
 
   @override
   void initState() {
@@ -49,30 +55,23 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
   Future<void> _handleApproval(Variant item) async {
     setState(() => _isLoading = true);
     try {
-      item.imptItemSttsCd = "3";
-      item.ebmSynced = false;
-      await ProxyService.strategy.updateVariant(updatables: [item]);
-      final URI = await ProxyService.box.getServerUrl();
-      await VariantPatch.patchVariant(
-        URI: URI!,
-        identifier: item.id,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-      await StockPatch.patchStock(
-        identifier: item.id,
-        URI: URI,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-      await ProxyService.tax.updateImportItems(
-          item: item, URI: await ProxyService.box.getServerUrl() ?? "");
-      item.ebmSynced = true;
-      ProxyService.strategy.updateVariant(updatables: [item]);
-      _variantDataSource.updateDataSource();
-    } catch (e) {
+      Variant? variantToUpdate = widget.variantMap[item.id];
+
+      /// Avoid self-update of the stock
+      if (variantToUpdate != null && variantToUpdate.id != item.id) {
+        variantToUpdate.ebmSynced = false;
+        await ProxyService.strategy
+            .updateVariant(updatables: [variantToUpdate]);
+        talker.warning("KEE${item.stock!.currentStock}");
+        await ProxyService.strategy.updateStock(
+          stockId: variantToUpdate.stock!.id,
+          currentStock: item.stock!.currentStock,
+        );
+      }
+
+      await _processVariantApproval(item);
+    } catch (e, s) {
+      talker.error(s);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error approving item: $e'),
@@ -82,6 +81,43 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _processVariantApproval(Variant item) async {
+    item.imptItemSttsCd = "3";
+    item.ebmSynced = false;
+    await ProxyService.strategy.updateVariant(updatables: [item]);
+
+    final combinedNotifier = ref.read(refreshProvider);
+    combinedNotifier.performActions(productName: "", scanMode: true);
+
+    final URI = await ProxyService.box.getServerUrl();
+    if (URI != null) {
+      await VariantPatch.patchVariant(
+        URI: URI,
+        identifier: item.id,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
+
+      await StockPatch.patchStock(
+        identifier: item.id,
+        URI: URI,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
+    }
+
+    await ProxyService.tax.updateImportItems(
+      item: item,
+      URI: URI ?? "",
+    );
+
+    item.ebmSynced = true;
+    ProxyService.strategy.updateVariant(updatables: [item]);
+    _variantDataSource.updateDataSource();
   }
 
   Future<void> _handleRejection(Variant item) async {
@@ -220,7 +256,6 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
               child: _buildTextField(
                 controller: widget.nameController,
                 hintText: 'Enter a name',
-                prefixIcon: Icons.inventory,
               ),
             ),
             const SizedBox(width: 16),
@@ -228,7 +263,6 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
               child: _buildTextField(
                 controller: widget.supplyPriceController,
                 hintText: 'Enter supply price',
-                prefixIcon: Icons.attach_money,
                 validator: (value) =>
                     value?.isEmpty ?? true ? 'Supply price is required' : null,
               ),
@@ -238,10 +272,56 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
               child: _buildTextField(
                 controller: widget.retailPriceController,
                 hintText: 'Enter retail price',
-                prefixIcon: Icons.point_of_sale,
                 validator: (value) =>
                     value?.isEmpty ?? true ? 'Retail price is required' : null,
               ),
+            ),
+            const SizedBox(width: 16),
+            Consumer(
+              builder: (context, ref, child) {
+                final variantProviders = ref.watch(
+                  variantProvider(branchId: ProxyService.box.getBranchId()!),
+                );
+
+                return variantProviders.when(
+                  data: (variants) {
+                    final Variant? selectedVariantObject =
+                        widget.selectedItem != null
+                            ? variants.firstWhere(
+                                (variant) =>
+                                    variant.id == widget.selectedItem!.id,
+                                orElse: () => variants.first,
+                              )
+                            : null;
+
+                    return DropdownButton<String>(
+                      value: selectedVariantObject?.id,
+                      hint: const Text('Select Variant'),
+                      items: variants.map((variant) {
+                        return DropdownMenuItem<String>(
+                          value: variant.id,
+                          child: Text(variant.name),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          final selectedVariant = variants
+                              .firstWhere((variant) => variant.id == value);
+                          // print(
+                          //     "Proff:${variantSelectedWhenClickingOnRow?.name}");
+                          // Update the map when a variant is selected
+                          widget.variantMap[variantSelectedWhenClickingOnRow!
+                              .id] = selectedVariant;
+                        } else {
+                          widget.selectItem(null);
+                        }
+                      },
+                    );
+                  },
+                  loading: () => const CircularProgressIndicator(),
+                  error: (error, stack) => Text('Error: $error'),
+                );
+              },
             ),
             const SizedBox(width: 16),
             _buildActionButtons(),
@@ -254,49 +334,36 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
   Widget _buildTextField({
     required TextEditingController controller,
     required String hintText,
-    required IconData prefixIcon,
     String? Function(String?)? validator,
   }) {
-    return TextFormField(
+    return StyledTextFormField.create(
+      context: context,
+      labelText: hintText,
+      hintText: hintText,
       controller: controller,
+      keyboardType: TextInputType.multiline,
+      maxLines: 3,
+      minLines: 1,
+      onChanged: (value) {
+        setState(() {});
+      },
       validator: validator,
-      decoration: InputDecoration(
-        hintText: hintText,
-        prefixIcon: Icon(prefixIcon),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        filled: true,
-        fillColor: Colors.grey.shade50,
-      ),
     );
   }
 
   Widget _buildActionButtons() {
     return Row(
       children: [
-        ElevatedButton.icon(
-          onPressed: _isLoading ? null : widget.saveItemName,
-          icon: const Icon(Icons.save),
-          label: const Text('Save Changes'),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
+        FlipperButton(
+          onPressed: _isLoading ? null : widget.saveChangeMadeOnItem,
+          text: 'Save Changes',
+          textColor: Colors.black,
         ),
         const SizedBox(width: 8),
-        ElevatedButton.icon(
+        FlipperIconButton(
           onPressed: _isLoading ? null : widget.acceptAllImport,
-          icon: const Icon(Icons.done_all),
-          label: const Text('Accept All'),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
+          icon: Icons.done_all,
+          text: 'Accept All',
         ),
       ],
     );
@@ -314,6 +381,12 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
             final selectedVariant = _variantDataSource
                 .getVariantAt(_variantDataSource.rows.indexOf(addedRows.first));
             widget.selectItem(selectedVariant);
+            setState(() {
+              variantSelectedWhenClickingOnRow = selectedVariant;
+            });
+            // Add/Update the variant in the map when row is selected
+            widget.variantMap[selectedVariant!.id] = selectedVariant;
+            _updateTextFields(selectedVariant); // Update TextFields
           } else {
             widget.selectItem(null);
           }
@@ -399,6 +472,14 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
         ],
       ),
     );
+  }
+
+  void _updateTextFields(Variant variant) {
+    widget.nameController.text = variant.itemNm ?? variant.name;
+    widget.supplyPriceController.text =
+        variant.supplyPrice?.toString() ?? ''; // Ensure null safety
+    widget.retailPriceController.text =
+        variant.retailPrice?.toString() ?? ''; // Ensure null safety
   }
 }
 

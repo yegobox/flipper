@@ -1,7 +1,8 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
@@ -13,6 +14,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'new_ticket.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
 
 mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final _routerService = locator<RouterService>();
@@ -51,20 +53,15 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             );
 
             if (confirm == true) {
-              ITransaction? _transaction =
-                  (await ProxyService.strategy.transactions(id: ticket.id))
-                      .firstOrNull;
-
               await ProxyService.strategy.updateTransaction(
-                transaction: _transaction!,
+                transaction: ticket,
                 status: PENDING,
                 updatedAt: DateTime.now(),
               );
 
               await Future.delayed(Duration(microseconds: 800));
 
-              ref.refresh(
-                  transactionItemsProvider((isExpense: false)).notifier);
+              ref.refresh(transactionItemsProvider(transactionId: ticket.id));
 
               _routerService.clearStackAndShow(FlipperAppRoute());
             }
@@ -139,7 +136,6 @@ class _TicketsListState extends ConsumerState<TicketsList>
     with TicketsListMixin {
   @override
   Widget build(BuildContext context) {
-    final branchId = ProxyService.box.getBranchId()!;
     return Scaffold(
       appBar: widget.showAppBar
           ? AppBar(
@@ -148,11 +144,7 @@ class _TicketsListState extends ConsumerState<TicketsList>
               leading: IconButton(
                 onPressed: () {
                   ref.refresh(
-                    pendingTransactionProvider((
-                      mode: TransactionType.sale,
-                      isExpense: false,
-                      branchId: branchId
-                    )),
+                    pendingTransactionStreamProvider(isExpense: false),
                   );
                   _routerService.back();
                 },

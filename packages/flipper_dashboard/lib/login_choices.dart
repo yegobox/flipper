@@ -2,6 +2,7 @@
 
 import 'dart:developer';
 import 'dart:async';
+import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -20,7 +21,8 @@ class LoginChoices extends StatefulHookConsumerWidget {
   _LoginChoicesState createState() => _LoginChoicesState();
 }
 
-class _LoginChoicesState extends ConsumerState<LoginChoices> {
+class _LoginChoicesState extends ConsumerState<LoginChoices>
+    with BranchSelectionMixin {
   bool _isSelectingBranch = false;
   Business? _selectedBusiness;
   bool _isLoading = false;
@@ -70,7 +72,12 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
                         const SizedBox(height: 32.0),
                         Expanded(
                           child: _isSelectingBranch
-                              ? _buildBranchList(branches: branches.value!)
+                              ? buildBranchList(
+                                  // Use the mixin's method
+                                  branches: branches.value!,
+                                  loadingItemId: _loadingItemId,
+                                  onBranchSelected: (branch, context) =>
+                                      _handleBranchSelection(branch, context))
                               : _buildBusinessList(
                                   businesses: businesses.value),
                         ),
@@ -108,23 +115,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
           onTap: () => _handleBusinessSelection(business),
           icon: Icons.business,
           isLoading: _loadingItemId == (business.serverId.toString()),
-        );
-      },
-    );
-  }
-
-  Widget _buildBranchList({required List<Branch> branches}) {
-    return ListView.separated(
-      itemCount: branches.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 24.0),
-      itemBuilder: (context, index) {
-        final branch = branches[index];
-        return _buildSelectionTile(
-          title: branch.name!,
-          isSelected: branch.isDefault!,
-          onTap: () => _handleBranchSelection(branch),
-          icon: Icons.location_on,
-          isLoading: _loadingItemId == branch.serverId?.toString(),
         );
       },
     );
@@ -193,11 +183,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
   }
 
   void _handleBusinessSelection(Business business) async {
-    setState(() {
-      _selectedBusiness = business;
-      _loadingItemId = business.serverId.toString();
-    });
-
     try {
       await _setDefaultBusiness(business);
       if ((await ProxyService.strategy
@@ -206,26 +191,27 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
           1) {
         _navigateToBranchSelection();
       }
-    } finally {
-      setState(() {
-        _loadingItemId = null;
-      });
-    }
+    } finally {}
   }
 
-  void _handleBranchSelection(Branch branch) async {
-    setState(() {
-      _loadingItemId = branch.serverId?.toString();
-    });
-
-    try {
-      await _setDefaultBranch(branch);
-      _completeAuthenticationFlow();
-    } finally {
-      setState(() {
-        _loadingItemId = null;
-      });
-    }
+  Future<void> _handleBranchSelection(
+      Branch branch, BuildContext context) async {
+    await handleBranchSelection(
+      branch: branch,
+      context: context,
+      setLoadingState: (String? id) {
+        setState(() {
+          _loadingItemId = id;
+        });
+      },
+      setDefaultBranch: _setDefaultBranch,
+      onComplete: _completeAuthenticationFlow,
+      setIsLoading: (bool value) {
+        setState(() {
+          _isLoading = value;
+        });
+      },
+    );
   }
 
   Future<void> _setDefaultBusiness(Business business) async {
@@ -245,21 +231,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
 
   Future<void> _setDefaultBranch(Branch branch) async {
     ref.read(branchSelectionProvider.notifier).setLoading(true);
-
-    try {
-      await _updateAllBranchesInactive();
-      await _updateBranchActive(branch);
-      await _syncBranchWithDatabase(branch);
-      setState(() {
-        _isLoading = true;
-      });
-      _refreshBusinessAndBranchProviders();
-    } catch (e, s) {
-      log(e.toString());
-      log(s.toString());
-    } finally {
-      ref.read(branchSelectionProvider.notifier).setLoading(false);
-    }
+    _refreshBusinessAndBranchProviders();
+    return Future.value(); // Return a completed Future<void>
   }
 
   void _updateAllBusinessesInactive() async {
@@ -288,25 +261,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
       ..writeString(
           key: 'bhfId', value: (await ProxyService.box.bhfId()) ?? "00")
       ..writeInt(key: 'tin', value: business.tinNumber ?? 0)
-      ..writeString(key: 'encryptionKey', value: business.encryptionKey!);
-  }
-
-  Future<void> _updateAllBranchesInactive() async {
-    final branches = await ProxyService.strategy.branches(
-        businessId: ProxyService.box.getBusinessId()!, includeSelf: true);
-    for (final branch in branches) {
-      ProxyService.strategy.updateBranch(
-          branchId: branch.serverId!, active: false, isDefault: false);
-    }
-  }
-
-  Future<void> _updateBranchActive(Branch branch) async {
-    await ProxyService.strategy.updateBranch(
-        branchId: branch.serverId!, active: true, isDefault: true);
-  }
-
-  Future<void> _syncBranchWithDatabase(Branch branch) async {
-    await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
+      ..writeString(key: 'encryptionKey', value: business.encryptionKey ?? "");
   }
 
   void _navigateToBranchSelection() {
@@ -318,27 +273,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices> {
 
   void _completeAuthenticationFlow() {
     _routerService.navigateTo(FlipperAppRoute());
-    // if (ProxyService.strategy.isDrawerOpen(
-    //     cashierId: ProxyService.box.getUserId()!,
-    //     branchId: ProxyService.box.getBranchId()!)) {
-    //   _routerService.navigateTo(FlipperAppRoute());
-    // } else {
-    //   Drawers drawer = Drawers(
-    //
-    //
-    //     openingBalance: 0.0,
-    //     closingBalance: 0.0,
-    //     cashierId: ProxyService.box.getUserId()!,
-    //     tradeName: ProxyService.app.business.name,
-    //     openingDateTime: DateTime.now(),
-    //     open: true,
-    //     businessId: ProxyService.box.getBusinessId(),
-    //     branchId: ProxyService.box.getBranchId(),
-    //   );
-
-    //   _routerService
-    //       .navigateTo(DrawerScreenRoute(open: "open", drawer: drawer));
-    // }
   }
 
   void _refreshBusinessAndBranchProviders() {

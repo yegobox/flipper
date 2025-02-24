@@ -1,67 +1,14 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250209152800.migration.dart';
-part '20250104131208.migration.dart';
-part '20250127184733.migration.dart';
-part '20250205114646.migration.dart';
-part '20250124185812.migration.dart';
-part '20250102092703.migration.dart';
-part '20250102092919.migration.dart';
-part '20250102125905.migration.dart';
-part '20250114092913.migration.dart';
-part '20250205095332.migration.dart';
-part '20250117141102.migration.dart';
-part '20250110094310.migration.dart';
-part '20250101092622.migration.dart';
-part '20250114144814.migration.dart';
-part '20250102130727.migration.dart';
-part '20250128051600.migration.dart';
-part '20250102124844.migration.dart';
-part '20250124180016.migration.dart';
-part '20250124153826.migration.dart';
-part '20250123095625.migration.dart';
-part '20250102110336.migration.dart';
-part '20250126102159.migration.dart';
-part '20250102144742.migration.dart';
-part '20250128050524.migration.dart';
-part '20250114114345.migration.dart';
-part '20250109125327.migration.dart';
-part '20250123095657.migration.dart';
+part '20250223143539.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250209152800(),
-  const Migration20250104131208(),
-  const Migration20250127184733(),
-  const Migration20250205114646(),
-  const Migration20250124185812(),
-  const Migration20250102092703(),
-  const Migration20250102092919(),
-  const Migration20250102125905(),
-  const Migration20250114092913(),
-  const Migration20250205095332(),
-  const Migration20250117141102(),
-  const Migration20250110094310(),
-  const Migration20250101092622(),
-  const Migration20250114144814(),
-  const Migration20250102130727(),
-  const Migration20250128051600(),
-  const Migration20250102124844(),
-  const Migration20250124180016(),
-  const Migration20250124153826(),
-  const Migration20250123095625(),
-  const Migration20250102110336(),
-  const Migration20250126102159(),
-  const Migration20250102144742(),
-  const Migration20250128050524(),
-  const Migration20250114114345(),
-  const Migration20250109125327(),
-  const Migration20250123095657()
-};
+  const Migration20250223143539(),};
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250209152800, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250223143539, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -234,6 +181,23 @@ final schema = Schema(20250209152800, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('receipt_number', Column.integer),
     SchemaColumn('total_receipt_number', Column.integer),
     SchemaColumn('invoice_number', Column.integer)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
+  SchemaTable('Financing', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('requested', Column.boolean),
+    SchemaColumn('status', Column.varchar),
+    SchemaColumn('provider_FinanceProvider_brick_id', Column.integer,
+        isForeignKey: true,
+        foreignTableName: 'FinanceProvider',
+        onDeleteCascade: false,
+        onDeleteSetDefault: false),
+    SchemaColumn('finance_provider_id', Column.varchar),
+    SchemaColumn('amount', Column.num),
+    SchemaColumn('approval_date', Column.datetime)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
@@ -455,7 +419,8 @@ final schema = Schema(20250209152800, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('taxbl_amt', Column.Double),
     SchemaColumn('tax_amt', Column.Double),
     SchemaColumn('tot_amt', Column.Double),
-    SchemaColumn('pchs_stts_cd', Column.varchar)
+    SchemaColumn('pchs_stts_cd', Column.varchar),
+    SchemaColumn('is_shared', Column.boolean)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true),
     SchemaIndex(columns: ['purchase_id'], unique: false)
@@ -610,6 +575,61 @@ final schema = Schema(20250209152800, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('is_default', Column.boolean),
     SchemaColumn('is_long_pressed', Column.boolean),
     SchemaColumn('type', Column.varchar)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
+  SchemaTable('_brick_InventoryRequest_transaction_items',
+      columns: <SchemaColumn>{
+        SchemaColumn('_brick_id', Column.integer,
+            autoincrement: true, nullable: false, isPrimaryKey: true),
+        SchemaColumn('l_InventoryRequest_brick_id', Column.integer,
+            isForeignKey: true,
+            foreignTableName: 'InventoryRequest',
+            onDeleteCascade: true,
+            onDeleteSetDefault: false),
+        SchemaColumn('f_TransactionItem_brick_id', Column.integer,
+            isForeignKey: true,
+            foreignTableName: 'TransactionItem',
+            onDeleteCascade: true,
+            onDeleteSetDefault: false)
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: [
+          'l_InventoryRequest_brick_id',
+          'f_TransactionItem_brick_id'
+        ], unique: true)
+      }),
+  SchemaTable('InventoryRequest', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('main_branch_id', Column.integer),
+    SchemaColumn('sub_branch_id', Column.integer),
+    SchemaColumn('branch_Branch_brick_id', Column.integer,
+        isForeignKey: true,
+        foreignTableName: 'Branch',
+        onDeleteCascade: false,
+        onDeleteSetDefault: false),
+    SchemaColumn('branch_id', Column.varchar),
+    SchemaColumn('created_at', Column.datetime),
+    SchemaColumn('status', Column.varchar),
+    SchemaColumn('delivery_date', Column.datetime),
+    SchemaColumn('delivery_note', Column.varchar),
+    SchemaColumn('order_note', Column.varchar),
+    SchemaColumn('customer_received_order', Column.boolean),
+    SchemaColumn('driver_request_delivery_confirmation', Column.boolean),
+    SchemaColumn('driver_id', Column.integer),
+    SchemaColumn('transaction_items', Column.varchar),
+    SchemaColumn('updated_at', Column.datetime),
+    SchemaColumn('item_counts', Column.num),
+    SchemaColumn('bhf_id', Column.varchar),
+    SchemaColumn('tin_number', Column.varchar),
+    SchemaColumn('financing_Financing_brick_id', Column.integer,
+        isForeignKey: true,
+        foreignTableName: 'Financing',
+        onDeleteCascade: false,
+        onDeleteSetDefault: false),
+    SchemaColumn('financing_id', Column.varchar)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
@@ -831,6 +851,16 @@ final schema = Schema(20250209152800, generatorVersion: 1, tables: <SchemaTable>
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
+  SchemaTable('FinanceProvider', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('name', Column.varchar),
+    SchemaColumn('interest_rate', Column.num),
+    SchemaColumn('suppliers_that_accept_this_finance_facility', Column.varchar)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
   SchemaTable('Ebm', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -963,44 +993,14 @@ final schema = Schema(20250209152800, generatorVersion: 1, tables: <SchemaTable>
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
-  SchemaTable('_brick_InventoryRequest_transaction_items',
-      columns: <SchemaColumn>{
-        SchemaColumn('_brick_id', Column.integer,
-            autoincrement: true, nullable: false, isPrimaryKey: true),
-        SchemaColumn('l_InventoryRequest_brick_id', Column.integer,
-            isForeignKey: true,
-            foreignTableName: 'InventoryRequest',
-            onDeleteCascade: true,
-            onDeleteSetDefault: false),
-        SchemaColumn('f_TransactionItem_brick_id', Column.integer,
-            isForeignKey: true,
-            foreignTableName: 'TransactionItem',
-            onDeleteCascade: true,
-            onDeleteSetDefault: false)
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(columns: [
-          'l_InventoryRequest_brick_id',
-          'f_TransactionItem_brick_id'
-        ], unique: true)
-      }),
-  SchemaTable('InventoryRequest', columns: <SchemaColumn>{
+  SchemaTable('VariantBranch', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
     SchemaColumn('id', Column.varchar, unique: true),
-    SchemaColumn('main_branch_id', Column.integer),
-    SchemaColumn('sub_branch_id', Column.integer),
-    SchemaColumn('created_at', Column.datetime),
-    SchemaColumn('status', Column.varchar),
-    SchemaColumn('delivery_date', Column.datetime),
-    SchemaColumn('delivery_note', Column.varchar),
-    SchemaColumn('order_note', Column.varchar),
-    SchemaColumn('customer_received_order', Column.boolean),
-    SchemaColumn('driver_request_delivery_confirmation', Column.boolean),
-    SchemaColumn('driver_id', Column.integer),
-    SchemaColumn('transaction_items', Column.varchar),
-    SchemaColumn('updated_at', Column.datetime),
-    SchemaColumn('item_counts', Column.num)
+    SchemaColumn('variant_id', Column.varchar),
+    SchemaColumn('new_variant_id', Column.varchar),
+    SchemaColumn('source_branch_id', Column.varchar),
+    SchemaColumn('destination_branch_id', Column.varchar)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   })

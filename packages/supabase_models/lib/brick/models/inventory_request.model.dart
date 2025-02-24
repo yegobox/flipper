@@ -1,6 +1,8 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:supabase_models/brick/models/branch.model.dart';
+import 'package:supabase_models/brick/models/financing.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:uuid/uuid.dart';
 
@@ -13,6 +15,11 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   final String id;
   int? mainBranchId;
   int? subBranchId;
+
+  Branch? branch;
+  // the requester same as subBranchId but this will use uuid representation of the subBranchId
+  String? branchId;
+
   DateTime? createdAt;
   // e.g., "pending", "approved", "partiallyApproved", "rejected", "fulfilled"
   String? status;
@@ -23,25 +30,36 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   bool? driverRequestDeliveryConfirmation = false;
   int? driverId;
   @Supabase(ignore: true)
-  // @OfflineFirst(where: {'stockRequestId': "id"})
-  final List<TransactionItem> transactionItems;
+  List<TransactionItem>? transactionItems;
   DateTime? updatedAt;
   num? itemCounts;
+
+  String? bhfId;
+  String? tinNumber;
+
+  // stock financing
+  Financing? financing;
+  String? financingId;
   InventoryRequest({
     String? id,
     this.mainBranchId,
+    this.bhfId,
+    this.tinNumber,
     this.itemCounts,
     this.subBranchId,
     this.createdAt,
     this.status,
+    this.branchId,
+    this.branch,
     this.deliveryDate,
     this.deliveryNote,
+    this.financingId,
     this.orderNote,
     this.customerReceivedOrder,
     this.driverRequestDeliveryConfirmation,
     this.driverId,
-    List<TransactionItem>? transactionItems,
+    this.transactionItems,
     this.updatedAt,
-  })  : id = id ?? const Uuid().v4(),
-        transactionItems = transactionItems ?? [];
+    this.financing,
+  }) : id = id ?? const Uuid().v4();
 }

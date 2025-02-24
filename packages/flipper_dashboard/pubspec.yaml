@@ -117,6 +117,7 @@ dependencies:
   supabase_flutter: ^2.8.0
   uuid: ^4.5.1
   fl_chart: ^0.70.2
+  flutter_typeahead: ^5.2.0
 
 dependency_overrides:
   http: ^1.2.2

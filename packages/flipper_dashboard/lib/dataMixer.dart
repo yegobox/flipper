@@ -12,6 +12,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 final productProvider =
@@ -55,36 +56,59 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     try {
       /// first if there is image attached delete if first
       final product = await ref.read(productProvider(productId!).future);
+      Variant? variant =
+          await ProxyService.strategy.getVariant(productId: productId);
 
-      if (product?.isComposite ?? false) {
-        /// search composite and delete them as well
-        List<Composite> composites =
-            await ProxyService.strategy.composites(productId: productId);
+      /// Check if the product and variant are valid and if the variant is owned (not shared)
+      bool canDelete =
+          variant != null && (variant.isShared != null && !variant.isShared!);
 
-        for (Composite composite in composites) {
-          ProxyService.strategy.delete(
-              id: composite.id,
-              endPoint: 'composite',
-              flipperHttpClient: ProxyService.http);
+      if (canDelete) {
+        if (product == null) {
+          ProxyService.strategy.delete(id: variant.id, endPoint: 'variant');
+          ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+
+          return;
         }
-      }
-      if (product != null && product.imageUrl != null) {
-        if (await ProxyService.strategy
-            .removeS3File(fileName: product.imageUrl!)) {
+        // If the product is  composite, search and delete related composites
+        if ((product.isComposite ?? false)) {
+          List<Composite> composites =
+              await ProxyService.strategy.composites(productId: productId);
+          for (Composite composite in composites) {
+            await ProxyService.strategy.delete(
+                id: composite.id,
+                endPoint: 'composite',
+                flipperHttpClient: ProxyService.http);
+          }
+        }
+
+        // If the product has an associated image, attempt to remove it from S3
+        bool imageDeleted = product.imageUrl == null ||
+            await ProxyService.strategy
+                .removeS3File(fileName: product.imageUrl!);
+
+        if (imageDeleted) {
           await model.deleteProduct(productId: productId);
           ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
 
-          /// delete assets related to a product
-          Assets? asset = await ProxyService.strategy
-              .getAsset(assetName: product.imageUrl!);
-          ProxyService.strategy.delete(
-              id: asset?.id ?? "", flipperHttpClient: ProxyService.http);
+          // Delete associated assets
+          if (product.imageUrl != null) {
+            Assets? asset = await ProxyService.strategy
+                .getAsset(assetName: product.imageUrl!);
+            if (asset != null) {
+              await ProxyService.strategy
+                  .delete(id: asset.id, flipperHttpClient: ProxyService.http);
+            }
+          }
+        } else {
+          toast("Failed to delete product image. Product deletion aborted.");
         }
       } else {
-        await model.deleteProduct(productId: productId);
-        ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+        toast("Can't delete shared product");
       }
     } catch (e) {
+      ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+    } finally {
       ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
     }
   }

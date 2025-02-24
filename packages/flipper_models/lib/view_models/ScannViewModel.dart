@@ -166,7 +166,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       prc: retailPrice,
       qty: 1,
       dcRt: 0,
-
+      pkgUnitCd: "NT",
       // bcd is bar code
       bcd: barCode,
       sku: barCode,

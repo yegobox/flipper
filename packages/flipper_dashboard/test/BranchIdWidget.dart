@@ -25,7 +25,7 @@ class _BranchIdWidgetState extends State<BranchIdWidget> {
   }
 
   Future<void> _saveBranchId() async {
-    await ProxyService.box.writeInt(key: "getBranchId", value: 1);
+    // await ProxyService.box.writeInt(key: "getBranchId", value: 1);
     await _loadBranchId();
   }
 

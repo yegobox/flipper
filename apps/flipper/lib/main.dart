@@ -40,14 +40,20 @@ Future<void> main() async {
                 textTheme: GoogleFonts.poppinsTextTheme(),
                 brightness: Brightness.light,
                 primaryColor: Colors.blue,
-                colorScheme: const ColorScheme.light(
-                  primary: Colors.blue,
-                  secondary: Colors.blueAccent,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: const Color(0xFF00C2E8),
+                  primary: const Color(0xFF00C2E8),
+                  secondary: const Color(0xFF1D1D1D),
                 ).copyWith(surface: Colors.white),
+                appBarTheme: const AppBarTheme(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  elevation: 0,
+                ),
                 cardTheme: CardTheme(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(4)),
                 ),
               ),
               localizationsDelegates: [

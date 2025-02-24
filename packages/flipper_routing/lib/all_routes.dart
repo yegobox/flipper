@@ -19,6 +19,7 @@ export 'package:flipper_dashboard/create/color_tile.dart';
 export 'package:flipper_dashboard/create/list_categories.dart';
 export 'package:flipper_dashboard/create/list_units.dart';
 export 'package:flipper_dashboard/WaitingOrdersPlaced.dart';
+export 'package:flipper_dashboard/InventoryRequestMobileView.dart';
 
 // WaitingOrdersPlaced
 export 'package:flipper_dashboard/payment/PaymentPlan.dart';

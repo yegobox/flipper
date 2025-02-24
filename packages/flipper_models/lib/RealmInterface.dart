@@ -100,7 +100,7 @@ abstract class RealmInterface {
     String? variantId,
     int? page,
     String? purchaseId,
-    bool includePurchases = false,
+    bool excludeApprovedInWaitingOrCanceledItems = false,
     int? itemsPerPage,
     String? name,
     String? bcd,
@@ -205,13 +205,13 @@ abstract class RealmInterface {
       {required String transactionType,
       required bool isExpense,
       required int branchId,
-      bool? includeSubTotalCheck = false});
+      bool includeSubTotalCheck = false});
 
-  FutureOr<ITransaction> manageTransaction(
+  FutureOr<ITransaction?> manageTransaction(
       {required String transactionType,
       required bool isExpense,
       required int branchId,
-      bool? includeSubTotalCheck = false});
+      bool includeSubTotalCheck = false});
 
   Future<ITransaction> manageCashInOutTransaction(
       {required String transactionType,
@@ -227,7 +227,7 @@ abstract class RealmInterface {
 
   Future<ITransaction> collectPayment({
     required double cashReceived,
-    required ITransaction transaction,
+    ITransaction? transaction,
     required String paymentType,
     required double discount,
     required int branchId,
@@ -269,7 +269,7 @@ abstract class RealmInterface {
       {required int branchId, required name, double? amount});
 
   Future<void> addTransactionItem({
-    required ITransaction transaction,
+    ITransaction? transaction,
     required bool partOfComposite,
     required DateTime lastTouched,
     required double discount,
@@ -306,10 +306,11 @@ abstract class RealmInterface {
   FutureOr<List<TransactionItem>> transactionItems({
     String? transactionId,
     bool? doneWithTransaction,
-    required int branchId,
+    int? branchId,
     String? id,
     bool? active,
     bool fetchRemote = false,
+    String? requestId,
   });
 
   FutureOr<List<Stock>> stocks({required int branchId});
@@ -322,7 +323,11 @@ abstract class RealmInterface {
       required String url});
 
   Future<Variant?> getVariant(
-      {String? id, String? modrId, String? name, String? bcd});
+      {String? id,
+      String? modrId,
+      String? name,
+      String? bcd,
+      String? productId});
   Future<bool> isTaxEnabled({required int businessId});
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
@@ -363,7 +368,7 @@ abstract class RealmInterface {
   FutureOr<({double income, double expense})> getTransactionsAmountsSum(
       {required String period});
 
-  Future<models.Ebm?> ebm({required int branchId});
+  Future<models.Ebm?> ebm({required int branchId, bool fetchRemote = false});
   Future<void> saveEbm(
       {required int branchId, required String severUrl, required String bhFId});
 
@@ -377,13 +382,16 @@ abstract class RealmInterface {
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin});
   Future<Pin?> savePin({required Pin pin});
-  Stream<List<TransactionItem>> transactionItemsStreams(
-      {String? transactionId,
-      required int branchId,
-      DateTime? startDate,
-      DateTime? endDate,
-      bool? doneWithTransaction,
-      bool? active});
+  Stream<List<TransactionItem>> transactionItemsStreams({
+    String? transactionId,
+    int? branchId,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool? doneWithTransaction,
+    bool? active,
+    bool fetchRemote = false,
+    String? requestId,
+  });
 
   Stream<double> totalSales({required int branchId});
 
@@ -433,8 +441,8 @@ abstract class RealmInterface {
   FutureOr<bool> isAdmin({required int userId, required String appFeature});
   FutureOr<List<Access>> access({required int userId, String? featureName});
   Stream<List<InventoryRequest>> requestsStream(
-      {required int branchId, required String filter});
-  FutureOr<List<InventoryRequest>> requests({required int branchId});
+      {required int branchId, String? filter});
+  FutureOr<List<InventoryRequest>> requests({int? branchId, String? requestId});
   FutureOr<Tenant?> getTenant({int? userId, int? pin});
 
   Future<({String url, int userId, String customerCode})> subscribe(
@@ -475,7 +483,9 @@ abstract class RealmInterface {
   Future<String> createStockRequest(List<TransactionItem> items,
       {required String deliveryNote,
       DateTime? deliveryDate,
-      required int mainBranchId});
+      required ITransaction transaction,
+      required int mainBranchId,
+      required FinanceProvider financeOption});
 
   Future<Stream<double>> downloadAsset(
       {required int branchId,
@@ -528,7 +538,7 @@ abstract class RealmInterface {
 
   FutureOr<Drawers?> closeDrawer(
       {required Drawers drawer, required double eod});
-  FutureOr<void> saveStock({
+  FutureOr<Stock> saveStock({
     Variant? variant,
     required double rsdQty,
     required String productId,
@@ -597,7 +607,7 @@ abstract class RealmInterface {
   });
 
   FutureOr<void> updateTransaction(
-      {required ITransaction transaction,
+      {required ITransaction? transaction,
       String? receiptType,
       double? subTotal,
       String? note,
@@ -836,7 +846,7 @@ abstract class RealmInterface {
 
   FutureOr<List<LPermission>> permissions({required int userId});
 
-  getCounters({required int branchId}) {}
+  getCounters({required int branchId, bool fetchRemote = false}) {}
 
   void notify({required AppNotification notification}) {}
 
@@ -882,4 +892,8 @@ abstract class RealmInterface {
   Future<double> fetchCost(int branchId);
   Future<List<BusinessAnalytic>> analytics({required int branchId});
   Future<void> deleteFailedQueue();
+  Future<int> queueLength();
+
+  Future<List<FinanceProvider>> financeProviders();
+  Future<VariantBranch?> variantBranch({required String variantId});
 }

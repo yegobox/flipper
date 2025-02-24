@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/TransactionItemTable.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -16,7 +17,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/services.dart';
-
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:stacked/stacked.dart';
 
 class QuickSellingView extends StatefulHookConsumerWidget {
@@ -47,7 +48,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     with
         TransactionMixin,
         TextEditingControllersMixin,
-        PreviewcartMixin,
+        PreviewCartMixin,
         TransactionItemTable,
         DateCoreWidget {
   double get totalAfterDiscountAndShipping {
@@ -62,7 +63,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     super.initState();
     ref.read(paymentMethodsProvider)[0].controller.addListener(() async {
       await Future.delayed(Duration(seconds: 5));
-      updatePaymentAmounts(transactionId: "");
+      try {
+        updatePaymentAmounts(transactionId: "");
+      } catch (e) {}
     });
   }
 
@@ -110,28 +113,23 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   @override
   Widget build(BuildContext context) {
     final isOrdering = ProxyService.box.isOrdering() ?? false;
-    final transactionItemsAsyncValue =
-        ref.watch(transactionItemsProvider((isExpense: isOrdering)));
-    final branchId = ProxyService.box.getBranchId() ?? 0;
-    final transactionAsyncValue = ref.watch(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
 
-    transactionItemsAsyncValue.whenData((items) {
-      try {
-        transactionItems = items;
-        if (items.isNotEmpty) {
-          if (!isOrdering && mounted) {
-            ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
-          }
-        }
-      } catch (e) {
-        talker.error(e);
-      }
+    final transactionAsyncValue = ref.watch(pendingTransactionStreamProvider(
+        isExpense: ProxyService.box.isOrdering() ?? false));
+
+    Future.microtask(() {
+      ref.refresh(pendingTransactionStreamProvider(
+          isExpense: ProxyService.box.isOrdering() ?? false));
     });
 
     return ViewModelBuilder.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
+          internalTransactionItems = ref
+                  .watch(transactionItemsProvider(
+                      transactionId: transactionAsyncValue.value?.id))
+                  .value ??
+              [];
           return context.isSmallDevice
               ? _buildSmallDeviceScaffold(
                   isOrdering, transactionAsyncValue, model)
@@ -155,7 +153,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       floatingActionButton: !(ProxyService.box.isOrdering() ?? false)
           ? PayableView(
               transactionId: transactionAsyncValue.value?.id ?? "",
-              wording: "Pay ${getSumOfItems().toRwf()}",
+              wording:
+                  "Pay ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toRwf()}",
               mode: SellingMode.forSelling,
               completeTransaction: (imediteCompleteTransaction) {
                 talker.warning("We are about to complete a sale");
@@ -192,9 +191,23 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           SizedBox(height: 20),
           _buildTotalRow(),
           SizedBox(height: 20),
-          _buildForm(isOrdering,
-              transactionId: transactionAsyncValue.value?.id ?? ""),
+          if (!isOrdering)
+            _buildForm(isOrdering,
+                transactionId: transactionAsyncValue.value?.id ?? ""),
           SizedBox(height: 20),
+          if (isOrdering) ...[
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Text("Delivery Date"),
+                    datePicker(),
+                  ],
+                ),
+                _deliveryNote()
+              ],
+            ),
+          ],
           _buildFooter(transactionAsyncValue),
         ],
       ),
@@ -227,22 +240,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               ],
             ],
           ),
-          if (isOrdering) ...[
-            Padding(
-              padding: const EdgeInsets.only(left: 20.0),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Text("Delivery Date"),
-                      datePicker(),
-                    ],
-                  ),
-                  _deliveryNote()
-                ],
-              ),
-            )
-          ],
           SizedBox(height: 6.0),
           Row(
             children: [
@@ -562,56 +559,58 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildFooter(AsyncValue<ITransaction> transactionAsyncValue) {
-    final branchId = ProxyService.box.getBranchId() ?? 0;
-    final pendingTransaction = ref.watch(pendingTransactionProvider((
-      mode: TransactionType.sale,
-      isExpense: false,
-      branchId: branchId,
-    )));
-
-    final transaction = pendingTransaction.asData?.value;
-
+    final transaction = transactionAsyncValue.asData?.value;
     final displayId =
         (transaction != null) ? transaction.id.toString() : 'Invalid';
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Column(
-          children: [
-            Text(
-              'Total - Discount: ${totalAfterDiscountAndShipping.toRwf()}',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Row(
-              children: [
-                IconButton(
-                  icon: Icon(Icons.copy),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: displayId));
 
-                    ProxyService.strategy.notify(
-                      notification: AppNotification(
-                        identifier: ProxyService.box.getBranchId(),
-                        type: "internal",
-                        completed: false,
-                        message: "TransactionId copied to keypad",
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(width: 8),
-                Text(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Wrap(
+        // Changed from Row to Wrap
+        alignment: WrapAlignment.end,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8.0, // Add spacing between wrapped items
+        children: [
+          Text(
+            'Total - Discount: ${totalAfterDiscountAndShipping.toRwf()}',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            softWrap: true, // Ensure text wraps if needed
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min, // Make row take minimum space
+            children: [
+              IconButton(
+                icon: Icon(Icons.copy),
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: displayId));
+                  ProxyService.strategy.notify(
+                    notification: AppNotification(
+                      identifier: ProxyService.box.getBranchId(),
+                      type: "internal",
+                      completed: false,
+                      message: "TransactionId copied to keypad",
+                    ),
+                  );
+                },
+                constraints: BoxConstraints.tightFor(
+                    width: 40), // Slightly smaller icon button
+              ),
+              Flexible(
+                // Added Flexible to allow text to shrink if needed
+                child: Text(
                   "ID: $displayId",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
+                  overflow:
+                      TextOverflow.ellipsis, // Handle text overflow gracefully
                 ),
-              ],
-            ),
-          ],
-        )
-      ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

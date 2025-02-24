@@ -97,7 +97,16 @@ Future<TransactionItem> _$TransactionItemFromSupabase(Map<String, dynamic> data,
           : data['part_of_composite'] as bool?,
       compositePrice: data['composite_price'] == null
           ? null
-          : data['composite_price'] as double?);
+          : data['composite_price'] as double?,
+      inventoryRequest: data['inventory_request'] == null
+          ? null
+          : await InventoryRequestAdapter().fromSupabase(
+              data['inventory_request'],
+              provider: provider,
+              repository: repository),
+      inventoryRequestId: data['inventory_request_id'] == null
+          ? null
+          : data['inventory_request_id'] as String?);
 }
 
 Future<Map<String, dynamic>> _$TransactionItemToSupabase(
@@ -159,6 +168,10 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
     'ebm_synced': instance.ebmSynced,
     'part_of_composite': instance.partOfComposite,
     'composite_price': instance.compositePrice,
+    'inventory_request': instance.inventoryRequest != null
+        ? await InventoryRequestAdapter().toSupabase(instance.inventoryRequest!,
+            provider: provider, repository: repository)
+        : null,
     'inventory_request_id': instance.inventoryRequestId
   };
 }
@@ -270,7 +283,10 @@ Future<TransactionItem> _$TransactionItemFromSqlite(Map<String, dynamic> data,
                           limit1: true),
                     ))
                       ?.first
-                  : null))
+                  : null),
+      inventoryRequestId: data['inventory_request_id'] == null
+          ? null
+          : data['inventory_request_id'] as String?)
     ..primaryKey = data['_brick_id'] as int;
 }
 
@@ -574,6 +590,12 @@ class TransactionItemAdapter
     'compositePrice': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'composite_price',
+    ),
+    'inventoryRequest': const RuntimeSupabaseColumnDefinition(
+      association: true,
+      columnName: 'inventory_request',
+      associationType: InventoryRequest,
+      associationIsNullable: true,
     ),
     'inventoryRequestId': const RuntimeSupabaseColumnDefinition(
       association: false,

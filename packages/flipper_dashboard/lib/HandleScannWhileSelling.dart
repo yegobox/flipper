@@ -6,7 +6,8 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flutter/material.dart';
 
 mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
@@ -253,23 +254,20 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _processTransaction(Variant variant, CoreViewModel model) async {
-    ITransaction currentTransaction =
-        await ProxyService.strategy.manageTransaction(
-      branchId: ProxyService.box.getBranchId()!,
-      transactionType: TransactionType.sale,
-      isExpense: false,
-    );
+    final pendingTransaction =
+        ref.watch(pendingTransactionStreamProvider(isExpense: false));
 
     await model.saveTransaction(
       variation: variant,
       amountTotal: variant.retailPrice!,
       customItem: false,
-      pendingTransaction: currentTransaction,
+      pendingTransaction: pendingTransaction.value!,
       currentStock: variant.stock!.currentStock!,
       partOfComposite: false,
     );
 
-    ref.refresh(transactionItemsProvider((isExpense: false)));
+    ref.refresh(
+        transactionItemsProvider(transactionId: pendingTransaction.value!.id));
     ref.read(searchStringProvider.notifier).emitString(value: "d");
   }
 }

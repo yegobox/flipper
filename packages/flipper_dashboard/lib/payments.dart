@@ -4,7 +4,7 @@ import 'dart:developer';
 
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
@@ -125,22 +125,13 @@ class PaymentsState extends ConsumerState<Payments> {
   }
 
   PreferredSizeWidget _buildCustomAppBar() {
-    final branchId = ProxyService.box.getBranchId()!;
     return CustomAppBar(
       onPop: () {
-        ref.refresh(pendingTransactionProvider((
-          mode: TransactionType.sale,
-          isExpense: false,
-          branchId: branchId
-        )));
+        ref.refresh(pendingTransactionStreamProvider(isExpense: false));
         _routerService.back();
       },
       onActionButtonClicked: () {
-        ref.refresh(pendingTransactionProvider((
-          mode: TransactionType.sale,
-          isExpense: false,
-          branchId: branchId
-        )));
+        ref.refresh(pendingTransactionStreamProvider(isExpense: false));
         _routerService.back();
       },
       rightActionButtonName: 'Split payment',
@@ -647,11 +638,7 @@ class PaymentsState extends ConsumerState<Payments> {
     }
 
     /// refresh and go home
-    ref.refresh(pendingTransactionProvider((
-      mode: TransactionType.sale,
-      isExpense: false,
-      branchId: ProxyService.box.getBranchId()!
-    )));
+    ref.refresh(pendingTransactionStreamProvider(isExpense: false));
     _routerService.back;
     model.handlingConfirm = false;
   }

@@ -5,10 +5,12 @@ import 'dart:io';
 import 'package:flipper_dashboard/IncomingOrders.dart';
 import 'package:flipper_dashboard/MobileView.dart';
 import 'package:flipper_dashboard/OrderStatusSelector.dart';
+import 'package:flipper_dashboard/PaymentModeModal.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/bottomSheet.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
+import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -17,12 +19,14 @@ import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/ribbon.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
+    as oldImplementationOfRiverpod;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 
 enum OrderStatus { pending, approved }
 
@@ -44,7 +48,8 @@ class CheckOutState extends ConsumerState<CheckOut>
         WidgetsBindingObserver,
         TextEditingControllersMixin,
         TransactionMixin,
-        PreviewcartMixin {
+        PreviewCartMixin,
+        Refresh {
   late AnimationController _animationController;
   late Animation<double> _animation;
   late TabController tabController;
@@ -81,13 +86,14 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   Widget build(BuildContext context) {
-    return _buildMainContent();
+    return Scaffold(
+      body: _buildMainContent(),
+    );
   }
 
   Widget _buildMainContent() {
-    final branchId = ProxyService.box.getBranchId() ?? 0;
-    final transactionAsyncValue = ref.watch(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
+    final transactionAsyncValue =
+        ref.watch(pendingTransactionStreamProvider(isExpense: false));
 
     return transactionAsyncValue.when(
       data: (transaction) => _buildDataWidget(transaction),
@@ -97,17 +103,11 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildDataWidget(ITransaction transaction) {
-    final branchId = ProxyService.box.getBranchId() ?? 0;
-    Future.microtask(() {
-      ref.refresh(pendingTransactionProvider(
-          (mode: TransactionType.sale, isExpense: false, branchId: branchId)));
-    });
-
     return widget.isBigScreen
         ? _buildBigScreenLayout(transaction,
-            showCart: ref.watch(previewingCart))
+            showCart: ref.watch(oldImplementationOfRiverpod.previewingCart))
         : _buildSmallScreenLayout(transaction,
-            showCart: ref.watch(previewingCart));
+            showCart: ref.watch(oldImplementationOfRiverpod.previewingCart));
   }
 
   Widget _buildBigScreenLayout(ITransaction transaction,
@@ -178,8 +178,9 @@ class CheckOutState extends ConsumerState<CheckOut>
               setState(() {
                 _selectedStatus = newStatus;
               });
-              ref.watch(stringProvider.notifier).updateString(
-                  newStatus == OrderStatus.approved
+              ref
+                  .watch(oldImplementationOfRiverpod.stringProvider.notifier)
+                  .updateString(newStatus == OrderStatus.approved
                       ? RequestStatus.approved
                       : RequestStatus.pending);
             },
@@ -207,7 +208,7 @@ class CheckOutState extends ConsumerState<CheckOut>
           padding: const EdgeInsets.all(8.0),
           child: PayableView(
             transactionId: transaction.id,
-            mode: SellingMode.forSelling,
+            mode: oldImplementationOfRiverpod.SellingMode.forSelling,
             completeTransaction: (immediateCompletion) async {
               await _handleCompleteTransaction(
                   transaction, immediateCompletion);
@@ -246,8 +247,8 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
-  String getCartText() {
-    int count = int.parse(getCartItemCount());
+  String getCartText({required String transactionId}) {
+    int count = int.parse(getCartItemCount(transactionId: transactionId));
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
   }
 
@@ -268,10 +269,14 @@ class CheckOutState extends ConsumerState<CheckOut>
           ref.read(payButtonLoadingProvider.notifier).stopLoading();
         },
         transaction: transaction,
-        paymentMethods: ref.watch(paymentMethodsProvider),
+        paymentMethods:
+            ref.watch(oldImplementationOfRiverpod.paymentMethodsProvider),
       );
+      // await newTransaction();
+      await newTransaction(typeOfThisTransactionIsExpense: false);
     } catch (e) {
       ref.read(payButtonLoadingProvider.notifier).stopLoading();
+      await refreshTransactionItems(transactionId: transaction.id);
       rethrow;
     }
   }
@@ -309,8 +314,9 @@ class CheckOutState extends ConsumerState<CheckOut>
                         color: Colors.white,
                         child: PayableView(
                           transactionId: transaction.id,
-                          mode: SellingMode.forOrdering,
-                          wording: getCartText(),
+                          mode: oldImplementationOfRiverpod
+                              .SellingMode.forOrdering,
+                          wording: getCartText(transactionId: transaction.id),
                           model: model,
                           completeTransaction: (immediateCompletion) async {
                             await _handleCompleteTransaction(
@@ -337,9 +343,14 @@ class CheckOutState extends ConsumerState<CheckOut>
                                 },
                               );
                             } else {
-                              previewOrOrder(
-                                  isShopingFromWareHouse: false,
-                                  transaction: transaction);
+                              showPaymentModeModal(context, (provider) async {
+                                print(
+                                    'User selected Finance Provider: ${provider.name}');
+                                placeFinalOrder(
+                                    financeOption: provider,
+                                    isShoppingFromWareHouse: false,
+                                    transaction: transaction);
+                              });
                             }
                           },
                         ),

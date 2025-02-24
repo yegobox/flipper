@@ -2,14 +2,15 @@
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
 mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
-  List<TransactionItem> transactionItems = [];
+  List<TransactionItem> internalTransactionItems = [];
 
   // Calculation methods
   double get grandTotal {
@@ -17,7 +18,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     double compositeTotal = 0.0;
     int compositeCount = 0;
 
-    for (final item in transactionItems) {
+    for (final item in internalTransactionItems) {
       if (item.compositePrice != 0) {
         compositeTotal = item.compositePrice!;
         compositeCount++;
@@ -26,7 +27,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       }
     }
 
-    return compositeCount == transactionItems.length
+    return compositeCount == internalTransactionItems.length
         ? compositeTotal
         : total + compositeTotal;
   }
@@ -42,7 +43,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       },
       children: [
         _buildTableHeader(),
-        if (transactionItems.isEmpty)
+        if (internalTransactionItems.isEmpty)
           TableRow(children: [
             _buildTableCell('No data available'),
             _buildTableCell(''),
@@ -51,7 +52,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             _buildTableCell(''),
           ])
         else
-          ...transactionItems.map((item) => _buildTableRow(item, isOrdering)),
+          ...internalTransactionItems.map((item) => _buildTableRow(item, isOrdering)),
       ],
     );
   }
@@ -182,7 +183,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           quantityRequested: item.qty.toInt(),
         );
       }
-      _refreshTransactionItems(isOrdering);
+      _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
     }
   }
 
@@ -194,7 +195,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         incrementQty: true,
         quantityRequested: item.qty.toInt(),
       );
-      _refreshTransactionItems(isOrdering);
+      _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
     }
   }
 
@@ -213,7 +214,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             incrementQty: false,
             quantityRequested: newQty,
           );
-          _refreshTransactionItems(isOrdering);
+          _refreshTransactionItems(isOrdering,
+              transactionId: item.transactionId!);
         }
       }
     }
@@ -222,15 +224,18 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   void _deleteItem(TransactionItem item, bool isOrdering) {
     if (!item.partOfComposite!) {
       _deleteSingleItem(item, isOrdering);
+      ref.refresh(transactionItemsProvider(transactionId: item.transactionId));
+      ref.refresh(transactionItemsProvider(transactionId: item.transactionId));
     } else {
       _deleteCompositeItems(item, isOrdering);
+      ref.refresh(transactionItemsProvider(transactionId: item.transactionId));
     }
   }
 
   void _deleteSingleItem(TransactionItem item, bool isOrdering) {
     try {
       ProxyService.strategy.delete(id: item.id, endPoint: 'transactionItem');
-      _refreshTransactionItems(isOrdering);
+      _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
     } catch (e) {
       talker.error(e);
     }
@@ -255,11 +260,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         }
       }
     } catch (e) {}
-    _refreshTransactionItems(isOrdering);
+    _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
   }
 
-  void _refreshTransactionItems(bool isOrdering) {
-    ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
-    setState(() {});
+  void _refreshTransactionItems(bool isOrdering,
+      {required String transactionId}) {
+    ref.refresh(transactionItemsProvider(transactionId: transactionId));
   }
 }

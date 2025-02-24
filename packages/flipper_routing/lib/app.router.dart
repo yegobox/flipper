@@ -124,6 +124,14 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    InventoryRequestMobileViewRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i1.InventoryRequestMobileView(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     AddProductViewRoute.name: (routeData) {
       final args = routeData.argsAs<AddProductViewArgs>(
           orElse: () => const AddProductViewArgs());
@@ -669,6 +677,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
           path: '/phone-input-screen',
         ),
         _i4.RouteConfig(
+          InventoryRequestMobileViewRoute.name,
+          path: '/inventory-request-mobile-view',
+        ),
+        _i4.RouteConfig(
           AddProductViewRoute.name,
           path: '/add-product-view',
         ),
@@ -1105,6 +1117,18 @@ class PhoneInputScreenArgs {
   String toString() {
     return 'PhoneInputScreenArgs{key: $key, action: $action, actions: $actions, auth: $auth, countryCode: $countryCode, subtitleBuilder: $subtitleBuilder, footerBuilder: $footerBuilder, headerBuilder: $headerBuilder, headerMaxExtent: $headerMaxExtent, sideBuilder: $sideBuilder, desktopLayoutDirection: $desktopLayoutDirection, breakpoint: $breakpoint, multiFactorSession: $multiFactorSession, mfaHint: $mfaHint}';
   }
+}
+
+/// generated route for
+/// [_i1.InventoryRequestMobileView]
+class InventoryRequestMobileViewRoute extends _i4.PageRouteInfo<void> {
+  const InventoryRequestMobileViewRoute()
+      : super(
+          InventoryRequestMobileViewRoute.name,
+          path: '/inventory-request-mobile-view',
+        );
+
+  static const String name = 'InventoryRequestMobileView';
 }
 
 /// generated route for
@@ -2483,6 +2507,14 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
+  Future<dynamic> navigateToInventoryRequestMobileView(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const InventoryRequestMobileViewRoute(),
+      onFailure: onFailure,
+    );
+  }
+
   Future<dynamic> navigateToAddProductView({
     _i5.Key? key,
     String? productId,
@@ -3180,6 +3212,14 @@ extension RouterStateExtension on _i3.RouterService {
         multiFactorSession: multiFactorSession,
         mfaHint: mfaHint,
       ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithInventoryRequestMobileView(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const InventoryRequestMobileViewRoute(),
       onFailure: onFailure,
     );
   }

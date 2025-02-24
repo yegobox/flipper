@@ -138,7 +138,7 @@ class CoreViewModel extends FlipperBaseModel
     /// we then change status of active from false to true
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
-        transactionId: pendingTransaction.id,
+        transactionId: pendingTransaction?.id,
         doneWithTransaction: false,
         active: false);
 
@@ -178,7 +178,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void handleClearKey(List<TransactionItem> items,
-      ITransaction pendingTransaction, Function reset) async {
+      ITransaction? pendingTransaction, Function reset) async {
     try {
       if (items.isEmpty) {
         // ProxyService.keypad.reset();
@@ -196,7 +196,7 @@ class CoreViewModel extends FlipperBaseModel
       List<TransactionItem> updatedItems = await ProxyService.strategy
           .transactionItems(
               branchId: ProxyService.box.getBranchId()!,
-              transactionId: pendingTransaction.id,
+              transactionId: pendingTransaction?.id,
               doneWithTransaction: false,
               active: true);
 
@@ -205,7 +205,7 @@ class CoreViewModel extends FlipperBaseModel
         subTotal: updatedItems.fold(0, (a, b) => a! + (b.price * b.qty)),
       );
       ITransaction? updatedTransaction =
-          (await ProxyService.strategy.transactions(id: pendingTransaction.id))
+          (await ProxyService.strategy.transactions(id: pendingTransaction?.id))
               .firstOrNull;
       keypad.setTransaction(updatedTransaction);
     } catch (e, s) {
@@ -215,7 +215,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void handleSingleDigitKey(List<TransactionItem> items,
-      ITransaction pendingTransaction, double amount) async {
+      ITransaction? pendingTransaction, double amount) async {
     // double amount = double.parse(ProxyService.keypad.key);
 
     if (amount == 0) return;
@@ -249,7 +249,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void handleMultipleDigitKey(List<TransactionItem> items,
-      ITransaction pendingTransaction, double amount) async {
+      ITransaction? pendingTransaction, double amount) async {
     // double amount = double.parse(ProxyService.keypad.key);
     Variant? variation = await ProxyService.strategy.getCustomVariant(
         tinNumber: ProxyService.box.tin(),
@@ -265,12 +265,12 @@ class CoreViewModel extends FlipperBaseModel
 
       TransactionItem? existTransactionItem = await ProxyService.strategy
           .getTransactionItemByVariantId(
-              variantId: variation.id, transactionId: pendingTransaction.id);
+              variantId: variation.id, transactionId: pendingTransaction?.id);
 
       List<TransactionItem> items = await ProxyService.strategy
           .transactionItems(
               branchId: ProxyService.box.getBranchId()!,
-              transactionId: pendingTransaction.id,
+              transactionId: pendingTransaction?.id,
               doneWithTransaction: false,
               active: true);
 
@@ -289,7 +289,7 @@ class CoreViewModel extends FlipperBaseModel
         List<TransactionItem> items = await ProxyService.strategy
             .transactionItems(
                 branchId: ProxyService.box.getBranchId()!,
-                transactionId: pendingTransaction.id,
+                transactionId: pendingTransaction?.id,
                 doneWithTransaction: false,
                 active: true);
         ProxyService.strategy.addTransactionItem(
@@ -323,7 +323,7 @@ class CoreViewModel extends FlipperBaseModel
         subTotal: items.fold(0, (a, b) => a! + (b.price * b.qty)),
       );
       ITransaction? updatedTransaction =
-          (await ProxyService.strategy.transactions(id: pendingTransaction.id))
+          (await ProxyService.strategy.transactions(id: pendingTransaction?.id))
               .firstOrNull;
       keypad.setTransaction(updatedTransaction);
     }
@@ -557,7 +557,7 @@ class CoreViewModel extends FlipperBaseModel
         transactionType: TransactionType.sale,
         isExpense: false);
     ITransaction? transaction =
-        (await ProxyService.strategy.transactions(id: currentTransaction.id))
+        (await ProxyService.strategy.transactions(id: currentTransaction?.id))
             .firstOrNull;
 
     ProxyService.strategy.updateTransaction(
@@ -716,7 +716,7 @@ class CoreViewModel extends FlipperBaseModel
         branchId: ProxyService.box.getBranchId()!,
         transactionType: TransactionType.sale,
         isExpense: false);
-    if (transaction.customerId == null) {
+    if (transaction?.customerId == null) {
       await ProxyService.strategy.delete(
           id: id, endPoint: 'customer', flipperHttpClient: ProxyService.http);
       callback("customer deleted");
