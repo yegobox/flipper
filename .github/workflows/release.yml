@@ -134,7 +134,6 @@ jobs:
           flutter test --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart
   build-and-release-windows-debug:
     name: "Build windows app"
-    if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'test direct-build-windows')
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
@@ -192,7 +191,6 @@ jobs:
           upload_release_asset: false
   build-and-release-windows-prod:
     name: "Build windows app"
-    # if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'test direct-build-windows')
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
