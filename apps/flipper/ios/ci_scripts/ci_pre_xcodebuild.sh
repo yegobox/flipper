@@ -1,19 +1,19 @@
 #!/bin/sh
 
 # Install CocoaPods using Homebrew.
-brew install cocoapods
+# brew install cocoapods
 
-# Install Flutter
-brew install --cask flutter
+# # Install Flutter
+# brew install --cask flutter
 
-# Run Flutter doctor
-flutter doctor
+# # Run Flutter doctor
+# flutter doctor
 
-# Enable macos
+# # Enable macos
 
-# Get packages
-flutter packages get
+# # Get packages
+# flutter packages get
 
 
-# Build ios app
-flutter build ios --no-codesign
+# # Build ios app
+# flutter build ios --no-codesign
