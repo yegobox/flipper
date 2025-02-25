@@ -13,7 +13,7 @@ abstract class TaxApi {
     String rcptTyCd = "S",
     required List<Variant> variants,
     required Business business,
-    required  String pchsSttsCd,
+    required String pchsSttsCd,
   });
   Future<RwApiResponse> saveStockItems(
       {required ITransaction transaction,
@@ -32,7 +32,7 @@ abstract class TaxApi {
       required DateTime ocrnDt,
       required String URI});
   Future saveCustomer({required ICustomer customer, required String URI});
-  Future<bool> initApi(
+  Future<BusinessInfo> initApi(
       {required String tinNumber,
       required String bhfId,
       required String dvcSrlNo,

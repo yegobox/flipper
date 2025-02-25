@@ -1921,4 +1921,11 @@ class Capella with Booting implements RealmInterface {
     // TODO: implement variantBranch
     throw UnimplementedError();
   }
+
+  @override
+  Future<brick.BusinessInfo> initializeEbm(
+      {required String tin, required String bhfId, required String dvcSrlNo}) {
+    // TODO: implement initializeEbm
+    throw UnimplementedError();
+  }
 }

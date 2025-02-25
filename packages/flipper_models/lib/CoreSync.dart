@@ -18,6 +18,7 @@ import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:stacked/stacked.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/secrets.dart';
@@ -5726,5 +5727,30 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
     ))
         .firstOrNull;
+  }
+
+  @override
+  Future<BusinessInfo> initializeEbm({
+    required String tin,
+    required String bhfId,
+    required String dvcSrlNo,
+  }) async {
+    final URI = await ProxyService.box.getServerUrl();
+
+    if (foundation.kDebugMode) {
+      // Mock response in debug mode
+      print("Running in debug mode - using mock data");
+      // Simulate a delay to mimic a network request
+      await Future.delayed(Duration(seconds: 1));
+
+      // Create a BusinessInfo object directly from the mock data
+
+      return BusinessInfoResponse.fromJson(ebmInitializationMockData).data.info;
+    } else {
+      // Call the API in release mode
+      final initialisable = await ProxyService.tax
+          .initApi(tinNumber: tin, bhfId: bhfId, dvcSrlNo: dvcSrlNo, URI: URI!);
+      return initialisable;
+    }
   }
 }

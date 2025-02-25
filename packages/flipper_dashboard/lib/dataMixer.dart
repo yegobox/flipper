@@ -60,6 +60,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           await ProxyService.strategy.getVariant(productId: productId);
 
       /// Check if the product and variant are valid and if the variant is owned (not shared)
+      ///
       bool canDelete =
           variant != null && (variant.isShared != null && !variant.isShared!);
 

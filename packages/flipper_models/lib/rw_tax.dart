@@ -59,11 +59,12 @@ class RWTax with NetworkHelper implements TaxApi {
   }
 
   @override
-  Future<bool> initApi(
-      {required String tinNumber,
-      required String bhfId,
-      required String dvcSrlNo,
-      required String URI}) async {
+  Future<BusinessInfo> initApi({
+    required String tinNumber,
+    required String bhfId,
+    required String dvcSrlNo,
+    required String URI, // You're not currently using this URI parameter
+  }) async {
     String? token = ProxyService.box.readString(key: 'bearerToken');
     models.Ebm? ebm = await ProxyService.strategy
         .ebm(branchId: ProxyService.box.getBranchId()!);
@@ -74,14 +75,25 @@ class RWTax with NetworkHelper implements TaxApi {
         json.encode({"tin": tinNumber, "bhfId": bhfId, "dvcSrlNo": dvcSrlNo});
     request.headers.addAll(headers);
 
-    http.StreamedResponse response = await request.send();
+    http.StreamedResponse streamedResponse = await request.send();
 
-    if (response.statusCode == 200) {
-      // print(await response.stream.bytesToString());
-      return Future.value(true);
+    if (streamedResponse.statusCode == 200) {
+      // Read the response body as a string
+      String responseBody = await streamedResponse.stream.bytesToString();
+
+      // Decode the JSON string into a Map
+      Map<String, dynamic> jsonMap = jsonDecode(responseBody);
+
+      // Create a BusinessInfoResponse object from the Map
+      BusinessInfoResponse response = BusinessInfoResponse.fromJson(jsonMap);
+
+      // Return the BusinessInfo object from the BusinessInfoResponse
+      return response.data.info;
     } else {
-      // print(response.reasonPhrase);
-      return Future.value(false);
+      // Handle the error case
+      print(streamedResponse.reasonPhrase);
+      throw Exception(
+          'Failed to load BusinessInfo: ${streamedResponse.reasonPhrase}'); // Throw an exception to indicate failure
     }
   }
 

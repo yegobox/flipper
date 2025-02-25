@@ -896,4 +896,7 @@ abstract class RealmInterface {
 
   Future<List<FinanceProvider>> financeProviders();
   Future<VariantBranch?> variantBranch({required String variantId});
+
+  Future<BusinessInfo> initializeEbm(
+      {required String tin, required String bhfId, required String dvcSrlNo});
 }

@@ -51,3 +51,4 @@ export 'variant_branch.model.dart';
 export 'ProgressData.dart';
 export 'business_analytic.model.dart';
 export 'Metric.dart';
+export 'BusinessInfo.dart';

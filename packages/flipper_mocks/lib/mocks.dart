@@ -3,6 +3,43 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
 
+final ebmInitializationMockData = {
+  "resultCd": "000",
+  "resultMsg": "It is succeeded",
+  "resultDt": "20250106193013",
+  "data": {
+    "info": {
+      "tin": "999909695",
+      "taxprNm": "YEGOBOX",
+      "bsnsActv": null,
+      "bhfId": "01",
+      "bhfNm": "BHF1",
+      "bhfOpenDt": "20210927",
+      "prvncNm": "SOUTH",
+      "dstrtNm": "KAMONYI",
+      "sctrNm": "NYARUBAKA",
+      "locDesc": "RRA",
+      "hqYn": "Y",
+      "mgrNm": "TESTING COMPANY 14 LTD",
+      "mgrTelNo": "0788427097",
+      "mgrEmail": "ebm@rra.gov.rw",
+      "sdcId": null,
+      "mrcNo": null,
+      "dvcId": "1036147990050001",
+      "intrlKey": null,
+      "signKey": null,
+      "cmcKey": null,
+      "lastPchsInvcNo": 0,
+      "lastSaleRcptNo": null,
+      "lastInvcNo": null,
+      "lastSaleInvcNo": 1254082234,
+      "lastTrainInvcNo": null,
+      "lastProfrmInvcNo": null,
+      "lastCopyInvcNo": null,
+      "vatTyCd": 1
+    }
+  }
+};
 final List<Map<String, dynamic>> mockUnits = [
   {'id': randomNumber(), 'name': 'Per Item', 'value': '', 'active': true},
   {
