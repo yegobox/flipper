@@ -1,7 +1,7 @@
 name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 1.170.4252223233293+1740596027
+version: 1.170.4252223233294+1740601226
 
 
 environment:
@@ -15,7 +15,7 @@ dependencies:
   sentry_flutter: ^8.13.0
   
   firebase_crashlytics: ^4.3.2
-  flutter_local_notifications: ^19.0.0-dev.5
+  flutter_local_notifications: ^19.0.0-dev.7
   intl: ^0.19.0
   injectable: ^2.5.0
   get_it: ^7.7.0
@@ -215,7 +215,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.3443.0
+  msix_version: 1.170.3444.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"
