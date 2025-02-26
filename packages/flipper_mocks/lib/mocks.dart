@@ -588,6 +588,7 @@ final variationMock = Variant(
     lastTouched: DateTime.now(),
     sku: 'sku',
     productId: "2",
+    itemCd: "",
     unit: 'Per Item',
     productName: 'Custom Amount',
     branchId: 11,

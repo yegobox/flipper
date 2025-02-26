@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result
-
 import 'dart:io';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flipper_dashboard/refresh.dart';
@@ -14,6 +12,7 @@ import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
@@ -62,7 +61,7 @@ class RowItem extends StatefulHookConsumerWidget {
   final bool isOrdering;
   final bool forceRemoteUrl;
 
-  RowItem({
+  const RowItem({
     Key? key,
     required this.color,
     required this.productName,
@@ -132,9 +131,11 @@ class _RowItemState extends ConsumerState<RowItem>
               borderRadius: BorderRadius.circular(borderRadius),
               onTap: () async {
                 if (isSelected) {
+                  // Deselect the item
                   ref.read(selectedItemIdProvider.notifier).state =
                       NO_SELECTION;
                 } else {
+                  // Select and add to quick sell
                   final flipperWatch? w = kDebugMode
                       ? flipperWatch("onAddingItemToQuickSell")
                       : null;
@@ -144,6 +145,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 }
               },
               onLongPress: () {
+                // Toggle selection on long press
                 final itemId = widget.variant?.id ?? widget.product?.id;
                 if (itemId != null) {
                   if (selectedItem == itemId) {
@@ -165,18 +167,18 @@ class _RowItemState extends ConsumerState<RowItem>
                         child: Hero(
                           tag: widget.variant?.id ??
                               widget.product?.id ??
-                              'product_image',
+                              'product_image_${widget.product?.id}',
                           child: ClipRRect(
                             borderRadius:
                                 BorderRadius.circular(borderRadius - 4),
                             child: AspectRatio(
-                              aspectRatio:
-                                  1.0, // Square aspect ratio for consistency
+                              aspectRatio: 1.0,
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
                                   // Colored Container (takes the whole space when no image)
-                                  if (widget.imageUrl?.isEmpty ?? true)
+                                  if (widget.imageUrl == null ||
+                                      widget.imageUrl!.isEmpty)
                                     Container(
                                       decoration: BoxDecoration(
                                         color: HexColor(widget.color.isEmpty
@@ -187,15 +189,18 @@ class _RowItemState extends ConsumerState<RowItem>
                                         child: Padding(
                                           padding: const EdgeInsets.all(12.0),
                                           child: Text(
-                                            widget.productName,
+                                            widget.variantName.length > 3
+                                                ? widget.variantName.pascalCase
+                                                    .substring(0, 3)
+                                                : widget.variantName.pascalCase,
                                             style: const TextStyle(
                                               color: Colors.white,
                                               fontSize: 16.0,
                                               fontWeight: FontWeight.w500,
                                             ),
-                                            textAlign: TextAlign.center,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.left,
+                                            maxLines: 3,
+                                            // overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                       ),
@@ -210,12 +215,14 @@ class _RowItemState extends ConsumerState<RowItem>
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12.0),
-                      _buildProductDetails(isComposite: widget.isComposite),
+
+                      _buildProductDetails(
+                        isComposite: widget.isComposite,
+                      ),
                       // Add row for actions when selected
                       if (isSelected)
                         Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
+                          padding: const EdgeInsets.only(top: 4.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
@@ -372,7 +379,7 @@ class _RowItemState extends ConsumerState<RowItem>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.productName,
+          widget.variantName.pascalCase,
           style: const TextStyle(
             color: Colors.black87,
             fontSize: 16.0,
@@ -506,6 +513,11 @@ class _RowItemState extends ConsumerState<RowItem>
         id: widget.variant!.productId!,
         branchId: branchId,
       );
+      if (widget.variant?.stock?.currentStock == null ||
+          (widget.variant?.stock?.currentStock ?? 0) < 0) {
+        toast("You do not have enough stock");
+        return;
+      }
 
       if (product != null && product.isComposite == true) {
         // Handle composite product

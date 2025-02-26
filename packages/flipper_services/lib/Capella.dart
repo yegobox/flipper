@@ -1256,6 +1256,7 @@ class Capella with Booting implements RealmInterface {
       double? rsdQty,
       double? initialStock,
       bool? ebmSynced,
+      bool appending = false,
       double? currentStock,
       double? value,
       DateTime? lastTouched}) {

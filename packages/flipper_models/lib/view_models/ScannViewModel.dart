@@ -1,3 +1,4 @@
+// ScannViewModel.dart (Revised)
 import 'dart:async';
 import 'dart:developer';
 
@@ -164,6 +165,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       retailPrice: retailPrice,
       supplyPrice: supplyPrice,
       prc: retailPrice,
+      regrNm: product.name,
       qty: 1,
       dcRt: 0,
       pkgUnitCd: "NT",
@@ -257,18 +259,114 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   Future<void> updateVariantQuantity(String id, double newQuantity) async {
     try {
       // Find the variant with the specified id
+      int index = scannedVariants.indexWhere((variant) => variant.id == id);
 
-      // from scannedVariants look where id match set the qty
-      scannedVariants.forEach((variant) {
-        if (variant.id == id) {
-          variant.stock!.rsdQty = newQuantity;
-          variant.stock!.currentStock = newQuantity;
-          variant.stock!.initialStock = newQuantity;
-          variant.stock!.value = newQuantity * variant.retailPrice!;
-        }
-      });
+      if (index != -1) {
+        // Create a *new* Variant object with the updated quantity
+        final scannedVariant =
+            scannedVariants[index]; // Store the original variant
 
-      notifyListeners();
+        final updatedVariant = Variant(
+          id: scannedVariant.id,
+          purchaseId: scannedVariant.purchaseId,
+          stockId: scannedVariant.stockId,
+          stock: scannedVariant.stock != null
+              ? Stock(
+                  id: scannedVariant.stock!.id,
+                  currentStock: newQuantity,
+                  rsdQty: newQuantity,
+                  value: newQuantity * (scannedVariant.retailPrice ?? 0.0),
+                  lastTouched: DateTime.now(),
+                )
+              : null,
+          taxPercentage: scannedVariant.taxPercentage,
+          name: scannedVariant.name,
+          color: scannedVariant.color,
+          sku: scannedVariant.sku,
+          productId: scannedVariant.productId,
+          unit: scannedVariant.unit,
+          productName: scannedVariant.productName,
+          branchId: scannedVariant.branchId,
+          taxName: scannedVariant.taxName,
+          itemSeq: scannedVariant.itemSeq,
+          isrccCd: scannedVariant.isrccCd,
+          isrccNm: scannedVariant.isrccNm,
+          isrcRt: scannedVariant.isrcRt,
+          isrcAmt: scannedVariant.isrcAmt,
+          taxTyCd: scannedVariant.taxTyCd,
+          bcd: scannedVariant.bcd,
+          itemClsCd: scannedVariant.itemClsCd,
+          itemTyCd: scannedVariant.itemTyCd,
+          itemStdNm: scannedVariant.itemStdNm,
+          orgnNatCd: scannedVariant.orgnNatCd,
+          pkg: scannedVariant.pkg,
+          itemCd: scannedVariant.itemCd,
+          pkgUnitCd: scannedVariant.pkgUnitCd,
+          qtyUnitCd: scannedVariant.qtyUnitCd,
+          itemNm: scannedVariant.itemNm,
+          prc: scannedVariant.prc,
+          splyAmt: scannedVariant.splyAmt,
+          tin: scannedVariant.tin,
+          bhfId: scannedVariant.bhfId,
+          dftPrc: scannedVariant.dftPrc,
+          addInfo: scannedVariant.addInfo,
+          isrcAplcbYn: scannedVariant.isrcAplcbYn,
+          useYn: scannedVariant.useYn,
+          regrId: scannedVariant.regrId,
+          regrNm: scannedVariant.regrNm,
+          modrId: scannedVariant.modrId,
+          modrNm: scannedVariant.modrNm,
+          lastTouched: DateTime.now(),
+          supplyPrice: scannedVariant.supplyPrice,
+          retailPrice: scannedVariant.retailPrice,
+          spplrItemClsCd: scannedVariant.spplrItemClsCd,
+          spplrItemCd: scannedVariant.spplrItemCd,
+          spplrItemNm: scannedVariant.spplrItemNm,
+          ebmSynced: scannedVariant.ebmSynced,
+          dcRt: scannedVariant.dcRt,
+          expirationDate: scannedVariant.expirationDate,
+          qty: scannedVariant.qty,
+          totWt: scannedVariant.totWt,
+          netWt: scannedVariant.netWt,
+          spplrNm: scannedVariant.spplrNm,
+          agntNm: scannedVariant.agntNm,
+          invcFcurAmt: scannedVariant.invcFcurAmt,
+          invcFcurCd: scannedVariant.invcFcurCd,
+          invcFcurExcrt: scannedVariant.invcFcurExcrt,
+          exptNatCd: scannedVariant.exptNatCd,
+          dclNo: scannedVariant.dclNo,
+          taskCd: scannedVariant.taskCd,
+          dclDe: scannedVariant.dclDe,
+          hsCd: scannedVariant.hsCd,
+          imptItemSttsCd: scannedVariant.imptItemSttsCd,
+          barCode: scannedVariant.barCode,
+          bcdU: scannedVariant.bcdU,
+          quantity: scannedVariant.quantity,
+          category: scannedVariant.category,
+          dcAmt: scannedVariant.dcAmt,
+          taxblAmt: scannedVariant.taxblAmt,
+          taxAmt: scannedVariant.taxAmt,
+          totAmt: scannedVariant.totAmt,
+          pchsSttsCd: scannedVariant.pchsSttsCd,
+          isShared: scannedVariant.isShared,
+        );
+
+        // Replace the old variant with the new variant
+        scannedVariants[index] = updatedVariant;
+
+        //Persit to db
+        ProxyService.strategy.updateVariant(
+          updatables: [updatedVariant],
+          variantId: updatedVariant.id,
+        );
+
+        // Notify listeners to rebuild the UI
+        notifyListeners();
+      } else {
+        // Handle the exception if the variant is not found
+        print('Variant with ID $id not found');
+        talker.error('Variant with ID $id not found');
+      }
     } catch (e) {
       // Handle the exception if the variant is not found
       print('Variant with ID $id has error while updating it');

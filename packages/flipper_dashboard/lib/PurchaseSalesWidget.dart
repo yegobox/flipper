@@ -67,6 +67,10 @@ class _PurchaseSaleWidgetState extends ConsumerState<PurchaseSaleWidget> {
             Expanded(
               child: ListView(
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text("Supplier name: JALO PARTERS"),
+                  ),
                   DataRowWidget(
                     nameController: widget.nameController,
                     supplyPriceController: widget.supplyPriceController,

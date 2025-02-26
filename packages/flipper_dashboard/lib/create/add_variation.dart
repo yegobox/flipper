@@ -181,6 +181,7 @@ class _AddVariationState extends State<AddVariation> {
       name: nameController.text,
       sku: sku,
       lastTouched: DateTime.now(),
+      itemCd: clip,
       productId: model.product!.id,
       unit: model.productService.currentUnit!,
       productName: nameController.text,
@@ -200,7 +201,6 @@ class _AddVariationState extends State<AddVariation> {
       // RRA fields
       ..bhfId = await ProxyService.box.bhfId() ?? "00"
       ..tin = business!.tinNumber
-      ..itemCd = clip
       ..itemStdNm = "Regular"
       ..prc = 0
       ..addInfo = "A"

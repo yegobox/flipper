@@ -582,6 +582,7 @@ abstract class RealmInterface {
     double? currentStock,
     double? value,
     DateTime? lastTouched,
+    bool appending = false,
   });
 
   FutureOr<void> updateTransactionItem({

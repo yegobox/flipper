@@ -106,7 +106,8 @@ class RWTax with NetworkHelper implements TaxApi {
       required String custTin,
       String? regTyCd = "A",
       //sarTyCd 11 is for sale
-      String sarTyCd = "11",
+      required String sarTyCd,
+      bool isStockIn = false,
       String custBhfId = "",
       required double totalSupplyPrice,
       required double totalvat,
@@ -163,6 +164,11 @@ class RWTax with NetworkHelper implements TaxApi {
       if (!custTin.isValidTin()) {
         json.remove('custTin');
       }
+      if (isStockIn) {
+        stockIn(json: json, URI: URI, sarTyCd: sarTyCd);
+      } else {
+        stockOut(json: json, URI: URI, sarTyCd: sarTyCd);
+      }
       Response response = await sendPostRequest(url, json);
 
       final data = RwApiResponse.fromJson(
@@ -191,10 +197,9 @@ class RWTax with NetworkHelper implements TaxApi {
           .toString();
 
       /// update the remaining stock of this item in rra
-      variant.rsdQty = variant.stock!.currentStock;
+      variant.rsdQty = variant.stock?.currentStock;
       if (variant.tin == null ||
           variant.rsdQty == null ||
-          variant.itemCd == null ||
           variant.itemCd == 'null' ||
           variant.itemCd?.isEmpty == true) {
         return RwApiResponse(
@@ -212,7 +217,8 @@ class RWTax with NetworkHelper implements TaxApi {
         response.data,
       );
       return data;
-    } catch (e) {
+    } catch (e, s) {
+      talker.warning("Invalid Stock ${s}");
       rethrow;
     }
   }
@@ -442,11 +448,24 @@ class RWTax with NetworkHelper implements TaxApi {
 
         // Update transaction and item statuses
         updateTransactionAndItems(transaction, items, receiptCodes['rcptTyCd']);
-        StockPatch.patchStock(
-            URI: URI,
-            sendPort: (message) {
-              ProxyService.notification.sendLocalNotification(body: message);
-            });
+        // mark item involved as need sync
+        for (Map<String, dynamic> item in itemsList) {
+          talker.warning("While finalizing: ${item['variantId']}");
+          // get variant
+          Variant? variant =
+              await ProxyService.strategy.getVariant(id: item['variantId']);
+          variant?.ebmSynced = false;
+          if (variant != null) {
+            await ProxyService.strategy.updateVariant(updatables: [variant]);
+            StockPatch.patchStock(
+                URI: URI,
+                sendPort: (message) {
+                  ProxyService.notification
+                      .sendLocalNotification(body: message);
+                });
+          }
+        }
+
         return data;
       } else {
         throw Exception(
@@ -466,7 +485,7 @@ class RWTax with NetworkHelper implements TaxApi {
     List<Configurations> taxConfigs = await repository.get<Configurations>(
         policy: OfflineFirstGetPolicy.alwaysHydrate,
         query: Query(where: [
-          Where('taxType').isExactly(item.taxTyCd!),
+          Where('taxType').isExactly(item.taxTyCd ?? "B"),
           Where('branchId').isExactly(ProxyService.box.getBranchId()!),
         ]));
     Configurations taxConfig = taxConfigs.first;
@@ -497,7 +516,7 @@ class RWTax with NetworkHelper implements TaxApi {
       discount: item.discount,
       remainingStock: item.remainingStock!,
       itemCd: item.itemCd,
-      variantId: item.id,
+      variantId: item.variantId,
       qtyUnitCd: "U",
       regrNm: item.regrNm ?? "Registrar",
 
@@ -533,8 +552,8 @@ class RWTax with NetworkHelper implements TaxApi {
       useYn: "Y",
       regrId:
           item.regrId?.toString() ?? randomNumber().toString().substring(0, 20),
-      modrId: item.modrId ?? "ModifierID",
-      modrNm: item.modrNm ?? "Modifier",
+      modrId: item.modrId ?? randomString().substring(0, 8),
+      modrNm: item.modrNm ?? randomString().substring(0, 8),
       name: item.name,
     ).toJson();
     itemJson.removeWhere((key, value) =>
@@ -1011,5 +1030,31 @@ class RWTax with NetworkHelper implements TaxApi {
       talker.warning(s);
       rethrow;
     }
+  }
+
+  @override
+  Future<bool> stockIn(
+      {required Map<String, Object?> json,
+      required String URI,
+      required String sarTyCd}) async {
+    talker.warning("Processing stockIn");
+    final url = Uri.parse(URI)
+        .replace(path: Uri.parse(URI).path + 'saveStockItems/saveStockItems')
+        .toString();
+    await sendPostRequest(url, json);
+    return true;
+  }
+
+  @override
+  Future<bool> stockOut(
+      {required Map<String, Object?> json,
+      required String URI,
+      required String sarTyCd}) async {
+    talker.warning("Processing stockOut");
+    final url = Uri.parse(URI)
+        .replace(path: Uri.parse(URI).path + 'saveStockItems/saveStockItems')
+        .toString();
+    await sendPostRequest(url, json);
+    return true;
   }
 }

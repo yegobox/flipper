@@ -129,13 +129,11 @@ mixin ProductMixin {
       ProxyService.strategy.addVariant(
           variations: updatables, branchId: ProxyService.box.getBranchId()!);
       // add this variant to rra
-      if (await ProxyService.strategy
-          .isTaxEnabled(businessId: business!.serverId)) {
+      final bool isEbmEnabled = await ProxyService.strategy
+          .isTaxEnabled(businessId: business!.serverId);
+      if (isEbmEnabled) {
         VariantPatch.patchVariant(
           URI: (await ProxyService.box.getServerUrl())!,
-          sendPort: (message) {
-            // ProxyService.notification.sendLocalNotification(body: message);
-          },
         );
         StockPatch.patchStock(
           URI: (await ProxyService.box.getServerUrl())!,

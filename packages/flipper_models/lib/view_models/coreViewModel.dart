@@ -976,6 +976,7 @@ class CoreViewModel extends FlipperBaseModel
           if (variant != null) {
             await ProxyService.strategy.updateStock(
                 stockId: variant.stock!.id,
+                appending: true,
                 rsdQty: variantFromPurchase.stock!.currentStock,
                 initialStock: variantFromPurchase.stock!.currentStock,
                 currentStock: variantFromPurchase.stock!.currentStock,

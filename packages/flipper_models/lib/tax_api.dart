@@ -6,6 +6,11 @@ import 'package:supabase_models/brick/models/all_models.dart' as brick;
 abstract class TaxApi {
   Future<RwApiResponse> saveStockMaster(
       {required Variant variant, required String URI});
+
+  Future<bool> stockIn(
+      {required Map<String, Object?> json, required String URI,required String sarTyCd});
+  Future<bool> stockOut(
+      {required Map<String, Object?> json, required String URI,required String sarTyCd});
   Future<RwApiResponse> savePurchases({
     required Purchase item,
     required String URI,
@@ -23,7 +28,8 @@ abstract class TaxApi {
       required String custTin,
       String? regTyCd = "A",
       //sarTyCd 11 is for sale
-      String sarTyCd = "11",
+      required String sarTyCd,
+      bool isStockIn = false,
       String custBhfId = "00",
       required double totalSupplyPrice,
       required double totalvat,

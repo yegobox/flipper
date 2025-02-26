@@ -739,7 +739,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               quantityUnit: "BJ",
               branchId: branchId,
             )
-          : itemCd,
+          : itemCd!,
       modrNm: name,
       modrId: number,
       pkgUnitCd: pkgUnitCd ?? "BJ",
@@ -1017,7 +1017,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       case 'variant':
         try {
           final variant = await getVariant(id: id);
-          final stock = await getStockById(id: variant!.stockId!);
+          final stock = await getStockById(id: variant!.stockId ?? "");
 
           await repository.delete<Variant>(
             variant,
@@ -1031,7 +1031,17 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
                 action: QueryAction.delete,
                 where: [brick.Where('id').isExactly(id)]),
           );
-        } catch (e) {}
+        } catch (e, s) {
+          final variant = await getVariant(id: id);
+          await repository.delete<Variant>(
+            variant!,
+            query: brick.Query(
+                action: QueryAction.delete,
+                where: [brick.Where('id').isExactly(id)]),
+          );
+          talker.warning(s);
+          rethrow;
+        }
 
         break;
 
@@ -3198,9 +3208,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<List<UnversalProduct>> universalProductNames(
       {required int branchId}) async {
     return repository.get<UnversalProduct>(
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        query:
-            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
+    );
   }
 
   @override
@@ -3827,65 +3836,71 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
   }) async {
-    final query = brick.Query(where: [
-      if (variantId != null)
-        brick.Where('id').isExactly(variantId)
-      else if (name != null) ...[
-        brick.Where('name').contains(name),
-        brick.Where('branchId').isExactly(branchId),
-      ] else if (bcd != null) ...[
-        brick.Where('bcd').isExactly(bcd),
-        brick.Where('branchId').isExactly(branchId),
-      ] else if (imptItemsttsCd != null) ...[
-        brick.Where('imptItemSttsCd').isExactly(imptItemsttsCd),
-        brick.Where('branchId').isExactly(branchId)
-      ] else if (productId != null) ...[
-        brick.Where('productId').isExactly(productId),
-        brick.Where('branchId').isExactly(branchId)
-      ] else ...[
-        brick.Where('branchId').isExactly(branchId),
-        if (!excludeApprovedInWaitingOrCanceledItems)
-          brick.Where('retailPrice').isGreaterThan(0),
-        brick.Where('name').isNot(TEMP_PRODUCT),
-        brick.Where('productName').isNot(CUSTOM_PRODUCT),
-        // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
-        if (!excludeApprovedInWaitingOrCanceledItems) ...[
-          brick.Where('imptItemSttsCd').isNot("2"),
-          brick.Where('imptItemSttsCd').isNot("4"),
-          //TODO: there is a bug in brick where comparing to 01 is not working
-          // brick.Where('pchsSttsCd').isNot("01"),
-          // brick.Where('pchsSttsCd').isNot("04"),
-        ],
+    try {
+      final query = brick.Query(where: [
+        if (variantId != null)
+          brick.Where('id').isExactly(variantId)
+        else if (name != null) ...[
+          brick.Where('name').contains(name),
+          brick.Where('branchId').isExactly(branchId),
+        ] else if (bcd != null) ...[
+          brick.Where('bcd').isExactly(bcd),
+          brick.Where('branchId').isExactly(branchId),
+        ] else if (imptItemsttsCd != null) ...[
+          brick.Where('imptItemSttsCd').isExactly(imptItemsttsCd),
+          brick.Where('branchId').isExactly(branchId)
+        ] else if (productId != null) ...[
+          brick.Where('productId').isExactly(productId),
+          brick.Where('branchId').isExactly(branchId)
+        ] else ...[
+          brick.Where('branchId').isExactly(branchId),
+          if (!excludeApprovedInWaitingOrCanceledItems)
+            brick.Where('retailPrice').isGreaterThan(0),
+          brick.Where('name').isNot(TEMP_PRODUCT),
+          brick.Where('productName').isNot(CUSTOM_PRODUCT),
+          // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
+          if (!excludeApprovedInWaitingOrCanceledItems) ...[
+            brick.Where('imptItemSttsCd').isNot("2"),
+            brick.Where('imptItemSttsCd').isNot("4"),
+            //TODO: there is a bug in brick where comparing to 01 is not working
+            // brick.Where('pchsSttsCd').isNot("01"),
+            // brick.Where('pchsSttsCd').isNot("04"),
+          ],
 
-        /// 01 is waiting for approval.
-        if (excludeApprovedInWaitingOrCanceledItems)
-          brick.Where('pchsSttsCd').isExactly("01"),
+          /// 01 is waiting for approval.
+          if (excludeApprovedInWaitingOrCanceledItems)
+            brick.Where('pchsSttsCd').isExactly("01"),
 
-        if (purchaseId != null) brick.Where('purchaseId').isExactly(purchaseId),
-        // Apply the purchaseId filter only if includePurchases is true
-        if (excludeApprovedInWaitingOrCanceledItems)
-          brick.Where('purchaseId').isNot(null),
-      ]
-    ]);
-    List<Variant> variants = await repository.get<Variant>(
-      policy: fetchRemote
-          ? OfflineFirstGetPolicy.alwaysHydrate
-          : OfflineFirstGetPolicy.localOnly,
-      query: query,
-    );
+          if (purchaseId != null)
+            brick.Where('purchaseId').isExactly(purchaseId),
+          // Apply the purchaseId filter only if includePurchases is true
+          if (excludeApprovedInWaitingOrCanceledItems)
+            brick.Where('purchaseId').isNot(null),
+        ]
+      ]);
+      List<Variant> variants = await repository.get<Variant>(
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.localOnly,
+        query: query,
+      );
 
-    // Pagination logic (if needed)
-    if (page != null && itemsPerPage != null) {
-      final offset = page * itemsPerPage;
-      return variants
-          .where((variant) =>
-              variant.pchsSttsCd != "01" && variant.pchsSttsCd != "04")
-          .skip(offset)
-          .take(itemsPerPage)
-          .toList();
+      // Pagination logic (if needed)
+      if (page != null && itemsPerPage != null) {
+        final offset = page * itemsPerPage;
+        return variants
+            .where((variant) =>
+                variant.pchsSttsCd != "01" && variant.pchsSttsCd != "04")
+            .skip(offset)
+            .take(itemsPerPage)
+            .toList();
+      }
+
+      return variants;
+    } catch (e, s) {
+      talker.error(s);
+      rethrow;
     }
-
-    return variants;
   }
 
   @override
@@ -4099,32 +4114,38 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<void> updateStock(
-      {required String stockId,
-      double? qty,
-      double? rsdQty,
-      double? initialStock,
-      bool? ebmSynced,
-      double? currentStock,
-      double? value,
-      DateTime? lastTouched}) async {
+  FutureOr<void> updateStock({
+    required String stockId,
+    double? qty,
+    double? rsdQty,
+    double? initialStock,
+    bool? ebmSynced,
+    double? currentStock,
+    double? value,
+    bool appending = false,
+    DateTime? lastTouched,
+  }) async {
     Stock? stock = await getStockById(id: stockId);
 
-    // Correctly update the stock properties.  We are *replacing* the values, not adding to them.
+    // If appending, add to existing values; otherwise, replace.
     if (currentStock != null) {
-      stock.currentStock = currentStock;
+      stock.currentStock =
+          appending ? (stock.currentStock ?? 0) + currentStock : currentStock;
     }
     if (rsdQty != null) {
-      stock.rsdQty = rsdQty;
+      stock.rsdQty = appending ? (stock.rsdQty ?? 0) + rsdQty : rsdQty;
     }
     if (initialStock != null) {
-      stock.initialStock = initialStock;
-    }
-    if (ebmSynced != null) {
-      stock.ebmSynced = ebmSynced;
+      stock.initialStock =
+          appending ? (stock.initialStock ?? 0) + initialStock : initialStock;
     }
     if (value != null) {
-      stock.value = value;
+      stock.value = appending ? (stock.value ?? 0) + value : value;
+    }
+
+    // These fields should always be replaced, not appended
+    if (ebmSynced != null) {
+      stock.ebmSynced = ebmSynced;
     }
     if (lastTouched != null) {
       stock.lastTouched = lastTouched;

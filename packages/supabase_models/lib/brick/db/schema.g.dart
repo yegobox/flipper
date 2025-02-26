@@ -1,14 +1,15 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20250225125408.migration.dart';
 part '20250223143539.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250223143539(),};
+  const Migration20250225125408(),const Migration20250223143539()};
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250223143539, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250225125408, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),

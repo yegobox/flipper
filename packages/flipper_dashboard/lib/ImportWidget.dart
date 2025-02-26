@@ -63,8 +63,10 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
         await ProxyService.strategy
             .updateVariant(updatables: [variantToUpdate]);
         talker.warning("KEE${item.stock!.currentStock}");
+
         await ProxyService.strategy.updateStock(
           stockId: variantToUpdate.stock!.id,
+          appending: true,
           currentStock: item.stock!.currentStock,
         );
       }
@@ -93,6 +95,7 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
 
     final URI = await ProxyService.box.getServerUrl();
     if (URI != null) {
+      //TODO: save this in transaction 
       await VariantPatch.patchVariant(
         URI: URI,
         identifier: item.id,

@@ -26,7 +26,7 @@ final repository = Repository();
 mixin VariantPatch {
   static Future<void> patchVariant(
       {required String URI,
-      required Function(String) sendPort,
+      Function(String)? sendPort,
       String? identifier}) async {
     List<Variant> variants = [];
     final branchId = ProxyService.box.getBranchId();
@@ -58,7 +58,7 @@ mixin VariantPatch {
 
         final response = await RWTax().saveItem(variation: iVariant, URI: URI);
 
-        if (response.resultCd == "000") {
+        if (response.resultCd == "000" && sendPort != null) {
           sendPort('${response.resultMsg}:variant:${variant.id.toString()}');
           // we set ebmSynced when stock is done updating on rra side.
           // variant.ebmSynced = true;
@@ -74,7 +74,7 @@ mixin VariantPatch {
 mixin StockPatch {
   static Future<void> patchStock(
       {required String URI,
-      required Function(String) sendPort,
+      Function(String)? sendPort,
       String? identifier}) async {
     List<Variant> variants = [];
     final branchId = ProxyService.box.getBranchId();
@@ -101,15 +101,15 @@ mixin StockPatch {
           variant.tin = business.tinNumber ?? 999909695;
           final response =
               await RWTax().saveStockMaster(variant: variant, URI: URI);
-          if (response.resultCd == "000") {
+          if (response.resultCd == "000" && sendPort != null) {
             sendPort('${response.resultMsg}');
             variant.ebmSynced = true;
             repository.upsert(variant);
-          } else {
+          } else if (sendPort != null) {
             sendPort('${response.resultMsg}}');
           }
         } catch (e) {
-          rethrow;
+          // rethrow;
         }
       }
     }
@@ -277,12 +277,12 @@ class IsolateHandler with StockPatch {
       required String dbPath,
       required String bhfid,
       required String URI}) async {
-    final rootIsolateToken = args[1] as RootIsolateToken;
+    // final rootIsolateToken = args[1] as RootIsolateToken;
 
-    await fetchDataAndSaveUniversalProducts(businessId, branchId, URI, bhfid,
-        dbPath: dbPath);
-    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
-    DartPluginRegistrant.ensureInitialized();
+    // await fetchDataAndSaveUniversalProducts(businessId, branchId, URI, bhfid,
+    //     dbPath: dbPath);
+    // BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    // DartPluginRegistrant.ensureInitialized();
   }
 
   static Future<void> fetchDataAndSaveUniversalProducts(
