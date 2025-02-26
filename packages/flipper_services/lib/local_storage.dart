@@ -407,4 +407,10 @@ class SharedPreferenceStorage implements LocalStorage {
   int? getBusinessServerId() {
     return prefs.getInt('getBusinessServerId');
   }
+
+  /// allow us to lock some part of cron operation while there is transaction hapening.
+  @override
+  bool transactionInProgress() {
+    return prefs.getBool('transactionInProgress') ?? false;
+  }
 }

@@ -42,12 +42,98 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
   // Updates the tax type for a variant.
   Future<void> updateTax(Variant variant, String newTaxType) async {
+    print('ScannViewModel.updateTax called with: ${variant.id}, $newTaxType');
     try {
-      await ProxyService.strategy.updateVariant(
-        updatables: [variant],
-        variantId: variant.id,
-        taxTyCd: newTaxType,
-      );
+      // 3. Update the local scannedVariants list by creating a copy of the variant with new taxtype.
+      final index = scannedVariants.indexWhere((v) => v.id == variant.id);
+      if (index != -1) {
+        final existingVariant = scannedVariants[index]; //Get existing variant
+        scannedVariants[index] = Variant(
+            id: existingVariant.id,
+            purchaseId: existingVariant.purchaseId,
+            stockId: existingVariant.stockId,
+            stock: existingVariant.stock != null
+                ? Stock(
+                    id: existingVariant.stock!.id,
+                    currentStock: existingVariant.stock!.currentStock,
+                    rsdQty: existingVariant.stock!.rsdQty,
+                    value: existingVariant.stock!.value,
+                    lastTouched: DateTime.now(),
+                  )
+                : null,
+            taxPercentage: existingVariant.taxPercentage,
+            name: existingVariant.name,
+            color: existingVariant.color,
+            sku: existingVariant.sku,
+            productId: existingVariant.productId,
+            unit: existingVariant.unit,
+            productName: existingVariant.productName,
+            branchId: existingVariant.branchId,
+            taxName: existingVariant.taxName,
+            itemSeq: existingVariant.itemSeq,
+            isrccCd: existingVariant.isrccCd,
+            isrccNm: existingVariant.isrccNm,
+            isrcRt: existingVariant.isrcRt,
+            isrcAmt: existingVariant.isrcAmt,
+            taxTyCd: newTaxType, // Set the new tax type here
+            bcd: existingVariant.bcd,
+            itemClsCd: existingVariant.itemClsCd,
+            itemTyCd: existingVariant.itemTyCd,
+            itemStdNm: existingVariant.itemStdNm,
+            orgnNatCd: existingVariant.orgnNatCd,
+            pkg: existingVariant.pkg,
+            itemCd: existingVariant.itemCd,
+            pkgUnitCd: existingVariant.pkgUnitCd,
+            qtyUnitCd: existingVariant.qtyUnitCd,
+            itemNm: existingVariant.itemNm,
+            prc: existingVariant.prc,
+            splyAmt: existingVariant.splyAmt,
+            tin: existingVariant.tin,
+            bhfId: existingVariant.bhfId,
+            dftPrc: existingVariant.dftPrc,
+            addInfo: existingVariant.addInfo,
+            isrcAplcbYn: existingVariant.isrcAplcbYn,
+            useYn: existingVariant.useYn,
+            regrId: existingVariant.regrId,
+            regrNm: existingVariant.regrNm,
+            modrId: existingVariant.modrId,
+            modrNm: existingVariant.modrNm,
+            lastTouched: existingVariant.lastTouched,
+            supplyPrice: existingVariant.supplyPrice,
+            retailPrice: existingVariant.retailPrice,
+            spplrItemClsCd: existingVariant.spplrItemClsCd,
+            spplrItemCd: existingVariant.spplrItemCd,
+            spplrItemNm: existingVariant.spplrItemNm,
+            ebmSynced: existingVariant.ebmSynced,
+            dcRt: existingVariant.dcRt,
+            expirationDate: existingVariant.expirationDate,
+            qty: existingVariant.qty,
+            totWt: existingVariant.totWt,
+            netWt: existingVariant.netWt,
+            spplrNm: existingVariant.spplrNm,
+            agntNm: existingVariant.agntNm,
+            invcFcurAmt: existingVariant.invcFcurAmt,
+            invcFcurCd: existingVariant.invcFcurCd,
+            invcFcurExcrt: existingVariant.invcFcurExcrt,
+            exptNatCd: existingVariant.exptNatCd,
+            dclNo: existingVariant.dclNo,
+            taskCd: existingVariant.taskCd,
+            dclDe: existingVariant.dclDe,
+            hsCd: existingVariant.hsCd,
+            imptItemSttsCd: existingVariant.imptItemSttsCd,
+            barCode: existingVariant.barCode,
+            bcdU: existingVariant.bcdU,
+            quantity: existingVariant.quantity,
+            category: existingVariant.category,
+            dcAmt: existingVariant.dcAmt,
+            taxblAmt: existingVariant.taxblAmt,
+            taxAmt: existingVariant.taxAmt,
+            totAmt: existingVariant.totAmt,
+            pchsSttsCd: existingVariant.pchsSttsCd,
+            isShared: existingVariant.isShared);
+      }
+
+      // 4. Notify listeners to rebuild the UI
       notifyListeners();
     } catch (e) {
       talker.error(e);

@@ -441,6 +441,7 @@ class RWTax with NetworkHelper implements TaxApi {
 
       // Handle response
       if (response.statusCode == 200) {
+        ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
           throw Exception(data.resultMsg);
