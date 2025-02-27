@@ -35,7 +35,7 @@ class _AddVariationState extends State<AddVariation> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<ProductViewModel>.reactive(
+    return ViewModelBuilder<ScannViewModel>.reactive(
         onViewModelReady: (model) async {
           await model.getProduct(productId: widget.productId);
         },
@@ -158,11 +158,11 @@ class _AddVariationState extends State<AddVariation> {
             ),
           );
         },
-        viewModelBuilder: () => ProductViewModel());
+        viewModelBuilder: () => ScannViewModel());
   }
 
   Future<void> _saveVariation(
-    ProductViewModel model, {
+    ScannViewModel model, {
     required String selectedProductType,
     Map<String, TextEditingController>? rates,
     Map<String, TextEditingController>? dates,
@@ -213,6 +213,7 @@ class _AddVariationState extends State<AddVariation> {
     variations.add(data);
 
     await model.addVariant(
+      model: model,
       countryofOrigin: "RW",
       selectedProductType: selectedProductType,
       packagingUnit: "BJ",

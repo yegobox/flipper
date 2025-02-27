@@ -99,6 +99,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             dates: _dates);
       } else {
         await model.addVariant(
+          model:model,
             productName: model.kProductName!,
             countryofOrigin: countryOfOriginController.text.isEmpty
                 ? "RW"

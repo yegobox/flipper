@@ -171,7 +171,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     }
   }
 
-  Future<void> _acceptAllImport() async {
+  Future<void> saveChangeOnImport() async {
     try {
       setState(() => isLoading = true);
       for (final item in finalItemList) {
@@ -247,7 +247,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                           supplyPriceController: _supplyPriceController,
                           retailPriceController: _retailPriceController,
                           saveChangeMadeOnItem: _saveChangeMadeOnItem,
-                          acceptAllImport: _acceptAllImport,
+                          acceptAllImport: saveChangeOnImport,
                           selectItem: _selectItem,
                           selectedItem: _selectedItem,
                           finalItemList: finalItemList,
@@ -273,16 +273,44 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                 acceptPurchases: (
                                     {required List<Variant> variants,
                                     required String pchsSttsCd}) async {
-                                  final pendingTransaction = await ref.read(
+                                  final pendingTransactionState = ref.watch(
                                       pendingTransactionStreamProvider(
-                                              isExpense: true)
-                                          .future);
-                                  model.acceptPurchase(
-                                    variants: variants,
-                                    itemMapper: itemMapper,
-                                    pendingTransaction: pendingTransaction,
-                                    pchsSttsCd: pchsSttsCd,
-                                  );
+                                          isExpense: true));
+
+                                  switch (pendingTransactionState) {
+                                    case AsyncData(:final value):
+                                      try {
+                                        await model.acceptPurchase(
+                                          variants: variants,
+                                          itemMapper: itemMapper,
+                                          pendingTransaction: value,
+                                          pchsSttsCd: pchsSttsCd,
+                                        );
+                                      } catch (e) {
+                                        // Handle errors during the acceptPurchase process
+                                        print("Error accepting purchase: $e");
+                                        // Consider setting an error state in your StateNotifier to notify the UI
+                                        // state = AsyncError(e, StackTrace.current); // Example
+                                      }
+
+                                    case AsyncError(
+                                        :final error,
+                                        :final stackTrace
+                                      ):
+                                      // Handle errors from the stream
+                                      print(
+                                          "Error from pendingTransactionStream: $error");
+                                      print(stackTrace);
+                                    // Set an error state in your StateNotifier to notify the UI
+                                    // state = AsyncError(error, stackTrace); // Example
+                                    case AsyncLoading():
+                                      // Handle the loading state
+                                      print("Loading pending transaction...");
+                                    // Consider setting a loading state in your StateNotifier
+                                    // state = AsyncLoading(); // Example
+                                    default:
+                                      break;
+                                  }
                                 },
                                 selectSale: (Variant? itemToAssign,
                                         Variant? itemFromPurchase) =>

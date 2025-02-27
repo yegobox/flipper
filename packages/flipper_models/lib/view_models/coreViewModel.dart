@@ -93,7 +93,7 @@ class CoreViewModel extends FlipperBaseModel
     _tab = tab;
   }
 
-  Future<bool> updateCategory({required Category category}) async {
+  Future<bool> updateCategoryCore({required Category category}) async {
     int branchId = ProxyService.box.getBranchId()!;
 
     try {
@@ -363,23 +363,12 @@ class CoreViewModel extends FlipperBaseModel
     app.loadCategories();
   }
 
-  ///list products availabe for sell
-  Future<List<Product>> products() async {
-    int branchId = ProxyService.box.getBranchId()!;
-    return await ProxyService.strategy.productsFuture(branchId: branchId);
-  }
+  
 
   Business get businesses => app.business;
 
   Branch? get branch => app.branch;
 
-  // void pop() {
-  //   ProxyService.keypad.pop();
-  // }
-
-  // void reset() {
-  //   ProxyService.keypad.reset();
-  // }
 
   Future<void> handleCustomQtySetBeforeSelectingVariation() async {
     ProxyService.keypad.decreaseQty();
@@ -942,7 +931,7 @@ class CoreViewModel extends FlipperBaseModel
         ProxyService.strategy.updateTransaction(
           transaction: pendingTransaction,
           status: PARKED,
-          sarTyCd: "6",
+          sarTyCd: "2", //Incoming- Purchase
           receiptNumber: randomNumber(),
           reference: randomNumber().toString(),
           invoiceNumber: randomNumber(),

@@ -629,7 +629,13 @@ abstract class RealmInterface {
       int? receiptNumber,
       int? totalReceiptNumber,
       bool? isProformaMode,
-      bool? isTrainingMode});
+      bool? isTrainingMode,
+
+      /// because transaction is involved in account reporting
+      /// and in other ways to facilitate that everything in flipper has attached transaction
+      /// we want to make it unclassified i.e neither it is income or expense
+      /// this help us having wrong computation on dashboard of what is income or expenses.
+      bool isUnclassfied = false});
 
   void updateCounters({
     required List<Counter> counters,

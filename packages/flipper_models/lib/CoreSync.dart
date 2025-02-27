@@ -3605,66 +3605,86 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     ));
   }
 
+  /// Updates a transaction with the provided details.
+  ///
+  /// The [transaction] parameter is required and represents the transaction to update.
+  /// The [isUnclassfied] parameter is used to mark the transaction as unclassified,
+  /// meaning it is neither income nor expense. This helps avoid incorrect computations
+  /// on the dashboard.
   @override
-  FutureOr<void> updateTransaction(
-      {required ITransaction? transaction,
-      String? receiptType,
-      double? subTotal,
-      String? note,
-      String? status,
-      String? customerId,
-      bool? ebmSynced,
-      String? sarTyCd,
-      String? reference,
-      String? customerTin,
-      String? customerBhfId,
-      double? cashReceived,
-      bool? isRefunded,
-      String? customerName,
-      String? ticketName,
-      DateTime? updatedAt,
-      int? invoiceNumber,
-      DateTime? lastTouched,
-      int? receiptNumber,
-      int? totalReceiptNumber,
-      bool? isProformaMode,
-      bool? isTrainingMode}) async {
-    if (receiptType != null && transaction != null) {
-      if (isProformaMode != null && isTrainingMode != null) {
-        String receiptType = TransactionReceptType.NS;
-        if (isProformaMode) {
-          receiptType = TransactionReceptType.PS;
-        }
-        if (isTrainingMode) {
-          receiptType = TransactionReceptType.TS;
-        }
-        transaction.ebmSynced = true;
+  FutureOr<void> updateTransaction({
+    required ITransaction? transaction,
+    String? receiptType,
+    double? subTotal,
+    String? note,
+    String? status,
+    String? customerId,
+    bool? ebmSynced,
+    String? sarTyCd,
+    String? reference,
+    String? customerTin,
+    String? customerBhfId,
+    double? cashReceived,
+    bool? isRefunded,
+    String? customerName,
+    String? ticketName,
+    DateTime? updatedAt,
+    int? invoiceNumber,
+    DateTime? lastTouched,
+    int? receiptNumber,
+    int? totalReceiptNumber,
+    bool? isProformaMode,
 
-        transaction.receiptType = receiptType;
-        transaction.subTotal = subTotal ?? transaction.subTotal;
-        transaction.note = note ?? transaction.note;
-        transaction.status = status ?? transaction.status;
-        transaction.ticketName = ticketName ?? transaction.ticketName;
-        transaction.updatedAt = updatedAt ?? transaction.updatedAt;
-        transaction.customerId = customerId;
-        transaction.isRefunded = receiptType == "NR";
-        transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
-        transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
-        transaction.receiptNumber = receiptNumber ?? transaction.receiptNumber;
-        transaction.totalReceiptNumber =
-            totalReceiptNumber ?? transaction.totalReceiptNumber;
-        transaction.sarTyCd = sarTyCd ?? transaction.sarTyCd;
-        transaction.reference = reference ?? transaction.reference;
-        transaction.customerTin = customerTin ?? transaction.customerTin;
-        transaction.customerBhfId = customerBhfId ?? transaction.customerBhfId;
-        transaction.cashReceived = cashReceived ?? transaction.cashReceived;
-        transaction.customerName = customerName ?? transaction.customerName;
-        transaction.lastTouched = lastTouched ?? transaction.lastTouched;
-
-        await repository.upsert<ITransaction>(
-            policy: OfflineFirstUpsertPolicy.optimisticLocal, transaction);
-      }
+    /// because transaction is involved in account reporting
+    /// and in other ways to facilitate that everything in flipper has attached transaction
+    /// we want to make it unclassified i.e neither it is income or expense
+    /// this help us having wrong computation on dashboard of what is income or expenses.
+    bool isUnclassfied = false,
+    bool? isTrainingMode,
+  }) async {
+    if (transaction == null) {
+      print("Error: Transaction is null in updateTransaction.");
+      return; // Exit if transaction is null.
     }
+
+    // Determine receipt type based on mode (or use the provided value if available)
+    if (isProformaMode != null || isTrainingMode != null) {
+      String newReceiptType = TransactionReceptType.NS;
+      if (isProformaMode == true) {
+        newReceiptType = TransactionReceptType.PS;
+      }
+      if (isTrainingMode == true) {
+        newReceiptType = TransactionReceptType.TS;
+      }
+      receiptType = newReceiptType; // Use the determined value for receiptType
+    }
+
+    // update to avoid the same issue, make sure that every parameter is update correctly.
+    transaction.receiptType = receiptType ?? transaction.receiptType;
+    transaction.subTotal = subTotal ?? transaction.subTotal;
+    transaction.note = note ?? transaction.note;
+    transaction.status = status ?? transaction.status;
+    transaction.ticketName = ticketName ?? transaction.ticketName;
+    transaction.updatedAt = updatedAt ?? transaction.updatedAt;
+    transaction.customerId = customerId ?? transaction.customerId;
+    transaction.isRefunded = isRefunded ?? transaction.isRefunded;
+    transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
+    transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
+    transaction.receiptNumber = receiptNumber ?? transaction.receiptNumber;
+    transaction.totalReceiptNumber =
+        totalReceiptNumber ?? transaction.totalReceiptNumber;
+    transaction.sarTyCd = sarTyCd ?? transaction.sarTyCd;
+    transaction.reference = reference ?? transaction.reference;
+    transaction.customerTin = customerTin ?? transaction.customerTin;
+    transaction.customerBhfId = customerBhfId ?? transaction.customerBhfId;
+    transaction.cashReceived = cashReceived ?? transaction.cashReceived;
+    transaction.customerName = customerName ?? transaction.customerName;
+    transaction.lastTouched = lastTouched ?? transaction.lastTouched;
+    transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
+    transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
+
+    await repository.upsert<ITransaction>(
+        policy: OfflineFirstUpsertPolicy.optimisticLocal, transaction);
   }
 
   @override

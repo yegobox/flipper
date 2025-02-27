@@ -99,6 +99,14 @@ class CronService {
             ProxyService.notification.sendLocalNotification(body: message);
           },
         );
+        await PatchTransactionItem.patchTransactionItem(
+          tinNumber: tinNumber,
+          bhfId: bhfId,
+          URI: (await ProxyService.box.getServerUrl())!,
+          sendPort: (message) {
+            ProxyService.notification.sendLocalNotification(body: message);
+          },
+        );
       }
     });
 
