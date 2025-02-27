@@ -11,7 +11,9 @@ import 'package:flipper_dashboard/SearchProduct.dart';
 import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/TableVariants.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_dashboard/create/browsePhotos.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
@@ -34,7 +36,8 @@ class ProductEntryScreen extends StatefulHookConsumerWidget {
   ProductEntryScreenState createState() => ProductEntryScreenState();
 }
 
-class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
+class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
+    with TransactionMixin {
   Color pickerColor = Colors.amber;
   bool isColorPicked = false;
 
@@ -99,20 +102,44 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             dates: _dates);
       } else {
         await model.addVariant(
-          model:model,
-            productName: model.kProductName!,
-            countryofOrigin: countryOfOriginController.text.isEmpty
-                ? "RW"
-                : countryOfOriginController.text,
-            rates: _rates,
-            color: pickerColor.toHex(),
-            dates: _dates,
-            retailPrice: double.tryParse(retailPriceController.text) ?? 0,
-            supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
-            variations: model.scannedVariants,
-            product: productRef,
-            selectedProductType: selectedProductType,
-            packagingUnit: selectedPackageUnitValue.split(":")[0]);
+          model: model,
+          productName: model.kProductName!,
+          countryofOrigin: countryOfOriginController.text.isEmpty
+              ? "RW"
+              : countryOfOriginController.text,
+          rates: _rates,
+          color: pickerColor.toHex(),
+          dates: _dates,
+          retailPrice: double.tryParse(retailPriceController.text) ?? 0,
+          supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
+          variations: model.scannedVariants,
+          product: productRef,
+          selectedProductType: selectedProductType,
+          packagingUnit: selectedPackageUnitValue.split(":")[0],
+          onCompleteCallback: (List<Variant> variants) async {
+            final pendingTransaction =
+                await ProxyService.strategy.manageTransaction(
+              transactionType: TransactionType.adjustment,
+              isExpense: true,
+              branchId: ProxyService.box.getBranchId()!,
+            );
+            Business? business = await ProxyService.strategy
+                .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+            for (Variant variant in variants) {
+              await assignTransaction(
+                variant: variant,
+                pendingTransaction: pendingTransaction!,
+                business: business!,
+                randomNumber: randomNumber(),
+                // 06 is incoming adjustment.
+                sarTyCd: "06",
+              );
+            }
+            if (pendingTransaction != null) {
+              await completeTransaction(pendingTransaction: pendingTransaction);
+            }
+          },
+        );
       }
 
       model.currentColor = pickerColor.toHex();

@@ -1,17 +1,22 @@
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
+import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flutter/material.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:collection/collection.dart';
 
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:printing/printing.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+
+// adjust if needed
 
 mixin TransactionMixin {
   final KeyPadService keypad = getIt<KeyPadService>();
@@ -366,6 +371,92 @@ mixin TransactionMixin {
       receiptType: "NS",
       isProformaMode: false,
       isTrainingMode: false,
+    );
+  }
+
+  ///  combines the `saveTransaction` and  `ProxyService.strategy.updateTransaction` calls into a single, more streamlined function
+  Future<void> assignTransaction({
+    required Variant variant,
+    required ITransaction pendingTransaction,
+    required Business business,
+    required int randomNumber,
+    required String sarTyCd,
+  }) async {
+    try {
+      // Save the transaction item
+      await saveTransaction(
+        variation: variant,
+        amountTotal: variant.retailPrice!,
+        customItem: false,
+        currentStock: variant.stock!.currentStock!,
+        pendingTransaction: pendingTransaction,
+        partOfComposite: false,
+        compositePrice: 0,
+      );
+
+      // Update the transaction status to PARKED
+      await _parkTransaction(
+        pendingTransaction: pendingTransaction,
+        variant: variant,
+        sarTyCd: sarTyCd,
+        business: business,
+        randomNumber: randomNumber,
+      );
+    } catch (e, s) {
+      talker.warning(e);
+      talker.error(s);
+      rethrow;
+    }
+  }
+
+  ///Parks the transaction
+  Future<void> _parkTransaction({
+    required ITransaction pendingTransaction,
+    required Variant variant,
+    required dynamic business,
+    required int randomNumber,
+    required String sarTyCd,
+  }) async {
+    await ProxyService.strategy.updateTransaction(
+      transaction: pendingTransaction,
+      status: PARKED,
+      sarTyCd: sarTyCd, //Incoming- Adjustment
+      receiptNumber: randomNumber,
+      reference: randomNumber.toString(),
+      invoiceNumber: randomNumber,
+      receiptType: TransactionType.adjustment,
+      customerTin: ProxyService.box.tin().toString(),
+      customerBhfId: await ProxyService.box.bhfId() ?? "00",
+      subTotal: pendingTransaction.subTotal! + (variant.splyAmt ?? 0),
+      cashReceived: -(pendingTransaction.subTotal! + (variant.splyAmt ?? 0)),
+      customerName: business.name,
+    );
+  }
+
+  ///Completes the transaction
+  Future<void> completeTransaction({
+    required ITransaction pendingTransaction,
+  }) async {
+    await _completeTransaction(pendingTransaction: pendingTransaction);
+  }
+
+  Future<void> _completeTransaction({
+    required ITransaction pendingTransaction,
+  }) async {
+    await ProxyService.strategy.updateTransaction(
+        isUnclassfied: true,
+        transaction: pendingTransaction,
+        status: COMPLETE,
+        ebmSynced: false);
+    final tinNumber = ProxyService.box.tin();
+    final bhfId = await ProxyService.box.bhfId();
+    await PatchTransactionItem.patchTransactionItem(
+      tinNumber: tinNumber,
+      bhfId: bhfId!,
+      URI: (await ProxyService.box.getServerUrl())!,
+      sendPort: (message) {
+        ProxyService.notification.sendLocalNotification(body: message);
+      },
     );
   }
 }

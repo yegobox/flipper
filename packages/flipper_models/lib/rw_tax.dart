@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flipper_models/isolateHandelr.dart';
+import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
 import 'package:dio/dio.dart';
 import 'package:flipper_models/NetworkHelper.dart';
@@ -24,7 +25,7 @@ import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 
-class RWTax with NetworkHelper implements TaxApi {
+class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
   String itemPrefix = "flip-";
   // String eBMURL = "https://turbo.yegobox.com";
   // String eBMURL = "http://10.0.2.2:8080/rra";
@@ -163,11 +164,6 @@ class RWTax with NetworkHelper implements TaxApi {
       // if custTin is invalid remove it from the json
       if (!custTin.isValidTin()) {
         json.remove('custTin');
-      }
-      if (isStockIn) {
-        stockIn(json: json, URI: URI, sarTyCd: sarTyCd);
-      } else {
-        stockOut(json: json, URI: URI, sarTyCd: sarTyCd);
       }
       Response response = await sendPostRequest(url, json);
 
@@ -450,11 +446,18 @@ class RWTax with NetworkHelper implements TaxApi {
         // Update transaction and item statuses
         updateTransactionAndItems(transaction, items, receiptCodes['rcptTyCd']);
         // mark item involved as need sync
+        final pendingTransaction =
+            await ProxyService.strategy.manageTransaction(
+          transactionType: TransactionType.adjustment,
+          isExpense: true,
+          branchId: ProxyService.box.getBranchId()!,
+        );
         for (Map<String, dynamic> item in itemsList) {
           talker.warning("While finalizing: ${item['variantId']}");
           // get variant
           Variant? variant =
               await ProxyService.strategy.getVariant(id: item['variantId']);
+
           variant?.ebmSynced = false;
           if (variant != null) {
             await ProxyService.strategy.updateVariant(updatables: [variant]);
@@ -464,6 +467,18 @@ class RWTax with NetworkHelper implements TaxApi {
                   ProxyService.notification
                       .sendLocalNotification(body: message);
                 });
+            variant.qty = item['qty'];
+            await assignTransaction(
+              variant: variant,
+              pendingTransaction: pendingTransaction!,
+              business: business!,
+              randomNumber: randomNumber(),
+              // 11 is outgoing sale
+              sarTyCd: "11",
+            );
+          }
+          if (pendingTransaction != null) {
+            await completeTransaction(pendingTransaction: pendingTransaction);
           }
         }
 
@@ -1040,7 +1055,7 @@ class RWTax with NetworkHelper implements TaxApi {
       required String sarTyCd}) async {
     talker.warning("Processing stockIn");
     final url = Uri.parse(URI)
-        .replace(path: Uri.parse(URI).path + 'saveStockItems/saveStockItems')
+        .replace(path: Uri.parse(URI).path + 'stock/saveStockItems')
         .toString();
     await sendPostRequest(url, json);
     return true;
@@ -1053,7 +1068,7 @@ class RWTax with NetworkHelper implements TaxApi {
       required String sarTyCd}) async {
     talker.warning("Processing stockOut");
     final url = Uri.parse(URI)
-        .replace(path: Uri.parse(URI).path + 'saveStockItems/saveStockItems')
+        .replace(path: Uri.parse(URI).path + 'stock/saveStockItems')
         .toString();
     await sendPostRequest(url, json);
     return true;

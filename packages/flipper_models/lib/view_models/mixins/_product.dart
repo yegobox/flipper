@@ -2,6 +2,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -39,6 +40,7 @@ mixin ProductMixin {
       required String selectedProductType,
       String? color,
       Product? product,
+      required Function(List<Variant> variantions) onCompleteCallback,
       required ScannViewModel model}) async {
     if (product == null) return;
 
@@ -146,56 +148,58 @@ mixin ProductMixin {
           );
         } catch (e) {}
       }
-      final pendingTransaction = await ProxyService.strategy.manageTransaction(
-        transactionType: TransactionType.adjustment,
-        isExpense: true,
-        branchId: ProxyService.box.getBranchId()!,
-      );
 
-      for (Variant variant in updatables) {
-        //TODO: finalize this.
-        model.saveTransaction(
-          variation: variant,
-          amountTotal: variant.retailPrice!,
-          customItem: false,
-          currentStock: variant.stock!.currentStock!,
-          pendingTransaction: pendingTransaction!,
-          partOfComposite: false,
-          compositePrice: 0,
-        );
+      onCompleteCallback(updatables);
+      // final pendingTransaction = await ProxyService.strategy.manageTransaction(
+      //   transactionType: TransactionType.adjustment,
+      //   isExpense: true,
+      //   branchId: ProxyService.box.getBranchId()!,
+      // );
 
-        ProxyService.strategy.updateTransaction(
-          transaction: pendingTransaction,
-          status: PARKED,
-          sarTyCd: "6", //Incoming- Adjustment
-          receiptNumber: randomNumber(),
-          reference: randomNumber().toString(),
-          invoiceNumber: randomNumber(),
-          receiptType: TransactionType.adjustment,
-          customerTin: ProxyService.box.tin().toString(),
-          customerBhfId: await ProxyService.box.bhfId() ?? "00",
-          subTotal: pendingTransaction.subTotal! + (variant.splyAmt ?? 0),
-          cashReceived:
-              -(pendingTransaction.subTotal! + (variant.splyAmt ?? 0)),
-          customerName: business.name,
-        );
-      }
-      // complete transaction
-      await ProxyService.strategy.updateTransaction(
-          isUnclassfied: true,
-          transaction: pendingTransaction,
-          status: COMPLETE,
-          ebmSynced: false);
-      final tinNumber = ProxyService.box.tin();
-      final bhfId = await ProxyService.box.bhfId();
-      await PatchTransactionItem.patchTransactionItem(
-        tinNumber: tinNumber,
-        bhfId: bhfId!,
-        URI: (await ProxyService.box.getServerUrl())!,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
+      // for (Variant variant in updatables) {
+      //   //TODO: finalize this.
+      //   model.saveTransaction(
+      //     variation: variant,
+      //     amountTotal: variant.retailPrice!,
+      //     customItem: false,
+      //     currentStock: variant.stock!.currentStock!,
+      //     pendingTransaction: pendingTransaction!,
+      //     partOfComposite: false,
+      //     compositePrice: 0,
+      //   );
+
+      //   ProxyService.strategy.updateTransaction(
+      //     transaction: pendingTransaction,
+      //     status: PARKED,
+      //     sarTyCd: "6", //Incoming- Adjustment
+      //     receiptNumber: randomNumber(),
+      //     reference: randomNumber().toString(),
+      //     invoiceNumber: randomNumber(),
+      //     receiptType: TransactionType.adjustment,
+      //     customerTin: ProxyService.box.tin().toString(),
+      //     customerBhfId: await ProxyService.box.bhfId() ?? "00",
+      //     subTotal: pendingTransaction.subTotal! + (variant.splyAmt ?? 0),
+      //     cashReceived:
+      //         -(pendingTransaction.subTotal! + (variant.splyAmt ?? 0)),
+      //     customerName: business.name,
+      //   );
+      // }
+      // // complete transaction
+      // await ProxyService.strategy.updateTransaction(
+      //     isUnclassfied: true,
+      //     transaction: pendingTransaction,
+      //     status: COMPLETE,
+      //     ebmSynced: false);
+      // final tinNumber = ProxyService.box.tin();
+      // final bhfId = await ProxyService.box.bhfId();
+      // await PatchTransactionItem.patchTransactionItem(
+      //   tinNumber: tinNumber,
+      //   bhfId: bhfId!,
+      //   URI: (await ProxyService.box.getServerUrl())!,
+      //   sendPort: (message) {
+      //     ProxyService.notification.sendLocalNotification(body: message);
+      //   },
+      // );
     } catch (e, s) {
       talker.error(e);
       talker.error(s);
