@@ -1052,6 +1052,7 @@ class Capella with Booting implements RealmInterface {
       int? receiptNumber,
       int? totalReceiptNumber,
       bool? isProformaMode,
+      bool isUnclassfied = false,
       bool? isTrainingMode}) {
     // TODO: implement updateTransaction
     throw UnimplementedError();
