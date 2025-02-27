@@ -150,56 +150,6 @@ mixin ProductMixin {
       }
 
       onCompleteCallback(updatables);
-      // final pendingTransaction = await ProxyService.strategy.manageTransaction(
-      //   transactionType: TransactionType.adjustment,
-      //   isExpense: true,
-      //   branchId: ProxyService.box.getBranchId()!,
-      // );
-
-      // for (Variant variant in updatables) {
-      //   //TODO: finalize this.
-      //   model.saveTransaction(
-      //     variation: variant,
-      //     amountTotal: variant.retailPrice!,
-      //     customItem: false,
-      //     currentStock: variant.stock!.currentStock!,
-      //     pendingTransaction: pendingTransaction!,
-      //     partOfComposite: false,
-      //     compositePrice: 0,
-      //   );
-
-      //   ProxyService.strategy.updateTransaction(
-      //     transaction: pendingTransaction,
-      //     status: PARKED,
-      //     sarTyCd: "6", //Incoming- Adjustment
-      //     receiptNumber: randomNumber(),
-      //     reference: randomNumber().toString(),
-      //     invoiceNumber: randomNumber(),
-      //     receiptType: TransactionType.adjustment,
-      //     customerTin: ProxyService.box.tin().toString(),
-      //     customerBhfId: await ProxyService.box.bhfId() ?? "00",
-      //     subTotal: pendingTransaction.subTotal! + (variant.splyAmt ?? 0),
-      //     cashReceived:
-      //         -(pendingTransaction.subTotal! + (variant.splyAmt ?? 0)),
-      //     customerName: business.name,
-      //   );
-      // }
-      // // complete transaction
-      // await ProxyService.strategy.updateTransaction(
-      //     isUnclassfied: true,
-      //     transaction: pendingTransaction,
-      //     status: COMPLETE,
-      //     ebmSynced: false);
-      // final tinNumber = ProxyService.box.tin();
-      // final bhfId = await ProxyService.box.bhfId();
-      // await PatchTransactionItem.patchTransactionItem(
-      //   tinNumber: tinNumber,
-      //   bhfId: bhfId!,
-      //   URI: (await ProxyService.box.getServerUrl())!,
-      //   sendPort: (message) {
-      //     ProxyService.notification.sendLocalNotification(body: message);
-      //   },
-      // );
     } catch (e, s) {
       talker.error(e);
       talker.error(s);

@@ -17,8 +17,8 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:stacked/stacked.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/secrets.dart';
@@ -56,7 +56,9 @@ import 'package:uuid/uuid.dart';
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
 
-class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
+class CoreSync
+    with Booting, CoreMiscellaneous, TransactionMixin
+    implements RealmInterface {
   final String apihub = AppSecrets.apihubProd;
 
   bool offlineLogin = false;
@@ -3375,23 +3377,125 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required int branchId,
   }) async {
     try {
-      for (TransactionItem item in items) {
-        if (!item.active!) {
-          repository.delete(item);
-          continue;
-        }
+      final pendingTransaction = await _createAdjustmentTransaction();
+      final business = await ProxyService.strategy.getBusiness();
+      final serverUrl = await ProxyService.box.getServerUrl();
 
-        await _updateStockForItem(item: item, branchId: branchId);
+      if (business == null) {
+        talker.warning('Business or Server URL is null, aborting update.');
+        return; // Early exit if crucial data is missing
+      }
 
-        item
-          ..doneWithTransaction = true
-          ..updatedAt = DateTime.now().toUtc().toLocal();
-        repository.upsert<TransactionItem>(item);
+      if (pendingTransaction == null) {
+        talker.warning("Failed to create adjustment transaction. Aborting.");
+        return;
+      }
+      if (serverUrl != null) {
+        await _processTransactionItems(
+          items: items,
+          branchId: branchId,
+          pendingTransaction: pendingTransaction,
+          business: business,
+          serverUrl: serverUrl,
+        );
+
+        // Assuming completeTransaction is defined in the same scope.
+        await completeTransaction(pendingTransaction: pendingTransaction);
       }
     } catch (e, s) {
       talker.error(s);
       talker.warning(e);
     }
+  }
+
+  Future<ITransaction?> _createAdjustmentTransaction() async {
+    try {
+      return await ProxyService.strategy.manageTransaction(
+        transactionType: TransactionType.adjustment,
+        isExpense: true,
+        branchId: ProxyService.box.getBranchId()!,
+      );
+    } catch (e, s) {
+      talker.error(s);
+      talker.warning(e);
+      return null; // Handle transaction creation failure gracefully
+    }
+  }
+
+  Future<void> _processTransactionItems({
+    required List<TransactionItem> items,
+    required int branchId,
+    required ITransaction pendingTransaction,
+    required Business business,
+    required String serverUrl,
+  }) async {
+    for (TransactionItem item in items) {
+      await _processSingleTransactionItem(
+        item: item,
+        branchId: branchId,
+        pendingTransaction: pendingTransaction,
+        business: business,
+        serverUrl: serverUrl,
+      );
+    }
+  }
+
+  Future<void> _processSingleTransactionItem({
+    required TransactionItem item,
+    required int branchId,
+    required ITransaction pendingTransaction,
+    required Business business,
+    required String serverUrl,
+  }) async {
+    if (!item.active!) {
+      repository.delete(item);
+      return;
+    }
+
+    await _updateStockForItem(item: item, branchId: branchId);
+
+    final variant = await ProxyService.strategy.getVariant(id: item.variantId);
+    // Setting the quantity here, after the stock patch is crucial for accuracy.
+    variant?.qty = item.qty;
+    if (variant != null) {
+      await _updateVariantAndPatchStock(
+        variant: variant,
+        item: item,
+        serverUrl: serverUrl,
+      );
+
+      // Assuming assignTransaction and randomNumber are defined in the same scope.
+      await assignTransaction(
+        variant: variant,
+        pendingTransaction: pendingTransaction,
+        business: business,
+        randomNumber: randomNumber(),
+
+        /// 11 is for sale
+        sarTyCd: "11",
+      );
+    }
+
+    item
+      ..doneWithTransaction = true
+      ..updatedAt = DateTime.now().toUtc().toLocal();
+    repository.upsert<TransactionItem>(item);
+  }
+
+  Future<void> _updateVariantAndPatchStock({
+    required Variant variant,
+    required TransactionItem item,
+    required String serverUrl,
+  }) async {
+    variant.ebmSynced = false;
+    await ProxyService.strategy.updateVariant(updatables: [variant]);
+
+    StockPatch.patchStock(
+      URI: serverUrl,
+      sendPort: (message) {
+        ProxyService.notification.sendLocalNotification(body: message);
+      },
+    );
   }
 
   Future<void> _updateStockForItem({

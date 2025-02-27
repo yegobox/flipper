@@ -446,41 +446,6 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
         // Update transaction and item statuses
         updateTransactionAndItems(transaction, items, receiptCodes['rcptTyCd']);
         // mark item involved as need sync
-        final pendingTransaction =
-            await ProxyService.strategy.manageTransaction(
-          transactionType: TransactionType.adjustment,
-          isExpense: true,
-          branchId: ProxyService.box.getBranchId()!,
-        );
-        for (Map<String, dynamic> item in itemsList) {
-          talker.warning("While finalizing: ${item['variantId']}");
-          // get variant
-          Variant? variant =
-              await ProxyService.strategy.getVariant(id: item['variantId']);
-
-          variant?.ebmSynced = false;
-          if (variant != null) {
-            await ProxyService.strategy.updateVariant(updatables: [variant]);
-            StockPatch.patchStock(
-                URI: URI,
-                sendPort: (message) {
-                  ProxyService.notification
-                      .sendLocalNotification(body: message);
-                });
-            variant.qty = item['qty'];
-            await assignTransaction(
-              variant: variant,
-              pendingTransaction: pendingTransaction!,
-              business: business!,
-              randomNumber: randomNumber(),
-              // 11 is outgoing sale
-              sarTyCd: "11",
-            );
-          }
-          if (pendingTransaction != null) {
-            await completeTransaction(pendingTransaction: pendingTransaction);
-          }
-        }
 
         return data;
       } else {
@@ -812,16 +777,11 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
   /// Helper function to update transaction and item statuses
   Future<void> updateTransactionAndItems(ITransaction transaction,
       List<TransactionItem> items, String? receiptType) async {
-    for (TransactionItem item in items) {
-      Variant? stock = await ProxyService.strategy.getVariant(
-        id: item.variantId!,
-      );
-      //TODO: this was wrong, we need to check if stock is being updated though!
-      // ProxyService.strategy.updateStock(
-      //   stockId: stock!.id,
-      //   ebmSynced: false,
-      // );
-    }
+    // for (TransactionItem item in items) {
+    //   Variant? stock = await ProxyService.strategy.getVariant(
+    //     id: item.variantId!,
+    //   );
+    // }
   }
 
   // Define these constants at the top level of your file

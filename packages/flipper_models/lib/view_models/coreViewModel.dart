@@ -231,6 +231,7 @@ class CoreViewModel extends FlipperBaseModel
         ? '${variation.productName}(${variation.name})'
         : variation.productName!;
 
+
     if (items.isEmpty) {
       ProxyService.strategy.addTransactionItem(
         transaction: pendingTransaction,
