@@ -12,9 +12,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
   final String id;
-  @Supabase(foreignKey: 'purchase_id')
-  @Sqlite(index: true)
+
   String? purchaseId;
+
   Stock? stock;
   String? stockId;
 

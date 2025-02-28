@@ -11,12 +11,11 @@ import 'package:brick_supabase/brick_supabase.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:uuid/uuid.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/brick/models/finance_provider.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/inventory_request.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/stock.model.dart';
-// ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/variant.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/branch.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
@@ -26,7 +25,9 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/composite.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/plan_addon.model.dart';// GENERATED CODE DO NOT EDIT
+import 'package:supabase_models/brick/models/plan_addon.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/brick/models/variant.model.dart';// GENERATED CODE DO NOT EDIT
 // ignore: unused_import
 import 'dart:convert';
 import 'package:brick_sqlite/brick_sqlite.dart' show SqliteModel, SqliteAdapter, SqliteModelDictionary, RuntimeSqliteColumnDefinition, SqliteProvider;
@@ -38,6 +39,7 @@ import 'package:sqflite_common/sqlite_api.dart' show DatabaseExecutor;
 
 import '../brick/models/itemCode.model.dart';
 import '../brick/models/import_purchase_dates.model.dart';
+import '../brick/models/stock.model.dart';
 import '../brick/models/counter.model.dart';
 import '../brick/models/category.model.dart';
 import '../brick/models/business_analytic.model.dart';
@@ -45,17 +47,24 @@ import '../brick/models/universalProduct.model.dart';
 import '../brick/models/conversation.model.dart';
 import '../brick/models/customer_payments.model.dart';
 import '../brick/models/transaction.model.dart';
+import '../brick/models/financing.model.dart';
 import '../brick/models/configuration.model.dart';
+import '../brick/models/branch.model.dart';
+import '../brick/models/plan_addon.model.dart';
 import '../brick/models/color.model.dart';
 import '../brick/models/country.model.dart';
 import '../brick/models/BranchPaymentIntegration.model.dart';
+import '../brick/models/transactionItem.model.dart';
 import '../brick/models/permission.model.dart';
-import '../brick/models/purchase.model.dart';
+import '../brick/models/variant.model.dart';
 import '../brick/models/device.model.dart';
+import '../brick/models/variant_branch.model.dart';
 import '../brick/models/favorite.model.dart';
+import '../brick/models/composite.model.dart';
 import '../brick/models/transaction_payment_record.model.dart';
 import '../brick/models/setting.model.dart';
 import '../brick/models/tenant.model.dart';
+import '../brick/models/inventory_request.model.dart';
 import '../brick/models/pin.model.dart';
 import '../brick/models/access.model.dart';
 import '../brick/models/customer.model.dart';
@@ -74,7 +83,7 @@ import '../brick/models/product.model.dart';
 import '../brick/models/asset.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/drawer.model.dart';
-import '../brick/models/variant_branch.model.dart';
+import '../brick/models/purchase.model.dart';
 
 part 'adapters/item_code_adapter.g.dart';
 part 'adapters/import_purchase_dates_adapter.g.dart';
@@ -96,8 +105,8 @@ part 'adapters/branch_payment_integration_adapter.g.dart';
 part 'adapters/transaction_item_adapter.g.dart';
 part 'adapters/l_permission_adapter.g.dart';
 part 'adapters/variant_adapter.g.dart';
-part 'adapters/purchase_adapter.g.dart';
 part 'adapters/device_adapter.g.dart';
+part 'adapters/variant_branch_adapter.g.dart';
 part 'adapters/favorite_adapter.g.dart';
 part 'adapters/composite_adapter.g.dart';
 part 'adapters/transaction_payment_record_adapter.g.dart';
@@ -122,7 +131,7 @@ part 'adapters/product_adapter.g.dart';
 part 'adapters/assets_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 part 'adapters/drawers_adapter.g.dart';
-part 'adapters/variant_branch_adapter.g.dart';
+part 'adapters/purchase_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
@@ -146,8 +155,8 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   TransactionItem: TransactionItemAdapter(),
   LPermission: LPermissionAdapter(),
   Variant: VariantAdapter(),
-  Purchase: PurchaseAdapter(),
   Device: DeviceAdapter(),
+  VariantBranch: VariantBranchAdapter(),
   Favorite: FavoriteAdapter(),
   Composite: CompositeAdapter(),
   TransactionPaymentRecord: TransactionPaymentRecordAdapter(),
@@ -172,7 +181,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
   Drawers: DrawersAdapter(),
-  VariantBranch: VariantBranchAdapter()
+  Purchase: PurchaseAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -198,8 +207,8 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   TransactionItem: TransactionItemAdapter(),
   LPermission: LPermissionAdapter(),
   Variant: VariantAdapter(),
-  Purchase: PurchaseAdapter(),
   Device: DeviceAdapter(),
+  VariantBranch: VariantBranchAdapter(),
   Favorite: FavoriteAdapter(),
   Composite: CompositeAdapter(),
   TransactionPaymentRecord: TransactionPaymentRecordAdapter(),
@@ -224,6 +233,6 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
   Drawers: DrawersAdapter(),
-  VariantBranch: VariantBranchAdapter()
+  Purchase: PurchaseAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

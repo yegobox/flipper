@@ -7,6 +7,7 @@ import 'dart:developer';
 
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/constants.dart';
@@ -231,7 +232,6 @@ class CoreViewModel extends FlipperBaseModel
         ? '${variation.productName}(${variation.name})'
         : variation.productName!;
 
-
     if (items.isEmpty) {
       ProxyService.strategy.addTransactionItem(
         transaction: pendingTransaction,
@@ -364,12 +364,9 @@ class CoreViewModel extends FlipperBaseModel
     app.loadCategories();
   }
 
-  
-
   Business get businesses => app.business;
 
   Branch? get branch => app.branch;
-
 
   Future<void> handleCustomQtySetBeforeSelectingVariation() async {
     ProxyService.keypad.decreaseQty();
@@ -997,22 +994,125 @@ class CoreViewModel extends FlipperBaseModel
     }
   }
 
-  Future<void> acceptAllImport(List<Variant> finalItemList) async {
+  Future<void> approveAllImportItems(List<Variant> importItems) async {
     try {
-      isLoading = true;
-      notifyListeners();
+      setBusy(true);
 
-      for (Variant item in finalItemList) {
-        await ProxyService.tax.updateImportItems(
-            item: item, URI: await ProxyService.box.getServerUrl() ?? "");
+      for (final item in importItems) {
+        // Only process items that are still waiting for approval
+        if (item.imptItemSttsCd == "2") {
+          // "2" likely means "Waiting Approval"
+          item.imptItemSttsCd = "3";
+          item.ebmSynced = false;
+
+          await ProxyService.strategy.updateVariant(updatables: [item]);
+
+          final URI = await ProxyService.box.getServerUrl();
+          if (URI != null) {
+            await VariantPatch.patchVariant(
+              URI: URI,
+              identifier: item.id,
+              sendPort: (message) {
+                ProxyService.notification.sendLocalNotification(body: message);
+              },
+            );
+
+            await StockPatch.patchStock(
+              identifier: item.id,
+              URI: URI,
+              sendPort: (message) {
+                ProxyService.notification.sendLocalNotification(body: message);
+              },
+            );
+          }
+
+          await ProxyService.tax.updateImportItems(
+            item: item,
+            URI: URI ?? "",
+          );
+
+          item.ebmSynced = true;
+          await ProxyService.strategy
+              .updateVariant(updatables: [item]); // Ensure update is awaited.
+        }
+      }
+      notifyListeners(); // Trigger UI update if needed
+    } catch (e, s) {
+      talker.error(s);
+      setError(e); // Set an error state in your ViewModel
+    } finally {
+      setBusy(false); // Ensure busy state is cleared
+    }
+  }
+
+  Future<void> approveImportItem(Variant item) async {
+    try {
+      item.imptItemSttsCd = "3";
+      item.ebmSynced = false;
+      await ProxyService.strategy.updateVariant(updatables: [item]);
+
+      final URI = await ProxyService.box.getServerUrl();
+      if (URI != null) {
+        await VariantPatch.patchVariant(
+          URI: URI,
+          identifier: item.id,
+          sendPort: (message) {
+            ProxyService.notification.sendLocalNotification(body: message);
+          },
+        );
+
+        await StockPatch.patchStock(
+          identifier: item.id,
+          URI: URI,
+          sendPort: (message) {
+            ProxyService.notification.sendLocalNotification(body: message);
+          },
+        );
       }
 
-      isLoading = false;
-      notifyListeners();
+      await ProxyService.tax.updateImportItems(
+        item: item,
+        URI: URI ?? "",
+      );
+
+      item.ebmSynced = true;
+      ProxyService.strategy.updateVariant(updatables: [item]);
+    } catch (e, s) {
+      talker.error(s);
+      rethrow; // Re-throw the exception to be caught in the UI
+    }
+  }
+
+  Future<void> rejectImportItem(Variant item) async {
+    try {
+      item.imptItemSttsCd = "4";
+      item.ebmSynced = false;
+      await ProxyService.strategy.updateVariant(updatables: [item]);
+
+      final URI = await ProxyService.box.getServerUrl();
+      await VariantPatch.patchVariant(
+        URI: URI!,
+        identifier: item.id,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
+      await StockPatch.patchStock(
+        identifier: item.id,
+        URI: URI,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
+      await ProxyService.tax.updateImportItems(
+        item: item,
+        URI: await ProxyService.box.getServerUrl() ?? "",
+      );
+
+      item.ebmSynced = true;
+      ProxyService.strategy.updateVariant(updatables: [item]);
     } catch (e) {
-      isLoading = false;
-      notifyListeners();
-      throw Exception("Internal error, could not save import items");
+      rethrow; // Re-throw the exception to be caught in the UI
     }
   }
 }

@@ -908,6 +908,7 @@ class CoreSync
         if (purchase != null) {
           Purchase purch = await repository.upsert<Purchase>(purchase);
           newVariant.purchaseId = purch.id;
+          newVariant.spplrNm = purch.spplrNm;
           await repository.upsert<Variant>(newVariant);
         } else {
           await repository.upsert<Variant>(newVariant);
@@ -1671,7 +1672,9 @@ class CoreSync
 
   @override
   FutureOr<FlipperSaleCompaign?> getLatestCompaign() async {
-    final query = brick.Query(providerArgs: {'orderBy': 'createdAt DESC'});
+    final query = brick.Query(
+      orderBy: [const OrderBy('createdAt', ascending: false)],
+    );
     final List<FlipperSaleCompaign> fetchedCampaigns =
         await repository.get<FlipperSaleCompaign>(
             query: query,
@@ -2575,65 +2578,87 @@ class CoreSync
       // Fetch last request date for import items
       final lastRequestRecords = await repository.get<ImportPurchaseDates>(
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        query: brick.Query(where: [
-          brick.Where('branchId').isExactly(activeBranch.id),
-          brick.Where('lastRequestDate').isExactly(lastReqDt),
-          brick.Where('requestType').isExactly("IMPORT"),
-        ]),
+        query: brick.Query(
+          orderBy: [const OrderBy('lastRequestDate', ascending: false)],
+          where: [
+            brick.Where('branchId').isExactly(activeBranch.id),
+            brick.Where('requestType').isExactly("IMPORT"),
+          ],
+        ),
       );
 
-      // If the last request date is the same, check if there are imported variants
-      if (lastRequestRecords.isNotEmpty &&
-          lastRequestRecords.first.lastRequestDate == lastReqDt) {
-        final existingVariants = await variants(
-          branchId: ProxyService.box.getBranchId()!,
-          imptItemsttsCd: "2",
-          excludeApprovedInWaitingOrCanceledItems: true,
-        );
+      // Determine if we should fetch from the API
+      final shouldFetchFromApi = lastRequestRecords.isEmpty ||
+          lastRequestRecords.first.lastRequestDate != lastReqDt;
 
-        if (existingVariants.isNotEmpty) {
-          return existingVariants;
+      List<Variant> variantsList;
+
+      if (shouldFetchFromApi) {
+        RwApiResponse response;
+        try {
+          // Fetch new data from the API
+          response = await ProxyService.tax.selectImportItems(
+            tin: tin,
+            bhfId: bhfId,
+            lastReqDt: lastReqDt,
+            URI: (await ProxyService.box.getServerUrl() ?? ""),
+          );
+
+          if (response.data == null || response.data!.itemList == null) {
+            throw Exception(
+                "API returned null data or item list"); // More informative error
+          }
+        } catch (apiError) {
+          // Handle API errors gracefully.  Attempt to use the last known date if possible.
+          print("API Error: $apiError");
+          if (lastRequestRecords.isNotEmpty) {
+            print("Attempting to use last known request date...");
+            try {
+              response = await ProxyService.tax.selectImportItems(
+                tin: tin,
+                bhfId: bhfId,
+                lastReqDt: lastRequestRecords.first.lastRequestDate!,
+                URI: (await ProxyService.box.getServerUrl() ?? ""),
+              );
+              if (response.data == null || response.data!.itemList == null) {
+                throw Exception(
+                    "API returned null data or item list even with the old lastReqDt"); // More informative error
+              }
+            } catch (retryError) {
+              print("Retry with last known date failed: $retryError");
+              rethrow; // If retry fails, propagate the exception
+            }
+          } else {
+            rethrow; // If no last request date, propagate the original API error.
+          }
         }
 
-        //return ealry as as continuing might fetch new data from api
-        return [];
-      }
+        // Save the last request date
+        if (response.data!.itemList!.isNotEmpty) {
+          await repository.upsert<ImportPurchaseDates>(
+            ImportPurchaseDates(
+              lastRequestDate: DateTime.now().toYYYYMMddHH0000(),
+              branchId: activeBranch.id,
+              requestType: "IMPORT",
+            ),
+          );
+        }
 
-      // Fetch new data from the API if no existing records
-      final response = await ProxyService.tax.selectImportItems(
-        tin: tin,
-        bhfId: bhfId,
-        lastReqDt: lastReqDt,
-        URI: (await ProxyService.box.getServerUrl() ?? ""),
-      );
-
-      if (response.data?.itemList == null) {
-        return [];
-      }
-
-      // Save the last request date
-      if (response.data!.itemList!.isNotEmpty) {
-        await repository.upsert<ImportPurchaseDates>(
-          ImportPurchaseDates(
-            lastRequestDate: lastReqDt,
-            branchId: activeBranch.id,
-            requestType: "IMPORT",
-          ),
-        );
-      }
-
-      // Save each imported item into the system
-      for (final item in response.data!.itemList!) {
-        if (item.imptItemSttsCd!.isNotEmpty) {
-          await saveVariant(item, business, activeBranch.serverId!);
+        // Save each imported item into the system
+        for (final item in response.data!.itemList!) {
+          if (item.imptItemSttsCd!.isNotEmpty) {
+            await saveVariant(item, business, activeBranch.serverId!);
+          }
         }
       }
 
-      // Return the newly imported variants
-      return await variants(
+      // Return the newly imported variants OR existing variants if no API call was made
+      variantsList = await variants(
         branchId: ProxyService.box.getBranchId()!,
         imptItemsttsCd: "2",
+        excludeApprovedInWaitingOrCanceledItems: true,
       );
+      return variantsList;
     } catch (e, stackTrace) {
       print("Error in selectImportItems: $e\n$stackTrace");
       rethrow;
@@ -5604,28 +5629,48 @@ class CoreSync
         await branch(serverId: ProxyService.box.getBranchId()!);
 
     try {
-      // Check if the last request date already exists in the database
-      final lastReqDate = await repository.get<ImportPurchaseDates>(
+      // Fetch the LAST request date for purchases for this branch
+      final lastRequestRecords = await repository.get<ImportPurchaseDates>(
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        query: brick.Query(where: [
-          brick.Where('branchId').isExactly(activeBranch!.id),
-          brick.Where('lastRequestDate').isExactly(lastReqDt),
-          brick.Where('requestType').isExactly("PURCHASE"),
-        ]),
+        query: brick.Query(
+          orderBy: [const OrderBy('lastRequestDate', ascending: false)],
+          where: [
+            brick.Where('branchId').isExactly(activeBranch!.id),
+            brick.Where('requestType').isExactly("PURCHASE"),
+          ],
+        ),
       );
 
-      if (lastReqDate.isEmpty) {
+      // Check if there's a saved last request date
+      final lastRequestDateExists = lastRequestRecords.isNotEmpty;
+      final lastRequestDate = lastRequestRecords.isNotEmpty
+          ? lastRequestRecords.first.lastRequestDate
+          : null;
+
+      // Use the lastReqDt from the argument if no local record is found
+      String apiLastReqDt =
+          lastRequestDateExists ? lastRequestDate! : lastReqDt;
+      // Check if we need to make an API call
+      bool shouldCallApi = !lastRequestDateExists || apiLastReqDt != lastReqDt;
+
+      List<Variant> variantsList;
+      if (shouldCallApi) {
+        // Use the retrieved date if available, otherwise, use the passed-in date
+        apiLastReqDt = lastRequestDateExists ? lastRequestDate! : lastReqDt;
+        talker.debug('Making API call with lastReqDt: $apiLastReqDt');
+
         List<Purchase> saleList =
             await ProxyService.tax.selectTrnsPurchaseSales(
           URI: url,
           tin: tin,
           bhfId: (await ProxyService.box.bhfId()) ?? "00",
-          lastReqDt: lastReqDt,
+          lastReqDt: apiLastReqDt,
         );
-        // Log the first purchase for debugging
-        //print(saleList.first.toJson());
+        // Clear the list of variants before adding newly fetch variants
 
-        // If the last request date does not exist, process new purchases
+        variantsList = [];
+
+        // Process new purchases
         for (Purchase purchase in saleList) {
           final futures = purchase.variants?.map((variant) async {
             // Create a product for each variant
@@ -5667,12 +5712,16 @@ class CoreSync
               ),
             );
 
+            variantsList = await variants(
+                branchId: branchId,
+                excludeApprovedInWaitingOrCanceledItems: true);
+
             // Save the purchase code and last request date
             await repository.upsert<ImportPurchaseDates>(
               ImportPurchaseDates(
                 requestType: 'PURCHASE',
                 branchId: activeBranch.id,
-                lastRequestDate: lastReqDt,
+                lastRequestDate: DateTime.now().toYYYYMMddHH0000(),
                 purchaseId: purchase.id,
               ),
             );
@@ -5683,14 +5732,19 @@ class CoreSync
             await Future.wait(futures);
           }
         }
+
         // return purchases i.e all variants that has purchaseId that are not null
         // and the itemCd !=3; because 3 mean that this purchase has been accepted
-        return await variants(
+        variantsList = await variants(
             branchId: branchId, excludeApprovedInWaitingOrCanceledItems: true);
       } else {
-        return await variants(
+        talker.debug('Using cached variants.');
+        // return variants that has purchaseId that are not null
+        // and the itemCd !=3; because 3 mean that this purchase has been accepted
+        variantsList = await variants(
             excludeApprovedInWaitingOrCanceledItems: true, branchId: branchId);
       }
+      return variantsList;
     } catch (e) {
       rethrow;
     }

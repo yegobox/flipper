@@ -1,7 +1,6 @@
+// Imports.dart
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/providers/variants_provider.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -16,11 +15,15 @@ class Imports extends StatefulHookConsumerWidget {
   final TextEditingController supplyPriceController;
   final TextEditingController retailPriceController;
   final void Function() saveChangeMadeOnItem;
-  final void Function() acceptAllImport;
+  //changed
+  final void Function(List<Variant> variants) acceptAllImport;
   final void Function(Variant? selectedItem) selectItem;
   final Variant? selectedItem;
   final List<Variant> finalItemList;
   final Map<String, Variant> variantMap;
+  // Add these callbacks
+  final Future<void> Function(Variant) onApprove;
+  final Future<void> Function(Variant) onReject;
 
   const Imports({
     super.key,
@@ -35,6 +38,8 @@ class Imports extends StatefulHookConsumerWidget {
     required this.selectedItem,
     required this.finalItemList,
     required this.variantMap,
+    required this.onApprove,
+    required this.onReject,
   });
 
   @override
@@ -52,26 +57,11 @@ class ImportsState extends ConsumerState<Imports> {
     _variantDataSource = VariantDataSource([], this);
   }
 
+  // _handleApproval and _handleRejection now call the callbacks
   Future<void> _handleApproval(Variant item) async {
     setState(() => _isLoading = true);
     try {
-      Variant? variantToUpdate = widget.variantMap[item.id];
-
-      /// Avoid self-update of the stock
-      if (variantToUpdate != null && variantToUpdate.id != item.id) {
-        variantToUpdate.ebmSynced = false;
-        await ProxyService.strategy
-            .updateVariant(updatables: [variantToUpdate]);
-        talker.warning("KEE${item.stock!.currentStock}");
-
-        await ProxyService.strategy.updateStock(
-          stockId: variantToUpdate.stock!.id,
-          appending: true,
-          currentStock: item.stock!.currentStock,
-        );
-      }
-
-      await _processVariantApproval(item);
+      await widget.onApprove(item); // Call the provided callback
     } catch (e, s) {
       talker.error(s);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -85,78 +75,10 @@ class ImportsState extends ConsumerState<Imports> {
     }
   }
 
-  Future<void> _processVariantApproval(Variant item) async {
-    item.imptItemSttsCd = "3";
-    item.ebmSynced = false;
-    await ProxyService.strategy.updateVariant(updatables: [item]);
-
-    final combinedNotifier = ref.read(refreshProvider);
-    combinedNotifier.performActions(productName: "", scanMode: true);
-
-    final URI = await ProxyService.box.getServerUrl();
-    if (URI != null) {
-      //TODO: save this in transaction
-      await VariantPatch.patchVariant(
-        URI: URI,
-        identifier: item.id,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-
-      await StockPatch.patchStock(
-        identifier: item.id,
-        URI: URI,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-    }
-
-    await ProxyService.tax.updateImportItems(
-      item: item,
-      URI: URI ?? "",
-    );
-
-    item.ebmSynced = true;
-    ProxyService.strategy.updateVariant(updatables: [item]);
-    _variantDataSource.updateDataSource();
-  }
-
   Future<void> _handleRejection(Variant item) async {
     setState(() => _isLoading = true);
     try {
-      item.imptItemSttsCd = "4";
-      item.ebmSynced = false;
-      await ProxyService.strategy.updateVariant(updatables: [item]);
-
-      final URI = await ProxyService.box.getServerUrl();
-      await VariantPatch.patchVariant(
-        URI: URI!,
-        identifier: item.id,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-      await StockPatch.patchStock(
-        identifier: item.id,
-        URI: URI,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-      await ProxyService.tax.updateImportItems(
-          item: item, URI: await ProxyService.box.getServerUrl() ?? "");
-
-      item.ebmSynced = true;
-      ProxyService.strategy.updateVariant(updatables: [item]);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Item rejected successfully'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      _variantDataSource.updateDataSource();
+      await widget.onReject(item); // Call the provided callback
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -364,7 +286,9 @@ class ImportsState extends ConsumerState<Imports> {
         ),
         const SizedBox(width: 8),
         FlipperIconButton(
-          onPressed: _isLoading ? null : widget.acceptAllImport,
+          onPressed: _isLoading
+              ? null
+              : () => widget.acceptAllImport(widget.finalItemList),
           icon: Icons.done_all,
           text: 'Accept All',
         ),
@@ -508,7 +432,7 @@ class VariantDataSource extends DataGridSource {
         ),
         DataGridCell<String>(
           columnName: 'quantity',
-          value: '${variant.stock!.currentStock} ${variant.qtyUnitCd}',
+          value: '${variant.stock?.currentStock} ${variant.qtyUnitCd}',
         ),
         DataGridCell<double>(
           columnName: 'retailPrice',

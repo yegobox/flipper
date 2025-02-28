@@ -8,9 +8,13 @@ abstract class TaxApi {
       {required Variant variant, required String URI});
 
   Future<bool> stockIn(
-      {required Map<String, Object?> json, required String URI,required String sarTyCd});
+      {required Map<String, Object?> json,
+      required String URI,
+      required String sarTyCd});
   Future<bool> stockOut(
-      {required Map<String, Object?> json, required String URI,required String sarTyCd});
+      {required Map<String, Object?> json,
+      required String URI,
+      required String sarTyCd});
   Future<RwApiResponse> savePurchases({
     required Purchase item,
     required String URI,

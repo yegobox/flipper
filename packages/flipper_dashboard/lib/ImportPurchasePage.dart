@@ -1,7 +1,7 @@
+// ImportPurchasePage.dart
 import 'package:flipper_dashboard/Imports.dart';
 import 'package:flipper_dashboard/Purchases.dart';
 import 'package:flipper_dashboard/refresh.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/realm_model_export.dart' as brick;
@@ -10,9 +10,8 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
-import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as model;
 
 class ImportPurchasePage extends StatefulHookConsumerWidget {
   @override
@@ -22,20 +21,21 @@ class ImportPurchasePage extends StatefulHookConsumerWidget {
 class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     with Refresh {
   DateTime _selectedDate = DateTime.now();
-  Future<List<Variant>>? _futureImportResponse;
-  Future<List<Variant>>? _futurePurchaseResponse; // Added for purchase data
-  Variant? _selectedItem;
-  Variant? _selectedPurchaseItem;
+  Future<List<model.Variant>>? _futureImportResponse;
+  Future<List<model.Variant>>?
+      _futurePurchaseResponse; // Added for purchase data
+  model.Variant? _selectedItem;
+  model.Variant? _selectedPurchaseItem;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _supplyPriceController = TextEditingController();
   final TextEditingController _retailPriceController = TextEditingController();
-  List<Variant> finalItemList = [];
-  List<Variant> salesList = [];
-  List<Variant> importList = [];
+  List<model.Variant> finalItemList = [];
+  List<model.Variant> salesList = [];
+  List<model.Variant> importList = [];
   GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
   bool isLoading = false;
   bool isImport = true;
-  final Map<String, Variant> _variantMap = {}; // Initialize the map here
+  final Map<String, model.Variant> _variantMap = {}; // Initialize the map here
 
   @override
   void initState() {
@@ -62,7 +62,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     }
   }
 
-  Future<List<Variant>> _fetchDataImport(
+  Future<List<model.Variant>> _fetchDataImport(
       {required DateTime selectedDate}) async {
     final convertedDate = selectedDate.toYYYYMMddHH0000();
     final business = await ProxyService.strategy
@@ -75,7 +75,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     return data; // Return data directly
   }
 
-  Future<List<Variant>> _fetchDataPurchase(
+  Future<List<model.Variant>> _fetchDataPurchase(
       {required DateTime selectedDate}) async {
     try {
       final convertedDate = selectedDate.toYYYYMMddHH0000();
@@ -118,7 +118,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     }
   }
 
-  void _selectItem(Variant? item) {
+  void _selectItem(model.Variant? item) {
     setState(() {
       _selectedItem = item;
       if (item != null) {
@@ -133,9 +133,10 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     });
   }
 
-  Map<String, Variant> itemMapper = {};
+  Map<String, model.Variant> itemMapper = {};
   void _asignPurchaseItem(
-      {required Variant itemToAssign, required Variant itemFromPurchase}) {
+      {required model.Variant itemToAssign,
+      required model.Variant itemFromPurchase}) {
     setState(() {
       itemMapper.putIfAbsent(itemToAssign.id, () => itemFromPurchase);
     });
@@ -171,32 +172,11 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     }
   }
 
-  Future<void> saveChangeOnImport() async {
-    try {
-      setState(() => isLoading = true);
-      for (final item in finalItemList) {
-        if (item.supplyPrice == null || item.retailPrice == null) continue;
-        item.modrId = item.modrId ?? randomNumber().toString().substring(0, 5);
-        item.bhfId = item.bhfId ?? "00";
-        item.modrNm = item.modrNm ?? item.itemNm;
-        item.tin = item.tin ??
-            (await ProxyService.strategy.getBusiness())?.tinNumber ??
-            ProxyService.box.tin();
-        item.imptItemSttsCd = "3";
-      }
-      setState(() => isLoading = false);
-      toast("Import items saved successfully!");
-    } catch (e) {
-      toast("Internal error, could not save import items");
-      setState(() => isLoading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder.nonReactive(
+    return ViewModelBuilder<brick.CoreViewModel>.reactive(
       viewModelBuilder: () => brick.CoreViewModel(),
-      builder: (context, model, child) {
+      builder: (context, coreViewModel, child) {
         return Stack(
           alignment: Alignment.center,
           children: [
@@ -247,13 +227,22 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                           supplyPriceController: _supplyPriceController,
                           retailPriceController: _retailPriceController,
                           saveChangeMadeOnItem: _saveChangeMadeOnItem,
-                          acceptAllImport: saveChangeOnImport,
+                          acceptAllImport:
+                              (List<model.Variant> variants) async {
+                            await coreViewModel.approveAllImportItems(variants);
+                          },
                           selectItem: _selectItem,
                           selectedItem: _selectedItem,
                           finalItemList: finalItemList,
                           variantMap: _variantMap,
+                          onApprove: (model.Variant item) async {
+                            await coreViewModel.approveImportItem(item);
+                          },
+                          onReject: (model.Variant item) async {
+                            await coreViewModel.rejectImportItem(item);
+                          },
                         )
-                      : FutureBuilder<List<Variant>>(
+                      : FutureBuilder<List<model.Variant>>(
                           future: _futurePurchaseResponse,
                           builder: (context, snapshot) {
                             if (snapshot.hasError) {
@@ -271,7 +260,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                 retailPriceController: _retailPriceController,
                                 saveItemName: _saveChangeMadeOnItem,
                                 acceptPurchases: (
-                                    {required List<Variant> variants,
+                                    {required List<model.Variant> variants,
                                     required String pchsSttsCd}) async {
                                   final pendingTransactionState = ref.watch(
                                       pendingTransactionStreamProvider(
@@ -280,7 +269,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                   switch (pendingTransactionState) {
                                     case AsyncData(:final value):
                                       try {
-                                        await model.acceptPurchase(
+                                        await coreViewModel.acceptPurchase(
                                           variants: variants,
                                           itemMapper: itemMapper,
                                           pendingTransaction: value,
@@ -312,8 +301,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                       break;
                                   }
                                 },
-                                selectSale: (Variant? itemToAssign,
-                                        Variant? itemFromPurchase) =>
+                                selectSale: (model.Variant? itemToAssign,
+                                        model.Variant? itemFromPurchase) =>
                                     _asignPurchaseItem(
                                         itemToAssign: itemToAssign!,
                                         itemFromPurchase: itemFromPurchase!),
