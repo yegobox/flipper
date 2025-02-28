@@ -34,10 +34,10 @@ class Purchases extends StatefulHookConsumerWidget {
   });
 
   @override
-  _PurchaseSaleWidgetState createState() => _PurchaseSaleWidgetState();
+  _PurchasesState createState() => _PurchasesState();
 }
 
-class _PurchaseSaleWidgetState extends ConsumerState<Purchases> {
+class _PurchasesState extends ConsumerState<Purchases> {
   @override
   Widget build(BuildContext context) {
     return Container(

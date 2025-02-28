@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/ImportWidget.dart';
+import 'package:flipper_dashboard/Imports.dart';
 import 'package:flipper_dashboard/Purchases.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/random.dart';
@@ -240,7 +240,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                     ),
                   ),
                   isImport
-                      ? ImportSalesWidget(
+                      ? Imports(
                           futureResponse: _futureImportResponse,
                           formKey: _importFormKey,
                           nameController: _nameController,

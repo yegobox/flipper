@@ -9,7 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
-class ImportSalesWidget extends StatefulHookConsumerWidget {
+class Imports extends StatefulHookConsumerWidget {
   final Future<List<Variant>>? futureResponse;
   final GlobalKey<FormState> formKey;
   final TextEditingController nameController;
@@ -22,7 +22,7 @@ class ImportSalesWidget extends StatefulHookConsumerWidget {
   final List<Variant> finalItemList;
   final Map<String, Variant> variantMap;
 
-  const ImportSalesWidget({
+  const Imports({
     super.key,
     required this.futureResponse,
     required this.formKey,
@@ -38,10 +38,10 @@ class ImportSalesWidget extends StatefulHookConsumerWidget {
   });
 
   @override
-  ImportSalesWidgetState createState() => ImportSalesWidgetState();
+  ImportsState createState() => ImportsState();
 }
 
-class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
+class ImportsState extends ConsumerState<Imports> {
   bool _isLoading = false;
   late VariantDataSource _variantDataSource;
   Variant? variantSelectedWhenClickingOnRow;
@@ -95,7 +95,7 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
 
     final URI = await ProxyService.box.getServerUrl();
     if (URI != null) {
-      //TODO: save this in transaction 
+      //TODO: save this in transaction
       await VariantPatch.patchVariant(
         URI: URI,
         identifier: item.id,
@@ -488,7 +488,7 @@ class ImportSalesWidgetState extends ConsumerState<ImportSalesWidget> {
 
 class VariantDataSource extends DataGridSource {
   final List<Variant> _variants;
-  final ImportSalesWidgetState _state;
+  final ImportsState _state;
   List<DataGridRow> _dataGridRows = [];
 
   VariantDataSource(this._variants, this._state) {
