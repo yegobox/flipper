@@ -779,3 +779,4 @@ class App {}
 
 
 // TODO: check if ProxyService.strategy.updateStock( is being called propper
+// SELECT  tax_name,tax_ty_cd,regr_id,regr_nm,item_cd  from Variant;

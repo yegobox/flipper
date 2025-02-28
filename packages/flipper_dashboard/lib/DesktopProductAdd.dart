@@ -117,27 +117,27 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           selectedProductType: selectedProductType,
           packagingUnit: selectedPackageUnitValue.split(":")[0],
           onCompleteCallback: (List<Variant> variants) async {
-            final pendingTransaction =
-                await ProxyService.strategy.manageTransaction(
-              transactionType: TransactionType.adjustment,
-              isExpense: true,
-              branchId: ProxyService.box.getBranchId()!,
-            );
-            Business? business = await ProxyService.strategy
-                .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-            for (Variant variant in variants) {
-              await assignTransaction(
-                variant: variant,
-                pendingTransaction: pendingTransaction!,
-                business: business!,
-                randomNumber: randomNumber(),
-                // 06 is incoming adjustment.
-                sarTyCd: "06",
+              final pendingTransaction =
+                  await ProxyService.strategy.manageTransaction(
+                transactionType: TransactionType.adjustment,
+                isExpense: true,
+                branchId: ProxyService.box.getBranchId()!,
               );
-            }
-            if (pendingTransaction != null) {
-              await completeTransaction(pendingTransaction: pendingTransaction);
-            }
+              Business? business = await ProxyService.strategy
+                  .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+              for (Variant variant in variants) {
+                await assignTransaction(
+                  variant: variant,
+                  pendingTransaction: pendingTransaction!,
+                  business: business!,
+                  randomNumber: randomNumber(),
+                  // 06 is incoming adjustment.
+                  sarTyCd: "06",
+                );
+              }
+              if (pendingTransaction != null) {
+                await completeTransaction(pendingTransaction: pendingTransaction);
+              }
           },
         );
       }

@@ -1,9 +1,6 @@
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/_transaction.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as newMod;
@@ -133,21 +130,6 @@ mixin ProductMixin {
       await ProxyService.strategy.addVariant(
           variations: updatables, branchId: ProxyService.box.getBranchId()!);
       // add this variant to rra
-      final bool isEbmEnabled = await ProxyService.strategy
-          .isTaxEnabled(businessId: business!.serverId);
-      if (isEbmEnabled) {
-        try {
-          VariantPatch.patchVariant(
-            URI: (await ProxyService.box.getServerUrl())!,
-          );
-          await StockPatch.patchStock(
-            URI: (await ProxyService.box.getServerUrl())!,
-            sendPort: (message) {
-              ProxyService.notification.sendLocalNotification(body: message);
-            },
-          );
-        } catch (e) {}
-      }
 
       onCompleteCallback(updatables);
     } catch (e, s) {

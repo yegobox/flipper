@@ -443,20 +443,39 @@ mixin TransactionMixin {
   Future<void> _completeTransaction({
     required ITransaction pendingTransaction,
   }) async {
-    await ProxyService.strategy.updateTransaction(
-        isUnclassfied: true,
-        transaction: pendingTransaction,
-        status: COMPLETE,
-        ebmSynced: false);
-    final tinNumber = ProxyService.box.tin();
-    final bhfId = await ProxyService.box.bhfId();
-    await PatchTransactionItem.patchTransactionItem(
-      tinNumber: tinNumber,
-      bhfId: bhfId!,
-      URI: (await ProxyService.box.getServerUrl())!,
-      sendPort: (message) {
-        ProxyService.notification.sendLocalNotification(body: message);
-      },
-    );
+    Business? business = await ProxyService.strategy
+        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+
+    final bool isEbmEnabled = await ProxyService.strategy
+        .isTaxEnabled(businessId: business!.serverId);
+    if (isEbmEnabled) {
+      try {
+        VariantPatch.patchVariant(
+          URI: (await ProxyService.box.getServerUrl())!,
+        );
+        await StockPatch.patchStock(
+          URI: (await ProxyService.box.getServerUrl())!,
+          sendPort: (message) {
+            ProxyService.notification.sendLocalNotification(body: message);
+          },
+        );
+
+        await ProxyService.strategy.updateTransaction(
+            isUnclassfied: true,
+            transaction: pendingTransaction,
+            status: COMPLETE,
+            ebmSynced: false);
+        final tinNumber = ProxyService.box.tin();
+        final bhfId = await ProxyService.box.bhfId();
+        await PatchTransactionItem.patchTransactionItem(
+          tinNumber: tinNumber,
+          bhfId: bhfId!,
+          URI: (await ProxyService.box.getServerUrl())!,
+          sendPort: (message) {
+            ProxyService.notification.sendLocalNotification(body: message);
+          },
+        );
+      } catch (e) {}
+    }
   }
 }

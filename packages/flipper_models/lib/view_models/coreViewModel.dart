@@ -1003,33 +1003,36 @@ class CoreViewModel extends FlipperBaseModel
         if (item.imptItemSttsCd == "2") {
           // "2" likely means "Waiting Approval"
           item.imptItemSttsCd = "3";
+          item.taxName = "B";
+          item.taxTyCd = "B";
           item.ebmSynced = false;
 
           await ProxyService.strategy.updateVariant(updatables: [item]);
 
           final URI = await ProxyService.box.getServerUrl();
-          if (URI != null) {
-            await VariantPatch.patchVariant(
-              URI: URI,
-              identifier: item.id,
-              sendPort: (message) {
-                ProxyService.notification.sendLocalNotification(body: message);
-              },
-            );
-
-            await StockPatch.patchStock(
-              identifier: item.id,
-              URI: URI,
-              sendPort: (message) {
-                ProxyService.notification.sendLocalNotification(body: message);
-              },
-            );
-          }
 
           await ProxyService.tax.updateImportItems(
             item: item,
             URI: URI ?? "",
           );
+          final pendingTransaction =
+              await ProxyService.strategy.manageTransaction(
+            transactionType: TransactionType.adjustment,
+            isExpense: true,
+            branchId: ProxyService.box.getBranchId()!,
+          );
+          Business? business = await ProxyService.strategy
+              .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+
+          await assignTransaction(
+            variant: item,
+            pendingTransaction: pendingTransaction!,
+            business: business!,
+            randomNumber: randomNumber(),
+            // 06 is incoming import.
+            sarTyCd: "01",
+          );
+          await completeTransaction(pendingTransaction: pendingTransaction);
 
           item.ebmSynced = true;
           await ProxyService.strategy
@@ -1048,32 +1051,37 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> approveImportItem(Variant item) async {
     try {
       item.imptItemSttsCd = "3";
+      //TODO: on import give a user to set this.
+      item.taxName = "B";
+      item.taxTyCd = "B";
       item.ebmSynced = false;
       await ProxyService.strategy.updateVariant(updatables: [item]);
 
       final URI = await ProxyService.box.getServerUrl();
-      if (URI != null) {
-        await VariantPatch.patchVariant(
-          URI: URI,
-          identifier: item.id,
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
-          },
-        );
-
-        await StockPatch.patchStock(
-          identifier: item.id,
-          URI: URI,
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
-          },
-        );
-      }
 
       await ProxyService.tax.updateImportItems(
         item: item,
         URI: URI ?? "",
       );
+
+      final pendingTransaction = await ProxyService.strategy.manageTransaction(
+        transactionType: TransactionType.adjustment,
+        isExpense: true,
+        branchId: ProxyService.box.getBranchId()!,
+      );
+      Business? business = await ProxyService.strategy
+          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+
+      await assignTransaction(
+        variant: item,
+        pendingTransaction: pendingTransaction!,
+        business: business!,
+        randomNumber: randomNumber(),
+        // 06 is incoming import.
+        sarTyCd: "01",
+      );
+
+      await completeTransaction(pendingTransaction: pendingTransaction);
 
       item.ebmSynced = true;
       ProxyService.strategy.updateVariant(updatables: [item]);
@@ -1089,21 +1097,6 @@ class CoreViewModel extends FlipperBaseModel
       item.ebmSynced = false;
       await ProxyService.strategy.updateVariant(updatables: [item]);
 
-      final URI = await ProxyService.box.getServerUrl();
-      await VariantPatch.patchVariant(
-        URI: URI!,
-        identifier: item.id,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-      await StockPatch.patchStock(
-        identifier: item.id,
-        URI: URI,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
       await ProxyService.tax.updateImportItems(
         item: item,
         URI: await ProxyService.box.getServerUrl() ?? "",

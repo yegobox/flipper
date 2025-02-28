@@ -386,6 +386,17 @@ class ImportsState extends ConsumerState<Imports> {
             ),
           ),
           GridColumn(
+            columnName: 'Supplier',
+            label: Container(
+              padding: const EdgeInsets.all(8),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Supplier',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          GridColumn(
             columnName: 'actions',
             label: Container(
               padding: const EdgeInsets.all(8),
@@ -445,6 +456,10 @@ class VariantDataSource extends DataGridSource {
         DataGridCell<Widget>(
           columnName: 'status',
           value: _buildStatusWidget(variant),
+        ),
+        DataGridCell<Widget>(
+          columnName: 'Supplier',
+          value: Text(variant.spplrNm ?? ""),
         ),
         DataGridCell<Widget>(
           columnName: 'actions',
