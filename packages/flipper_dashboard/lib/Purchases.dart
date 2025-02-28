@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/DataRow.dart';
+import 'package:flipper_dashboard/PurchaseTable.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/proxy.dart';
@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 
-class PurchaseSaleWidget extends StatefulHookConsumerWidget {
+class Purchases extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController nameController;
   final TextEditingController supplyPriceController;
@@ -22,7 +22,7 @@ class PurchaseSaleWidget extends StatefulHookConsumerWidget {
   ) selectSale;
   final List<Variant> finalSalesList;
 
-  PurchaseSaleWidget({
+  Purchases({
     required this.formKey,
     required this.nameController,
     required this.supplyPriceController,
@@ -37,7 +37,7 @@ class PurchaseSaleWidget extends StatefulHookConsumerWidget {
   _PurchaseSaleWidgetState createState() => _PurchaseSaleWidgetState();
 }
 
-class _PurchaseSaleWidgetState extends ConsumerState<PurchaseSaleWidget> {
+class _PurchaseSaleWidgetState extends ConsumerState<Purchases> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -71,7 +71,7 @@ class _PurchaseSaleWidgetState extends ConsumerState<PurchaseSaleWidget> {
                     padding: const EdgeInsets.all(8.0),
                     child: Text("Supplier name: JALO PARTERS"),
                   ),
-                  DataRowWidget(
+                  PurchaseTable(
                     nameController: widget.nameController,
                     supplyPriceController: widget.supplyPriceController,
                     retailPriceController: widget.retailPriceController,

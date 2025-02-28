@@ -11,8 +11,8 @@ import 'package:dropdown_search/dropdown_search.dart';
 final selectedVariantProvider =
     StateProvider.family<Variant?, String>((ref, variantId) => null);
 
-class DataRowWidget extends StatefulHookConsumerWidget {
-  const DataRowWidget({
+class PurchaseTable extends StatefulHookConsumerWidget {
+  const PurchaseTable({
     Key? key,
     required this.nameController,
     required this.supplyPriceController,
@@ -36,10 +36,10 @@ class DataRowWidget extends StatefulHookConsumerWidget {
       acceptPurchases;
 
   @override
-  ConsumerState<DataRowWidget> createState() => _DataRowWidgetState();
+  ConsumerState<PurchaseTable> createState() => _DataRowWidgetState();
 }
 
-class _DataRowWidgetState extends ConsumerState<DataRowWidget> {
+class _DataRowWidgetState extends ConsumerState<PurchaseTable> {
   final Map<String, double> _editedRetailPrices = {};
   final Map<String, double> _editedSupplyPrices = {};
   final Talker talker = TalkerFlutter.init();

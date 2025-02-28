@@ -1,5 +1,5 @@
 import 'package:flipper_dashboard/ImportWidget.dart';
-import 'package:flipper_dashboard/PurchaseSalesWidget.dart';
+import 'package:flipper_dashboard/Purchases.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -264,7 +264,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                               return Center(child: Text('No data available'));
                             } else {
                               salesList = snapshot.data!;
-                              return PurchaseSaleWidget(
+                              return Purchases(
                                 formKey: _importFormKey,
                                 nameController: _nameController,
                                 supplyPriceController: _supplyPriceController,
