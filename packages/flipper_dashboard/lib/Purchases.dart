@@ -65,41 +65,29 @@ class _PurchasesState extends ConsumerState<Purchases> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: ListView(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text("Supplier name: JALO PARTERS"),
-                  ),
-                  PurchaseTable(
-                    nameController: widget.nameController,
-                    supplyPriceController: widget.supplyPriceController,
-                    retailPriceController: widget.retailPriceController,
-                    saveItemName: widget.saveItemName,
-                    acceptPurchases:
-                        (List<Variant> variants, pchsSttsCd) async {
-                      widget.acceptPurchases(
-                          variants: variants, pchsSttsCd: pchsSttsCd);
-                      // Refresh the product list
-                      // Refresh the product list
-                      ref
-                          .read(searchStringProvider.notifier)
-                          .emitString(value: "search");
-                      ref
-                          .read(searchStringProvider.notifier)
-                          .emitString(value: "");
+              child: PurchaseTable(
+                nameController: widget.nameController,
+                supplyPriceController: widget.supplyPriceController,
+                retailPriceController: widget.retailPriceController,
+                saveItemName: widget.saveItemName,
+                acceptPurchases: (List<Variant> variants, pchsSttsCd) async {
+                  widget.acceptPurchases(
+                      variants: variants, pchsSttsCd: pchsSttsCd);
+                  // Refresh the product list
+                  // Refresh the product list
+                  ref
+                      .read(searchStringProvider.notifier)
+                      .emitString(value: "search");
+                  ref.read(searchStringProvider.notifier).emitString(value: "");
 
-                      await ref
-                          .read(
-                              productsProvider(ProxyService.box.getBranchId()!)
-                                  .notifier)
-                          .loadProducts(searchString: "", scanMode: true);
-                    },
-                    selectSale: (itemToAssign, itemFromPurchase) =>
-                        widget.selectSale(itemToAssign, itemFromPurchase),
-                    finalSalesList: widget.finalSalesList,
-                  ),
-                ],
+                  await ref
+                      .read(productsProvider(ProxyService.box.getBranchId()!)
+                          .notifier)
+                      .loadProducts(searchString: "", scanMode: true);
+                },
+                selectSale: (itemToAssign, itemFromPurchase) =>
+                    widget.selectSale(itemToAssign, itemFromPurchase),
+                finalSalesList: widget.finalSalesList,
               ),
             ),
           ],

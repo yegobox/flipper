@@ -464,7 +464,7 @@ class _DataRowWidgetState extends ConsumerState<PurchaseTable> {
 
     return [
       GridColumn(
-        columnName: 'itemName',
+        columnName: 'itemName!',
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
@@ -518,6 +518,18 @@ class _DataRowWidgetState extends ConsumerState<PurchaseTable> {
           alignment: Alignment.center,
           child: const Text(
             'Status',
+            style: headerStyle,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+      GridColumn(
+        columnName: 'Supplier',
+        label: Container(
+          padding: const EdgeInsets.all(8.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Supplier',
             style: headerStyle,
             overflow: TextOverflow.ellipsis,
           ),
@@ -579,6 +591,10 @@ class _DataSource extends DataGridSource {
         DataGridCell<Widget>(
           columnName: 'status',
           value: _buildStatusWidget(variant),
+        ),
+        DataGridCell<String>(
+          columnName: 'Supplier',
+          value: variant.spplrNm ?? '',
         ),
         DataGridCell<Widget>(
           columnName: 'actions',
