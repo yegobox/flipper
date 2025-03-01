@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250228181006_up = [
+const List<MigrationCommand> _migration_20250301162356_up = [
   InsertTable('ItemCode'),
   InsertTable('ImportPurchaseDates'),
   InsertTable('Stock'),
@@ -59,6 +59,7 @@ const List<MigrationCommand> _migration_20250228181006_up = [
   InsertTable('_brick_Plan_addons'),
   InsertTable('Plan'),
   InsertTable('Drawers'),
+  InsertTable('_brick_Purchase_variants'),
   InsertTable('Purchase'),
   InsertColumn('id', Column.varchar, onTable: 'ItemCode', unique: true),
   InsertColumn('code', Column.varchar, onTable: 'ItemCode'),
@@ -711,7 +712,16 @@ const List<MigrationCommand> _migration_20250228181006_up = [
   InsertColumn('deleted_at', Column.datetime, onTable: 'Drawers'),
   InsertColumn('business_id', Column.integer, onTable: 'Drawers'),
   InsertColumn('branch_id', Column.integer, onTable: 'Drawers'),
+  InsertForeignKey('_brick_Purchase_variants', 'Purchase',
+      foreignKeyColumn: 'l_Purchase_brick_id',
+      onDeleteCascade: true,
+      onDeleteSetDefault: false),
+  InsertForeignKey('_brick_Purchase_variants', 'Variant',
+      foreignKeyColumn: 'f_Variant_brick_id',
+      onDeleteCascade: true,
+      onDeleteSetDefault: false),
   InsertColumn('id', Column.varchar, onTable: 'Purchase', unique: true),
+  InsertColumn('variants', Column.varchar, onTable: 'Purchase'),
   InsertColumn('spplr_tin', Column.varchar, onTable: 'Purchase'),
   InsertColumn('spplr_nm', Column.varchar, onTable: 'Purchase'),
   InsertColumn('spplr_bhf_id', Column.varchar, onTable: 'Purchase'),
@@ -800,10 +810,14 @@ const List<MigrationCommand> _migration_20250228181006_up = [
       unique: true),
   CreateIndex(columns: ['id'], onTable: 'Plan', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Drawers', unique: true),
+  CreateIndex(
+      columns: ['l_Purchase_brick_id', 'f_Variant_brick_id'],
+      onTable: '_brick_Purchase_variants',
+      unique: true),
   CreateIndex(columns: ['id'], onTable: 'Purchase', unique: true)
 ];
 
-const List<MigrationCommand> _migration_20250228181006_down = [
+const List<MigrationCommand> _migration_20250301162356_down = [
   DropTable('ItemCode'),
   DropTable('ImportPurchaseDates'),
   DropTable('Stock'),
@@ -853,6 +867,7 @@ const List<MigrationCommand> _migration_20250228181006_down = [
   DropTable('_brick_Plan_addons'),
   DropTable('Plan'),
   DropTable('Drawers'),
+  DropTable('_brick_Purchase_variants'),
   DropTable('Purchase'),
   DropColumn('id', onTable: 'ItemCode'),
   DropColumn('code', onTable: 'ItemCode'),
@@ -1455,7 +1470,10 @@ const List<MigrationCommand> _migration_20250228181006_down = [
   DropColumn('deleted_at', onTable: 'Drawers'),
   DropColumn('business_id', onTable: 'Drawers'),
   DropColumn('branch_id', onTable: 'Drawers'),
+  DropColumn('l_Purchase_brick_id', onTable: '_brick_Purchase_variants'),
+  DropColumn('f_Variant_brick_id', onTable: '_brick_Purchase_variants'),
   DropColumn('id', onTable: 'Purchase'),
+  DropColumn('variants', onTable: 'Purchase'),
   DropColumn('spplr_tin', onTable: 'Purchase'),
   DropColumn('spplr_nm', onTable: 'Purchase'),
   DropColumn('spplr_bhf_id', onTable: 'Purchase'),
@@ -1535,6 +1553,8 @@ const List<MigrationCommand> _migration_20250228181006_down = [
   DropIndex('index__brick_Plan_addons_on_l_Plan_brick_id_f_PlanAddon_brick_id'),
   DropIndex('index_Plan_on_id'),
   DropIndex('index_Drawers_on_id'),
+  DropIndex(
+      'index__brick_Purchase_variants_on_l_Purchase_brick_id_f_Variant_brick_id'),
   DropIndex('index_Purchase_on_id')
 ];
 
@@ -1543,15 +1563,15 @@ const List<MigrationCommand> _migration_20250228181006_down = [
 //
 
 @Migratable(
-  version: '20250228181006',
-  up: _migration_20250228181006_up,
-  down: _migration_20250228181006_down,
+  version: '20250301162356',
+  up: _migration_20250301162356_up,
+  down: _migration_20250301162356_down,
 )
-class Migration20250228181006 extends Migration {
-  const Migration20250228181006()
+class Migration20250301162356 extends Migration {
+  const Migration20250301162356()
       : super(
-          version: 20250228181006,
-          up: _migration_20250228181006_up,
-          down: _migration_20250228181006_down,
+          version: 20250301162356,
+          up: _migration_20250301162356_up,
+          down: _migration_20250301162356_down,
         );
 }

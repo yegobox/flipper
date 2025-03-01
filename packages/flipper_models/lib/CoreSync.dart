@@ -2586,6 +2586,8 @@ class CoreSync
             throw Exception(
                 "API returned null data or item list"); // More informative error
           }
+          print(
+              "API returned ${response.data!.itemList!.length} items"); // Log the number of items from the API
         } catch (apiError) {
           // Handle API errors gracefully.  Attempt to use the last known date if possible.
           print("API Error: $apiError");
@@ -2623,14 +2625,27 @@ class CoreSync
         }
 
         // Save each imported item into the system
+        int itemsInserted = 0; // Counter to track inserted items
         for (final item in response.data!.itemList!) {
+          print("Processing item with taskCd: ${item.taskCd}"); // Log taskCd
           Variant? variantExist = await getVariant(taskCd: item.taskCd);
-          if (variantExist != null) continue;
+
+          if (variantExist != null) {
+            print(
+                "Variant with taskCd ${item.taskCd} already exists. Skipping.");
+            continue; // Skip saving if variant exists
+          }
 
           if (item.imptItemSttsCd!.isNotEmpty) {
+            print("Saving variant with taskCd: ${item.taskCd}");
             await saveVariant(item, business, activeBranch.serverId!);
+            itemsInserted++;
+          } else {
+            print(
+                "Item with taskCd ${item.taskCd} has empty imptItemSttsCd. Skipping.");
           }
         }
+        print("Inserted $itemsInserted items from API.");
       }
 
       // Return the newly imported variants OR existing variants if no API call was made
@@ -2639,6 +2654,8 @@ class CoreSync
         imptItemsttsCd: "2",
         excludeApprovedInWaitingOrCanceledItems: true,
       );
+      print(
+          "Total variants found: ${variantsList.length}"); // Log total variants
       return variantsList;
     } catch (e, stackTrace) {
       print("Error in selectImportItems: $e\n$stackTrace");
