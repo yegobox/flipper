@@ -1820,6 +1820,8 @@ class Capella with Booting implements RealmInterface {
       {String? id,
       String? modrId,
       String? name,
+      String? itemClsCd,
+       String? itemNm,
       String? itemCd,
       String? taskCd,
       String? bcd,

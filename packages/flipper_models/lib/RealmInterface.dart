@@ -328,6 +328,8 @@ abstract class RealmInterface {
       String? name,
       String? bcd,
       String? taskCd,
+      String? itemClsCd,
+      String? itemNm,
       String? itemCd,
       String? productId});
   Future<bool> isTaxEnabled({required int businessId});

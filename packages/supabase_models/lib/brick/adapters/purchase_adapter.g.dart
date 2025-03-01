@@ -6,14 +6,6 @@ Future<Purchase> _$PurchaseFromSupabase(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Purchase(
       id: data['id'] as String?,
-      variants: data['variants'] == null
-          ? null
-          : await Future.wait<Variant>(data['variants']
-                  ?.map((d) => VariantAdapter().fromSupabase(d,
-                      provider: provider, repository: repository))
-                  .toList()
-                  .cast<Future<Variant>>() ??
-              []),
       spplrTin: data['spplr_tin'] as String,
       spplrNm: data['spplr_nm'] as String,
       spplrBhfId: data['spplr_bhf_id'] as String,
@@ -49,11 +41,6 @@ Future<Map<String, dynamic>> _$PurchaseToSupabase(Purchase instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
-    'variants': await Future.wait<Map<String, dynamic>>(instance.variants
-            ?.map((s) => VariantAdapter()
-                .toSupabase(s, provider: provider, repository: repository))
-            .toList() ??
-        []),
     'spplr_tin': instance.spplrTin,
     'spplr_nm': instance.spplrNm,
     'spplr_bhf_id': instance.spplrBhfId,
@@ -89,20 +76,6 @@ Future<Purchase> _$PurchaseFromSqlite(Map<String, dynamic> data,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return Purchase(
       id: data['id'] as String,
-      variants: (await provider.rawQuery(
-              'SELECT DISTINCT `f_Variant_brick_id` FROM `_brick_Purchase_variants` WHERE l_Purchase_brick_id = ?',
-              [
-            data['_brick_id'] as int
-          ]).then((results) {
-        final ids = results.map((r) => r['f_Variant_brick_id']);
-        return Future.wait<Variant>(ids.map((primaryKey) => repository!
-            .getAssociation<Variant>(
-              Query.where('primaryKey', primaryKey, limit1: true),
-            )
-            .then((r) => r!.first)));
-      }))
-          .toList()
-          .cast<Variant>(),
       spplrTin: data['spplr_tin'] as String,
       spplrNm: data['spplr_nm'] as String,
       spplrBhfId: data['spplr_bhf_id'] as String,
@@ -139,8 +112,6 @@ Future<Map<String, dynamic>> _$PurchaseToSqlite(Purchase instance,
     OfflineFirstWithSupabaseRepository? repository}) async {
   return {
     'id': instance.id,
-    'variants':
-        instance.variants != null ? jsonEncode(instance.variants) : null,
     'spplr_tin': instance.spplrTin,
     'spplr_nm': instance.spplrNm,
     'spplr_bhf_id': instance.spplrBhfId,

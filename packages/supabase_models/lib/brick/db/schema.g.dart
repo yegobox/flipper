@@ -1,15 +1,19 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20250301161943.migration.dart';
 part '20250228194057.migration.dart';
 part '20250228181006.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250228194057(),const Migration20250228181006()};
+  const Migration20250301161943(),
+  const Migration20250228194057(),
+  const Migration20250228181006()
+};
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250228194057, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250301161943, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -952,28 +956,10 @@ final schema = Schema(20250228194057, generatorVersion: 1, tables: <SchemaTable>
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
-  SchemaTable('_brick_Purchase_variants', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('l_Purchase_brick_id', Column.integer,
-        isForeignKey: true,
-        foreignTableName: 'Purchase',
-        onDeleteCascade: true,
-        onDeleteSetDefault: false),
-    SchemaColumn('f_Variant_brick_id', Column.integer,
-        isForeignKey: true,
-        foreignTableName: 'Variant',
-        onDeleteCascade: true,
-        onDeleteSetDefault: false)
-  }, indices: <SchemaIndex>{
-    SchemaIndex(
-        columns: ['l_Purchase_brick_id', 'f_Variant_brick_id'], unique: true)
-  }),
   SchemaTable('Purchase', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
     SchemaColumn('id', Column.varchar, unique: true),
-    SchemaColumn('variants', Column.varchar),
     SchemaColumn('spplr_tin', Column.varchar),
     SchemaColumn('spplr_nm', Column.varchar),
     SchemaColumn('spplr_bhf_id', Column.varchar),

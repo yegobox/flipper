@@ -911,6 +911,16 @@ class CoreSync
           newVariant.purchaseId = purch.id;
           newVariant.spplrNm = purch.spplrNm;
           await repository.upsert<Variant>(newVariant);
+          final activeBranch =
+              await branch(serverId: ProxyService.box.getBranchId()!);
+          await repository.upsert<ImportPurchaseDates>(
+            ImportPurchaseDates(
+              lastRequestDate: DateTime.now().toYYYYMMddHH0000(),
+              branchId: activeBranch!.id,
+              requestType: "PURCHASE",
+              purchaseId: purch.id,
+            ),
+          );
         } else {
           await repository.upsert<Variant>(newVariant);
         }
@@ -2101,39 +2111,6 @@ class CoreSync
               businessTypeId: e.businessTypeId,
             ))
         .toList();
-  }
-
-  Stream<ITransaction?> _pendingTransactionStream({
-    required int branchId,
-    required String transactionType,
-    required bool isExpense,
-    bool includeSubTotalCheck = true,
-  }) {
-    try {
-      // Build the query
-      final query = brick.Query(where: [
-        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
-        brick.Where('isExpense',
-            value: isExpense, compare: brick.Compare.exact),
-        brick.Where('status', value: PENDING, compare: brick.Compare.exact),
-        brick.Where('transactionType',
-            value: transactionType, compare: brick.Compare.exact),
-        if (includeSubTotalCheck)
-          brick.Where('subTotal', value: 0, compare: brick.Compare.greaterThan),
-      ]);
-
-      /// Fetch transactions and map the list to return the first transaction (or null)
-      return repository
-          .subscribe<ITransaction>(
-              query: query, policy: OfflineFirstGetPolicy.localOnly)
-          .map((transactions) =>
-              transactions.isNotEmpty ? transactions.first : null);
-    } catch (e, s) {
-      // Log errors
-      talker.error('Error in _pendingTransactionStream: $e');
-      talker.error('Stack trace: $s');
-      rethrow;
-    }
   }
 
   Future<ITransaction?> _pendingTransaction({
@@ -4079,7 +4056,9 @@ class CoreSync
       String? itemCd,
       String? bcd,
       String? productId,
-      String? taskCd}) async {
+      String? taskCd,
+      String? itemClsCd,
+      String? itemNm}) async {
     int branchId = ProxyService.box.getBranchId()!;
     final query = brick.Query(where: [
       if (productId != null)
@@ -4095,11 +4074,13 @@ class CoreSync
       ] else if (bcd != null) ...[
         brick.Where('bcd', value: bcd, compare: brick.Compare.exact),
         brick.Where('branchId').isExactly(branchId),
-      ] else if (bcd != null) ...[
-        brick.Where('itemCd', value: itemCd, compare: brick.Compare.exact),
+      ] else if (itemCd != null && itemClsCd != null && itemNm != null) ...[
+        brick.Where('itemCd').isExactly(itemCd),
+        brick.Where('itemClsCd').isExactly(itemClsCd),
+        brick.Where('itemNm').isExactly(itemNm),
         brick.Where('branchId').isExactly(branchId),
-      ] else if (bcd != null) ...[
-        brick.Where('taskCd', value: taskCd, compare: brick.Compare.exact),
+      ] else if (taskCd != null) ...[
+        brick.Where('taskCd').isExactly(taskCd),
         brick.Where('branchId').isExactly(branchId),
       ]
     ]);
@@ -5707,8 +5688,12 @@ class CoreSync
                 ? variant.bcd!
                 : randomNumber().toString();
             // before creating check if this exist
-            Variant? variantExist = await getVariant(itemCd: variant.itemCd);
+            Variant? variantExist = await getVariant(
+                itemCd: variant.itemCd,
+                itemClsCd: variant.itemClsCd,
+                itemNm: variant.itemNm);
             if (variantExist == null) {
+              talker.warning("How ofthen we are in this branch");
               await createProduct(
                 saleListId: purchase.id,
                 businessId: businessId,
@@ -5749,14 +5734,6 @@ class CoreSync
           }
 
           // Save last request date
-          await repository.upsert<ImportPurchaseDates>(
-            ImportPurchaseDates(
-              lastRequestDate: DateTime.now().toYYYYMMddHH0000(),
-              branchId: activeBranch.id,
-              requestType: "PURCHASE",
-              purchaseId: purchase.id,
-            ),
-          );
         }
       }
 
