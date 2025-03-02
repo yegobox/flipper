@@ -1013,6 +1013,54 @@ class CoreSync
         .firstOrNull;
   }
 
+  Future<void> deleteTransactionItemAndResequence({required String id}) async {
+    try {
+      // 1. Fetch the TransactionItem to be deleted.
+      final transactionItemToDelete = await repository.get<TransactionItem>(
+        query: brick.Query(
+          where: [brick.Where('id').isExactly(id)],
+          limit: 1, // Assuming 'id' is unique, limit to 1 result for efficiency
+        ),
+      );
+
+      if (transactionItemToDelete.isEmpty) {
+        print('Transaction item with ID $id not found.');
+        return; // Or throw an exception, depending on desired behavior
+      }
+
+      final itemToDelete = transactionItemToDelete.first;
+      final transactionId = itemToDelete.transactionId;
+
+      // 2. Delete the TransactionItem.
+      await repository.delete<TransactionItem>(
+        itemToDelete, // Pass the actual TransactionItem object
+        query: brick.Query(
+          action: brick.QueryAction.delete,
+          where: [brick.Where('id').isExactly(id)],
+        ),
+      );
+
+      // 3. Fetch all remaining TransactionItems for the same transaction.
+      final remainingItems = await repository.get<TransactionItem>(
+        query: brick.Query(
+          where: [brick.Where('transactionId').isExactly(transactionId)],
+        ),
+      );
+
+      // 4. Sort the remaining items by createdAt.
+      remainingItems.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
+
+      // 5. Update the itemSeq for each remaining item.
+      for (var i = 0; i < remainingItems.length; i++) {
+        remainingItems[i].itemSeq = i + 1;
+        await repository.upsert<TransactionItem>(remainingItems[i]);
+      }
+    } catch (e, s) {
+      talker.error(s);
+      rethrow;
+    }
+  }
+
   @override
   Future<bool> delete(
       {required String id,
@@ -1060,16 +1108,7 @@ class CoreSync
         break;
 
       case 'transactionItem':
-        final transactionItem = await transactionItems(
-            id: id, branchId: ProxyService.box.getBranchId()!);
-        if (transactionItem.isNotEmpty) {
-          await repository.delete<TransactionItem>(
-            transactionItem.first,
-            query: brick.Query(
-                action: QueryAction.delete,
-                where: [brick.Where('id').isExactly(id)]),
-          );
-        }
+        await deleteTransactionItemAndResequence(id: id);
         break;
       case 'customer':
         final customer =
