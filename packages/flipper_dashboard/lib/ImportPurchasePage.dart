@@ -3,8 +3,8 @@ import 'package:flipper_dashboard/Imports.dart';
 import 'package:flipper_dashboard/Purchases.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/realm_model_export.dart' as brick;
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -292,44 +292,19 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                 acceptPurchases: (
                                     {required List<model.Variant> variants,
                                     required String pchsSttsCd}) async {
-                                  final pendingTransactionState = ref.watch(
-                                      pendingTransactionStreamProvider(
-                                          isExpense: true));
-
-                                  switch (pendingTransactionState) {
-                                    case AsyncData(:final value):
-                                      try {
-                                        await coreViewModel.acceptPurchase(
-                                          variants: variants,
-                                          itemMapper: itemMapper,
-                                          pendingTransaction: value,
-                                          pchsSttsCd: pchsSttsCd,
-                                        );
-                                      } catch (e) {
-                                        // Handle errors during the acceptPurchase process
-                                        print("Error accepting purchase: $e");
-                                        // Consider setting an error state in your StateNotifier to notify the UI
-                                        // state = AsyncError(e, StackTrace.current); // Example
-                                      }
-
-                                    case AsyncError(
-                                        :final error,
-                                        :final stackTrace
-                                      ):
-                                      // Handle errors from the stream
-                                      print(
-                                          "Error from pendingTransactionStream: $error");
-                                      print(stackTrace);
-                                    // Set an error state in your StateNotifier to notify the UI
-                                    // state = AsyncError(error, stackTrace); // Example
-                                    case AsyncLoading():
-                                      // Handle the loading state
-                                      print("Loading pending transaction...");
-                                    // Consider setting a loading state in your StateNotifier
-                                    // state = AsyncLoading(); // Example
-                                    default:
-                                      break;
-                                  }
+                                  final pendingTransaction = await ProxyService
+                                      .strategy
+                                      .manageTransaction(
+                                    transactionType: TransactionType.adjustment,
+                                    isExpense: true,
+                                    branchId: ProxyService.box.getBranchId()!,
+                                  );
+                                  await coreViewModel.acceptPurchase(
+                                    variants: variants,
+                                    itemMapper: itemMapper,
+                                    pendingTransaction: pendingTransaction!,
+                                    pchsSttsCd: pchsSttsCd,
+                                  );
                                 },
                                 selectSale: (model.Variant? itemToAssign,
                                         model.Variant? itemFromPurchase) =>

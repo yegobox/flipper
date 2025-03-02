@@ -914,45 +914,29 @@ class CoreViewModel extends FlipperBaseModel
 
         talker.warning("Variant ${variant.id}");
 
-        saveTransaction(
-          variation: variant,
-          amountTotal: variant.retailPrice!,
-          customItem: false,
-          currentStock: variant.stock!.currentStock!,
-          pendingTransaction: pendingTransaction,
-          partOfComposite: false,
-          compositePrice: 0,
-        );
         final business = (await ProxyService.strategy
             .getBusiness(businessId: ProxyService.box.getBusinessId()));
-        ProxyService.strategy.updateTransaction(
-          transaction: pendingTransaction,
-          status: PARKED,
-          sarTyCd: "2", //Incoming- Purchase
-          receiptNumber: randomNumber(),
-          reference: randomNumber().toString(),
-          invoiceNumber: randomNumber(),
-          receiptType: TransactionType.purchase,
-          customerTin: ProxyService.box.tin().toString(),
-          customerBhfId: await ProxyService.box.bhfId() ?? "00",
-          subTotal: pendingTransaction.subTotal! + (variant.splyAmt ?? 0),
-          cashReceived:
-              -(pendingTransaction.subTotal! + (variant.splyAmt ?? 0)),
-          customerName: business!.name,
-        );
 
         Purchase? purchase = await ProxyService.strategy
             .getPurchase(purchaseId: variant.purchaseId!);
         await ProxyService.tax.savePurchases(
           item: purchase!,
-          business: business,
+          business: business!,
           variants: [variant],
           bhfId: (await ProxyService.box.bhfId()) ?? "00",
           rcptTyCd: "P",
           URI: await ProxyService.box.getServerUrl() ?? "",
           pchsSttsCd: pchsSttsCd,
         );
-        //TODO: if it is canceled handle it, delete item from our local as well.
+
+        /// if itemMapper then means we are entirely approving and creating this item in our app
+        /// hence should have _processTransaction to have its double update for incoming purchase.
+        if (itemMapper == null) {
+          await _processTransaction(variant, pendingTransaction, business,
+              //02 is Incoming purchase
+              sarTyCd: "02");
+        }
+
         itemMapper?.forEach(
             (String itemToAssignId, Variant variantFromPurchase) async {
           Variant? variant =
@@ -960,27 +944,29 @@ class CoreViewModel extends FlipperBaseModel
 
           /// update the rerevant stock
           if (variant != null) {
-            await ProxyService.strategy.updateStock(
-                stockId: variant.stock!.id,
-                appending: true,
-                rsdQty: variantFromPurchase.stock!.currentStock,
-                initialStock: variantFromPurchase.stock!.currentStock,
-                currentStock: variantFromPurchase.stock!.currentStock,
-                value: variantFromPurchase.stock!.currentStock! *
-                    variantFromPurchase.retailPrice!);
-            // delete the purchase item
+            _updateVariantStock(
+                item: variantFromPurchase, existingVariantToUpdate: variant);
+
+            /// we are setting to 1 just to not have it on dashboard
+            /// this is not part 4.11. Transaction Progress rather my own way knowing
+            /// something has been assigned to another item while approving.
+            variantFromPurchase.pchsSttsCd = "1";
+            variant.ebmSynced = false;
+
+            await ProxyService.strategy.updateVariant(updatables: [variant]);
+            //
             await ProxyService.strategy
-                .delete(id: variantFromPurchase.id, endPoint: 'variant');
+                .updateVariant(updatables: [variantFromPurchase]);
+
+            await _processTransaction(
+                variantFromPurchase, pendingTransaction, business,
+                //02 is Incoming purchase
+                sarTyCd: "02");
+          } else {
+            talker.warning("We should not be in this condition");
           }
         });
       }
-
-      ProxyService.strategy.updateTransaction(
-        transaction: pendingTransaction,
-        status: COMPLETE,
-      );
-      // refreshTransactionItems(transactionId: pendingTransaction.id);
-
       isLoading = false;
       notifyListeners();
       return Future.value();
@@ -1060,7 +1046,8 @@ class CoreViewModel extends FlipperBaseModel
       await _updateVariant(variantToProcess);
     }
 
-    await _processTransaction(variantToProcess!, pendingTransaction!, business);
+    await _processTransaction(variantToProcess!, pendingTransaction!, business,
+        sarTyCd: "01");
 
     await ProxyService.tax.updateImportItems(item: item, URI: URI);
   }
@@ -1096,7 +1083,8 @@ class CoreViewModel extends FlipperBaseModel
       await _updateVariant(variantToProcess);
     }
 
-    await _processTransaction(variantToProcess!, pendingTransaction!, business);
+    await _processTransaction(variantToProcess!, pendingTransaction!, business,
+        sarTyCd: "01");
 
     await ProxyService.tax.updateImportItems(item: item, URI: URI);
   }
@@ -1112,14 +1100,15 @@ class CoreViewModel extends FlipperBaseModel
         value: item.stock!.currentStock! * item.retailPrice!);
   }
 
-  Future<void> _processTransaction(Variant variant,
-      ITransaction pendingTransaction, Business business) async {
+  Future<void> _processTransaction(
+      Variant variant, ITransaction pendingTransaction, Business business,
+      {required String sarTyCd}) async {
     await assignTransaction(
       variant: variant,
       pendingTransaction: pendingTransaction,
       business: business,
       randomNumber: randomNumber(),
-      sarTyCd: "01",
+      sarTyCd: sarTyCd,
     );
     await completeTransaction(pendingTransaction: pendingTransaction);
   }
