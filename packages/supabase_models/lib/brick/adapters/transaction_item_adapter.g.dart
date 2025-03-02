@@ -168,10 +168,10 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
     'ebm_synced': instance.ebmSynced,
     'part_of_composite': instance.partOfComposite,
     'composite_price': instance.compositePrice,
-    'inventory_request': instance.inventoryRequest != null
-        ? await InventoryRequestAdapter().toSupabase(instance.inventoryRequest!,
-            provider: provider, repository: repository)
-        : null,
+    // 'inventory_request': instance.inventoryRequest != null
+    //     ? await InventoryRequestAdapter().toSupabase(instance.inventoryRequest!,
+    //         provider: provider, repository: repository)
+    //     : null,
     'inventory_request_id': instance.inventoryRequestId
   };
 }

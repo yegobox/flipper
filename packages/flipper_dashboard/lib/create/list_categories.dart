@@ -37,7 +37,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
           setState(() {
             _selectedCategoryId = category.id.toString();
           });
-          model.updateCategory(category: category);
+          model.updateCategoryCore(category: category);
           log("Category selected: ${category.name}");
         },
         title: Text(
@@ -55,7 +55,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
             setState(() {
               _selectedCategoryId = value;
             });
-            model.updateCategory(category: category);
+            model.updateCategoryCore(category: category);
           },
         ),
         tileColor:

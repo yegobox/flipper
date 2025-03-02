@@ -76,6 +76,25 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
     // Calculate profit/loss and determine display text
     final (resultText, profitOrLoss, color) = _calculateResults();
 
+    // Determine font size based on length
+    String profitOrLossStr = profitOrLoss
+        .abs()
+        .toStringAsFixed(0); // Remove decimals for length check
+    int numberLength = profitOrLossStr.length;
+    double fontSize = 28; // Default font size
+
+    if (numberLength > 7) {
+      fontSize =
+          widget.areValueColumnsVisible ? 22 : 18; // Adjust for visibility
+    } else if (numberLength > 10) {
+      fontSize = widget.areValueColumnsVisible
+          ? 18
+          : 14; // Further reduction for very large numbers
+    } else if (numberLength > 13) {
+      fontSize =
+          widget.areValueColumnsVisible ? 14 : 12; // Minimum font size cap
+    }
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -107,7 +126,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
                         Text(
                           NumberFormat('#,###').format(profitOrLoss) + ' RWF',
                           style: GoogleFonts.poppins(
-                            fontSize: widget.areValueColumnsVisible ? 28 : 24,
+                            fontSize: fontSize,
                             color: color,
                             fontWeight: FontWeight.w600,
                           ),

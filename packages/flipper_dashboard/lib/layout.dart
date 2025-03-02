@@ -1,8 +1,8 @@
 import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/EnhancedSideMenu.dart';
-import 'package:flipper_dashboard/ProductListWidget.dart';
 import 'package:flipper_dashboard/SearchFieldWidget.dart';
 import 'package:flipper_dashboard/TransactionWidget.dart';
+import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -127,10 +127,14 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
 
   Widget buildProductSection() {
     return Flexible(
-      child: ListView(
+      child: Column(
         children: [
+          // Search field stays fixed at the top
           SearchFieldWidget(controller: searchController),
-          const ProductListWidget(),
+          // ProductView takes remaining space and scrolls independently
+          Expanded(
+            child: ProductView.normalMode(),
+          ),
         ],
       ),
     ).shouldSeeTheApp(ref, AppFeature.Sales);

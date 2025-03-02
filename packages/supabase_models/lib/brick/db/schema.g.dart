@@ -1,14 +1,14 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250223143539.migration.dart';
+part '20250301162356.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250223143539(),};
+  const Migration20250301162356(),};
 
 /// A consumable database structure including the latest generated migration.
-final schema = Schema(20250223143539, generatorVersion: 1, tables: <SchemaTable>{
+final schema = Schema(20250301162356, generatorVersion: 1, tables: <SchemaTable>{
   SchemaTable('ItemCode', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
@@ -422,59 +422,6 @@ final schema = Schema(20250223143539, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('pchs_stts_cd', Column.varchar),
     SchemaColumn('is_shared', Column.boolean)
   }, indices: <SchemaIndex>{
-    SchemaIndex(columns: ['id'], unique: true),
-    SchemaIndex(columns: ['purchase_id'], unique: false)
-  }),
-  SchemaTable('_brick_Purchase_variants', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('l_Purchase_brick_id', Column.integer,
-        isForeignKey: true,
-        foreignTableName: 'Purchase',
-        onDeleteCascade: true,
-        onDeleteSetDefault: false),
-    SchemaColumn('f_Variant_brick_id', Column.integer,
-        isForeignKey: true,
-        foreignTableName: 'Variant',
-        onDeleteCascade: true,
-        onDeleteSetDefault: false)
-  }, indices: <SchemaIndex>{
-    SchemaIndex(
-        columns: ['l_Purchase_brick_id', 'f_Variant_brick_id'], unique: true)
-  }),
-  SchemaTable('Purchase', columns: <SchemaColumn>{
-    SchemaColumn('_brick_id', Column.integer,
-        autoincrement: true, nullable: false, isPrimaryKey: true),
-    SchemaColumn('id', Column.varchar, unique: true),
-    SchemaColumn('variants', Column.varchar),
-    SchemaColumn('spplr_tin', Column.varchar),
-    SchemaColumn('spplr_nm', Column.varchar),
-    SchemaColumn('spplr_bhf_id', Column.varchar),
-    SchemaColumn('spplr_invc_no', Column.integer),
-    SchemaColumn('rcpt_ty_cd', Column.varchar),
-    SchemaColumn('pmt_ty_cd', Column.varchar),
-    SchemaColumn('cfm_dt', Column.varchar),
-    SchemaColumn('sales_dt', Column.varchar),
-    SchemaColumn('stock_rls_dt', Column.varchar),
-    SchemaColumn('tot_item_cnt', Column.integer),
-    SchemaColumn('taxbl_amt_a', Column.num),
-    SchemaColumn('taxbl_amt_b', Column.num),
-    SchemaColumn('taxbl_amt_c', Column.num),
-    SchemaColumn('taxbl_amt_d', Column.num),
-    SchemaColumn('tax_rt_a', Column.num),
-    SchemaColumn('tax_rt_b', Column.num),
-    SchemaColumn('tax_rt_c', Column.num),
-    SchemaColumn('tax_rt_d', Column.num),
-    SchemaColumn('tax_amt_a', Column.num),
-    SchemaColumn('tax_amt_b', Column.num),
-    SchemaColumn('tax_amt_c', Column.num),
-    SchemaColumn('tax_amt_d', Column.num),
-    SchemaColumn('tot_taxbl_amt', Column.num),
-    SchemaColumn('tot_tax_amt', Column.num),
-    SchemaColumn('tot_amt', Column.num),
-    SchemaColumn('branch_id', Column.integer),
-    SchemaColumn('remark', Column.varchar)
-  }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
   SchemaTable('Device', columns: <SchemaColumn>{
@@ -492,6 +439,17 @@ final schema = Schema(20250223143539, generatorVersion: 1, tables: <SchemaTable>
     SchemaColumn('default_app', Column.varchar),
     SchemaColumn('last_touched', Column.datetime),
     SchemaColumn('deleted_at', Column.datetime)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(columns: ['id'], unique: true)
+  }),
+  SchemaTable('VariantBranch', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('id', Column.varchar, unique: true),
+    SchemaColumn('variant_id', Column.varchar),
+    SchemaColumn('new_variant_id', Column.varchar),
+    SchemaColumn('source_branch_id', Column.varchar),
+    SchemaColumn('destination_branch_id', Column.varchar)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
@@ -993,14 +951,55 @@ final schema = Schema(20250223143539, generatorVersion: 1, tables: <SchemaTable>
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   }),
-  SchemaTable('VariantBranch', columns: <SchemaColumn>{
+  SchemaTable('_brick_Purchase_variants', columns: <SchemaColumn>{
+    SchemaColumn('_brick_id', Column.integer,
+        autoincrement: true, nullable: false, isPrimaryKey: true),
+    SchemaColumn('l_Purchase_brick_id', Column.integer,
+        isForeignKey: true,
+        foreignTableName: 'Purchase',
+        onDeleteCascade: true,
+        onDeleteSetDefault: false),
+    SchemaColumn('f_Variant_brick_id', Column.integer,
+        isForeignKey: true,
+        foreignTableName: 'Variant',
+        onDeleteCascade: true,
+        onDeleteSetDefault: false)
+  }, indices: <SchemaIndex>{
+    SchemaIndex(
+        columns: ['l_Purchase_brick_id', 'f_Variant_brick_id'], unique: true)
+  }),
+  SchemaTable('Purchase', columns: <SchemaColumn>{
     SchemaColumn('_brick_id', Column.integer,
         autoincrement: true, nullable: false, isPrimaryKey: true),
     SchemaColumn('id', Column.varchar, unique: true),
-    SchemaColumn('variant_id', Column.varchar),
-    SchemaColumn('new_variant_id', Column.varchar),
-    SchemaColumn('source_branch_id', Column.varchar),
-    SchemaColumn('destination_branch_id', Column.varchar)
+    SchemaColumn('variants', Column.varchar),
+    SchemaColumn('spplr_tin', Column.varchar),
+    SchemaColumn('spplr_nm', Column.varchar),
+    SchemaColumn('spplr_bhf_id', Column.varchar),
+    SchemaColumn('spplr_invc_no', Column.integer),
+    SchemaColumn('rcpt_ty_cd', Column.varchar),
+    SchemaColumn('pmt_ty_cd', Column.varchar),
+    SchemaColumn('cfm_dt', Column.varchar),
+    SchemaColumn('sales_dt', Column.varchar),
+    SchemaColumn('stock_rls_dt', Column.varchar),
+    SchemaColumn('tot_item_cnt', Column.integer),
+    SchemaColumn('taxbl_amt_a', Column.num),
+    SchemaColumn('taxbl_amt_b', Column.num),
+    SchemaColumn('taxbl_amt_c', Column.num),
+    SchemaColumn('taxbl_amt_d', Column.num),
+    SchemaColumn('tax_rt_a', Column.num),
+    SchemaColumn('tax_rt_b', Column.num),
+    SchemaColumn('tax_rt_c', Column.num),
+    SchemaColumn('tax_rt_d', Column.num),
+    SchemaColumn('tax_amt_a', Column.num),
+    SchemaColumn('tax_amt_b', Column.num),
+    SchemaColumn('tax_amt_c', Column.num),
+    SchemaColumn('tax_amt_d', Column.num),
+    SchemaColumn('tot_taxbl_amt', Column.num),
+    SchemaColumn('tot_tax_amt', Column.num),
+    SchemaColumn('tot_amt', Column.num),
+    SchemaColumn('branch_id', Column.integer),
+    SchemaColumn('remark', Column.varchar)
   }, indices: <SchemaIndex>{
     SchemaIndex(columns: ['id'], unique: true)
   })

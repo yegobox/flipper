@@ -3,6 +3,7 @@ import 'package:flipper_models/realm_model_export.dart';
 final variationMock = Variant(
   name: 'Regular',
   color: '#cc',
+  itemCd: "",
   sku: 'sku',
   lastTouched: DateTime.now(),
   productId: "2",

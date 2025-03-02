@@ -4,6 +4,7 @@ import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:uuid/uuid.dart';
 
+// "Request parameter error: Validation error for fields: [ 'regrNm': must not be empty. rejected value: 'null',  'regrId': must not be empty. rejected value: 'null',  'modrNm': must not be empty. rejected value: 'null']]",
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'variants'),
 )
@@ -11,9 +12,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
   final String id;
-  @Supabase(foreignKey: 'purchase_id')
-  @Sqlite(index: true)
+
   String? purchaseId;
+
   Stock? stock;
   String? stockId;
 

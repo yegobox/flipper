@@ -1,6 +1,5 @@
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -37,7 +36,9 @@ mixin ProductMixin {
       required String productName,
       required String selectedProductType,
       String? color,
-      Product? product}) async {
+      Product? product,
+      required Function(List<Variant> variantions) onCompleteCallback,
+      required ScannViewModel model}) async {
     if (product == null) return;
 
     ///loop variations add pkgUnitCd this come from UI but a lot of
@@ -126,24 +127,11 @@ mixin ProductMixin {
         updatables.add(variations[i]);
       }
 
-      ProxyService.strategy.addVariant(
+      await ProxyService.strategy.addVariant(
           variations: updatables, branchId: ProxyService.box.getBranchId()!);
       // add this variant to rra
-      if (await ProxyService.strategy
-          .isTaxEnabled(businessId: business!.serverId)) {
-        VariantPatch.patchVariant(
-          URI: (await ProxyService.box.getServerUrl())!,
-          sendPort: (message) {
-            // ProxyService.notification.sendLocalNotification(body: message);
-          },
-        );
-        StockPatch.patchStock(
-          URI: (await ProxyService.box.getServerUrl())!,
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
-          },
-        );
-      }
+
+      onCompleteCallback(updatables);
     } catch (e, s) {
       talker.error(e);
       talker.error(s);

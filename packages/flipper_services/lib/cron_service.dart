@@ -32,12 +32,12 @@ class CronService {
     /// when app start load data to keep stock up to date and everything.
     /// because this might override data offline if it where not synced this should be used
     /// with caution, only do it if we are forcing upsert.
-    if(await ProxyService.strategy.queueLength()==0){
+    if (await ProxyService.strategy.queueLength() == 0) {
       talker.warning("We got empty Queue we can hydrate the data");
       ProxyService.strategy
           .ebm(branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
-      ProxyService.strategy
-          .getCounters(branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+      ProxyService.strategy.getCounters(
+          branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
       ProxyService.strategy.variants(
           branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
     }
@@ -64,40 +64,50 @@ class CronService {
       }
     });
     Timer.periodic(Duration(minutes: 1), (Timer t) async {
-      final URI = await ProxyService.box.getServerUrl();
-      final tinNumber = ProxyService.box.tin();
-      final bhfId = await ProxyService.box.bhfId();
-      final branchId = ProxyService.box.getBranchId()!;
+      if (!ProxyService.box.transactionInProgress()) {
+        final URI = await ProxyService.box.getServerUrl();
+        final tinNumber = ProxyService.box.tin();
+        final bhfId = await ProxyService.box.bhfId();
+        final branchId = ProxyService.box.getBranchId()!;
 
-      CustomerPatch.patchCustomer(
-        URI: URI!,
-        tinNumber: tinNumber,
-        bhfId: bhfId!,
-        branchId: branchId,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-      PatchTransactionItem.patchTransactionItem(
-        URI: URI,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-        tinNumber: tinNumber,
-        bhfId: bhfId,
-      );
-      VariantPatch.patchVariant(
-        URI: URI,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-      StockPatch.patchStock(
-        URI: URI,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
+        CustomerPatch.patchCustomer(
+          URI: URI!,
+          tinNumber: tinNumber,
+          bhfId: bhfId!,
+          branchId: branchId,
+          sendPort: (message) {
+            ProxyService.notification.sendLocalNotification(body: message);
+          },
+        );
+        PatchTransactionItem.patchTransactionItem(
+          URI: URI,
+          sendPort: (message) {
+            ProxyService.notification.sendLocalNotification(body: message);
+          },
+          tinNumber: tinNumber,
+          bhfId: bhfId,
+        );
+        VariantPatch.patchVariant(
+          URI: URI,
+          sendPort: (message) {
+            ProxyService.notification.sendLocalNotification(body: message);
+          },
+        );
+        StockPatch.patchStock(
+          URI: URI,
+          sendPort: (message) {
+            ProxyService.notification.sendLocalNotification(body: message);
+          },
+        );
+        await PatchTransactionItem.patchTransactionItem(
+          tinNumber: tinNumber,
+          bhfId: bhfId,
+          URI: (await ProxyService.box.getServerUrl())!,
+          sendPort: (message) {
+            ProxyService.notification.sendLocalNotification(body: message);
+          },
+        );
+      }
     });
 
     ProxyService.box.remove(key: "customPhoneNumberForPayment");

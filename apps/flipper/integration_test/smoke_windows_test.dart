@@ -9,8 +9,10 @@ const String eodDesktopKey = 'eod_desktop';
 const String pinLoginDesktopKey = 'pinLogin_desktop';
 const String pinLoginKey = 'PinLogin';
 const String pinLoginButtonKey = 'pinLoginButton_desktop';
+const String pinLoginButtonKey2 = 'pinLoginButton';
 const String pinRequiredText = 'PIN is required';
 const String pinNotFoundText = 'Pin: Not found';
+const String quickSellKey = 'quickSell';
 Future<void> restoreFlutterError(Future<void> Function() call) async {
   final originalOnError = FlutterError.onError!;
   await call();
@@ -37,11 +39,11 @@ void main() {
       // Check if already logged in
       if (await isLoggedIn(tester)) {
         await navigateToEodAndBack(tester);
+      } else {
+        await testLoginFlow(tester);
+        await testPinValidation(tester);
+        await testEodNavigation(tester);
       }
-
-      // await testLoginFlow(tester);
-      // await testPinValidation(tester);
-      // await testEodNavigation(tester);
     });
   });
 }
@@ -49,10 +51,14 @@ void main() {
 /// Tests the login button and navigation to the PIN login screen.
 Future<void> testLoginFlow(WidgetTester tester) async {
   await tester.pumpAndSettle(const Duration(seconds: 2));
-  
-  final backToLogin = find.byKey(const Key(pinLoginDesktopKey));
-  expect(backToLogin, findsOneWidget);
-  //
+  final pinLogin = find.byKey(const Key(pinLoginKey));
+  expect(pinLogin, findsOneWidget);
+  final pinField = find.byType(TextFormField);
+  await tester.enterText(pinField, '73268');
+  await tester.tap(find.byKey(const Key(pinLoginButtonKey2)));
+  await tester.pumpAndSettle();
+  final quickSell = find.byKey(const Key(quickSellKey));
+  expect(quickSell, findsOneWidget);
 }
 
 /// Starts the app and waits for it to load.
@@ -65,7 +71,7 @@ Future<void> startApp(WidgetTester tester) async {
 
 /// Checks if the user is logged in by looking for the 'QuickSell' key.
 Future<bool> isLoggedIn(WidgetTester tester) async {
-  final quickSell = find.byKey(const Key(mainApp));
+  final quickSell = find.byKey(const Key(quickSellKey));
   return tester.any(quickSell);
 }
 
@@ -83,24 +89,29 @@ Future<void> navigateToEodAndBack(WidgetTester tester) async {
 
 /// Tests PIN validation logic (empty PIN, invalid PIN, valid PIN).
 Future<void> testPinValidation(WidgetTester tester) async {
-  final pinField = find.byType(TextFormField);
+  final pinLogin = find.byKey(const Key(pinLoginKey));
+  expect(pinLogin, findsOneWidget);
 
   // Test empty PIN
-  await tester.enterText(pinField, '');
-  await tester.tap(find.byKey(const Key(pinLoginButtonKey)));
+  final pinField = find.byType(TextFormField);
+  await tester.enterText(pinField, ''); // Clear any existing text
+  await tester.tap(find.byKey(const Key(pinLoginButtonKey2)));
   await tester.pumpAndSettle();
   expect(find.text(pinRequiredText), findsOneWidget);
 
   // Test invalid PIN
-  await tester.enterText(pinField, '1234');
-  await tester.tap(find.byKey(const Key(pinLoginButtonKey)));
+  await tester.enterText(pinField, '1234'); // Enter an invalid PIN
+  await tester.tap(find.byKey(const Key(pinLoginButtonKey2)));
   await tester.pumpAndSettle();
   expect(find.text(pinNotFoundText), findsOneWidget);
 
   // Test valid PIN
-  await tester.enterText(pinField, '73268');
+  await tester.enterText(pinField, '73268'); // Enter a valid PIN
+  await tester.tap(find.byKey(const Key(pinLoginButtonKey)));
   await tester.pumpAndSettle();
-  expect(find.text(pinNotFoundText), findsNothing);
+  final quickSell = find.byKey(const Key(quickSellKey));
+  expect(quickSell, findsOneWidget);
+
   await tester.pumpAndSettle(const Duration(seconds: 2));
 }
 

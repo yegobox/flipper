@@ -60,6 +60,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           await ProxyService.strategy.getVariant(productId: productId);
 
       /// Check if the product and variant are valid and if the variant is owned (not shared)
+      ///
       bool canDelete =
           variant != null && (variant.isShared != null && !variant.isShared!);
 
@@ -123,13 +124,14 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }) {
     final productAsync = ref.watch(productProvider(variant.productId ?? ""));
     final assetAsync = ref.watch(assetProvider(variant.productId ?? ""));
+    // talker.warning("VariantName:${variant.name}");
 
     return productAsync.when(
-      loading: () => const Text('...Loading'),
+      loading: () => const Text('...Loading'), // Keep the loading state
       error: (err, stack) => Text('Error: $err'),
       data: (product) {
         return assetAsync.when(
-          loading: () => const Text('...Loading'),
+          loading: () => const SizedBox.shrink(),
           error: (err, stack) => Text('Error: $err'),
           data: (asset) {
             return RowItem(
@@ -139,7 +141,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               stock: stock,
               model: model,
               variant: variant,
-              productName: variant.productName ?? "",
+              productName: variant.productName!,
               variantName: variant.name,
               imageUrl: asset?.assetName,
               isComposite:

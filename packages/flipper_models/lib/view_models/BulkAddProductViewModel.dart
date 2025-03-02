@@ -171,8 +171,16 @@ class BulkAddProductViewModel extends ChangeNotifier {
 
   Future<void> saveAll() async {
     // Convert each row from the table to an Item model
-    List<brick.Variant> items = _excelData!.map((product) {
+    String orgnNatCd = "RW"; // Define the variable
+    List<Future<brick.Variant>> itemFutures = _excelData!.map((product) async {
       return brick.Variant(
+        itemCd: (await ProxyService.strategy.itemCode(
+          countryCode: orgnNatCd,
+          productType: "2",
+          packagingUnit: "CT",
+          quantityUnit: "BJ",
+          branchId: ProxyService.box.getBranchId()!,
+        )),
         bcdU: product['bcdU'] ?? '',
         barCode: product['BarCode'] ?? '',
         name: product['Name'] ?? '',
@@ -182,6 +190,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
         quantity: double.tryParse(product['Quantity']) ?? 0,
       );
     }).toList();
+
+    List<brick.Variant> items = await Future.wait(itemFutures);
 
     // Process each item
     for (var item in items) {
@@ -203,8 +213,16 @@ class BulkAddProductViewModel extends ChangeNotifier {
 
   Future<void> saveAllWithProgress(
       ValueNotifier<ProgressData> progressNotifier) async {
-    List<brick.Variant> items = _excelData!.map((product) {
+    String orgnNatCd = "RW"; // Define the variable
+    List<Future<brick.Variant>> itemFutures = _excelData!.map((product) async {
       return brick.Variant(
+        itemCd: (await ProxyService.strategy.itemCode(
+          countryCode: orgnNatCd,
+          productType: "2",
+          packagingUnit: "CT",
+          quantityUnit: "BJ",
+          branchId: ProxyService.box.getBranchId()!,
+        )),
         bcdU: product['bcdU'] ?? '',
         barCode: product['BarCode'] ?? '',
         name: product['Name'] ?? '',
@@ -214,6 +232,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
         quantity: double.tryParse(product['Quantity']) ?? 0,
       );
     }).toList();
+    List<brick.Variant> items = await Future.wait(itemFutures);
 
     final totalItems = items.length;
 

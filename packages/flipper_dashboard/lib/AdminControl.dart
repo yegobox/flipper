@@ -1,17 +1,11 @@
+import 'package:flipper_dashboard/ReinitializeEbm.dart';
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
-import 'package:flipper_models/helperModels/talker.dart';
-// import 'package:brick_offline_first/brick_offline_first.dart';
-import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-// import 'package:flipper_services/DatabaseProvider.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:supabase_models/brick/repository.dart';
-import 'package:uuid/uuid.dart';
 
 import 'modals/_isBranchEnableForPayment.dart';
 
@@ -31,6 +25,7 @@ class _AdminControlState extends State<AdminControl> {
   bool forceUPSERT = false;
   bool stopTaxService = false;
   bool switchToCloudSync = false;
+
   @override
   void initState() {
     super.initState();
@@ -56,7 +51,7 @@ class _AdminControlState extends State<AdminControl> {
 
   Future<void> toggleForceUPSERT(bool value) async {
     try {
-     await ProxyService.strategy.variants(
+      await ProxyService.strategy.variants(
           branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
       await ProxyService.box.writeBool(
           key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
@@ -101,8 +96,11 @@ class _AdminControlState extends State<AdminControl> {
     });
   }
 
-  void reInitializeEbm(bool value) async {
-    // show modal
+  void showReInitializeEbmDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => ReInitializeEbmDialog(),
+    );
   }
 
   void enableDebugFunc(bool value) async {
@@ -328,7 +326,10 @@ class _AdminControlState extends State<AdminControl> {
               subtitle: 'Re-initialize',
               icon: Icons.cloud_sync,
               value: switchToCloudSync,
-              onChanged: reInitializeEbm,
+              onChanged: (bool value) {
+                // Removed 'async' keyword here
+                showReInitializeEbmDialog(context);
+              },
               color: Colors.cyan,
             ),
             SwitchSettingsCard(

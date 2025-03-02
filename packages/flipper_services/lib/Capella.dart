@@ -1052,6 +1052,7 @@ class Capella with Booting implements RealmInterface {
       int? receiptNumber,
       int? totalReceiptNumber,
       bool? isProformaMode,
+      bool isUnclassfied = false,
       bool? isTrainingMode}) {
     // TODO: implement updateTransaction
     throw UnimplementedError();
@@ -1256,6 +1257,7 @@ class Capella with Booting implements RealmInterface {
       double? rsdQty,
       double? initialStock,
       bool? ebmSynced,
+      bool appending = false,
       double? currentStock,
       double? value,
       DateTime? lastTouched}) {
@@ -1818,6 +1820,11 @@ class Capella with Booting implements RealmInterface {
       {String? id,
       String? modrId,
       String? name,
+      String? itemClsCd,
+      String? itemNm,
+      String? stockId,
+      String? itemCd,
+      String? taskCd,
       String? bcd,
       String? productId}) {
     // TODO: implement getVariantById
@@ -1919,6 +1926,13 @@ class Capella with Booting implements RealmInterface {
   @override
   Future<brick.VariantBranch?> variantBranch({required String variantId}) {
     // TODO: implement variantBranch
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.BusinessInfo> initializeEbm(
+      {required String tin, required String bhfId, required String dvcSrlNo}) {
+    // TODO: implement initializeEbm
     throw UnimplementedError();
   }
 }
