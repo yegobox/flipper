@@ -932,6 +932,8 @@ class CoreViewModel extends FlipperBaseModel
         /// if itemMapper then means we are entirely approving and creating this item in our app
         /// hence should have _processTransaction to have its double update for incoming purchase.
         if (itemMapper == null) {
+          variant.ebmSynced = false;
+          await ProxyService.strategy.updateVariant(updatables: [variant]);
           await _processTransaction(variant, pendingTransaction, business,
               //02 is Incoming purchase
               sarTyCd: "02");
