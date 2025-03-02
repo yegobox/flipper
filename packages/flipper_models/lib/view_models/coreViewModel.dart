@@ -7,7 +7,6 @@ import 'dart:developer';
 
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/constants.dart';
@@ -994,100 +993,162 @@ class CoreViewModel extends FlipperBaseModel
     }
   }
 
-  Future<void> approveAllImportItems(List<Variant> importItems) async {
+  Future<void> approveAllImportItems(List<Variant> importItems,
+      {required Map<String, Variant> variantMap}) async {
     try {
       setBusy(true);
-
-      for (final item in importItems) {
-        // Only process items that are still waiting for approval
-        if (item.imptItemSttsCd == "2") {
-          // "2" likely means "Waiting Approval"
-          item.imptItemSttsCd = "3";
-          item.taxName = "B";
-          item.taxTyCd = "B";
-          item.ebmSynced = false;
-
-          await ProxyService.strategy.updateVariant(updatables: [item]);
-
-          final URI = await ProxyService.box.getServerUrl();
-
-          await ProxyService.tax.updateImportItems(
-            item: item,
-            URI: URI ?? "",
-          );
-          final pendingTransaction =
-              await ProxyService.strategy.manageTransaction(
-            transactionType: TransactionType.adjustment,
-            isExpense: true,
-            branchId: ProxyService.box.getBranchId()!,
-          );
-          Business? business = await ProxyService.strategy
-              .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-
-          await assignTransaction(
-            variant: item,
-            pendingTransaction: pendingTransaction!,
-            business: business!,
-            randomNumber: randomNumber(),
-            // 06 is incoming import.
-            sarTyCd: "01",
-          );
-          await completeTransaction(pendingTransaction: pendingTransaction);
-
-          item.ebmSynced = true;
-          await ProxyService.strategy
-              .updateVariant(updatables: [item]); // Ensure update is awaited.
-        }
-      }
-      notifyListeners(); // Trigger UI update if needed
-    } catch (e, s) {
-      talker.error(s);
-      setError(e); // Set an error state in your ViewModel
-    } finally {
-      setBusy(false); // Ensure busy state is cleared
-    }
-  }
-
-  Future<void> approveImportItem(Variant item) async {
-    try {
-      item.imptItemSttsCd = "3";
-      //TODO: on import give a user to set this.
-      item.taxName = "B";
-      item.taxTyCd = "B";
-      item.ebmSynced = false;
-      await ProxyService.strategy.updateVariant(updatables: [item]);
-
-      final URI = await ProxyService.box.getServerUrl();
-
-      await ProxyService.tax.updateImportItems(
-        item: item,
-        URI: URI ?? "",
-      );
-
       final pendingTransaction = await ProxyService.strategy.manageTransaction(
         transactionType: TransactionType.adjustment,
         isExpense: true,
         branchId: ProxyService.box.getBranchId()!,
       );
-      Business? business = await ProxyService.strategy
-          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
-      await assignTransaction(
-        variant: item,
-        pendingTransaction: pendingTransaction!,
-        business: business!,
-        randomNumber: randomNumber(),
-        // 06 is incoming import.
-        sarTyCd: "01",
-      );
+      final business = await _getBusiness();
+      final URI = await ProxyService.box.getServerUrl() ?? "";
 
-      await completeTransaction(pendingTransaction: pendingTransaction);
-
-      item.ebmSynced = true;
-      ProxyService.strategy.updateVariant(updatables: [item]);
+      for (final item in importItems) {
+        if (item.imptItemSttsCd == "2") {
+          await _processImportItem(
+              item, variantMap, pendingTransaction, business!, URI);
+        }
+      }
+      notifyListeners();
     } catch (e, s) {
       talker.error(s);
-      rethrow; // Re-throw the exception to be caught in the UI
+      setError(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  Future<Business?> _getBusiness() async {
+    return await ProxyService.strategy
+        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+  }
+
+  Future<void> _processImportItem(
+    Variant item,
+    Map<String, Variant> variantMap,
+    ITransaction? pendingTransaction,
+    Business business,
+    String URI,
+  ) async {
+    item.imptItemSttsCd = "3";
+    item.taxName = "B";
+    item.taxTyCd = "B";
+    item.ebmSynced = false;
+
+    Variant? variantToProcess;
+
+    if (variantMap.isNotEmpty) {
+      variantToProcess = variantMap[item.id];
+      if (variantToProcess != null) {
+        variantToProcess.ebmSynced = false;
+        await _updateVariantStock(
+            item: item, existingVariantToUpdate: variantToProcess);
+
+        /// we mark this item as unsend since it's stock has been merged with existing, and also as ebm synced to avoid accidental
+        /// syncing it again.
+        item.imptItemSttsCd = "1"; // 1 means unsend
+        item.ebmSynced = true;
+        await ProxyService.strategy.updateVariant(updatables: [item]);
+        await ProxyService.strategy
+            .updateVariant(updatables: [variantToProcess]);
+      }
+    } else {
+      variantToProcess = item;
+      await _updateVariant(variantToProcess);
+    }
+
+    await _processTransaction(variantToProcess!, pendingTransaction!, business);
+
+    await ProxyService.tax.updateImportItems(item: item, URI: URI);
+  }
+
+  Future<void> _processImportItemSingle(
+    Variant item,
+    Map<String, Variant> variantMap,
+    ITransaction? pendingTransaction,
+    Business business,
+    String URI,
+  ) async {
+    Variant? variantToProcess;
+
+    if (variantMap.isNotEmpty) {
+      variantToProcess = variantMap[item.id];
+
+      if (variantToProcess != null) {
+        await _updateVariantStock(
+            item: item, existingVariantToUpdate: variantToProcess);
+
+        /// we mark this item as unsend since it's stock has been merged with existing, and also as ebm synced to avoid accidental
+        /// syncing it again.
+        item.imptItemSttsCd = "1"; // 1 means unsend
+        item.ebmSynced = true;
+        await ProxyService.strategy.updateVariant(updatables: [item]);
+
+        variantToProcess.ebmSynced = false;
+        await ProxyService.strategy
+            .updateVariant(updatables: [variantToProcess]);
+      }
+    } else {
+      variantToProcess = item;
+      await _updateVariant(variantToProcess);
+    }
+
+    await _processTransaction(variantToProcess!, pendingTransaction!, business);
+
+    await ProxyService.tax.updateImportItems(item: item, URI: URI);
+  }
+
+  Future<void> _updateVariantStock(
+      {required Variant item, required Variant existingVariantToUpdate}) async {
+    await ProxyService.strategy.updateStock(
+        stockId: existingVariantToUpdate.stock!.id,
+        appending: true,
+        rsdQty: item.stock!.currentStock,
+        initialStock: item.stock!.currentStock,
+        currentStock: item.stock!.currentStock,
+        value: item.stock!.currentStock! * item.retailPrice!);
+  }
+
+  Future<void> _processTransaction(Variant variant,
+      ITransaction pendingTransaction, Business business) async {
+    await assignTransaction(
+      variant: variant,
+      pendingTransaction: pendingTransaction,
+      business: business,
+      randomNumber: randomNumber(),
+      sarTyCd: "01",
+    );
+    await completeTransaction(pendingTransaction: pendingTransaction);
+  }
+
+  Future<void> _updateVariant(Variant variant) async {
+    await ProxyService.strategy.updateVariant(updatables: [variant]);
+  }
+
+  Future<void> approveImportItem(Variant item,
+      {required Map<String, Variant> variantMap}) async {
+    try {
+      final business = await _getBusiness();
+      final URI = await ProxyService.box.getServerUrl() ?? "";
+      final pendingTransaction = await ProxyService.strategy.manageTransaction(
+        transactionType: TransactionType.adjustment,
+        isExpense: true,
+        branchId: ProxyService.box.getBranchId()!,
+      );
+
+      item.imptItemSttsCd = "3";
+      item.taxName = "B";
+      item.taxTyCd = "B";
+      item.ebmSynced = false;
+
+      await _processImportItemSingle(
+          item, variantMap, pendingTransaction, business!, URI);
+    } catch (e, s) {
+      talker.error(s);
+      rethrow;
     }
   }
 

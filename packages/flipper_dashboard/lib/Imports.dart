@@ -219,28 +219,41 @@ class ImportsState extends ConsumerState<Imports> {
                               )
                             : null;
 
-                    return DropdownButton<String>(
-                      value: selectedVariantObject?.id,
-                      hint: const Text('Select Variant'),
-                      items: variants.map((variant) {
-                        return DropdownMenuItem<String>(
-                          value: variant.id,
-                          child: Text(variant.name),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          final selectedVariant = variants
-                              .firstWhere((variant) => variant.id == value);
-                          // print(
-                          //     "Proff:${variantSelectedWhenClickingOnRow?.name}");
-                          // Update the map when a variant is selected
-                          widget.variantMap[variantSelectedWhenClickingOnRow!
-                              .id] = selectedVariant;
-                        } else {
-                          widget.selectItem(null);
-                        }
-                      },
+                    return Column(
+                      // Wrap with Column to accommodate the extra widget.
+                      children: [
+                        DropdownButton<String>(
+                          value: selectedVariantObject?.id,
+                          hint: const Text('Select Variant'),
+                          items: variants.map((variant) {
+                            return DropdownMenuItem<String>(
+                              value: variant.id,
+                              child: Text(variant.name),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              final selectedVariant = variants
+                                  .firstWhere((variant) => variant.id == value);
+                              // Ensure variantSelectedWhenClickingOnRow is updated too if necessary:
+                              // setState(() {
+                              //   variantSelectedWhenClickingOnRow =
+                              //       selectedVariant; // Update the value
+                              // });
+                              widget.variantMap.clear();
+                              widget.variantMap.putIfAbsent(
+                                  variantSelectedWhenClickingOnRow!.id,
+                                  () => selectedVariant);
+                              // Call setState to update the UI
+                              widget.selectItem(
+                                  selectedVariant); // make sure that you set the textfield here also.
+                            } else {
+                              widget.selectItem(
+                                  null); // make sure that you set the textfield here also.
+                            }
+                          },
+                        ),
+                      ],
                     );
                   },
                   loading: () => const CircularProgressIndicator(),
@@ -312,7 +325,9 @@ class ImportsState extends ConsumerState<Imports> {
               variantSelectedWhenClickingOnRow = selectedVariant;
             });
             // Add/Update the variant in the map when row is selected
-            widget.variantMap[selectedVariant!.id] = selectedVariant;
+            widget.variantMap.clear();
+            widget.variantMap
+                .putIfAbsent(selectedVariant!.id, () => selectedVariant);
             _updateTextFields(selectedVariant); // Update TextFields
           } else {
             widget.selectItem(null);

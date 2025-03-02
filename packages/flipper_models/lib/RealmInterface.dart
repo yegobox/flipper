@@ -327,6 +327,7 @@ abstract class RealmInterface {
       String? modrId,
       String? name,
       String? bcd,
+      String? stockId,
       String? taskCd,
       String? itemClsCd,
       String? itemNm,

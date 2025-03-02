@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as model;
 import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 
 class ImportPurchasePage extends StatefulHookConsumerWidget {
   @override
@@ -231,7 +232,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                           acceptAllImport:
                               (List<model.Variant> variants) async {
                             for (model.Variant variant in variants) {
-                              if (variant.retailPrice == null ||
+                              if (!_variantMap.containsKey(variant.id) &&
+                                      variant.retailPrice == null ||
                                   variant.supplyPrice == null ||
                                   variant.retailPrice! <= 0 ||
                                   variant.supplyPrice! <= 0) {
@@ -240,21 +242,31 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                 return;
                               }
                             }
-                            await coreViewModel.approveAllImportItems(variants);
+                            await coreViewModel.approveAllImportItems(variants,
+                                variantMap: _variantMap);
+                            final combinedNotifier = ref.read(refreshProvider);
+                            combinedNotifier.performActions(
+                                productName: "", scanMode: true);
                           },
                           selectItem: _selectItem,
                           selectedItem: _selectedItem,
                           finalItemList: finalItemList,
                           variantMap: _variantMap,
                           onApprove: (model.Variant item) async {
-                            if (item.retailPrice == null ||
-                                item.supplyPrice == null ||
-                                item.retailPrice! <= 0 ||
-                                item.supplyPrice! <= 0) {
+                            final condition = _variantMap.containsKey(item.id);
+                            if (!condition &&
+                                (item.retailPrice == null ||
+                                    item.supplyPrice == null ||
+                                    item.retailPrice! <= 0 ||
+                                    item.supplyPrice! <= 0)) {
                               toast("You need to set retail price");
                               return;
                             }
-                            await coreViewModel.approveImportItem(item);
+                            await coreViewModel.approveImportItem(item,
+                                variantMap: _variantMap);
+                            final combinedNotifier = ref.read(refreshProvider);
+                            combinedNotifier.performActions(
+                                productName: "", scanMode: true);
                           },
                           onReject: (model.Variant item) async {
                             await coreViewModel.rejectImportItem(item);

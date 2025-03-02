@@ -4075,7 +4075,8 @@ class CoreSync
       String? productId,
       String? taskCd,
       String? itemClsCd,
-      String? itemNm}) async {
+      String? itemNm,
+      String? stockId}) async {
     int branchId = ProxyService.box.getBranchId()!;
     final query = brick.Query(where: [
       if (productId != null)
@@ -4099,6 +4100,8 @@ class CoreSync
       ] else if (taskCd != null) ...[
         brick.Where('taskCd').isExactly(taskCd),
         brick.Where('branchId').isExactly(branchId),
+      ] else if (stockId != null) ...[
+        brick.Where('stockId').isExactly(stockId),
       ]
     ]);
     return (await repository.get<Variant>(query: query)).firstOrNull;
@@ -4285,6 +4288,7 @@ class CoreSync
     DateTime? lastTouched,
   }) async {
     Stock? stock = await getStockById(id: stockId);
+    Variant? variant = await getVariant(stockId: stock.id);
 
     // If appending, add to existing values; otherwise, replace.
     if (currentStock != null) {
@@ -4299,7 +4303,7 @@ class CoreSync
           appending ? (stock.initialStock ?? 0) + initialStock : initialStock;
     }
     if (value != null) {
-      stock.value = appending ? (stock.value ?? 0) + value : value;
+      stock.value = appending ? (variant!.retailPrice! * currentStock!) : value;
     }
 
     // These fields should always be replaced, not appended
@@ -4699,24 +4703,9 @@ class CoreSync
         updatables[i].supplyPrice = supplyPrice;
       }
 
-      updatables[i].stock?.rsdQty = (updatables[i].stock?.rsdQty ?? 0);
-      updatables[i].stock?.currentStock = (updatables[i].stock?.rsdQty ?? 0);
       updatables[i].lastTouched = DateTime.now().toLocal();
 
       await repository.upsert<Variant>(updatables[i]);
-      if (updatables[i].stock != null) {
-        await repository.upsert<Stock>(updatables[i].stock!);
-      }
-
-      if (await ProxyService.strategy
-          .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!)) {
-        StockPatch.patchStock(
-          URI: (await ProxyService.box.getServerUrl()) ?? "",
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
-          },
-        );
-      }
     }
   }
 
