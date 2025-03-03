@@ -374,7 +374,7 @@ class _AppsState extends ConsumerState<Apps> {
         .toList();
     double sumCashIn = 0;
     for (final transaction in filteredTransactions) {
-      if (transaction.isIncome!) {
+      if (transaction.isIncome != null && transaction.isIncome!) {
         sumCashIn += transaction.subTotal!;
       }
     }
@@ -388,7 +388,7 @@ class _AppsState extends ConsumerState<Apps> {
         .toList();
     double sumCashOut = 0;
     for (final transaction in filteredTransactions) {
-      if (transaction.isExpense!) {
+      if (transaction.isExpense != null && transaction.isExpense!) {
         sumCashOut += transaction.subTotal!;
       }
     }
