@@ -60,10 +60,9 @@ class _AppsState extends ConsumerState<Apps> {
         closeButton: CLOSEBUTTON.WIDGET,
         customTrailingWidget: ProfileFutureWidget(),
         customLeadingWidget: _buildDrawerButton(),
-        // elevation: 2,
       ),
       body: Container(
-        color: Colors.grey[50],
+        color: Colors.white,
         child: Column(
           spacing: 1,
           children: [
@@ -124,8 +123,8 @@ class _AppsState extends ConsumerState<Apps> {
         ],
       ),
       child: Row(
-       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-       //  spacing:1,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //  spacing:1,
         children: [
           Expanded(
             child: Container(
@@ -214,7 +213,7 @@ class _AppsState extends ConsumerState<Apps> {
         'label': "Contacts"
       },
       {
-        'icon':Icons.store_rounded,
+        'icon': Icons.store_rounded,
         'color': Colors.green,
         'page': "Orders",
         'label': "Orders"
@@ -375,7 +374,7 @@ class _AppsState extends ConsumerState<Apps> {
         .toList();
     double sumCashIn = 0;
     for (final transaction in filteredTransactions) {
-      if (transaction.isIncome!) {
+      if (transaction.isIncome != null && transaction.isIncome!) {
         sumCashIn += transaction.subTotal!;
       }
     }
@@ -389,7 +388,7 @@ class _AppsState extends ConsumerState<Apps> {
         .toList();
     double sumCashOut = 0;
     for (final transaction in filteredTransactions) {
-      if (transaction.isExpense!) {
+      if (transaction.isExpense != null && transaction.isExpense!) {
         sumCashOut += transaction.subTotal!;
       }
     }
@@ -429,7 +428,7 @@ class _AppsState extends ConsumerState<Apps> {
       case "Contacts":
         await _routerService.navigateTo(CustomersRoute());
         break;
-        //TODO: if a user is of type agent do not show this Order menu.
+      //TODO: if a user is of type agent do not show this Order menu.
       case "Orders":
         await _routerService.navigateTo(InventoryRequestMobileViewRoute());
         break;

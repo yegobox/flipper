@@ -17,6 +17,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:flipper_models/helper_models.dart' as ext;
@@ -55,7 +56,9 @@ import 'package:uuid/uuid.dart';
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
 
-class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
+class CoreSync
+    with Booting, CoreMiscellaneous, TransactionMixin
+    implements RealmInterface {
   final String apihub = AppSecrets.apihubProd;
 
   bool offlineLogin = false;
@@ -702,6 +705,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       totWt: totWt ?? 0,
       pchsSttsCd: pchsSttsCd,
       taxblAmt: taxblAmt,
+      taxAmt: taxAmt,
       invcFcurAmt: invcFcurAmt ?? 0,
       invcFcurCd: invcFcurCd ?? "",
       exptNatCd: exptNatCd ?? "",
@@ -727,7 +731,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       itemStdNm: product?.name ?? name,
       addInfo: "A",
       pkg: pkg ?? 1,
-      taxAmt: taxAmt,
+
       splyAmt: supplierPrice,
       itemClsCd: itemClasses?[product?.barCode] ?? "5020230602",
       itemCd: createItemCode
@@ -738,7 +742,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               quantityUnit: "BJ",
               branchId: branchId,
             )
-          : itemCd,
+          : itemCd!,
       modrNm: name,
       modrId: number,
       pkgUnitCd: pkgUnitCd ?? "BJ",
@@ -905,7 +909,18 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         if (purchase != null) {
           Purchase purch = await repository.upsert<Purchase>(purchase);
           newVariant.purchaseId = purch.id;
+          newVariant.spplrNm = purch.spplrNm;
           await repository.upsert<Variant>(newVariant);
+          final activeBranch =
+              await branch(serverId: ProxyService.box.getBranchId()!);
+          await repository.upsert<ImportPurchaseDates>(
+            ImportPurchaseDates(
+              lastRequestDate: DateTime.now().toYYYYMMddHH0000(),
+              branchId: activeBranch!.id,
+              requestType: "PURCHASE",
+              purchaseId: purch.id,
+            ),
+          );
         } else {
           await repository.upsert<Variant>(newVariant);
         }
@@ -998,6 +1013,54 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         .firstOrNull;
   }
 
+  Future<void> deleteTransactionItemAndResequence({required String id}) async {
+    try {
+      // 1. Fetch the TransactionItem to be deleted.
+      final transactionItemToDelete = await repository.get<TransactionItem>(
+        query: brick.Query(
+          where: [brick.Where('id').isExactly(id)],
+          limit: 1, // Assuming 'id' is unique, limit to 1 result for efficiency
+        ),
+      );
+
+      if (transactionItemToDelete.isEmpty) {
+        print('Transaction item with ID $id not found.');
+        return; // Or throw an exception, depending on desired behavior
+      }
+
+      final itemToDelete = transactionItemToDelete.first;
+      final transactionId = itemToDelete.transactionId;
+
+      // 2. Delete the TransactionItem.
+      await repository.delete<TransactionItem>(
+        itemToDelete, // Pass the actual TransactionItem object
+        query: brick.Query(
+          action: brick.QueryAction.delete,
+          where: [brick.Where('id').isExactly(id)],
+        ),
+      );
+
+      // 3. Fetch all remaining TransactionItems for the same transaction.
+      final remainingItems = await repository.get<TransactionItem>(
+        query: brick.Query(
+          where: [brick.Where('transactionId').isExactly(transactionId)],
+        ),
+      );
+
+      // 4. Sort the remaining items by createdAt.
+      remainingItems.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
+
+      // 5. Update the itemSeq for each remaining item.
+      for (var i = 0; i < remainingItems.length; i++) {
+        remainingItems[i].itemSeq = i + 1;
+        await repository.upsert<TransactionItem>(remainingItems[i]);
+      }
+    } catch (e, s) {
+      talker.error(s);
+      rethrow;
+    }
+  }
+
   @override
   Future<bool> delete(
       {required String id,
@@ -1016,7 +1079,7 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       case 'variant':
         try {
           final variant = await getVariant(id: id);
-          final stock = await getStockById(id: variant!.stockId!);
+          final stock = await getStockById(id: variant!.stockId ?? "");
 
           await repository.delete<Variant>(
             variant,
@@ -1030,21 +1093,22 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
                 action: QueryAction.delete,
                 where: [brick.Where('id').isExactly(id)]),
           );
-        } catch (e) {}
-
-        break;
-
-      case 'transactionItem':
-        final transactionItem = await transactionItems(
-            id: id, branchId: ProxyService.box.getBranchId()!);
-        if (transactionItem.isNotEmpty) {
-          await repository.delete<TransactionItem>(
-            transactionItem.first,
+        } catch (e, s) {
+          final variant = await getVariant(id: id);
+          await repository.delete<Variant>(
+            variant!,
             query: brick.Query(
                 action: QueryAction.delete,
                 where: [brick.Where('id').isExactly(id)]),
           );
+          talker.warning(s);
+          rethrow;
         }
+
+        break;
+
+      case 'transactionItem':
+        await deleteTransactionItemAndResequence(id: id);
         break;
       case 'customer':
         final customer =
@@ -1658,7 +1722,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
 
   @override
   FutureOr<FlipperSaleCompaign?> getLatestCompaign() async {
-    final query = brick.Query(providerArgs: {'orderBy': 'createdAt DESC'});
+    final query = brick.Query(
+      orderBy: [const OrderBy('createdAt', ascending: false)],
+    );
     final List<FlipperSaleCompaign> fetchedCampaigns =
         await repository.get<FlipperSaleCompaign>(
             query: query,
@@ -2084,39 +2150,6 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
               businessTypeId: e.businessTypeId,
             ))
         .toList();
-  }
-
-  Stream<ITransaction?> _pendingTransactionStream({
-    required int branchId,
-    required String transactionType,
-    required bool isExpense,
-    bool includeSubTotalCheck = true,
-  }) {
-    try {
-      // Build the query
-      final query = brick.Query(where: [
-        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
-        brick.Where('isExpense',
-            value: isExpense, compare: brick.Compare.exact),
-        brick.Where('status', value: PENDING, compare: brick.Compare.exact),
-        brick.Where('transactionType',
-            value: transactionType, compare: brick.Compare.exact),
-        if (includeSubTotalCheck)
-          brick.Where('subTotal', value: 0, compare: brick.Compare.greaterThan),
-      ]);
-
-      /// Fetch transactions and map the list to return the first transaction (or null)
-      return repository
-          .subscribe<ITransaction>(
-              query: query, policy: OfflineFirstGetPolicy.localOnly)
-          .map((transactions) =>
-              transactions.isNotEmpty ? transactions.first : null);
-    } catch (e, s) {
-      // Log errors
-      talker.error('Error in _pendingTransactionStream: $e');
-      talker.error('Stack trace: $s');
-      rethrow;
-    }
   }
 
   Future<ITransaction?> _pendingTransaction({
@@ -2562,65 +2595,107 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       // Fetch last request date for import items
       final lastRequestRecords = await repository.get<ImportPurchaseDates>(
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        query: brick.Query(where: [
-          brick.Where('branchId').isExactly(activeBranch.id),
-          brick.Where('lastRequestDate').isExactly(lastReqDt),
-          brick.Where('requestType').isExactly("IMPORT"),
-        ]),
+        query: brick.Query(
+          orderBy: [const OrderBy('lastRequestDate', ascending: false)],
+          where: [
+            brick.Where('branchId').isExactly(activeBranch.id),
+            brick.Where('requestType').isExactly("IMPORT"),
+          ],
+        ),
       );
 
-      // If the last request date is the same, check if there are imported variants
-      if (lastRequestRecords.isNotEmpty &&
-          lastRequestRecords.first.lastRequestDate == lastReqDt) {
-        final existingVariants = await variants(
-          branchId: ProxyService.box.getBranchId()!,
-          imptItemsttsCd: "2",
-          excludeApprovedInWaitingOrCanceledItems: true,
-        );
+      // Determine if we should fetch from the API
+      final shouldFetchFromApi = lastRequestRecords.isEmpty ||
+          lastRequestRecords.first.lastRequestDate != lastReqDt;
 
-        if (existingVariants.isNotEmpty) {
-          return existingVariants;
+      List<Variant> variantsList;
+
+      if (shouldFetchFromApi) {
+        RwApiResponse response;
+        try {
+          // Fetch new data from the API
+          response = await ProxyService.tax.selectImportItems(
+            tin: tin,
+            bhfId: bhfId,
+            lastReqDt: lastReqDt,
+            URI: (await ProxyService.box.getServerUrl() ?? ""),
+          );
+
+          if (response.data == null || response.data!.itemList == null) {
+            throw Exception(
+                "API returned null data or item list"); // More informative error
+          }
+          print(
+              "API returned ${response.data!.itemList!.length} items"); // Log the number of items from the API
+        } catch (apiError) {
+          // Handle API errors gracefully.  Attempt to use the last known date if possible.
+          print("API Error: $apiError");
+          if (lastRequestRecords.isNotEmpty) {
+            print("Attempting to use last known request date...");
+            try {
+              response = await ProxyService.tax.selectImportItems(
+                tin: tin,
+                bhfId: bhfId,
+                lastReqDt: lastRequestRecords.first.lastRequestDate!,
+                URI: (await ProxyService.box.getServerUrl() ?? ""),
+              );
+              if (response.data == null || response.data!.itemList == null) {
+                throw Exception(
+                    "API returned null data or item list even with the old lastReqDt"); // More informative error
+              }
+            } catch (retryError) {
+              print("Retry with last known date failed: $retryError");
+              rethrow; // If retry fails, propagate the exception
+            }
+          } else {
+            rethrow; // If no last request date, propagate the original API error.
+          }
         }
 
-        //return ealry as as continuing might fetch new data from api
-        return [];
-      }
-
-      // Fetch new data from the API if no existing records
-      final response = await ProxyService.tax.selectImportItems(
-        tin: tin,
-        bhfId: bhfId,
-        lastReqDt: lastReqDt,
-        URI: (await ProxyService.box.getServerUrl() ?? ""),
-      );
-
-      if (response.data?.itemList == null) {
-        return [];
-      }
-
-      // Save the last request date
-      if (response.data!.itemList!.isNotEmpty) {
-        await repository.upsert<ImportPurchaseDates>(
-          ImportPurchaseDates(
-            lastRequestDate: lastReqDt,
-            branchId: activeBranch.id,
-            requestType: "IMPORT",
-          ),
-        );
-      }
-
-      // Save each imported item into the system
-      for (final item in response.data!.itemList!) {
-        if (item.imptItemSttsCd!.isNotEmpty) {
-          await saveVariant(item, business, activeBranch.serverId!);
+        // Save the last request date
+        if (response.data!.itemList!.isNotEmpty) {
+          await repository.upsert<ImportPurchaseDates>(
+            ImportPurchaseDates(
+              lastRequestDate: DateTime.now().toYYYYMMddHH0000(),
+              branchId: activeBranch.id,
+              requestType: "IMPORT",
+            ),
+          );
         }
+
+        // Save each imported item into the system
+        int itemsInserted = 0; // Counter to track inserted items
+        for (final item in response.data!.itemList!) {
+          print("Processing item with taskCd: ${item.taskCd}"); // Log taskCd
+          Variant? variantExist = await getVariant(taskCd: item.taskCd);
+
+          if (variantExist != null) {
+            print(
+                "Variant with taskCd ${item.taskCd} already exists. Skipping.");
+            continue; // Skip saving if variant exists
+          }
+
+          if (item.imptItemSttsCd!.isNotEmpty) {
+            print("Saving variant with taskCd: ${item.taskCd}");
+            await saveVariant(item, business, activeBranch.serverId!);
+            itemsInserted++;
+          } else {
+            print(
+                "Item with taskCd ${item.taskCd} has empty imptItemSttsCd. Skipping.");
+          }
+        }
+        print("Inserted $itemsInserted items from API.");
       }
 
-      // Return the newly imported variants
-      return await variants(
+      // Return the newly imported variants OR existing variants if no API call was made
+      variantsList = await variants(
         branchId: ProxyService.box.getBranchId()!,
         imptItemsttsCd: "2",
+        excludeApprovedInWaitingOrCanceledItems: true,
       );
+      print(
+          "Total variants found: ${variantsList.length}"); // Log total variants
+      return variantsList;
     } catch (e, stackTrace) {
       print("Error in selectImportItems: $e\n$stackTrace");
       rethrow;
@@ -3197,9 +3272,8 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   Future<List<UnversalProduct>> universalProductNames(
       {required int branchId}) async {
     return repository.get<UnversalProduct>(
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        query:
-            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
+    );
   }
 
   @override
@@ -3365,23 +3439,125 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required int branchId,
   }) async {
     try {
-      for (TransactionItem item in items) {
-        if (!item.active!) {
-          repository.delete(item);
-          continue;
-        }
+      final pendingTransaction = await _createAdjustmentTransaction();
+      final business = await ProxyService.strategy.getBusiness();
+      final serverUrl = await ProxyService.box.getServerUrl();
 
-        await _updateStockForItem(item: item, branchId: branchId);
+      if (business == null) {
+        talker.warning('Business or Server URL is null, aborting update.');
+        return; // Early exit if crucial data is missing
+      }
 
-        item
-          ..doneWithTransaction = true
-          ..updatedAt = DateTime.now().toUtc().toLocal();
-        repository.upsert<TransactionItem>(item);
+      if (pendingTransaction == null) {
+        talker.warning("Failed to create adjustment transaction. Aborting.");
+        return;
+      }
+      if (serverUrl != null) {
+        await _processTransactionItems(
+          items: items,
+          branchId: branchId,
+          pendingTransaction: pendingTransaction,
+          business: business,
+          serverUrl: serverUrl,
+        );
+
+        // Assuming completeTransaction is defined in the same scope.
+        await completeTransaction(pendingTransaction: pendingTransaction);
       }
     } catch (e, s) {
       talker.error(s);
       talker.warning(e);
     }
+  }
+
+  Future<ITransaction?> _createAdjustmentTransaction() async {
+    try {
+      return await ProxyService.strategy.manageTransaction(
+        transactionType: TransactionType.adjustment,
+        isExpense: true,
+        branchId: ProxyService.box.getBranchId()!,
+      );
+    } catch (e, s) {
+      talker.error(s);
+      talker.warning(e);
+      return null; // Handle transaction creation failure gracefully
+    }
+  }
+
+  Future<void> _processTransactionItems({
+    required List<TransactionItem> items,
+    required int branchId,
+    required ITransaction pendingTransaction,
+    required Business business,
+    required String serverUrl,
+  }) async {
+    for (TransactionItem item in items) {
+      await _processSingleTransactionItem(
+        item: item,
+        branchId: branchId,
+        pendingTransaction: pendingTransaction,
+        business: business,
+        serverUrl: serverUrl,
+      );
+    }
+  }
+
+  Future<void> _processSingleTransactionItem({
+    required TransactionItem item,
+    required int branchId,
+    required ITransaction pendingTransaction,
+    required Business business,
+    required String serverUrl,
+  }) async {
+    if (!item.active!) {
+      repository.delete(item);
+      return;
+    }
+
+    await _updateStockForItem(item: item, branchId: branchId);
+
+    final variant = await ProxyService.strategy.getVariant(id: item.variantId);
+    // Setting the quantity here, after the stock patch is crucial for accuracy.
+    variant?.qty = item.qty;
+    if (variant != null) {
+      await _updateVariantAndPatchStock(
+        variant: variant,
+        item: item,
+        serverUrl: serverUrl,
+      );
+
+      // Assuming assignTransaction and randomNumber are defined in the same scope.
+      await assignTransaction(
+        variant: variant,
+        pendingTransaction: pendingTransaction,
+        business: business,
+        randomNumber: randomNumber(),
+
+        /// 11 is for sale
+        sarTyCd: "11",
+      );
+    }
+
+    item
+      ..doneWithTransaction = true
+      ..updatedAt = DateTime.now().toUtc().toLocal();
+    repository.upsert<TransactionItem>(item);
+  }
+
+  Future<void> _updateVariantAndPatchStock({
+    required Variant variant,
+    required TransactionItem item,
+    required String serverUrl,
+  }) async {
+    variant.ebmSynced = false;
+    await ProxyService.strategy.updateVariant(updatables: [variant]);
+
+    StockPatch.patchStock(
+      URI: serverUrl,
+      sendPort: (message) {
+        ProxyService.notification.sendLocalNotification(body: message);
+      },
+    );
   }
 
   Future<void> _updateStockForItem({
@@ -3595,66 +3771,86 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     ));
   }
 
+  /// Updates a transaction with the provided details.
+  ///
+  /// The [transaction] parameter is required and represents the transaction to update.
+  /// The [isUnclassfied] parameter is used to mark the transaction as unclassified,
+  /// meaning it is neither income nor expense. This helps avoid incorrect computations
+  /// on the dashboard.
   @override
-  FutureOr<void> updateTransaction(
-      {required ITransaction? transaction,
-      String? receiptType,
-      double? subTotal,
-      String? note,
-      String? status,
-      String? customerId,
-      bool? ebmSynced,
-      String? sarTyCd,
-      String? reference,
-      String? customerTin,
-      String? customerBhfId,
-      double? cashReceived,
-      bool? isRefunded,
-      String? customerName,
-      String? ticketName,
-      DateTime? updatedAt,
-      int? invoiceNumber,
-      DateTime? lastTouched,
-      int? receiptNumber,
-      int? totalReceiptNumber,
-      bool? isProformaMode,
-      bool? isTrainingMode}) async {
-    if (receiptType != null && transaction != null) {
-      if (isProformaMode != null && isTrainingMode != null) {
-        String receiptType = TransactionReceptType.NS;
-        if (isProformaMode) {
-          receiptType = TransactionReceptType.PS;
-        }
-        if (isTrainingMode) {
-          receiptType = TransactionReceptType.TS;
-        }
-        transaction.ebmSynced = true;
+  FutureOr<void> updateTransaction({
+    required ITransaction? transaction,
+    String? receiptType,
+    double? subTotal,
+    String? note,
+    String? status,
+    String? customerId,
+    bool? ebmSynced,
+    String? sarTyCd,
+    String? reference,
+    String? customerTin,
+    String? customerBhfId,
+    double? cashReceived,
+    bool? isRefunded,
+    String? customerName,
+    String? ticketName,
+    DateTime? updatedAt,
+    int? invoiceNumber,
+    DateTime? lastTouched,
+    int? receiptNumber,
+    int? totalReceiptNumber,
+    bool? isProformaMode,
 
-        transaction.receiptType = receiptType;
-        transaction.subTotal = subTotal ?? transaction.subTotal;
-        transaction.note = note ?? transaction.note;
-        transaction.status = status ?? transaction.status;
-        transaction.ticketName = ticketName ?? transaction.ticketName;
-        transaction.updatedAt = updatedAt ?? transaction.updatedAt;
-        transaction.customerId = customerId;
-        transaction.isRefunded = receiptType == "NR";
-        transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
-        transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
-        transaction.receiptNumber = receiptNumber ?? transaction.receiptNumber;
-        transaction.totalReceiptNumber =
-            totalReceiptNumber ?? transaction.totalReceiptNumber;
-        transaction.sarTyCd = sarTyCd ?? transaction.sarTyCd;
-        transaction.reference = reference ?? transaction.reference;
-        transaction.customerTin = customerTin ?? transaction.customerTin;
-        transaction.customerBhfId = customerBhfId ?? transaction.customerBhfId;
-        transaction.cashReceived = cashReceived ?? transaction.cashReceived;
-        transaction.customerName = customerName ?? transaction.customerName;
-        transaction.lastTouched = lastTouched ?? transaction.lastTouched;
-
-        await repository.upsert<ITransaction>(
-            policy: OfflineFirstUpsertPolicy.optimisticLocal, transaction);
-      }
+    /// because transaction is involved in account reporting
+    /// and in other ways to facilitate that everything in flipper has attached transaction
+    /// we want to make it unclassified i.e neither it is income or expense
+    /// this help us having wrong computation on dashboard of what is income or expenses.
+    bool isUnclassfied = false,
+    bool? isTrainingMode,
+  }) async {
+    if (transaction == null) {
+      print("Error: Transaction is null in updateTransaction.");
+      return; // Exit if transaction is null.
     }
+
+    // Determine receipt type based on mode (or use the provided value if available)
+    if (isProformaMode != null || isTrainingMode != null) {
+      String newReceiptType = TransactionReceptType.NS;
+      if (isProformaMode == true) {
+        newReceiptType = TransactionReceptType.PS;
+      }
+      if (isTrainingMode == true) {
+        newReceiptType = TransactionReceptType.TS;
+      }
+      receiptType = newReceiptType; // Use the determined value for receiptType
+    }
+
+    // update to avoid the same issue, make sure that every parameter is update correctly.
+    transaction.receiptType = receiptType ?? transaction.receiptType;
+    transaction.subTotal = subTotal ?? transaction.subTotal;
+    transaction.note = note ?? transaction.note;
+    transaction.status = status ?? transaction.status;
+    transaction.ticketName = ticketName ?? transaction.ticketName;
+    transaction.updatedAt = updatedAt ?? transaction.updatedAt;
+    transaction.customerId = customerId ?? transaction.customerId;
+    transaction.isRefunded = isRefunded ?? transaction.isRefunded;
+    transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
+    transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
+    transaction.receiptNumber = receiptNumber ?? transaction.receiptNumber;
+    transaction.totalReceiptNumber =
+        totalReceiptNumber ?? transaction.totalReceiptNumber;
+    transaction.sarTyCd = sarTyCd ?? transaction.sarTyCd;
+    transaction.reference = reference ?? transaction.reference;
+    transaction.customerTin = customerTin ?? transaction.customerTin;
+    transaction.customerBhfId = customerBhfId ?? transaction.customerBhfId;
+    transaction.cashReceived = cashReceived ?? transaction.cashReceived;
+    transaction.customerName = customerName ?? transaction.customerName;
+    transaction.lastTouched = lastTouched ?? transaction.lastTouched;
+    transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
+    transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
+
+    await repository.upsert<ITransaction>(
+        policy: OfflineFirstUpsertPolicy.optimisticLocal, transaction);
   }
 
   @override
@@ -3826,65 +4022,73 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
   }) async {
-    final query = brick.Query(where: [
-      if (variantId != null)
-        brick.Where('id').isExactly(variantId)
-      else if (name != null) ...[
-        brick.Where('name').contains(name),
-        brick.Where('branchId').isExactly(branchId),
-      ] else if (bcd != null) ...[
-        brick.Where('bcd').isExactly(bcd),
-        brick.Where('branchId').isExactly(branchId),
-      ] else if (imptItemsttsCd != null) ...[
-        brick.Where('imptItemSttsCd').isExactly(imptItemsttsCd),
-        brick.Where('branchId').isExactly(branchId)
-      ] else if (productId != null) ...[
-        brick.Where('productId').isExactly(productId),
-        brick.Where('branchId').isExactly(branchId)
-      ] else ...[
-        brick.Where('branchId').isExactly(branchId),
-        if (!excludeApprovedInWaitingOrCanceledItems)
-          brick.Where('retailPrice').isGreaterThan(0),
-        brick.Where('name').isNot(TEMP_PRODUCT),
-        brick.Where('productName').isNot(CUSTOM_PRODUCT),
-        // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
-        if (!excludeApprovedInWaitingOrCanceledItems) ...[
-          brick.Where('imptItemSttsCd').isNot("2"),
-          brick.Where('imptItemSttsCd').isNot("4"),
-          //TODO: there is a bug in brick where comparing to 01 is not working
-          // brick.Where('pchsSttsCd').isNot("01"),
-          // brick.Where('pchsSttsCd').isNot("04"),
-        ],
+    try {
+      final query = brick.Query(where: [
+        if (variantId != null)
+          brick.Where('id').isExactly(variantId)
+        else if (name != null) ...[
+          brick.Where('name').contains(name),
+          brick.Where('branchId').isExactly(branchId),
+        ] else if (bcd != null) ...[
+          brick.Where('bcd').isExactly(bcd),
+          brick.Where('branchId').isExactly(branchId),
+        ] else if (imptItemsttsCd != null) ...[
+          brick.Where('imptItemSttsCd').isExactly(imptItemsttsCd),
+          brick.Where('branchId').isExactly(branchId)
+        ] else if (productId != null) ...[
+          brick.Where('productId').isExactly(productId),
+          brick.Where('branchId').isExactly(branchId)
+        ] else ...[
+          brick.Where('branchId').isExactly(branchId),
+          if (!excludeApprovedInWaitingOrCanceledItems)
+            brick.Where('retailPrice').isGreaterThan(0),
+          brick.Where('name').isNot(TEMP_PRODUCT),
+          brick.Where('productName').isNot(CUSTOM_PRODUCT),
+          // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
+          if (!excludeApprovedInWaitingOrCanceledItems) ...[
+            brick.Where('imptItemSttsCd').isNot("2"),
+            brick.Where('imptItemSttsCd').isNot("4"),
+            //TODO: there is a bug in brick where comparing to 01 is not working
+            // brick.Where('pchsSttsCd').isNot("01"),
+            // brick.Where('pchsSttsCd').isNot("04"),
+          ],
 
-        /// 01 is waiting for approval.
-        if (excludeApprovedInWaitingOrCanceledItems)
-          brick.Where('pchsSttsCd').isExactly("01"),
+          /// 01 is waiting for approval.
+          if (excludeApprovedInWaitingOrCanceledItems)
+            brick.Where('pchsSttsCd').isExactly("01"),
 
-        if (purchaseId != null) brick.Where('purchaseId').isExactly(purchaseId),
-        // Apply the purchaseId filter only if includePurchases is true
-        if (excludeApprovedInWaitingOrCanceledItems)
-          brick.Where('purchaseId').isNot(null),
-      ]
-    ]);
-    List<Variant> variants = await repository.get<Variant>(
-      policy: fetchRemote
-          ? OfflineFirstGetPolicy.alwaysHydrate
-          : OfflineFirstGetPolicy.localOnly,
-      query: query,
-    );
+          if (purchaseId != null)
+            brick.Where('purchaseId').isExactly(purchaseId),
+          // Apply the purchaseId filter only if includePurchases is true
+          if (excludeApprovedInWaitingOrCanceledItems)
+            brick.Where('purchaseId').isNot(null),
+        ]
+      ]);
+      List<Variant> variants = await repository.get<Variant>(
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.localOnly,
+        query: query,
+      );
 
-    // Pagination logic (if needed)
-    if (page != null && itemsPerPage != null) {
-      final offset = page * itemsPerPage;
-      return variants
-          .where((variant) =>
-              variant.pchsSttsCd != "01" && variant.pchsSttsCd != "04")
-          .skip(offset)
-          .take(itemsPerPage)
-          .toList();
+      // Pagination logic (if needed)
+      if (page != null && itemsPerPage != null) {
+        final offset = page * itemsPerPage;
+        return variants
+            .where((variant) =>
+                variant.pchsSttsCd != "01" &&
+                variant.pchsSttsCd != "04" &&
+                variant.pchsSttsCd != "1")
+            .skip(offset)
+            .take(itemsPerPage)
+            .toList();
+      }
+
+      return variants;
+    } catch (e, s) {
+      talker.error(s);
+      rethrow;
     }
-
-    return variants;
   }
 
   @override
@@ -3907,8 +4111,13 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       {String? id,
       String? modrId,
       String? name,
+      String? itemCd,
       String? bcd,
-      String? productId}) async {
+      String? productId,
+      String? taskCd,
+      String? itemClsCd,
+      String? itemNm,
+      String? stockId}) async {
     int branchId = ProxyService.box.getBranchId()!;
     final query = brick.Query(where: [
       if (productId != null)
@@ -3924,6 +4133,16 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       ] else if (bcd != null) ...[
         brick.Where('bcd', value: bcd, compare: brick.Compare.exact),
         brick.Where('branchId').isExactly(branchId),
+      ] else if (itemCd != null && itemClsCd != null && itemNm != null) ...[
+        brick.Where('itemCd').isExactly(itemCd),
+        brick.Where('itemClsCd').isExactly(itemClsCd),
+        brick.Where('itemNm').isExactly(itemNm),
+        brick.Where('branchId').isExactly(branchId),
+      ] else if (taskCd != null) ...[
+        brick.Where('taskCd').isExactly(taskCd),
+        brick.Where('branchId').isExactly(branchId),
+      ] else if (stockId != null) ...[
+        brick.Where('stockId').isExactly(stockId),
       ]
     ]);
     return (await repository.get<Variant>(query: query)).firstOrNull;
@@ -4098,32 +4317,39 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
   }
 
   @override
-  FutureOr<void> updateStock(
-      {required String stockId,
-      double? qty,
-      double? rsdQty,
-      double? initialStock,
-      bool? ebmSynced,
-      double? currentStock,
-      double? value,
-      DateTime? lastTouched}) async {
+  FutureOr<void> updateStock({
+    required String stockId,
+    double? qty,
+    double? rsdQty,
+    double? initialStock,
+    bool? ebmSynced,
+    double? currentStock,
+    double? value,
+    bool appending = false,
+    DateTime? lastTouched,
+  }) async {
     Stock? stock = await getStockById(id: stockId);
+    Variant? variant = await getVariant(stockId: stock.id);
 
-    // Correctly update the stock properties.  We are *replacing* the values, not adding to them.
+    // If appending, add to existing values; otherwise, replace.
     if (currentStock != null) {
-      stock.currentStock = currentStock;
+      stock.currentStock =
+          appending ? (stock.currentStock ?? 0) + currentStock : currentStock;
     }
     if (rsdQty != null) {
-      stock.rsdQty = rsdQty;
+      stock.rsdQty = appending ? (stock.rsdQty ?? 0) + rsdQty : rsdQty;
     }
     if (initialStock != null) {
-      stock.initialStock = initialStock;
-    }
-    if (ebmSynced != null) {
-      stock.ebmSynced = ebmSynced;
+      stock.initialStock =
+          appending ? (stock.initialStock ?? 0) + initialStock : initialStock;
     }
     if (value != null) {
-      stock.value = value;
+      stock.value = appending ? (variant!.retailPrice! * currentStock!) : value;
+    }
+
+    // These fields should always be replaced, not appended
+    if (ebmSynced != null) {
+      stock.ebmSynced = ebmSynced;
     }
     if (lastTouched != null) {
       stock.lastTouched = lastTouched;
@@ -4518,24 +4744,9 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
         updatables[i].supplyPrice = supplyPrice;
       }
 
-      updatables[i].stock?.rsdQty = (updatables[i].stock?.rsdQty ?? 0);
-      updatables[i].stock?.currentStock = (updatables[i].stock?.rsdQty ?? 0);
       updatables[i].lastTouched = DateTime.now().toLocal();
 
       await repository.upsert<Variant>(updatables[i]);
-      if (updatables[i].stock != null) {
-        await repository.upsert<Stock>(updatables[i].stock!);
-      }
-
-      if (await ProxyService.strategy
-          .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!)) {
-        StockPatch.patchStock(
-          URI: (await ProxyService.box.getServerUrl()) ?? "",
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
-          },
-        );
-      }
     }
   }
 
@@ -5447,105 +5658,163 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
     required String lastReqDt,
     required String url,
   }) async {
-    // Fetch business details
-    Business? business =
-        await getBusiness(businessId: ProxyService.box.getBusinessId()!);
-    final businessId = ProxyService.box.getBusinessId()!;
-    final branchId = ProxyService.box.getBranchId()!;
-    final tinNumber = business!.tinNumber!;
-    final bhfId = business.bhfId!;
-    Branch? activeBranch =
-        await branch(serverId: ProxyService.box.getBranchId()!);
-
     try {
-      // Check if the last request date already exists in the database
-      final lastReqDate = await repository.get<ImportPurchaseDates>(
+      // Fetch active branch
+      final activeBranch =
+          await branch(serverId: ProxyService.box.getBranchId()!);
+      if (activeBranch == null) throw Exception("Active branch not found");
+
+      // Fetch business details
+      final business =
+          await getBusinessById(businessId: ProxyService.box.getBusinessId()!);
+      if (business == null) throw Exception("Business details not found");
+
+      final businessId = ProxyService.box.getBusinessId()!;
+      int branchId = ProxyService.box.getBranchId()!;
+      final tinNumber = business.tinNumber!;
+
+      // Fetch last request date for purchases
+      final lastRequestRecords = await repository.get<ImportPurchaseDates>(
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        query: brick.Query(where: [
-          brick.Where('branchId').isExactly(activeBranch!.id),
-          brick.Where('lastRequestDate').isExactly(lastReqDt),
-          brick.Where('requestType').isExactly("PURCHASE"),
-        ]),
+        query: brick.Query(
+          orderBy: [const OrderBy('lastRequestDate', ascending: false)],
+          where: [
+            brick.Where('branchId').isExactly(branchId),
+            brick.Where('requestType').isExactly("PURCHASE"),
+          ],
+        ),
       );
 
-      if (lastReqDate.isEmpty) {
-        List<Purchase> saleList =
-            await ProxyService.tax.selectTrnsPurchaseSales(
-          URI: url,
-          tin: tin,
-          bhfId: (await ProxyService.box.bhfId()) ?? "00",
-          lastReqDt: lastReqDt,
-        );
-        // Log the first purchase for debugging
-        //print(saleList.first.toJson());
+      // Determine if API fetch is needed
+      final shouldFetchFromApi = lastRequestRecords.isEmpty ||
+          lastRequestRecords.first.lastRequestDate != lastReqDt;
 
-        // If the last request date does not exist, process new purchases
-        for (Purchase purchase in saleList) {
-          final futures = purchase.variants?.map((variant) async {
-            // Create a product for each variant
-            final barCode = variant.bcd?.isNotEmpty == true
-                ? variant.bcd!
-                : randomNumber().toString();
-            talker.warning({barCode: variant.taxTyCd!});
-            await createProduct(
-              saleListId: purchase.id,
-              businessId: businessId,
-              branchId: branchId,
-              pkgUnitCd: variant.pkgUnitCd,
-              qty: variant.qty ?? 1,
-              tinNumber: tinNumber,
-              taxblAmt: variant.taxblAmt,
-              bhFId: bhfId,
-              itemCd: variant.itemCd,
-              spplrItemCd: variant.itemCd,
-              itemClasses: {barCode: variant.itemClsCd ?? ""},
-              supplyPrice: variant.splyAmt!,
-              retailPrice: variant.prc!,
-              purchase: purchase,
-              createItemCode: variant.itemCd?.isEmpty == true,
-              taxTypes: {barCode: variant.taxTyCd!},
-              totAmt: variant.totAmt,
-              taxAmt: variant.taxAmt,
+      List<Variant> variantsList;
 
-              /// se this new variant created to 2 to not show it directly until is approved.
-              pchsSttsCd: "01",
-              product: Product(
-                color: randomizeColor(),
-                name: variant.itemNm ?? variant.name,
-                lastTouched: DateTime.now(),
-                branchId: branchId,
-                businessId: businessId,
-                createdAt: DateTime.now(),
-                spplrNm: purchase.spplrNm,
-                barCode: barCode,
-              ),
-            );
+      if (shouldFetchFromApi) {
+        List<Purchase> saleList;
+        try {
+          saleList = await ProxyService.tax.selectTrnsPurchaseSales(
+            URI: url,
+            tin: tin,
+            bhfId: (await ProxyService.box.bhfId()) ?? "00",
+            lastReqDt: lastReqDt,
+          );
 
-            // Save the purchase code and last request date
-            await repository.upsert<ImportPurchaseDates>(
-              ImportPurchaseDates(
-                requestType: 'PURCHASE',
-                branchId: activeBranch.id,
-                lastRequestDate: lastReqDt,
-                purchaseId: purchase.id,
-              ),
-            );
-          }).toList();
-
-          // Wait for all futures to complete
-          if (futures != null) {
-            await Future.wait(futures);
+          if (saleList.isEmpty) {
+            throw Exception("API returned null or empty data.");
+          }
+        } catch (apiError) {
+          print("API Error: $apiError");
+          if (lastRequestRecords.isNotEmpty) {
+            print("Retrying with last known request date...");
+            try {
+              saleList = await ProxyService.tax.selectTrnsPurchaseSales(
+                URI: url,
+                tin: tin,
+                bhfId: bhfId,
+                lastReqDt: lastRequestRecords.first.lastRequestDate!,
+              );
+              if (saleList.isEmpty) {
+                throw Exception(
+                    "API returned null or empty data even with the last known request date.");
+              }
+            } catch (retryError) {
+              print("Retry failed: $retryError");
+              // Instead of rethrowing, log and proceed with existing variants or an empty list.
+              saleList =
+                  []; // Treat the retry failure as an empty result.  Important!
+            }
+          } else {
+            // If no last request record, treat it as no data and proceed.
+            saleList = []; // Proceed as if the API returned no data. Important!
           }
         }
-        // return purchases i.e all variants that has purchaseId that are not null
-        // and the itemCd !=3; because 3 mean that this purchase has been accepted
-        return await variants(
-            branchId: branchId, excludeApprovedInWaitingOrCanceledItems: true);
+
+        // Process purchases
+        if (saleList.isNotEmpty) {
+          // Only process if there's data
+          List<Future<void>> futures = []; // Explicitly typed for clarity
+          for (final purchase in saleList) {
+            if (purchase.variants != null) {
+              // Check if variants is null. Protect from null exception
+              for (final variant in purchase.variants!) {
+                // Using non-null assertion operator safely because of previous null check
+                futures.add(() async {
+                  // Wrap in an explicit `async` function for safety.
+                  try {
+                    final barCode = variant.bcd?.isNotEmpty == true
+                        ? variant.bcd!
+                        : randomNumber().toString();
+                    // before creating check if this exist
+                    Variant? variantExist = await getVariant(
+                        itemCd: variant.itemCd,
+                        itemClsCd: variant.itemClsCd,
+                        itemNm: variant.itemNm);
+                    if (variantExist == null) {
+                      talker.warning("How ofthen we are in this branch");
+                      await createProduct(
+                        saleListId: purchase.id,
+                        businessId: businessId,
+                        branchId: branchId,
+                        pkgUnitCd: variant.pkgUnitCd,
+                        qty: variant.qty ?? 1,
+                        tinNumber: tinNumber,
+                        taxblAmt: variant.taxblAmt,
+                        bhFId: bhfId,
+                        itemCd: variant.itemCd,
+                        spplrItemCd: variant.itemCd,
+                        itemClasses: {barCode: variant.itemClsCd ?? ""},
+                        supplyPrice: variant.splyAmt!,
+                        retailPrice: variant.prc!,
+                        // ebmSynced: true,
+                        purchase: purchase,
+                        createItemCode: variant.itemCd?.isEmpty == true,
+                        taxTypes: {barCode: variant.taxTyCd!},
+                        totAmt: variant.totAmt,
+                        taxAmt: variant.taxAmt,
+                        pchsSttsCd: "01",
+                        product: Product(
+                          color: randomizeColor(),
+                          name: variant.itemNm ?? variant.name,
+                          lastTouched: DateTime.now(),
+                          branchId: branchId,
+                          businessId: businessId,
+                          createdAt: DateTime.now(),
+                          spplrNm: purchase.spplrNm,
+                          barCode: barCode,
+                        ),
+                      );
+                    }
+                  } catch (variantError, variantStackTrace) {
+                    print(
+                        "Error processing variant: $variantError\n$variantStackTrace");
+                    talker.error("Error processing variant", variantError,
+                        variantStackTrace);
+                    // Handle the error.  Perhaps log it or increment an error counter.
+                    //Critically:  Do NOT rethrow here. You want to continue processing other variants.
+                  }
+                }());
+              }
+            }
+          }
+          // Await all variant processing, even if some failed.
+          await Future.wait(futures);
+        }
       } else {
-        return await variants(
-            excludeApprovedInWaitingOrCanceledItems: true, branchId: branchId);
+        print("Skipping API call. Using cached data.");
+        // If you skipped the API, you might want to log this.
       }
-    } catch (e) {
+
+      // Fetch updated variants
+      variantsList = await variants(
+        branchId: branchId,
+        excludeApprovedInWaitingOrCanceledItems: true,
+      );
+
+      return variantsList;
+    } catch (e, stackTrace) {
+      print("Error in selectPurchases: $e\n$stackTrace");
       rethrow;
     }
   }
@@ -5726,5 +5995,30 @@ class CoreSync with Booting, CoreMiscellaneous implements RealmInterface {
       policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
     ))
         .firstOrNull;
+  }
+
+  @override
+  Future<BusinessInfo> initializeEbm({
+    required String tin,
+    required String bhfId,
+    required String dvcSrlNo,
+  }) async {
+    final URI = await ProxyService.box.getServerUrl();
+
+    if (foundation.kDebugMode) {
+      // Mock response in debug mode
+      print("Running in debug mode - using mock data");
+      // Simulate a delay to mimic a network request
+      await Future.delayed(Duration(seconds: 1));
+
+      // Create a BusinessInfo object directly from the mock data
+
+      return BusinessInfoResponse.fromJson(ebmInitializationMockData).data.info;
+    } else {
+      // Call the API in release mode
+      final initialisable = await ProxyService.tax
+          .initApi(tinNumber: tin, bhfId: bhfId, dvcSrlNo: dvcSrlNo, URI: URI!);
+      return initialisable;
+    }
   }
 }

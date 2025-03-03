@@ -324,4 +324,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement getBusinessServerId
     throw UnimplementedError();
   }
+
+  @override
+  bool transactionInProgress() {
+    // TODO: implement transactionInProgress
+    throw UnimplementedError();
+  }
 }

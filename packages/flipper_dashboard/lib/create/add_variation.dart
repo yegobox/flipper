@@ -1,4 +1,7 @@
 import 'package:flipper_dashboard/create/section_select_unit.dart';
+import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/view_models/mixins/_transaction.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -16,7 +19,7 @@ class AddVariation extends StatefulWidget {
   _AddVariationState createState() => _AddVariationState();
 }
 
-class _AddVariationState extends State<AddVariation> {
+class _AddVariationState extends State<AddVariation> with TransactionMixin {
   TextEditingController retailController = TextEditingController();
   TextEditingController costController = TextEditingController();
   TextEditingController nameController = TextEditingController();
@@ -35,7 +38,7 @@ class _AddVariationState extends State<AddVariation> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<ProductViewModel>.reactive(
+    return ViewModelBuilder<ScannViewModel>.reactive(
         onViewModelReady: (model) async {
           await model.getProduct(productId: widget.productId);
         },
@@ -158,11 +161,11 @@ class _AddVariationState extends State<AddVariation> {
             ),
           );
         },
-        viewModelBuilder: () => ProductViewModel());
+        viewModelBuilder: () => ScannViewModel());
   }
 
   Future<void> _saveVariation(
-    ProductViewModel model, {
+    ScannViewModel model, {
     required String selectedProductType,
     Map<String, TextEditingController>? rates,
     Map<String, TextEditingController>? dates,
@@ -181,6 +184,7 @@ class _AddVariationState extends State<AddVariation> {
       name: nameController.text,
       sku: sku,
       lastTouched: DateTime.now(),
+      itemCd: clip,
       productId: model.product!.id,
       unit: model.productService.currentUnit!,
       productName: nameController.text,
@@ -200,7 +204,6 @@ class _AddVariationState extends State<AddVariation> {
       // RRA fields
       ..bhfId = await ProxyService.box.bhfId() ?? "00"
       ..tin = business!.tinNumber
-      ..itemCd = clip
       ..itemStdNm = "Regular"
       ..prc = 0
       ..addInfo = "A"
@@ -213,6 +216,7 @@ class _AddVariationState extends State<AddVariation> {
     variations.add(data);
 
     await model.addVariant(
+      model: model,
       countryofOrigin: "RW",
       selectedProductType: selectedProductType,
       packagingUnit: "BJ",
@@ -220,6 +224,29 @@ class _AddVariationState extends State<AddVariation> {
       rates: rates,
       dates: dates,
       variations: variations,
+      onCompleteCallback: (List<Variant> variants) async {
+        final pendingTransaction =
+            await ProxyService.strategy.manageTransaction(
+          transactionType: TransactionType.adjustment,
+          isExpense: true,
+          branchId: ProxyService.box.getBranchId()!,
+        );
+        Business? business = await ProxyService.strategy
+            .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+        for (Variant variant in variants) {
+          await assignTransaction(
+            variant: variant,
+            pendingTransaction: pendingTransaction!,
+            business: business!,
+            randomNumber: randomNumber(),
+            // 06 is incoming adjustment.
+            sarTyCd: "06",
+          );
+        }
+        if (pendingTransaction != null) {
+          await completeTransaction(pendingTransaction: pendingTransaction);
+        }
+      },
     );
   }
 

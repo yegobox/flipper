@@ -1,3 +1,4 @@
+// ScannViewModel.dart (Revised)
 import 'dart:async';
 import 'dart:developer';
 
@@ -41,12 +42,98 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
   // Updates the tax type for a variant.
   Future<void> updateTax(Variant variant, String newTaxType) async {
+    print('ScannViewModel.updateTax called with: ${variant.id}, $newTaxType');
     try {
-      await ProxyService.strategy.updateVariant(
-        updatables: [variant],
-        variantId: variant.id,
-        taxTyCd: newTaxType,
-      );
+      // 3. Update the local scannedVariants list by creating a copy of the variant with new taxtype.
+      final index = scannedVariants.indexWhere((v) => v.id == variant.id);
+      if (index != -1) {
+        final existingVariant = scannedVariants[index]; //Get existing variant
+        scannedVariants[index] = Variant(
+            id: existingVariant.id,
+            purchaseId: existingVariant.purchaseId,
+            stockId: existingVariant.stockId,
+            stock: existingVariant.stock != null
+                ? Stock(
+                    id: existingVariant.stock!.id,
+                    currentStock: existingVariant.stock!.currentStock,
+                    rsdQty: existingVariant.stock!.rsdQty,
+                    value: existingVariant.stock!.value,
+                    lastTouched: DateTime.now(),
+                  )
+                : null,
+            taxPercentage: existingVariant.taxPercentage,
+            name: existingVariant.name,
+            color: existingVariant.color,
+            sku: existingVariant.sku,
+            productId: existingVariant.productId,
+            unit: existingVariant.unit,
+            productName: existingVariant.productName,
+            branchId: existingVariant.branchId,
+            taxName: existingVariant.taxName,
+            itemSeq: existingVariant.itemSeq,
+            isrccCd: existingVariant.isrccCd,
+            isrccNm: existingVariant.isrccNm,
+            isrcRt: existingVariant.isrcRt,
+            isrcAmt: existingVariant.isrcAmt,
+            taxTyCd: newTaxType, // Set the new tax type here
+            bcd: existingVariant.bcd,
+            itemClsCd: existingVariant.itemClsCd,
+            itemTyCd: existingVariant.itemTyCd,
+            itemStdNm: existingVariant.itemStdNm,
+            orgnNatCd: existingVariant.orgnNatCd,
+            pkg: existingVariant.pkg,
+            itemCd: existingVariant.itemCd,
+            pkgUnitCd: existingVariant.pkgUnitCd,
+            qtyUnitCd: existingVariant.qtyUnitCd,
+            itemNm: existingVariant.itemNm,
+            prc: existingVariant.prc,
+            splyAmt: existingVariant.splyAmt,
+            tin: existingVariant.tin,
+            bhfId: existingVariant.bhfId,
+            dftPrc: existingVariant.dftPrc,
+            addInfo: existingVariant.addInfo,
+            isrcAplcbYn: existingVariant.isrcAplcbYn,
+            useYn: existingVariant.useYn,
+            regrId: existingVariant.regrId,
+            regrNm: existingVariant.regrNm,
+            modrId: existingVariant.modrId,
+            modrNm: existingVariant.modrNm,
+            lastTouched: existingVariant.lastTouched,
+            supplyPrice: existingVariant.supplyPrice,
+            retailPrice: existingVariant.retailPrice,
+            spplrItemClsCd: existingVariant.spplrItemClsCd,
+            spplrItemCd: existingVariant.spplrItemCd,
+            spplrItemNm: existingVariant.spplrItemNm,
+            ebmSynced: existingVariant.ebmSynced,
+            dcRt: existingVariant.dcRt,
+            expirationDate: existingVariant.expirationDate,
+            qty: existingVariant.qty,
+            totWt: existingVariant.totWt,
+            netWt: existingVariant.netWt,
+            spplrNm: existingVariant.spplrNm,
+            agntNm: existingVariant.agntNm,
+            invcFcurAmt: existingVariant.invcFcurAmt,
+            invcFcurCd: existingVariant.invcFcurCd,
+            invcFcurExcrt: existingVariant.invcFcurExcrt,
+            exptNatCd: existingVariant.exptNatCd,
+            dclNo: existingVariant.dclNo,
+            taskCd: existingVariant.taskCd,
+            dclDe: existingVariant.dclDe,
+            hsCd: existingVariant.hsCd,
+            imptItemSttsCd: existingVariant.imptItemSttsCd,
+            barCode: existingVariant.barCode,
+            bcdU: existingVariant.bcdU,
+            quantity: existingVariant.quantity,
+            category: existingVariant.category,
+            dcAmt: existingVariant.dcAmt,
+            taxblAmt: existingVariant.taxblAmt,
+            taxAmt: existingVariant.taxAmt,
+            totAmt: existingVariant.totAmt,
+            pchsSttsCd: existingVariant.pchsSttsCd,
+            isShared: existingVariant.isShared);
+      }
+
+      // 4. Notify listeners to rebuild the UI
       notifyListeners();
     } catch (e) {
       talker.error(e);
@@ -164,6 +251,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       retailPrice: retailPrice,
       supplyPrice: supplyPrice,
       prc: retailPrice,
+      regrNm: product.name,
       qty: 1,
       dcRt: 0,
       pkgUnitCd: "NT",
@@ -257,18 +345,114 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   Future<void> updateVariantQuantity(String id, double newQuantity) async {
     try {
       // Find the variant with the specified id
+      int index = scannedVariants.indexWhere((variant) => variant.id == id);
 
-      // from scannedVariants look where id match set the qty
-      scannedVariants.forEach((variant) {
-        if (variant.id == id) {
-          variant.stock!.rsdQty = newQuantity;
-          variant.stock!.currentStock = newQuantity;
-          variant.stock!.initialStock = newQuantity;
-          variant.stock!.value = newQuantity * variant.retailPrice!;
-        }
-      });
+      if (index != -1) {
+        // Create a *new* Variant object with the updated quantity
+        final scannedVariant =
+            scannedVariants[index]; // Store the original variant
 
-      notifyListeners();
+        final updatedVariant = Variant(
+          id: scannedVariant.id,
+          purchaseId: scannedVariant.purchaseId,
+          stockId: scannedVariant.stockId,
+          stock: scannedVariant.stock != null
+              ? Stock(
+                  id: scannedVariant.stock!.id,
+                  currentStock: newQuantity,
+                  rsdQty: newQuantity,
+                  value: newQuantity * (scannedVariant.retailPrice ?? 0.0),
+                  lastTouched: DateTime.now(),
+                )
+              : null,
+          taxPercentage: scannedVariant.taxPercentage,
+          name: scannedVariant.name,
+          color: scannedVariant.color,
+          sku: scannedVariant.sku,
+          productId: scannedVariant.productId,
+          unit: scannedVariant.unit,
+          productName: scannedVariant.productName,
+          branchId: scannedVariant.branchId,
+          taxName: scannedVariant.taxName,
+          itemSeq: scannedVariant.itemSeq,
+          isrccCd: scannedVariant.isrccCd,
+          isrccNm: scannedVariant.isrccNm,
+          isrcRt: scannedVariant.isrcRt,
+          isrcAmt: scannedVariant.isrcAmt,
+          taxTyCd: scannedVariant.taxTyCd,
+          bcd: scannedVariant.bcd,
+          itemClsCd: scannedVariant.itemClsCd,
+          itemTyCd: scannedVariant.itemTyCd,
+          itemStdNm: scannedVariant.itemStdNm,
+          orgnNatCd: scannedVariant.orgnNatCd,
+          pkg: scannedVariant.pkg,
+          itemCd: scannedVariant.itemCd,
+          pkgUnitCd: scannedVariant.pkgUnitCd,
+          qtyUnitCd: scannedVariant.qtyUnitCd,
+          itemNm: scannedVariant.itemNm,
+          prc: scannedVariant.prc,
+          splyAmt: scannedVariant.splyAmt,
+          tin: scannedVariant.tin,
+          bhfId: scannedVariant.bhfId,
+          dftPrc: scannedVariant.dftPrc,
+          addInfo: scannedVariant.addInfo,
+          isrcAplcbYn: scannedVariant.isrcAplcbYn,
+          useYn: scannedVariant.useYn,
+          regrId: scannedVariant.regrId,
+          regrNm: scannedVariant.regrNm,
+          modrId: scannedVariant.modrId,
+          modrNm: scannedVariant.modrNm,
+          lastTouched: DateTime.now(),
+          supplyPrice: scannedVariant.supplyPrice,
+          retailPrice: scannedVariant.retailPrice,
+          spplrItemClsCd: scannedVariant.spplrItemClsCd,
+          spplrItemCd: scannedVariant.spplrItemCd,
+          spplrItemNm: scannedVariant.spplrItemNm,
+          ebmSynced: scannedVariant.ebmSynced,
+          dcRt: scannedVariant.dcRt,
+          expirationDate: scannedVariant.expirationDate,
+          qty: scannedVariant.qty,
+          totWt: scannedVariant.totWt,
+          netWt: scannedVariant.netWt,
+          spplrNm: scannedVariant.spplrNm,
+          agntNm: scannedVariant.agntNm,
+          invcFcurAmt: scannedVariant.invcFcurAmt,
+          invcFcurCd: scannedVariant.invcFcurCd,
+          invcFcurExcrt: scannedVariant.invcFcurExcrt,
+          exptNatCd: scannedVariant.exptNatCd,
+          dclNo: scannedVariant.dclNo,
+          taskCd: scannedVariant.taskCd,
+          dclDe: scannedVariant.dclDe,
+          hsCd: scannedVariant.hsCd,
+          imptItemSttsCd: scannedVariant.imptItemSttsCd,
+          barCode: scannedVariant.barCode,
+          bcdU: scannedVariant.bcdU,
+          quantity: scannedVariant.quantity,
+          category: scannedVariant.category,
+          dcAmt: scannedVariant.dcAmt,
+          taxblAmt: scannedVariant.taxblAmt,
+          taxAmt: scannedVariant.taxAmt,
+          totAmt: scannedVariant.totAmt,
+          pchsSttsCd: scannedVariant.pchsSttsCd,
+          isShared: scannedVariant.isShared,
+        );
+
+        // Replace the old variant with the new variant
+        scannedVariants[index] = updatedVariant;
+
+        //Persit to db
+        ProxyService.strategy.updateVariant(
+          updatables: [updatedVariant],
+          variantId: updatedVariant.id,
+        );
+
+        // Notify listeners to rebuild the UI
+        notifyListeners();
+      } else {
+        // Handle the exception if the variant is not found
+        print('Variant with ID $id not found');
+        talker.error('Variant with ID $id not found');
+      }
     } catch (e) {
       // Handle the exception if the variant is not found
       print('Variant with ID $id has error while updating it');

@@ -74,6 +74,7 @@ class TransactionType {
   static const String cashOut = 'Cash Out';
   static const String sale = 'Sale';
   static const String purchase = 'Purchase';
+  static const String adjustment = 'adjustment';
   static const String importation = 'Import';
   static const String salary = 'Salary';
   static const String transport = 'Transport';
@@ -93,7 +94,13 @@ class NavigationPurpose {
 }
 
 // Lists
-const List<String> paymentTypes = ['Cash', 'MOMO MTN', 'Card', 'Credit','Bank'];
+const List<String> paymentTypes = [
+  'Cash',
+  'MOMO MTN',
+  'Card',
+  'Credit',
+  'Bank'
+];
 
 List<String> accessLevels = ['No Access', 'read', 'write', 'admin'];
 
