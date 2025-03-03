@@ -1,26 +1,27 @@
-#!/bin/sh
+#!/bin/bash
 
-# Fail this script if any subcommand fails.
-set -e
+# Define the destination paths
+INDEX_PATH="${SRCROOT}/apps/flipper/web/index.html"
+CONFIGDART_PATH="${SRCROOT}/packages/flipper_login/lib/config.dart"
+SECRETS_PATH="${SRCROOT}/packages/flipper_models/lib/secrets.dart"
+FIREBASE_OPTIONS1_PATH="${SRCROOT}/apps/flipper/lib/firebase_options.dart"
+FIREBASE_OPTIONS2_PATH="${SRCROOT}/packages/flipper_models/lib/firebase_options.dart"
+AMPLIFY_CONFIG_PATH="${SRCROOT}/apps/flipper/lib/amplifyconfiguration.dart"
+AMPLIFY_TEAM_PROVIDER_PATH="${SRCROOT}/apps/flipper/amplify/team-provider-info.json"
 
-# The default execution directory of this script is the ci_scripts directory.
-cd $CI_PRIMARY_REPOSITORY_PATH # change working directory to the root of your cloned repo.
+# Write environment variables to the respective files
+echo "$INDEX" > "$INDEX_PATH"
+echo "$CONFIGDART" > "$CONFIGDART_PATH"
+echo "$SECRETS" > "$SECRETS_PATH"
+echo "$FIREBASEOPTIONS" > "$FIREBASE_OPTIONS1_PATH"
+echo "$FIREBASEOPTIONS" > "$FIREBASE_OPTIONS2_PATH"
+echo "$AMPLIFY_CONFIG" > "$AMPLIFY_CONFIG_PATH"
+echo "$AMPLIFY_TEAM_PROVIDER" > "$AMPLIFY_TEAM_PROVIDER_PATH"
 
-# Install Flutter using git.
-git clone https://github.com/flutter/flutter.git --depth 1 -b stable $HOME/flutter
-export PATH="$PATH:$HOME/flutter/bin"
+# Configure Git to prevent line ending conversion issues
+git config --global core.autocrlf false
 
-# Install Flutter artifacts for iOS (--ios), or macOS (--macos) platforms.
-flutter precache --ios
-
-# Install Flutter dependencies.
-flutter pub get
-
-# Install CocoaPods using Homebrew.
-HOMEBREW_NO_AUTO_UPDATE=1 # disable homebrew's automatic updates.
-brew install cocoapods
-
-# Install CocoaPods dependencies.
-cd ios && pod install # run `pod install` in the `ios` directory.
-
-exit 0
+# Log actions for debugging (optional)
+echo "Environment variables have been written to their respective files."
+echo "Writing INDEX to: $INDEX_PATH"
+echo "INDEX content: $INDEX"
