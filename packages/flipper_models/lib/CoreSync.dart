@@ -3439,7 +3439,7 @@ class CoreSync
     required int branchId,
   }) async {
     try {
-      final pendingTransaction = await _createAdjustmentTransaction();
+      final adjustmentTransaction = await _createAdjustmentTransaction();
       final business = await ProxyService.strategy.getBusiness();
       final serverUrl = await ProxyService.box.getServerUrl();
 
@@ -3448,7 +3448,7 @@ class CoreSync
         return; // Early exit if crucial data is missing
       }
 
-      if (pendingTransaction == null) {
+      if (adjustmentTransaction == null) {
         talker.warning("Failed to create adjustment transaction. Aborting.");
         return;
       }
@@ -3456,13 +3456,13 @@ class CoreSync
         await _processTransactionItems(
           items: items,
           branchId: branchId,
-          pendingTransaction: pendingTransaction,
+          adjustmentTransaction: adjustmentTransaction,
           business: business,
           serverUrl: serverUrl,
         );
 
         // Assuming completeTransaction is defined in the same scope.
-        await completeTransaction(pendingTransaction: pendingTransaction);
+        await completeTransaction(pendingTransaction: adjustmentTransaction);
       }
     } catch (e, s) {
       talker.error(s);
@@ -3487,7 +3487,7 @@ class CoreSync
   Future<void> _processTransactionItems({
     required List<TransactionItem> items,
     required int branchId,
-    required ITransaction pendingTransaction,
+    required ITransaction adjustmentTransaction,
     required Business business,
     required String serverUrl,
   }) async {
@@ -3495,7 +3495,7 @@ class CoreSync
       await _processSingleTransactionItem(
         item: item,
         branchId: branchId,
-        pendingTransaction: pendingTransaction,
+        adjustmentTransaction: adjustmentTransaction,
         business: business,
         serverUrl: serverUrl,
       );
@@ -3505,7 +3505,7 @@ class CoreSync
   Future<void> _processSingleTransactionItem({
     required TransactionItem item,
     required int branchId,
-    required ITransaction pendingTransaction,
+    required ITransaction adjustmentTransaction,
     required Business business,
     required String serverUrl,
   }) async {
@@ -3518,6 +3518,7 @@ class CoreSync
 
     final variant = await ProxyService.strategy.getVariant(id: item.variantId);
     // Setting the quantity here, after the stock patch is crucial for accuracy.
+
     variant?.qty = item.qty;
     if (variant != null) {
       await _updateVariantAndPatchStock(
@@ -3529,9 +3530,18 @@ class CoreSync
       // Assuming assignTransaction and randomNumber are defined in the same scope.
       await assignTransaction(
         variant: variant,
-        pendingTransaction: pendingTransaction,
+        pendingTransaction: adjustmentTransaction,
         business: business,
         randomNumber: randomNumber(),
+
+        /// this item we are passing is the item from existing transaction
+        /// and since we are now using another type of transaction adjustment transaction
+        /// then we pass the same item so we can use same qty.
+        item: item,
+
+        /// usualy the flag useTransactionItemForQty is needed when we are dealing with adjustment
+        /// transaction i.e not original transaction
+        useTransactionItemForQty: true,
 
         /// 11 is for sale
         sarTyCd: "11",
