@@ -327,6 +327,11 @@ abstract class RealmInterface {
       String? modrId,
       String? name,
       String? bcd,
+      String? stockId,
+      String? taskCd,
+      String? itemClsCd,
+      String? itemNm,
+      String? itemCd,
       String? productId});
   Future<bool> isTaxEnabled({required int businessId});
   Future<Receipt?> createReceipt(
@@ -582,6 +587,7 @@ abstract class RealmInterface {
     double? currentStock,
     double? value,
     DateTime? lastTouched,
+    bool appending = false,
   });
 
   FutureOr<void> updateTransactionItem({
@@ -628,7 +634,13 @@ abstract class RealmInterface {
       int? receiptNumber,
       int? totalReceiptNumber,
       bool? isProformaMode,
-      bool? isTrainingMode});
+      bool? isTrainingMode,
+
+      /// because transaction is involved in account reporting
+      /// and in other ways to facilitate that everything in flipper has attached transaction
+      /// we want to make it unclassified i.e neither it is income or expense
+      /// this help us having wrong computation on dashboard of what is income or expenses.
+      bool isUnclassfied = false});
 
   void updateCounters({
     required List<Counter> counters,
@@ -896,4 +908,7 @@ abstract class RealmInterface {
 
   Future<List<FinanceProvider>> financeProviders();
   Future<VariantBranch?> variantBranch({required String variantId});
+
+  Future<BusinessInfo> initializeEbm(
+      {required String tin, required String bhfId, required String dvcSrlNo});
 }

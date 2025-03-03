@@ -85,6 +85,7 @@ final productFromSupplier =
     // Map the data to the Variant model
     List<Variant> variants = data.map<Variant>((item) {
       return Variant(
+        itemCd: item['item_cd'],
         id: item['id']?.toString() ?? '',
         name: item['name'] ?? 'Unknown',
         productName: item['product_name'] ?? 'Unknown',

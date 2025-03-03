@@ -37,11 +37,12 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   final ScrollController _scrollController = ScrollController();
 
   ViewMode _selectedStatus = ViewMode.products;
+  //TODO: when is agent get this value to handle all cases where you might not be eligible to see stock.
+  bool _isStockButtonEnabled = true;
 
   @override
   void initState() {
     super.initState();
-
     _scrollController.addListener(_scrollListener);
   }
 
@@ -69,7 +70,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     return ViewModelBuilder<ProductViewModel>.nonReactive(
       onViewModelReady: (model) async {
         await model.loadTenants();
-
         _loadInitialProducts();
       },
       viewModelBuilder: () => ProductViewModel(),
@@ -192,18 +192,18 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final startDate = dateRange.startDate;
     final endDate = dateRange.endDate;
 
-    return Stack(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Column(
-          children: [
-            _buildSegmentedButton(context, ref),
-            const SizedBox(
-              height: 30,
-            ),
-            _buildMainContentSection(context, model, variants, showProductList,
-                startDate, endDate, ref),
-          ],
-        )
+        Center(child: _buildSegmentedButton(context, ref)),
+        const SizedBox(height: 30),
+        // Container with fixed height for the content
+        Container(
+          height: 600, // You may need to adjust this height
+          child: _buildMainContentSection(context, model, variants,
+              showProductList, startDate, endDate, ref),
+        ),
       ],
     );
   }
@@ -238,7 +238,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           ),
         ),
       ),
-      segments: const <ButtonSegment<ViewMode>>[
+      segments: <ButtonSegment<ViewMode>>[
         ButtonSegment<ViewMode>(
           value: ViewMode.products,
           label: Text('Products'),
@@ -248,10 +248,15 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           value: ViewMode.stocks,
           label: Text('Stock'),
           icon: Icon(Icons.check_circle_outline),
+          enabled:
+              _isStockButtonEnabled, // Conditionally enable/disable the stock segment
         ),
       ],
       selected: <ViewMode>{_selectedStatus},
       onSelectionChanged: (Set<ViewMode> newSelection) {
+        if (newSelection.first == ViewMode.stocks && !_isStockButtonEnabled) {
+          return; // Do nothing if the stock segment is disabled
+        }
         setState(() {
           _selectedStatus = newSelection.first;
         });
@@ -298,7 +303,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           isOrdering: false,
         );
       },
-      shrinkWrap: true,
+      physics: const AlwaysScrollableScrollPhysics(),
     );
   }
 
@@ -311,18 +316,15 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       WidgetRef ref) {
     return variants.isEmpty
         ? const Center(child: Text("No stock data available"))
-        : SizedBox(
-            height: 1200,
-            child: DataView(
-              onTapRowShowRefundModal: false,
-              onTapRowShowRecountModal: true,
-              showDetailed: false,
-              startDate: startDate ?? DateTime.now(),
-              endDate: endDate ?? DateTime.now(),
-              variants: variants,
-              rowsPerPage: ref.read(rowsPerPageProvider),
-              showDetailedReport: true,
-            ),
+        : DataView(
+            onTapRowShowRefundModal: false,
+            onTapRowShowRecountModal: true,
+            showDetailed: false,
+            startDate: startDate ?? DateTime.now(),
+            endDate: endDate ?? DateTime.now(),
+            variants: variants,
+            rowsPerPage: ref.read(rowsPerPageProvider),
+            showDetailedReport: true,
           );
   }
 }

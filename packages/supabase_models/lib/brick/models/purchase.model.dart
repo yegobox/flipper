@@ -12,7 +12,7 @@ class Purchase extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
   final String id;
-  // @OfflineFirst(where: {'purchaseId': "data['id']"})
+  @Supabase(ignore: true)
   List<Variant>? variants;
   final String spplrTin;
   final String spplrNm;

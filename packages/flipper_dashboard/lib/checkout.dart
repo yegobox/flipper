@@ -254,6 +254,7 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   Future<void> _handleCompleteTransaction(
       ITransaction transaction, bool immediateCompletion) async {
+    ProxyService.box.writeBool(key: 'transactionInProgress', value: true);
     if (customerNameController.text.isEmpty) {
       ProxyService.box.remove(key: 'customerName');
       ProxyService.box.remove(key: 'getRefundReason');
@@ -274,7 +275,9 @@ class CheckOutState extends ConsumerState<CheckOut>
       );
       // await newTransaction();
       await newTransaction(typeOfThisTransactionIsExpense: false);
+      ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
     } catch (e) {
+      ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
       ref.read(payButtonLoadingProvider.notifier).stopLoading();
       await refreshTransactionItems(transactionId: transaction.id);
       rethrow;
