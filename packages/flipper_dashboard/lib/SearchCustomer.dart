@@ -1,7 +1,10 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,6 +12,101 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'dart:async';
+
+class CustomDropdownButton extends StatefulWidget {
+  final List<String> items;
+  final String selectedItem;
+  final ValueChanged<String> onChanged;
+  final String label;
+  final IconData? icon;
+
+  const CustomDropdownButton({
+    Key? key,
+    required this.items,
+    required this.selectedItem,
+    required this.onChanged,
+    required this.label,
+    this.icon,
+  }) : super(key: key);
+
+  @override
+  _CustomDropdownButtonState createState() => _CustomDropdownButtonState();
+}
+
+class _CustomDropdownButtonState extends State<CustomDropdownButton> {
+  final GlobalKey _dropdownKey = GlobalKey();
+
+  void _showDropdown() {
+    final RenderBox renderBox =
+        _dropdownKey.currentContext?.findRenderObject() as RenderBox;
+    final size = renderBox.size;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          contentPadding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: Container(
+            width: size.width,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: widget.items.map((String value) {
+                return ListTile(
+                  title: Text(value),
+                  onTap: () {
+                    widget.onChanged(value);
+                    Navigator.of(context).pop();
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
+      barrierDismissible: true,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      key: _dropdownKey,
+      onTap: _showDropdown,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.icon != null)
+              Icon(widget.icon, size: 16, color: Colors.black54),
+            if (widget.icon != null) const SizedBox(width: 4),
+            Text(
+              widget.selectedItem,
+              style: const TextStyle(
+                color: Colors.black87,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.arrow_drop_down, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class SearchInputWithDropdown extends ConsumerStatefulWidget {
   const SearchInputWithDropdown({Key? key}) : super(key: key);
@@ -22,8 +120,11 @@ class _SearchInputWithDropdownState
     extends ConsumerState<SearchInputWithDropdown> {
   final TextEditingController _searchController = TextEditingController();
   final List<String> _customerTypes = ['Walk-in', 'Take Away', 'Delivery'];
+  final List<String> _saleTypes = ['Outgoing Sale', 'Incoming Return'];
   String _selectedCustomerType = 'Walk-in';
+  String _selectedSaleType = 'Outgoing- Sale';
   List<Customer> _searchResults = [];
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -31,6 +132,13 @@ class _SearchInputWithDropdownState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeSearchBox();
     });
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeSearchBox() async {
@@ -70,76 +178,77 @@ class _SearchInputWithDropdownState
     }
   }
 
-  void showPlayfulAlert(
-    BuildContext context, {
-    required String title,
-    required VoidCallback onPressedOk,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) => TweenAnimationBuilder(
-        duration: const Duration(milliseconds: 200),
-        tween: Tween<double>(begin: 0, end: 1),
-        builder: (context, double value, child) {
-          return Transform.scale(
-            scale: value,
-            child: AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: Row(
-                children: [
-                  Icon(
-                    Icons.celebration,
-                    color: Colors.amber,
-                    size: 30 * value,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              content: SizedBox(
-                height: 100,
-                child: Column(
-                  children: [
-                    const Text('🎉 Success! 🎉'),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        onPressedOk();
-                      },
-                      child: const Text(
-                        'Awesome!',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+  void _performSearch(String searchKey) {
+    // Cancel any existing timer
+    _debounceTimer?.cancel();
+
+    // Set a new timer
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      if (searchKey.isEmpty) {
+        setState(() {
+          _searchResults = [];
+        });
+        return;
+      }
+
+      try {
+        final customers = await ProxyService.strategy.customers(
+          key: searchKey,
+          branchId: ProxyService.box.getBranchId()!,
+        );
+
+        setState(() {
+          _searchResults = customers;
+        });
+      } catch (e) {
+        talker.warning('Error searching customers: $e');
+        setState(() {
+          _searchResults = [];
+        });
+      }
+    });
+  }
+
+  void _addCustomerToTransaction(
+      Customer customer, ITransaction transaction) async {
+    try {
+      await ProxyService.strategy.assignCustomerToTransaction(
+        customerId: customer.id,
+        transactionId: transaction.id,
+      );
+
+      // Show success alert
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Success'),
+          content: Text('Customer ${customer.custNm} added to the sale!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Refresh the transaction
+                ref.refresh(pendingTransactionStreamProvider(
+                  isExpense: false,
+                ));
+              },
+              child: const Text('OK'),
             ),
-          );
-        },
-      ),
-    );
+          ],
+        ),
+      );
+
+      // Clear search results
+      setState(() {
+        _searchResults = [];
+        _searchController.clear();
+      });
+    } catch (e, s) {
+      talker.warning('Error adding customer to transaction: $s');
+      // show
+      // Show error dialog
+      showToast(context, '$e', color: Colors.red);
+    }
   }
 
   @override
@@ -162,44 +271,44 @@ class _SearchInputWithDropdownState
               TextFormField(
                 readOnly: attachedCustomer != null,
                 controller: _searchController,
-                onChanged: (searchKey) async {
-                  if (searchKey.isEmpty) {
-                    setState(() {
-                      _searchResults = [];
-                    });
-                    return;
-                  }
-
-                  final customers = await ProxyService.strategy.customers(
-                    key: searchKey,
-                    branchId: ProxyService.box.getBranchId()!,
-                  );
-
-                  setState(() {
-                    _searchResults = customers;
-                  });
-                },
+                onChanged: _performSearch,
                 decoration: InputDecoration(
-                  hintText: 'Search',
+                  hintText: 'Search Customer',
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      DropdownButton<String>(
-                        isDense: true,
-                        value: _selectedCustomerType,
-                        icon: const Icon(Icons.arrow_drop_down),
-                        onChanged: (String? newValue) {
+                      // Customer Type Dropdown
+                      CustomDropdownButton(
+                        items: _customerTypes,
+                        selectedItem: _selectedCustomerType,
+                        onChanged: (newValue) {
                           setState(() {
-                            _selectedCustomerType = newValue!;
+                            _selectedCustomerType = newValue;
                           });
                         },
-                        items: _customerTypes.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
+                        label: 'Customer Type',
+                        icon: Icons.person,
+                      ),
+                      const SizedBox(width: 8),
+                      // Sale Type Dropdown
+                      CustomDropdownButton(
+                        items: _saleTypes,
+                        selectedItem: _selectedSaleType,
+                        onChanged: (newValue) {
+                          setState(() {
+                            _selectedSaleType = newValue;
+                            if (newValue == "Outgoing Sale") {
+                              ProxyService.box.writeString(
+                                  key: 'stockInOutType', value: "11");
+                            } else if (newValue == "Incoming Return") {
+                              ProxyService.box.writeString(
+                                  key: 'stockInOutType', value: "03");
+                            }
+                          });
+                        },
+                        label: 'Sale Type',
+                        icon: Icons.shopping_cart,
                       ),
                       attachedCustomer != null
                           ? IconButton(
@@ -237,38 +346,16 @@ class _SearchInputWithDropdownState
                   itemBuilder: (context, index) {
                     final customer = _searchResults[index];
                     return GestureDetector(
-                      onTap: () async {
-                        try {
-                          await ProxyService.strategy
-                              .assignCustomerToTransaction(
-                                  customerId: _searchResults[index].id,
-                                  transactionId: transaction.value!.id);
-                          showPlayfulAlert(
-                            context,
-                            title: "Customer added to the sale!",
-                            onPressedOk: () {
-                              // ignore: unused_result
-                              ref.refresh(pendingTransactionStreamProvider(
-                                isExpense: false,
-                              ));
-                            },
-                          );
-
-                          setState(() {
-                            _searchResults = [];
-                          });
-                        } catch (e) {
-                          talker.warning(e);
-                          rethrow;
-                        }
-                      },
+                      onTap: () => _addCustomerToTransaction(
+                          customer, transaction.value!),
                       child: Card(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.0),
                         ),
                         child: ListTile(
-                          title: Text(customer.custNm!),
-                          subtitle: Text(customer.custTin!),
+                          title: Text(customer.custNm ?? 'Unknown'),
+                          subtitle: Text(customer.custTin ?? 'No TIN'),
+                          trailing: const Icon(Icons.add_circle_outline),
                         ),
                       ),
                     );
@@ -278,7 +365,7 @@ class _SearchInputWithDropdownState
           ),
         );
       },
-      loading: () => SizedBox.shrink(),
+      loading: () => const SizedBox.shrink(),
       error: (err, stack) => Center(child: Text('Error: $err')),
     );
   }

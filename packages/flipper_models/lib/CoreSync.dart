@@ -450,7 +450,7 @@ class CoreSync
         transaction.customerId = customerId;
         repository.upsert<ITransaction>(transaction);
       } else {
-        throw Exception('Transaction with ID $transactionId not found');
+        throw Exception('Try to add item to a transaction.');
       }
     } catch (e) {
       print('Failed to assign customer to transaction: $e');
@@ -3544,7 +3544,7 @@ class CoreSync
         useTransactionItemForQty: true,
 
         /// 11 is for sale
-        sarTyCd: "11",
+        sarTyCd: ProxyService.box.stockInOutType(),
       );
     }
 
