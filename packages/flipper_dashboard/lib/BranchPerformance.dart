@@ -208,20 +208,33 @@ class StockBarChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final filteredItems =
-        items.where((item) => item.stock!.currentStock! > 1).toList();
+    // Filter out items where stock is null or currentStock is null or less than/equal 0
+    final filteredItems = items
+        .where(
+            (item) => item.stock != null && (item.stock?.currentStock ?? 0) > 0)
+        .toList();
 
     if (filteredItems.isEmpty) return;
 
     final double barWidth = size.width / (filteredItems.length * 2 + 1);
-    final double maxStock =
-        filteredItems.map((e) => e.stock!.currentStock!.toDouble()).reduce(max);
+    // Calculate maxStock from filtered items, defaulting to 1 if no stock is available
+    final double maxStock = filteredItems.isNotEmpty
+        ? filteredItems
+            .map((e) => e.stock?.currentStock?.toDouble() ?? 0)
+            .reduce(max)
+        : 1; // Ensure maxStock is at least 1 to prevent division by zero
+
     final paint = Paint()..style = PaintingStyle.fill;
 
     for (int i = 0; i < filteredItems.length; i++) {
       final item = filteredItems[i];
-      final barHeight =
-          (item.stock!.currentStock! / maxStock) * size.height * animationValue;
+      // Calculate barHeight, ensure maxStock is not zero
+      double barHeight = 0;
+      if (maxStock > 0) {
+        barHeight = ((item.stock?.currentStock ?? 0) / maxStock) *
+            size.height *
+            animationValue;
+      }
 
       final rect = Rect.fromLTRB(
         (i * 2 + 1) * barWidth,
@@ -237,7 +250,7 @@ class StockBarChartPainter extends CustomPainter {
       item.id.toString() == selectedItemId
           ? _drawText(
               canvas,
-              _formatNumber(item.stock!.currentStock!),
+              _formatNumber(item.stock?.currentStock ?? 0),
               Offset((i * 2 + 1.5) * barWidth, size.height - barHeight - 15),
               10,
               FontWeight.bold,
@@ -328,15 +341,15 @@ class ItemDetailCard extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
                     Text(
-                        'Sold: ${variant.stock!.initialStock ?? 0 - variant.stock!.currentStock!}',
+                        'Sold: ${variant.stock?.initialStock ?? 0 - (variant.stock?.currentStock ?? 0)}',
                         style: Theme.of(context).textTheme.bodyMedium),
-                    Text('In Stock: ${variant.stock!.currentStock}',
+                    Text('In Stock: ${variant.stock?.currentStock}',
                         style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
               ),
               CircularStockIndicator(
-                stock: variant.stock!.currentStock!.toInt(),
+                stock: variant.stock?.currentStock?.toInt() ?? 0,
                 maxStock: 150,
               ),
             ],
@@ -355,15 +368,18 @@ class BestSellingItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     /// best selling item is the item that has the currentStock is the lowest
-    final bestSeller = items.reduce((a, b) {
-      double aSold = a.stock!.initialStock! - a.stock!.currentStock!;
-      double bSold = b.stock!.initialStock! - b.stock!.currentStock!;
-      return aSold > bSold ? a : b;
+    final bestSeller = items.reduce((current, next) {
+      double currentSold = (current.stock?.initialStock ?? 0) -
+          (current.stock?.currentStock ?? 0);
+      double nextSold =
+          (next.stock?.initialStock ?? 0) - (next.stock?.currentStock ?? 0);
+      return currentSold > nextSold ? current : next;
     });
     double itemsSold =
-        bestSeller.stock!.initialStock == bestSeller.stock!.currentStock
+        bestSeller.stock?.initialStock == bestSeller.stock?.currentStock
             ? 1
-            : bestSeller.stock!.initialStock! - bestSeller.stock!.currentStock!;
+            : (bestSeller.stock?.initialStock ?? 0) -
+                (bestSeller.stock?.currentStock ?? 0);
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
