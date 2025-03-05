@@ -317,10 +317,7 @@ abstract class RealmInterface {
   Future<Stock> getStockById({required String id});
 
   Future<List<Variant>> selectPurchases(
-      {required String bhfId,
-      required int tin,
-      required String lastReqDt,
-      required String url});
+      {required String bhfId, required int tin, required String url});
 
   Future<Variant?> getVariant(
       {String? id,

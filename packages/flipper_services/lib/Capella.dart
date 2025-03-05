@@ -1897,10 +1897,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   Future<List<brick.Variant>> selectPurchases(
-      {required String bhfId,
-      required int tin,
-      required String lastReqDt,
-      required String url}) {
+      {required String bhfId, required int tin, required String url}) {
     // TODO: implement selectPurchases
     throw UnimplementedError();
   }

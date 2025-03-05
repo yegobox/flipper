@@ -403,18 +403,8 @@ extension DateTimeToYYYMMdd on DateTime {
     return dateFormat.format(localDateTime);
   }
 
-  String toYYYYMMddHH0000() {
-    final formattedDate = DateTime(
-      year,
-      month,
-      day,
-      0, // Set hours to 0
-      0, // Set minutes to 0
-      0, // Set seconds to 0
-      0, // Set milliseconds to 0
-      0, // Set microseconds to 0
-    );
-    return DateFormat('yyyyMMddHHmmss').format(formattedDate);
+  String toYYYYMMddHHmmss() {
+    return DateFormat('yyyyMMddHHmmss').format(this);
   }
 }
 
