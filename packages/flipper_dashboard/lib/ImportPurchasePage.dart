@@ -278,6 +278,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                             if (snapshot.hasError) {
                               return Center(
                                   child: Text('Error: ${snapshot.error}'));
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return Center(child: Text('No data available'));
                             } else {
                               salesList = snapshot.data!;
                               return Purchases(

@@ -5715,30 +5715,7 @@ class CoreSync
             throw Exception("API returned null or empty data.");
           }
         } catch (apiError) {
-          print("API Error: $apiError");
-          if (lastRequestRecords.isNotEmpty) {
-            print("Retrying with last known request date...");
-            try {
-              saleList = await ProxyService.tax.selectTrnsPurchaseSales(
-                URI: url,
-                tin: tin,
-                bhfId: bhfId,
-                lastReqDt: lastRequestRecords.first.lastRequestDate!,
-              );
-              if (saleList.isEmpty) {
-                throw Exception(
-                    "API returned null or empty data even with the last known request date.");
-              }
-            } catch (retryError) {
-              print("Retry failed: $retryError");
-              // Instead of rethrowing, log and proceed with existing variants or an empty list.
-              saleList =
-                  []; // Treat the retry failure as an empty result.  Important!
-            }
-          } else {
-            // If no last request record, treat it as no data and proceed.
-            saleList = []; // Proceed as if the API returned no data. Important!
-          }
+          rethrow;
         }
 
         // Process purchases
@@ -5756,46 +5733,40 @@ class CoreSync
                     final barCode = variant.bcd?.isNotEmpty == true
                         ? variant.bcd!
                         : randomNumber().toString();
-                    // before creating check if this exist
-                    Variant? variantExist = await getVariant(
-                        itemCd: variant.itemCd,
-                        itemClsCd: variant.itemClsCd,
-                        itemNm: variant.itemNm);
-                    if (variantExist == null) {
-                      talker.warning("How ofthen we are in this branch");
-                      await createProduct(
-                        saleListId: purchase.id,
-                        businessId: businessId,
+
+                    talker.warning("How ofthen we are in this branch");
+                    await createProduct(
+                      saleListId: purchase.id,
+                      businessId: businessId,
+                      branchId: branchId,
+                      pkgUnitCd: variant.pkgUnitCd,
+                      qty: variant.qty ?? 1,
+                      tinNumber: tinNumber,
+                      taxblAmt: variant.taxblAmt,
+                      bhFId: bhfId,
+                      itemCd: variant.itemCd,
+                      spplrItemCd: variant.itemCd,
+                      itemClasses: {barCode: variant.itemClsCd ?? ""},
+                      supplyPrice: variant.splyAmt!,
+                      retailPrice: variant.prc!,
+                      // ebmSynced: true,
+                      purchase: purchase,
+                      createItemCode: variant.itemCd?.isEmpty == true,
+                      taxTypes: {barCode: variant.taxTyCd!},
+                      totAmt: variant.totAmt,
+                      taxAmt: variant.taxAmt,
+                      pchsSttsCd: "01",
+                      product: Product(
+                        color: randomizeColor(),
+                        name: variant.itemNm ?? variant.name,
+                        lastTouched: DateTime.now(),
                         branchId: branchId,
-                        pkgUnitCd: variant.pkgUnitCd,
-                        qty: variant.qty ?? 1,
-                        tinNumber: tinNumber,
-                        taxblAmt: variant.taxblAmt,
-                        bhFId: bhfId,
-                        itemCd: variant.itemCd,
-                        spplrItemCd: variant.itemCd,
-                        itemClasses: {barCode: variant.itemClsCd ?? ""},
-                        supplyPrice: variant.splyAmt!,
-                        retailPrice: variant.prc!,
-                        // ebmSynced: true,
-                        purchase: purchase,
-                        createItemCode: variant.itemCd?.isEmpty == true,
-                        taxTypes: {barCode: variant.taxTyCd!},
-                        totAmt: variant.totAmt,
-                        taxAmt: variant.taxAmt,
-                        pchsSttsCd: "01",
-                        product: Product(
-                          color: randomizeColor(),
-                          name: variant.itemNm ?? variant.name,
-                          lastTouched: DateTime.now(),
-                          branchId: branchId,
-                          businessId: businessId,
-                          createdAt: DateTime.now(),
-                          spplrNm: purchase.spplrNm,
-                          barCode: barCode,
-                        ),
-                      );
-                    }
+                        businessId: businessId,
+                        createdAt: DateTime.now(),
+                        spplrNm: purchase.spplrNm,
+                        barCode: barCode,
+                      ),
+                    );
                   } catch (variantError, variantStackTrace) {
                     print(
                         "Error processing variant: $variantError\n$variantStackTrace");
