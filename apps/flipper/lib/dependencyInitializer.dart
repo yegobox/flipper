@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -11,6 +10,7 @@ import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
+// import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_services/locator.dart';
@@ -21,10 +21,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:amplify_flutter/amplify_flutter.dart' as apmplify;
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
-import 'package:get_it/get_it.dart';
 
 // Generated in previous step
 import 'amplifyconfiguration.dart';
@@ -90,7 +88,7 @@ Future<void> initializeDependencies() async {
   // FirebaseFirestore.instance.settings =
   //     const Settings(persistenceEnabled: false);
   if (isTest) {
-    FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8081);
+    //FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8081);
   }
 
   _configureAmplify();
@@ -168,74 +166,12 @@ Future<void> initializeDependencies() async {
 }
 
 Future<void> initializeDependenciesForTest() async {
-  try {
-    WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
 
-    if (Platform.isWindows) {
-      sqfliteFfiInit();
-      databaseFactoryOrNull = databaseFactoryFfi;
-    }
+  // Initialize only the necessary dependencies for tests
+  await loadSupabase();
+  await initDependencies();
 
-    GoogleFonts.config.allowRuntimeFetching = false;
-
-    // Reset any existing dependencies
-    if (loc.areDependenciesInitialized) {
-      await loc.resetDependencies();
-    }
-
-    // Initialize Supabase first since other services might depend on it
-    try {
-      await loadSupabase().timeout(
-        const Duration(seconds: 30),
-        onTimeout: () => throw TimeoutException('Supabase initialization timed out'),
-      );
-    } catch (e) {
-      debugPrint('Supabase initialization error: $e');
-      // Continue even if Supabase fails in test environment
-    }
-
-    // Initialize Firebase with test configuration
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () => throw TimeoutException('Firebase initialization timed out'),
-      );
-      
-      // Set Firestore to use emulator in test environment
-      FirebaseFirestore.instance.settings = const Settings(
-        persistenceEnabled: false,
-        host: 'localhost:8081',
-        sslEnabled: false,
-        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-      );
-    } catch (e) {
-      debugPrint('Firebase initialization error: $e');
-      // Continue even if Firebase fails in test environment
-    }
-
-    // Set up HTTP overrides for test environment
-    if (!kIsWeb) {
-      HttpOverrides.global = MyHttpOverrides();
-      try {
-        ByteData data = await PlatformAssetBundle().load('assets/ca/lets-encrypt-r3.pem');
-        SecurityContext.defaultContext.setTrustedCertificatesBytes(data.buffer.asUint8List());
-      } catch (e) {
-        debugPrint('SSL certificate setup error: $e');
-      }
-    }
-
-    // Initialize dependencies for testing
-    await loc.initDependencies(env: 'test');
-
-  } catch (e) {
-    debugPrint('Error during test initialization: $e');
-    rethrow;
-  }
-
-  // Initialize dependency injection last
-  await loc.initDependencies();
   loc.setupLocator(stackedRouter: stackedRouter);
   setupDialogUi();
   setupBottomSheetUi();

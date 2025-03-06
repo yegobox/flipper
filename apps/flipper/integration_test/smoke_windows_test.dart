@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 import 'package:flipper_rw/main.dart' as app_main;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -45,8 +46,15 @@ Future<bool> retryUntilFound(WidgetTester tester, Finder finder, {int maxAttempt
 }
 
 void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
   if (!shouldRunTest) {
     debugPrint('Skipping Windows smoke test on non-Windows platform');
+    group('Windows Smoke Test (Skipped)', () {
+      test('Skipped on non-Windows platform', () {
+      //  skip('This test is only meant to run on Windows');
+      });
+    });
     return;
   }
 
