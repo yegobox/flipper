@@ -33,7 +33,7 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
 
-      - uses: actions/setup-java@v4p
+      - uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "17"
