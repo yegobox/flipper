@@ -9,6 +9,7 @@ import 'common.dart';
 import 'dart:async';
 import 'dart:io';
 import '../lib/dependencyInitializer.dart';
+import 'package:flipper_services/locator.dart';
 
 // Skip this test if not running on Windows
 bool get shouldRunTest =>
@@ -59,6 +60,8 @@ void main() {
   setUpAll(() async {
     try {
       debugPrint('Starting Windows smoke test setup...');
+      // Reset dependencies before initializing
+      await resetDependencies();
       // Initialize test dependencies with timeout
       await initializeDependenciesForTest().timeout(
         const Duration(minutes: 4),
@@ -215,6 +218,11 @@ Future<void> startApp(WidgetTester tester) async {
       throw Exception('This test must be run on Windows unless FORCE_TEST is enabled');
     }
 
+    // Skip dependency initialization in app_main when running tests
+    if (const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false)) {
+      app_main.skipDependencyInitialization = true;
+    }
+
     // Initialize app with error capture
     FlutterError.onError = (FlutterErrorDetails details) {
       debugPrint(
@@ -259,10 +267,10 @@ Future<void> startApp(WidgetTester tester) async {
     // Wait for app initialization with error check
     await tester.pump(const Duration(seconds: 2));
 
-    // Verify app is initialized
-    final app = find.byKey(const Key(mainApp));
+    // Verify app is initialized by looking for MaterialApp.router
+    final app = find.byWidgetPredicate((widget) => widget is MaterialApp && widget.routerDelegate != null);
     if (app.evaluate().isEmpty) {
-      throw Exception('Main app widget not found after initialization');
+      throw Exception('MaterialApp.router widget not found after initialization');
     }
   } catch (e, stackTrace) {
     debugPrint('Fatal error during app startup: $e');
