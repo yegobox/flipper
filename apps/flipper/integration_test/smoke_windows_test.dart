@@ -14,16 +14,12 @@ const String pinLoginButtonKey2 = 'pinLoginButton';
 const String pinRequiredText = 'PIN is required';
 const String pinNotFoundText = 'Pin: Not found';
 const String quickSellKey = 'quickSell';
-Future<void> restoreFlutterError(Future<void> Function() call) async {
-  final originalOnError = FlutterError.onError!;
+Future<void> runWithErrorHandler(Future<void> Function() call) async {
+  final originalOnError = FlutterError.onError;
   try {
     await call();
   } finally {
-    final overriddenOnError = FlutterError.onError!;
-    FlutterError.onError = (FlutterErrorDetails details) {
-      if (overriddenOnError != originalOnError) overriddenOnError(details);
-      originalOnError(details);
-    };
+    FlutterError.onError = originalOnError;
   }
 }
 
@@ -37,33 +33,38 @@ Future<bool> retryUntilFound(WidgetTester tester, Finder finder, {int maxAttempt
 
 void main() {
   group('Windows App Smoke Test', () {
+    late FlutterExceptionHandler originalOnError;
+
     setUp(() {
+      originalOnError = FlutterError.onError!;
       FlutterError.onError = (FlutterErrorDetails details) {
         print('Error occurred: ${details.exception}');
         print('Stack trace: ${details.stack}');
-        throw details.exception;
+        originalOnError?.call(details);
       };
     });
 
     tearDown(() {
-      FlutterError.onError = null;
+      FlutterError.onError = originalOnError;
     });
 
     testWidgets('Test app initialization and login flow',
         (WidgetTester tester) async {
-      await startApp(tester);
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+      await runWithErrorHandler(() async {
+        await startApp(tester);
+        await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      // Check if already logged in
-      if (await isLoggedIn(tester)) {
-        print('User already logged in, testing EOD navigation...');
-        await navigateToEodAndBack(tester);
-      } else {
-        print('User not logged in, testing full login flow...');
-        await testLoginFlow(tester);
-        await testPinValidation(tester);
-        await testEodNavigation(tester);
-      }
+        // Check if already logged in
+        if (await isLoggedIn(tester)) {
+          print('User already logged in, testing EOD navigation...');
+          await navigateToEodAndBack(tester);
+        } else {
+          print('User not logged in, testing full login flow...');
+          await testLoginFlow(tester);
+          await testPinValidation(tester);
+          await testEodNavigation(tester);
+        }
+      });
     }, timeout: const Timeout(Duration(minutes: 5)));
   });
 }
@@ -93,10 +94,8 @@ Future<void> testLoginFlow(WidgetTester tester) async {
 
 /// Starts the app and waits for it to load.
 Future<void> startApp(WidgetTester tester) async {
-  await restoreFlutterError(() async {
-    await app_main.main();
-    await tester.pumpAndSettle(const Duration(seconds: 5));
-  });
+  await app_main.main();
+  await tester.pumpAndSettle(const Duration(seconds: 5));
   
   // Wait for startup view to complete
   final startupText = find.text('A revolutionary business software...');
