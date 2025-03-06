@@ -1,4 +1,4 @@
-name: CI/CD
+name: Flipper - CI/CD - Windows & Android & Google Play
 
 on:
   # Enable manual run
@@ -16,16 +16,67 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - main
 
 env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+  SUPABASE_URL: http://localhost:54321
+  SUPABASE_ANON_KEY: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+  # SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} # Securely store this
+  IS_TEST_ENV: true
 
 jobs:
+  supabase-init:
+    name: Supabase Initialize
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: supabase/postgres:latest
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          npm install -g supabase
+
+      - name: Start Supabase Locally
+        run: |
+          supabase start
+
+      # - name: Initialize Database Schema (Supabase CLI)
+      #   run: |
+      #     # Replace 'supabase/migrations' with the correct path if different
+      #     supabase db push --db-url $SUPABASE_URL
+
+      # - name: Seed Database (if needed)
+      #   run: |
+      #     # Add your seed data script execution here (e.g., using psql)
+      #     #  psql -U postgres -d postgres -f ./supabase/seed.sql -h localhost -p 5432
+
+      - name: Stop Supabase
+        if: always()
+        run: |
+          supabase stop
+
   unit-testing:
     name: Unit Testing
     runs-on: windows-2022
+    needs: [supabase-init] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
@@ -59,7 +110,7 @@ jobs:
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
-          
+
           git config --global core.autocrlf false
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
         env:
@@ -75,14 +126,11 @@ jobs:
           cd ../..
           cd packages/flipper_dashboard
           flutter test --dart-define=FLUTTER_TEST_ENV=true --verbose
-          # cd ..
-          # cd flipper_models
-          # flutter test --dart-define=FLUTTER_TEST_ENV=true --verbose
 
   integration-testing-windows:
     name: "Integration Testing Windows"
     runs-on: windows-2022
-    needs: [unit-testing]
+    needs: [supabase-init, unit-testing] # Requires Supabase to be initialized
     steps:
       - name: Export pub environment variable on Windows
         run: |
@@ -137,6 +185,7 @@ jobs:
   build-and-release-windows-debug:
     name: "Build windows app-debug"
     runs-on: windows-2022
+    needs: [supabase-init, unit-testing, integration-testing-windows] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
         with:
@@ -195,6 +244,7 @@ jobs:
   build-and-release-windows-prod:
     name: "Build windows app-store"
     runs-on: windows-2022
+    needs: [supabase-init, unit-testing, integration-testing-windows] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
         with:
@@ -252,7 +302,8 @@ jobs:
           asset_content_type: application/vnd.ms-msix
 
   integration-on-android:
-    # needs: [unit-testing]
+    name: Integration on Android
+    needs: [supabase-init, unit-testing]  # Requires Supabase to be initialized
     runs-on: macOS-14
     strategy:
       matrix:
@@ -370,7 +421,7 @@ jobs:
 
   fastlane-deploy:
     name: "Google Deploy"
-    needs: [unit-testing, integration-testing-windows]
+    needs: [supabase-init, unit-testing, integration-testing-windows]  # Requires Supabase to be initialized
     # runs-on: ubuntu-22.04
     runs-on: macOS-14
     steps:

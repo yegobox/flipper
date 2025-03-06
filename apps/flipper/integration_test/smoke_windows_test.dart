@@ -11,6 +11,7 @@ import 'package:flipper_models/secrets.dart';
 import 'common.dart';
 import 'dart:async';
 import 'dart:convert';
+import '../lib/dependencyInitializer.dart';
 
 // Constants for widget keys and text
 const String mainApp = 'mainApp';
@@ -40,9 +41,25 @@ Future<bool> retryUntilFound(WidgetTester tester, Finder finder, {int maxAttempt
 }
 
 void main() {
+  setUpAll(() async {
+    // Initialize test dependencies
+    await initializeDependenciesForTest();
+    
+    // Set up test data
+    await ProxyService.box.writeInt(key: 'userId', value: 1);
+    await ProxyService.box.writeInt(key: 'businessId', value: 1);
+    await ProxyService.box.writeInt(key: 'branchId', value: 1);
+    await ProxyService.box.writeString(key: 'userPhone', value: '+250783054874');
+    await ProxyService.box.writeBool(key: 'pinLogin', value: false);
+    await ProxyService.box.writeBool(key: 'authComplete', value: false);
+  });
+
+  tearDownAll(() async {
+    await ProxyService.box.clear();
+  });
+
   group('Windows App Smoke Test', () {
     late void Function(FlutterErrorDetails)? originalOnError;
-
     setUp(() {
       originalOnError = FlutterError.onError;
       FlutterError.onError = (FlutterErrorDetails details) {
@@ -60,98 +77,87 @@ void main() {
         (WidgetTester tester) async {
       await runWithErrorHandler(() async {
         await startApp(tester);
-        await tester.pumpAndSettle(const Duration(seconds: 3));
+        await tester.pump(const Duration(seconds: 2));
 
-        // Check if already logged in
-        if (await isLoggedIn(tester)) {
-          print('User already logged in, testing EOD navigation...');
-          await navigateToEodAndBack(tester);
-        } else {
-          print('User not logged in, testing full login flow...');
-          await testLoginFlow(tester);
-          await testPinValidation(tester);
-          await testEodNavigation(tester);
+        // Verify we're on the PIN login screen with timeout
+        final pinLogin = find.byKey(const Key(pinLoginKey));
+        bool foundPinLogin = false;
+        for (int i = 0; i < 5; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (pinLogin.evaluate().isNotEmpty) {
+            foundPinLogin = true;
+            break;
+          }
         }
+        expect(foundPinLogin, isTrue, reason: 'PIN login screen not found after 5 seconds');
+        
+        await testLoginFlow(tester);
+        await testPinValidation(tester);
+        await testEodNavigation(tester);
       });
-    }, timeout: const Timeout(Duration(minutes: 5)));
+    }, timeout: const Timeout(Duration(minutes: 3)));
   });
 }
 
 /// Tests the login button and navigation to the PIN login screen.
 Future<void> testLoginFlow(WidgetTester tester) async {
-  await tester.pumpAndSettle(const Duration(seconds: 3));
-  
+  // Wait for PIN login widget with timeout
   final pinLogin = find.byKey(const Key(pinLoginKey));
-  expect(pinLogin, findsOneWidget, reason: 'PIN login widget not found');
+  bool foundPinLogin = false;
+  for (int i = 0; i < 5; i++) {
+    await tester.pump(const Duration(seconds: 1));
+    if (pinLogin.evaluate().isNotEmpty) {
+      foundPinLogin = true;
+      break;
+    }
+  }
+  expect(foundPinLogin, isTrue, reason: 'PIN login widget not found after 5 seconds');
   
+  // Enter PIN
   final pinField = find.byType(TextFormField).first;
   await tester.tap(pinField);
-  await tester.pumpAndSettle();
+  await tester.pump();
   await tester.enterText(pinField, '73268');
-  await tester.pumpAndSettle();
+  await tester.pump();
   
+  // Tap login button
   final loginButton = find.byKey(const Key(pinLoginButtonKey2));
   expect(loginButton, findsOneWidget, reason: 'Login button not found');
   await tester.tap(loginButton);
-  await tester.pumpAndSettle(const Duration(seconds: 3));
   
+  // Wait for QuickSell widget with timeout
   final quickSell = find.byKey(const Key(quickSellKey));
-  final found = await retryUntilFound(tester, quickSell);
-  expect(found, isTrue, reason: 'QuickSell widget not found after login');
+  bool foundQuickSell = false;
+  for (int i = 0; i < 10; i++) {
+    await tester.pump(const Duration(seconds: 1));
+    if (quickSell.evaluate().isNotEmpty) {
+      foundQuickSell = true;
+      break;
+    }
+  }
+  expect(foundQuickSell, isTrue, reason: 'QuickSell widget not found after 10 seconds');
 }
 
 /// Starts the app and waits for it to load.
 Future<void> startApp(WidgetTester tester) async {
-  // Initialize test data
-  final userId = 1;
-  final businessId = 1;
-  final branchId = 1;
-  final phoneNumber = '+250788111222';
-  
-  // Set up test user and business data
-  await ProxyService.box.writeInt(key: 'userId', value: userId);
-  await ProxyService.box.writeInt(key: 'businessId', value: businessId);
-  await ProxyService.box.writeInt(key: 'branchId', value: branchId);
-  await ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
-  await ProxyService.box.writeBool(key: 'pinLogin', value: false);
-  await ProxyService.box.writeBool(key: 'authComplete', value: false);
-  
-  // Create test subscription
-  final subscription = Subscription(
-    businessId: businessId,
-    validFrom: DateTime.now(),
-    validUntil: DateTime.now().add(const Duration(days: 30)),
-    active: true,
-  );
-  await ProxyService.strategy.create(data: subscription);
-  
-  // Create test business
-  final business = Business(
-    serverId: businessId,
-    isDefault: true,
-    encryptionKey: '11',
-  );
-  await ProxyService.strategy.create(data: business);
-  
-  // Create test branch
-  final branch = Branch(
-    serverId: branchId,
-    businessId: businessId,
-    isDefault: true,
-  );
-  await ProxyService.strategy.create(data: branch);
-  
   // Start the app
   await app_main.main();
-  await tester.pumpAndSettle(const Duration(seconds: 5));
+  await tester.pump();
   
-  // Wait for startup view to complete
+  // Wait for startup view to complete with timeout
   final startupText = find.text('A revolutionary business software...');
-  final foundStartup = await retryUntilFound(tester, startupText, maxAttempts: 10);
-  expect(foundStartup, isTrue, reason: 'Startup view not found');
+  bool foundStartup = false;
+  for (int i = 0; i < 10; i++) {
+    await tester.pump(const Duration(seconds: 1));
+    if (startupText.evaluate().isNotEmpty) {
+      foundStartup = true;
+      break;
+    }
+  }
+  expect(foundStartup, isTrue, reason: 'Startup view not found after 10 seconds');
   
-  // Wait for startup animation and initialization
-  await tester.pumpAndSettle(const Duration(seconds: 3));
+  // Wait for app initialization
+  await tester.pump(const Duration(seconds: 2));
   
   // Verify app is initialized
   final app = find.byKey(const Key(mainApp));

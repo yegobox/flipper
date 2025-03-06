@@ -167,12 +167,57 @@ Future<void> initializeDependencies() async {
 }
 
 Future<void> initializeDependenciesForTest() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize only the necessary dependencies for tests
-  await loadSupabase();
-  await initDependencies();
+    if (Platform.isWindows) {
+      sqfliteFfiInit();
+      databaseFactoryOrNull = databaseFactoryFfi;
+    }
 
+    GoogleFonts.config.allowRuntimeFetching = false;
+
+    // Reset any existing dependencies first
+    if (loc.areDependenciesInitialized) {
+      await loc.resetDependencies();
+    }
+
+    // Initialize Supabase first since other services might depend on it
+    await loadSupabase().timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => throw TimeoutException('Supabase initialization timed out'),
+    );
+
+    // Initialize Firebase with test configuration
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => throw TimeoutException('Firebase initialization timed out'),
+    );
+    
+    // Set Firestore to use emulator in test environment
+    FirebaseFirestore.instance.settings = const Settings(
+      persistenceEnabled: false,
+      host: 'localhost:8081',
+      sslEnabled: false,
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+    );
+
+    // Set up HTTP overrides for test environment
+    if (!kIsWeb) {
+      HttpOverrides.global = MyHttpOverrides();
+      ByteData data = await PlatformAssetBundle().load('assets/ca/lets-encrypt-r3.pem');
+      SecurityContext.defaultContext.setTrustedCertificatesBytes(data.buffer.asUint8List());
+    }
+
+  } catch (e) {
+    debugPrint('Error during test initialization: $e');
+    rethrow;
+  }
+
+  // Initialize dependency injection last
+  await loc.initDependencies();
   loc.setupLocator(stackedRouter: stackedRouter);
   setupDialogUi();
   setupBottomSheetUi();
