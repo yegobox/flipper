@@ -210,9 +210,9 @@ Future<void> testLoginFlow(WidgetTester tester) async {
 Future<void> startApp(WidgetTester tester) async {
   // Start the app with error handling
   try {
-    // Ensure we're running on Windows
-    if (!Platform.isWindows) {
-      throw Exception('This test must be run on Windows');
+    // Ensure we're running on Windows or FORCE_TEST is enabled
+    if (!Platform.isWindows && !const bool.fromEnvironment('FORCE_TEST', defaultValue: false)) {
+      throw Exception('This test must be run on Windows unless FORCE_TEST is enabled');
     }
 
     // Initialize app with error capture
