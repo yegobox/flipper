@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flipper_rw/main.dart' as app_main;
 import 'common.dart';
@@ -33,10 +34,10 @@ Future<bool> retryUntilFound(WidgetTester tester, Finder finder, {int maxAttempt
 
 void main() {
   group('Windows App Smoke Test', () {
-    late FlutterExceptionHandler originalOnError;
+    late void Function(FlutterErrorDetails)? originalOnError;
 
     setUp(() {
-      originalOnError = FlutterError.onError!;
+      originalOnError = FlutterError.onError;
       FlutterError.onError = (FlutterErrorDetails details) {
         print('Error occurred: ${details.exception}');
         print('Stack trace: ${details.stack}');
