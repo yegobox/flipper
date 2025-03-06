@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter/foundation.dart';
+import 'package:integration_test/integration_test.dart';
+import 'dart:io';
 import 'common.dart';
 
-// patrol develop  --target integration_test/smoke_android_test.dart
-void main() {
-  patrol('Run app-android:', (tester) async {
-    // Override the error handler
-    FlutterError.onError = (FlutterErrorDetails details) {
-      // Optionally, you can log the error details here
-      // print('FlutterError: ${details.exceptionAsString()}');
-    };
+// Skip this test if not running on Android
+bool get shouldRunTest => Platform.isAndroid || const bool.fromEnvironment('FORCE_TEST', defaultValue: false);
 
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  if (!shouldRunTest) {
+    debugPrint('Skipping Android smoke test on non-Android platform');
+    group('Android Smoke Test (Skipped)', () {
+      test('Skipped on non-Android platform', () {});
+    });
+    return;
+  }
+
+  patrol('Run app-android:', (tester) async {
     try {
       final widgetTester = tester.tester;
-
-      // Clear any existing exceptions before the test
-      widgetTester.takeException();
       await createApp(tester);
 
       // This is required prior to taking the screenshot (Android only).
@@ -123,10 +128,8 @@ void main() {
       /// go back to login screen
       expect(find.text('Sign In'), findsOneWidget);
     } catch (e) {
-      // print('Caught error: $e'); // Log the error for debugging
-    } finally {
-      // Restore the original error handler
-      // FlutterError.onError = originalOnError;
+      debugPrint('Test error: $e');
+      rethrow; // Rethrow to ensure test failure is reported
     }
   });
 }
