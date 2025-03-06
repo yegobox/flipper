@@ -77,7 +77,7 @@ jobs:
   unit-testing:
     name: Unit Testing
     runs-on: windows-2022
-    needs: [supabase-init] # Requires Supabase to be initialized
+    # needs: [supabase-init] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
@@ -131,7 +131,7 @@ jobs:
   integration-testing-windows:
     name: "Integration Testing Windows"
     runs-on: windows-2022
-    needs: [supabase-init, unit-testing] # Requires Supabase to be initialized
+    needs: [unit-testing] # Requires Supabase to be initialized
     steps:
       - name: Export pub environment variable on Windows
         run: |
@@ -186,7 +186,7 @@ jobs:
   build-and-release-windows-debug:
     name: "Build windows app-debug"
     runs-on: windows-2022
-    needs: [supabase-init, unit-testing, integration-testing-windows] # Requires Supabase to be initialized
+    needs: [unit-testing, integration-testing-windows] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
         with:
@@ -245,7 +245,7 @@ jobs:
   build-and-release-windows-prod:
     name: "Build windows app-store"
     runs-on: windows-2022
-    needs: [supabase-init, unit-testing, integration-testing-windows] # Requires Supabase to be initialized
+    needs: [unit-testing, integration-testing-windows] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
         with:
@@ -304,7 +304,7 @@ jobs:
 
   integration-on-android:
     name: Integration on Android
-    needs: [supabase-init, unit-testing]  # Requires Supabase to be initialized
+    needs: [unit-testing]  # Requires Supabase to be initialized
     runs-on: macOS-14
     strategy:
       matrix:
@@ -422,7 +422,7 @@ jobs:
 
   fastlane-deploy:
     name: "Google Deploy"
-    needs: [supabase-init, unit-testing, integration-testing-windows]  # Requires Supabase to be initialized
+    needs: [unit-testing, integration-testing-windows]  # Requires Supabase to be initialized
     # runs-on: ubuntu-22.04
     runs-on: macOS-14
     steps:
