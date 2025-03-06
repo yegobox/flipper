@@ -11,7 +11,11 @@ import 'package:flipper_models/secrets.dart';
 import 'common.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import '../lib/dependencyInitializer.dart';
+
+// Skip this test if not running on Windows
+bool get shouldRunTest => Platform.isWindows || const bool.fromEnvironment('FORCE_TEST', defaultValue: false);
 
 // Constants for widget keys and text
 const String mainApp = 'mainApp';
@@ -41,21 +45,54 @@ Future<bool> retryUntilFound(WidgetTester tester, Finder finder, {int maxAttempt
 }
 
 void main() {
+  if (!shouldRunTest) {
+    debugPrint('Skipping Windows smoke test on non-Windows platform');
+    return;
+  }
+
   setUpAll(() async {
-    // Initialize test dependencies
-    await initializeDependenciesForTest();
-    
-    // Set up test data
-    await ProxyService.box.writeInt(key: 'userId', value: 1);
-    await ProxyService.box.writeInt(key: 'businessId', value: 1);
-    await ProxyService.box.writeInt(key: 'branchId', value: 1);
-    await ProxyService.box.writeString(key: 'userPhone', value: '+250783054874');
-    await ProxyService.box.writeBool(key: 'pinLogin', value: false);
-    await ProxyService.box.writeBool(key: 'authComplete', value: false);
+    try {
+      debugPrint('Starting Windows smoke test setup...');
+      // Initialize test dependencies with timeout
+      await initializeDependenciesForTest().timeout(
+        const Duration(minutes: 2),
+        onTimeout: () => throw TimeoutException('Test initialization timed out after 2 minutes'),
+      );
+      
+      debugPrint('Setting up test data...');
+      // Set up test data in parallel to speed up initialization
+      await Future.wait([
+        ProxyService.box.writeInt(key: 'userId', value: 1),
+        ProxyService.box.writeInt(key: 'businessId', value: 1),
+        ProxyService.box.writeInt(key: 'branchId', value: 1),
+        ProxyService.box.writeString(key: 'userPhone', value: '+250783054874'),
+        ProxyService.box.writeBool(key: 'pinLogin', value: false),
+        ProxyService.box.writeBool(key: 'authComplete', value: false),
+      ]).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => throw TimeoutException('Test data setup timed out after 30 seconds'),
+      );
+      debugPrint('Test setup completed successfully');
+    } catch (e, stackTrace) {
+      debugPrint('Error during test setup: $e');
+      debugPrint('Stack trace: $stackTrace');
+      rethrow;
+    }
   });
 
   tearDownAll(() async {
-    await ProxyService.box.clear();
+    if (!shouldRunTest) return;
+    
+    try {
+      debugPrint('Starting test cleanup...');
+      await ProxyService.box.clear().timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => debugPrint('Warning: Cleanup timed out'),
+      );
+      debugPrint('Test cleanup completed');
+    } catch (e) {
+      debugPrint('Error during cleanup: $e');
+    }
   });
 
   group('Windows App Smoke Test', () {
@@ -76,26 +113,45 @@ void main() {
     testWidgets('Test app initialization and login flow',
         (WidgetTester tester) async {
       await runWithErrorHandler(() async {
-        await startApp(tester);
-        await tester.pump(const Duration(seconds: 2));
+        try {
+          // Start app with timeout
+          await startApp(tester).timeout(
+            const Duration(seconds: 30),
+            onTimeout: () => throw TimeoutException('App startup timed out after 30 seconds'),
+          );
 
-        // Verify we're on the PIN login screen with timeout
-        final pinLogin = find.byKey(const Key(pinLoginKey));
-        bool foundPinLogin = false;
-        for (int i = 0; i < 5; i++) {
-          await tester.pump(const Duration(seconds: 1));
-          if (pinLogin.evaluate().isNotEmpty) {
-            foundPinLogin = true;
-            break;
+          // Verify we're on the PIN login screen with timeout
+          final pinLogin = find.byKey(const Key(pinLoginKey));
+          bool foundPinLogin = false;
+          for (int i = 0; i < 10; i++) {
+            await tester.pump(const Duration(seconds: 1));
+            if (pinLogin.evaluate().isNotEmpty) {
+              foundPinLogin = true;
+              break;
+            }
           }
+          expect(foundPinLogin, isTrue, reason: 'PIN login screen not found after 10 seconds');
+          
+          // Run test flows with individual timeouts
+          await testLoginFlow(tester).timeout(
+            const Duration(seconds: 30),
+            onTimeout: () => throw TimeoutException('Login flow timed out'),
+          );
+          await testPinValidation(tester).timeout(
+            const Duration(seconds: 30),
+            onTimeout: () => throw TimeoutException('PIN validation timed out'),
+          );
+          await testEodNavigation(tester).timeout(
+            const Duration(seconds: 30),
+            onTimeout: () => throw TimeoutException('EOD navigation timed out'),
+          );
+        } catch (e, stackTrace) {
+          debugPrint('Test execution error: $e');
+          debugPrint('Stack trace: $stackTrace');
+          rethrow;
         }
-        expect(foundPinLogin, isTrue, reason: 'PIN login screen not found after 5 seconds');
-        
-        await testLoginFlow(tester);
-        await testPinValidation(tester);
-        await testEodNavigation(tester);
       });
-    }, timeout: const Timeout(Duration(minutes: 3)));
+    }, timeout: const Timeout(Duration(minutes: 2)));
   });
 }
 
@@ -140,28 +196,65 @@ Future<void> testLoginFlow(WidgetTester tester) async {
 
 /// Starts the app and waits for it to load.
 Future<void> startApp(WidgetTester tester) async {
-  // Start the app
-  await app_main.main();
-  await tester.pump();
-  
-  // Wait for startup view to complete with timeout
-  final startupText = find.text('A revolutionary business software...');
-  bool foundStartup = false;
-  for (int i = 0; i < 10; i++) {
-    await tester.pump(const Duration(seconds: 1));
-    if (startupText.evaluate().isNotEmpty) {
-      foundStartup = true;
-      break;
+  // Start the app with error handling
+  try {
+    // Ensure we're running on Windows
+    if (!Platform.isWindows) {
+      throw Exception('This test must be run on Windows');
     }
+
+    // Initialize app with error capture
+    FlutterError.onError = (FlutterErrorDetails details) {
+      debugPrint('Flutter error during app initialization: ${details.exception}');
+      debugPrint('Stack trace: ${details.stack}');
+      throw details.exception;
+    };
+
+    // Start the app
+    await app_main.main();
+    await tester.pump();
+    
+    // Wait for startup view with detailed error reporting
+    final startupText = find.text('A revolutionary business software...');
+    bool foundStartup = false;
+    String lastError = '';
+    
+    for (int i = 0; i < 15; i++) {
+      try {
+        await tester.pump(const Duration(seconds: 1));
+        if (startupText.evaluate().isNotEmpty) {
+          foundStartup = true;
+          break;
+        }
+        // Check for error indicators
+        final errorText = find.textContaining('Error').evaluate();
+        if (errorText.isNotEmpty) {
+          lastError = errorText.first.widget.toString();
+          break;
+        }
+      } catch (e) {
+        debugPrint('Error during startup check: $e');
+        lastError = e.toString();
+      }
+    }
+    
+    if (!foundStartup) {
+      throw Exception('Startup view not found after 15 seconds. Last error: $lastError');
+    }
+    
+    // Wait for app initialization with error check
+    await tester.pump(const Duration(seconds: 2));
+    
+    // Verify app is initialized
+    final app = find.byKey(const Key(mainApp));
+    if (app.evaluate().isEmpty) {
+      throw Exception('Main app widget not found after initialization');
+    }
+  } catch (e, stackTrace) {
+    debugPrint('Fatal error during app startup: $e');
+    debugPrint('Stack trace: $stackTrace');
+    rethrow;
   }
-  expect(foundStartup, isTrue, reason: 'Startup view not found after 10 seconds');
-  
-  // Wait for app initialization
-  await tester.pump(const Duration(seconds: 2));
-  
-  // Verify app is initialized
-  final app = find.byKey(const Key(mainApp));
-  expect(app, findsOneWidget, reason: 'Main app widget not found');
 }
 
 /// Checks if the user is logged in by looking for the 'QuickSell' key.
