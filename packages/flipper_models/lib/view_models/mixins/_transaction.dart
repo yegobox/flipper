@@ -467,12 +467,7 @@ mixin TransactionMixin {
         VariantPatch.patchVariant(
           URI: (await ProxyService.box.getServerUrl())!,
         );
-        await StockPatch.patchStock(
-          URI: (await ProxyService.box.getServerUrl())!,
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
-          },
-        );
+       
 
         await ProxyService.strategy.updateTransaction(
             isUnclassfied: true,

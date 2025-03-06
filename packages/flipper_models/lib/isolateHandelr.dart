@@ -45,25 +45,49 @@ mixin VariantPatch {
     }
 
     for (Variant variant in variants) {
+      if (variant.imptItemSttsCd == "2" || variant.pchsSttsCd == "01") {
+        continue;
+      }
       try {
-        Variant iVariant = Variant.fromJson(variant.toJson());
-        if (iVariant.bhfId == null) {
+        if (variant.bhfId == null) {
           Business? business = await ProxyService.strategy
               .getBusiness(businessId: ProxyService.box.getBusinessId());
-          iVariant.bhfId = business!.bhfId ?? "00";
-          iVariant.tin = business.tinNumber ?? 999909695;
+          variant.bhfId = business!.bhfId ?? "00";
+          variant.tin = business.tinNumber ?? 999909695;
 
-          ProxyService.strategy.updateVariant(updatables: [iVariant]);
+          await ProxyService.strategy.updateVariant(updatables: [variant]);
         }
+        await updateVariantitemTyCd(variant);
 
-        final response = await RWTax().saveItem(variation: iVariant, URI: URI);
+        final response = await RWTax().saveItem(variation: variant, URI: URI);
 
         if (response.resultCd == "000" && sendPort != null) {
-          sendPort('${response.resultMsg}:variant:${variant.id.toString()}');
+          sendPort(response.resultMsg);
+          if (identifier != null) {
+            await StockPatch.patchStock(
+              identifier: variant.stock?.id,
+              URI: (await ProxyService.box.getServerUrl())!,
+              sendPort: (message) {
+                ProxyService.notification.sendLocalNotification(body: message);
+              },
+            );
+          } else {
+            await StockPatch.patchStock(
+              URI: (await ProxyService.box.getServerUrl())!,
+              sendPort: (message) {
+                ProxyService.notification.sendLocalNotification(body: message);
+              },
+            );
+          }
+
           // we set ebmSynced when stock is done updating on rra side.
-          // variant.ebmSynced = true;
+          variant.ebmSynced = true;
           repository.upsert(variant);
+        } else if (sendPort != null) {
+          sendPort(response.resultMsg);
+          throw Exception(response.resultMsg);
         }
+        throw Exception(response.resultMsg);
       } catch (e, s) {
         talker.error(e, s);
         rethrow;
@@ -71,6 +95,22 @@ mixin VariantPatch {
     }
   }
 }
+Future<void> updateVariantitemTyCd(Variant variant) async {
+  if (variant.itemTyCd == null ||
+      variant.itemTyCd!.trim().toLowerCase() == "" ||
+      variant.itemTyCd!.trim().toLowerCase() == "null") {
+    variant.itemTyCd = "2";
+    try {
+      await ProxyService.strategy.updateVariant(updatables: [variant]);
+    } catch (e) {
+      print("Error updating variant: $e");
+      rethrow; // Re-throw the exception
+    }
+  }
+}
+
+/// should never call this independently, it should be called by the patchVariant method
+
 mixin StockPatch {
   static Future<void> patchStock(
       {required String URI,
@@ -91,8 +131,11 @@ mixin StockPatch {
         Where('branchId').isExactly(branchId)
       ]));
     }
-
+    // filter out variants with
     for (Variant variant in variants) {
+      if (variant.imptItemSttsCd == "2" || variant.pchsSttsCd == "01") {
+        continue;
+      }
       if (!variant.ebmSynced!) {
         try {
           Business? business = await ProxyService.strategy
@@ -102,14 +145,12 @@ mixin StockPatch {
           final response =
               await RWTax().saveStockMaster(variant: variant, URI: URI);
           if (response.resultCd == "000" && sendPort != null) {
-            sendPort('${response.resultMsg}');
-            variant.ebmSynced = true;
-            repository.upsert(variant);
+            sendPort(response.resultMsg);
           } else if (sendPort != null) {
-            sendPort('${response.resultMsg}}');
+            throw Exception(response.resultMsg);
           }
         } catch (e) {
-          // rethrow;
+          rethrow;
         }
       }
     }
@@ -173,13 +214,12 @@ mixin PatchTransactionItem {
             URI: URI);
 
         if (response.resultCd == "000") {
-          sendPort(
-              'notification:${response.resultMsg}:transaction:${transaction.id.toString()}');
+          sendPort('TrItem:${response.resultMsg}');
 
           transaction.ebmSynced = true;
           repository.upsert(transaction);
         } else {
-          sendPort('notification:${response.resultMsg}}');
+          sendPort('Notification:${response.resultMsg}');
         }
         print(response);
       } catch (e) {}

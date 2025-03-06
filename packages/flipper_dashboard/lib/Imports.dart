@@ -113,7 +113,7 @@ class ImportsState extends ConsumerState<Imports> {
                       Icon(Icons.hourglass_empty, size: 48, color: Colors.grey),
                       SizedBox(height: 16),
                       Text(
-                        'No Data Found',
+                        'No Data Found or Network error please try again.',
                         style: TextStyle(color: Colors.grey, fontSize: 18),
                       ),
                     ],

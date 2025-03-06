@@ -93,12 +93,7 @@ class CronService {
             ProxyService.notification.sendLocalNotification(body: message);
           },
         );
-        StockPatch.patchStock(
-          URI: URI,
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
-          },
-        );
+
         await PatchTransactionItem.patchTransactionItem(
           tinNumber: tinNumber,
           bhfId: bhfId,

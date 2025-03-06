@@ -747,8 +747,9 @@ class CoreSync
       modrId: number,
       pkgUnitCd: pkgUnitCd ?? "BJ",
       regrId: randomNumber().toString().substring(0, 5),
-      itemTyCd:
-          itemTypes?[product?.barCode] ?? "2", // this is a finished product
+      itemTyCd: itemTypes?.containsKey(product?.barCode) == true
+          ? itemTypes![product!.barCode]!
+          : "2", // this is a finished product
       /// available type for itemTyCd are 1 for raw material and 3 for service
       /// is insurance applicable default is not applicable
       isrcAplcbYn: "N",
@@ -2436,13 +2437,18 @@ class CoreSync
   Future<List<Variant>> selectImportItems({
     required int tin,
     required String bhfId,
-    required String lastReqDt,
+    required String lastRequestdate,
   }) async {
     try {
+      int branchId;
+
+      // Fetch active branch
       final activeBranch =
           await branch(serverId: ProxyService.box.getBranchId()!);
       if (activeBranch == null) throw Exception("Active branch not found");
+      branchId = ProxyService.box.getBranchId()!;
 
+      // Fetch business details
       final business =
           await getBusinessById(businessId: ProxyService.box.getBusinessId()!);
       if (business == null) throw Exception("Business details not found");
@@ -2459,87 +2465,68 @@ class CoreSync
         ),
       );
 
-      // Determine if we should fetch from the API
-      final shouldFetchFromApi = lastRequestRecords.isEmpty ||
-          lastRequestRecords.first.lastRequestDate != lastReqDt;
+      // Determine lastReqDt
+      if (lastRequestRecords.isNotEmpty) {
+        lastRequestdate = lastRequestRecords.first.lastRequestDate!;
+      } else {
+        // Default to today's date if no saved date found
+        lastRequestdate = DateTime.now().toYYYYMMddHHmmss();
+      }
 
       List<Variant> variantsList;
+      RwApiResponse response;
 
-      if (shouldFetchFromApi) {
-        RwApiResponse response;
-        try {
-          // Fetch new data from the API
-          response = await ProxyService.tax.selectImportItems(
-            tin: tin,
-            bhfId: bhfId,
-            lastReqDt: lastReqDt,
-            URI: (await ProxyService.box.getServerUrl() ?? ""),
+      try {
+        // Fetch new data from the API
+        response = await ProxyService.tax.selectImportItems(
+          tin: tin,
+          bhfId: bhfId,
+          lastReqDt: lastRequestdate,
+          URI: (await ProxyService.box.getServerUrl() ?? ""),
+        );
+
+        if (response.data == null || response.data!.itemList == null) {
+          variantsList = await variants(
+            branchId: ProxyService.box.getBranchId()!,
+            imptItemsttsCd: "2",
+            excludeApprovedInWaitingOrCanceledItems: true,
           );
-
-          if (response.data == null || response.data!.itemList == null) {
-            throw Exception(
-                "API returned null data or item list"); // More informative error
-          }
           print(
-              "API returned ${response.data!.itemList!.length} items"); // Log the number of items from the API
-        } catch (apiError) {
-          // Handle API errors gracefully.  Attempt to use the last known date if possible.
-          print("API Error: $apiError");
-          if (lastRequestRecords.isNotEmpty) {
-            print("Attempting to use last known request date...");
-            try {
-              response = await ProxyService.tax.selectImportItems(
-                tin: tin,
-                bhfId: bhfId,
-                lastReqDt: lastRequestRecords.first.lastRequestDate!,
-                URI: (await ProxyService.box.getServerUrl() ?? ""),
-              );
-              if (response.data == null || response.data!.itemList == null) {
-                throw Exception(
-                    "API returned null data or item list even with the old lastReqDt"); // More informative error
-              }
-            } catch (retryError) {
-              print("Retry with last known date failed: $retryError");
-              rethrow; // If retry fails, propagate the exception
-            }
-          } else {
-            rethrow; // If no last request date, propagate the original API error.
-          }
+              "Total variants found: ${variantsList.length}"); // Log total variants
+          return variantsList;
         }
+      } catch (apiError) {
+        rethrow; // If API call fails for any reason, propagate the exception.
+      }
 
+      // Save the last request date AND Process Items only if the API request was successful
+      if (response.data!.itemList!.isNotEmpty) {
         // Save the last request date
-        if (response.data!.itemList!.isNotEmpty) {
+        try {
           await repository.upsert<ImportPurchaseDates>(
-            ImportPurchaseDates(
-              lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
-              branchId: activeBranch.id,
-              requestType: "IMPORT",
-            ),
-          );
-        }
+              ImportPurchaseDates(
+                lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
+                branchId: activeBranch.id,
+                requestType: "IMPORT",
+              ),
+              query: brick.Query(
+                where: [
+                  brick.Where('branchId').isExactly(branchId),
+                ],
+              ));
+        } catch (saveError) {}
 
-        // Save each imported item into the system
-        int itemsInserted = 0; // Counter to track inserted items
         for (final item in response.data!.itemList!) {
           print("Processing item with taskCd: ${item.taskCd}"); // Log taskCd
-          Variant? variantExist = await getVariant(taskCd: item.taskCd);
-
-          if (variantExist != null) {
-            print(
-                "Variant with taskCd ${item.taskCd} already exists. Skipping.");
-            continue; // Skip saving if variant exists
-          }
 
           if (item.imptItemSttsCd!.isNotEmpty) {
             print("Saving variant with taskCd: ${item.taskCd}");
             await saveVariant(item, business, activeBranch.serverId!);
-            itemsInserted++;
           } else {
             print(
                 "Item with taskCd ${item.taskCd} has empty imptItemSttsCd. Skipping.");
           }
         }
-        print("Inserted $itemsInserted items from API.");
       }
 
       // Return the newly imported variants OR existing variants if no API call was made
@@ -2548,8 +2535,7 @@ class CoreSync
         imptItemsttsCd: "2",
         excludeApprovedInWaitingOrCanceledItems: true,
       );
-      print(
-          "Total variants found: ${variantsList.length}"); // Log total variants
+
       return variantsList;
     } catch (e, stackTrace) {
       print("Error in selectImportItems: $e\n$stackTrace");
@@ -3417,8 +3403,9 @@ class CoreSync
     variant.ebmSynced = false;
     await ProxyService.strategy.updateVariant(updatables: [variant]);
 
-    StockPatch.patchStock(
+    VariantPatch.patchVariant(
       URI: serverUrl,
+      identifier: variant.id,
       sendPort: (message) {
         ProxyService.notification.sendLocalNotification(body: message);
       },
@@ -3905,8 +3892,7 @@ class CoreSync
           brick.Where('branchId').isExactly(branchId)
         ] else ...[
           brick.Where('branchId').isExactly(branchId),
-          if (!excludeApprovedInWaitingOrCanceledItems)
-            brick.Where('retailPrice').isGreaterThan(0),
+
           brick.Where('name').isNot(TEMP_PRODUCT),
           brick.Where('productName').isNot(CUSTOM_PRODUCT),
           // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
@@ -4596,7 +4582,10 @@ class CoreSync
       updatables[i].ebmSynced = false;
       updatables[i].retailPrice =
           newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
-      updatables[i].itemTyCd = selectedProductType;
+      if (selectedProductType != null) {
+        updatables[i].itemTyCd = selectedProductType;
+      }
+
       updatables[i].dcRt = rate;
       updatables[i].expirationDate = dates?[updatables[i].id] == null
           ? null
@@ -5652,15 +5641,13 @@ class CoreSync
   }
 
   @override
-  @override
   Future<List<Variant>> selectPurchases({
     required String bhfId,
     required int tin,
     required String url,
+    required String lastRequestdate,
   }) async {
     try {
-      String lastReqDt;
-
       // Fetch active branch
       final activeBranch =
           await branch(serverId: ProxyService.box.getBranchId()!);
@@ -5689,10 +5676,10 @@ class CoreSync
 
       // Determine lastReqDt
       if (lastRequestRecords.isNotEmpty) {
-        lastReqDt = lastRequestRecords.first.lastRequestDate!;
+        lastRequestdate = lastRequestRecords.first.lastRequestDate!;
       } else {
         // Default to today's date if no saved date found
-        lastReqDt = DateTime.now().toYYYYMMddHHmmss();
+        lastRequestdate = DateTime.now().toYYYYMMddHHmmss();
       }
 
       List<Variant> variantsList;
@@ -5705,7 +5692,7 @@ class CoreSync
           URI: url,
           tin: tin,
           bhfId: (await ProxyService.box.bhfId()) ?? "00",
-          lastReqDt: lastReqDt,
+          lastReqDt: lastRequestdate,
         );
 
         if (saleList.isEmpty) {
@@ -5751,6 +5738,7 @@ class CoreSync
                     supplyPrice: variant.splyAmt!,
                     retailPrice: variant.prc!,
                     purchase: purchase,
+                    ebmSynced: false,
                     createItemCode: variant.itemCd?.isEmpty == true,
                     taxTypes: {barCode: variant.taxTyCd!},
                     totAmt: variant.totAmt,

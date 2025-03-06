@@ -317,7 +317,7 @@ abstract class RealmInterface {
   Future<Stock> getStockById({required String id});
 
   Future<List<Variant>> selectPurchases(
-      {required String bhfId, required int tin, required String url});
+      {required String bhfId, required int tin, required String url, required String lastRequestdate});
 
   Future<Variant?> getVariant(
       {String? id,
@@ -400,8 +400,7 @@ abstract class RealmInterface {
   Stream<List<Category>> categoryStream();
   Future<List<Variant>> selectImportItems({
     required int tin,
-    required String bhfId,
-    required String lastReqDt,
+    required String bhfId, required String lastRequestdate,
   });
 
   Future<void> syncUserWithAwsIncognito({required String identifier});

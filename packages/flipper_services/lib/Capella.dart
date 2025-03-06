@@ -1720,7 +1720,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   Future<List<brick.Variant>> selectImportItems(
-      {required int tin, required String bhfId, required String lastReqDt}) {
+      {required int tin, required String bhfId,required String lastRequestdate, }) {
     // TODO: implement selectImportItems
     throw UnimplementedError();
   }
@@ -1897,7 +1897,7 @@ class Capella with Booting implements RealmInterface {
 
   @override
   Future<List<brick.Variant>> selectPurchases(
-      {required String bhfId, required int tin, required String url}) {
+      {required String bhfId, required int tin, required String url,required String lastRequestdate,}) {
     // TODO: implement selectPurchases
     throw UnimplementedError();
   }
