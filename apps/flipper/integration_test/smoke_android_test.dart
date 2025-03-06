@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:integration_test/integration_test.dart';
 import 'dart:io';
 import 'common.dart';
 
 // Skip this test if not running on Android
-bool get shouldRunTest => Platform.isAndroid || const bool.fromEnvironment('FORCE_TEST', defaultValue: false);
+bool get shouldRunTest =>
+    Platform.isAndroid ||
+    const bool.fromEnvironment('FORCE_TEST', defaultValue: false);
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
   if (!shouldRunTest) {
     debugPrint('Skipping Android smoke test on non-Android platform');
     group('Android Smoke Test (Skipped)', () {
