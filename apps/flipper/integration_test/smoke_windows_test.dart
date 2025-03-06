@@ -2,8 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flipper_rw/main.dart' as app_main;
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_services/app_service.dart';
+import 'package:flipper_services/locator.dart' as loc;
+import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_models/secrets.dart';
 import 'common.dart';
 import 'dart:async';
+import 'dart:convert';
 
 // Constants for widget keys and text
 const String mainApp = 'mainApp';
@@ -95,12 +102,52 @@ Future<void> testLoginFlow(WidgetTester tester) async {
 
 /// Starts the app and waits for it to load.
 Future<void> startApp(WidgetTester tester) async {
+  // Initialize test data
+  final userId = 1;
+  final businessId = 1;
+  final branchId = 1;
+  final phoneNumber = '+250788111222';
+  
+  // Set up test user and business data
+  await ProxyService.box.writeInt(key: 'userId', value: userId);
+  await ProxyService.box.writeInt(key: 'businessId', value: businessId);
+  await ProxyService.box.writeInt(key: 'branchId', value: branchId);
+  await ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
+  await ProxyService.box.writeBool(key: 'pinLogin', value: false);
+  await ProxyService.box.writeBool(key: 'authComplete', value: false);
+  
+  // Create test subscription
+  final subscription = Subscription(
+    businessId: businessId,
+    validFrom: DateTime.now(),
+    validUntil: DateTime.now().add(const Duration(days: 30)),
+    active: true,
+  );
+  await ProxyService.strategy.create(data: subscription);
+  
+  // Create test business
+  final business = Business(
+    serverId: businessId,
+    isDefault: true,
+    encryptionKey: '11',
+  );
+  await ProxyService.strategy.create(data: business);
+  
+  // Create test branch
+  final branch = Branch(
+    serverId: branchId,
+    businessId: businessId,
+    isDefault: true,
+  );
+  await ProxyService.strategy.create(data: branch);
+  
+  // Start the app
   await app_main.main();
   await tester.pumpAndSettle(const Duration(seconds: 5));
   
   // Wait for startup view to complete
   final startupText = find.text('A revolutionary business software...');
-  final foundStartup = await retryUntilFound(tester, startupText);
+  final foundStartup = await retryUntilFound(tester, startupText, maxAttempts: 10);
   expect(foundStartup, isTrue, reason: 'Startup view not found');
   
   // Wait for startup animation and initialization
