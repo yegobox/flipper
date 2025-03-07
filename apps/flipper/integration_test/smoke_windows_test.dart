@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:flipper_rw/main.dart' as app_main;
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/realm_model_export.dart';
 
 import 'common.dart';
 import 'dart:async';
@@ -70,6 +68,7 @@ void main() {
         onTimeout: () => throw TimeoutException(
             'Test initialization timed out after 2 minutes'),
       );
+      await ProxyService.box.clear();
 
       debugPrint('Setting up test data...');
 
@@ -119,7 +118,15 @@ void main() {
                 'App startup timed out after 30 seconds'),
           );
 
-          // Verify we're on the PIN login screen with timeout
+          ///TODO:continue this next week Check if already logged in by looking for QuickSell key
+          // final quickSellFinder = find.byKey(const Key(quickSellKey));
+          // if (await retryUntilFound(tester, quickSellFinder)) {
+          //   // Already logged in, navigate to EOD and logout
+          //   debugPrint('Already logged in. Navigating to EOD and logging out.');
+          //   await navigateToEodAndLogout(tester);
+          // }
+
+          // // Verify we're on the PIN login screen with timeout
           // final pinLogin = find.byKey(const Key(pinLoginKey));
           // bool foundPinLogin = false;
           // for (int i = 0; i < 10; i++) {
@@ -132,7 +139,7 @@ void main() {
           // expect(foundPinLogin, isTrue,
           //     reason: 'PIN login screen not found after 10 seconds');
 
-          // Run test flows with individual timeouts
+          // // Run test flows with individual timeouts
           // await testLoginFlow(tester).timeout(
           //   const Duration(seconds: 30),
           //   onTimeout: () => throw TimeoutException('Login flow timed out'),
@@ -297,6 +304,52 @@ Future<void> navigateToEodAndBack(WidgetTester tester) async {
   final found = await retryUntilFound(tester, backToLogin);
   expect(found, isTrue,
       reason: 'Back to login button not found after EOD navigation');
+}
+
+/// Navigates to the EOD screen and simulates logging out.
+Future<void> navigateToEodAndLogout(WidgetTester tester) async {
+  final eodButton = find.byKey(const Key(eodDesktopKey));
+  expect(eodButton, findsOneWidget, reason: 'EOD button not found');
+
+  await tester.tap(eodButton);
+  await tester.pumpAndSettle(const Duration(seconds: 3));
+
+  // Simulate logout (e.g., by tapping a logout button)
+  // Replace 'logoutButtonKey' with the actual key of your logout button
+  // Note: It might be the branch selection dialog, depending on your implementation
+
+  //Option 1: Logout Via Branch Switch Dialog (If Applicable)
+  final branchSelectionDialog = find.byKey(const Key('branchSelectionDialog'));
+  if (await retryUntilFound(tester, branchSelectionDialog, maxAttempts: 5)) {
+    //If the branch selection dialog is visible, find and tap the logout option
+    final logoutButton = find.text('Logout'); //Adjust text if needed
+    if (await retryUntilFound(tester, logoutButton, maxAttempts: 5)) {
+      await tester.tap(logoutButton);
+      await tester.pumpAndSettle(const Duration(
+          seconds:
+              2)); //Wait for logout confirmation/transition to login screen
+    } else {
+      fail(
+          "Logout button not found on branch selection dialog."); //Handle if logout is unavailable
+    }
+    return;
+  }
+
+  // Option 2: Direct Logout button within EOD screen
+  // Implement if you have a dedicated logout button on the EOD Screen
+  final logoutButtonDirect = find.byKey(const Key('logoutButtonDirect'));
+  if (await retryUntilFound(tester, logoutButtonDirect, maxAttempts: 5)) {
+    await tester.tap(logoutButtonDirect);
+    await tester.pumpAndSettle(const Duration(seconds: 2));
+  }
+
+  //If you reach here and none of the options worked, the test will continue to the next step.
+  //Ensure appropriate logout mechanism is in place and handles properly.
+
+  // Verify we're back on the PIN login screen
+  final pinLogin = find.byKey(const Key(pinLoginKey));
+  final found = await retryUntilFound(tester, pinLogin);
+  expect(found, isTrue, reason: 'PIN login screen not found after logout');
 }
 
 /// Tests PIN validation logic (empty PIN, invalid PIN, valid PIN).

@@ -124,7 +124,7 @@ class CronService {
     ProxyService.strategy
         .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
     if (results.any((result) => result != ConnectivityResult.none)) {
-      if (FirebaseAuth.instance.currentUser == null) {
+      if (!isTestEnvironment() && FirebaseAuth.instance.currentUser == null) {
         await ProxyService.strategy.firebaseLogin();
       }
       talker.warning("Done checking connectivity: $doneInitializingDataPull");
@@ -150,6 +150,10 @@ class CronService {
     await _setupFirebaseMessaging();
 
     talker.warning("Done cleaning up variants");
+  }
+
+  bool isTestEnvironment() {
+    return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
   }
 
   static String camelToSnakeCase(String input) {
