@@ -172,6 +172,65 @@ jobs:
       - run: |
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test/smoke_windows_test.dart
+  integration-testing-macos:
+    name: "Integration Testing MacOS"
+    runs-on: macOS-latest
+    needs: [unit-testing]
+    steps:
+      - run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+
+      - name: Clone Flutter repository with stable channel
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.29.0"
+          channel: stable
+
+      - run: flutter doctor -v
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: Install Dependencies
+        run: |
+          git submodule update --init
+          dart pub global activate melos 6.3.2
+          melos bootstrap
+
+      - name: Install CocoaPods
+        run: sudo gem install cocoapods
+
+      - name: Configure Missing files
+        shell: bash
+        run: |
+          printf "%s" "$INDEX" > apps/flipper/web/index.html
+          printf "%s" "$CONFIGDART" > packages/flipper_login/lib/config.dart
+          printf "%s" "$SECRETS" > packages/flipper_models/lib/secrets.dart
+          printf "%s" "$FIREBASEOPTIONS" > apps/flipper/lib/firebase_options.dart
+          printf "%s" "$FIREBASEOPTIONS" > packages/flipper_models/lib/firebase_options.dart
+          printf "%s" "$AMPLIFY_CONFIG" > apps/flipper/lib/amplifyconfiguration.dart
+          printf "%s" "$AMPLIFY_TEAM_PROVIDER" > apps/flipper/amplify/team-provider-info.json
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+
+      - run: |
+          cd apps/flipper/ios
+          pod install
+          cd ..
+          cd apps/flipper
+          flutter test --dart-define=FLUTTER_TEST_ENV=true -d macos integration_test/smoke_macos_test.dart
 
   build-and-release-windows-debug:
     name: "Build windows app-debug"
@@ -303,7 +362,7 @@ jobs:
   integration-on-android:
     name: Integration on Android
     needs: [unit-testing]  # Requires Supabase to be initialized
-    runs-on: ubuntu-latest
+    runs-on: macOS-latest
     strategy:
       matrix:
         api-level: [29, 33]

@@ -170,7 +170,7 @@ class CronService {
     if (!Platform.isWindows && !isMacOs && !isIos && business != null) {
       token = await FirebaseMessaging.instance.getToken();
 
-      business?.deviceToken = token.toString();
+      business.deviceToken = token.toString();
     }
   }
 
