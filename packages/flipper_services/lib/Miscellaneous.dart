@@ -25,6 +25,7 @@ mixin CoreMiscellaneous {
     }
     return appSupportDir;
   }
+
   Future<bool> logOut() async {
     return await _performLogout();
   }
@@ -55,7 +56,10 @@ mixin CoreMiscellaneous {
       }
 
       // Sign out from Firebase
-      await FirebaseAuth.instance.signOut();
+      if (!const bool.fromEnvironment('FLUTTER_TEST_ENV',
+          defaultValue: false)) {
+        await FirebaseAuth.instance.signOut();
+      }
 
       // Perform additional logout operations
       ProxyService.strategy.whoAmI();

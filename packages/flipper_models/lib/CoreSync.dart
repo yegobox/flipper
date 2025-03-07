@@ -1597,7 +1597,7 @@ class CoreSync
         brick.Where('businessId').isExactly(businessId),
       ]);
       final result = await repository.get<models.Plan>(
-          query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
+          query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
       return result.firstOrNull;
     } catch (e) {
       talker.error(e);

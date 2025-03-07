@@ -9,20 +9,20 @@ bool isTestEnvironment() {
 
 Future<void> loadSupabase() async {
     try {
-      if (isTestEnvironment()) {
+      // if (isTestEnvironment()) {
         // In test environment, we'll use a mock configuration
         // This avoids the need for a local Supabase instance
-        await Repository.initializeSupabaseAndConfigure(
-          supabaseUrl: 'mock://supabase',
-          supabaseAnonKey: 'test-key',
-        );
-      } else {
-        // Production initialization
+        // await Repository.initializeSupabaseAndConfigure(
+        //   supabaseUrl: 'mock://supabase',
+        //   supabaseAnonKey: 'test-key',
+        // );
+      // } else {
+      //   // Production initialization
         await Repository.initializeSupabaseAndConfigure(
           supabaseUrl: AppSecrets.superbaseurl,
           supabaseAnonKey: AppSecrets.supabaseAnonKey,
         );
-      }
+      // }
 
       await Repository().initialize();
     } catch (e) {

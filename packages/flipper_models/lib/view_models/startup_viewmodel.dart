@@ -25,8 +25,6 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   }) async {
     // await logOut();
     try {
-      // await appService.isLoggedIn();
-
       // Ensure realm is initialized before proceeding.
 
       await _hasActiveSubscription();
