@@ -302,31 +302,32 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
   integration-on-android:
     name: Integration on Android
-    needs: [unit-testing]  # Requires Supabase to be initialized
+    needs: [unit-testing]
     runs-on: macOS-14
     strategy:
       matrix:
         api-level: [21, 23, 29]
         target: [default, google_apis]
-        arch: [x86_64, arm64-v8a] # Add x86_64 and arm64 architectures.
+        arch: [x86_64, arm64-v8a]
       fail-fast: false
     steps:
       - run: git config --global core.autocrlf false
-      # Set up Flutter.
+
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0" #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: "3.29.0"
           channel: stable
       - run: flutter doctor -v
 
-      # Checkout flipper code
       - name: Checkout flipper code
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
-      - uses: actions/setup-java@v4 #plugin for setting up the java
+
+      - uses: actions/setup-java@v4
         with:
           distribution: "zulu"
-          java-version: "17" #defines the java version
+          java-version: "17"
+
       - name: Configure Git with PAT
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -335,8 +336,10 @@ jobs:
           git config --global user.name "YEGOBOX"
           git config --global credential.helper store
           echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
+
       - name: submodule init
         run: git submodule update --init
+
       - name: Configure Missing files
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
@@ -355,87 +358,48 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      - name: Configure Keystore
+
+      - name: Configure Keystore and google-services.json
         run: |
-          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
-          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
-          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode  > play_store_upload_key.txt
-          cat play_store_upload_key.txt
-          echo "storeFile=key.jks" >> key.properties
-          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
-          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
-          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
+          # Debugging: Print the content of GOOGLE_SERVICE_JSON
+          echo "GOOGLE_SERVICE_JSON (truncated): ${{ secrets.GOOGLE_SERVICE_JSON:0:100 }}..."
+
+          mkdir -p apps/flipper/android/app  # Ensure the directory exists
+          echo "$GOOGLE_SERVICE_JSON" > apps/flipper/android/app/google-services.json
+
+          # Debugging: Check if the file was created and print its content
+          if [ -f "apps/flipper/android/app/google-services.json" ]; then
+            echo "google-services.json created successfully."
+            cat apps/flipper/android/app/google-services.json
+          else
+            echo "ERROR: google-services.json was NOT created!"
+            exit 1 # Fail the step if the file wasn't created
+          fi
+
+          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > apps/flipper/android/app/key.jks
+          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > apps/flipper/android/app/play_store_upload_key.txt
+          cat apps/flipper/android/app/play_store_upload_key.txt
+          echo "storeFile=key.jks" >> apps/flipper/android/app/key.properties
+          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> apps/flipper/android/app/key.properties
+          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> apps/flipper/android/app/key.properties
+          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> apps/flipper/android/app/key.properties
         env:
           PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
           KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
           KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
           KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-        working-directory: apps/flipper/android
+
       - run: |
           dart pub global activate melos 6.3.2
           melos bootstrap
-      # Setup Ruby, Bundler, and Gemfile dependencies
+
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.0"
           bundler-cache: true
-          # cache-version: 1
           working-directory: apps/flipper/android
-      - name: Configure Keystore
-        run: |
-          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
-          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
-          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode  > play_store_upload_key.txt
-          cat play_store_upload_key.txt
-          echo "storeFile=key.jks" >> key.properties
-          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
-          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
-          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
-        env:
-          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
-          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
-          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
-          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
-          GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set Up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: "17"
-
-      - name: Clone Flutter Repository with Stable Channel
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.29.0"
-          channel: stable
-
-      - name: Gradle cache
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: AVD cache
-        uses: actions/cache@v4
-        id: avd-cache
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: avd-${{ matrix.api-level }}
-
-      - name: create AVD and generate snapshot for caching
-        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: ${{ matrix.api-level }}
-          force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: false
-          script: echo "Generated AVD snapshot for caching."
 
       - name: Run Tests on Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
