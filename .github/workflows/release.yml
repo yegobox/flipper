@@ -300,20 +300,16 @@ jobs:
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
-      - name: Debug Release URL
-        run: |
-          echo "Release URL: ${{ github.server_url }}/${{ github.repository }}/releases"
-
-      - name: Upload .msix to Release
-        uses: actions/upload-release-asset@v1
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
         with:
-          upload_url: ${{ github.server_url }}/${{ github.repository }}/releases
-          asset_path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          asset_name: flipper_rw.msix
-          asset_content_type: application/vnd.ms-msix
+          files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
+          tag_name: ${{ github.ref_name }}  # Or a dynamic tag based on your strategy
+          name: Release ${{ steps.get_version.outputs.version }}
+          body: |
+            Production Release for Windows App Store
         env:
-          GITHUB_TOKEN: ${{ github.token }}  # USE THE DEFAULT TOKEN # Make sure repository permissions are set to allow this.
-
+          GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
   integration-on-android:
     name: Integration on Android
     needs: [unit-testing]  # Requires Supabase to be initialized
