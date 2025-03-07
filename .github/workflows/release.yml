@@ -253,7 +253,7 @@ jobs:
   build-and-release-windows-prod:
     name: "Build windows app-store"
     runs-on: windows-2022
-    # needs: [unit-testing, integration-testing-windows] # Requires Supabase to be initialized
+    needs: [unit-testing, integration-testing-windows] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
         with:
