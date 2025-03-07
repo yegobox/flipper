@@ -249,6 +249,7 @@ jobs:
           body: |
             Debug Release for Windows
 
+
   build-and-release-windows-prod:
     name: "Build windows app-store"
     runs-on: windows-2022
@@ -257,8 +258,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}
-          persist-credentials: true
+          token: ${{ secrets.ACCESS_TOKEN }}  # Use a PAT
+          #persist-credentials: true  # Try without this first
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -301,13 +302,13 @@ jobs:
 
       - name: Upload .msix to Release
         uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.server_url }}/${{ github.repository }}/releases
           asset_path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
           asset_name: flipper_rw.msix
           asset_content_type: application/vnd.ms-msix
+        env:
+          GITHUB_TOKEN: ${{ secrets.FLIPPER_GIT_TOKEN }} # Make sure repository permissions are set to allow this.
 
   integration-on-android:
     name: Integration on Android
