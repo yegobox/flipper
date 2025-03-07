@@ -303,7 +303,7 @@ jobs:
   integration-on-android:
     name: Integration on Android
     needs: [unit-testing]  # Requires Supabase to be initialized
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         api-level: [29, 33]
