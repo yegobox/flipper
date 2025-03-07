@@ -316,8 +316,9 @@ jobs:
     runs-on: macOS-14
     strategy:
       matrix:
-        api-level: [31]
+        api-level: [30]
         target: [playstore]
+        arch: [x86_64, arm64-v8a] # Add x86_64 and arm64 architectures.
       fail-fast: false
     steps:
       - name: Checkout Repository
@@ -347,89 +348,20 @@ jobs:
             ~/.android/adb*
           key: avd-${{ matrix.api-level }}-x86_64-v1 # Explicit key for x86_64
 
-      - name: Install Android SDK Tools
-        run: |
-          export ANDROID_HOME=$HOME/Library/Android/sdk
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-
-          # Install cmdline-tools if not installed
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          cd $ANDROID_HOME/cmdline-tools
-          curl -o commandlinetools-mac.zip https://dl.google.com/android/repository/commandlinetools-mac-9477386_latest.zip
-          unzip -q commandlinetools-mac.zip
-          rm commandlinetools-mac.zip
-          mv cmdline-tools latest
-
-          echo "Android SDK installed."
-
-          # Verify sdkmanager is working
-          sdkmanager --version
-
-      - name: Accept Android SDK Licenses
-        run: |
-          echo "Accepting Android SDK licenses..."
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          mkdir -p "$ANDROID_HOME/licenses"
-          echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\n" > "$ANDROID_HOME/licenses/android-sdk-license"
-          echo -e "d56f5187479451eabf01fb78af6dfcb131a6481e\n" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
-          echo "All licenses accepted."
-
-      - name: Install Required Android Components
-        run: |
-          echo "Installing Android components..."
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install \
-            "platform-tools" \
-            "platforms;android-${{ matrix.api-level }}" \
-            "system-images;android-${{ matrix.api-level }};google_apis;x86_64" \
-            "emulator"
-          echo "Android components installed."
-
-      - name: Create AVD
-        run: |
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-          echo "Creating AVD..."
-          sdkmanager --install "system-images;android-${{ matrix.api-level }};google_apis;x86_64"
-          echo "no" | avdmanager create avd -n test -k "system-images;android-${{ matrix.api-level }};google_apis;x86_64" --device "pixel_4"
-          echo "AVD created."
-
-      - name: Start Emulator
-        run: |
-          echo "Starting emulator..."
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-          nohup $ANDROID_HOME/emulator/emulator -avd test -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 2048 -no-snapshot-load &
-          echo "Waiting for emulator to be available..."
-          sleep 30  # Wait 30 seconds
-          adb start-server
-          adb wait-for-device
-          adb shell settings put global window_animation_scale 0
-          adb shell settings put global transition_animation_scale 0
-          adb shell settings put global animator_duration_scale 0
-          echo "Emulator is ready!"
-        timeout-minutes: 15
-
-      - name: Debug SDK
-        run: |
-          echo "Checking sdkmanager..."
-          which sdkmanager
-          sdkmanager --list
-
-      - name: Verify Emulator Status
-        run: adb devices
 
       - name: Run Tests on Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
-          arch: x86_64 # IMPORTANT: Use x86_64
+          arch: ${{ matrix.arch }} # IMPORTANT: Use x86_64
           profile: pixel
-          force-avd-creation: false
+          force-avd-creation: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: |
             cd apps/flipper
             flutter test --dart-define=FLUTTER_TEST_ENV=true integration_test/smoke_android_test.dart
-
   fastlane-deploy:
     name: "Google Deploy"
     needs: [unit-testing, integration-testing-windows]  # Requires Supabase to be initialized
