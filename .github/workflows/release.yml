@@ -227,10 +227,10 @@ jobs:
 
       - run: |
           cd apps/flipper/ios
-          pod install
+          pod install --repo-update
           cd ..
           cd apps/flipper
-          flutter test --dart-define=FLUTTER_TEST_ENV=true -d macos integration_test/smoke_macos_test.dart
+          flutter test --dart-define=FLUTTER_TEST_ENV=true --dart-define=FORCE_TEST=true -d macos integration_test/smoke_windows_test.dart
 
   build-and-release-windows-debug:
     name: "Build windows app-debug"
