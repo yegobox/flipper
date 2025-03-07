@@ -345,7 +345,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-${{ matrix.api-level }}
+          key: avd-${{ matrix.api-level }}-x86_64-v1 # Explicit key for x86_64
 
       - name: Install Android SDK Tools
         run: |
@@ -379,8 +379,8 @@ jobs:
           echo "Installing Android components..."
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install \
             "platform-tools" \
-            "platforms;android-31" \
-            "system-images;android-31;google_apis;arm64-v8a" \
+            "platforms;android-${{ matrix.api-level }}" \
+            "system-images;android-${{ matrix.api-level }};google_apis;x86_64" \
             "emulator"
           echo "Android components installed."
 
@@ -388,22 +388,24 @@ jobs:
         run: |
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           echo "Creating AVD..."
-          sdkmanager --install "system-images;android-31;google_apis;arm64-v8a"
-          echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;arm64-v8a" --device "pixel_4"
+          sdkmanager --install "system-images;android-${{ matrix.api-level }};google_apis;x86_64"
+          echo "no" | avdmanager create avd -n test -k "system-images;android-${{ matrix.api-level }};google_apis;x86_64" --device "pixel_4"
           echo "AVD created."
 
       - name: Start Emulator
         run: |
           echo "Starting emulator..."
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-          nohup $ANDROID_HOME/emulator/emulator -avd test -no-window -noaudio -no-boot-anim -gpu off -memory 2048 -no-snapshot-load &
+          nohup $ANDROID_HOME/emulator/emulator -avd test -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 2048 -no-snapshot-load &
           echo "Waiting for emulator to be available..."
+          sleep 30  # Wait 30 seconds
+          adb start-server
           adb wait-for-device
           adb shell settings put global window_animation_scale 0
           adb shell settings put global transition_animation_scale 0
           adb shell settings put global animator_duration_scale 0
           echo "Emulator is ready!"
-        timeout-minutes: 10
+        timeout-minutes: 15
 
       - name: Debug SDK
         run: |
@@ -419,7 +421,7 @@ jobs:
         with:
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
-          arch: x86_64
+          arch: x86_64 # IMPORTANT: Use x86_64
           profile: pixel
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
