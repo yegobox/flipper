@@ -803,5 +803,6 @@ class App {}
 //     AND tc.table_name = 'import_purchase_dates';
 
 // TODO: keep track https://github.com/javaherisaber/open_filex/pull/19
+// supabase secrets set --env-file .env
 
 

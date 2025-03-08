@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
       });
     }
     
-    const filePath = `public/branch-${branchId}/${imageInS3}`;
+    const filePath = `public/invoices-${branchId}/${imageInS3}`;
     
     console.log(`Generating pre-signed URL for: ${filePath}`);
     
