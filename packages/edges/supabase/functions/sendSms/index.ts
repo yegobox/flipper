@@ -63,35 +63,9 @@ async function sendSMS(text, phoneNumber) {
     }
 }
 
-async function deductCredits(branch_server_id: string, creditsToDeduct: number) {
+async function deductCredits(branch_server_id: number, creditsToDeduct: number) { // Changed to number
     try {
-        // Optimistic Locking: Fetch current credit balance.
-        const { data: creditData, error: creditError } = await supabase
-            .from('credits')
-            .select('credits')
-            .eq('branch_server_id', branch_server_id)
-            .single();
-
-        if (creditError) {
-            console.error(`Error fetching credit balance for branch ${branch_server_id}:`, creditError);
-            return { success: false, error: `Failed to fetch credit balance: ${creditError.message}` };
-        }
-
-        if (!creditData) {
-            console.error(`No credit entry found for branch ${branch_server_id}.`);
-            return { success: false, error: `No credit entry found for branch ${branch_server_id}` };
-        }
-
-        const currentCredits = creditData.credits;
-
-        if (currentCredits < creditsToDeduct) {
-            console.warn(`Insufficient credits for branch ${branch_server_id}. Required: ${creditsToDeduct}, Available: ${currentCredits}`);
-            return { success: false, error: `Insufficient credits. Required: ${creditsToDeduct}, Available: ${currentCredits}` };
-        }
-
-        const newCredits = currentCredits - creditsToDeduct;
-
-        // Perform the update within a transaction (function call)
+        // Call the PostgreSQL function using supabase.rpc
         const { error: updateError } = await supabase.rpc('deduct_credits', {
             branch_id: branch_server_id,
             amount: creditsToDeduct
@@ -102,14 +76,13 @@ async function deductCredits(branch_server_id: string, creditsToDeduct: number) 
             return { success: false, error: `Failed to deduct credits: ${updateError.message}` };
         }
 
-        console.log(`Successfully deducted ${creditsToDeduct} credits for branch ${branch_server_id}.  New balance: ${newCredits}`);
-        return { success: true, newBalance: newCredits };
+        console.log(`Successfully deducted ${creditsToDeduct} credits for branch ${branch_server_id}.`);
+        return { success: true }; // No need to return balance since the function does the update
     } catch (error) {
         console.error("Error during credit deduction:", error);
         return { success: false, error: error.message };
     }
 }
-
 
 async function processPendingSMS() {
     console.log("Starting to process pending SMS messages...");
@@ -166,7 +139,16 @@ async function processPendingSMS() {
                 continue;
             }
 
-            const creditCheckResult = await deductCredits(record.branch_id, SMS_CREDIT_COST); // Changed to use branch_id from messages table
+            // Make sure the branch_id is a number
+            const branchId = Number(record.branch_id);
+            if (isNaN(branchId)) {
+                console.error(`Invalid branch_id (not a number) for message ID: ${record.id}`);
+                errors.push(`Message ${record.id}: Invalid branch_id (not a number)`);
+                failedCount++;
+                continue;
+            }
+
+            const creditCheckResult = await deductCredits(branchId, SMS_CREDIT_COST); // Call deductCredits for each message
             if (!creditCheckResult.success) {
                 console.warn(`Skipping message ${record.id} due to credit issues: ${creditCheckResult.error}`);
                 errors.push(`Message ${record.id}: ${creditCheckResult.error}`);
