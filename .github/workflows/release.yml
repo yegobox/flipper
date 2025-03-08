@@ -226,7 +226,7 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
       - run: |
-          cd apps/flipper/ios
+          cd apps/flipper/macos
           pod install --repo-update
           cd ..
           cd apps/flipper

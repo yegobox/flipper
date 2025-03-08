@@ -3359,7 +3359,7 @@ class CoreSync
       repository.delete(item);
       return;
     }
-
+    String stockInOutType = ProxyService.box.stockInOutType();
     await _updateStockForItem(item: item, branchId: branchId);
 
     final variant = await ProxyService.strategy.getVariant(id: item.variantId);
@@ -3390,7 +3390,7 @@ class CoreSync
         useTransactionItemForQty: true,
 
         /// 11 is for sale
-        sarTyCd: ProxyService.box.stockInOutType(),
+        sarTyCd: stockInOutType,
       );
     }
 

@@ -87,7 +87,8 @@ mixin VariantPatch {
           sendPort(response.resultMsg);
           throw Exception(response.resultMsg);
         }
-        throw Exception(response.resultMsg);
+        talker.info(response.resultMsg);
+        //throw Exception(response.resultMsg);
       } catch (e, s) {
         talker.error(e, s);
         rethrow;

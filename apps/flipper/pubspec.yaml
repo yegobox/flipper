@@ -1,7 +1,7 @@
 name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 1.170.4252223233365+1741378506
+version: 1.170.4252223233366+1741415388
 
 
 environment:
@@ -10,7 +10,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
   sentry: ^8.13.0
   sentry_flutter: ^8.13.0
   
@@ -97,8 +96,7 @@ dependencies:
   syncfusion_flutter_datagrid_export: ^28.1.41
   syncfusion_flutter_core: ^28.1.41
   flex_color_picker: ^3.7.0
-  # realm: ^20.0.0
-  
+
   sizer: ^2.0.15
   # firebase_app_check: ^0.2.1+12
   talker_flutter: ^4.1.5
@@ -186,12 +184,13 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   msix: ^3.16.8
   patrol: ^3.14.0
-  stacked_generator:
+  # stacked_generator:
   flutter_launcher_icons: ^0.13.1
   matcher: ^0.12.10
   injectable_generator: ^2.6.0
   integration_test:
     sdk: flutter
+
   nock: ^1.2.3
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -199,7 +198,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   build_runner: ^2.4.14
-  flutter_assets_generator: ^0.0.8
+  # flutter_assets_generator: ^0.0.8
   # custom_lint:
   # riverpod_generator: ^2.3.5
   riverpod_lint: ^2.3.7
@@ -217,7 +216,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.3515.0
+  msix_version: 1.170.3516.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"

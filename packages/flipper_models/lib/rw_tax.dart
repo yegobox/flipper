@@ -397,8 +397,9 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
     List<Map<String, dynamic>> itemsList = await Future.wait(itemsFutures);
 
     // Calculate total for non-tax-exempt items
-    double totalTaxable =
-        items.where((item) => item.taxTyCd != "D").fold(0.0, (sum, item) {
+    //NOTE: before I was excluding tax of type D but in recent test it is no longer wokring
+    // I removed where((item) => item.taxTyCd != "D") from bellow line
+    double totalTaxable = items.fold(0.0, (sum, item) {
       double discountedPrice = item.dcRt != 0
           ? item.price *
               item.qty *
