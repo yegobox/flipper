@@ -1,7 +1,9 @@
-// Import AWS SDK with explicit version and cache options
+// Import from the specified locations in deno.json
 import { S3Client, GetObjectCommand } from 'aws-s3';
 import { getSignedUrl } from 'aws-presigner';
 import { createClient } from '@supabase/supabase-js';
+// Direct import for UUID
+import { v4 as uuidv4 } from 'https://deno.land/std@0.178.0/uuid/mod.ts';
 
 console.log("Generate Pre-signed URL Function Started!")
 
@@ -50,11 +52,32 @@ Deno.serve(async (req) => {
     
     console.log(`Pre-signed URL generated: ${signedUrl}`);
     
+    // Generate a unique short URL using crypto API instead of UUID
+    const shortUrlId = crypto.randomUUID();
+    const shortUrl = `https://ombieopwqgfuzequezeq.supabase.co/functions/v1/urlRedirect/s/${shortUrlId}`;
+    
+    // Store the mapping in Supabase
+    const { data, error } = await supabase
+      .from('url_shorteners')
+      .insert([
+        { long_url: signedUrl, short_url: shortUrl },
+      ]);
+    
+    if (error) {
+      console.error('Error storing URL mapping in Supabase:', error);
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    
+    console.log(`Shortened URL: ${shortUrl}`);
+    
     return new Response(
-      JSON.stringify({ url: signedUrl }),
+      JSON.stringify({ url: shortUrl }),
       { headers: { "Content-Type": "application/json" } }
     );
-   } catch (error) {
+  } catch (error) {
     console.error("Error generating pre-signed URL:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

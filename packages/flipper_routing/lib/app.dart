@@ -804,5 +804,6 @@ class App {}
 
 // TODO: keep track https://github.com/javaherisaber/open_filex/pull/19
 // supabase secrets set --env-file .env
+// supabase functions deploy urlRedirect --no-verify-jwt=true
 
 
