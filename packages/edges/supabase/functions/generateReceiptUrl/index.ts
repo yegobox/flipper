@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
         .eq('status', 'completed')
         .eq('is_digital_receipt_generated', false)
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(10);
 
       if (error) {
         console.error("Error fetching transactions:", error);
@@ -227,7 +227,8 @@ Deno.serve(async (req) => {
                 .from('messages')
                 .insert({
                     text: messageText,
-                    phone_number: transaction.current_sale_customer_phone_number
+                    phone_number: transaction.current_sale_customer_phone_number,
+                    branch_id: transaction.branch_id,
                 })
                 .select();
 
