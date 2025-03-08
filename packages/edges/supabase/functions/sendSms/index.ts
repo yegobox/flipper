@@ -2,8 +2,8 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 const yegoboxBearerToken = Deno.env.get('YEGOBOX_BEARER_TOKEN')!;
 
 const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -13,13 +13,14 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 const SMS_API_URL = "https://apihub.yegobox.com/v2/api/sms-broadcast";
+const SMS_CREDIT_COST = 30; // Define the cost of sending one SMS
 
 async function sendSMS(text, phoneNumber) {
     try {
         // Ensure phone number has the + prefix for international format
         const formattedNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
         console.log(`Attempting to send SMS to ${formattedNumber}: "${text}"`);
-        
+
         const smsBody = {
             text: text,
             numberList: [formattedNumber]
@@ -33,25 +34,25 @@ async function sendSMS(text, phoneNumber) {
             },
             body: JSON.stringify(smsBody)
         });
-        
+
         // Read the full response and log it
         const responseData = await response.json().catch(e => {
             console.error("Failed to parse response JSON:", e);
             return null;
         });
-        
+
         console.log("SMS API Response:", {
             status: response.status,
             ok: response.ok,
             data: responseData
         });
-        
+
         // Check if the API response indicates success
         if (response.ok) {
             return { success: true };
         } else {
-            return { 
-                success: false, 
+            return {
+                success: false,
                 error: `API returned status ${response.status}`,
                 details: responseData
             };
@@ -62,29 +63,77 @@ async function sendSMS(text, phoneNumber) {
     }
 }
 
+async function deductCredits(branch_server_id: string, creditsToDeduct: number) {
+    try {
+        // Optimistic Locking: Fetch current credit balance.
+        const { data: creditData, error: creditError } = await supabase
+            .from('credits')
+            .select('credits')
+            .eq('branch_server_id', branch_server_id)
+            .single();
+
+        if (creditError) {
+            console.error(`Error fetching credit balance for branch ${branch_server_id}:`, creditError);
+            return { success: false, error: `Failed to fetch credit balance: ${creditError.message}` };
+        }
+
+        if (!creditData) {
+            console.error(`No credit entry found for branch ${branch_server_id}.`);
+            return { success: false, error: `No credit entry found for branch ${branch_server_id}` };
+        }
+
+        const currentCredits = creditData.credits;
+
+        if (currentCredits < creditsToDeduct) {
+            console.warn(`Insufficient credits for branch ${branch_server_id}. Required: ${creditsToDeduct}, Available: ${currentCredits}`);
+            return { success: false, error: `Insufficient credits. Required: ${creditsToDeduct}, Available: ${currentCredits}` };
+        }
+
+        const newCredits = currentCredits - creditsToDeduct;
+
+        // Perform the update within a transaction (function call)
+        const { error: updateError } = await supabase.rpc('deduct_credits', {
+            branch_id: branch_server_id,
+            amount: creditsToDeduct
+        });
+
+        if (updateError) {
+            console.error(`Failed to deduct credits for branch ${branch_server_id}:`, updateError);
+            return { success: false, error: `Failed to deduct credits: ${updateError.message}` };
+        }
+
+        console.log(`Successfully deducted ${creditsToDeduct} credits for branch ${branch_server_id}.  New balance: ${newCredits}`);
+        return { success: true, newBalance: newCredits };
+    } catch (error) {
+        console.error("Error during credit deduction:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+
 async function processPendingSMS() {
     console.log("Starting to process pending SMS messages...");
-    
+
     try {
-        // Fetch pending messages
+        // Fetch pending messages, including branch_id
         const { data, error } = await supabase
             .from('messages')
-            .select('id, text, phone_number, delivered')
+            .select('id, text, phone_number, delivered, branch_id')
             .eq('delivered', false)
             .limit(10);
 
         if (error) {
             console.error("Error fetching pending SMS:", error);
-            return { 
-                processed: 0, 
-                success: 0, 
+            return {
+                processed: 0,
+                success: 0,
                 failed: 0,
                 error: `Database fetch error: ${error.message}`
             };
         }
 
         console.log(`Found ${data.length} pending SMS messages to process`);
-        
+
         let successCount = 0;
         let failedCount = 0;
         let errors = [];
@@ -92,7 +141,7 @@ async function processPendingSMS() {
         // Process each message
         for (const record of data) {
             console.log(`Processing message ID: ${record.id}`);
-            
+
             // Check if phone number is valid
             if (!record.phone_number || !record.phone_number.trim()) {
                 console.error(`Invalid phone number for message ID: ${record.id}`);
@@ -100,7 +149,7 @@ async function processPendingSMS() {
                 failedCount++;
                 continue;
             }
-            
+
             // Check if text is valid
             if (!record.text || !record.text.trim()) {
                 console.error(`Empty message text for message ID: ${record.id}`);
@@ -108,16 +157,33 @@ async function processPendingSMS() {
                 failedCount++;
                 continue;
             }
-            
+
+            // CHECK CREDITS
+            if (!record.branch_id) {
+                console.error(`Missing branch_id for message ID: ${record.id}`);
+                errors.push(`Message ${record.id}: Missing branch_id`);
+                failedCount++;
+                continue;
+            }
+
+            const creditCheckResult = await deductCredits(record.branch_id, SMS_CREDIT_COST); // Changed to use branch_id from messages table
+            if (!creditCheckResult.success) {
+                console.warn(`Skipping message ${record.id} due to credit issues: ${creditCheckResult.error}`);
+                errors.push(`Message ${record.id}: ${creditCheckResult.error}`);
+                failedCount++;
+                continue;
+            }
+
+
             const result = await sendSMS(record.text, record.phone_number);
-            
+
             if (result.success) {
                 // Update message status in database
                 const { error: updateError } = await supabase
                     .from('messages')
                     .update({ delivered: true })
                     .eq('id', record.id);
-                
+
                 if (updateError) {
                     console.error(`Failed to update message ${record.id} status:`, updateError);
                     errors.push(`Message ${record.id}: Database update failed - ${updateError.message}`);
@@ -135,16 +201,17 @@ async function processPendingSMS() {
                 failedCount++;
             }
         }
-        
-        return { 
-            processed: data.length, 
-            success: successCount, 
+
+        return {
+            processed: data.length,
+            success: successCount,
             failed: failedCount,
             errors: errors,
             pendingMessages: data.map(m => ({
                 id: m.id,
                 phone: m.phone_number,
-                textLength: m.text ? m.text.length : 0
+                textLength: m.text ? m.text.length : 0,
+                branch_id: m.branch_id
             }))
         };
     } catch (error) {
@@ -160,11 +227,11 @@ function checkEnvironmentVariables() {
         'SUPABASE_ANON_KEY': Deno.env.get('SUPABASE_ANON_KEY'),
         'YEGOBOX_BEARER_TOKEN': Deno.env.get('YEGOBOX_BEARER_TOKEN')
     };
-    
+
     const missingVars = Object.entries(vars)
         .filter(([_, value]) => !value)
         .map(([name]) => name);
-    
+
     return {
         allPresent: missingVars.length === 0,
         missing: missingVars,
@@ -179,27 +246,28 @@ function checkEnvironmentVariables() {
 Deno.serve(async (req) => {
     try {
         console.log("SMS processing endpoint called");
-        
+
         // Check environment variables
         const envCheck = checkEnvironmentVariables();
         if (!envCheck.allPresent) {
-            return new Response(JSON.stringify({ 
-                message: "Environment configuration error", 
+            return new Response(JSON.stringify({
+                message: "Environment configuration error",
                 missing: envCheck.missing
             }), {
                 headers: { "Content-Type": "application/json" },
                 status: 500
             });
         }
-        
+
         const result = await processPendingSMS();
-        
-        return new Response(JSON.stringify({ 
-            message: "SMS processing complete", 
+
+        return new Response(JSON.stringify({
+            message: "SMS processing complete",
             stats: result,
             config: {
                 env: envCheck.values,
-                apiUrl: SMS_API_URL
+                apiUrl: SMS_API_URL,
+                creditCost: SMS_CREDIT_COST
             }
         }), {
             headers: { "Content-Type": "application/json" },
@@ -207,9 +275,9 @@ Deno.serve(async (req) => {
         });
     } catch (error) {
         console.error("Unhandled error in request handler:", error);
-        
-        return new Response(JSON.stringify({ 
-            message: "Error processing SMS messages", 
+
+        return new Response(JSON.stringify({
+            message: "Error processing SMS messages",
             error: error.toString(),
             stack: error.stack
         }), {
