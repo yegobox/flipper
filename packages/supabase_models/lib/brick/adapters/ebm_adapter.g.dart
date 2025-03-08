@@ -1,28 +1,34 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Ebm> _$EbmFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Ebm> _$EbmFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Ebm(
-      id: data['id'] as String?,
-      bhfId: data['bhf_id'] as String,
-      tinNumber: data['tin_number'] as int,
-      dvcSrlNo: data['dvc_srl_no'] as String,
-      userId: data['user_id'] as int,
-      taxServerUrl: data['tax_server_url'] as String,
-      businessId: data['business_id'] as int,
-      branchId: data['branch_id'] as int,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String));
+    id: data['id'] as String?,
+    bhfId: data['bhf_id'] as String,
+    tinNumber: data['tin_number'] as int,
+    dvcSrlNo: data['dvc_srl_no'] as String,
+    userId: data['user_id'] as int,
+    taxServerUrl: data['tax_server_url'] as String,
+    businessId: data['business_id'] as int,
+    branchId: data['branch_id'] as int,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+  );
 }
 
-Future<Map<String, dynamic>> _$EbmToSupabase(Ebm instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$EbmToSupabase(
+  Ebm instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'bhf_id': instance.bhfId,
@@ -32,33 +38,38 @@ Future<Map<String, dynamic>> _$EbmToSupabase(Ebm instance,
     'tax_server_url': instance.taxServerUrl,
     'business_id': instance.businessId,
     'branch_id': instance.branchId,
-    'last_touched': instance.lastTouched?.toIso8601String()
+    'last_touched': instance.lastTouched?.toIso8601String(),
   };
 }
 
-Future<Ebm> _$EbmFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Ebm> _$EbmFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Ebm(
-      id: data['id'] as String,
-      bhfId: data['bhf_id'] as String,
-      tinNumber: data['tin_number'] as int,
-      dvcSrlNo: data['dvc_srl_no'] as String,
-      userId: data['user_id'] as int,
-      taxServerUrl: data['tax_server_url'] as String,
-      businessId: data['business_id'] as int,
-      branchId: data['branch_id'] as int,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String))
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    bhfId: data['bhf_id'] as String,
+    tinNumber: data['tin_number'] as int,
+    dvcSrlNo: data['dvc_srl_no'] as String,
+    userId: data['user_id'] as int,
+    taxServerUrl: data['tax_server_url'] as String,
+    businessId: data['business_id'] as int,
+    branchId: data['branch_id'] as int,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$EbmToSqlite(Ebm instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$EbmToSqlite(
+  Ebm instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'bhf_id': instance.bhfId,
@@ -68,7 +79,7 @@ Future<Map<String, dynamic>> _$EbmToSqlite(Ebm instance,
     'tax_server_url': instance.taxServerUrl,
     'business_id': instance.businessId,
     'branch_id': instance.branchId,
-    'last_touched': instance.lastTouched?.toIso8601String()
+    'last_touched': instance.lastTouched?.toIso8601String(),
   };
 }
 
@@ -117,7 +128,7 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
     'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'last_touched',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -184,13 +195,18 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
       columnName: 'last_touched',
       iterable: false,
       type: DateTime,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Ebm instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Ebm` WHERE id = ? LIMIT 1''', [instance.id]);
+    Ebm instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Ebm` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -204,24 +220,34 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
   final String tableName = 'Ebm';
 
   @override
-  Future<Ebm> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$EbmFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Ebm> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$EbmFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Ebm input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
+  Future<Map<String, dynamic>> toSupabase(
+    Ebm input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async =>
       await _$EbmToSupabase(input, provider: provider, repository: repository);
   @override
-  Future<Ebm> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
+  Future<Ebm> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async =>
       await _$EbmFromSqlite(input, provider: provider, repository: repository);
   @override
-  Future<Map<String, dynamic>> toSqlite(Ebm input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
+  Future<Map<String, dynamic>> toSqlite(
+    Ebm input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async =>
       await _$EbmToSqlite(input, provider: provider, repository: repository);
 }

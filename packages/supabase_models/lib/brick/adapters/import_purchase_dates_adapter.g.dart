@@ -2,61 +2,68 @@
 part of '../brick.g.dart';
 
 Future<ImportPurchaseDates> _$ImportPurchaseDatesFromSupabase(
-    Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return ImportPurchaseDates(
-      id: data['id'] as String?,
-      lastRequestDate: data['last_request_date'] == null
-          ? null
-          : data['last_request_date'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
-      requestType:
-          data['request_type'] == null ? null : data['request_type'] as String?,
-      purchaseId:
-          data['purchase_id'] == null ? null : data['purchase_id'] as String?);
+    id: data['id'] as String?,
+    lastRequestDate:
+        data['last_request_date'] == null
+            ? null
+            : data['last_request_date'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
+    requestType:
+        data['request_type'] == null ? null : data['request_type'] as String?,
+    purchaseId:
+        data['purchase_id'] == null ? null : data['purchase_id'] as String?,
+  );
 }
 
 Future<Map<String, dynamic>> _$ImportPurchaseDatesToSupabase(
-    ImportPurchaseDates instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  ImportPurchaseDates instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'last_request_date': instance.lastRequestDate,
     'branch_id': instance.branchId,
     'request_type': instance.requestType,
-    'purchase_id': instance.purchaseId
+    'purchase_id': instance.purchaseId,
   };
 }
 
 Future<ImportPurchaseDates> _$ImportPurchaseDatesFromSqlite(
-    Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return ImportPurchaseDates(
-      id: data['id'] as String,
-      lastRequestDate: data['last_request_date'] == null
-          ? null
-          : data['last_request_date'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
-      requestType:
-          data['request_type'] == null ? null : data['request_type'] as String?,
-      purchaseId:
-          data['purchase_id'] == null ? null : data['purchase_id'] as String?)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    lastRequestDate:
+        data['last_request_date'] == null
+            ? null
+            : data['last_request_date'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
+    requestType:
+        data['request_type'] == null ? null : data['request_type'] as String?,
+    purchaseId:
+        data['purchase_id'] == null ? null : data['purchase_id'] as String?,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
 Future<Map<String, dynamic>> _$ImportPurchaseDatesToSqlite(
-    ImportPurchaseDates instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  ImportPurchaseDates instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'last_request_date': instance.lastRequestDate,
     'branch_id': instance.branchId,
     'request_type': instance.requestType,
-    'purchase_id': instance.purchaseId
+    'purchase_id': instance.purchaseId,
   };
 }
 
@@ -91,7 +98,7 @@ class ImportPurchaseDatesAdapter
       association: false,
       columnName: 'purchase_id',
       foreignKey: 'purchase_id',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -134,14 +141,18 @@ class ImportPurchaseDatesAdapter
       columnName: 'purchase_id',
       iterable: false,
       type: String,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      ImportPurchaseDates instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
+    ImportPurchaseDates instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
         SELECT * FROM `ImportPurchaseDates` WHERE id = ? LIMIT 1''',
-        [instance.id]);
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -155,27 +166,43 @@ class ImportPurchaseDatesAdapter
   final String tableName = 'ImportPurchaseDates';
 
   @override
-  Future<ImportPurchaseDates> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ImportPurchaseDatesFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<ImportPurchaseDates> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ImportPurchaseDatesFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(ImportPurchaseDates input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ImportPurchaseDatesToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    ImportPurchaseDates input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ImportPurchaseDatesToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<ImportPurchaseDates> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ImportPurchaseDatesFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<ImportPurchaseDates> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ImportPurchaseDatesFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(ImportPurchaseDates input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ImportPurchaseDatesToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    ImportPurchaseDates input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ImportPurchaseDatesToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

@@ -1,43 +1,52 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Device> _$DeviceFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Device> _$DeviceFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Device(
-      id: data['id'] as String?,
-      linkingCode:
-          data['linking_code'] == null ? null : data['linking_code'] as String?,
-      deviceName:
-          data['device_name'] == null ? null : data['device_name'] as String?,
-      deviceVersion: data['device_version'] == null
-          ? null
-          : data['device_version'] as String?,
-      pubNubPublished: data['pub_nub_published'] == null
-          ? null
-          : data['pub_nub_published'] as bool?,
-      phone: data['phone'] == null ? null : data['phone'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      userId: data['user_id'] == null ? null : data['user_id'] as int?,
-      defaultApp:
-          data['default_app'] == null ? null : data['default_app'] as String?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String));
+    id: data['id'] as String?,
+    linkingCode:
+        data['linking_code'] == null ? null : data['linking_code'] as String?,
+    deviceName:
+        data['device_name'] == null ? null : data['device_name'] as String?,
+    deviceVersion:
+        data['device_version'] == null
+            ? null
+            : data['device_version'] as String?,
+    pubNubPublished:
+        data['pub_nub_published'] == null
+            ? null
+            : data['pub_nub_published'] as bool?,
+    phone: data['phone'] == null ? null : data['phone'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    defaultApp:
+        data['default_app'] == null ? null : data['default_app'] as String?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
+            ? null
+            : DateTime.tryParse(data['deleted_at'] as String),
+  );
 }
 
-Future<Map<String, dynamic>> _$DeviceToSupabase(Device instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$DeviceToSupabase(
+  Device instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'linking_code': instance.linkingCode,
@@ -50,63 +59,72 @@ Future<Map<String, dynamic>> _$DeviceToSupabase(Device instance,
     'user_id': instance.userId,
     'default_app': instance.defaultApp,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String()
+    'deleted_at': instance.deletedAt?.toIso8601String(),
   };
 }
 
-Future<Device> _$DeviceFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Device> _$DeviceFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Device(
-      id: data['id'] as String,
-      linkingCode:
-          data['linking_code'] == null ? null : data['linking_code'] as String?,
-      deviceName:
-          data['device_name'] == null ? null : data['device_name'] as String?,
-      deviceVersion: data['device_version'] == null
-          ? null
-          : data['device_version'] as String?,
-      pubNubPublished: data['pub_nub_published'] == null
-          ? null
-          : data['pub_nub_published'] == 1,
-      phone: data['phone'] == null ? null : data['phone'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      userId: data['user_id'] == null ? null : data['user_id'] as int?,
-      defaultApp:
-          data['default_app'] == null ? null : data['default_app'] as String?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String))
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    linkingCode:
+        data['linking_code'] == null ? null : data['linking_code'] as String?,
+    deviceName:
+        data['device_name'] == null ? null : data['device_name'] as String?,
+    deviceVersion:
+        data['device_version'] == null
+            ? null
+            : data['device_version'] as String?,
+    pubNubPublished:
+        data['pub_nub_published'] == null
+            ? null
+            : data['pub_nub_published'] == 1,
+    phone: data['phone'] == null ? null : data['phone'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    defaultApp:
+        data['default_app'] == null ? null : data['default_app'] as String?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
+            ? null
+            : DateTime.tryParse(data['deleted_at'] as String),
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$DeviceToSqlite(Device instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$DeviceToSqlite(
+  Device instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'linking_code': instance.linkingCode,
     'device_name': instance.deviceName,
     'device_version': instance.deviceVersion,
-    'pub_nub_published': instance.pubNubPublished == null
-        ? null
-        : (instance.pubNubPublished! ? 1 : 0),
+    'pub_nub_published':
+        instance.pubNubPublished == null
+            ? null
+            : (instance.pubNubPublished! ? 1 : 0),
     'phone': instance.phone,
     'branch_id': instance.branchId,
     'business_id': instance.businessId,
     'user_id': instance.userId,
     'default_app': instance.defaultApp,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String()
+    'deleted_at': instance.deletedAt?.toIso8601String(),
   };
 }
 
@@ -167,7 +185,7 @@ class DeviceAdapter extends OfflineFirstWithSupabaseAdapter<Device> {
     'deletedAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'deleted_at',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -252,13 +270,18 @@ class DeviceAdapter extends OfflineFirstWithSupabaseAdapter<Device> {
       columnName: 'deleted_at',
       iterable: false,
       type: DateTime,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Device instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Device` WHERE id = ? LIMIT 1''', [instance.id]);
+    Device instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Device` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -272,26 +295,40 @@ class DeviceAdapter extends OfflineFirstWithSupabaseAdapter<Device> {
   final String tableName = 'Device';
 
   @override
-  Future<Device> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$DeviceFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Device> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$DeviceFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Device input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$DeviceToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Device input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$DeviceToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Device> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$DeviceFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Device> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$DeviceFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Device input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
+  Future<Map<String, dynamic>> toSqlite(
+    Device input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async =>
       await _$DeviceToSqlite(input, provider: provider, repository: repository);
 }

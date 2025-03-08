@@ -264,7 +264,7 @@ class CoreViewModel extends FlipperBaseModel
           : variation.productName!;
 
       TransactionItem? existTransactionItem = await ProxyService.strategy
-          .getTransactionItemByVariantId(
+          .getTransactionItem(
               variantId: variation.id, transactionId: pendingTransaction?.id);
 
       List<TransactionItem> items = await ProxyService.strategy

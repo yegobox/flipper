@@ -1,99 +1,113 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Business> _$BusinessFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Business> _$BusinessFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Business(
-      id: data['id'] as String?,
-      serverId: data['server_id'] as int,
-      name: data['name'] == null ? null : data['name'] as String?,
-      currency: data['currency'] == null ? null : data['currency'] as String?,
-      categoryId:
-          data['category_id'] == null ? null : data['category_id'] as String?,
-      latitude: data['latitude'] == null ? null : data['latitude'] as String?,
-      longitude:
-          data['longitude'] == null ? null : data['longitude'] as String?,
-      userId: data['user_id'] == null ? null : data['user_id'] as int?,
-      timeZone: data['time_zone'] == null ? null : data['time_zone'] as String?,
-      country: data['country'] == null ? null : data['country'] as String?,
-      businessUrl:
-          data['business_url'] == null ? null : data['business_url'] as String?,
-      hexColor: data['hex_color'] == null ? null : data['hex_color'] as String?,
-      imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
-      type: data['type'] == null ? null : data['type'] as String?,
-      active: data['active'] == null ? null : data['active'] as bool?,
-      chatUid: data['chat_uid'] == null ? null : data['chat_uid'] as String?,
-      metadata: data['metadata'] == null ? null : data['metadata'] as String?,
-      role: data['role'] == null ? null : data['role'] as String?,
-      lastSeen: data['last_seen'] == null ? null : data['last_seen'] as int?,
-      firstName:
-          data['first_name'] == null ? null : data['first_name'] as String?,
-      lastName: data['last_name'] == null ? null : data['last_name'] as String?,
-      createdAt: data['created_at'] == null
-          ? null
-          : data['created_at'] == null
-              ? null
-              : DateTime.tryParse(data['created_at'] as String),
-      deviceToken:
-          data['device_token'] == null ? null : data['device_token'] as String?,
-      backUpEnabled: data['back_up_enabled'] == null
-          ? null
-          : data['back_up_enabled'] as bool?,
-      subscriptionPlan: data['subscription_plan'] == null
-          ? null
-          : data['subscription_plan'] as String?,
-      nextBillingDate: data['next_billing_date'] == null
-          ? null
-          : data['next_billing_date'] as String?,
-      previousBillingDate: data['previous_billing_date'] == null
-          ? null
-          : data['previous_billing_date'] as String?,
-      isLastSubscriptionPaymentSucceeded:
-          data['is_last_subscription_payment_succeeded'] == null
-              ? null
-              : data['is_last_subscription_payment_succeeded'] as bool?,
-      backupFileId: data['backup_file_id'] == null
-          ? null
-          : data['backup_file_id'] as String?,
-      email: data['email'] == null ? null : data['email'] as String?,
-      lastDbBackup: data['last_db_backup'] == null
-          ? null
-          : data['last_db_backup'] as String?,
-      fullName: data['full_name'] == null ? null : data['full_name'] as String?,
-      tinNumber: data['tin_number'] == null ? null : data['tin_number'] as int?,
-      bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-      dvcSrlNo:
-          data['dvc_srl_no'] == null ? null : data['dvc_srl_no'] as String?,
-      adrs: data['adrs'] == null ? null : data['adrs'] as String?,
-      taxEnabled:
-          data['tax_enabled'] == null ? null : data['tax_enabled'] as bool?,
-      taxServerUrl: data['tax_server_url'] == null
-          ? null
-          : data['tax_server_url'] as String?,
-      isDefault:
-          data['is_default'] == null ? null : data['is_default'] as bool?,
-      businessTypeId: data['business_type_id'] == null
-          ? null
-          : data['business_type_id'] as int?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String),
-      encryptionKey: data['encryption_key'] == null
-          ? null
-          : data['encryption_key'] as String?);
+    id: data['id'] as String?,
+    serverId: data['server_id'] as int,
+    name: data['name'] == null ? null : data['name'] as String?,
+    currency: data['currency'] == null ? null : data['currency'] as String?,
+    categoryId:
+        data['category_id'] == null ? null : data['category_id'] as String?,
+    latitude: data['latitude'] == null ? null : data['latitude'] as String?,
+    longitude: data['longitude'] == null ? null : data['longitude'] as String?,
+    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    timeZone: data['time_zone'] == null ? null : data['time_zone'] as String?,
+    country: data['country'] == null ? null : data['country'] as String?,
+    businessUrl:
+        data['business_url'] == null ? null : data['business_url'] as String?,
+    hexColor: data['hex_color'] == null ? null : data['hex_color'] as String?,
+    imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
+    type: data['type'] == null ? null : data['type'] as String?,
+    active: data['active'] == null ? null : data['active'] as bool?,
+    chatUid: data['chat_uid'] == null ? null : data['chat_uid'] as String?,
+    metadata: data['metadata'] == null ? null : data['metadata'] as String?,
+    role: data['role'] == null ? null : data['role'] as String?,
+    lastSeen: data['last_seen'] == null ? null : data['last_seen'] as int?,
+    firstName:
+        data['first_name'] == null ? null : data['first_name'] as String?,
+    lastName: data['last_name'] == null ? null : data['last_name'] as String?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
+            ? null
+            : DateTime.tryParse(data['created_at'] as String),
+    deviceToken:
+        data['device_token'] == null ? null : data['device_token'] as String?,
+    backUpEnabled:
+        data['back_up_enabled'] == null
+            ? null
+            : data['back_up_enabled'] as bool?,
+    subscriptionPlan:
+        data['subscription_plan'] == null
+            ? null
+            : data['subscription_plan'] as String?,
+    nextBillingDate:
+        data['next_billing_date'] == null
+            ? null
+            : data['next_billing_date'] as String?,
+    previousBillingDate:
+        data['previous_billing_date'] == null
+            ? null
+            : data['previous_billing_date'] as String?,
+    isLastSubscriptionPaymentSucceeded:
+        data['is_last_subscription_payment_succeeded'] == null
+            ? null
+            : data['is_last_subscription_payment_succeeded'] as bool?,
+    backupFileId:
+        data['backup_file_id'] == null
+            ? null
+            : data['backup_file_id'] as String?,
+    email: data['email'] == null ? null : data['email'] as String?,
+    lastDbBackup:
+        data['last_db_backup'] == null
+            ? null
+            : data['last_db_backup'] as String?,
+    fullName: data['full_name'] == null ? null : data['full_name'] as String?,
+    tinNumber: data['tin_number'] == null ? null : data['tin_number'] as int?,
+    bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
+    dvcSrlNo: data['dvc_srl_no'] == null ? null : data['dvc_srl_no'] as String?,
+    adrs: data['adrs'] == null ? null : data['adrs'] as String?,
+    taxEnabled:
+        data['tax_enabled'] == null ? null : data['tax_enabled'] as bool?,
+    taxServerUrl:
+        data['tax_server_url'] == null
+            ? null
+            : data['tax_server_url'] as String?,
+    isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
+    businessTypeId:
+        data['business_type_id'] == null
+            ? null
+            : data['business_type_id'] as int?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
+            ? null
+            : DateTime.tryParse(data['deleted_at'] as String),
+    encryptionKey:
+        data['encryption_key'] == null
+            ? null
+            : data['encryption_key'] as String?,
+  );
 }
 
-Future<Map<String, dynamic>> _$BusinessToSupabase(Business instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$BusinessToSupabase(
+  Business instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'server_id': instance.serverId,
@@ -138,101 +152,114 @@ Future<Map<String, dynamic>> _$BusinessToSupabase(Business instance,
     'business_type_id': instance.businessTypeId,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
-    'encryption_key': instance.encryptionKey
+    'encryption_key': instance.encryptionKey,
   };
 }
 
-Future<Business> _$BusinessFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Business> _$BusinessFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Business(
-      id: data['id'] as String,
-      serverId: data['server_id'] as int,
-      name: data['name'] == null ? null : data['name'] as String?,
-      currency: data['currency'] == null ? null : data['currency'] as String?,
-      categoryId:
-          data['category_id'] == null ? null : data['category_id'] as String?,
-      latitude: data['latitude'] == null ? null : data['latitude'] as String?,
-      longitude:
-          data['longitude'] == null ? null : data['longitude'] as String?,
-      userId: data['user_id'] == null ? null : data['user_id'] as int?,
-      timeZone: data['time_zone'] == null ? null : data['time_zone'] as String?,
-      country: data['country'] == null ? null : data['country'] as String?,
-      businessUrl:
-          data['business_url'] == null ? null : data['business_url'] as String?,
-      hexColor: data['hex_color'] == null ? null : data['hex_color'] as String?,
-      imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
-      type: data['type'] == null ? null : data['type'] as String?,
-      active: data['active'] == null ? null : data['active'] == 1,
-      chatUid: data['chat_uid'] == null ? null : data['chat_uid'] as String?,
-      metadata: data['metadata'] == null ? null : data['metadata'] as String?,
-      role: data['role'] == null ? null : data['role'] as String?,
-      lastSeen: data['last_seen'] == null ? null : data['last_seen'] as int?,
-      firstName:
-          data['first_name'] == null ? null : data['first_name'] as String?,
-      lastName: data['last_name'] == null ? null : data['last_name'] as String?,
-      createdAt: data['created_at'] == null
-          ? null
-          : data['created_at'] == null
-              ? null
-              : DateTime.tryParse(data['created_at'] as String),
-      deviceToken:
-          data['device_token'] == null ? null : data['device_token'] as String?,
-      backUpEnabled:
-          data['back_up_enabled'] == null ? null : data['back_up_enabled'] == 1,
-      subscriptionPlan: data['subscription_plan'] == null
-          ? null
-          : data['subscription_plan'] as String?,
-      nextBillingDate: data['next_billing_date'] == null
-          ? null
-          : data['next_billing_date'] as String?,
-      previousBillingDate: data['previous_billing_date'] == null
-          ? null
-          : data['previous_billing_date'] as String?,
-      isLastSubscriptionPaymentSucceeded:
-          data['is_last_subscription_payment_succeeded'] == null
-              ? null
-              : data['is_last_subscription_payment_succeeded'] == 1,
-      backupFileId: data['backup_file_id'] == null
-          ? null
-          : data['backup_file_id'] as String?,
-      email: data['email'] == null ? null : data['email'] as String?,
-      lastDbBackup: data['last_db_backup'] == null
-          ? null
-          : data['last_db_backup'] as String?,
-      fullName: data['full_name'] == null ? null : data['full_name'] as String?,
-      tinNumber: data['tin_number'] == null ? null : data['tin_number'] as int?,
-      bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-      dvcSrlNo:
-          data['dvc_srl_no'] == null ? null : data['dvc_srl_no'] as String?,
-      adrs: data['adrs'] == null ? null : data['adrs'] as String?,
-      taxEnabled: data['tax_enabled'] == null ? null : data['tax_enabled'] == 1,
-      taxServerUrl: data['tax_server_url'] == null
-          ? null
-          : data['tax_server_url'] as String?,
-      isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
-      businessTypeId: data['business_type_id'] == null
-          ? null
-          : data['business_type_id'] as int?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String),
-      encryptionKey: data['encryption_key'] == null
-          ? null
-          : data['encryption_key'] as String?)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    serverId: data['server_id'] as int,
+    name: data['name'] == null ? null : data['name'] as String?,
+    currency: data['currency'] == null ? null : data['currency'] as String?,
+    categoryId:
+        data['category_id'] == null ? null : data['category_id'] as String?,
+    latitude: data['latitude'] == null ? null : data['latitude'] as String?,
+    longitude: data['longitude'] == null ? null : data['longitude'] as String?,
+    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    timeZone: data['time_zone'] == null ? null : data['time_zone'] as String?,
+    country: data['country'] == null ? null : data['country'] as String?,
+    businessUrl:
+        data['business_url'] == null ? null : data['business_url'] as String?,
+    hexColor: data['hex_color'] == null ? null : data['hex_color'] as String?,
+    imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
+    type: data['type'] == null ? null : data['type'] as String?,
+    active: data['active'] == null ? null : data['active'] == 1,
+    chatUid: data['chat_uid'] == null ? null : data['chat_uid'] as String?,
+    metadata: data['metadata'] == null ? null : data['metadata'] as String?,
+    role: data['role'] == null ? null : data['role'] as String?,
+    lastSeen: data['last_seen'] == null ? null : data['last_seen'] as int?,
+    firstName:
+        data['first_name'] == null ? null : data['first_name'] as String?,
+    lastName: data['last_name'] == null ? null : data['last_name'] as String?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
+            ? null
+            : DateTime.tryParse(data['created_at'] as String),
+    deviceToken:
+        data['device_token'] == null ? null : data['device_token'] as String?,
+    backUpEnabled:
+        data['back_up_enabled'] == null ? null : data['back_up_enabled'] == 1,
+    subscriptionPlan:
+        data['subscription_plan'] == null
+            ? null
+            : data['subscription_plan'] as String?,
+    nextBillingDate:
+        data['next_billing_date'] == null
+            ? null
+            : data['next_billing_date'] as String?,
+    previousBillingDate:
+        data['previous_billing_date'] == null
+            ? null
+            : data['previous_billing_date'] as String?,
+    isLastSubscriptionPaymentSucceeded:
+        data['is_last_subscription_payment_succeeded'] == null
+            ? null
+            : data['is_last_subscription_payment_succeeded'] == 1,
+    backupFileId:
+        data['backup_file_id'] == null
+            ? null
+            : data['backup_file_id'] as String?,
+    email: data['email'] == null ? null : data['email'] as String?,
+    lastDbBackup:
+        data['last_db_backup'] == null
+            ? null
+            : data['last_db_backup'] as String?,
+    fullName: data['full_name'] == null ? null : data['full_name'] as String?,
+    tinNumber: data['tin_number'] == null ? null : data['tin_number'] as int?,
+    bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
+    dvcSrlNo: data['dvc_srl_no'] == null ? null : data['dvc_srl_no'] as String?,
+    adrs: data['adrs'] == null ? null : data['adrs'] as String?,
+    taxEnabled: data['tax_enabled'] == null ? null : data['tax_enabled'] == 1,
+    taxServerUrl:
+        data['tax_server_url'] == null
+            ? null
+            : data['tax_server_url'] as String?,
+    isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
+    businessTypeId:
+        data['business_type_id'] == null
+            ? null
+            : data['business_type_id'] as int?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
+            ? null
+            : DateTime.tryParse(data['deleted_at'] as String),
+    encryptionKey:
+        data['encryption_key'] == null
+            ? null
+            : data['encryption_key'] as String?,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$BusinessToSqlite(Business instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$BusinessToSqlite(
+  Business instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'server_id': instance.serverId,
@@ -257,9 +284,10 @@ Future<Map<String, dynamic>> _$BusinessToSqlite(Business instance,
     'last_name': instance.lastName,
     'created_at': instance.createdAt?.toIso8601String(),
     'device_token': instance.deviceToken,
-    'back_up_enabled': instance.backUpEnabled == null
-        ? null
-        : (instance.backUpEnabled! ? 1 : 0),
+    'back_up_enabled':
+        instance.backUpEnabled == null
+            ? null
+            : (instance.backUpEnabled! ? 1 : 0),
     'subscription_plan': instance.subscriptionPlan,
     'next_billing_date': instance.nextBillingDate,
     'previous_billing_date': instance.previousBillingDate,
@@ -283,7 +311,7 @@ Future<Map<String, dynamic>> _$BusinessToSqlite(Business instance,
     'business_type_id': instance.businessTypeId,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
-    'encryption_key': instance.encryptionKey
+    'encryption_key': instance.encryptionKey,
   };
 }
 
@@ -468,7 +496,7 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
     'encryptionKey': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'encryption_key',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -739,13 +767,18 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
       columnName: 'encryption_key',
       iterable: false,
       type: String,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Business instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Business` WHERE id = ? LIMIT 1''', [instance.id]);
+    Business instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Business` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -759,27 +792,43 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
   final String tableName = 'Business';
 
   @override
-  Future<Business> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$BusinessFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Business> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$BusinessFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Business input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$BusinessToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Business input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$BusinessToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Business> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$BusinessFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Business> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$BusinessFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Business input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$BusinessToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    Business input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$BusinessToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

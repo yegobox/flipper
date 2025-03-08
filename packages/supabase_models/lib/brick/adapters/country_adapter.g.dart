@@ -1,50 +1,59 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Country> _$CountryFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Country> _$CountryFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Country(
-      id: data['id'] as String?,
-      name: data['name'] as String,
-      sortOrder: data['sort_order'] as int,
-      description: data['description'] as String,
-      code: data['code'] as String);
+    id: data['id'] as String?,
+    name: data['name'] as String,
+    sortOrder: data['sort_order'] as int,
+    description: data['description'] as String,
+    code: data['code'] as String,
+  );
 }
 
-Future<Map<String, dynamic>> _$CountryToSupabase(Country instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$CountryToSupabase(
+  Country instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'name': instance.name,
     'sort_order': instance.sortOrder,
     'description': instance.description,
-    'code': instance.code
+    'code': instance.code,
   };
 }
 
-Future<Country> _$CountryFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Country> _$CountryFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Country(
-      id: data['id'] as String,
-      name: data['name'] as String,
-      sortOrder: data['sort_order'] as int,
-      description: data['description'] as String,
-      code: data['code'] as String)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    name: data['name'] as String,
+    sortOrder: data['sort_order'] as int,
+    description: data['description'] as String,
+    code: data['code'] as String,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$CountryToSqlite(Country instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$CountryToSqlite(
+  Country instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'name': instance.name,
     'sort_order': instance.sortOrder,
     'description': instance.description,
-    'code': instance.code
+    'code': instance.code,
   };
 }
 
@@ -77,7 +86,7 @@ class CountryAdapter extends OfflineFirstWithSupabaseAdapter<Country> {
     'code': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'code',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -120,13 +129,18 @@ class CountryAdapter extends OfflineFirstWithSupabaseAdapter<Country> {
       columnName: 'code',
       iterable: false,
       type: String,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Country instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Country` WHERE id = ? LIMIT 1''', [instance.id]);
+    Country instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Country` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -140,27 +154,43 @@ class CountryAdapter extends OfflineFirstWithSupabaseAdapter<Country> {
   final String tableName = 'Country';
 
   @override
-  Future<Country> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$CountryFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Country> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$CountryFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Country input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$CountryToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Country input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$CountryToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Country> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$CountryFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Country> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$CountryFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Country input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$CountryToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    Country input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$CountryToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

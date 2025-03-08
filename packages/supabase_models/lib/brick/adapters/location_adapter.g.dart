@@ -1,39 +1,45 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Location> _$LocationFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Location> _$LocationFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Location(
-      id: data['id'] as String?,
-      serverId: data['server_id'] == null ? null : data['server_id'] as int?,
-      active: data['active'] == null ? null : data['active'] as bool?,
-      description:
-          data['description'] == null ? null : data['description'] as String?,
-      name: data['name'] == null ? null : data['name'] as String?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      longitude:
-          data['longitude'] == null ? null : data['longitude'] as String?,
-      latitude: data['latitude'] == null ? null : data['latitude'] as String?,
-      location: data['location'] == null ? null : data['location'] as String?,
-      isDefault: data['is_default'] as bool,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String),
-      isOnline: data['is_online'] == null ? null : data['is_online'] as bool?);
+    id: data['id'] as String?,
+    serverId: data['server_id'] == null ? null : data['server_id'] as int?,
+    active: data['active'] == null ? null : data['active'] as bool?,
+    description:
+        data['description'] == null ? null : data['description'] as String?,
+    name: data['name'] == null ? null : data['name'] as String?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    longitude: data['longitude'] == null ? null : data['longitude'] as String?,
+    latitude: data['latitude'] == null ? null : data['latitude'] as String?,
+    location: data['location'] == null ? null : data['location'] as String?,
+    isDefault: data['is_default'] as bool,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
+            ? null
+            : DateTime.tryParse(data['deleted_at'] as String),
+    isOnline: data['is_online'] == null ? null : data['is_online'] as bool?,
+  );
 }
 
-Future<Map<String, dynamic>> _$LocationToSupabase(Location instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$LocationToSupabase(
+  Location instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'server_id': instance.serverId,
@@ -47,44 +53,49 @@ Future<Map<String, dynamic>> _$LocationToSupabase(Location instance,
     'is_default': instance.isDefault,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
-    'is_online': instance.isOnline
+    'is_online': instance.isOnline,
   };
 }
 
-Future<Location> _$LocationFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Location> _$LocationFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Location(
-      id: data['id'] as String,
-      serverId: data['server_id'] == null ? null : data['server_id'] as int?,
-      active: data['active'] == null ? null : data['active'] == 1,
-      description:
-          data['description'] == null ? null : data['description'] as String?,
-      name: data['name'] == null ? null : data['name'] as String?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      longitude:
-          data['longitude'] == null ? null : data['longitude'] as String?,
-      latitude: data['latitude'] == null ? null : data['latitude'] as String?,
-      location: data['location'] == null ? null : data['location'] as String?,
-      isDefault: data['is_default'] == 1,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String),
-      isOnline: data['is_online'] == null ? null : data['is_online'] == 1)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    serverId: data['server_id'] == null ? null : data['server_id'] as int?,
+    active: data['active'] == null ? null : data['active'] == 1,
+    description:
+        data['description'] == null ? null : data['description'] as String?,
+    name: data['name'] == null ? null : data['name'] as String?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    longitude: data['longitude'] == null ? null : data['longitude'] as String?,
+    latitude: data['latitude'] == null ? null : data['latitude'] as String?,
+    location: data['location'] == null ? null : data['location'] as String?,
+    isDefault: data['is_default'] == 1,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
+            ? null
+            : DateTime.tryParse(data['deleted_at'] as String),
+    isOnline: data['is_online'] == null ? null : data['is_online'] == 1,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$LocationToSqlite(Location instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$LocationToSqlite(
+  Location instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'server_id': instance.serverId,
@@ -98,7 +109,8 @@ Future<Map<String, dynamic>> _$LocationToSqlite(Location instance,
     'is_default': instance.isDefault ? 1 : 0,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
-    'is_online': instance.isOnline == null ? null : (instance.isOnline! ? 1 : 0)
+    'is_online':
+        instance.isOnline == null ? null : (instance.isOnline! ? 1 : 0),
   };
 }
 
@@ -163,7 +175,7 @@ class LocationAdapter extends OfflineFirstWithSupabaseAdapter<Location> {
     'isOnline': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_online',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -254,13 +266,18 @@ class LocationAdapter extends OfflineFirstWithSupabaseAdapter<Location> {
       columnName: 'is_online',
       iterable: false,
       type: bool,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Location instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Location` WHERE id = ? LIMIT 1''', [instance.id]);
+    Location instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Location` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -274,27 +291,43 @@ class LocationAdapter extends OfflineFirstWithSupabaseAdapter<Location> {
   final String tableName = 'Location';
 
   @override
-  Future<Location> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$LocationFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Location> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$LocationFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Location input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$LocationToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Location input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$LocationToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Location> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$LocationFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Location> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$LocationFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Location input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$LocationToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    Location input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$LocationToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

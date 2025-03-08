@@ -1,27 +1,32 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Pin> _$PinFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Pin> _$PinFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Pin(
-      id: data['id'] as String?,
-      userId: data['user_id'] == null ? null : data['user_id'] as int?,
-      phoneNumber:
-          data['phone_number'] == null ? null : data['phone_number'] as String?,
-      pin: data['pin'] == null ? null : data['pin'] as int?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      ownerName:
-          data['owner_name'] == null ? null : data['owner_name'] as String?,
-      tokenUid: data['token_uid'] == null ? null : data['token_uid'] as String?,
-      uid: data['uid'] == null ? null : data['uid'] as String?);
+    id: data['id'] as String?,
+    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    phoneNumber:
+        data['phone_number'] == null ? null : data['phone_number'] as String?,
+    pin: data['pin'] == null ? null : data['pin'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    ownerName:
+        data['owner_name'] == null ? null : data['owner_name'] as String?,
+    tokenUid: data['token_uid'] == null ? null : data['token_uid'] as String?,
+    uid: data['uid'] == null ? null : data['uid'] as String?,
+  );
 }
 
-Future<Map<String, dynamic>> _$PinToSupabase(Pin instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$PinToSupabase(
+  Pin instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'user_id': instance.userId,
@@ -31,32 +36,36 @@ Future<Map<String, dynamic>> _$PinToSupabase(Pin instance,
     'business_id': instance.businessId,
     'owner_name': instance.ownerName,
     'token_uid': instance.tokenUid,
-    'uid': instance.uid
+    'uid': instance.uid,
   };
 }
 
-Future<Pin> _$PinFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Pin> _$PinFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Pin(
-      id: data['id'] as String,
-      userId: data['user_id'] == null ? null : data['user_id'] as int?,
-      phoneNumber:
-          data['phone_number'] == null ? null : data['phone_number'] as String?,
-      pin: data['pin'] == null ? null : data['pin'] as int?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      ownerName:
-          data['owner_name'] == null ? null : data['owner_name'] as String?,
-      tokenUid: data['token_uid'] == null ? null : data['token_uid'] as String?,
-      uid: data['uid'] == null ? null : data['uid'] as String?)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    phoneNumber:
+        data['phone_number'] == null ? null : data['phone_number'] as String?,
+    pin: data['pin'] == null ? null : data['pin'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    ownerName:
+        data['owner_name'] == null ? null : data['owner_name'] as String?,
+    tokenUid: data['token_uid'] == null ? null : data['token_uid'] as String?,
+    uid: data['uid'] == null ? null : data['uid'] as String?,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$PinToSqlite(Pin instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$PinToSqlite(
+  Pin instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'user_id': instance.userId,
@@ -66,7 +75,7 @@ Future<Map<String, dynamic>> _$PinToSqlite(Pin instance,
     'business_id': instance.businessId,
     'owner_name': instance.ownerName,
     'token_uid': instance.tokenUid,
-    'uid': instance.uid
+    'uid': instance.uid,
   };
 }
 
@@ -115,7 +124,7 @@ class PinAdapter extends OfflineFirstWithSupabaseAdapter<Pin> {
     'uid': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'uid',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -182,13 +191,18 @@ class PinAdapter extends OfflineFirstWithSupabaseAdapter<Pin> {
       columnName: 'uid',
       iterable: false,
       type: String,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Pin instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Pin` WHERE id = ? LIMIT 1''', [instance.id]);
+    Pin instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Pin` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -202,24 +216,34 @@ class PinAdapter extends OfflineFirstWithSupabaseAdapter<Pin> {
   final String tableName = 'Pin';
 
   @override
-  Future<Pin> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$PinFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Pin> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$PinFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Pin input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
+  Future<Map<String, dynamic>> toSupabase(
+    Pin input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async =>
       await _$PinToSupabase(input, provider: provider, repository: repository);
   @override
-  Future<Pin> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
+  Future<Pin> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async =>
       await _$PinFromSqlite(input, provider: provider, repository: repository);
   @override
-  Future<Map<String, dynamic>> toSqlite(Pin input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
+  Future<Map<String, dynamic>> toSqlite(
+    Pin input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async =>
       await _$PinToSqlite(input, provider: provider, repository: repository);
 }

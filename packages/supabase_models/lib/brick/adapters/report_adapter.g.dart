@@ -1,50 +1,58 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Report> _$ReportFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Report> _$ReportFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Report(
-      id: data['id'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      filename: data['filename'] == null ? null : data['filename'] as String?,
-      s3Url: data['s3_url'] == null ? null : data['s3_url'] as String?,
-      downloaded:
-          data['downloaded'] == null ? null : data['downloaded'] as bool?);
+    id: data['id'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    filename: data['filename'] == null ? null : data['filename'] as String?,
+    s3Url: data['s3_url'] == null ? null : data['s3_url'] as String?,
+    downloaded: data['downloaded'] == null ? null : data['downloaded'] as bool?,
+  );
 }
 
-Future<Map<String, dynamic>> _$ReportToSupabase(Report instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$ReportToSupabase(
+  Report instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'branch_id': instance.branchId,
     'business_id': instance.businessId,
     'filename': instance.filename,
     's3_url': instance.s3Url,
-    'downloaded': instance.downloaded
+    'downloaded': instance.downloaded,
   };
 }
 
-Future<Report> _$ReportFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Report> _$ReportFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Report(
-      id: data['id'] as String,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      filename: data['filename'] == null ? null : data['filename'] as String?,
-      s3Url: data['s3_url'] == null ? null : data['s3_url'] as String?,
-      downloaded: data['downloaded'] == null ? null : data['downloaded'] == 1)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    filename: data['filename'] == null ? null : data['filename'] as String?,
+    s3Url: data['s3_url'] == null ? null : data['s3_url'] as String?,
+    downloaded: data['downloaded'] == null ? null : data['downloaded'] == 1,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$ReportToSqlite(Report instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$ReportToSqlite(
+  Report instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'branch_id': instance.branchId,
@@ -52,7 +60,7 @@ Future<Map<String, dynamic>> _$ReportToSqlite(Report instance,
     'filename': instance.filename,
     's3_url': instance.s3Url,
     'downloaded':
-        instance.downloaded == null ? null : (instance.downloaded! ? 1 : 0)
+        instance.downloaded == null ? null : (instance.downloaded! ? 1 : 0),
   };
 }
 
@@ -89,7 +97,7 @@ class ReportAdapter extends OfflineFirstWithSupabaseAdapter<Report> {
     'downloaded': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'downloaded',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -138,13 +146,18 @@ class ReportAdapter extends OfflineFirstWithSupabaseAdapter<Report> {
       columnName: 'downloaded',
       iterable: false,
       type: bool,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Report instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Report` WHERE id = ? LIMIT 1''', [instance.id]);
+    Report instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Report` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -158,26 +171,40 @@ class ReportAdapter extends OfflineFirstWithSupabaseAdapter<Report> {
   final String tableName = 'Report';
 
   @override
-  Future<Report> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ReportFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Report> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ReportFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Report input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ReportToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Report input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ReportToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Report> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ReportFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Report> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ReportFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Report input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
+  Future<Map<String, dynamic>> toSqlite(
+    Report input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async =>
       await _$ReportToSqlite(input, provider: provider, repository: repository);
 }

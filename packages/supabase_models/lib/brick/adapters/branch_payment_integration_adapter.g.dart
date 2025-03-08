@@ -2,45 +2,50 @@
 part of '../brick.g.dart';
 
 Future<BranchPaymentIntegration> _$BranchPaymentIntegrationFromSupabase(
-    Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return BranchPaymentIntegration(
-      id: data['id'] as String?,
-      branchId: data['branch_id'] as String,
-      isEnabled: data['is_enabled'] as bool);
+    id: data['id'] as String?,
+    branchId: data['branch_id'] as String,
+    isEnabled: data['is_enabled'] as bool,
+  );
 }
 
 Future<Map<String, dynamic>> _$BranchPaymentIntegrationToSupabase(
-    BranchPaymentIntegration instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  BranchPaymentIntegration instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'branch_id': instance.branchId,
-    'is_enabled': instance.isEnabled
+    'is_enabled': instance.isEnabled,
   };
 }
 
 Future<BranchPaymentIntegration> _$BranchPaymentIntegrationFromSqlite(
-    Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return BranchPaymentIntegration(
-      id: data['id'] as String,
-      branchId: data['branch_id'] as String,
-      isEnabled: data['is_enabled'] == 1)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    branchId: data['branch_id'] as String,
+    isEnabled: data['is_enabled'] == 1,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
 Future<Map<String, dynamic>> _$BranchPaymentIntegrationToSqlite(
-    BranchPaymentIntegration instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  BranchPaymentIntegration instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'branch_id': instance.branchId,
-    'is_enabled': instance.isEnabled ? 1 : 0
+    'is_enabled': instance.isEnabled ? 1 : 0,
   };
 }
 
@@ -66,7 +71,7 @@ class BranchPaymentIntegrationAdapter
     'isEnabled': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_enabled',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -97,14 +102,18 @@ class BranchPaymentIntegrationAdapter
       columnName: 'is_enabled',
       iterable: false,
       type: bool,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      BranchPaymentIntegration instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
+    BranchPaymentIntegration instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
         SELECT * FROM `BranchPaymentIntegration` WHERE id = ? LIMIT 1''',
-        [instance.id]);
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -118,27 +127,43 @@ class BranchPaymentIntegrationAdapter
   final String tableName = 'BranchPaymentIntegration';
 
   @override
-  Future<BranchPaymentIntegration> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$BranchPaymentIntegrationFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<BranchPaymentIntegration> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$BranchPaymentIntegrationFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(BranchPaymentIntegration input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$BranchPaymentIntegrationToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    BranchPaymentIntegration input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$BranchPaymentIntegrationToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<BranchPaymentIntegration> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$BranchPaymentIntegrationFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<BranchPaymentIntegration> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$BranchPaymentIntegrationFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(BranchPaymentIntegration input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$BranchPaymentIntegrationToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    BranchPaymentIntegration input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$BranchPaymentIntegrationToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

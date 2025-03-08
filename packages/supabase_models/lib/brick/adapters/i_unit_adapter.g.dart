@@ -1,27 +1,33 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<IUnit> _$IUnitFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<IUnit> _$IUnitFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return IUnit(
-      id: data['id'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      name: data['name'] == null ? null : data['name'] as String?,
-      value: data['value'] == null ? null : data['value'] as String?,
-      active: data['active'] == null ? null : data['active'] as bool? ?? false,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      createdAt:
-          data['created_at'] == null ? null : data['created_at'] as String?);
+    id: data['id'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    name: data['name'] == null ? null : data['name'] as String?,
+    value: data['value'] == null ? null : data['value'] as String?,
+    active: data['active'] == null ? null : data['active'] as bool? ?? false,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    createdAt:
+        data['created_at'] == null ? null : data['created_at'] as String?,
+  );
 }
 
-Future<Map<String, dynamic>> _$IUnitToSupabase(IUnit instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$IUnitToSupabase(
+  IUnit instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'branch_id': instance.branchId,
@@ -29,32 +35,37 @@ Future<Map<String, dynamic>> _$IUnitToSupabase(IUnit instance,
     'value': instance.value,
     'active': instance.active,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'created_at': instance.createdAt
+    'created_at': instance.createdAt,
   };
 }
 
-Future<IUnit> _$IUnitFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<IUnit> _$IUnitFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return IUnit(
-      id: data['id'] as String,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      name: data['name'] == null ? null : data['name'] as String?,
-      value: data['value'] == null ? null : data['value'] as String?,
-      active: data['active'] == null ? null : data['active'] == 1,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      createdAt:
-          data['created_at'] == null ? null : data['created_at'] as String?)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    name: data['name'] == null ? null : data['name'] as String?,
+    value: data['value'] == null ? null : data['value'] as String?,
+    active: data['active'] == null ? null : data['active'] == 1,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    createdAt:
+        data['created_at'] == null ? null : data['created_at'] as String?,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$IUnitToSqlite(IUnit instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$IUnitToSqlite(
+  IUnit instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'branch_id': instance.branchId,
@@ -62,7 +73,7 @@ Future<Map<String, dynamic>> _$IUnitToSqlite(IUnit instance,
     'value': instance.value,
     'active': instance.active == null ? null : (instance.active! ? 1 : 0),
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'created_at': instance.createdAt
+    'created_at': instance.createdAt,
   };
 }
 
@@ -103,7 +114,7 @@ class IUnitAdapter extends OfflineFirstWithSupabaseAdapter<IUnit> {
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'created_at',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -158,13 +169,18 @@ class IUnitAdapter extends OfflineFirstWithSupabaseAdapter<IUnit> {
       columnName: 'created_at',
       iterable: false,
       type: String,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      IUnit instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `IUnit` WHERE id = ? LIMIT 1''', [instance.id]);
+    IUnit instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `IUnit` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -178,26 +194,40 @@ class IUnitAdapter extends OfflineFirstWithSupabaseAdapter<IUnit> {
   final String tableName = 'IUnit';
 
   @override
-  Future<IUnit> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$IUnitFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<IUnit> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$IUnitFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(IUnit input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$IUnitToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    IUnit input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$IUnitToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<IUnit> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$IUnitFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<IUnit> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$IUnitFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(IUnit input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
+  Future<Map<String, dynamic>> toSqlite(
+    IUnit input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async =>
       await _$IUnitToSqlite(input, provider: provider, repository: repository);
 }

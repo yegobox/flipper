@@ -3144,7 +3144,8 @@ class CoreSync
   }
 
   @override
-  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) async {
+  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName,
+      {required String transactionId}) async {
     try {
       int branchId = ProxyService.box.getBranchId()!;
       final filePath = 'public/invoices-${branchId}/$fileName.pdf';
@@ -3162,6 +3163,13 @@ class CoreSync
             },
           )
           .result;
+      // update thi transacton
+      ITransaction? transaction =
+          await _getTransaction(transactionId: transactionId);
+      if (transaction != null) {
+        transaction.receiptFileName = fileName + ".pdf";
+        await repository.upsert(transaction);
+      }
       return result.uploadedItem.path;
     } catch (e) {
       talker.error("Error uploading file to S3: $e");
@@ -3425,7 +3433,7 @@ class CoreSync
     try {
       final variant = await getVariant(id: item.variantId!);
 
-      final finalStock = (variant!.stock!.currentStock! - item.qty);
+      final finalStock = ((variant!.stock?.currentStock ?? 0) - item.qty);
 
       final stockValue = finalStock * (variant.retailPrice ?? 0);
 
@@ -3949,7 +3957,7 @@ class CoreSync
   }
 
   @override
-  Future<models.TransactionItem?> getTransactionItemByVariantId(
+  Future<models.TransactionItem?> getTransactionItem(
       {required String variantId, String? transactionId}) async {
     return (await repository.get<TransactionItem>(
             policy: OfflineFirstGetPolicy.localOnly,
@@ -3958,6 +3966,17 @@ class CoreSync
                   value: variantId, compare: brick.Compare.exact),
               if (transactionId != null)
                 brick.Where('transactionId',
+                    value: transactionId, compare: brick.Compare.exact),
+            ])))
+        .firstOrNull;
+  }
+
+  Future<ITransaction?> _getTransaction({String? transactionId}) async {
+    return (await repository.get<ITransaction>(
+            policy: OfflineFirstGetPolicy.localOnly,
+            query: brick.Query(where: [
+              if (transactionId != null)
+                brick.Where('id',
                     value: transactionId, compare: brick.Compare.exact),
             ])))
         .firstOrNull;

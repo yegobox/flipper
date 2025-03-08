@@ -1,96 +1,115 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<ITransaction> _$ITransactionFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<ITransaction> _$ITransactionFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return ITransaction(
-      id: data['id'] as String?,
-      reference:
-          data['reference'] == null ? null : data['reference'] as String?,
-      categoryId:
-          data['category_id'] == null ? null : data['category_id'] as String?,
-      transactionNumber: data['transaction_number'] == null
-          ? null
-          : data['transaction_number'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      status: data['status'] == null ? null : data['status'] as String?,
-      transactionType: data['transaction_type'] == null
-          ? null
-          : data['transaction_type'] as String?,
-      subTotal: data['sub_total'] == null
-          ? null
-          : data['sub_total'] as double? ?? 0.0,
-      paymentType:
-          data['payment_type'] == null ? null : data['payment_type'] as String?,
-      cashReceived: data['cash_received'] == null
-          ? null
-          : data['cash_received'] as double? ?? 0.0,
-      customerChangeDue: data['customer_change_due'] == null
-          ? null
-          : data['customer_change_due'] as double? ?? 0.0,
-      createdAt: data['created_at'] == null
-          ? null
-          : data['created_at'] == null
-              ? null
-              : DateTime.tryParse(data['created_at'] as String),
-      receiptType:
-          data['receipt_type'] == null ? null : data['receipt_type'] as String?,
-      updatedAt: data['updated_at'] == null
-          ? null
-          : data['updated_at'] == null
-              ? null
-              : DateTime.tryParse(data['updated_at'] as String),
-      customerId:
-          data['customer_id'] == null ? null : data['customer_id'] as String?,
-      customerType: data['customer_type'] == null
-          ? null
-          : data['customer_type'] as String?,
-      note: data['note'] == null ? null : data['note'] as String?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      ticketName:
-          data['ticket_name'] == null ? null : data['ticket_name'] as String?,
-      supplierId:
-          data['supplier_id'] == null ? null : data['supplier_id'] as int?,
-      ebmSynced: data['ebm_synced'] == null
-          ? null
-          : data['ebm_synced'] as bool? ?? false,
-      isIncome:
-          data['is_income'] == null ? null : data['is_income'] as bool? ?? true,
-      isExpense: data['is_expense'] == null
-          ? null
-          : data['is_expense'] as bool? ?? false,
-      isRefunded: data['is_refunded'] == null
-          ? null
-          : data['is_refunded'] as bool? ?? false,
-      customerName: data['customer_name'] == null
-          ? null
-          : data['customer_name'] as String?,
-      customerTin:
-          data['customer_tin'] == null ? null : data['customer_tin'] as String?,
-      remark: data['remark'] == null ? null : data['remark'] as String?,
-      customerBhfId: data['customer_bhf_id'] == null
-          ? null
-          : data['customer_bhf_id'] as String?,
-      sarTyCd: data['sar_ty_cd'] == null ? null : data['sar_ty_cd'] as String?,
-      receiptNumber: data['receipt_number'] == null
-          ? null
-          : data['receipt_number'] as int?,
-      totalReceiptNumber: data['total_receipt_number'] == null
-          ? null
-          : data['total_receipt_number'] as int?,
-      invoiceNumber: data['invoice_number'] == null
-          ? null
-          : data['invoice_number'] as int?);
+    id: data['id'] as String?,
+    reference: data['reference'] == null ? null : data['reference'] as String?,
+    categoryId:
+        data['category_id'] == null ? null : data['category_id'] as String?,
+    transactionNumber:
+        data['transaction_number'] == null
+            ? null
+            : data['transaction_number'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    status: data['status'] == null ? null : data['status'] as String?,
+    transactionType:
+        data['transaction_type'] == null
+            ? null
+            : data['transaction_type'] as String?,
+    subTotal:
+        data['sub_total'] == null ? null : data['sub_total'] as double? ?? 0.0,
+    paymentType:
+        data['payment_type'] == null ? null : data['payment_type'] as String?,
+    cashReceived:
+        data['cash_received'] == null
+            ? null
+            : data['cash_received'] as double? ?? 0.0,
+    customerChangeDue:
+        data['customer_change_due'] == null
+            ? null
+            : data['customer_change_due'] as double? ?? 0.0,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
+            ? null
+            : DateTime.tryParse(data['created_at'] as String),
+    receiptType:
+        data['receipt_type'] == null ? null : data['receipt_type'] as String?,
+    updatedAt:
+        data['updated_at'] == null
+            ? null
+            : data['updated_at'] == null
+            ? null
+            : DateTime.tryParse(data['updated_at'] as String),
+    customerId:
+        data['customer_id'] == null ? null : data['customer_id'] as String?,
+    customerType:
+        data['customer_type'] == null ? null : data['customer_type'] as String?,
+    note: data['note'] == null ? null : data['note'] as String?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    ticketName:
+        data['ticket_name'] == null ? null : data['ticket_name'] as String?,
+    supplierId:
+        data['supplier_id'] == null ? null : data['supplier_id'] as int?,
+    ebmSynced:
+        data['ebm_synced'] == null
+            ? null
+            : data['ebm_synced'] as bool? ?? false,
+    isIncome:
+        data['is_income'] == null ? null : data['is_income'] as bool? ?? true,
+    isExpense:
+        data['is_expense'] == null
+            ? null
+            : data['is_expense'] as bool? ?? false,
+    isRefunded:
+        data['is_refunded'] == null
+            ? null
+            : data['is_refunded'] as bool? ?? false,
+    customerName:
+        data['customer_name'] == null ? null : data['customer_name'] as String?,
+    customerTin:
+        data['customer_tin'] == null ? null : data['customer_tin'] as String?,
+    remark: data['remark'] == null ? null : data['remark'] as String?,
+    customerBhfId:
+        data['customer_bhf_id'] == null
+            ? null
+            : data['customer_bhf_id'] as String?,
+    sarTyCd: data['sar_ty_cd'] == null ? null : data['sar_ty_cd'] as String?,
+    receiptNumber:
+        data['receipt_number'] == null ? null : data['receipt_number'] as int?,
+    totalReceiptNumber:
+        data['total_receipt_number'] == null
+            ? null
+            : data['total_receipt_number'] as int?,
+    invoiceNumber:
+        data['invoice_number'] == null ? null : data['invoice_number'] as int?,
+    isDigitalReceiptGenerated:
+        data['is_digital_receipt_generated'] == null
+            ? null
+            : data['is_digital_receipt_generated'] as bool?,
+    receiptFileName:
+        data['receipt_file_name'] == null
+            ? null
+            : data['receipt_file_name'] as String?,
+  );
 }
 
-Future<Map<String, dynamic>> _$ITransactionToSupabase(ITransaction instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$ITransactionToSupabase(
+  ITransaction instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'reference': instance.reference,
@@ -123,92 +142,108 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(ITransaction instance,
     'sar_ty_cd': instance.sarTyCd,
     'receipt_number': instance.receiptNumber,
     'total_receipt_number': instance.totalReceiptNumber,
-    'invoice_number': instance.invoiceNumber
+    'invoice_number': instance.invoiceNumber,
+    'is_digital_receipt_generated': instance.isDigitalReceiptGenerated,
+    'receipt_file_name': instance.receiptFileName,
   };
 }
 
-Future<ITransaction> _$ITransactionFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<ITransaction> _$ITransactionFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return ITransaction(
-      id: data['id'] as String,
-      reference:
-          data['reference'] == null ? null : data['reference'] as String?,
-      categoryId:
-          data['category_id'] == null ? null : data['category_id'] as String?,
-      transactionNumber: data['transaction_number'] == null
-          ? null
-          : data['transaction_number'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      status: data['status'] == null ? null : data['status'] as String?,
-      transactionType: data['transaction_type'] == null
-          ? null
-          : data['transaction_type'] as String?,
-      subTotal: data['sub_total'] == null ? null : data['sub_total'] as double?,
-      paymentType:
-          data['payment_type'] == null ? null : data['payment_type'] as String?,
-      cashReceived: data['cash_received'] == null
-          ? null
-          : data['cash_received'] as double?,
-      customerChangeDue: data['customer_change_due'] == null
-          ? null
-          : data['customer_change_due'] as double?,
-      createdAt: data['created_at'] == null
-          ? null
-          : data['created_at'] == null
-              ? null
-              : DateTime.tryParse(data['created_at'] as String),
-      receiptType:
-          data['receipt_type'] == null ? null : data['receipt_type'] as String?,
-      updatedAt: data['updated_at'] == null
-          ? null
-          : data['updated_at'] == null
-              ? null
-              : DateTime.tryParse(data['updated_at'] as String),
-      customerId:
-          data['customer_id'] == null ? null : data['customer_id'] as String?,
-      customerType: data['customer_type'] == null
-          ? null
-          : data['customer_type'] as String?,
-      note: data['note'] == null ? null : data['note'] as String?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      ticketName:
-          data['ticket_name'] == null ? null : data['ticket_name'] as String?,
-      supplierId:
-          data['supplier_id'] == null ? null : data['supplier_id'] as int?,
-      ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
-      isIncome: data['is_income'] == null ? null : data['is_income'] == 1,
-      isExpense: data['is_expense'] == null ? null : data['is_expense'] == 1,
-      isRefunded: data['is_refunded'] == null ? null : data['is_refunded'] == 1,
-      customerName: data['customer_name'] == null
-          ? null
-          : data['customer_name'] as String?,
-      customerTin:
-          data['customer_tin'] == null ? null : data['customer_tin'] as String?,
-      remark: data['remark'] == null ? null : data['remark'] as String?,
-      customerBhfId: data['customer_bhf_id'] == null
-          ? null
-          : data['customer_bhf_id'] as String?,
-      sarTyCd: data['sar_ty_cd'] == null ? null : data['sar_ty_cd'] as String?,
-      receiptNumber: data['receipt_number'] == null
-          ? null
-          : data['receipt_number'] as int?,
-      totalReceiptNumber: data['total_receipt_number'] == null
-          ? null
-          : data['total_receipt_number'] as int?,
-      invoiceNumber: data['invoice_number'] == null
-          ? null
-          : data['invoice_number'] as int?)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    reference: data['reference'] == null ? null : data['reference'] as String?,
+    categoryId:
+        data['category_id'] == null ? null : data['category_id'] as String?,
+    transactionNumber:
+        data['transaction_number'] == null
+            ? null
+            : data['transaction_number'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    status: data['status'] == null ? null : data['status'] as String?,
+    transactionType:
+        data['transaction_type'] == null
+            ? null
+            : data['transaction_type'] as String?,
+    subTotal: data['sub_total'] == null ? null : data['sub_total'] as double?,
+    paymentType:
+        data['payment_type'] == null ? null : data['payment_type'] as String?,
+    cashReceived:
+        data['cash_received'] == null ? null : data['cash_received'] as double?,
+    customerChangeDue:
+        data['customer_change_due'] == null
+            ? null
+            : data['customer_change_due'] as double?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
+            ? null
+            : DateTime.tryParse(data['created_at'] as String),
+    receiptType:
+        data['receipt_type'] == null ? null : data['receipt_type'] as String?,
+    updatedAt:
+        data['updated_at'] == null
+            ? null
+            : data['updated_at'] == null
+            ? null
+            : DateTime.tryParse(data['updated_at'] as String),
+    customerId:
+        data['customer_id'] == null ? null : data['customer_id'] as String?,
+    customerType:
+        data['customer_type'] == null ? null : data['customer_type'] as String?,
+    note: data['note'] == null ? null : data['note'] as String?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    ticketName:
+        data['ticket_name'] == null ? null : data['ticket_name'] as String?,
+    supplierId:
+        data['supplier_id'] == null ? null : data['supplier_id'] as int?,
+    ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
+    isIncome: data['is_income'] == null ? null : data['is_income'] == 1,
+    isExpense: data['is_expense'] == null ? null : data['is_expense'] == 1,
+    isRefunded: data['is_refunded'] == null ? null : data['is_refunded'] == 1,
+    customerName:
+        data['customer_name'] == null ? null : data['customer_name'] as String?,
+    customerTin:
+        data['customer_tin'] == null ? null : data['customer_tin'] as String?,
+    remark: data['remark'] == null ? null : data['remark'] as String?,
+    customerBhfId:
+        data['customer_bhf_id'] == null
+            ? null
+            : data['customer_bhf_id'] as String?,
+    sarTyCd: data['sar_ty_cd'] == null ? null : data['sar_ty_cd'] as String?,
+    receiptNumber:
+        data['receipt_number'] == null ? null : data['receipt_number'] as int?,
+    totalReceiptNumber:
+        data['total_receipt_number'] == null
+            ? null
+            : data['total_receipt_number'] as int?,
+    invoiceNumber:
+        data['invoice_number'] == null ? null : data['invoice_number'] as int?,
+    isDigitalReceiptGenerated:
+        data['is_digital_receipt_generated'] == null
+            ? null
+            : data['is_digital_receipt_generated'] == 1,
+    receiptFileName:
+        data['receipt_file_name'] == null
+            ? null
+            : data['receipt_file_name'] as String?,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$ITransactionToSqlite(ITransaction instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$ITransactionToSqlite(
+  ITransaction instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'reference': instance.reference,
@@ -245,7 +280,12 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(ITransaction instance,
     'sar_ty_cd': instance.sarTyCd,
     'receipt_number': instance.receiptNumber,
     'total_receipt_number': instance.totalReceiptNumber,
-    'invoice_number': instance.invoiceNumber
+    'invoice_number': instance.invoiceNumber,
+    'is_digital_receipt_generated':
+        instance.isDigitalReceiptGenerated == null
+            ? null
+            : (instance.isDigitalReceiptGenerated! ? 1 : 0),
+    'receipt_file_name': instance.receiptFileName,
   };
 }
 
@@ -387,7 +427,15 @@ class ITransactionAdapter
     'invoiceNumber': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'invoice_number',
-    )
+    ),
+    'isDigitalReceiptGenerated': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'is_digital_receipt_generated',
+    ),
+    'receiptFileName': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'receipt_file_name',
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -592,13 +640,30 @@ class ITransactionAdapter
       columnName: 'invoice_number',
       iterable: false,
       type: int,
-    )
+    ),
+    'isDigitalReceiptGenerated': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'is_digital_receipt_generated',
+      iterable: false,
+      type: bool,
+    ),
+    'receiptFileName': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'receipt_file_name',
+      iterable: false,
+      type: String,
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      ITransaction instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `ITransaction` WHERE id = ? LIMIT 1''', [instance.id]);
+    ITransaction instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `ITransaction` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -612,27 +677,43 @@ class ITransactionAdapter
   final String tableName = 'ITransaction';
 
   @override
-  Future<ITransaction> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ITransactionFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<ITransaction> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ITransactionFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(ITransaction input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ITransactionToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    ITransaction input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ITransactionToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<ITransaction> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ITransactionFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<ITransaction> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ITransactionFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(ITransaction input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ITransactionToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    ITransaction input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ITransactionToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

@@ -195,7 +195,7 @@ mixin TransactionMixin {
       TransactionItem? item}) async {
     try {
       TransactionItem? existTransactionItem = await ProxyService.strategy
-          .getTransactionItemByVariantId(
+          .getTransactionItem(
               variantId: variation.id, transactionId: pendingTransaction.id);
 
       await addTransactionItems(
@@ -467,7 +467,6 @@ mixin TransactionMixin {
         VariantPatch.patchVariant(
           URI: (await ProxyService.box.getServerUrl())!,
         );
-       
 
         await ProxyService.strategy.updateTransaction(
             isUnclassfied: true,

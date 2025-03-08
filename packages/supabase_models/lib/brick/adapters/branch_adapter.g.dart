@@ -1,30 +1,33 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Branch> _$BranchFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Branch> _$BranchFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Branch(
-      id: data['id'] as String?,
-      name: data['name'] == null ? null : data['name'] as String?,
-      serverId: data['server_id'] == null ? null : data['server_id'] as int?,
-      location: data['location'] == null ? null : data['location'] as String?,
-      description:
-          data['description'] == null ? null : data['description'] as String?,
-      active: data['active'] == null ? null : data['active'] as bool?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      latitude: data['latitude'] == null ? null : data['latitude'] as String?,
-      longitude:
-          data['longitude'] == null ? null : data['longitude'] as String?,
-      isDefault:
-          data['is_default'] == null ? null : data['is_default'] as bool?,
-      isOnline: data['is_online'] == null ? null : data['is_online'] as bool?);
+    id: data['id'] as String?,
+    name: data['name'] == null ? null : data['name'] as String?,
+    serverId: data['server_id'] == null ? null : data['server_id'] as int?,
+    location: data['location'] == null ? null : data['location'] as String?,
+    description:
+        data['description'] == null ? null : data['description'] as String?,
+    active: data['active'] == null ? null : data['active'] as bool?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    latitude: data['latitude'] == null ? null : data['latitude'] as String?,
+    longitude: data['longitude'] == null ? null : data['longitude'] as String?,
+    isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
+    isOnline: data['is_online'] == null ? null : data['is_online'] as bool?,
+  );
 }
 
-Future<Map<String, dynamic>> _$BranchToSupabase(Branch instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$BranchToSupabase(
+  Branch instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'name': instance.name,
@@ -36,34 +39,37 @@ Future<Map<String, dynamic>> _$BranchToSupabase(Branch instance,
     'latitude': instance.latitude,
     'longitude': instance.longitude,
     'is_default': instance.isDefault,
-    'is_online': instance.isOnline
+    'is_online': instance.isOnline,
   };
 }
 
-Future<Branch> _$BranchFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Branch> _$BranchFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Branch(
-      id: data['id'] as String,
-      name: data['name'] == null ? null : data['name'] as String?,
-      serverId: data['server_id'] == null ? null : data['server_id'] as int?,
-      location: data['location'] == null ? null : data['location'] as String?,
-      description:
-          data['description'] == null ? null : data['description'] as String?,
-      active: data['active'] == null ? null : data['active'] == 1,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      latitude: data['latitude'] == null ? null : data['latitude'] as String?,
-      longitude:
-          data['longitude'] == null ? null : data['longitude'] as String?,
-      isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
-      isOnline: data['is_online'] == null ? null : data['is_online'] == 1)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    name: data['name'] == null ? null : data['name'] as String?,
+    serverId: data['server_id'] == null ? null : data['server_id'] as int?,
+    location: data['location'] == null ? null : data['location'] as String?,
+    description:
+        data['description'] == null ? null : data['description'] as String?,
+    active: data['active'] == null ? null : data['active'] == 1,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    latitude: data['latitude'] == null ? null : data['latitude'] as String?,
+    longitude: data['longitude'] == null ? null : data['longitude'] as String?,
+    isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
+    isOnline: data['is_online'] == null ? null : data['is_online'] == 1,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$BranchToSqlite(Branch instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$BranchToSqlite(
+  Branch instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'name': instance.name,
@@ -76,7 +82,8 @@ Future<Map<String, dynamic>> _$BranchToSqlite(Branch instance,
     'longitude': instance.longitude,
     'is_default':
         instance.isDefault == null ? null : (instance.isDefault! ? 1 : 0),
-    'is_online': instance.isOnline == null ? null : (instance.isOnline! ? 1 : 0)
+    'is_online':
+        instance.isOnline == null ? null : (instance.isOnline! ? 1 : 0),
   };
 }
 
@@ -133,7 +140,7 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
     'isOnline': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_online',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -212,13 +219,18 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
       columnName: 'is_online',
       iterable: false,
       type: bool,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Branch instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Branch` WHERE id = ? LIMIT 1''', [instance.id]);
+    Branch instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Branch` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -232,26 +244,40 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
   final String tableName = 'Branch';
 
   @override
-  Future<Branch> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$BranchFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Branch> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$BranchFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Branch input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$BranchToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Branch input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$BranchToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Branch> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$BranchFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Branch> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$BranchFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Branch input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
+  Future<Map<String, dynamic>> toSqlite(
+    Branch input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async =>
       await _$BranchToSqlite(input, provider: provider, repository: repository);
 }
