@@ -2,58 +2,64 @@
 part of '../brick.g.dart';
 
 Future<CustomerPayments> _$CustomerPaymentsFromSupabase(
-    Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return CustomerPayments(
-      id: data['id'] as String?,
-      customerId:
-          data['customer_id'] == null ? null : data['customer_id'] as String?,
-      phoneNumber: data['phone_number'] as String,
-      paymentStatus: data['payment_status'] as String,
-      transactionId: data['transaction_id'] as String,
-      amountPayable: data['amount_payable'] as double);
+    id: data['id'] as String?,
+    customerId:
+        data['customer_id'] == null ? null : data['customer_id'] as String?,
+    phoneNumber: data['phone_number'] as String,
+    paymentStatus: data['payment_status'] as String,
+    transactionId: data['transaction_id'] as String,
+    amountPayable: data['amount_payable'] as double,
+  );
 }
 
 Future<Map<String, dynamic>> _$CustomerPaymentsToSupabase(
-    CustomerPayments instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  CustomerPayments instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'customer_id': instance.customerId,
     'phone_number': instance.phoneNumber,
     'payment_status': instance.paymentStatus,
     'transaction_id': instance.transactionId,
-    'amount_payable': instance.amountPayable
+    'amount_payable': instance.amountPayable,
   };
 }
 
-Future<CustomerPayments> _$CustomerPaymentsFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<CustomerPayments> _$CustomerPaymentsFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return CustomerPayments(
-      id: data['id'] as String,
-      customerId:
-          data['customer_id'] == null ? null : data['customer_id'] as String?,
-      phoneNumber: data['phone_number'] as String,
-      paymentStatus: data['payment_status'] as String,
-      transactionId: data['transaction_id'] as String,
-      amountPayable: data['amount_payable'] as double)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    customerId:
+        data['customer_id'] == null ? null : data['customer_id'] as String?,
+    phoneNumber: data['phone_number'] as String,
+    paymentStatus: data['payment_status'] as String,
+    transactionId: data['transaction_id'] as String,
+    amountPayable: data['amount_payable'] as double,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
 Future<Map<String, dynamic>> _$CustomerPaymentsToSqlite(
-    CustomerPayments instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  CustomerPayments instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'customer_id': instance.customerId,
     'phone_number': instance.phoneNumber,
     'payment_status': instance.paymentStatus,
     'transaction_id': instance.transactionId,
-    'amount_payable': instance.amountPayable
+    'amount_payable': instance.amountPayable,
   };
 }
 
@@ -91,7 +97,7 @@ class CustomerPaymentsAdapter
     'amountPayable': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'amount_payable',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -140,14 +146,18 @@ class CustomerPaymentsAdapter
       columnName: 'amount_payable',
       iterable: false,
       type: double,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      CustomerPayments instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
+    CustomerPayments instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
         SELECT * FROM `CustomerPayments` WHERE id = ? LIMIT 1''',
-        [instance.id]);
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -161,27 +171,43 @@ class CustomerPaymentsAdapter
   final String tableName = 'CustomerPayments';
 
   @override
-  Future<CustomerPayments> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$CustomerPaymentsFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<CustomerPayments> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$CustomerPaymentsFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(CustomerPayments input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$CustomerPaymentsToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    CustomerPayments input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$CustomerPaymentsToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<CustomerPayments> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$CustomerPaymentsFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<CustomerPayments> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$CustomerPaymentsFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(CustomerPayments input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$CustomerPaymentsToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    CustomerPayments input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$CustomerPaymentsToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

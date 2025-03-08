@@ -21,7 +21,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:amplify_flutter/amplify_flutter.dart' as apmplify;
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
 
@@ -89,7 +88,7 @@ Future<void> initializeDependencies() async {
   // FirebaseFirestore.instance.settings =
   //     const Settings(persistenceEnabled: false);
   if (isTest) {
-    FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8081);
+    //FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8081);
   }
 
   _configureAmplify();

@@ -264,7 +264,7 @@ class CoreViewModel extends FlipperBaseModel
           : variation.productName!;
 
       TransactionItem? existTransactionItem = await ProxyService.strategy
-          .getTransactionItemByVariantId(
+          .getTransactionItem(
               variantId: variation.id, transactionId: pendingTransaction?.id);
 
       List<TransactionItem> items = await ProxyService.strategy
@@ -855,7 +855,6 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<List<Variant>> fetchImportData({
-    required DateTime selectedDate,
     required bool isImport,
   }) async {
     isLoading = true;
@@ -865,8 +864,8 @@ class CoreViewModel extends FlipperBaseModel
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     final data = await ProxyService.strategy.selectImportItems(
       tin: business?.tinNumber ?? ProxyService.box.tin(),
+      lastRequestdate: selectedDate.toYYYYMMddHHmmss(),
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
-      lastReqDt: convertDateToString(selectedDate),
     );
 
     rwResponse = data;

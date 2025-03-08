@@ -513,8 +513,15 @@ class _RowItemState extends ConsumerState<RowItem>
         id: widget.variant!.productId!,
         branchId: branchId,
       );
-      if (widget.variant?.stock?.currentStock == null ||
-          (widget.variant?.stock?.currentStock ?? 0) < 0) {
+
+      /// because item of tax type D are not supposed to have stock so it can be sold without stock.
+      if (widget.variant?.taxTyCd != "D" &&
+          widget.variant?.stock?.currentStock == null) {
+        toast("You do not have enough stock");
+        return;
+      }
+      if (widget.variant?.taxTyCd != "D" &&
+          (widget.variant?.stock?.currentStock ?? 0) <= 0) {
         toast("You do not have enough stock");
         return;
       }

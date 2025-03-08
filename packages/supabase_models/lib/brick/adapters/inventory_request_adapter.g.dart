@@ -2,76 +2,92 @@
 part of '../brick.g.dart';
 
 Future<InventoryRequest> _$InventoryRequestFromSupabase(
-    Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return InventoryRequest(
-      id: data['id'] as String?,
-      mainBranchId: data['main_branch_id'] == null
-          ? null
-          : data['main_branch_id'] as int?,
-      subBranchId:
-          data['sub_branch_id'] == null ? null : data['sub_branch_id'] as int?,
-      branch: data['branch'] == null
-          ? null
-          : await BranchAdapter().fromSupabase(data['branch'],
-              provider: provider, repository: repository),
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
-      createdAt: data['created_at'] == null
-          ? null
-          : data['created_at'] == null
-              ? null
-              : DateTime.tryParse(data['created_at'] as String),
-      status: data['status'] == null ? null : data['status'] as String?,
-      deliveryDate: data['delivery_date'] == null
-          ? null
-          : data['delivery_date'] == null
-              ? null
-              : DateTime.tryParse(data['delivery_date'] as String),
-      deliveryNote: data['delivery_note'] == null
-          ? null
-          : data['delivery_note'] as String?,
-      orderNote:
-          data['order_note'] == null ? null : data['order_note'] as String?,
-      customerReceivedOrder: data['customer_received_order'] == null
-          ? null
-          : data['customer_received_order'] as bool?,
-      driverRequestDeliveryConfirmation:
-          data['driver_request_delivery_confirmation'] == null
-              ? null
-              : data['driver_request_delivery_confirmation'] as bool?,
-      driverId: data['driver_id'] == null ? null : data['driver_id'] as int?,
-      updatedAt: data['updated_at'] == null
-          ? null
-          : data['updated_at'] == null
-              ? null
-              : DateTime.tryParse(data['updated_at'] as String),
-      itemCounts:
-          data['item_counts'] == null ? null : data['item_counts'] as num?,
-      bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-      tinNumber:
-          data['tin_number'] == null ? null : data['tin_number'] as String?,
-      financing: data['financing'] == null
-          ? null
-          : await FinancingAdapter().fromSupabase(data['financing'],
-              provider: provider, repository: repository),
-      financingId: data['financing_id'] == null
-          ? null
-          : data['financing_id'] as String?);
+    id: data['id'] as String?,
+    mainBranchId:
+        data['main_branch_id'] == null ? null : data['main_branch_id'] as int?,
+    subBranchId:
+        data['sub_branch_id'] == null ? null : data['sub_branch_id'] as int?,
+    branch:
+        data['branch'] == null
+            ? null
+            : await BranchAdapter().fromSupabase(
+              data['branch'],
+              provider: provider,
+              repository: repository,
+            ),
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
+            ? null
+            : DateTime.tryParse(data['created_at'] as String),
+    status: data['status'] == null ? null : data['status'] as String?,
+    deliveryDate:
+        data['delivery_date'] == null
+            ? null
+            : data['delivery_date'] == null
+            ? null
+            : DateTime.tryParse(data['delivery_date'] as String),
+    deliveryNote:
+        data['delivery_note'] == null ? null : data['delivery_note'] as String?,
+    orderNote:
+        data['order_note'] == null ? null : data['order_note'] as String?,
+    customerReceivedOrder:
+        data['customer_received_order'] == null
+            ? null
+            : data['customer_received_order'] as bool?,
+    driverRequestDeliveryConfirmation:
+        data['driver_request_delivery_confirmation'] == null
+            ? null
+            : data['driver_request_delivery_confirmation'] as bool?,
+    driverId: data['driver_id'] == null ? null : data['driver_id'] as int?,
+    updatedAt:
+        data['updated_at'] == null
+            ? null
+            : data['updated_at'] == null
+            ? null
+            : DateTime.tryParse(data['updated_at'] as String),
+    itemCounts:
+        data['item_counts'] == null ? null : data['item_counts'] as num?,
+    bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
+    tinNumber:
+        data['tin_number'] == null ? null : data['tin_number'] as String?,
+    financing:
+        data['financing'] == null
+            ? null
+            : await FinancingAdapter().fromSupabase(
+              data['financing'],
+              provider: provider,
+              repository: repository,
+            ),
+    financingId:
+        data['financing_id'] == null ? null : data['financing_id'] as String?,
+  );
 }
 
 Future<Map<String, dynamic>> _$InventoryRequestToSupabase(
-    InventoryRequest instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  InventoryRequest instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'main_branch_id': instance.mainBranchId,
     'sub_branch_id': instance.subBranchId,
-    'branch': instance.branch != null
-        ? await BranchAdapter().toSupabase(instance.branch!,
-            provider: provider, repository: repository)
-        : null,
+    'branch':
+        instance.branch != null
+            ? await BranchAdapter().toSupabase(
+              instance.branch!,
+              provider: provider,
+              repository: repository,
+            )
+            : null,
     'branch_id': instance.branchId,
     'created_at': instance.createdAt?.toIso8601String(),
     'status': instance.status,
@@ -86,138 +102,163 @@ Future<Map<String, dynamic>> _$InventoryRequestToSupabase(
     'item_counts': instance.itemCounts,
     'bhf_id': instance.bhfId,
     'tin_number': instance.tinNumber,
-    'financing': instance.financing != null
-        ? await FinancingAdapter().toSupabase(instance.financing!,
-            provider: provider, repository: repository)
-        : null,
-    'financing_id': instance.financingId
+    'financing':
+        instance.financing != null
+            ? await FinancingAdapter().toSupabase(
+              instance.financing!,
+              provider: provider,
+              repository: repository,
+            )
+            : null,
+    'financing_id': instance.financingId,
   };
 }
 
-Future<InventoryRequest> _$InventoryRequestFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<InventoryRequest> _$InventoryRequestFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return InventoryRequest(
-      id: data['id'] as String,
-      mainBranchId: data['main_branch_id'] == null
-          ? null
-          : data['main_branch_id'] as int?,
-      subBranchId:
-          data['sub_branch_id'] == null ? null : data['sub_branch_id'] as int?,
-      branch: data['branch_Branch_brick_id'] == null
-          ? null
-          : (data['branch_Branch_brick_id'] > -1
-              ? (await repository?.getAssociation<Branch>(
+    id: data['id'] as String,
+    mainBranchId:
+        data['main_branch_id'] == null ? null : data['main_branch_id'] as int?,
+    subBranchId:
+        data['sub_branch_id'] == null ? null : data['sub_branch_id'] as int?,
+    branch:
+        data['branch_Branch_brick_id'] == null
+            ? null
+            : (data['branch_Branch_brick_id'] > -1
+                ? (await repository?.getAssociation<Branch>(
                   Query.where(
-                      'primaryKey', data['branch_Branch_brick_id'] as int,
-                      limit1: true),
-                ))
-                  ?.first
-              : null),
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
-      createdAt: data['created_at'] == null
-          ? null
-          : data['created_at'] == null
-              ? null
-              : DateTime.tryParse(data['created_at'] as String),
-      status: data['status'] == null ? null : data['status'] as String?,
-      deliveryDate: data['delivery_date'] == null
-          ? null
-          : data['delivery_date'] == null
-              ? null
-              : DateTime.tryParse(data['delivery_date'] as String),
-      deliveryNote: data['delivery_note'] == null
-          ? null
-          : data['delivery_note'] as String?,
-      orderNote:
-          data['order_note'] == null ? null : data['order_note'] as String?,
-      customerReceivedOrder: data['customer_received_order'] == null
-          ? null
-          : data['customer_received_order'] == 1,
-      driverRequestDeliveryConfirmation:
-          data['driver_request_delivery_confirmation'] == null
-              ? null
-              : data['driver_request_delivery_confirmation'] == 1,
-      driverId: data['driver_id'] == null ? null : data['driver_id'] as int?,
-      transactionItems: (await provider.rawQuery(
+                    'primaryKey',
+                    data['branch_Branch_brick_id'] as int,
+                    limit1: true,
+                  ),
+                ))?.first
+                : null),
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
+            ? null
+            : DateTime.tryParse(data['created_at'] as String),
+    status: data['status'] == null ? null : data['status'] as String?,
+    deliveryDate:
+        data['delivery_date'] == null
+            ? null
+            : data['delivery_date'] == null
+            ? null
+            : DateTime.tryParse(data['delivery_date'] as String),
+    deliveryNote:
+        data['delivery_note'] == null ? null : data['delivery_note'] as String?,
+    orderNote:
+        data['order_note'] == null ? null : data['order_note'] as String?,
+    customerReceivedOrder:
+        data['customer_received_order'] == null
+            ? null
+            : data['customer_received_order'] == 1,
+    driverRequestDeliveryConfirmation:
+        data['driver_request_delivery_confirmation'] == null
+            ? null
+            : data['driver_request_delivery_confirmation'] == 1,
+    driverId: data['driver_id'] == null ? null : data['driver_id'] as int?,
+    transactionItems:
+        (await provider
+            .rawQuery(
               'SELECT DISTINCT `f_TransactionItem_brick_id` FROM `_brick_InventoryRequest_transaction_items` WHERE l_InventoryRequest_brick_id = ?',
-              [
-            data['_brick_id'] as int
-          ]).then((results) {
-        final ids = results.map((r) => r['f_TransactionItem_brick_id']);
-        return Future.wait<TransactionItem>(ids.map((primaryKey) => repository!
-            .getAssociation<TransactionItem>(
-              Query.where('primaryKey', primaryKey, limit1: true),
+              [data['_brick_id'] as int],
             )
-            .then((r) => r!.first)));
-      }))
-          .toList()
-          .cast<TransactionItem>(),
-      updatedAt: data['updated_at'] == null
-          ? null
-          : data['updated_at'] == null
-              ? null
-              : DateTime.tryParse(data['updated_at'] as String),
-      itemCounts:
-          data['item_counts'] == null ? null : data['item_counts'] as num?,
-      bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-      tinNumber:
-          data['tin_number'] == null ? null : data['tin_number'] as String?,
-      financing: data['financing_Financing_brick_id'] == null
-          ? null
-          : (data['financing_Financing_brick_id'] > -1
-              ? (await repository?.getAssociation<Financing>(
+            .then((results) {
+              final ids = results.map((r) => r['f_TransactionItem_brick_id']);
+              return Future.wait<TransactionItem>(
+                ids.map(
+                  (primaryKey) => repository!
+                      .getAssociation<TransactionItem>(
+                        Query.where('primaryKey', primaryKey, limit1: true),
+                      )
+                      .then((r) => r!.first),
+                ),
+              );
+            })).toList().cast<TransactionItem>(),
+    updatedAt:
+        data['updated_at'] == null
+            ? null
+            : data['updated_at'] == null
+            ? null
+            : DateTime.tryParse(data['updated_at'] as String),
+    itemCounts:
+        data['item_counts'] == null ? null : data['item_counts'] as num?,
+    bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
+    tinNumber:
+        data['tin_number'] == null ? null : data['tin_number'] as String?,
+    financing:
+        data['financing_Financing_brick_id'] == null
+            ? null
+            : (data['financing_Financing_brick_id'] > -1
+                ? (await repository?.getAssociation<Financing>(
                   Query.where(
-                      'primaryKey', data['financing_Financing_brick_id'] as int,
-                      limit1: true),
-                ))
-                  ?.first
-              : null),
-      financingId:
-          data['financing_id'] == null ? null : data['financing_id'] as String?)
-    ..primaryKey = data['_brick_id'] as int;
+                    'primaryKey',
+                    data['financing_Financing_brick_id'] as int,
+                    limit1: true,
+                  ),
+                ))?.first
+                : null),
+    financingId:
+        data['financing_id'] == null ? null : data['financing_id'] as String?,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
 Future<Map<String, dynamic>> _$InventoryRequestToSqlite(
-    InventoryRequest instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+  InventoryRequest instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'main_branch_id': instance.mainBranchId,
     'sub_branch_id': instance.subBranchId,
-    'branch_Branch_brick_id': instance.branch != null
-        ? instance.branch!.primaryKey ??
-            await provider.upsert<Branch>(instance.branch!,
-                repository: repository)
-        : null,
+    'branch_Branch_brick_id':
+        instance.branch != null
+            ? instance.branch!.primaryKey ??
+                await provider.upsert<Branch>(
+                  instance.branch!,
+                  repository: repository,
+                )
+            : null,
     'branch_id': instance.branchId,
     'created_at': instance.createdAt?.toIso8601String(),
     'status': instance.status,
     'delivery_date': instance.deliveryDate?.toIso8601String(),
     'delivery_note': instance.deliveryNote,
     'order_note': instance.orderNote,
-    'customer_received_order': instance.customerReceivedOrder == null
-        ? null
-        : (instance.customerReceivedOrder! ? 1 : 0),
+    'customer_received_order':
+        instance.customerReceivedOrder == null
+            ? null
+            : (instance.customerReceivedOrder! ? 1 : 0),
     'driver_request_delivery_confirmation':
         instance.driverRequestDeliveryConfirmation == null
             ? null
             : (instance.driverRequestDeliveryConfirmation! ? 1 : 0),
     'driver_id': instance.driverId,
-    'transaction_items': instance.transactionItems != null
-        ? jsonEncode(instance.transactionItems)
-        : null,
+    'transaction_items':
+        instance.transactionItems != null
+            ? jsonEncode(instance.transactionItems)
+            : null,
     'updated_at': instance.updatedAt?.toIso8601String(),
     'item_counts': instance.itemCounts,
     'bhf_id': instance.bhfId,
     'tin_number': instance.tinNumber,
-    'financing_Financing_brick_id': instance.financing != null
-        ? instance.financing!.primaryKey ??
-            await provider.upsert<Financing>(instance.financing!,
-                repository: repository)
-        : null,
-    'financing_id': instance.financingId
+    'financing_Financing_brick_id':
+        instance.financing != null
+            ? instance.financing!.primaryKey ??
+                await provider.upsert<Financing>(
+                  instance.financing!,
+                  repository: repository,
+                )
+            : null,
+    'financing_id': instance.financingId,
   };
 }
 
@@ -317,7 +358,7 @@ class InventoryRequestAdapter
     'financingId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'financing_id',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -450,14 +491,18 @@ class InventoryRequestAdapter
       columnName: 'financing_id',
       iterable: false,
       type: String,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      InventoryRequest instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
+    InventoryRequest instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
         SELECT * FROM `InventoryRequest` WHERE id = ? LIMIT 1''',
-        [instance.id]);
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -473,57 +518,88 @@ class InventoryRequestAdapter
   Future<void> afterSave(instance, {required provider, repository}) async {
     if (instance.primaryKey != null) {
       final transactionItemsOldColumns = await provider.rawQuery(
-          'SELECT `f_TransactionItem_brick_id` FROM `_brick_InventoryRequest_transaction_items` WHERE `l_InventoryRequest_brick_id` = ?',
-          [instance.primaryKey]);
-      final transactionItemsOldIds = transactionItemsOldColumns
-          .map((a) => a['f_TransactionItem_brick_id']);
-      final transactionItemsNewIds = instance.transactionItems
+        'SELECT `f_TransactionItem_brick_id` FROM `_brick_InventoryRequest_transaction_items` WHERE `l_InventoryRequest_brick_id` = ?',
+        [instance.primaryKey],
+      );
+      final transactionItemsOldIds = transactionItemsOldColumns.map(
+        (a) => a['f_TransactionItem_brick_id'],
+      );
+      final transactionItemsNewIds =
+          instance.transactionItems
               ?.map((s) => s.primaryKey)
               .whereType<int>() ??
           [];
-      final transactionItemsIdsToDelete = transactionItemsOldIds
-          .where((id) => !transactionItemsNewIds.contains(id));
+      final transactionItemsIdsToDelete = transactionItemsOldIds.where(
+        (id) => !transactionItemsNewIds.contains(id),
+      );
 
-      await Future.wait<void>(transactionItemsIdsToDelete.map((id) async {
-        return await provider.rawExecute(
-            'DELETE FROM `_brick_InventoryRequest_transaction_items` WHERE `l_InventoryRequest_brick_id` = ? AND `f_TransactionItem_brick_id` = ?',
-            [instance.primaryKey, id]).catchError((e) => null);
-      }));
+      await Future.wait<void>(
+        transactionItemsIdsToDelete.map((id) async {
+          return await provider
+              .rawExecute(
+                'DELETE FROM `_brick_InventoryRequest_transaction_items` WHERE `l_InventoryRequest_brick_id` = ? AND `f_TransactionItem_brick_id` = ?',
+                [instance.primaryKey, id],
+              )
+              .catchError((e) => null);
+        }),
+      );
 
-      await Future.wait<int?>(instance.transactionItems?.map((s) async {
-            final id = s.primaryKey ??
-                await provider.upsert<TransactionItem>(s,
-                    repository: repository);
-            return await provider.rawInsert(
+      await Future.wait<int?>(
+        instance.transactionItems?.map((s) async {
+              final id =
+                  s.primaryKey ??
+                  await provider.upsert<TransactionItem>(
+                    s,
+                    repository: repository,
+                  );
+              return await provider.rawInsert(
                 'INSERT OR IGNORE INTO `_brick_InventoryRequest_transaction_items` (`l_InventoryRequest_brick_id`, `f_TransactionItem_brick_id`) VALUES (?, ?)',
-                [instance.primaryKey, id]);
-          }) ??
-          []);
+                [instance.primaryKey, id],
+              );
+            }) ??
+            [],
+      );
     }
   }
 
   @override
-  Future<InventoryRequest> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$InventoryRequestFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<InventoryRequest> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$InventoryRequestFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(InventoryRequest input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$InventoryRequestToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    InventoryRequest input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$InventoryRequestToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<InventoryRequest> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$InventoryRequestFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<InventoryRequest> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$InventoryRequestFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(InventoryRequest input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$InventoryRequestToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    InventoryRequest input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$InventoryRequestToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

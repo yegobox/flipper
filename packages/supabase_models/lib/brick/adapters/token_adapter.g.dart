@@ -1,36 +1,44 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Token> _$TokenFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Token> _$TokenFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Token(
-      id: data['id'] as String?,
-      name: data['name'] == null ? null : data['name'] as String?,
-      type: data['type'] == null ? null : data['type'] as String?,
-      token: data['token'] == null ? null : data['token'] as String?,
-      validFrom: data['valid_from'] == null
-          ? null
-          : data['valid_from'] == null
-              ? null
-              : DateTime.tryParse(data['valid_from'] as String),
-      validUntil: data['valid_until'] == null
-          ? null
-          : data['valid_until'] == null
-              ? null
-              : DateTime.tryParse(data['valid_until'] as String),
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String));
+    id: data['id'] as String?,
+    name: data['name'] == null ? null : data['name'] as String?,
+    type: data['type'] == null ? null : data['type'] as String?,
+    token: data['token'] == null ? null : data['token'] as String?,
+    validFrom:
+        data['valid_from'] == null
+            ? null
+            : data['valid_from'] == null
+            ? null
+            : DateTime.tryParse(data['valid_from'] as String),
+    validUntil:
+        data['valid_until'] == null
+            ? null
+            : data['valid_until'] == null
+            ? null
+            : DateTime.tryParse(data['valid_until'] as String),
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+  );
 }
 
-Future<Map<String, dynamic>> _$TokenToSupabase(Token instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$TokenToSupabase(
+  Token instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'name': instance.name,
@@ -39,41 +47,48 @@ Future<Map<String, dynamic>> _$TokenToSupabase(Token instance,
     'valid_from': instance.validFrom?.toIso8601String(),
     'valid_until': instance.validUntil?.toIso8601String(),
     'business_id': instance.businessId,
-    'last_touched': instance.lastTouched?.toIso8601String()
+    'last_touched': instance.lastTouched?.toIso8601String(),
   };
 }
 
-Future<Token> _$TokenFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Token> _$TokenFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Token(
-      id: data['id'] as String,
-      name: data['name'] == null ? null : data['name'] as String?,
-      type: data['type'] == null ? null : data['type'] as String?,
-      token: data['token'] == null ? null : data['token'] as String?,
-      validFrom: data['valid_from'] == null
-          ? null
-          : data['valid_from'] == null
-              ? null
-              : DateTime.tryParse(data['valid_from'] as String),
-      validUntil: data['valid_until'] == null
-          ? null
-          : data['valid_until'] == null
-              ? null
-              : DateTime.tryParse(data['valid_until'] as String),
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String))
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    name: data['name'] == null ? null : data['name'] as String?,
+    type: data['type'] == null ? null : data['type'] as String?,
+    token: data['token'] == null ? null : data['token'] as String?,
+    validFrom:
+        data['valid_from'] == null
+            ? null
+            : data['valid_from'] == null
+            ? null
+            : DateTime.tryParse(data['valid_from'] as String),
+    validUntil:
+        data['valid_until'] == null
+            ? null
+            : data['valid_until'] == null
+            ? null
+            : DateTime.tryParse(data['valid_until'] as String),
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$TokenToSqlite(Token instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$TokenToSqlite(
+  Token instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'name': instance.name,
@@ -82,7 +97,7 @@ Future<Map<String, dynamic>> _$TokenToSqlite(Token instance,
     'valid_from': instance.validFrom?.toIso8601String(),
     'valid_until': instance.validUntil?.toIso8601String(),
     'business_id': instance.businessId,
-    'last_touched': instance.lastTouched?.toIso8601String()
+    'last_touched': instance.lastTouched?.toIso8601String(),
   };
 }
 
@@ -127,7 +142,7 @@ class TokenAdapter extends OfflineFirstWithSupabaseAdapter<Token> {
     'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'last_touched',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -188,13 +203,18 @@ class TokenAdapter extends OfflineFirstWithSupabaseAdapter<Token> {
       columnName: 'last_touched',
       iterable: false,
       type: DateTime,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Token instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Token` WHERE id = ? LIMIT 1''', [instance.id]);
+    Token instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Token` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -208,26 +228,40 @@ class TokenAdapter extends OfflineFirstWithSupabaseAdapter<Token> {
   final String tableName = 'Token';
 
   @override
-  Future<Token> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$TokenFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Token> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$TokenFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Token input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$TokenToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Token input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$TokenToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Token> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$TokenFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Token> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$TokenFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Token input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
+  Future<Map<String, dynamic>> toSqlite(
+    Token input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async =>
       await _$TokenToSqlite(input, provider: provider, repository: repository);
 }

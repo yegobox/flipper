@@ -262,7 +262,7 @@ abstract class RealmInterface {
 
   Future<int> sendReport({required List<TransactionItem> transactionItems});
 
-  Future<TransactionItem?> getTransactionItemByVariantId(
+  Future<TransactionItem?> getTransactionItem(
       {required String variantId, String? transactionId});
 
   Future<void> saveDiscount(
@@ -319,8 +319,8 @@ abstract class RealmInterface {
   Future<List<Variant>> selectPurchases(
       {required String bhfId,
       required int tin,
-      required String lastReqDt,
-      required String url});
+      required String url,
+      required String lastRequestdate});
 
   Future<Variant?> getVariant(
       {String? id,
@@ -404,7 +404,7 @@ abstract class RealmInterface {
   Future<List<Variant>> selectImportItems({
     required int tin,
     required String bhfId,
-    required String lastReqDt,
+    required String lastRequestdate,
   });
 
   Future<void> syncUserWithAwsIncognito({required String identifier});
@@ -437,7 +437,8 @@ abstract class RealmInterface {
       required String name,
       models.Configurations? taxType});
 
-  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName);
+  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName,
+      {required String transactionId});
   RealmInterface instance();
   FutureOr<Tenant?> tenant({int? businessId, int? userId});
   Stream<List<Report>> reports({required int branchId});

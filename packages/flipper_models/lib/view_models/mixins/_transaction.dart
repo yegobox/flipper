@@ -21,7 +21,6 @@ import 'package:flutter/material.dart';
 mixin TransactionMixin {
   final KeyPadService keypad = getIt<KeyPadService>();
 
-  get quantity => keypad.quantity;
   final talker = Talker();
 
   Future<RwApiResponse> finalizePayment(
@@ -191,10 +190,12 @@ mixin TransactionMixin {
       required bool customItem,
       required ITransaction pendingTransaction,
       required double currentStock,
-      required bool partOfComposite}) async {
+      bool useTransactionItemForQty = false,
+      required bool partOfComposite,
+      TransactionItem? item}) async {
     try {
       TransactionItem? existTransactionItem = await ProxyService.strategy
-          .getTransactionItemByVariantId(
+          .getTransactionItem(
               variantId: variation.id, transactionId: pendingTransaction.id);
 
       await addTransactionItems(
@@ -207,7 +208,8 @@ mixin TransactionMixin {
         isCustom: customItem,
         partOfComposite: partOfComposite,
         compositePrice: compositePrice,
-        item: existTransactionItem,
+        item: existTransactionItem ?? item,
+        useTransactionItemForQty: useTransactionItemForQty,
       );
 
       return true;
@@ -229,13 +231,17 @@ mixin TransactionMixin {
     TransactionItem? item,
     double? compositePrice,
     required bool partOfComposite,
+    bool useTransactionItemForQty = false,
   }) async {
     try {
       // Update an existing item
-      if (item != null && !isCustom) {
+      if (item != null && !isCustom && !useTransactionItemForQty) {
         _updateExistingTransactionItem(
           item: item,
-          quantity: item.qty + quantity,
+
+          /// the  item.qty + 1 is for when a user click on same item on cart to increment
+          /// while  useTransactionItemForQty ? item.qty is when we are dealing with adjustment etc..
+          quantity: item.qty + 1,
           variation: variation,
           amountTotal: amountTotal,
         );
@@ -255,7 +261,7 @@ mixin TransactionMixin {
         lastTouched: DateTime.now(),
         discount: 0.0,
         compositePrice: partOfComposite ? compositePrice ?? 0.0 : 0.0,
-        quantity: computedQty,
+        quantity: useTransactionItemForQty ? item!.qty : computedQty,
         currentStock: currentStock,
         partOfComposite: partOfComposite,
         variation: variation,
@@ -304,6 +310,7 @@ mixin TransactionMixin {
   }) async {
     if (isCustom) return 1.0;
 
+    /// because for composite we might have more than one item to be added to the cart at once hence why we have this
     if (partOfComposite) {
       final composite =
           (await ProxyService.strategy.composites(variantId: variation.id))
@@ -311,7 +318,7 @@ mixin TransactionMixin {
       return composite?.qty ?? 0.0;
     }
 
-    return quantity;
+    return 1;
   }
 
 // Helper: Reactivate inactive items
@@ -381,6 +388,11 @@ mixin TransactionMixin {
     required Business business,
     required int randomNumber,
     required String sarTyCd,
+
+    /// usualy the flag useTransactionItemForQty is needed when we are dealing with adjustment
+    /// transaction i.e not original transaction
+    bool useTransactionItemForQty = false,
+    TransactionItem? item,
   }) async {
     try {
       // Save the transaction item
@@ -392,6 +404,8 @@ mixin TransactionMixin {
         pendingTransaction: pendingTransaction,
         partOfComposite: false,
         compositePrice: 0,
+        item: item,
+        useTransactionItemForQty: useTransactionItemForQty,
       );
 
       // Update the transaction status to PARKED
@@ -452,12 +466,6 @@ mixin TransactionMixin {
       try {
         VariantPatch.patchVariant(
           URI: (await ProxyService.box.getServerUrl())!,
-        );
-        await StockPatch.patchStock(
-          URI: (await ProxyService.box.getServerUrl())!,
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
-          },
         );
 
         await ProxyService.strategy.updateTransaction(

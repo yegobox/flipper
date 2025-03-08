@@ -23,70 +23,79 @@ class PreviewSaleButton extends ConsumerWidget {
   final bool digitalPaymentEnabled;
   final String transactionId;
 
-  Future<void> _handleButtonPress(WidgetRef ref,
-      {bool immediateCompletion = false}) async {
-    final loadingNotifier = ref.read(payButtonLoadingProvider.notifier);
+  Future<void> _handleButtonPress(
+    WidgetRef ref, {
+    bool immediateCompletion = false,
+    required ButtonType buttonType,
+  }) async {
+    final loadingNotifier = ref.read(payButtonStateProvider.notifier);
 
     if (mode == SellingMode.forSelling && completeTransaction != null) {
       try {
-        loadingNotifier.startLoading(); // Start loading for the Pay button
+        // stop any other loading button
+        loadingNotifier.stopLoading();
+        // end of stop
+        loadingNotifier.startLoading(buttonType); // Start loading
 
-        // Pass the immediateCompletion parameter to the callback
+        // Call the transaction function
         completeTransaction?.call(immediateCompletion);
 
-        if (immediateCompletion) {
-          // Stop loading immediately if immediateCompletion is true
-          loadingNotifier.stopLoading();
-        }
+        // The transaction function is responsible for stopping the loading state.
       } catch (e) {
-        loadingNotifier.stopLoading(); // Stop loading on error
-        // Handle error (e.g., show a snackbar or dialog)
+        loadingNotifier.stopLoading(buttonType); // Stop loading on error
+        // Handle error (e.g., show a snackbar or log error)
       }
     } else if (mode == SellingMode.forOrdering && previewCart != null) {
       try {
         previewCart?.call();
       } catch (e) {
-        loadingNotifier.stopLoading();
+        loadingNotifier.stopLoading(buttonType); // Stop loading on error
       }
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isPayButtonLoading = ref.watch(payButtonLoadingProvider);
+    final payButtonLoading = ref.watch(payButtonStateProvider);
 
     return SizedBox(
       height: 64,
       width: digitalPaymentEnabled ? 320 : 160,
       child: Row(
         children: [
-          // Left Side: Main Button (Loading State)
+          // Left Side: Main Button (Pay)
           Expanded(
             child: FlipperButton(
               height: 64,
               key: const Key("PaymentButton"),
               color: Colors.blue.shade700,
               text: wording,
-              onPressed:
-                  isPayButtonLoading ? null : () => _handleButtonPress(ref),
-              isLoading: isPayButtonLoading,
+              onPressed: (payButtonLoading[ButtonType.pay] ?? false)
+                  ? null
+                  : () => _handleButtonPress(ref, buttonType: ButtonType.pay),
+              isLoading: payButtonLoading[ButtonType.pay] ?? false,
             ),
           ),
-          // Right Side: Immediate Completion Button (Conditional)
+          // Divider between buttons (if digital payment is enabled)
           if (digitalPaymentEnabled)
             Container(
               width: 1,
-              color: Colors.grey.shade300, // Divider between the two buttons
+              color: Colors.grey.shade300,
             ),
+          // Right Side: "Complete Now" Button (if digital payment is enabled)
           if (digitalPaymentEnabled)
             Expanded(
               child: FlipperButton(
+                isLoading: payButtonLoading[ButtonType.completeNow] ?? false,
                 height: 64,
                 key: const Key("ImmediateCompletionButton"),
                 color: Colors.green,
                 text: 'Complete Now',
-                onPressed: () =>
-                    _handleButtonPress(ref, immediateCompletion: true),
+                onPressed: () => _handleButtonPress(
+                  ref,
+                  immediateCompletion: true,
+                  buttonType: ButtonType.completeNow,
+                ),
               ),
             ),
         ],

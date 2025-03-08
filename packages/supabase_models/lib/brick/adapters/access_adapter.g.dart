@@ -1,36 +1,43 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Access> _$AccessFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Access> _$AccessFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Access(
-      id: data['id'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      userId: data['user_id'] == null ? null : data['user_id'] as int?,
-      featureName:
-          data['feature_name'] == null ? null : data['feature_name'] as String?,
-      userType: data['user_type'] == null ? null : data['user_type'] as String?,
-      accessLevel:
-          data['access_level'] == null ? null : data['access_level'] as String?,
-      createdAt: data['created_at'] == null
-          ? null
-          : data['created_at'] == null
-              ? null
-              : DateTime.tryParse(data['created_at'] as String),
-      expiresAt: data['expires_at'] == null
-          ? null
-          : data['expires_at'] == null
-              ? null
-              : DateTime.tryParse(data['expires_at'] as String),
-      status: data['status'] == null ? null : data['status'] as String?);
+    id: data['id'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    featureName:
+        data['feature_name'] == null ? null : data['feature_name'] as String?,
+    userType: data['user_type'] == null ? null : data['user_type'] as String?,
+    accessLevel:
+        data['access_level'] == null ? null : data['access_level'] as String?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
+            ? null
+            : DateTime.tryParse(data['created_at'] as String),
+    expiresAt:
+        data['expires_at'] == null
+            ? null
+            : data['expires_at'] == null
+            ? null
+            : DateTime.tryParse(data['expires_at'] as String),
+    status: data['status'] == null ? null : data['status'] as String?,
+  );
 }
 
-Future<Map<String, dynamic>> _$AccessToSupabase(Access instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$AccessToSupabase(
+  Access instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'branch_id': instance.branchId,
@@ -41,41 +48,47 @@ Future<Map<String, dynamic>> _$AccessToSupabase(Access instance,
     'access_level': instance.accessLevel,
     'created_at': instance.createdAt?.toIso8601String(),
     'expires_at': instance.expiresAt?.toIso8601String(),
-    'status': instance.status
+    'status': instance.status,
   };
 }
 
-Future<Access> _$AccessFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Access> _$AccessFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Access(
-      id: data['id'] as String,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      userId: data['user_id'] == null ? null : data['user_id'] as int?,
-      featureName:
-          data['feature_name'] == null ? null : data['feature_name'] as String?,
-      userType: data['user_type'] == null ? null : data['user_type'] as String?,
-      accessLevel:
-          data['access_level'] == null ? null : data['access_level'] as String?,
-      createdAt: data['created_at'] == null
-          ? null
-          : data['created_at'] == null
-              ? null
-              : DateTime.tryParse(data['created_at'] as String),
-      expiresAt: data['expires_at'] == null
-          ? null
-          : data['expires_at'] == null
-              ? null
-              : DateTime.tryParse(data['expires_at'] as String),
-      status: data['status'] == null ? null : data['status'] as String?)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    featureName:
+        data['feature_name'] == null ? null : data['feature_name'] as String?,
+    userType: data['user_type'] == null ? null : data['user_type'] as String?,
+    accessLevel:
+        data['access_level'] == null ? null : data['access_level'] as String?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
+            ? null
+            : DateTime.tryParse(data['created_at'] as String),
+    expiresAt:
+        data['expires_at'] == null
+            ? null
+            : data['expires_at'] == null
+            ? null
+            : DateTime.tryParse(data['expires_at'] as String),
+    status: data['status'] == null ? null : data['status'] as String?,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$AccessToSqlite(Access instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$AccessToSqlite(
+  Access instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'branch_id': instance.branchId,
@@ -86,7 +99,7 @@ Future<Map<String, dynamic>> _$AccessToSqlite(Access instance,
     'access_level': instance.accessLevel,
     'created_at': instance.createdAt?.toIso8601String(),
     'expires_at': instance.expiresAt?.toIso8601String(),
-    'status': instance.status
+    'status': instance.status,
   };
 }
 
@@ -139,7 +152,7 @@ class AccessAdapter extends OfflineFirstWithSupabaseAdapter<Access> {
     'status': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'status',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -212,13 +225,18 @@ class AccessAdapter extends OfflineFirstWithSupabaseAdapter<Access> {
       columnName: 'status',
       iterable: false,
       type: String,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Access instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Access` WHERE id = ? LIMIT 1''', [instance.id]);
+    Access instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Access` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -232,26 +250,40 @@ class AccessAdapter extends OfflineFirstWithSupabaseAdapter<Access> {
   final String tableName = 'Access';
 
   @override
-  Future<Access> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$AccessFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Access> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$AccessFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Access input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$AccessToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Access input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$AccessToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Access> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$AccessFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Access> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$AccessFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Access input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
+  Future<Map<String, dynamic>> toSqlite(
+    Access input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async =>
       await _$AccessToSqlite(input, provider: provider, repository: repository);
 }

@@ -53,41 +53,6 @@ class FirebaseMessagingService implements Messaging {
     await FirebaseMessaging.instance
         .subscribeToTopic(ProxyService.box.getBusinessId()!.toString());
     String? _token = await token();
-
-    int branchId = ProxyService.box.getBranchId() ?? 0;
-    // List<Social> activeSocialAccount =
-    //     await ProxyService.isar.activesocialAccounts(branchId: branchId);
-
-    // if (ProxyService.box.getDefaultApp() == 2 &&
-    //     activeSocialAccount.isNotEmpty &&
-    //     !ProxyService.box.getIsTokenRegistered()! &&
-    //     !kDebugMode) {
-    //   bool isSocialLoggedIn = await appService.isSocialLoggedin();
-
-    //   if (isSocialLoggedIn) {
-    //     Setting? setting = await ProxyService.isar.getSocialSetting();
-    //     if (setting == null) {
-    //       throw Exception("Failed to retrieve social settings.");
-    //     }
-    //     setting.deviceToken = _token;
-    //     ProxyService.isar.patchSocialSetting(setting: setting);
-    //   } else {
-    //     await appService.logSocial();
-    //   }
-
-    //   try {
-    //     await ProxyService.remote.create(
-    //       collection: {
-    //         "deviceToken": _token,
-    //         "businessId": branchId,
-    //       },
-    //       collectionName: 'messagings',
-    //     );
-    //     ProxyService.box.writeBool(key: 'getIsTokenRegistered', value: true);
-    //   } catch (e) {
-    //     ProxyService.box.writeBool(key: 'getIsTokenRegistered', value: true);
-    //   }
-    // }
   }
 
   @override

@@ -155,7 +155,10 @@ class DataViewState extends ConsumerState<DataView>
             SizedBox(
               height: 10,
             ),
-            Expanded(child: _buildDataGrid(constraint)),
+            Expanded(
+              child: _buildDataGrid(constraint),
+            ),
+            _buildStickyFooter(), // Place the footer *outside* the Expanded
             _buildDataPager(constraint),
           ],
         ),
@@ -248,7 +251,6 @@ class DataViewState extends ConsumerState<DataView>
         rowHoverTextStyle: TextStyle(color: Colors.red, fontSize: 14),
       ),
       child: SfDataGrid(
-        // Remove the Expanded widget here
         selectionMode: SelectionMode.multiple,
         allowSorting: true,
         allowColumnsResizing: true,
@@ -262,19 +264,49 @@ class DataViewState extends ConsumerState<DataView>
         onCellTap: _handleCellTap,
         columns: _getTableHeaders(),
         rowsPerPage: widget.rowsPerPage,
-        footer: Padding(
-          padding: EdgeInsets.all(8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Total:"),
-              Text(widget.transactions
-                      ?.fold<double>(
-                          0, (sum, transaction) => sum + transaction.subTotal!)
-                      .toRwf() ??
-                  ""),
-            ],
+      ),
+    );
+  }
+
+  Widget _buildStickyFooter() {
+    // Calculate total only once and cache it
+    final double total = widget.transactions?.fold<double>(
+            0, (sum, transaction) => sum + (transaction.subTotal ?? 0)) ??
+        0;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.shade300)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, -3), // changes position of shadow
           ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Total:",
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            Text(
+              total.toRwf(),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
+            ),
+          ],
         ),
       ),
     );

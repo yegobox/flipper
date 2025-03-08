@@ -70,7 +70,8 @@ class SharedPreferenceStorage implements LocalStorage {
         'getBusinessServerId',
         'getBranchServerId',
         'referralCode',
-        'transactionInProgress'
+        'transactionInProgress',
+        'stockInOutType'
       },
     ));
     return this;
@@ -413,5 +414,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   bool transactionInProgress() {
     return prefs.getBool('transactionInProgress') ?? false;
+  }
+
+  @override
+  String stockInOutType() {
+    return prefs.getString('stockInOutType') ?? "11";
   }
 }

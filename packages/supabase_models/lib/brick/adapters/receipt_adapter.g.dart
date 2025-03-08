@@ -1,52 +1,59 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Receipt> _$ReceiptFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Receipt> _$ReceiptFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Receipt(
-      id: data['id'] as String?,
-      resultCd: data['result_cd'] == null ? null : data['result_cd'] as String?,
-      resultMsg:
-          data['result_msg'] == null ? null : data['result_msg'] as String?,
-      resultDt: data['result_dt'] == null ? null : data['result_dt'] as String?,
-      rcptNo: data['rcpt_no'] == null ? null : data['rcpt_no'] as int?,
-      intrlData:
-          data['intrl_data'] == null ? null : data['intrl_data'] as String?,
-      rcptSign: data['rcpt_sign'] == null ? null : data['rcpt_sign'] as String?,
-      totRcptNo:
-          data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
-      vsdcRcptPbctDate: data['vsdc_rcpt_pbct_date'] == null
-          ? null
-          : data['vsdc_rcpt_pbct_date'] as String?,
-      sdcId: data['sdc_id'] == null ? null : data['sdc_id'] as String?,
-      mrcNo: data['mrc_no'] == null ? null : data['mrc_no'] as String?,
-      qrCode: data['qr_code'] == null ? null : data['qr_code'] as String?,
-      receiptType:
-          data['receipt_type'] == null ? null : data['receipt_type'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      transactionId: data['transaction_id'] == null
-          ? null
-          : data['transaction_id'] as String?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
-      whenCreated: data['when_created'] == null
-          ? null
-          : data['when_created'] == null
-              ? null
-              : DateTime.tryParse(data['when_created'] as String),
-      invoiceNumber: data['invoice_number'] == null
-          ? null
-          : data['invoice_number'] as int?);
+    id: data['id'] as String?,
+    resultCd: data['result_cd'] == null ? null : data['result_cd'] as String?,
+    resultMsg:
+        data['result_msg'] == null ? null : data['result_msg'] as String?,
+    resultDt: data['result_dt'] == null ? null : data['result_dt'] as String?,
+    rcptNo: data['rcpt_no'] == null ? null : data['rcpt_no'] as int?,
+    intrlData:
+        data['intrl_data'] == null ? null : data['intrl_data'] as String?,
+    rcptSign: data['rcpt_sign'] == null ? null : data['rcpt_sign'] as String?,
+    totRcptNo: data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
+    vsdcRcptPbctDate:
+        data['vsdc_rcpt_pbct_date'] == null
+            ? null
+            : data['vsdc_rcpt_pbct_date'] as String?,
+    sdcId: data['sdc_id'] == null ? null : data['sdc_id'] as String?,
+    mrcNo: data['mrc_no'] == null ? null : data['mrc_no'] as String?,
+    qrCode: data['qr_code'] == null ? null : data['qr_code'] as String?,
+    receiptType:
+        data['receipt_type'] == null ? null : data['receipt_type'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    transactionId:
+        data['transaction_id'] == null
+            ? null
+            : data['transaction_id'] as String?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
+    whenCreated:
+        data['when_created'] == null
+            ? null
+            : data['when_created'] == null
+            ? null
+            : DateTime.tryParse(data['when_created'] as String),
+    invoiceNumber:
+        data['invoice_number'] == null ? null : data['invoice_number'] as int?,
+  );
 }
 
-Future<Map<String, dynamic>> _$ReceiptToSupabase(Receipt instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$ReceiptToSupabase(
+  Receipt instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'result_cd': instance.resultCd,
@@ -66,57 +73,63 @@ Future<Map<String, dynamic>> _$ReceiptToSupabase(Receipt instance,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'invc_no': instance.invcNo,
     'when_created': instance.whenCreated?.toIso8601String(),
-    'invoice_number': instance.invoiceNumber
+    'invoice_number': instance.invoiceNumber,
   };
 }
 
-Future<Receipt> _$ReceiptFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Receipt> _$ReceiptFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Receipt(
-      id: data['id'] as String,
-      resultCd: data['result_cd'] == null ? null : data['result_cd'] as String?,
-      resultMsg:
-          data['result_msg'] == null ? null : data['result_msg'] as String?,
-      resultDt: data['result_dt'] == null ? null : data['result_dt'] as String?,
-      rcptNo: data['rcpt_no'] == null ? null : data['rcpt_no'] as int?,
-      intrlData:
-          data['intrl_data'] == null ? null : data['intrl_data'] as String?,
-      rcptSign: data['rcpt_sign'] == null ? null : data['rcpt_sign'] as String?,
-      totRcptNo:
-          data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
-      vsdcRcptPbctDate: data['vsdc_rcpt_pbct_date'] == null
-          ? null
-          : data['vsdc_rcpt_pbct_date'] as String?,
-      sdcId: data['sdc_id'] == null ? null : data['sdc_id'] as String?,
-      mrcNo: data['mrc_no'] == null ? null : data['mrc_no'] as String?,
-      qrCode: data['qr_code'] == null ? null : data['qr_code'] as String?,
-      receiptType:
-          data['receipt_type'] == null ? null : data['receipt_type'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      transactionId: data['transaction_id'] == null
-          ? null
-          : data['transaction_id'] as String?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
-      whenCreated: data['when_created'] == null
-          ? null
-          : data['when_created'] == null
-              ? null
-              : DateTime.tryParse(data['when_created'] as String),
-      invoiceNumber: data['invoice_number'] == null
-          ? null
-          : data['invoice_number'] as int?)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    resultCd: data['result_cd'] == null ? null : data['result_cd'] as String?,
+    resultMsg:
+        data['result_msg'] == null ? null : data['result_msg'] as String?,
+    resultDt: data['result_dt'] == null ? null : data['result_dt'] as String?,
+    rcptNo: data['rcpt_no'] == null ? null : data['rcpt_no'] as int?,
+    intrlData:
+        data['intrl_data'] == null ? null : data['intrl_data'] as String?,
+    rcptSign: data['rcpt_sign'] == null ? null : data['rcpt_sign'] as String?,
+    totRcptNo: data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
+    vsdcRcptPbctDate:
+        data['vsdc_rcpt_pbct_date'] == null
+            ? null
+            : data['vsdc_rcpt_pbct_date'] as String?,
+    sdcId: data['sdc_id'] == null ? null : data['sdc_id'] as String?,
+    mrcNo: data['mrc_no'] == null ? null : data['mrc_no'] as String?,
+    qrCode: data['qr_code'] == null ? null : data['qr_code'] as String?,
+    receiptType:
+        data['receipt_type'] == null ? null : data['receipt_type'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    transactionId:
+        data['transaction_id'] == null
+            ? null
+            : data['transaction_id'] as String?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
+    whenCreated:
+        data['when_created'] == null
+            ? null
+            : data['when_created'] == null
+            ? null
+            : DateTime.tryParse(data['when_created'] as String),
+    invoiceNumber:
+        data['invoice_number'] == null ? null : data['invoice_number'] as int?,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$ReceiptToSqlite(Receipt instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$ReceiptToSqlite(
+  Receipt instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'result_cd': instance.resultCd,
@@ -136,7 +149,7 @@ Future<Map<String, dynamic>> _$ReceiptToSqlite(Receipt instance,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'invc_no': instance.invcNo,
     'when_created': instance.whenCreated?.toIso8601String(),
-    'invoice_number': instance.invoiceNumber
+    'invoice_number': instance.invoiceNumber,
   };
 }
 
@@ -225,7 +238,7 @@ class ReceiptAdapter extends OfflineFirstWithSupabaseAdapter<Receipt> {
     'invoiceNumber': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'invoice_number',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -352,13 +365,18 @@ class ReceiptAdapter extends OfflineFirstWithSupabaseAdapter<Receipt> {
       columnName: 'invoice_number',
       iterable: false,
       type: int,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Receipt instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Receipt` WHERE id = ? LIMIT 1''', [instance.id]);
+    Receipt instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Receipt` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -372,27 +390,43 @@ class ReceiptAdapter extends OfflineFirstWithSupabaseAdapter<Receipt> {
   final String tableName = 'Receipt';
 
   @override
-  Future<Receipt> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ReceiptFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Receipt> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ReceiptFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Receipt input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ReceiptToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Receipt input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ReceiptToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Receipt> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ReceiptFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Receipt> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ReceiptFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Receipt input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ReceiptToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    Receipt input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ReceiptToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

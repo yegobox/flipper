@@ -24,8 +24,6 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 
-
-
 mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixin, TextEditingControllersMixin {
   /// this method will either preview or completeOrder
@@ -222,7 +220,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       await _refreshTransactionItems(transactionId: transaction.id);
     } catch (e, s) {
       // Example: Stop loading from another widget or function
-      ref.read(payButtonLoadingProvider.notifier).stopLoading();
+      ref.read(payButtonStateProvider.notifier).stopLoading();
       String errorMessage = e
           .toString()
           .split('Caught Exception: ')
@@ -289,8 +287,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             context: context,
           );
 
-          // Example: Stop loading from another widget or function
-          ref.read(payButtonLoadingProvider.notifier).stopLoading();
+          ref.read(payButtonStateProvider.notifier).stopLoading();
           ref.refresh(pendingTransactionStreamProvider(
             isExpense: false,
           ));
@@ -307,7 +304,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             discount: discount,
           );
 
-          ref.read(payButtonLoadingProvider.notifier).stopLoading();
+          ref.read(payButtonStateProvider.notifier).stopLoading();
           ref.refresh(pendingTransactionStreamProvider(
             isExpense: false,
           ));
@@ -335,7 +332,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         context: context,
       );
 
-      ref.read(payButtonLoadingProvider.notifier).stopLoading();
+      ref.read(payButtonStateProvider.notifier).stopLoading();
       ref.refresh(pendingTransactionStreamProvider(
         isExpense: false,
       ));
@@ -352,7 +349,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         discount: discount,
       );
 
-      ref.read(payButtonLoadingProvider.notifier).stopLoading();
+      ref.read(payButtonStateProvider.notifier).stopLoading();
       ref.refresh(pendingTransactionStreamProvider(isExpense: false));
     }
   }
@@ -533,9 +530,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                       ),
                       onPressed: () {
                         // Example: Stop loading from another widget or function
-                        ref
-                            .read(payButtonLoadingProvider.notifier)
-                            .stopLoading();
+                        ref.read(payButtonStateProvider.notifier).stopLoading();
                         ref
                             .read(isProcessingProvider.notifier)
                             .stopProcessing();

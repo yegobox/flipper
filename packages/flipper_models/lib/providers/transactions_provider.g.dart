@@ -44,7 +44,7 @@ final transactionItemListProvider =
 typedef TransactionItemListRef
     = AutoDisposeStreamProviderRef<List<TransactionItem>>;
 String _$pendingTransactionStreamHash() =>
-    r'e947f3bc925e283e94af111320140db18e9c43d8';
+    r'66c1029d77ce311e4972e6835f2c6c6650c74640';
 
 /// Copied from Dart SDK
 class _SystemHash {

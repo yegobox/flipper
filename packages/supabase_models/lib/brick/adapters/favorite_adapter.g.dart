@@ -1,72 +1,85 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Favorite> _$FavoriteFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Favorite> _$FavoriteFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Favorite(
-      id: data['id'] as String?,
-      favIndex: data['fav_index'] == null ? null : data['fav_index'] as String?,
-      productId:
-          data['product_id'] == null ? null : data['product_id'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String));
+    id: data['id'] as String?,
+    favIndex: data['fav_index'] == null ? null : data['fav_index'] as String?,
+    productId:
+        data['product_id'] == null ? null : data['product_id'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
+            ? null
+            : DateTime.tryParse(data['deleted_at'] as String),
+  );
 }
 
-Future<Map<String, dynamic>> _$FavoriteToSupabase(Favorite instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$FavoriteToSupabase(
+  Favorite instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'fav_index': instance.favIndex,
     'product_id': instance.productId,
     'branch_id': instance.branchId,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String()
+    'deleted_at': instance.deletedAt?.toIso8601String(),
   };
 }
 
-Future<Favorite> _$FavoriteFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Favorite> _$FavoriteFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Favorite(
-      id: data['id'] as String,
-      favIndex: data['fav_index'] == null ? null : data['fav_index'] as String?,
-      productId:
-          data['product_id'] == null ? null : data['product_id'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String))
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    favIndex: data['fav_index'] == null ? null : data['fav_index'] as String?,
+    productId:
+        data['product_id'] == null ? null : data['product_id'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
+            ? null
+            : DateTime.tryParse(data['deleted_at'] as String),
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$FavoriteToSqlite(Favorite instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$FavoriteToSqlite(
+  Favorite instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'fav_index': instance.favIndex,
     'product_id': instance.productId,
     'branch_id': instance.branchId,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String()
+    'deleted_at': instance.deletedAt?.toIso8601String(),
   };
 }
 
@@ -103,7 +116,7 @@ class FavoriteAdapter extends OfflineFirstWithSupabaseAdapter<Favorite> {
     'deletedAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'deleted_at',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -152,13 +165,18 @@ class FavoriteAdapter extends OfflineFirstWithSupabaseAdapter<Favorite> {
       columnName: 'deleted_at',
       iterable: false,
       type: DateTime,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Favorite instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Favorite` WHERE id = ? LIMIT 1''', [instance.id]);
+    Favorite instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Favorite` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -172,27 +190,43 @@ class FavoriteAdapter extends OfflineFirstWithSupabaseAdapter<Favorite> {
   final String tableName = 'Favorite';
 
   @override
-  Future<Favorite> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$FavoriteFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Favorite> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$FavoriteFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Favorite input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$FavoriteToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Favorite input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$FavoriteToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Favorite> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$FavoriteFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Favorite> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$FavoriteFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Favorite input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$FavoriteToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    Favorite input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$FavoriteToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

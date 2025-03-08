@@ -1,81 +1,105 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Financing> _$FinancingFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Financing> _$FinancingFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Financing(
-      id: data['id'] as String?,
-      requested: data['requested'] as bool,
-      status: data['status'] as String,
-      provider: data['provider'] == null
-          ? null
-          : await FinanceProviderAdapter().fromSupabase(data['provider'],
-              provider: provider, repository: repository),
-      financeProviderId: data['finance_provider_id'] == null
-          ? null
-          : data['finance_provider_id'] as String?,
-      amount: data['amount'] == null ? null : data['amount'] as num?,
-      approvalDate: DateTime.parse(data['approval_date'] as String));
+    id: data['id'] as String?,
+    requested: data['requested'] as bool,
+    status: data['status'] as String,
+    provider:
+        data['provider'] == null
+            ? null
+            : await FinanceProviderAdapter().fromSupabase(
+              data['provider'],
+              provider: provider,
+              repository: repository,
+            ),
+    financeProviderId:
+        data['finance_provider_id'] == null
+            ? null
+            : data['finance_provider_id'] as String?,
+    amount: data['amount'] == null ? null : data['amount'] as num?,
+    approvalDate: DateTime.parse(data['approval_date'] as String),
+  );
 }
 
-Future<Map<String, dynamic>> _$FinancingToSupabase(Financing instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$FinancingToSupabase(
+  Financing instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'requested': instance.requested,
     'status': instance.status,
-    'provider': instance.provider != null
-        ? await FinanceProviderAdapter().toSupabase(instance.provider!,
-            provider: provider, repository: repository)
-        : null,
+    'provider':
+        instance.provider != null
+            ? await FinanceProviderAdapter().toSupabase(
+              instance.provider!,
+              provider: provider,
+              repository: repository,
+            )
+            : null,
     'finance_provider_id': instance.financeProviderId,
     'amount': instance.amount,
-    'approval_date': instance.approvalDate.toIso8601String()
+    'approval_date': instance.approvalDate.toIso8601String(),
   };
 }
 
-Future<Financing> _$FinancingFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Financing> _$FinancingFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Financing(
-      id: data['id'] as String,
-      requested: data['requested'] == 1,
-      status: data['status'] as String,
-      provider: data['provider_FinanceProvider_brick_id'] == null
-          ? null
-          : (data['provider_FinanceProvider_brick_id'] > -1
-              ? (await repository?.getAssociation<FinanceProvider>(
-                  Query.where('primaryKey',
-                      data['provider_FinanceProvider_brick_id'] as int,
-                      limit1: true),
-                ))
-                  ?.first
-              : null),
-      financeProviderId: data['finance_provider_id'] == null
-          ? null
-          : data['finance_provider_id'] as String?,
-      amount: data['amount'] == null ? null : data['amount'] as num?,
-      approvalDate: DateTime.parse(data['approval_date'] as String))
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    requested: data['requested'] == 1,
+    status: data['status'] as String,
+    provider:
+        data['provider_FinanceProvider_brick_id'] == null
+            ? null
+            : (data['provider_FinanceProvider_brick_id'] > -1
+                ? (await repository?.getAssociation<FinanceProvider>(
+                  Query.where(
+                    'primaryKey',
+                    data['provider_FinanceProvider_brick_id'] as int,
+                    limit1: true,
+                  ),
+                ))?.first
+                : null),
+    financeProviderId:
+        data['finance_provider_id'] == null
+            ? null
+            : data['finance_provider_id'] as String?,
+    amount: data['amount'] == null ? null : data['amount'] as num?,
+    approvalDate: DateTime.parse(data['approval_date'] as String),
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$FinancingToSqlite(Financing instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$FinancingToSqlite(
+  Financing instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'requested': instance.requested ? 1 : 0,
     'status': instance.status,
-    'provider_FinanceProvider_brick_id': instance.provider != null
-        ? instance.provider!.primaryKey ??
-            await provider.upsert<FinanceProvider>(instance.provider!,
-                repository: repository)
-        : null,
+    'provider_FinanceProvider_brick_id':
+        instance.provider != null
+            ? instance.provider!.primaryKey ??
+                await provider.upsert<FinanceProvider>(
+                  instance.provider!,
+                  repository: repository,
+                )
+            : null,
     'finance_provider_id': instance.financeProviderId,
     'amount': instance.amount,
-    'approval_date': instance.approvalDate.toIso8601String()
+    'approval_date': instance.approvalDate.toIso8601String(),
   };
 }
 
@@ -118,7 +142,7 @@ class FinancingAdapter extends OfflineFirstWithSupabaseAdapter<Financing> {
     'approvalDate': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'approval_date',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -173,13 +197,18 @@ class FinancingAdapter extends OfflineFirstWithSupabaseAdapter<Financing> {
       columnName: 'approval_date',
       iterable: false,
       type: DateTime,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Financing instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Financing` WHERE id = ? LIMIT 1''', [instance.id]);
+    Financing instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Financing` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -193,27 +222,43 @@ class FinancingAdapter extends OfflineFirstWithSupabaseAdapter<Financing> {
   final String tableName = 'Financing';
 
   @override
-  Future<Financing> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$FinancingFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Financing> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$FinancingFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Financing input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$FinancingToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Financing input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$FinancingToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Financing> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$FinancingFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Financing> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$FinancingFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Financing input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$FinancingToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    Financing input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$FinancingToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

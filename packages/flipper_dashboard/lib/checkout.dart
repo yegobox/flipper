@@ -266,8 +266,11 @@ class CheckOutState extends ConsumerState<CheckOut>
       applyDiscount(transaction);
       await startCompleteTransactionFlow(
         immediateCompletion: immediateCompletion,
-        completeTransaction: () {
-          ref.read(payButtonLoadingProvider.notifier).stopLoading();
+        completeTransaction: () async {
+          ref.read(payButtonStateProvider.notifier).stopLoading();
+          await newTransaction(typeOfThisTransactionIsExpense: false);
+          ProxyService.box
+              .writeBool(key: 'transactionInProgress', value: false);
         },
         transaction: transaction,
         paymentMethods:
@@ -278,7 +281,7 @@ class CheckOutState extends ConsumerState<CheckOut>
       ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
     } catch (e) {
       ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
-      ref.read(payButtonLoadingProvider.notifier).stopLoading();
+      ref.read(payButtonStateProvider.notifier).stopLoading();
       await refreshTransactionItems(transactionId: transaction.id);
       rethrow;
     }
