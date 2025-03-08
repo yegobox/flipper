@@ -3232,6 +3232,9 @@ class CoreSync
 
         // Save transaction
         transaction.status = COMPLETE;
+        // TODO: if transactin has customerId use the customer.phone number instead.
+        transaction.currentSaleCustomerPhoneNumber =
+            "250" + (ProxyService.box.currentSaleCustomerPhoneNumber() ?? "");
         await repository.upsert(transaction);
 
         // Handle receipt if required

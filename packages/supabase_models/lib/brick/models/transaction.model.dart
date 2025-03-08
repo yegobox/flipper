@@ -71,11 +71,13 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   int? invoiceNumber;
   bool? isDigitalReceiptGenerated;
   String? receiptFileName;
+  String? currentSaleCustomerPhoneNumber;
   ITransaction({
     this.ticketName,
     String? id,
     String? categoryId,
     this.transactionNumber,
+    this.currentSaleCustomerPhoneNumber,
     this.reference,
     required this.branchId,
     required this.status,

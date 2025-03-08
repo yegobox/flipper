@@ -27,6 +27,9 @@ const s3Client = new S3Client({
   }
 });
 
+const SMS_TEMPLATE = "Your Receipt is ready for download: ";
+const BASE_SHORT_URL = "https://apihub.yegobox.com/s/";
+
 Deno.serve(async (req) => {
   try {
     let requestBody = null; // Initialize as null
@@ -107,7 +110,7 @@ Deno.serve(async (req) => {
       console.log("Step 4: Fetching transactions with all criteria and required fields");
       const { data: transactions, error } = await supabase
         .from('transactions')
-        .select('id, receipt_file_name, branch_id') //Include branch_id in the select statement
+        .select('id, receipt_file_name, branch_id, current_sale_customer_phone_number') //Include branch_id and phone number in the select statement
         .eq('status', 'completed')
         .eq('is_digital_receipt_generated', false)
         .order('created_at', { ascending: false })
@@ -148,6 +151,11 @@ Deno.serve(async (req) => {
 
           if (!transaction.branch_id) {
             console.log(`Skipping transaction ${transaction.id} - no branch_id`);
+            continue;
+          }
+
+          if (!transaction.current_sale_customer_phone_number) {
+            console.log(`Skipping transaction ${transaction.id} - no current_sale_customer_phone_number`);
             continue;
           }
 
@@ -211,6 +219,22 @@ Deno.serve(async (req) => {
 
               if (shortenerError) {
                 throw new Error(`Failed to insert URL shortener: ${shortenerError.message}`);
+              }
+
+              //Insert the message
+              const messageText = `${SMS_TEMPLATE} ${BASE_SHORT_URL}${shortUrlId}`;
+              const { data: messageData, error: messageError } = await supabase
+                .from('messages')
+                .insert({
+                    text: messageText,
+                    phone_number: transaction.current_sale_customer_phone_number
+                })
+                .select();
+
+              if(messageError) {
+                  console.error(`Failed to insert message: ${messageError.message}`);
+                  //Decide whether to throw an error here.  If message insertion fails, should we stop the entire process?
+                  //For now, we'll just log the error and continue.
               }
 
               // Update the transaction

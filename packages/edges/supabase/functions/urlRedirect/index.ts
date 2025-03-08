@@ -3,8 +3,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase with explicit timeout
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+const supabaseUrl = Deno.env.get('URL')!;
+const supabaseKey = Deno.env.get('ANON_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: false,

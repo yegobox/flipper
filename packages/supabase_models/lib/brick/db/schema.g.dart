@@ -1,20 +1,22 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250308114254.migration.dart';
+part '20250308132353.migration.dart';
 part '20250301162356.migration.dart';
 part '20250308112114.migration.dart';
+part '20250308114254.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250308114254(),
+  const Migration20250308132353(),
   const Migration20250301162356(),
   const Migration20250308112114(),
+  const Migration20250308114254(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250308112114,
+  20250308114254,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -279,6 +281,7 @@ final schema = Schema(
         SchemaColumn('invoice_number', Column.integer),
         SchemaColumn('is_digital_receipt_generated', Column.boolean),
         SchemaColumn('receipt_file_name', Column.varchar),
+        SchemaColumn('current_sale_customer_phone_number', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

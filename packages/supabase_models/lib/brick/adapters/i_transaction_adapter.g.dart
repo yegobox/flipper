@@ -102,6 +102,10 @@ Future<ITransaction> _$ITransactionFromSupabase(
         data['receipt_file_name'] == null
             ? null
             : data['receipt_file_name'] as String?,
+    currentSaleCustomerPhoneNumber:
+        data['current_sale_customer_phone_number'] == null
+            ? null
+            : data['current_sale_customer_phone_number'] as String?,
   );
 }
 
@@ -145,6 +149,8 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'invoice_number': instance.invoiceNumber,
     'is_digital_receipt_generated': instance.isDigitalReceiptGenerated,
     'receipt_file_name': instance.receiptFileName,
+    'current_sale_customer_phone_number':
+        instance.currentSaleCustomerPhoneNumber,
   };
 }
 
@@ -236,6 +242,10 @@ Future<ITransaction> _$ITransactionFromSqlite(
         data['receipt_file_name'] == null
             ? null
             : data['receipt_file_name'] as String?,
+    currentSaleCustomerPhoneNumber:
+        data['current_sale_customer_phone_number'] == null
+            ? null
+            : data['current_sale_customer_phone_number'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -286,6 +296,8 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
             ? null
             : (instance.isDigitalReceiptGenerated! ? 1 : 0),
     'receipt_file_name': instance.receiptFileName,
+    'current_sale_customer_phone_number':
+        instance.currentSaleCustomerPhoneNumber,
   };
 }
 
@@ -435,6 +447,10 @@ class ITransactionAdapter
     'receiptFileName': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'receipt_file_name',
+    ),
+    'currentSaleCustomerPhoneNumber': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'current_sale_customer_phone_number',
     ),
   };
   @override
@@ -650,6 +666,12 @@ class ITransactionAdapter
     'receiptFileName': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'receipt_file_name',
+      iterable: false,
+      type: String,
+    ),
+    'currentSaleCustomerPhoneNumber': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'current_sale_customer_phone_number',
       iterable: false,
       type: String,
     ),
