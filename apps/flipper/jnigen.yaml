@@ -3,14 +3,15 @@ android_sdk_config:
 
 output:
   dart:
-    path: lib/android_utils.dart
+    path: lib/android_utils.dart  # Ensures output path is set
     structure: single_file
 
 source_path:
-  - 'android/app/src/main/java'
+  - android/app/src/main/java  # Ensure this path is correct
+
 classes:
-  - 'android.os.Build' # from gradle's compile classpath
-  - 'java.util.HashMap' # from gradle's compile classpath
+  - com.external.Sum  # Java class to generate bindings for
+
 exclude:
   fields:
-    - 'android.os.Build\$VERSION_CODES#UPSIDE_DOWN_CAKE'
+    - android.os.Build$VERSION_CODES#UPSIDE_DOWN_CAKE

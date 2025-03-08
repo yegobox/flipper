@@ -3207,7 +3207,8 @@ class CoreSync
               items.fold(0, (num a, b) => a + (b.price * b.qty));
           subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
-          await _updateStockAndItems(items: items, branchId: branchId);
+          /// I intentionally removed await on _updateStockAndItems to speed up clearing cart.
+          _updateStockAndItems(items: items, branchId: branchId);
         }
         _updateTransactionDetails(
           transaction: transaction,
