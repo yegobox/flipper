@@ -1,44 +1,49 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Purchase> _$PurchaseFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Purchase> _$PurchaseFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Purchase(
-      id: data['id'] as String?,
-      spplrTin: data['spplr_tin'] as String,
-      spplrNm: data['spplr_nm'] as String,
-      spplrBhfId: data['spplr_bhf_id'] as String,
-      spplrInvcNo: data['spplr_invc_no'] as int,
-      rcptTyCd: data['rcpt_ty_cd'] as String,
-      pmtTyCd: data['pmt_ty_cd'] as String,
-      cfmDt: data['cfm_dt'] as String,
-      salesDt: data['sales_dt'] as String,
-      stockRlsDt:
-          data['stock_rls_dt'] == null ? null : data['stock_rls_dt'] as String?,
-      totItemCnt: data['tot_item_cnt'] as int,
-      taxblAmtA: data['taxbl_amt_a'] as num,
-      taxblAmtB: data['taxbl_amt_b'] as num,
-      taxblAmtC: data['taxbl_amt_c'] as num,
-      taxblAmtD: data['taxbl_amt_d'] as num,
-      taxRtA: data['tax_rt_a'] as num,
-      taxRtB: data['tax_rt_b'] as num,
-      taxRtC: data['tax_rt_c'] as num,
-      taxRtD: data['tax_rt_d'] as num,
-      taxAmtA: data['tax_amt_a'] as num,
-      taxAmtB: data['tax_amt_b'] as num,
-      taxAmtC: data['tax_amt_c'] as num,
-      taxAmtD: data['tax_amt_d'] as num,
-      totTaxblAmt: data['tot_taxbl_amt'] as num,
-      totTaxAmt: data['tot_tax_amt'] as num,
-      totAmt: data['tot_amt'] as num,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      remark: data['remark'] == null ? null : data['remark'] as String?);
+    id: data['id'] as String?,
+    spplrTin: data['spplr_tin'] as String,
+    spplrNm: data['spplr_nm'] as String,
+    spplrBhfId: data['spplr_bhf_id'] as String,
+    spplrInvcNo: data['spplr_invc_no'] as int,
+    rcptTyCd: data['rcpt_ty_cd'] as String,
+    pmtTyCd: data['pmt_ty_cd'] as String,
+    cfmDt: data['cfm_dt'] as String,
+    salesDt: data['sales_dt'] as String,
+    stockRlsDt:
+        data['stock_rls_dt'] == null ? null : data['stock_rls_dt'] as String?,
+    totItemCnt: data['tot_item_cnt'] as int,
+    taxblAmtA: data['taxbl_amt_a'] as num,
+    taxblAmtB: data['taxbl_amt_b'] as num,
+    taxblAmtC: data['taxbl_amt_c'] as num,
+    taxblAmtD: data['taxbl_amt_d'] as num,
+    taxRtA: data['tax_rt_a'] as num,
+    taxRtB: data['tax_rt_b'] as num,
+    taxRtC: data['tax_rt_c'] as num,
+    taxRtD: data['tax_rt_d'] as num,
+    taxAmtA: data['tax_amt_a'] as num,
+    taxAmtB: data['tax_amt_b'] as num,
+    taxAmtC: data['tax_amt_c'] as num,
+    taxAmtD: data['tax_amt_d'] as num,
+    totTaxblAmt: data['tot_taxbl_amt'] as num,
+    totTaxAmt: data['tot_tax_amt'] as num,
+    totAmt: data['tot_amt'] as num,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    remark: data['remark'] == null ? null : data['remark'] as String?,
+  );
 }
 
-Future<Map<String, dynamic>> _$PurchaseToSupabase(Purchase instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$PurchaseToSupabase(
+  Purchase instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'spplr_tin': instance.spplrTin,
@@ -67,63 +72,71 @@ Future<Map<String, dynamic>> _$PurchaseToSupabase(Purchase instance,
     'tot_tax_amt': instance.totTaxAmt,
     'tot_amt': instance.totAmt,
     'branch_id': instance.branchId,
-    'remark': instance.remark
+    'remark': instance.remark,
   };
 }
 
-Future<Purchase> _$PurchaseFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Purchase> _$PurchaseFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Purchase(
-      id: data['id'] as String,
-      variants: (await provider.rawQuery(
+    id: data['id'] as String,
+    variants:
+        (await provider
+            .rawQuery(
               'SELECT DISTINCT `f_Variant_brick_id` FROM `_brick_Purchase_variants` WHERE l_Purchase_brick_id = ?',
-              [
-            data['_brick_id'] as int
-          ]).then((results) {
-        final ids = results.map((r) => r['f_Variant_brick_id']);
-        return Future.wait<Variant>(ids.map((primaryKey) => repository!
-            .getAssociation<Variant>(
-              Query.where('primaryKey', primaryKey, limit1: true),
+              [data['_brick_id'] as int],
             )
-            .then((r) => r!.first)));
-      }))
-          .toList()
-          .cast<Variant>(),
-      spplrTin: data['spplr_tin'] as String,
-      spplrNm: data['spplr_nm'] as String,
-      spplrBhfId: data['spplr_bhf_id'] as String,
-      spplrInvcNo: data['spplr_invc_no'] as int,
-      rcptTyCd: data['rcpt_ty_cd'] as String,
-      pmtTyCd: data['pmt_ty_cd'] as String,
-      cfmDt: data['cfm_dt'] as String,
-      salesDt: data['sales_dt'] as String,
-      stockRlsDt:
-          data['stock_rls_dt'] == null ? null : data['stock_rls_dt'] as String?,
-      totItemCnt: data['tot_item_cnt'] as int,
-      taxblAmtA: data['taxbl_amt_a'] as num,
-      taxblAmtB: data['taxbl_amt_b'] as num,
-      taxblAmtC: data['taxbl_amt_c'] as num,
-      taxblAmtD: data['taxbl_amt_d'] as num,
-      taxRtA: data['tax_rt_a'] as num,
-      taxRtB: data['tax_rt_b'] as num,
-      taxRtC: data['tax_rt_c'] as num,
-      taxRtD: data['tax_rt_d'] as num,
-      taxAmtA: data['tax_amt_a'] as num,
-      taxAmtB: data['tax_amt_b'] as num,
-      taxAmtC: data['tax_amt_c'] as num,
-      taxAmtD: data['tax_amt_d'] as num,
-      totTaxblAmt: data['tot_taxbl_amt'] as num,
-      totTaxAmt: data['tot_tax_amt'] as num,
-      totAmt: data['tot_amt'] as num,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      remark: data['remark'] == null ? null : data['remark'] as String?)
-    ..primaryKey = data['_brick_id'] as int;
+            .then((results) {
+              final ids = results.map((r) => r['f_Variant_brick_id']);
+              return Future.wait<Variant>(
+                ids.map(
+                  (primaryKey) => repository!
+                      .getAssociation<Variant>(
+                        Query.where('primaryKey', primaryKey, limit1: true),
+                      )
+                      .then((r) => r!.first),
+                ),
+              );
+            })).toList().cast<Variant>(),
+    spplrTin: data['spplr_tin'] as String,
+    spplrNm: data['spplr_nm'] as String,
+    spplrBhfId: data['spplr_bhf_id'] as String,
+    spplrInvcNo: data['spplr_invc_no'] as int,
+    rcptTyCd: data['rcpt_ty_cd'] as String,
+    pmtTyCd: data['pmt_ty_cd'] as String,
+    cfmDt: data['cfm_dt'] as String,
+    salesDt: data['sales_dt'] as String,
+    stockRlsDt:
+        data['stock_rls_dt'] == null ? null : data['stock_rls_dt'] as String?,
+    totItemCnt: data['tot_item_cnt'] as int,
+    taxblAmtA: data['taxbl_amt_a'] as num,
+    taxblAmtB: data['taxbl_amt_b'] as num,
+    taxblAmtC: data['taxbl_amt_c'] as num,
+    taxblAmtD: data['taxbl_amt_d'] as num,
+    taxRtA: data['tax_rt_a'] as num,
+    taxRtB: data['tax_rt_b'] as num,
+    taxRtC: data['tax_rt_c'] as num,
+    taxRtD: data['tax_rt_d'] as num,
+    taxAmtA: data['tax_amt_a'] as num,
+    taxAmtB: data['tax_amt_b'] as num,
+    taxAmtC: data['tax_amt_c'] as num,
+    taxAmtD: data['tax_amt_d'] as num,
+    totTaxblAmt: data['tot_taxbl_amt'] as num,
+    totTaxAmt: data['tot_tax_amt'] as num,
+    totAmt: data['tot_amt'] as num,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    remark: data['remark'] == null ? null : data['remark'] as String?,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$PurchaseToSqlite(Purchase instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$PurchaseToSqlite(
+  Purchase instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'variants':
@@ -154,7 +167,7 @@ Future<Map<String, dynamic>> _$PurchaseToSqlite(Purchase instance,
     'tot_tax_amt': instance.totTaxAmt,
     'tot_amt': instance.totAmt,
     'branch_id': instance.branchId,
-    'remark': instance.remark
+    'remark': instance.remark,
   };
 }
 
@@ -285,7 +298,7 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
     'remark': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'remark',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -472,13 +485,18 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
       columnName: 'remark',
       iterable: false,
       type: String,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Purchase instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Purchase` WHERE id = ? LIMIT 1''', [instance.id]);
+    Purchase instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Purchase` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -494,54 +512,82 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
   Future<void> afterSave(instance, {required provider, repository}) async {
     if (instance.primaryKey != null) {
       final variantsOldColumns = await provider.rawQuery(
-          'SELECT `f_Variant_brick_id` FROM `_brick_Purchase_variants` WHERE `l_Purchase_brick_id` = ?',
-          [instance.primaryKey]);
-      final variantsOldIds =
-          variantsOldColumns.map((a) => a['f_Variant_brick_id']);
+        'SELECT `f_Variant_brick_id` FROM `_brick_Purchase_variants` WHERE `l_Purchase_brick_id` = ?',
+        [instance.primaryKey],
+      );
+      final variantsOldIds = variantsOldColumns.map(
+        (a) => a['f_Variant_brick_id'],
+      );
       final variantsNewIds =
           instance.variants?.map((s) => s.primaryKey).whereType<int>() ?? [];
-      final variantsIdsToDelete =
-          variantsOldIds.where((id) => !variantsNewIds.contains(id));
+      final variantsIdsToDelete = variantsOldIds.where(
+        (id) => !variantsNewIds.contains(id),
+      );
 
-      await Future.wait<void>(variantsIdsToDelete.map((id) async {
-        return await provider.rawExecute(
-            'DELETE FROM `_brick_Purchase_variants` WHERE `l_Purchase_brick_id` = ? AND `f_Variant_brick_id` = ?',
-            [instance.primaryKey, id]).catchError((e) => null);
-      }));
+      await Future.wait<void>(
+        variantsIdsToDelete.map((id) async {
+          return await provider
+              .rawExecute(
+                'DELETE FROM `_brick_Purchase_variants` WHERE `l_Purchase_brick_id` = ? AND `f_Variant_brick_id` = ?',
+                [instance.primaryKey, id],
+              )
+              .catchError((e) => null);
+        }),
+      );
 
-      await Future.wait<int?>(instance.variants?.map((s) async {
-            final id = s.primaryKey ??
-                await provider.upsert<Variant>(s, repository: repository);
-            return await provider.rawInsert(
+      await Future.wait<int?>(
+        instance.variants?.map((s) async {
+              final id =
+                  s.primaryKey ??
+                  await provider.upsert<Variant>(s, repository: repository);
+              return await provider.rawInsert(
                 'INSERT OR IGNORE INTO `_brick_Purchase_variants` (`l_Purchase_brick_id`, `f_Variant_brick_id`) VALUES (?, ?)',
-                [instance.primaryKey, id]);
-          }) ??
-          []);
+                [instance.primaryKey, id],
+              );
+            }) ??
+            [],
+      );
     }
   }
 
   @override
-  Future<Purchase> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$PurchaseFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Purchase> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$PurchaseFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Purchase input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$PurchaseToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Purchase input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$PurchaseToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Purchase> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$PurchaseFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Purchase> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$PurchaseFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Purchase input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$PurchaseToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    Purchase input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$PurchaseToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

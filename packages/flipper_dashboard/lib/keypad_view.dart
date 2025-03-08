@@ -57,7 +57,13 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildDisplay(paddingHeight, keypad),
-          Expanded(child: _buildKeypad()),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return _buildKeypad(constraints);
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -72,12 +78,12 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(4),
-          bottomRight: Radius.circular(4),
+          bottomLeft: Radius.circular(12),
+          bottomRight: Radius.circular(12),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: Offset(0, 5),
           ),
@@ -90,12 +96,14 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
   }
 
   Widget _buildAccountingModeDisplay(String keypad) {
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+
     return Column(
       children: [
         Text(
           double.tryParse(keypad)?.toRwf() ?? '0',
           style: GoogleFonts.poppins(
-            fontSize: 40,
+            fontSize: 40 * textScaleFactor,
             fontWeight: FontWeight.w600,
             color: Colors.blue[800],
             height: 1,
@@ -110,7 +118,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                   ? 'Cash in for'
                   : 'Cash out for',
               style: GoogleFonts.poppins(
-                fontSize: 18,
+                fontSize: 18 * textScaleFactor,
                 fontWeight: FontWeight.w500,
                 color: Colors.black54,
               ),
@@ -123,10 +131,12 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
   }
 
   Widget _buildStandardDisplay(String keypad) {
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+
     return Text(
       (double.tryParse(keypad) ?? 0.0).toRwf(),
       style: GoogleFonts.poppins(
-        fontSize: 40,
+        fontSize: 40 * textScaleFactor,
         fontWeight: FontWeight.w600,
         color: Colors.blue[800],
         height: 1.5,
@@ -134,7 +144,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     );
   }
 
-  Widget _buildKeypad() {
+  Widget _buildKeypad(BoxConstraints constraints) {
     final keys = [
       ['1', '2', '3'],
       ['4', '5', '6'],
@@ -143,21 +153,29 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     ];
 
     return Container(
+      padding: EdgeInsets.all(8),
       child: Column(
-        children: keys.map((row) => _buildKeyPadRow(keys: row)).toList(),
+        children: keys
+            .map((row) => _buildKeyPadRow(keys: row, constraints: constraints))
+            .toList(),
       ),
     );
   }
 
-  Widget _buildKeyPadRow({required List<String> keys}) {
+  Widget _buildKeyPadRow(
+      {required List<String> keys, required BoxConstraints constraints}) {
     return Expanded(
       child: Row(
-        children: keys.map((key) => _buildKeyPadButton(key: key)).toList(),
+        children: keys
+            .map(
+                (key) => _buildKeyPadButton(key: key, constraints: constraints))
+            .toList(),
       ),
     );
   }
 
-  Widget _buildKeyPadButton({required String key}) {
+  Widget _buildKeyPadButton(
+      {required String key, required BoxConstraints constraints}) {
     final isSpecialKey = ['C', 'Confirm', '+'].contains(key);
     final backgroundColor = isSpecialKey ? Colors.blue[700] : Colors.white;
     final textColor = isSpecialKey ? Colors.white : Colors.blue[700];
@@ -168,13 +186,15 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         borderRadius: BorderRadius.circular(4),
         child: InkWell(
           onTap: () => _handleKeyPress(key),
+          splashColor: Colors.blue.withOpacity(0.3),
           child: Center(
             child: key == 'Confirm'
-                ? Icon(Icons.check, color: textColor, size: 32)
+                ? Icon(Icons.check,
+                    color: textColor, size: constraints.maxWidth * 0.1)
                 : Text(
                     key,
                     style: GoogleFonts.poppins(
-                      fontSize: 42,
+                      fontSize: constraints.maxWidth * 0.1,
                       fontWeight: FontWeight.w600,
                       color: textColor,
                     ),
@@ -194,6 +214,11 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
   }
 
   Future<void> _handleNumberKey(String key, {ITransaction? transaction}) async {
+    if (key.isEmpty ||
+        !['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].contains(key)) {
+      return; // Ignore invalid input
+    }
+
     ref.read(keypadProvider.notifier).addKey(key);
     HapticFeedback.lightImpact();
     widget.model.keyboardKeyPressed(

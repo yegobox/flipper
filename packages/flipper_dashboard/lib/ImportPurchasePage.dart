@@ -6,7 +6,6 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/realm_model_export.dart' as brick;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -66,13 +65,13 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
 
   Future<List<model.Variant>> _fetchDataImport(
       {required DateTime selectedDate}) async {
-    final convertedDate = selectedDate.toYYYYMMddHH0000();
+    final convertedDate = selectedDate.toYYYYMMddHHmmss();
     final business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     final data = await ProxyService.strategy.selectImportItems(
       tin: business?.tinNumber ?? ProxyService.box.tin(),
+      lastRequestdate: convertedDate,
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
-      lastReqDt: convertedDate,
     );
     return data; // Return data directly
   }
@@ -80,14 +79,14 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   Future<List<model.Variant>> _fetchDataPurchase(
       {required DateTime selectedDate}) async {
     try {
-      final convertedDate = selectedDate.toYYYYMMddHH0000();
+      final convertedDate = DateTime.now().toYYYYMMddHHmmss();
       final business = await ProxyService.strategy
           .getBusiness(businessId: ProxyService.box.getBusinessId()!);
       final url = await ProxyService.box.getServerUrl();
       final rwResponse = await ProxyService.strategy.selectPurchases(
+        lastRequestdate: convertedDate,
         bhfId: (await ProxyService.box.bhfId()) ?? "00",
         tin: business?.tinNumber ?? ProxyService.box.tin(),
-        lastReqDt: convertedDate,
         url: url!,
       );
       talker.warning(rwResponse);
@@ -96,27 +95,6 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       talker.warning(e);
       talker.warning(s);
       rethrow;
-    }
-  }
-
-  void _pickDate() async {
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-
-    if (pickedDate != null) {
-      setState(() {
-        _selectedDate = pickedDate;
-        _selectedItem = null;
-        _selectedPurchaseItem = null;
-        _nameController.clear();
-        _supplyPriceController.clear();
-        _retailPriceController.clear();
-        _fetchData();
-      });
     }
   }
 
@@ -210,14 +188,6 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                         ),
                         Text(isImport ? "Import" : "Purchase"),
                         SizedBox(width: 10),
-                        FlipperIconButton(
-                          icon: Icons.calendar_today,
-                          onPressed: _pickDate,
-                          textColor: Colors.black,
-                          iconColor: Colors.blue,
-                          height: 30,
-                          width: 60,
-                        ),
                       ],
                     ),
                   ),

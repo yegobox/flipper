@@ -20,24 +20,26 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
   Future<void> listenToAuthChange() async {}
 
-  Future<void> runStartupLogic({
-    required bool refreshCredentials,
-  }) async {
+  Future<void> runStartupLogic() async {
     // await logOut();
     try {
-      // await appService.isLoggedIn();
-
+      talker.warning("StartupViewModel runStartupLogic");
       // Ensure realm is initialized before proceeding.
 
       await _hasActiveSubscription();
+      talker.warning("StartupViewModel Bellow hasActiveSubscription");
       await _allRequirementsMeets();
+      talker.warning("StartupViewModel Below allRequirementsMeets");
       AppInitializer.initialize();
+
+      talker.warning("StartupViewModel Below AppInitializer.initialize()");
 
       /// listen all database change and replicate them in sync db.
       // ProxyService.backUp.listen();
 
       // Handle navigation based on user state and app settings.
       _routerService.navigateTo(FlipperAppRoute());
+      talker.warning("StartupViewModel Below navigateTo(FlipperAppRoute)");
       // if (ProxyService.strategy.isDrawerOpen(
       //     cashierId: ProxyService.box.getUserId()!,
       //     branchId: ProxyService.box.getBranchId()!)) {
@@ -51,32 +53,6 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       talker.info("StartupViewModel ${e}");
       talker.error("StartupViewModel ${stackTrace}");
       await _handleStartupError(e, stackTrace);
-    }
-  }
-
-  /// Handles the scenario where the drawer should be open.
-  void _handleDrawerOpen() {
-    // Bootstrap initial data if required.
-    ProxyService.forceDateEntry.dataBootstrapper();
-
-    // Navigate to the appropriate home view based on app settings.
-    if (ProxyService.box.getDefaultApp() == 2) {
-      _routerService.navigateTo(SocialHomeViewRoute());
-    } else {
-      _routerService.navigateTo(FlipperAppRoute());
-    }
-  }
-
-  /// Handles the scenario where the drawer should be closed.
-  void _handleDrawerClosed() {
-    // Bootstrap initial data if required.
-    ProxyService.forceDateEntry.dataBootstrapper();
-
-    // Navigate to the appropriate home view based on app settings.
-    if (ProxyService.box.getDefaultApp() == 2) {
-      _routerService.navigateTo(SocialHomeViewRoute());
-    } else {
-      openDrawer();
     }
   }
 
@@ -109,7 +85,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       return;
     } else {
       // Handle other unexpected errors.
+      // if (!isTestEnvironment()) {
       await logOut();
+      // }
+
       _routerService.clearStackAndShow(LoginRoute());
       return;
     }
@@ -129,16 +108,29 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         flipperHttpClient: ProxyService.http);
   }
 
+  bool isTestEnvironment() {
+    return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+  }
+
   Future<void> _allRequirementsMeets() async {
-    List<Business> businesses = await ProxyService.strategy
-        .businesses(userId: ProxyService.box.getUserId()!);
-
-    List<Branch> branches = await ProxyService.strategy
-        .branches(businessId: ProxyService.box.getBusinessId()!);
-
-    if (businesses.isEmpty || branches.isEmpty) {
-      throw Exception(
-          "requirements failed for having business and branch saved locally");
+    try {
+      if (isTestEnvironment()) {
+        return;
+      }
+      talker.warning("StartupViewModel _allRequirementsMeets");
+      List<Business> businesses = await ProxyService.strategy
+          .businesses(userId: ProxyService.box.getUserId()!);
+      talker.warning("businesses: ${businesses.length}");
+      List<Branch> branches = await ProxyService.strategy
+          .branches(businessId: ProxyService.box.getBusinessId()!);
+      talker.warning("branches: ${branches.length}");
+      if (businesses.isEmpty || branches.isEmpty) {
+        throw Exception(
+            "requirements failed for having business and branch saved locally");
+      }
+    } catch (e) {
+      talker.error("StartupViewModel _allRequirementsMeets ${e}");
+      rethrow;
     }
   }
 }

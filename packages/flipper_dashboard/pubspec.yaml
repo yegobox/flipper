@@ -98,8 +98,6 @@ dependencies:
   syncfusion_officechart: ^28.1.41
   
   flex_color_picker: ^3.7.0
-  # realm: ^20.0.0
-  
   sizer: ^2.0.15
   talker_flutter: ^4.1.5
   collection: ^1.18.0

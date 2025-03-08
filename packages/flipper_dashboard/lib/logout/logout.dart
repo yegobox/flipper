@@ -115,7 +115,7 @@ class LogOut extends StackedView<LogoutModel> with CoreMiscellaneous {
                         //this is mobile client we can safely logout without deleting devices
                         await logOut();
 
-                        viewModel.runStartupLogic(refreshCredentials: true);
+                        viewModel.runStartupLogic();
                         completer(DialogResponse(confirmed: true));
                       }
                     },

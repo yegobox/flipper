@@ -52,7 +52,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             _buildTableCell(''),
           ])
         else
-          ...internalTransactionItems.map((item) => _buildTableRow(item, isOrdering)),
+          ...internalTransactionItems
+              .map((item) => _buildTableRow(item, isOrdering)),
       ],
     );
   }
@@ -253,7 +254,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
       for (final composite in composites) {
         final deletableItem = await ProxyService.strategy
-            .getTransactionItemByVariantId(variantId: composite.variantId!);
+            .getTransactionItem(variantId: composite.variantId!);
         if (deletableItem != null) {
           ProxyService.strategy
               .delete(id: deletableItem.id, endPoint: 'transactionItem');

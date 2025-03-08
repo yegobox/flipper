@@ -290,7 +290,8 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) {
+  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName,
+      {required String transactionId}) {
     // TODO: implement uploadPdfToS3
     throw UnimplementedError();
   }
@@ -1275,7 +1276,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<TransactionItem?> getTransactionItemByVariantId(
+  Future<TransactionItem?> getTransactionItem(
       {required String variantId, String? transactionId}) {
     // TODO: implement getTransactionItemByVariantId
     throw UnimplementedError();
@@ -1719,8 +1720,11 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<List<brick.Variant>> selectImportItems(
-      {required int tin, required String bhfId, required String lastReqDt}) {
+  Future<List<brick.Variant>> selectImportItems({
+    required int tin,
+    required String bhfId,
+    required String lastRequestdate,
+  }) {
     // TODO: implement selectImportItems
     throw UnimplementedError();
   }
@@ -1896,11 +1900,12 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<List<brick.Variant>> selectPurchases(
-      {required String bhfId,
-      required int tin,
-      required String lastReqDt,
-      required String url}) {
+  Future<List<brick.Variant>> selectPurchases({
+    required String bhfId,
+    required int tin,
+    required String url,
+    required String lastRequestdate,
+  }) {
     // TODO: implement selectPurchases
     throw UnimplementedError();
   }

@@ -69,11 +69,15 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   int? receiptNumber;
   int? totalReceiptNumber;
   int? invoiceNumber;
+  bool? isDigitalReceiptGenerated;
+  String? receiptFileName;
+  String? currentSaleCustomerPhoneNumber;
   ITransaction({
     this.ticketName,
     String? id,
     String? categoryId,
     this.transactionNumber,
+    this.currentSaleCustomerPhoneNumber,
     this.reference,
     required this.branchId,
     required this.status,
@@ -98,11 +102,14 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.customerTin,
     this.remark,
     this.customerBhfId,
+    this.receiptFileName,
     this.sarTyCd,
     this.receiptNumber,
     this.totalReceiptNumber,
+    bool? isDigitalReceiptGenerated,
     this.invoiceNumber,
   })  : id = id ?? const Uuid().v4(),
+        isDigitalReceiptGenerated = isDigitalReceiptGenerated ?? false,
         customerId =
             (customerId != null && customerId.isEmpty) ? null : customerId,
         categoryId =

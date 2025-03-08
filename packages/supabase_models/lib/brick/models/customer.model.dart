@@ -25,7 +25,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
   String? custNo;
   //customer tin number
   @Sqlite(nullable: true)
-  @Supabase(nullable: true)
+  @Supabase(defaultValue: null)
   final String? custTin;
   //Registrant Name
   String? regrNm;

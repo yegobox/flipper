@@ -1,4 +1,4 @@
-name: CI/CD
+name: Flipper - CI/CD - Windows & Android & Google Play
 
 on:
   # Enable manual run
@@ -16,16 +16,58 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - main
 
 env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+  SUPABASE_URL: http://localhost:54321
+  SUPABASE_ANON_KEY: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+  # SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} # Securely store this
+  IS_TEST_ENV: true
 
 jobs:
+  # supabase-init:
+  #   name: Supabase Initialize
+  #   runs-on: ubuntu-latest
+
+  #   services:
+  #     postgres:
+  #       image: supabase/postgres:latest
+  #       ports:
+  #         - 5432:5432
+  #       env:
+  #         POSTGRES_USER: postgres
+  #         POSTGRES_PASSWORD: postgres
+  #         POSTGRES_DB: postgres
+
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
+
+  #     - name: Install Supabase CLI
+  #       run: |
+  #         curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+  #         sudo apt-get install -y nodejs
+  #         npm install -g supabase
+  #         echo "::add-path::$(npm config get prefix)/bin" # Add npm global bin to PATH
+
+  #     - name: Start Supabase Locally
+  #       run: |
+  #         supabase start
+
+  #     - name: Stop Supabase
+  #       if: always()
+  #       run: |
+  #         supabase stop
+
   unit-testing:
     name: Unit Testing
     runs-on: windows-2022
+    # needs: [supabase-init] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
@@ -33,7 +75,7 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
 
-      - uses: actions/setup-java@v4p
+      - uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "17"
@@ -59,7 +101,7 @@ jobs:
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
-          
+
           git config --global core.autocrlf false
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
         env:
@@ -75,14 +117,11 @@ jobs:
           cd ../..
           cd packages/flipper_dashboard
           flutter test --dart-define=FLUTTER_TEST_ENV=true --verbose
-          # cd ..
-          # cd flipper_models
-          # flutter test --dart-define=FLUTTER_TEST_ENV=true --verbose
 
   integration-testing-windows:
     name: "Integration Testing Windows"
     runs-on: windows-2022
-    needs: [unit-testing]
+    needs: [unit-testing] # Requires Supabase to be initialized
     steps:
       - name: Export pub environment variable on Windows
         run: |
@@ -132,16 +171,76 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
           cd apps/flipper
-          flutter test --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart
-
-  build-and-release-windows-debug:
-    name: "Build windows app-debug"
-    runs-on: windows-2022
+          flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test/smoke_windows_test.dart
+  integration-testing-macos:
+    name: "Integration Testing MacOS"
+    runs-on: macOS-latest
+    needs: [unit-testing]
     steps:
+      - run: git config --global core.autocrlf false
+
       - uses: actions/checkout@v4
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+
+      - name: Clone Flutter repository with stable channel
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.29.0"
+          channel: stable
+
+      - run: flutter doctor -v
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: Install Dependencies
+        run: |
+          git submodule update --init
+          dart pub global activate melos 6.3.2
+          melos bootstrap
+
+      - name: Install CocoaPods
+        run: sudo gem install cocoapods
+
+      - name: Configure Missing files
+        shell: bash
+        run: |
+          printf "%s" "$INDEX" > apps/flipper/web/index.html
+          printf "%s" "$CONFIGDART" > packages/flipper_login/lib/config.dart
+          printf "%s" "$SECRETS" > packages/flipper_models/lib/secrets.dart
+          printf "%s" "$FIREBASEOPTIONS" > apps/flipper/lib/firebase_options.dart
+          printf "%s" "$FIREBASEOPTIONS" > packages/flipper_models/lib/firebase_options.dart
+          printf "%s" "$AMPLIFY_CONFIG" > apps/flipper/lib/amplifyconfiguration.dart
+          printf "%s" "$AMPLIFY_TEAM_PROVIDER" > apps/flipper/amplify/team-provider-info.json
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+
+      - run: |
+          cd apps/flipper/macos
+          pod install --repo-update
+          cd ..
+          cd apps/flipper
+          flutter test --dart-define=FLUTTER_TEST_ENV=true --dart-define=FORCE_TEST=true -d macos integration_test/smoke_windows_test.dart
+
+  build-and-release-windows-debug:
+    name: "Build windows app-debug"
+    runs-on: windows-2022
+    needs: [unit-testing, integration-testing-windows] # Requires Supabase to be initialized
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }} # Use a token with repo scope for releases
           persist-credentials: true
 
       - name: Setup Flutter
@@ -183,24 +282,33 @@ jobs:
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
-      - name: Upload .msix to Release
-        uses: actions/upload-artifact@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4  # Fixed this block
         with:
           name: windows-build-debug
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          upload_release_asset: false
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1  # Or equivalent release action
+        # if: startsWith(github.ref, 'refs/tags/')  # Only trigger on tag pushes (releases)
+        with:
+          files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix # Path to the artifact
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ steps.get_version.outputs.version }}  # Example release name
+          body: |
+            Debug Release for Windows
+
 
   build-and-release-windows-prod:
     name: "Build windows app-store"
     runs-on: windows-2022
+    needs: [unit-testing, integration-testing-windows] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}
-          persist-credentials: true
+          token: ${{ secrets.ACCESS_TOKEN }}  # Use a PAT
+          persist-credentials: true  # Keep this for checkout
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -241,136 +349,147 @@ jobs:
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
-      - name: Upload .msix to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
         with:
-          upload_url: ${{ github.server_url }}/${{ github.repository }}/releases
-          asset_path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          asset_name: flipper_rw.msix
-          asset_content_type: application/vnd.ms-msix
-
+          files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
+          tag_name: ${{ github.ref_name }}  # Or a dynamic tag based on your strategy
+          name: Release ${{ steps.get_version.outputs.version }}
+          body: |
+            Production Release for Windows App Store
+        env:
+          GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
   integration-on-android:
-    # needs: [unit-testing]
-    runs-on: macOS-14
+    name: Integration on Android
+    needs: [unit-testing]  # Requires Supabase to be initialized
+    runs-on: macOS-latest
     strategy:
       matrix:
-        api-level: [31]
-        target: [playstore]
+        api-level: [29, 33]
+        target: [google_apis_playstore]  # Use google_apis_playstore
+        arch: [x86_64, arm64-v8a]  # Add x86_64 and arm64 architectures.
       fail-fast: false
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set Up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: "17"
-
-      - name: Clone Flutter Repository with Stable Channel
+      - run: git config --global core.autocrlf false
+      # Set up Flutter.
+      - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0"
+          flutter-version: "3.29.0" #firebase_auth_desktop is broken with  3.10.6
           channel: stable
+      - run: flutter doctor -v
 
-      - name: Gradle Cache
-        uses: gradle/gradle-build-action@v2
+      # Checkout flipper code
+      - name: Checkout flipper code
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+      - uses: actions/setup-java@v4 #plugin for setting up the java
+        with:
+          distribution: "zulu"
+          java-version: "17" #defines the java version
+      - name: Configure Git with PAT
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          git config --global user.email "info@yegobox.com"
+          git config --global user.name "YEGOBOX"
+          git config --global credential.helper store
+          echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
+      - name: submodule init
+        run: git submodule update --init
+      - name: Configure Missing files
+        run: |
+          echo "$INDEX" >> apps/flipper/web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          git config --global core.autocrlf false
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
 
-      - name: AVD Cache
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+      - run: |
+          dart pub global activate melos 6.3.2
+          melos bootstrap
+      # Setup Ruby, Bundler, and Gemfile dependencies
+      - name: Setup Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.0"
+          bundler-cache: true
+          # cache-version: 1
+          working-directory: apps/flipper/android
+      - name: Configure Keystore
+        run: |
+          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
+          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
+          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode  > play_store_upload_key.txt
+          cat play_store_upload_key.txt
+          echo "storeFile=key.jks" >> key.properties
+          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
+          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
+          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
+        env:
+          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
+        working-directory: apps/flipper/android
+
+      - name: Gradle cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: AVD cache
         uses: actions/cache@v4
         id: avd-cache
         with:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-${{ matrix.api-level }}
+          key: avd-${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.arch }}
 
-      - name: Install Android SDK Tools
+      - name: create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.target }}  # Use google_apis_playstore
+          arch: ${{ matrix.arch }}   # Pass architecture to emulator runner
+          profile: Nexus 6
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          force-avd-creation: true # force avd creation when cache is not hit
+
+          script: echo "Generated AVD snapshot for caching."
+
+      - name: Wait for Emulator
         run: |
-          export ANDROID_HOME=$HOME/Library/Android/sdk
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-
-          # Install cmdline-tools if not installed
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          cd $ANDROID_HOME/cmdline-tools
-          curl -o commandlinetools-mac.zip https://dl.google.com/android/repository/commandlinetools-mac-9477386_latest.zip
-          unzip -q commandlinetools-mac.zip
-          rm commandlinetools-mac.zip
-          mv cmdline-tools latest
-
-          echo "Android SDK installed."
-
-          # Verify sdkmanager is working
-          sdkmanager --version
-
-      - name: Accept Android SDK Licenses
-        run: |
-          echo "Accepting Android SDK licenses..."
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          mkdir -p "$ANDROID_HOME/licenses"
-          echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\n" > "$ANDROID_HOME/licenses/android-sdk-license"
-          echo -e "d56f5187479451eabf01fb78af6dfcb131a6481e\n" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
-          echo "All licenses accepted."
-
-      - name: Install Required Android Components
-        run: |
-          echo "Installing Android components..."
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install \
-            "platform-tools" \
-            "platforms;android-31" \
-            "system-images;android-31;google_apis;arm64-v8a" \
-            "emulator"
-          echo "Android components installed."
-
-      - name: Create AVD
-        run: |
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-          echo "Creating AVD..."
-          sdkmanager --install "system-images;android-31;google_apis;arm64-v8a"
-          echo "no" | avdmanager create avd -n test -k "system-images;android-31;google_apis;arm64-v8a" --device "pixel_4"
-          echo "AVD created."
-
-      - name: Start Emulator
-        run: |
-          echo "Starting emulator..."
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-          nohup $ANDROID_HOME/emulator/emulator -avd test -no-window -noaudio -no-boot-anim -gpu off -memory 2048 -no-snapshot-load &
-          echo "Waiting for emulator to be available..."
-          adb wait-for-device
-          adb shell settings put global window_animation_scale 0
-          adb shell settings put global transition_animation_scale 0
-          adb shell settings put global animator_duration_scale 0
-          echo "Emulator is ready!"
-        timeout-minutes: 10
-
-      - name: Debug SDK
-        run: |
-          echo "Checking sdkmanager..."
-          which sdkmanager
-          sdkmanager --list
-
-      - name: Verify Emulator Status
-        run: adb devices
+          echo "Waiting for emulator to boot..."
+          adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
+          echo "Emulator booted!"
 
       - name: Run Tests on Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
-          arch: x86_64
-          profile: pixel
-          force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: true
+          arch: ${{ matrix.arch }}  # Pass architecture to emulator runner
+          profile: Nexus 6
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
           script: |
             cd apps/flipper
             flutter test --dart-define=FLUTTER_TEST_ENV=true integration_test/smoke_android_test.dart
-
   fastlane-deploy:
     name: "Google Deploy"
-    needs: [unit-testing, integration-testing-windows]
+    needs: [unit-testing, integration-testing-windows]  # Requires Supabase to be initialized
     # runs-on: ubuntu-22.04
     runs-on: macOS-14
     steps:

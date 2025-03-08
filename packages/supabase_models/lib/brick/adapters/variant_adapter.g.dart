@@ -1,132 +1,145 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Variant> _$VariantFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Variant> _$VariantFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Variant(
-      id: data['id'] as String?,
-      purchaseId:
-          data['purchase_id'] == null ? null : data['purchase_id'] as String?,
-      stock: data['stock'] == null
-          ? null
-          : await StockAdapter().fromSupabase(data['stock'],
-              provider: provider, repository: repository),
-      stockId: data['stock_id'] == null ? null : data['stock_id'] as String?,
-      taxPercentage: data['tax_percentage'] == null
-          ? null
-          : data['tax_percentage'] as num? ?? 18.0,
-      name: data['name'] as String,
-      color: data['color'] == null ? null : data['color'] as String?,
-      sku: data['sku'] == null ? null : data['sku'] as String?,
-      productId:
-          data['product_id'] == null ? null : data['product_id'] as String?,
-      unit: data['unit'] == null ? null : data['unit'] as String?,
-      productName:
-          data['product_name'] == null ? null : data['product_name'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
-      itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
-      isrccCd: data['isrcc_cd'] == null ? null : data['isrcc_cd'] as String?,
-      isrccNm: data['isrcc_nm'] == null ? null : data['isrcc_nm'] as String?,
-      isrcRt: data['isrc_rt'] == null ? null : data['isrc_rt'] as int?,
-      isrcAmt: data['isrc_amt'] == null ? null : data['isrc_amt'] as int?,
-      taxTyCd: data['tax_ty_cd'] == null ? null : data['tax_ty_cd'] as String?,
-      bcd: data['bcd'] == null ? null : data['bcd'] as String?,
-      itemClsCd:
-          data['item_cls_cd'] == null ? null : data['item_cls_cd'] as String?,
-      itemTyCd:
-          data['item_ty_cd'] == null ? null : data['item_ty_cd'] as String?,
-      itemStdNm:
-          data['item_std_nm'] == null ? null : data['item_std_nm'] as String?,
-      orgnNatCd:
-          data['orgn_nat_cd'] == null ? null : data['orgn_nat_cd'] as String?,
-      pkg: data['pkg'] == null ? null : data['pkg'] as int?,
-      itemCd: data['item_cd'] == null ? null : data['item_cd'] as String?,
-      pkgUnitCd:
-          data['pkg_unit_cd'] == null ? null : data['pkg_unit_cd'] as String?,
-      qtyUnitCd:
-          data['qty_unit_cd'] == null ? null : data['qty_unit_cd'] as String?,
-      itemNm: data['item_nm'] == null ? null : data['item_nm'] as String?,
-      prc: data['prc'] == null ? null : data['prc'] as double? ?? 0.0,
-      splyAmt: data['sply_amt'] == null ? null : data['sply_amt'] as double?,
-      tin: data['tin'] == null ? null : data['tin'] as int?,
-      bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-      dftPrc:
-          data['dft_prc'] == null ? null : data['dft_prc'] as double? ?? 0.0,
-      addInfo: data['add_info'] == null ? null : data['add_info'] as String?,
-      isrcAplcbYn: data['isrc_aplcb_yn'] == null
-          ? null
-          : data['isrc_aplcb_yn'] as String?,
-      useYn: data['use_yn'] == null ? null : data['use_yn'] as String?,
-      regrId: data['regr_id'] == null ? null : data['regr_id'] as String?,
-      regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
-      modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
-      modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      supplyPrice:
-          data['supply_price'] == null ? null : data['supply_price'] as double?,
-      retailPrice:
-          data['retail_price'] == null ? null : data['retail_price'] as double?,
-      spplrItemClsCd: data['spplr_item_cls_cd'] == null
-          ? null
-          : data['spplr_item_cls_cd'] as String?,
-      spplrItemCd: data['spplr_item_cd'] == null
-          ? null
-          : data['spplr_item_cd'] as String?,
-      spplrItemNm: data['spplr_item_nm'] == null
-          ? null
-          : data['spplr_item_nm'] as String?,
-      ebmSynced:
-          data['ebm_synced'] == null ? null : data['ebm_synced'] as bool?,
-      dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as double?,
-      expirationDate: data['expiration_date'] == null
-          ? null
-          : data['expiration_date'] == null
-              ? null
-              : DateTime.tryParse(data['expiration_date'] as String),
-      totWt: data['tot_wt'] == null ? null : data['tot_wt'] as int?,
-      netWt: data['net_wt'] == null ? null : data['net_wt'] as int?,
-      spplrNm: data['spplr_nm'] == null ? null : data['spplr_nm'] as String?,
-      agntNm: data['agnt_nm'] == null ? null : data['agnt_nm'] as String?,
-      invcFcurAmt:
-          data['invc_fcur_amt'] == null ? null : data['invc_fcur_amt'] as int?,
-      invcFcurCd:
-          data['invc_fcur_cd'] == null ? null : data['invc_fcur_cd'] as String?,
-      invcFcurExcrt: data['invc_fcur_excrt'] == null
-          ? null
-          : data['invc_fcur_excrt'] as double?,
-      exptNatCd:
-          data['expt_nat_cd'] == null ? null : data['expt_nat_cd'] as String?,
-      dclNo: data['dcl_no'] == null ? null : data['dcl_no'] as String?,
-      taskCd: data['task_cd'] == null ? null : data['task_cd'] as String?,
-      dclDe: data['dcl_de'] == null ? null : data['dcl_de'] as String?,
-      hsCd: data['hs_cd'] == null ? null : data['hs_cd'] as String?,
-      imptItemSttsCd: data['impt_item_stts_cd'] == null
-          ? null
-          : data['impt_item_stts_cd'] as String?,
-      taxblAmt: data['taxbl_amt'] == null ? null : data['taxbl_amt'] as double?,
-      taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as double?,
-      totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as double?,
-      pchsSttsCd:
-          data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?,
-      isShared: data['is_shared'] == null ? null : data['is_shared'] as bool?);
+    id: data['id'] as String?,
+    purchaseId:
+        data['purchase_id'] == null ? null : data['purchase_id'] as String?,
+    stock:
+        data['stock'] == null
+            ? null
+            : await StockAdapter().fromSupabase(
+              data['stock'],
+              provider: provider,
+              repository: repository,
+            ),
+    stockId: data['stock_id'] == null ? null : data['stock_id'] as String?,
+    taxPercentage:
+        data['tax_percentage'] == null
+            ? null
+            : data['tax_percentage'] as num? ?? 18.0,
+    name: data['name'] as String,
+    color: data['color'] == null ? null : data['color'] as String?,
+    sku: data['sku'] == null ? null : data['sku'] as String?,
+    productId:
+        data['product_id'] == null ? null : data['product_id'] as String?,
+    unit: data['unit'] == null ? null : data['unit'] as String?,
+    productName:
+        data['product_name'] == null ? null : data['product_name'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
+    itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
+    isrccCd: data['isrcc_cd'] == null ? null : data['isrcc_cd'] as String?,
+    isrccNm: data['isrcc_nm'] == null ? null : data['isrcc_nm'] as String?,
+    isrcRt: data['isrc_rt'] == null ? null : data['isrc_rt'] as int?,
+    isrcAmt: data['isrc_amt'] == null ? null : data['isrc_amt'] as int?,
+    taxTyCd: data['tax_ty_cd'] == null ? null : data['tax_ty_cd'] as String?,
+    bcd: data['bcd'] == null ? null : data['bcd'] as String?,
+    itemClsCd:
+        data['item_cls_cd'] == null ? null : data['item_cls_cd'] as String?,
+    itemTyCd: data['item_ty_cd'] == null ? null : data['item_ty_cd'] as String?,
+    itemStdNm:
+        data['item_std_nm'] == null ? null : data['item_std_nm'] as String?,
+    orgnNatCd:
+        data['orgn_nat_cd'] == null ? null : data['orgn_nat_cd'] as String?,
+    pkg: data['pkg'] == null ? null : data['pkg'] as int?,
+    itemCd: data['item_cd'] == null ? null : data['item_cd'] as String?,
+    pkgUnitCd:
+        data['pkg_unit_cd'] == null ? null : data['pkg_unit_cd'] as String?,
+    qtyUnitCd:
+        data['qty_unit_cd'] == null ? null : data['qty_unit_cd'] as String?,
+    itemNm: data['item_nm'] == null ? null : data['item_nm'] as String?,
+    prc: data['prc'] == null ? null : data['prc'] as double? ?? 0.0,
+    splyAmt: data['sply_amt'] == null ? null : data['sply_amt'] as double?,
+    tin: data['tin'] == null ? null : data['tin'] as int?,
+    bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
+    dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as double? ?? 0.0,
+    addInfo: data['add_info'] == null ? null : data['add_info'] as String?,
+    isrcAplcbYn:
+        data['isrc_aplcb_yn'] == null ? null : data['isrc_aplcb_yn'] as String?,
+    useYn: data['use_yn'] == null ? null : data['use_yn'] as String?,
+    regrId: data['regr_id'] == null ? null : data['regr_id'] as String?,
+    regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
+    modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
+    modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    supplyPrice:
+        data['supply_price'] == null ? null : data['supply_price'] as double?,
+    retailPrice:
+        data['retail_price'] == null ? null : data['retail_price'] as double?,
+    spplrItemClsCd:
+        data['spplr_item_cls_cd'] == null
+            ? null
+            : data['spplr_item_cls_cd'] as String?,
+    spplrItemCd:
+        data['spplr_item_cd'] == null ? null : data['spplr_item_cd'] as String?,
+    spplrItemNm:
+        data['spplr_item_nm'] == null ? null : data['spplr_item_nm'] as String?,
+    ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] as bool?,
+    dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as double?,
+    expirationDate:
+        data['expiration_date'] == null
+            ? null
+            : data['expiration_date'] == null
+            ? null
+            : DateTime.tryParse(data['expiration_date'] as String),
+    totWt: data['tot_wt'] == null ? null : data['tot_wt'] as int?,
+    netWt: data['net_wt'] == null ? null : data['net_wt'] as int?,
+    spplrNm: data['spplr_nm'] == null ? null : data['spplr_nm'] as String?,
+    agntNm: data['agnt_nm'] == null ? null : data['agnt_nm'] as String?,
+    invcFcurAmt:
+        data['invc_fcur_amt'] == null ? null : data['invc_fcur_amt'] as int?,
+    invcFcurCd:
+        data['invc_fcur_cd'] == null ? null : data['invc_fcur_cd'] as String?,
+    invcFcurExcrt:
+        data['invc_fcur_excrt'] == null
+            ? null
+            : data['invc_fcur_excrt'] as double?,
+    exptNatCd:
+        data['expt_nat_cd'] == null ? null : data['expt_nat_cd'] as String?,
+    dclNo: data['dcl_no'] == null ? null : data['dcl_no'] as String?,
+    taskCd: data['task_cd'] == null ? null : data['task_cd'] as String?,
+    dclDe: data['dcl_de'] == null ? null : data['dcl_de'] as String?,
+    hsCd: data['hs_cd'] == null ? null : data['hs_cd'] as String?,
+    imptItemSttsCd:
+        data['impt_item_stts_cd'] == null
+            ? null
+            : data['impt_item_stts_cd'] as String?,
+    taxblAmt: data['taxbl_amt'] == null ? null : data['taxbl_amt'] as double?,
+    taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as double?,
+    totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as double?,
+    pchsSttsCd:
+        data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?,
+    isShared: data['is_shared'] == null ? null : data['is_shared'] as bool?,
+  );
 }
 
-Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$VariantToSupabase(
+  Variant instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'purchase_id': instance.purchaseId,
-    'stock': instance.stock != null
-        ? await StockAdapter().toSupabase(instance.stock!,
-            provider: provider, repository: repository)
-        : null,
+    'stock':
+        instance.stock != null
+            ? await StockAdapter().toSupabase(
+              instance.stock!,
+              provider: provider,
+              repository: repository,
+            )
+            : null,
     'stock_id': instance.stockId,
     'tax_percentage': instance.taxPercentage,
     'name': instance.name,
@@ -191,140 +204,151 @@ Future<Map<String, dynamic>> _$VariantToSupabase(Variant instance,
     'tax_amt': instance.taxAmt,
     'tot_amt': instance.totAmt,
     'pchs_stts_cd': instance.pchsSttsCd,
-    'is_shared': instance.isShared
+    'is_shared': instance.isShared,
   };
 }
 
-Future<Variant> _$VariantFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Variant> _$VariantFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Variant(
-      id: data['id'] as String,
-      purchaseId:
-          data['purchase_id'] == null ? null : data['purchase_id'] as String?,
-      stock: data['stock_Stock_brick_id'] == null
-          ? null
-          : (data['stock_Stock_brick_id'] > -1
-              ? (await repository?.getAssociation<Stock>(
-                  Query.where('primaryKey', data['stock_Stock_brick_id'] as int,
-                      limit1: true),
-                ))
-                  ?.first
-              : null),
-      stockId: data['stock_id'] == null ? null : data['stock_id'] as String?,
-      taxPercentage:
-          data['tax_percentage'] == null ? null : data['tax_percentage'],
-      name: data['name'] as String,
-      color: data['color'] == null ? null : data['color'] as String?,
-      sku: data['sku'] == null ? null : data['sku'] as String?,
-      productId:
-          data['product_id'] == null ? null : data['product_id'] as String?,
-      unit: data['unit'] == null ? null : data['unit'] as String?,
-      productName:
-          data['product_name'] == null ? null : data['product_name'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
-      itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
-      isrccCd: data['isrcc_cd'] == null ? null : data['isrcc_cd'] as String?,
-      isrccNm: data['isrcc_nm'] == null ? null : data['isrcc_nm'] as String?,
-      isrcRt: data['isrc_rt'] == null ? null : data['isrc_rt'] as int?,
-      isrcAmt: data['isrc_amt'] == null ? null : data['isrc_amt'] as int?,
-      taxTyCd: data['tax_ty_cd'] == null ? null : data['tax_ty_cd'] as String?,
-      bcd: data['bcd'] == null ? null : data['bcd'] as String?,
-      itemClsCd:
-          data['item_cls_cd'] == null ? null : data['item_cls_cd'] as String?,
-      itemTyCd:
-          data['item_ty_cd'] == null ? null : data['item_ty_cd'] as String?,
-      itemStdNm:
-          data['item_std_nm'] == null ? null : data['item_std_nm'] as String?,
-      orgnNatCd:
-          data['orgn_nat_cd'] == null ? null : data['orgn_nat_cd'] as String?,
-      pkg: data['pkg'] == null ? null : data['pkg'] as int?,
-      itemCd: data['item_cd'] == null ? null : data['item_cd'] as String?,
-      pkgUnitCd:
-          data['pkg_unit_cd'] == null ? null : data['pkg_unit_cd'] as String?,
-      qtyUnitCd:
-          data['qty_unit_cd'] == null ? null : data['qty_unit_cd'] as String?,
-      itemNm: data['item_nm'] == null ? null : data['item_nm'] as String?,
-      prc: data['prc'] == null ? null : data['prc'] as double?,
-      splyAmt: data['sply_amt'] == null ? null : data['sply_amt'] as double?,
-      tin: data['tin'] == null ? null : data['tin'] as int?,
-      bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-      dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as double?,
-      addInfo: data['add_info'] == null ? null : data['add_info'] as String?,
-      isrcAplcbYn: data['isrc_aplcb_yn'] == null
-          ? null
-          : data['isrc_aplcb_yn'] as String?,
-      useYn: data['use_yn'] == null ? null : data['use_yn'] as String?,
-      regrId: data['regr_id'] == null ? null : data['regr_id'] as String?,
-      regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
-      modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
-      modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      supplyPrice:
-          data['supply_price'] == null ? null : data['supply_price'] as double?,
-      retailPrice:
-          data['retail_price'] == null ? null : data['retail_price'] as double?,
-      spplrItemClsCd: data['spplr_item_cls_cd'] == null
-          ? null
-          : data['spplr_item_cls_cd'] as String?,
-      spplrItemCd: data['spplr_item_cd'] == null
-          ? null
-          : data['spplr_item_cd'] as String?,
-      spplrItemNm: data['spplr_item_nm'] == null
-          ? null
-          : data['spplr_item_nm'] as String?,
-      ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
-      dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as double?,
-      expirationDate: data['expiration_date'] == null
-          ? null
-          : data['expiration_date'] == null
-              ? null
-              : DateTime.tryParse(data['expiration_date'] as String),
-      totWt: data['tot_wt'] == null ? null : data['tot_wt'] as int?,
-      netWt: data['net_wt'] == null ? null : data['net_wt'] as int?,
-      spplrNm: data['spplr_nm'] == null ? null : data['spplr_nm'] as String?,
-      agntNm: data['agnt_nm'] == null ? null : data['agnt_nm'] as String?,
-      invcFcurAmt:
-          data['invc_fcur_amt'] == null ? null : data['invc_fcur_amt'] as int?,
-      invcFcurCd:
-          data['invc_fcur_cd'] == null ? null : data['invc_fcur_cd'] as String?,
-      invcFcurExcrt: data['invc_fcur_excrt'] == null
-          ? null
-          : data['invc_fcur_excrt'] as double?,
-      exptNatCd:
-          data['expt_nat_cd'] == null ? null : data['expt_nat_cd'] as String?,
-      dclNo: data['dcl_no'] == null ? null : data['dcl_no'] as String?,
-      taskCd: data['task_cd'] == null ? null : data['task_cd'] as String?,
-      dclDe: data['dcl_de'] == null ? null : data['dcl_de'] as String?,
-      hsCd: data['hs_cd'] == null ? null : data['hs_cd'] as String?,
-      imptItemSttsCd: data['impt_item_stts_cd'] == null
-          ? null
-          : data['impt_item_stts_cd'] as String?,
-      taxblAmt: data['taxbl_amt'] == null ? null : data['taxbl_amt'] as double?,
-      taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as double?,
-      totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as double?,
-      pchsSttsCd:
-          data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?,
-      isShared: data['is_shared'] == null ? null : data['is_shared'] == 1)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    purchaseId:
+        data['purchase_id'] == null ? null : data['purchase_id'] as String?,
+    stock:
+        data['stock_Stock_brick_id'] == null
+            ? null
+            : (data['stock_Stock_brick_id'] > -1
+                ? (await repository?.getAssociation<Stock>(
+                  Query.where(
+                    'primaryKey',
+                    data['stock_Stock_brick_id'] as int,
+                    limit1: true,
+                  ),
+                ))?.first
+                : null),
+    stockId: data['stock_id'] == null ? null : data['stock_id'] as String?,
+    taxPercentage:
+        data['tax_percentage'] == null ? null : data['tax_percentage'],
+    name: data['name'] as String,
+    color: data['color'] == null ? null : data['color'] as String?,
+    sku: data['sku'] == null ? null : data['sku'] as String?,
+    productId:
+        data['product_id'] == null ? null : data['product_id'] as String?,
+    unit: data['unit'] == null ? null : data['unit'] as String?,
+    productName:
+        data['product_name'] == null ? null : data['product_name'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
+    itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
+    isrccCd: data['isrcc_cd'] == null ? null : data['isrcc_cd'] as String?,
+    isrccNm: data['isrcc_nm'] == null ? null : data['isrcc_nm'] as String?,
+    isrcRt: data['isrc_rt'] == null ? null : data['isrc_rt'] as int?,
+    isrcAmt: data['isrc_amt'] == null ? null : data['isrc_amt'] as int?,
+    taxTyCd: data['tax_ty_cd'] == null ? null : data['tax_ty_cd'] as String?,
+    bcd: data['bcd'] == null ? null : data['bcd'] as String?,
+    itemClsCd:
+        data['item_cls_cd'] == null ? null : data['item_cls_cd'] as String?,
+    itemTyCd: data['item_ty_cd'] == null ? null : data['item_ty_cd'] as String?,
+    itemStdNm:
+        data['item_std_nm'] == null ? null : data['item_std_nm'] as String?,
+    orgnNatCd:
+        data['orgn_nat_cd'] == null ? null : data['orgn_nat_cd'] as String?,
+    pkg: data['pkg'] == null ? null : data['pkg'] as int?,
+    itemCd: data['item_cd'] == null ? null : data['item_cd'] as String?,
+    pkgUnitCd:
+        data['pkg_unit_cd'] == null ? null : data['pkg_unit_cd'] as String?,
+    qtyUnitCd:
+        data['qty_unit_cd'] == null ? null : data['qty_unit_cd'] as String?,
+    itemNm: data['item_nm'] == null ? null : data['item_nm'] as String?,
+    prc: data['prc'] == null ? null : data['prc'] as double?,
+    splyAmt: data['sply_amt'] == null ? null : data['sply_amt'] as double?,
+    tin: data['tin'] == null ? null : data['tin'] as int?,
+    bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
+    dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as double?,
+    addInfo: data['add_info'] == null ? null : data['add_info'] as String?,
+    isrcAplcbYn:
+        data['isrc_aplcb_yn'] == null ? null : data['isrc_aplcb_yn'] as String?,
+    useYn: data['use_yn'] == null ? null : data['use_yn'] as String?,
+    regrId: data['regr_id'] == null ? null : data['regr_id'] as String?,
+    regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
+    modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
+    modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    supplyPrice:
+        data['supply_price'] == null ? null : data['supply_price'] as double?,
+    retailPrice:
+        data['retail_price'] == null ? null : data['retail_price'] as double?,
+    spplrItemClsCd:
+        data['spplr_item_cls_cd'] == null
+            ? null
+            : data['spplr_item_cls_cd'] as String?,
+    spplrItemCd:
+        data['spplr_item_cd'] == null ? null : data['spplr_item_cd'] as String?,
+    spplrItemNm:
+        data['spplr_item_nm'] == null ? null : data['spplr_item_nm'] as String?,
+    ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
+    dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as double?,
+    expirationDate:
+        data['expiration_date'] == null
+            ? null
+            : data['expiration_date'] == null
+            ? null
+            : DateTime.tryParse(data['expiration_date'] as String),
+    totWt: data['tot_wt'] == null ? null : data['tot_wt'] as int?,
+    netWt: data['net_wt'] == null ? null : data['net_wt'] as int?,
+    spplrNm: data['spplr_nm'] == null ? null : data['spplr_nm'] as String?,
+    agntNm: data['agnt_nm'] == null ? null : data['agnt_nm'] as String?,
+    invcFcurAmt:
+        data['invc_fcur_amt'] == null ? null : data['invc_fcur_amt'] as int?,
+    invcFcurCd:
+        data['invc_fcur_cd'] == null ? null : data['invc_fcur_cd'] as String?,
+    invcFcurExcrt:
+        data['invc_fcur_excrt'] == null
+            ? null
+            : data['invc_fcur_excrt'] as double?,
+    exptNatCd:
+        data['expt_nat_cd'] == null ? null : data['expt_nat_cd'] as String?,
+    dclNo: data['dcl_no'] == null ? null : data['dcl_no'] as String?,
+    taskCd: data['task_cd'] == null ? null : data['task_cd'] as String?,
+    dclDe: data['dcl_de'] == null ? null : data['dcl_de'] as String?,
+    hsCd: data['hs_cd'] == null ? null : data['hs_cd'] as String?,
+    imptItemSttsCd:
+        data['impt_item_stts_cd'] == null
+            ? null
+            : data['impt_item_stts_cd'] as String?,
+    taxblAmt: data['taxbl_amt'] == null ? null : data['taxbl_amt'] as double?,
+    taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as double?,
+    totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as double?,
+    pchsSttsCd:
+        data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?,
+    isShared: data['is_shared'] == null ? null : data['is_shared'] == 1,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$VariantToSqlite(
+  Variant instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'purchase_id': instance.purchaseId,
-    'stock_Stock_brick_id': instance.stock != null
-        ? instance.stock!.primaryKey ??
-            await provider.upsert<Stock>(instance.stock!,
-                repository: repository)
-        : null,
+    'stock_Stock_brick_id':
+        instance.stock != null
+            ? instance.stock!.primaryKey ??
+                await provider.upsert<Stock>(
+                  instance.stock!,
+                  repository: repository,
+                )
+            : null,
     'stock_id': instance.stockId,
     'tax_percentage': instance.taxPercentage,
     'name': instance.name,
@@ -390,7 +414,8 @@ Future<Map<String, dynamic>> _$VariantToSqlite(Variant instance,
     'tax_amt': instance.taxAmt,
     'tot_amt': instance.totAmt,
     'pchs_stts_cd': instance.pchsSttsCd,
-    'is_shared': instance.isShared == null ? null : (instance.isShared! ? 1 : 0)
+    'is_shared':
+        instance.isShared == null ? null : (instance.isShared! ? 1 : 0),
   };
 }
 
@@ -677,7 +702,7 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'isShared': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_shared',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -1098,13 +1123,18 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       columnName: 'is_shared',
       iterable: false,
       type: bool,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Variant instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Variant` WHERE id = ? LIMIT 1''', [instance.id]);
+    Variant instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Variant` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -1118,27 +1148,43 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
   final String tableName = 'Variant';
 
   @override
-  Future<Variant> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$VariantFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Variant> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$VariantFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Variant input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$VariantToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Variant input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$VariantToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Variant> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$VariantFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Variant> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$VariantFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Variant input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$VariantToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    Variant input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$VariantToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

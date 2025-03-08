@@ -1,62 +1,74 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Conversation> _$ConversationFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Conversation> _$ConversationFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Conversation(
-      id: data['id'] as String?,
-      userName: data['user_name'] == null ? null : data['user_name'] as String?,
-      body: data['body'] == null ? null : data['body'] as String?,
-      avatar: data['avatar'] == null ? null : data['avatar'] as String?,
-      channelType:
-          data['channel_type'] == null ? null : data['channel_type'] as String?,
-      fromNumber:
-          data['from_number'] == null ? null : data['from_number'] as String?,
-      toNumber: data['to_number'] == null ? null : data['to_number'] as String?,
-      createdAt: data['created_at'] == null
-          ? null
-          : data['created_at'] == null
-              ? null
-              : DateTime.tryParse(data['created_at'] as String),
-      messageType:
-          data['message_type'] == null ? null : data['message_type'] as String?,
-      phoneNumberId: data['phone_number_id'] == null
-          ? null
-          : data['phone_number_id'] as String?,
-      messageId:
-          data['message_id'] == null ? null : data['message_id'] as String?,
-      respondedBy:
-          data['responded_by'] == null ? null : data['responded_by'] as String?,
-      conversationId: data['conversation_id'] == null
-          ? null
-          : data['conversation_id'] as String?,
-      businessPhoneNumber: data['business_phone_number'] == null
-          ? null
-          : data['business_phone_number'] as String?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      scheduledAt: data['scheduled_at'] == null
-          ? null
-          : data['scheduled_at'] == null
-              ? null
-              : DateTime.tryParse(data['scheduled_at'] as String),
-      delivered: data['delivered'] == null ? null : data['delivered'] as bool?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String));
+    id: data['id'] as String?,
+    userName: data['user_name'] == null ? null : data['user_name'] as String?,
+    body: data['body'] == null ? null : data['body'] as String?,
+    avatar: data['avatar'] == null ? null : data['avatar'] as String?,
+    channelType:
+        data['channel_type'] == null ? null : data['channel_type'] as String?,
+    fromNumber:
+        data['from_number'] == null ? null : data['from_number'] as String?,
+    toNumber: data['to_number'] == null ? null : data['to_number'] as String?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
+            ? null
+            : DateTime.tryParse(data['created_at'] as String),
+    messageType:
+        data['message_type'] == null ? null : data['message_type'] as String?,
+    phoneNumberId:
+        data['phone_number_id'] == null
+            ? null
+            : data['phone_number_id'] as String?,
+    messageId:
+        data['message_id'] == null ? null : data['message_id'] as String?,
+    respondedBy:
+        data['responded_by'] == null ? null : data['responded_by'] as String?,
+    conversationId:
+        data['conversation_id'] == null
+            ? null
+            : data['conversation_id'] as String?,
+    businessPhoneNumber:
+        data['business_phone_number'] == null
+            ? null
+            : data['business_phone_number'] as String?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    scheduledAt:
+        data['scheduled_at'] == null
+            ? null
+            : data['scheduled_at'] == null
+            ? null
+            : DateTime.tryParse(data['scheduled_at'] as String),
+    delivered: data['delivered'] == null ? null : data['delivered'] as bool?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
+            ? null
+            : DateTime.tryParse(data['deleted_at'] as String),
+  );
 }
 
-Future<Map<String, dynamic>> _$ConversationToSupabase(Conversation instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$ConversationToSupabase(
+  Conversation instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'user_name': instance.userName,
@@ -76,67 +88,78 @@ Future<Map<String, dynamic>> _$ConversationToSupabase(Conversation instance,
     'scheduled_at': instance.scheduledAt?.toIso8601String(),
     'delivered': instance.delivered,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String()
+    'deleted_at': instance.deletedAt?.toIso8601String(),
   };
 }
 
-Future<Conversation> _$ConversationFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Conversation> _$ConversationFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Conversation(
-      id: data['id'] as String,
-      userName: data['user_name'] == null ? null : data['user_name'] as String?,
-      body: data['body'] == null ? null : data['body'] as String?,
-      avatar: data['avatar'] == null ? null : data['avatar'] as String?,
-      channelType:
-          data['channel_type'] == null ? null : data['channel_type'] as String?,
-      fromNumber:
-          data['from_number'] == null ? null : data['from_number'] as String?,
-      toNumber: data['to_number'] == null ? null : data['to_number'] as String?,
-      createdAt: data['created_at'] == null
-          ? null
-          : data['created_at'] == null
-              ? null
-              : DateTime.tryParse(data['created_at'] as String),
-      messageType:
-          data['message_type'] == null ? null : data['message_type'] as String?,
-      phoneNumberId: data['phone_number_id'] == null
-          ? null
-          : data['phone_number_id'] as String?,
-      messageId:
-          data['message_id'] == null ? null : data['message_id'] as String?,
-      respondedBy:
-          data['responded_by'] == null ? null : data['responded_by'] as String?,
-      conversationId: data['conversation_id'] == null
-          ? null
-          : data['conversation_id'] as String?,
-      businessPhoneNumber: data['business_phone_number'] == null
-          ? null
-          : data['business_phone_number'] as String?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      scheduledAt: data['scheduled_at'] == null
-          ? null
-          : data['scheduled_at'] == null
-              ? null
-              : DateTime.tryParse(data['scheduled_at'] as String),
-      delivered: data['delivered'] == null ? null : data['delivered'] == 1,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String))
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    userName: data['user_name'] == null ? null : data['user_name'] as String?,
+    body: data['body'] == null ? null : data['body'] as String?,
+    avatar: data['avatar'] == null ? null : data['avatar'] as String?,
+    channelType:
+        data['channel_type'] == null ? null : data['channel_type'] as String?,
+    fromNumber:
+        data['from_number'] == null ? null : data['from_number'] as String?,
+    toNumber: data['to_number'] == null ? null : data['to_number'] as String?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
+            ? null
+            : DateTime.tryParse(data['created_at'] as String),
+    messageType:
+        data['message_type'] == null ? null : data['message_type'] as String?,
+    phoneNumberId:
+        data['phone_number_id'] == null
+            ? null
+            : data['phone_number_id'] as String?,
+    messageId:
+        data['message_id'] == null ? null : data['message_id'] as String?,
+    respondedBy:
+        data['responded_by'] == null ? null : data['responded_by'] as String?,
+    conversationId:
+        data['conversation_id'] == null
+            ? null
+            : data['conversation_id'] as String?,
+    businessPhoneNumber:
+        data['business_phone_number'] == null
+            ? null
+            : data['business_phone_number'] as String?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    scheduledAt:
+        data['scheduled_at'] == null
+            ? null
+            : data['scheduled_at'] == null
+            ? null
+            : DateTime.tryParse(data['scheduled_at'] as String),
+    delivered: data['delivered'] == null ? null : data['delivered'] == 1,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
+            ? null
+            : DateTime.tryParse(data['deleted_at'] as String),
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$ConversationToSqlite(Conversation instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$ConversationToSqlite(
+  Conversation instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'user_name': instance.userName,
@@ -157,7 +180,7 @@ Future<Map<String, dynamic>> _$ConversationToSqlite(Conversation instance,
     'delivered':
         instance.delivered == null ? null : (instance.delivered! ? 1 : 0),
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String()
+    'deleted_at': instance.deletedAt?.toIso8601String(),
   };
 }
 
@@ -247,7 +270,7 @@ class ConversationAdapter
     'deletedAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'deleted_at',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -374,13 +397,18 @@ class ConversationAdapter
       columnName: 'deleted_at',
       iterable: false,
       type: DateTime,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Conversation instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Conversation` WHERE id = ? LIMIT 1''', [instance.id]);
+    Conversation instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Conversation` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -394,27 +422,43 @@ class ConversationAdapter
   final String tableName = 'Conversation';
 
   @override
-  Future<Conversation> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ConversationFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Conversation> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ConversationFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Conversation input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ConversationToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Conversation input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ConversationToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Conversation> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ConversationFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Conversation> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ConversationFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Conversation input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$ConversationToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    Conversation input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$ConversationToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

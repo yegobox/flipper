@@ -170,7 +170,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             constraints: const BoxConstraints(maxHeight: 450, minWidth: 400),
             decoration: BoxDecoration(
-              color: Theme.of(context).dialogBackgroundColor,
+              color: DialogThemeData().backgroundColor,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -182,7 +182,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
                     Row(
                       children: [
                         Icon(
-                          Icons.account_tree_rounded,
+                          Icons.location_on_rounded,
                           color: Theme.of(context).primaryColor,
                           size: 28,
                         ),

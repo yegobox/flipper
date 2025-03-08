@@ -25,6 +25,7 @@ mixin CoreMiscellaneous {
     }
     return appSupportDir;
   }
+
   Future<bool> logOut() async {
     return await _performLogout();
   }
@@ -34,8 +35,14 @@ mixin CoreMiscellaneous {
     return await _performLogout();
   }
 
+  bool isTestEnvironment() {
+    return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+  }
+
   // Private helper method to reuse logout logic
   static Future<bool> _performLogout() async {
+    final isTestEnvironment =
+        const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
     try {
       ProxyService.box.remove(key: 'authComplete');
       if (ProxyService.box.getUserId() != null &&
@@ -48,14 +55,19 @@ mixin CoreMiscellaneous {
           'phone': ProxyService.box.getUserPhone(),
           'defaultApp': ProxyService.box.getDefaultApp(),
           'deviceName': Platform.operatingSystem,
-          'uid': (await FirebaseAuth.instance.currentUser?.getIdToken()) ?? "",
+          'uid': isTestEnvironment == true
+              ? ""
+              : (await FirebaseAuth.instance.currentUser?.getIdToken()) ?? "",
           'deviceVersion': Platform.operatingSystemVersion,
           'linkingCode': randomNumber().toString()
         });
       }
 
       // Sign out from Firebase
-      await FirebaseAuth.instance.signOut();
+      if (!const bool.fromEnvironment('FLUTTER_TEST_ENV',
+          defaultValue: false)) {
+        await FirebaseAuth.instance.signOut();
+      }
 
       // Perform additional logout operations
       ProxyService.strategy.whoAmI();

@@ -1,36 +1,41 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Counter> _$CounterFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Counter> _$CounterFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Counter(
-      id: data['id'] as String?,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      receiptType:
-          data['receipt_type'] == null ? null : data['receipt_type'] as String?,
-      totRcptNo:
-          data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
-      curRcptNo:
-          data['cur_rcpt_no'] == null ? null : data['cur_rcpt_no'] as int?,
-      invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      createdAt: data['created_at'] == null
-          ? null
-          : data['created_at'] == null
-              ? null
-              : DateTime.tryParse(data['created_at'] as String));
+    id: data['id'] as String?,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    receiptType:
+        data['receipt_type'] == null ? null : data['receipt_type'] as String?,
+    totRcptNo: data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
+    curRcptNo: data['cur_rcpt_no'] == null ? null : data['cur_rcpt_no'] as int?,
+    invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
+            ? null
+            : DateTime.tryParse(data['created_at'] as String),
+  );
 }
 
-Future<Map<String, dynamic>> _$CounterToSupabase(Counter instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$CounterToSupabase(
+  Counter instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'business_id': instance.businessId,
@@ -40,41 +45,45 @@ Future<Map<String, dynamic>> _$CounterToSupabase(Counter instance,
     'cur_rcpt_no': instance.curRcptNo,
     'invc_no': instance.invcNo,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'created_at': instance.createdAt?.toIso8601String()
+    'created_at': instance.createdAt?.toIso8601String(),
   };
 }
 
-Future<Counter> _$CounterFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Counter> _$CounterFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Counter(
-      id: data['id'] as String,
-      businessId:
-          data['business_id'] == null ? null : data['business_id'] as int?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      receiptType:
-          data['receipt_type'] == null ? null : data['receipt_type'] as String?,
-      totRcptNo:
-          data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
-      curRcptNo:
-          data['cur_rcpt_no'] == null ? null : data['cur_rcpt_no'] as int?,
-      invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      createdAt: data['created_at'] == null
-          ? null
-          : data['created_at'] == null
-              ? null
-              : DateTime.tryParse(data['created_at'] as String))
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    businessId:
+        data['business_id'] == null ? null : data['business_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    receiptType:
+        data['receipt_type'] == null ? null : data['receipt_type'] as String?,
+    totRcptNo: data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
+    curRcptNo: data['cur_rcpt_no'] == null ? null : data['cur_rcpt_no'] as int?,
+    invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
+            ? null
+            : DateTime.tryParse(data['created_at'] as String),
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$CounterToSqlite(Counter instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$CounterToSqlite(
+  Counter instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'business_id': instance.businessId,
@@ -84,7 +93,7 @@ Future<Map<String, dynamic>> _$CounterToSqlite(Counter instance,
     'cur_rcpt_no': instance.curRcptNo,
     'invc_no': instance.invcNo,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'created_at': instance.createdAt?.toIso8601String()
+    'created_at': instance.createdAt?.toIso8601String(),
   };
 }
 
@@ -133,7 +142,7 @@ class CounterAdapter extends OfflineFirstWithSupabaseAdapter<Counter> {
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'created_at',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -200,13 +209,18 @@ class CounterAdapter extends OfflineFirstWithSupabaseAdapter<Counter> {
       columnName: 'created_at',
       iterable: false,
       type: DateTime,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Counter instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Counter` WHERE id = ? LIMIT 1''', [instance.id]);
+    Counter instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Counter` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -220,27 +234,43 @@ class CounterAdapter extends OfflineFirstWithSupabaseAdapter<Counter> {
   final String tableName = 'Counter';
 
   @override
-  Future<Counter> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$CounterFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Counter> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$CounterFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Counter input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$CounterToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Counter input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$CounterToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Counter> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$CounterFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Counter> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$CounterFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Counter input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$CounterToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    Counter input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$CounterToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

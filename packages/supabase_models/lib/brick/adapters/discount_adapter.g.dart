@@ -1,46 +1,55 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<Discount> _$DiscountFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Discount> _$DiscountFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Discount(
-      id: data['id'] as String?,
-      name: data['name'] == null ? null : data['name'] as String?,
-      amount: data['amount'] == null ? null : data['amount'] as double?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?);
+    id: data['id'] as String?,
+    name: data['name'] == null ? null : data['name'] as String?,
+    amount: data['amount'] == null ? null : data['amount'] as double?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+  );
 }
 
-Future<Map<String, dynamic>> _$DiscountToSupabase(Discount instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$DiscountToSupabase(
+  Discount instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'name': instance.name,
     'amount': instance.amount,
-    'branch_id': instance.branchId
+    'branch_id': instance.branchId,
   };
 }
 
-Future<Discount> _$DiscountFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Discount> _$DiscountFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return Discount(
-      id: data['id'] as String,
-      name: data['name'] == null ? null : data['name'] as String?,
-      amount: data['amount'] == null ? null : data['amount'] as double?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?)
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    name: data['name'] == null ? null : data['name'] as String?,
+    amount: data['amount'] == null ? null : data['amount'] as double?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$DiscountToSqlite(Discount instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$DiscountToSqlite(
+  Discount instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'name': instance.name,
     'amount': instance.amount,
-    'branch_id': instance.branchId
+    'branch_id': instance.branchId,
   };
 }
 
@@ -69,7 +78,7 @@ class DiscountAdapter extends OfflineFirstWithSupabaseAdapter<Discount> {
     'branchId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'branch_id',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -106,13 +115,18 @@ class DiscountAdapter extends OfflineFirstWithSupabaseAdapter<Discount> {
       columnName: 'branch_id',
       iterable: false,
       type: int,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      Discount instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `Discount` WHERE id = ? LIMIT 1''', [instance.id]);
+    Discount instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `Discount` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -126,27 +140,43 @@ class DiscountAdapter extends OfflineFirstWithSupabaseAdapter<Discount> {
   final String tableName = 'Discount';
 
   @override
-  Future<Discount> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$DiscountFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<Discount> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$DiscountFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(Discount input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$DiscountToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    Discount input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$DiscountToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Discount> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$DiscountFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<Discount> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$DiscountFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(Discount input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$DiscountToSqlite(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSqlite(
+    Discount input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$DiscountToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

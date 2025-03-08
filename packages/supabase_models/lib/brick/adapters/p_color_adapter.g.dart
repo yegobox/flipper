@@ -1,32 +1,38 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<PColor> _$PColorFromSupabase(Map<String, dynamic> data,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<PColor> _$PColorFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return PColor(
-      id: data['id'] as String?,
-      name: data['name'] == null ? null : data['name'] as String?,
-      colors: data['colors'] == null
-          ? null
-          : data['colors']?.toList().cast<String>(),
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      active: data['active'] as bool,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String));
+    id: data['id'] as String?,
+    name: data['name'] == null ? null : data['name'] as String?,
+    colors:
+        data['colors'] == null ? null : data['colors']?.toList().cast<String>(),
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    active: data['active'] as bool,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
+            ? null
+            : DateTime.tryParse(data['deleted_at'] as String),
+  );
 }
 
-Future<Map<String, dynamic>> _$PColorToSupabase(PColor instance,
-    {required SupabaseProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$PColorToSupabase(
+  PColor instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'name': instance.name,
@@ -34,41 +40,47 @@ Future<Map<String, dynamic>> _$PColorToSupabase(PColor instance,
     'branch_id': instance.branchId,
     'active': instance.active,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String()
+    'deleted_at': instance.deletedAt?.toIso8601String(),
   };
 }
 
-Future<PColor> _$PColorFromSqlite(Map<String, dynamic> data,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<PColor> _$PColorFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return PColor(
-      id: data['id'] as String,
-      name: data['name'] == null ? null : data['name'] as String?,
-      branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-      active: data['active'] == 1,
-      lastTouched: data['last_touched'] == null
-          ? null
-          : data['last_touched'] == null
-              ? null
-              : DateTime.tryParse(data['last_touched'] as String),
-      deletedAt: data['deleted_at'] == null
-          ? null
-          : data['deleted_at'] == null
-              ? null
-              : DateTime.tryParse(data['deleted_at'] as String))
-    ..primaryKey = data['_brick_id'] as int;
+    id: data['id'] as String,
+    name: data['name'] == null ? null : data['name'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    active: data['active'] == 1,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
+            ? null
+            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
+            ? null
+            : DateTime.tryParse(data['deleted_at'] as String),
+  )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$PColorToSqlite(PColor instance,
-    {required SqliteProvider provider,
-    OfflineFirstWithSupabaseRepository? repository}) async {
+Future<Map<String, dynamic>> _$PColorToSqlite(
+  PColor instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
   return {
     'id': instance.id,
     'name': instance.name,
     'branch_id': instance.branchId,
     'active': instance.active ? 1 : 0,
     'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String()
+    'deleted_at': instance.deletedAt?.toIso8601String(),
   };
 }
 
@@ -109,7 +121,7 @@ class PColorAdapter extends OfflineFirstWithSupabaseAdapter<PColor> {
     'deletedAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'deleted_at',
-    )
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -158,13 +170,18 @@ class PColorAdapter extends OfflineFirstWithSupabaseAdapter<PColor> {
       columnName: 'deleted_at',
       iterable: false,
       type: DateTime,
-    )
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-      PColor instance, DatabaseExecutor executor) async {
-    final results = await executor.rawQuery('''
-        SELECT * FROM `PColor` WHERE id = ? LIMIT 1''', [instance.id]);
+    PColor instance,
+    DatabaseExecutor executor,
+  ) async {
+    final results = await executor.rawQuery(
+      '''
+        SELECT * FROM `PColor` WHERE id = ? LIMIT 1''',
+      [instance.id],
+    );
 
     // SQFlite returns [{}] when no results are found
     if (results.isEmpty || (results.length == 1 && results.first.isEmpty)) {
@@ -178,26 +195,40 @@ class PColorAdapter extends OfflineFirstWithSupabaseAdapter<PColor> {
   final String tableName = 'PColor';
 
   @override
-  Future<PColor> fromSupabase(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$PColorFromSupabase(input,
-          provider: provider, repository: repository);
+  Future<PColor> fromSupabase(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$PColorFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSupabase(PColor input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$PColorToSupabase(input,
-          provider: provider, repository: repository);
+  Future<Map<String, dynamic>> toSupabase(
+    PColor input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$PColorToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<PColor> fromSqlite(Map<String, dynamic> input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
-      await _$PColorFromSqlite(input,
-          provider: provider, repository: repository);
+  Future<PColor> fromSqlite(
+    Map<String, dynamic> input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async => await _$PColorFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
-  Future<Map<String, dynamic>> toSqlite(PColor input,
-          {required provider,
-          covariant OfflineFirstWithSupabaseRepository? repository}) async =>
+  Future<Map<String, dynamic>> toSqlite(
+    PColor input, {
+    required provider,
+    covariant OfflineFirstWithSupabaseRepository? repository,
+  }) async =>
       await _$PColorToSqlite(input, provider: provider, repository: repository);
 }

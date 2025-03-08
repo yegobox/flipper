@@ -353,7 +353,7 @@ final selectImportItemsProvider = FutureProvider.autoDispose
   final response = await ProxyService.strategy.selectImportItems(
       tin: 999909695,
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
-      lastReqDt: "20210331000000");
+      lastRequestdate: DateTime.now().toYYYYMMddHHmmss());
 
   return response;
 });

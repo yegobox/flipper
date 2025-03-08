@@ -450,7 +450,7 @@ class CoreSync
         transaction.customerId = customerId;
         repository.upsert<ITransaction>(transaction);
       } else {
-        throw Exception('Transaction with ID $transactionId not found');
+        throw Exception('Try to add item to a transaction.');
       }
     } catch (e) {
       print('Failed to assign customer to transaction: $e');
@@ -747,8 +747,9 @@ class CoreSync
       modrId: number,
       pkgUnitCd: pkgUnitCd ?? "BJ",
       regrId: randomNumber().toString().substring(0, 5),
-      itemTyCd:
-          itemTypes?[product?.barCode] ?? "2", // this is a finished product
+      itemTyCd: itemTypes?.containsKey(product?.barCode) == true
+          ? itemTypes![product!.barCode]!
+          : "2", // this is a finished product
       /// available type for itemTyCd are 1 for raw material and 3 for service
       /// is insurance applicable default is not applicable
       isrcAplcbYn: "N",
@@ -785,151 +786,6 @@ class CoreSync
       qtyUnitCd: "U", // see 4.6 in doc
       ebmSynced: ebmSynced,
     );
-  }
-
-  @override
-  Future<Product?> createProduct(
-      {required Product product,
-      required int businessId,
-      required int branchId,
-      required int tinNumber,
-      required String bhFId,
-      Map<String, String>? taxTypes,
-      Map<String, String>? itemClasses,
-      Map<String, String>? itemTypes,
-      String? modrId,
-      String? orgnNatCd,
-      String? exptNatCd,
-      int? pkg,
-      String? pkgUnitCd,
-      String? qtyUnitCd,
-      int? totWt,
-      int? netWt,
-      String? spplrNm,
-      String? agntNm,
-      int? invcFcurAmt,
-      String? invcFcurCd,
-      double? invcFcurExcrt,
-      String? dclNo,
-      String? taskCd,
-      String? dclDe,
-      String? hsCd,
-      String? imptItemsttsCd,
-      String? spplrItemClsCd,
-      String? spplrItemCd,
-      bool skipRegularVariant = false,
-      double qty = 1,
-      double supplyPrice = 0,
-      double retailPrice = 0,
-      int itemSeq = 1,
-      required bool createItemCode,
-      bool ebmSynced = false,
-      String? saleListId,
-      Purchase? purchase,
-      String? pchsSttsCd,
-      double? totAmt,
-      double? taxAmt,
-      double? taxblAmt,
-      String? itemCd}) async {
-    try {
-      final String productName = product.name;
-      if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
-        final Product? existingProduct = await getProduct(
-            name: productName, businessId: businessId, branchId: branchId);
-        if (existingProduct != null) {
-          return existingProduct;
-        }
-      }
-
-      SKU sku = await getSku(branchId: branchId, businessId: businessId);
-
-      sku.consumed = true;
-      await repository.upsert(sku);
-      final createdProduct = await repository.upsert<Product>(product);
-
-      if (!skipRegularVariant) {
-        Variant newVariant = await _createRegularVariant(
-          branchId,
-          tinNumber,
-          orgnNatCd: orgnNatCd,
-          exptNatCd: exptNatCd,
-          pchsSttsCd: pchsSttsCd,
-          pkg: pkg,
-          taxblAmt: taxblAmt,
-          taxAmt: taxAmt,
-          totAmt: totAmt,
-          itemCd: itemCd,
-          createItemCode: createItemCode,
-          taxTypes: taxTypes,
-          saleListId: saleListId,
-          itemClasses: itemClasses,
-          itemTypes: itemTypes,
-          pkgUnitCd: pkgUnitCd,
-          qtyUnitCd: qtyUnitCd,
-          totWt: totWt,
-          netWt: netWt,
-          spplrNm: spplrNm,
-          agntNm: agntNm,
-          invcFcurAmt: invcFcurAmt,
-          invcFcurExcrt: invcFcurExcrt,
-          invcFcurCd: invcFcurCd,
-          qty: qty,
-          dclNo: dclNo,
-          taskCd: taskCd,
-          dclDe: dclDe,
-          hsCd: hsCd,
-          imptItemsttsCd: imptItemsttsCd,
-          product: createdProduct,
-          bhFId: bhFId,
-          supplierPrice: supplyPrice,
-          retailPrice: retailPrice,
-          name: createdProduct.name,
-          sku: sku.sku!,
-          productId: product.id,
-          itemSeq: itemSeq,
-          bcd: product.barCode,
-          ebmSynced: ebmSynced,
-          spplrItemCd: spplrItemCd,
-          spplrItemClsCd: spplrItemClsCd,
-        );
-        talker.info('New variant created: ${newVariant.toJson()}');
-        final Stock stock = Stock(
-            lastTouched: DateTime.now(),
-            rsdQty: qty,
-            initialStock: qty,
-            value: (qty * newVariant.retailPrice!).toDouble(),
-            branchId: branchId,
-            currentStock: qty);
-        final createdStock = await repository.upsert<Stock>(stock);
-        newVariant.stock = createdStock;
-        newVariant.stockId = createdStock.id;
-
-        /// if this was associated with purchase, look for the variant created then associate it with the purchase
-        /// purchase can have a list of variants associated with it.
-        if (purchase != null) {
-          Purchase purch = await repository.upsert<Purchase>(purchase);
-          newVariant.purchaseId = purch.id;
-          newVariant.spplrNm = purch.spplrNm;
-          await repository.upsert<Variant>(newVariant);
-          final activeBranch =
-              await branch(serverId: ProxyService.box.getBranchId()!);
-          await repository.upsert<ImportPurchaseDates>(
-            ImportPurchaseDates(
-              lastRequestDate: DateTime.now().toYYYYMMddHH0000(),
-              branchId: activeBranch!.id,
-              requestType: "PURCHASE",
-              purchaseId: purch.id,
-            ),
-          );
-        } else {
-          await repository.upsert<Variant>(newVariant);
-        }
-      }
-
-      return createdProduct;
-    } catch (e) {
-      rethrow;
-    }
   }
 
   @override
@@ -1733,23 +1589,6 @@ class CoreSync
   }
 
   @override
-  Future<models.Plan?> getPaymentPlan({required int businessId}) async {
-    try {
-      final repository = brick.Repository();
-
-      final query = brick.Query(where: [
-        brick.Where('businessId').isExactly(businessId),
-      ]);
-      final result = await repository.get<models.Plan>(
-          query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
-      return result.firstOrNull;
-    } catch (e) {
-      talker.error(e);
-      rethrow;
-    }
-  }
-
-  @override
   FutureOr<List<TransactionPaymentRecord>> getPaymentType(
       {required String transactionId}) async {
     final query = brick.Query(
@@ -1918,11 +1757,33 @@ class CoreSync
     return (income: sum_cash_in, expense: sum_cash_out);
   }
 
+  bool isTestEnvironment() {
+    return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+  }
+
+  @override
+  Future<models.Plan?> getPaymentPlan({required int businessId}) async {
+    try {
+      final repository = brick.Repository();
+
+      final query = brick.Query(where: [
+        brick.Where('businessId').isExactly(businessId),
+      ]);
+      final result = await repository.get<models.Plan>(
+          query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      return result.firstOrNull;
+    } catch (e) {
+      talker.error(e);
+      rethrow;
+    }
+  }
+
   @override
   Future<bool> hasActiveSubscription({
     required int businessId,
     required HttpClientInterface flipperHttpClient,
   }) async {
+    if (isTestEnvironment()) return true;
     final models.Plan? plan = await getPaymentPlan(businessId: businessId);
 
     if (plan == null) {
@@ -2581,13 +2442,18 @@ class CoreSync
   Future<List<Variant>> selectImportItems({
     required int tin,
     required String bhfId,
-    required String lastReqDt,
+    required String lastRequestdate,
   }) async {
     try {
+      int branchId;
+
+      // Fetch active branch
       final activeBranch =
           await branch(serverId: ProxyService.box.getBranchId()!);
       if (activeBranch == null) throw Exception("Active branch not found");
+      branchId = ProxyService.box.getBranchId()!;
 
+      // Fetch business details
       final business =
           await getBusinessById(businessId: ProxyService.box.getBusinessId()!);
       if (business == null) throw Exception("Business details not found");
@@ -2604,87 +2470,68 @@ class CoreSync
         ),
       );
 
-      // Determine if we should fetch from the API
-      final shouldFetchFromApi = lastRequestRecords.isEmpty ||
-          lastRequestRecords.first.lastRequestDate != lastReqDt;
+      // Determine lastReqDt
+      if (lastRequestRecords.isNotEmpty) {
+        lastRequestdate = lastRequestRecords.first.lastRequestDate!;
+      } else {
+        // Default to today's date if no saved date found
+        lastRequestdate = DateTime.now().toYYYYMMddHHmmss();
+      }
 
       List<Variant> variantsList;
+      RwApiResponse response;
 
-      if (shouldFetchFromApi) {
-        RwApiResponse response;
-        try {
-          // Fetch new data from the API
-          response = await ProxyService.tax.selectImportItems(
-            tin: tin,
-            bhfId: bhfId,
-            lastReqDt: lastReqDt,
-            URI: (await ProxyService.box.getServerUrl() ?? ""),
+      try {
+        // Fetch new data from the API
+        response = await ProxyService.tax.selectImportItems(
+          tin: tin,
+          bhfId: bhfId,
+          lastReqDt: lastRequestdate,
+          URI: (await ProxyService.box.getServerUrl() ?? ""),
+        );
+
+        if (response.data == null || response.data!.itemList == null) {
+          variantsList = await variants(
+            branchId: ProxyService.box.getBranchId()!,
+            imptItemsttsCd: "2",
+            excludeApprovedInWaitingOrCanceledItems: true,
           );
-
-          if (response.data == null || response.data!.itemList == null) {
-            throw Exception(
-                "API returned null data or item list"); // More informative error
-          }
           print(
-              "API returned ${response.data!.itemList!.length} items"); // Log the number of items from the API
-        } catch (apiError) {
-          // Handle API errors gracefully.  Attempt to use the last known date if possible.
-          print("API Error: $apiError");
-          if (lastRequestRecords.isNotEmpty) {
-            print("Attempting to use last known request date...");
-            try {
-              response = await ProxyService.tax.selectImportItems(
-                tin: tin,
-                bhfId: bhfId,
-                lastReqDt: lastRequestRecords.first.lastRequestDate!,
-                URI: (await ProxyService.box.getServerUrl() ?? ""),
-              );
-              if (response.data == null || response.data!.itemList == null) {
-                throw Exception(
-                    "API returned null data or item list even with the old lastReqDt"); // More informative error
-              }
-            } catch (retryError) {
-              print("Retry with last known date failed: $retryError");
-              rethrow; // If retry fails, propagate the exception
-            }
-          } else {
-            rethrow; // If no last request date, propagate the original API error.
-          }
+              "Total variants found: ${variantsList.length}"); // Log total variants
+          return variantsList;
         }
+      } catch (apiError) {
+        rethrow; // If API call fails for any reason, propagate the exception.
+      }
 
+      // Save the last request date AND Process Items only if the API request was successful
+      if (response.data!.itemList!.isNotEmpty) {
         // Save the last request date
-        if (response.data!.itemList!.isNotEmpty) {
+        try {
           await repository.upsert<ImportPurchaseDates>(
-            ImportPurchaseDates(
-              lastRequestDate: DateTime.now().toYYYYMMddHH0000(),
-              branchId: activeBranch.id,
-              requestType: "IMPORT",
-            ),
-          );
-        }
+              ImportPurchaseDates(
+                lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
+                branchId: activeBranch.id,
+                requestType: "IMPORT",
+              ),
+              query: brick.Query(
+                where: [
+                  brick.Where('branchId').isExactly(branchId),
+                ],
+              ));
+        } catch (saveError) {}
 
-        // Save each imported item into the system
-        int itemsInserted = 0; // Counter to track inserted items
         for (final item in response.data!.itemList!) {
           print("Processing item with taskCd: ${item.taskCd}"); // Log taskCd
-          Variant? variantExist = await getVariant(taskCd: item.taskCd);
-
-          if (variantExist != null) {
-            print(
-                "Variant with taskCd ${item.taskCd} already exists. Skipping.");
-            continue; // Skip saving if variant exists
-          }
 
           if (item.imptItemSttsCd!.isNotEmpty) {
             print("Saving variant with taskCd: ${item.taskCd}");
             await saveVariant(item, business, activeBranch.serverId!);
-            itemsInserted++;
           } else {
             print(
                 "Item with taskCd ${item.taskCd} has empty imptItemSttsCd. Skipping.");
           }
         }
-        print("Inserted $itemsInserted items from API.");
       }
 
       // Return the newly imported variants OR existing variants if no API call was made
@@ -2693,8 +2540,7 @@ class CoreSync
         imptItemsttsCd: "2",
         excludeApprovedInWaitingOrCanceledItems: true,
       );
-      print(
-          "Total variants found: ${variantsList.length}"); // Log total variants
+
       return variantsList;
     } catch (e, stackTrace) {
       print("Error in selectImportItems: $e\n$stackTrace");
@@ -3298,7 +3144,8 @@ class CoreSync
   }
 
   @override
-  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) async {
+  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName,
+      {required String transactionId}) async {
     try {
       int branchId = ProxyService.box.getBranchId()!;
       final filePath = 'public/invoices-${branchId}/$fileName.pdf';
@@ -3316,6 +3163,13 @@ class CoreSync
             },
           )
           .result;
+      // update thi transacton
+      ITransaction? transaction =
+          await _getTransaction(transactionId: transactionId);
+      if (transaction != null) {
+        transaction.receiptFileName = fileName + ".pdf";
+        await repository.upsert(transaction);
+      }
       return result.uploadedItem.path;
     } catch (e) {
       talker.error("Error uploading file to S3: $e");
@@ -3361,7 +3215,8 @@ class CoreSync
               items.fold(0, (num a, b) => a + (b.price * b.qty));
           subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
-          await _updateStockAndItems(items: items, branchId: branchId);
+          /// I intentionally removed await on _updateStockAndItems to speed up clearing cart.
+          _updateStockAndItems(items: items, branchId: branchId);
         }
         _updateTransactionDetails(
           transaction: transaction,
@@ -3377,6 +3232,9 @@ class CoreSync
 
         // Save transaction
         transaction.status = COMPLETE;
+        // TODO: if transactin has customerId use the customer.phone number instead.
+        transaction.currentSaleCustomerPhoneNumber =
+            "250" + (ProxyService.box.currentSaleCustomerPhoneNumber() ?? "");
         await repository.upsert(transaction);
 
         // Handle receipt if required
@@ -3439,7 +3297,7 @@ class CoreSync
     required int branchId,
   }) async {
     try {
-      final pendingTransaction = await _createAdjustmentTransaction();
+      final adjustmentTransaction = await _createAdjustmentTransaction();
       final business = await ProxyService.strategy.getBusiness();
       final serverUrl = await ProxyService.box.getServerUrl();
 
@@ -3448,7 +3306,7 @@ class CoreSync
         return; // Early exit if crucial data is missing
       }
 
-      if (pendingTransaction == null) {
+      if (adjustmentTransaction == null) {
         talker.warning("Failed to create adjustment transaction. Aborting.");
         return;
       }
@@ -3456,13 +3314,13 @@ class CoreSync
         await _processTransactionItems(
           items: items,
           branchId: branchId,
-          pendingTransaction: pendingTransaction,
+          adjustmentTransaction: adjustmentTransaction,
           business: business,
           serverUrl: serverUrl,
         );
 
         // Assuming completeTransaction is defined in the same scope.
-        await completeTransaction(pendingTransaction: pendingTransaction);
+        await completeTransaction(pendingTransaction: adjustmentTransaction);
       }
     } catch (e, s) {
       talker.error(s);
@@ -3487,7 +3345,7 @@ class CoreSync
   Future<void> _processTransactionItems({
     required List<TransactionItem> items,
     required int branchId,
-    required ITransaction pendingTransaction,
+    required ITransaction adjustmentTransaction,
     required Business business,
     required String serverUrl,
   }) async {
@@ -3495,7 +3353,7 @@ class CoreSync
       await _processSingleTransactionItem(
         item: item,
         branchId: branchId,
-        pendingTransaction: pendingTransaction,
+        adjustmentTransaction: adjustmentTransaction,
         business: business,
         serverUrl: serverUrl,
       );
@@ -3505,7 +3363,7 @@ class CoreSync
   Future<void> _processSingleTransactionItem({
     required TransactionItem item,
     required int branchId,
-    required ITransaction pendingTransaction,
+    required ITransaction adjustmentTransaction,
     required Business business,
     required String serverUrl,
   }) async {
@@ -3513,11 +3371,12 @@ class CoreSync
       repository.delete(item);
       return;
     }
-
+    String stockInOutType = ProxyService.box.stockInOutType();
     await _updateStockForItem(item: item, branchId: branchId);
 
     final variant = await ProxyService.strategy.getVariant(id: item.variantId);
     // Setting the quantity here, after the stock patch is crucial for accuracy.
+
     variant?.qty = item.qty;
     if (variant != null) {
       await _updateVariantAndPatchStock(
@@ -3529,12 +3388,21 @@ class CoreSync
       // Assuming assignTransaction and randomNumber are defined in the same scope.
       await assignTransaction(
         variant: variant,
-        pendingTransaction: pendingTransaction,
+        pendingTransaction: adjustmentTransaction,
         business: business,
         randomNumber: randomNumber(),
 
+        /// this item we are passing is the item from existing transaction
+        /// and since we are now using another type of transaction adjustment transaction
+        /// then we pass the same item so we can use same qty.
+        item: item,
+
+        /// usualy the flag useTransactionItemForQty is needed when we are dealing with adjustment
+        /// transaction i.e not original transaction
+        useTransactionItemForQty: true,
+
         /// 11 is for sale
-        sarTyCd: "11",
+        sarTyCd: stockInOutType,
       );
     }
 
@@ -3552,8 +3420,9 @@ class CoreSync
     variant.ebmSynced = false;
     await ProxyService.strategy.updateVariant(updatables: [variant]);
 
-    StockPatch.patchStock(
+    VariantPatch.patchVariant(
       URI: serverUrl,
+      identifier: variant.id,
       sendPort: (message) {
         ProxyService.notification.sendLocalNotification(body: message);
       },
@@ -3567,7 +3436,7 @@ class CoreSync
     try {
       final variant = await getVariant(id: item.variantId!);
 
-      final finalStock = (variant!.stock!.currentStock! - item.qty);
+      final finalStock = ((variant!.stock?.currentStock ?? 0) - item.qty);
 
       final stockValue = finalStock * (variant.retailPrice ?? 0);
 
@@ -4040,8 +3909,7 @@ class CoreSync
           brick.Where('branchId').isExactly(branchId)
         ] else ...[
           brick.Where('branchId').isExactly(branchId),
-          if (!excludeApprovedInWaitingOrCanceledItems)
-            brick.Where('retailPrice').isGreaterThan(0),
+
           brick.Where('name').isNot(TEMP_PRODUCT),
           brick.Where('productName').isNot(CUSTOM_PRODUCT),
           // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
@@ -4092,7 +3960,7 @@ class CoreSync
   }
 
   @override
-  Future<models.TransactionItem?> getTransactionItemByVariantId(
+  Future<models.TransactionItem?> getTransactionItem(
       {required String variantId, String? transactionId}) async {
     return (await repository.get<TransactionItem>(
             policy: OfflineFirstGetPolicy.localOnly,
@@ -4101,6 +3969,17 @@ class CoreSync
                   value: variantId, compare: brick.Compare.exact),
               if (transactionId != null)
                 brick.Where('transactionId',
+                    value: transactionId, compare: brick.Compare.exact),
+            ])))
+        .firstOrNull;
+  }
+
+  Future<ITransaction?> _getTransaction({String? transactionId}) async {
+    return (await repository.get<ITransaction>(
+            policy: OfflineFirstGetPolicy.localOnly,
+            query: brick.Query(where: [
+              if (transactionId != null)
+                brick.Where('id',
                     value: transactionId, compare: brick.Compare.exact),
             ])))
         .firstOrNull;
@@ -4731,7 +4610,10 @@ class CoreSync
       updatables[i].ebmSynced = false;
       updatables[i].retailPrice =
           newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
-      updatables[i].itemTyCd = selectedProductType;
+      if (selectedProductType != null) {
+        updatables[i].itemTyCd = selectedProductType;
+      }
+
       updatables[i].dcRt = rate;
       updatables[i].expirationDate = dates?[updatables[i].id] == null
           ? null
@@ -5652,11 +5534,146 @@ class CoreSync
   }
 
   @override
+  Future<Product?> createProduct(
+      {required Product product,
+      required int businessId,
+      required int branchId,
+      required int tinNumber,
+      required String bhFId,
+      Map<String, String>? taxTypes,
+      Map<String, String>? itemClasses,
+      Map<String, String>? itemTypes,
+      String? modrId,
+      String? orgnNatCd,
+      String? exptNatCd,
+      int? pkg,
+      String? pkgUnitCd,
+      String? qtyUnitCd,
+      int? totWt,
+      int? netWt,
+      String? spplrNm,
+      String? agntNm,
+      int? invcFcurAmt,
+      String? invcFcurCd,
+      double? invcFcurExcrt,
+      String? dclNo,
+      String? taskCd,
+      String? dclDe,
+      String? hsCd,
+      String? imptItemsttsCd,
+      String? spplrItemClsCd,
+      String? spplrItemCd,
+      bool skipRegularVariant = false,
+      double qty = 1,
+      double supplyPrice = 0,
+      double retailPrice = 0,
+      int itemSeq = 1,
+      required bool createItemCode,
+      bool ebmSynced = false,
+      String? saleListId,
+      Purchase? purchase,
+      String? pchsSttsCd,
+      double? totAmt,
+      double? taxAmt,
+      double? taxblAmt,
+      String? itemCd}) async {
+    try {
+      final String productName = product.name;
+      if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
+        final Product? existingProduct = await getProduct(
+            name: productName, businessId: businessId, branchId: branchId);
+        if (existingProduct != null) {
+          return existingProduct;
+        }
+      }
+
+      SKU sku = await getSku(branchId: branchId, businessId: businessId);
+
+      sku.consumed = true;
+      await repository.upsert(sku);
+      final createdProduct = await repository.upsert<Product>(product);
+
+      if (!skipRegularVariant) {
+        Variant newVariant = await _createRegularVariant(
+          branchId,
+          tinNumber,
+          orgnNatCd: orgnNatCd,
+          exptNatCd: exptNatCd,
+          pchsSttsCd: pchsSttsCd,
+          pkg: pkg,
+          taxblAmt: taxblAmt,
+          taxAmt: taxAmt,
+          totAmt: totAmt,
+          itemCd: itemCd,
+          createItemCode: createItemCode,
+          taxTypes: taxTypes,
+          saleListId: saleListId,
+          itemClasses: itemClasses,
+          itemTypes: itemTypes,
+          pkgUnitCd: pkgUnitCd,
+          qtyUnitCd: qtyUnitCd,
+          totWt: totWt,
+          netWt: netWt,
+          spplrNm: spplrNm,
+          agntNm: agntNm,
+          invcFcurAmt: invcFcurAmt,
+          invcFcurExcrt: invcFcurExcrt,
+          invcFcurCd: invcFcurCd,
+          qty: qty,
+          dclNo: dclNo,
+          taskCd: taskCd,
+          dclDe: dclDe,
+          hsCd: hsCd,
+          imptItemsttsCd: imptItemsttsCd,
+          product: createdProduct,
+          bhFId: bhFId,
+          supplierPrice: supplyPrice,
+          retailPrice: retailPrice,
+          name: createdProduct.name,
+          sku: sku.sku!,
+          productId: product.id,
+          itemSeq: itemSeq,
+          bcd: product.barCode,
+          ebmSynced: ebmSynced,
+          spplrItemCd: spplrItemCd,
+          spplrItemClsCd: spplrItemClsCd,
+        );
+        talker.info('New variant created: ${newVariant.toJson()}');
+        final Stock stock = Stock(
+            lastTouched: DateTime.now(),
+            rsdQty: qty,
+            initialStock: qty,
+            value: (qty * newVariant.retailPrice!).toDouble(),
+            branchId: branchId,
+            currentStock: qty);
+        final createdStock = await repository.upsert<Stock>(stock);
+        newVariant.stock = createdStock;
+        newVariant.stockId = createdStock.id;
+
+        /// if this was associated with purchase, look for the variant created then associate it with the purchase
+        /// purchase can have a list of variants associated with it.
+        if (purchase != null) {
+          Purchase purch = await repository.upsert<Purchase>(purchase);
+          newVariant.purchaseId = purch.id;
+          newVariant.spplrNm = purch.spplrNm;
+          await repository.upsert<Variant>(newVariant);
+        } else {
+          await repository.upsert<Variant>(newVariant);
+        }
+      }
+
+      return createdProduct;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
   Future<List<Variant>> selectPurchases({
     required String bhfId,
     required int tin,
-    required String lastReqDt,
     required String url,
+    required String lastRequestdate,
   }) async {
     try {
       // Fetch active branch
@@ -5670,7 +5687,7 @@ class CoreSync
       if (business == null) throw Exception("Business details not found");
 
       final businessId = ProxyService.box.getBusinessId()!;
-      int branchId = ProxyService.box.getBranchId()!;
+
       final tinNumber = business.tinNumber!;
 
       // Fetch last request date for purchases
@@ -5679,134 +5696,134 @@ class CoreSync
         query: brick.Query(
           orderBy: [const OrderBy('lastRequestDate', ascending: false)],
           where: [
-            brick.Where('branchId').isExactly(branchId),
+            brick.Where('branchId').isExactly(activeBranch.id),
             brick.Where('requestType').isExactly("PURCHASE"),
           ],
         ),
       );
 
-      // Determine if API fetch is needed
-      final shouldFetchFromApi = lastRequestRecords.isEmpty ||
-          lastRequestRecords.first.lastRequestDate != lastReqDt;
+      // Determine lastReqDt
+      if (lastRequestRecords.isNotEmpty) {
+        lastRequestdate = lastRequestRecords.first.lastRequestDate!;
+      } else {
+        // Default to today's date if no saved date found
+        lastRequestdate = DateTime.now().toYYYYMMddHHmmss();
+      }
 
       List<Variant> variantsList;
 
-      if (shouldFetchFromApi) {
-        List<Purchase> saleList;
-        try {
-          saleList = await ProxyService.tax.selectTrnsPurchaseSales(
-            URI: url,
-            tin: tin,
-            bhfId: (await ProxyService.box.bhfId()) ?? "00",
-            lastReqDt: lastReqDt,
+      List<Purchase> saleList;
+      int branchId = ProxyService.box.getBranchId()!;
+
+      try {
+        saleList = await ProxyService.tax.selectTrnsPurchaseSales(
+          URI: url,
+          tin: tin,
+          bhfId: (await ProxyService.box.bhfId()) ?? "00",
+          lastReqDt: lastRequestdate,
+        );
+
+        if (saleList.isEmpty) {
+          variantsList = await variants(
+            branchId: branchId,
+            excludeApprovedInWaitingOrCanceledItems: true,
           );
-
-          if (saleList.isEmpty) {
-            throw Exception("API returned null or empty data.");
-          }
-        } catch (apiError) {
-          print("API Error: $apiError");
-          if (lastRequestRecords.isNotEmpty) {
-            print("Retrying with last known request date...");
-            try {
-              saleList = await ProxyService.tax.selectTrnsPurchaseSales(
-                URI: url,
-                tin: tin,
-                bhfId: bhfId,
-                lastReqDt: lastRequestRecords.first.lastRequestDate!,
-              );
-              if (saleList.isEmpty) {
-                throw Exception(
-                    "API returned null or empty data even with the last known request date.");
-              }
-            } catch (retryError) {
-              print("Retry failed: $retryError");
-              // Instead of rethrowing, log and proceed with existing variants or an empty list.
-              saleList =
-                  []; // Treat the retry failure as an empty result.  Important!
-            }
-          } else {
-            // If no last request record, treat it as no data and proceed.
-            saleList = []; // Proceed as if the API returned no data. Important!
-          }
+          return variantsList;
         }
-
-        // Process purchases
-        if (saleList.isNotEmpty) {
-          // Only process if there's data
-          List<Future<void>> futures = []; // Explicitly typed for clarity
-          for (final purchase in saleList) {
-            if (purchase.variants != null) {
-              // Check if variants is null. Protect from null exception
-              for (final variant in purchase.variants!) {
-                // Using non-null assertion operator safely because of previous null check
-                futures.add(() async {
-                  // Wrap in an explicit `async` function for safety.
-                  try {
-                    final barCode = variant.bcd?.isNotEmpty == true
-                        ? variant.bcd!
-                        : randomNumber().toString();
-                    // before creating check if this exist
-                    Variant? variantExist = await getVariant(
-                        itemCd: variant.itemCd,
-                        itemClsCd: variant.itemClsCd,
-                        itemNm: variant.itemNm);
-                    if (variantExist == null) {
-                      talker.warning("How ofthen we are in this branch");
-                      await createProduct(
-                        saleListId: purchase.id,
-                        businessId: businessId,
-                        branchId: branchId,
-                        pkgUnitCd: variant.pkgUnitCd,
-                        qty: variant.qty ?? 1,
-                        tinNumber: tinNumber,
-                        taxblAmt: variant.taxblAmt,
-                        bhFId: bhfId,
-                        itemCd: variant.itemCd,
-                        spplrItemCd: variant.itemCd,
-                        itemClasses: {barCode: variant.itemClsCd ?? ""},
-                        supplyPrice: variant.splyAmt!,
-                        retailPrice: variant.prc!,
-                        // ebmSynced: true,
-                        purchase: purchase,
-                        createItemCode: variant.itemCd?.isEmpty == true,
-                        taxTypes: {barCode: variant.taxTyCd!},
-                        totAmt: variant.totAmt,
-                        taxAmt: variant.taxAmt,
-                        pchsSttsCd: "01",
-                        product: Product(
-                          color: randomizeColor(),
-                          name: variant.itemNm ?? variant.name,
-                          lastTouched: DateTime.now(),
-                          branchId: branchId,
-                          businessId: businessId,
-                          createdAt: DateTime.now(),
-                          spplrNm: purchase.spplrNm,
-                          barCode: barCode,
-                        ),
-                      );
-                    }
-                  } catch (variantError, variantStackTrace) {
-                    print(
-                        "Error processing variant: $variantError\n$variantStackTrace");
-                    talker.error("Error processing variant", variantError,
-                        variantStackTrace);
-                    // Handle the error.  Perhaps log it or increment an error counter.
-                    //Critically:  Do NOT rethrow here. You want to continue processing other variants.
-                  }
-                }());
-              }
-            }
-          }
-          // Await all variant processing, even if some failed.
-          await Future.wait(futures);
-        }
-      } else {
-        print("Skipping API call. Using cached data.");
-        // If you skipped the API, you might want to log this.
+      } catch (apiError) {
+        rethrow;
       }
 
-      // Fetch updated variants
+      // Process purchases
+      if (saleList.isNotEmpty) {
+        // Only process if there's data
+        List<Future<void>> futures = []; // Explicitly typed for clarity
+        for (final purchase in saleList) {
+          if (purchase.variants != null) {
+            // Check if variants is null. Protect from null exception
+            for (final variant in purchase.variants!) {
+              // Using non-null assertion operator safely because of previous null check
+              futures.add(() async {
+                // Wrap in an explicit `async` function for safety.
+                try {
+                  final barCode = variant.bcd?.isNotEmpty == true
+                      ? variant.bcd!
+                      : randomNumber().toString();
+
+                  talker.warning("How ofthen we are in this branch");
+                  await createProduct(
+                    saleListId: purchase.id,
+                    businessId: businessId,
+                    branchId: branchId,
+                    pkgUnitCd: variant.pkgUnitCd,
+                    qty: variant.qty ?? 1,
+                    tinNumber: tinNumber,
+                    taxblAmt: variant.taxblAmt,
+                    bhFId: (await ProxyService.box.bhfId()) ?? "00",
+                    itemCd: variant.itemCd,
+                    spplrItemCd: variant.itemCd,
+                    itemClasses: {barCode: variant.itemClsCd ?? ""},
+                    supplyPrice: variant.splyAmt!,
+                    retailPrice: variant.prc!,
+                    purchase: purchase,
+                    ebmSynced: false,
+                    createItemCode: variant.itemCd?.isEmpty == true,
+                    taxTypes: {barCode: variant.taxTyCd!},
+                    totAmt: variant.totAmt,
+                    taxAmt: variant.taxAmt,
+                    pchsSttsCd: "01",
+                    product: Product(
+                      color: randomizeColor(),
+                      name: variant.itemNm ?? variant.name,
+                      lastTouched: DateTime.now(),
+                      branchId: branchId,
+                      businessId: businessId,
+                      createdAt: DateTime.now(),
+                      spplrNm: purchase.spplrNm,
+                      barCode: barCode,
+                    ),
+                  );
+                } catch (variantError, variantStackTrace) {
+                  print(
+                      "Error processing variant: $variantError\n$variantStackTrace");
+                  talker.error("Error processing variant", variantError,
+                      variantStackTrace);
+                  // Handle the error.  Perhaps log it or increment an error counter.
+                  //Critically:  Do NOT rethrow here. You want to continue processing other variants.
+                }
+              }());
+            }
+          }
+        }
+        // Await all variant processing, even if some failed.
+        await Future.wait(futures);
+
+        // Save the actual request time *after* successful processing
+        try {
+          final newImportDate = ImportPurchaseDates(
+            branchId: activeBranch.id,
+            requestType: "PURCHASE",
+            lastRequestDate:
+                DateTime.now().toYYYYMMddHHmmss(), // Use actual time
+          );
+
+          await repository.upsert<ImportPurchaseDates>(
+            newImportDate,
+            query: brick.Query(
+              where: [
+                brick.Where('branchId').isExactly(activeBranch.id),
+                brick.Where('requestType').isExactly("PURCHASE"),
+              ],
+            ),
+          ); // Upsert ensures either creates or updates
+        } catch (saveError, saveStackTrace) {
+          print(
+              "Error saving ImportPurchaseDates: $saveError\n$saveStackTrace");
+          talker.error(
+              "Error saving ImportPurchaseDates", saveError, saveStackTrace);
+        }
+      }
+
       variantsList = await variants(
         branchId: branchId,
         excludeApprovedInWaitingOrCanceledItems: true,
