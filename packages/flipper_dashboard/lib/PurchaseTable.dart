@@ -69,41 +69,37 @@ class _DataRowWidgetState extends ConsumerState<PurchaseTable> {
     final variantProviders =
         ref.watch(variantProvider(branchId: ProxyService.box.getBranchId()!));
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        width: double.infinity,
-        child: widget.finalSalesList.isEmpty
-            ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'No Data Available',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                    ),
+    return Container(
+      width: double.infinity,
+      child: widget.finalSalesList.isEmpty
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.hourglass_empty, size: 48, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'No Data Found',
+                    style: TextStyle(color: Colors.grey, fontSize: 18),
                   ),
-                ),
-              )
-            : SfDataGrid(
-                source: _dataSource,
-                columns: _buildColumns(),
-                columnWidthMode: ColumnWidthMode.fill,
-                headerRowHeight: 56.0,
-                rowHeight: 48.0,
-                selectionMode: SelectionMode.single,
-                onCellTap: (DataGridCellTapDetails details) {
-                  if (details.rowColumnIndex.rowIndex > 0) {
-                    final item = widget
-                        .finalSalesList[details.rowColumnIndex.rowIndex - 1];
-                    _showEditDialog(context, item, variants: variantProviders);
-                  }
-                },
+                ],
               ),
-      ),
+            )
+          : SfDataGrid(
+              source: _dataSource,
+              columns: _buildColumns(),
+              columnWidthMode: ColumnWidthMode.fill,
+              headerRowHeight: 56.0,
+              rowHeight: 48.0,
+              selectionMode: SelectionMode.single,
+              onCellTap: (DataGridCellTapDetails details) {
+                if (details.rowColumnIndex.rowIndex > 0) {
+                  final item = widget
+                      .finalSalesList[details.rowColumnIndex.rowIndex - 1];
+                  _showEditDialog(context, item, variants: variantProviders);
+                }
+              },
+            ),
     );
   }
 

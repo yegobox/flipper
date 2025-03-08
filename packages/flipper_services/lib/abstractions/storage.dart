@@ -72,4 +72,5 @@ abstract class LocalStorage {
   int? numberOfPayments();
   bool exportAsPdf();
   bool transactionInProgress();
+  String stockInOutType();
 }

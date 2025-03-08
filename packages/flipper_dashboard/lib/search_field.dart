@@ -120,7 +120,8 @@ class SearchFieldState extends ConsumerState<SearchField>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   toggleSearch(),
-                  calc(model: model),
+                  if (deviceType == 'Phone' || deviceType == 'Phablet')
+                    calc(model: model),
                   //if (deviceType != 'Phone' && deviceType != 'Phablet')
                   orders.when(
                     data: (orders) => widget.showOrderButton

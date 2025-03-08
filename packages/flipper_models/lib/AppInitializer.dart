@@ -64,7 +64,15 @@ class AppInitializer {
     ProxyService.status.updateStatusColor();
   }
 
+  bool isTestEnvironment() {
+    return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+  }
+
   static void _listenForNotificationTaps() {
+    final isTest = const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+    if (isTest) {
+      return;
+    }
     ProxyService.messaging.listenTapOnNotificationForeground();
   }
 

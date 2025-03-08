@@ -1,0 +1,16 @@
+android_sdk_config:
+  add_gradle_deps: true
+
+output:
+  dart:
+    path: lib/android_utils.dart
+    structure: single_file
+
+source_path:
+  - 'android/app/src/main/java'
+classes:
+  - 'android.os.Build' # from gradle's compile classpath
+  - 'java.util.HashMap' # from gradle's compile classpath
+exclude:
+  fields:
+    - 'android.os.Build\$VERSION_CODES#UPSIDE_DOWN_CAKE'

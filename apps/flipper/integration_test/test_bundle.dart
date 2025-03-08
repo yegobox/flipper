@@ -9,13 +9,14 @@ import 'package:patrol/src/native/contracts/contracts.dart';
 import 'package:test_api/src/backend/invoker.dart';
 
 // START: GENERATED TEST IMPORTS
+import 'smoke_android_test.dart' as smoke_android_test;
 import 'smoke_windows_test.dart' as smoke_windows_test;
 // END: GENERATED TEST IMPORTS
 
 Future<void> main() async {
   // This is the entrypoint of the bundled Dart test.
   //
-  // Its responsibilies are:
+  // Its responsibilities are:
   //  * Running a special Dart test that runs before all the other tests and
   //    explores the hierarchy of groups and tests.
   //  * Hosting a PatrolAppService, which the native side of Patrol uses to get
@@ -69,6 +70,7 @@ Future<void> main() async {
   });
 
   // START: GENERATED TEST GROUPS
+  group('smoke_android_test', smoke_android_test.main);
   group('smoke_windows_test', smoke_windows_test.main);
   // END: GENERATED TEST GROUPS
 

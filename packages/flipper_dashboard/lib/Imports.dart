@@ -101,29 +101,9 @@ class ImportsState extends ConsumerState<Imports> {
           child: FutureBuilder<List<Variant>>(
             future: widget.futureResponse,
             builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.error_outline,
-                          size: 48, color: Colors.red),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Error: ${snapshot.error}',
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () => setState(() {}),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              if (!snapshot.hasData ||
+              // Modify error handling to show generic "No Data Found" view
+              if (snapshot.hasError ||
+                  !snapshot.hasData ||
                   snapshot.data == null ||
                   snapshot.data!.isEmpty) {
                 return const Center(
@@ -133,7 +113,7 @@ class ImportsState extends ConsumerState<Imports> {
                       Icon(Icons.hourglass_empty, size: 48, color: Colors.grey),
                       SizedBox(height: 16),
                       Text(
-                        'No Data Found',
+                        'No Data Found or Network error please try again.',
                         style: TextStyle(color: Colors.grey, fontSize: 18),
                       ),
                     ],
@@ -145,9 +125,7 @@ class ImportsState extends ConsumerState<Imports> {
               widget.finalItemList
                 ..clear()
                 ..addAll(itemList);
-
               _variantDataSource = VariantDataSource(itemList, this);
-
               return SizedBox(
                 width: constraints.maxWidth,
                 child: Form(

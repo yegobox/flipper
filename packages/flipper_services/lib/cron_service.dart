@@ -93,12 +93,7 @@ class CronService {
             ProxyService.notification.sendLocalNotification(body: message);
           },
         );
-        StockPatch.patchStock(
-          URI: URI,
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
-          },
-        );
+
         await PatchTransactionItem.patchTransactionItem(
           tinNumber: tinNumber,
           bhfId: bhfId,
@@ -129,7 +124,7 @@ class CronService {
     ProxyService.strategy
         .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
     if (results.any((result) => result != ConnectivityResult.none)) {
-      if (FirebaseAuth.instance.currentUser == null) {
+      if (!isTestEnvironment() && FirebaseAuth.instance.currentUser == null) {
         await ProxyService.strategy.firebaseLogin();
       }
       talker.warning("Done checking connectivity: $doneInitializingDataPull");
@@ -157,6 +152,10 @@ class CronService {
     talker.warning("Done cleaning up variants");
   }
 
+  bool isTestEnvironment() {
+    return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+  }
+
   static String camelToSnakeCase(String input) {
     return input.replaceAllMapped(
       RegExp(r'([A-Z])'),
@@ -171,7 +170,7 @@ class CronService {
     if (!Platform.isWindows && !isMacOs && !isIos && business != null) {
       token = await FirebaseMessaging.instance.getToken();
 
-      business?.deviceToken = token.toString();
+      business.deviceToken = token.toString();
     }
   }
 

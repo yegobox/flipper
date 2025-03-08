@@ -27,8 +27,7 @@ class _StartUpViewState extends State<StartUpView> {
         // Invalidate all providers before starting the app
         invalidateAllProviders(container, allProviders);
         SchedulerBinding.instance.addPostFrameCallback((timeStamp) async {
-          await viewModel.runStartupLogic(
-              refreshCredentials: widget.invokeLogin ?? false);
+          await viewModel.runStartupLogic();
         });
       },
       builder: (context, model, child) {

@@ -281,10 +281,17 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
         .toString();
 
     try {
-      if (variation.tin == null ||
-          variation.itemTyCd == null ||
-          variation.itemTyCd?.isEmpty == true) {
-        return RwApiResponse(resultCd: "000", resultMsg: "Invalid Data");
+      if (variation.tin == null) {
+        return RwApiResponse(
+            resultCd: "001", resultMsg: "Invalid Tin Number ${variation.name}");
+      }
+      if (variation.itemTyCd == null) {
+        return RwApiResponse(
+            resultCd: "001", resultMsg: "itemTyCd is null ${variation.name}");
+      }
+      if (variation.itemTyCd?.isEmpty == true) {
+        return RwApiResponse(
+            resultCd: "001", resultMsg: "Empty itemTyCd ${variation.name}");
       }
 
       /// first remove fields for imports
@@ -390,8 +397,9 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
     List<Map<String, dynamic>> itemsList = await Future.wait(itemsFutures);
 
     // Calculate total for non-tax-exempt items
-    double totalTaxable =
-        items.where((item) => item.taxTyCd != "D").fold(0.0, (sum, item) {
+    //NOTE: before I was excluding tax of type D but in recent test it is no longer wokring
+    // I removed where((item) => item.taxTyCd != "D") from bellow line
+    double totalTaxable = items.fold(0.0, (sum, item) {
       double discountedPrice = item.dcRt != 0
           ? item.price *
               item.qty *

@@ -52,14 +52,17 @@ class _PurchasesState extends ConsumerState<Purchases> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  FlipperButton(
-                    onPressed: () {
-                      widget.acceptPurchases(
-                          variants: widget.finalSalesList, pchsSttsCd: '02');
-                    },
-                    text: 'Accept All Purchases',
-                    textColor: Colors.black,
-                  ),
+                  widget.finalSalesList.isEmpty
+                      ? const SizedBox.shrink()
+                      : FlipperButton(
+                          onPressed: () {
+                            widget.acceptPurchases(
+                                variants: widget.finalSalesList,
+                                pchsSttsCd: '02');
+                          },
+                          text: 'Accept All Purchases',
+                          textColor: Colors.black,
+                        ),
                 ],
               ),
             ),

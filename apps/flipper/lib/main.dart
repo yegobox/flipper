@@ -15,10 +15,15 @@ import 'package:sizer/sizer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 
+// Flag to control dependency initialization in tests
+bool skipDependencyInitialization = false;
+
 // net info: billers
 //1.1.14
 Future<void> main() async {
-  await initializeDependencies();
+  if (!skipDependencyInitialization) {
+    await initializeDependencies();
+  }
   await SentryFlutter.init(
     (options) => options
       ..dsn = kDebugMode ? AppSecrets.sentryKeyDev : AppSecrets.sentryKey

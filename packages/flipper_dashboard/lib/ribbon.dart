@@ -166,20 +166,10 @@ class IconRowState extends ConsumerState<IconRow>
     }
     if (index == 3) {
       showDialog(
-        barrierDismissible: true,
         context: context,
-        builder: (_) => Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-          ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 700),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ReportsDashboard(),
-            ),
-          ),
-        ),
+        builder: (BuildContext context) {
+          return const ReportsDashboardDialogWrapper();
+        },
       );
     } else if (index == 2) {
       final data = await ProxyService.strategy

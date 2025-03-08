@@ -3,7 +3,6 @@ import 'package:flipper_models/CoreSync.dart';
 import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/MockHttpClient.dart';
 import 'package:flipper_models/RealmInterface.dart';
@@ -217,12 +216,16 @@ abstract class ServicesModule {
     return review;
   }
 
+  bool isTestEnvironment() {
+    return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+  }
+
   @LazySingleton()
   Messaging get messaging {
     Messaging messaging;
     if (UniversalPlatform.isAndroid ||
         UniversalPlatform.isIOS ||
-        UniversalPlatform.isMacOS) {
+        UniversalPlatform.isMacOS && !isTestEnvironment()) {
       messaging = FirebaseMessagingService();
     } else {
       messaging = FirebaseMessagingDesktop();

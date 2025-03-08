@@ -327,7 +327,12 @@ class SharedPreferenceStorageMock implements LocalStorage {
 
   @override
   bool transactionInProgress() {
-    // TODO: implement transactionInProgress
+    return false;
+  }
+
+  @override
+  String stockInOutType() {
+    // TODO: implement stockInOutType
     throw UnimplementedError();
   }
 }

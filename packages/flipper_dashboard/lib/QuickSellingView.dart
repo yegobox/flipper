@@ -314,14 +314,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
         final number = double.tryParse(value);
         if (number == null) {
-          ref.read(payButtonLoadingProvider.notifier).stopLoading();
+          ref.read(payButtonStateProvider.notifier).stopLoading();
           return 'Please enter a valid number';
         }
 
         /// this is a percentage not amount as this percenage will be applicable
         /// to the whole item on cart, currently we only support discount on whole total
         if (number < 0 || number > 100) {
-          ref.read(payButtonLoadingProvider.notifier).stopLoading();
+          ref.read(payButtonStateProvider.notifier).stopLoading();
           return 'Discount must be between 0 and 100';
         }
         return null;
@@ -364,16 +364,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             }),
         validator: (String? value) {
           if (value == null || value.isEmpty) {
-            ref.read(payButtonLoadingProvider.notifier).stopLoading();
+            ref.read(payButtonStateProvider.notifier).stopLoading();
             return 'Please enter received amount';
           }
           final number = double.tryParse(value);
           if (number == null) {
-            ref.read(payButtonLoadingProvider.notifier).stopLoading();
+            ref.read(payButtonStateProvider.notifier).stopLoading();
             return 'Please enter a valid number';
           }
           if (number < totalAfterDiscountAndShipping) {
-            ref.read(payButtonLoadingProvider.notifier).stopLoading();
+            ref.read(payButtonStateProvider.notifier).stopLoading();
             return 'You are receiving less than the total due';
           }
           return null;
@@ -410,12 +410,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           .writeString(key: 'currentSaleCustomerPhoneNumber', value: value),
       validator: (String? value) {
         if (value == null || value.isEmpty) {
-          ref.read(payButtonLoadingProvider.notifier).stopLoading();
+          ref.read(payButtonStateProvider.notifier).stopLoading();
           return 'Please enter a phone number';
         }
         final phoneExp = RegExp(r'^[1-9]\d{8}$');
         if (!phoneExp.hasMatch(value)) {
-          ref.read(payButtonLoadingProvider.notifier).stopLoading();
+          ref.read(payButtonStateProvider.notifier).stopLoading();
           return 'Please enter a valid 9-digit phone number without a leading zero';
         }
         return null;
