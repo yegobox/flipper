@@ -288,16 +288,15 @@ jobs:
           name: windows-build-debug
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
 
-      - name: Create Release
+      - name: Create Debug Release
         uses: softprops/action-gh-release@v1  # Or equivalent release action
         # if: startsWith(github.ref, 'refs/tags/')  # Only trigger on tag pushes (releases)
         with:
           files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix # Path to the artifact
           tag_name: ${{ github.ref_name }}
-          name: Release ${{ steps.get_version.outputs.version }}  # Example release name
+          name: Debug ${{ steps.get_version.outputs.version }}  # Example release name
           body: |
             Debug Release for Windows
-
 
   build-and-release-windows-prod:
     name: "Build windows app-store"
