@@ -947,7 +947,7 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
   }
 
   @override
-  Future<List<Purchase>> selectTrnsPurchaseSales(
+  Future<RwApiResponse> selectTrnsPurchaseSales(
       {required int tin,
       required String bhfId,
       required String URI,
@@ -971,7 +971,7 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
         if (respond.resultCd == "894") {
           throw Exception(respond.resultMsg);
         }
-        return respond.data?.saleList ?? [];
+        return respond;
       } else {
         throw Exception(
             'Failed to fetch import items. Status code: ${response.statusCode}');

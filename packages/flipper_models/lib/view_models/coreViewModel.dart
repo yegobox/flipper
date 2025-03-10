@@ -889,10 +889,10 @@ class CoreViewModel extends FlipperBaseModel
       lastReqDt: convertDateToString(selectedDate),
     );
 
-    salesList = rwResponse;
+    salesList = rwResponse.data?.saleList ?? [];
     isLoading = false;
     notifyListeners();
-    return rwResponse;
+    return rwResponse.data?.saleList ?? [];
   }
 
   Future<void> acceptPurchase(
