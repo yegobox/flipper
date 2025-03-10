@@ -1,7 +1,6 @@
 name: Flipper - CI/CD - Windows & Android & Google Play
 
 on:
-  # Enable manual run
   workflow_dispatch:
     inputs:
       lane:
@@ -21,8 +20,13 @@ on:
       - main
 
 env:
-  URL: ${{ secrets.DB_URL }}
-  PASSWORD: ${{ secrets.DB_PASSWORD }}
+  FLUTTER_VERSION: "3.29.0"
+  MELOS_VERSION: "6.3.2"
+  JAVA_VERSION: "17"
+  ANDROID_API_LEVEL: 33 # Default API level for Android
+  # Secrets (define here for clarity, but fetch in steps)
+  DB_URL: ${{ secrets.DB_URL }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
   SUPABASE_URL: http://localhost:54321
   SUPABASE_ANON_KEY: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -30,66 +34,33 @@ env:
   IS_TEST_ENV: true
 
 jobs:
-  # supabase-init:
-  #   name: Supabase Initialize
-  #   runs-on: ubuntu-latest
-
-  #   services:
-  #     postgres:
-  #       image: supabase/postgres:latest
-  #       ports:
-  #         - 5432:5432
-  #       env:
-  #         POSTGRES_USER: postgres
-  #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: postgres
-
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v3
-
-  #     - name: Install Supabase CLI
-  #       run: |
-  #         curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-  #         sudo apt-get install -y nodejs
-  #         npm install -g supabase
-  #         echo "::add-path::$(npm config get prefix)/bin" # Add npm global bin to PATH
-
-  #     - name: Start Supabase Locally
-  #       run: |
-  #         supabase start
-
-  #     - name: Stop Supabase
-  #       if: always()
-  #       run: |
-  #         supabase stop
-
   unit-testing:
     name: Unit Testing
     runs-on: windows-2022
-    # needs: [supabase-init] # Requires Supabase to be initialized
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
 
-      - uses: actions/setup-java@v4
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
         with:
           distribution: "zulu"
-          java-version: "17"
+          java-version: ${{ env.JAVA_VERSION }}
 
-      - uses: subosito/flutter-action@v2
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: "stable"
 
-      - run: |
-          git submodule update --init
-      - name: Load melos
+      - name: Install Melos and Bootstrap
+        shell: bash
         run: |
-          dart pub global activate melos 6.3.2
+          dart pub global activate melos ${{ env.MELOS_VERSION }}
           melos bootstrap
 
       - name: Configure Missing files
@@ -101,9 +72,9 @@ jobs:
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
-
-          git config --global core.autocrlf false
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+          git config --global core.autocrlf false
+
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
@@ -112,16 +83,16 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
-      - run: |
-          cd apps/flipper
-          cd ../..
+      - name: Run Unit Tests
+        run: |
           cd packages/flipper_dashboard
           flutter test --dart-define=FLUTTER_TEST_ENV=true --verbose
 
   integration-testing-windows:
     name: "Integration Testing Windows"
     runs-on: windows-2022
-    needs: [unit-testing] # Requires Supabase to be initialized
+    needs: [unit-testing]
+
     steps:
       - name: Export pub environment variable on Windows
         run: |
@@ -129,29 +100,35 @@ jobs:
             echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
           fi
         shell: bash
-      - run: git config --global core.autocrlf false
-      - uses: actions/checkout@v4
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
-      - name: Clone Flutter repository with stable channel
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
-      - run: flutter doctor -v
 
-      - uses: actions/setup-java@v4
+      - name: Flutter Doctor
+        run: flutter doctor -v
+
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
         with:
           distribution: "zulu"
-          java-version: "17"
+          java-version: ${{ env.JAVA_VERSION }}
 
-      - name: submodule init
+      - name: Install Melos and Bootstrap
+        shell: bash
         run: |
-          git submodule update --init
-          dart pub global activate melos 6.3.2
+          dart pub global activate melos ${{ env.MELOS_VERSION }}
           melos bootstrap
+
       - name: Configure Missing files
         shell: bash
         run: |
@@ -162,6 +139,8 @@ jobs:
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+          git config --global core.autocrlf false
+
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
@@ -169,43 +148,48 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      - run: |
+
+      - name: Run Integration Tests (Windows)
+        run: |
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test/smoke_windows_test.dart
+
   integration-testing-macos:
     name: "Integration Testing MacOS"
     runs-on: macOS-latest
     needs: [unit-testing]
-    steps:
-      - run: git config --global core.autocrlf false
 
-      - uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
 
-      - name: Clone Flutter repository with stable channel
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
 
-      - run: flutter doctor -v
+      - name: Flutter Doctor
+        run: flutter doctor -v
 
-      - uses: actions/setup-java@v4
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
         with:
           distribution: "zulu"
-          java-version: "17"
-
-      - name: Install Dependencies
-        run: |
-          git submodule update --init
-          dart pub global activate melos 6.3.2
-          melos bootstrap
+          java-version: ${{ env.JAVA_VERSION }}
 
       - name: Install CocoaPods
         run: sudo gem install cocoapods
+
+      - name: Install Melos and Bootstrap
+        shell: bash
+        run: |
+          dart pub global activate melos ${{ env.MELOS_VERSION }}
+          melos bootstrap
 
       - name: Configure Missing files
         shell: bash
@@ -217,6 +201,7 @@ jobs:
           printf "%s" "$FIREBASEOPTIONS" > packages/flipper_models/lib/firebase_options.dart
           printf "%s" "$AMPLIFY_CONFIG" > apps/flipper/lib/amplifyconfiguration.dart
           printf "%s" "$AMPLIFY_TEAM_PROVIDER" > apps/flipper/amplify/team-provider-info.json
+
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
@@ -225,28 +210,33 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
-      - run: |
+      - name: Pod Install
+        run: |
           cd apps/flipper/macos
           pod install --repo-update
-          cd ..
+
+      - name: Run Integration Tests (MacOS)
+        run: |
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=true --dart-define=FORCE_TEST=true -d macos integration_test/smoke_windows_test.dart
 
   build-and-release-windows-debug:
     name: "Build windows app-debug"
     runs-on: windows-2022
-    needs: [unit-testing] # Requires Supabase to be initialized
+    needs: [unit-testing]
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }} # Use a token with repo scope for releases
+          token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
 
-      - name: Setup Flutter
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
@@ -260,6 +250,7 @@ jobs:
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
@@ -268,10 +259,13 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
-      - name: Build and Package
+      - name: Install Melos and Bootstrap
         run: |
-          dart pub global activate melos 6.3.2
+          dart pub global activate melos ${{ env.MELOS_VERSION }}
           melos bootstrap
+
+      - name: Build and Package (Debug)
+        run: |
           cd apps/flipper
           flutter clean
           dart run msix:create -v --install-certificate false
@@ -282,32 +276,34 @@ jobs:
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
-      - name: Create Debug Releasse
+      - name: Create Debug Release
         uses: softprops/action-gh-release@v1
         with:
           files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          tag_name: ${{ github.ref_name }}  # Or a dynamic tag based on your strategy
+          tag_name: ${{ github.ref_name }}
           name: Debug Release ${{ steps.get_version.outputs.version }}
           body: |
             Debug Release for QA
         env:
-          GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ github.token }}
 
   build-and-release-windows-prod:
     name: "Build windows app-store"
     runs-on: windows-2022
-    needs: [unit-testing, integration-testing-windows] # Requires Supabase to be initialized
+    needs: [unit-testing, integration-testing-windows]
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}  # Use a PAT
-          persist-credentials: true  # Keep this for checkout
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
 
-      - name: Setup Flutter
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
@@ -321,6 +317,7 @@ jobs:
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
@@ -329,10 +326,13 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
-      - name: Build and Package
+      - name: Install Melos and Bootstrap
         run: |
-          dart pub global activate melos 6.3.2
+          dart pub global activate melos ${{ env.MELOS_VERSION }}
           melos bootstrap
+
+      - name: Build and Package (Production)
+        run: |
           cd apps/flipper
           flutter clean
           dart run msix:create --store
@@ -347,59 +347,69 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          tag_name: ${{ github.ref_name }}  # Or a dynamic tag based on your strategy
+          tag_name: ${{ github.ref_name }}
           name: Release ${{ steps.get_version.outputs.version }}
           body: |
             Production Release for Windows App Store
         env:
-          GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ github.token }}
+
   integration-on-android:
     name: Integration on Android
-    needs: [unit-testing]  # Requires Supabase to be initialized
+    needs: [unit-testing]
     runs-on: macOS-latest
     strategy:
       matrix:
-        api-level: [29, 33]
-        target: [google_apis_playstore]  # Use google_apis_playstore
-        arch: [x86_64, arm64-v8a]  # Add x86_64 and arm64 architectures.
+        api-level: [21,35]   # Use default API level
+        target: [google_apis_playstore]
+        arch: [x86_64, arm64-v8a]
       fail-fast: false
+
     steps:
-      - run: git config --global core.autocrlf false
-      # Set up Flutter.
-      - name: Clone Flutter repository with stable channel
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0" #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
-      - run: flutter doctor -v
 
-      # Checkout flipper code
-      - name: Checkout flipper code
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
-      - uses: actions/setup-java@v4 #plugin for setting up the java
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
         with:
           distribution: "zulu"
-          java-version: "17" #defines the java version
+          java-version: ${{ env.JAVA_VERSION }}
+
       - name: Configure Git with PAT
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           git config --global user.email "info@yegobox.com"
           git config --global user.name "YEGOBOX"
           git config --global credential.helper store
-          echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
-      - name: submodule init
-        run: git submodule update --init
+          echo "https://github.com:${{ secrets.PAT_TOKEN }}@github.com" > ~/.git-credentials
+        shell: bash
+
+      - name: Install Melos and Bootstrap
+        run: |
+          dart pub global activate melos ${{ env.MELOS_VERSION }}
+          melos bootstrap
+        shell: bash
+
       - name: Configure Missing files
+        shell: bash
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-          git config --global core.autocrlf false
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+          git config --global core.autocrlf false
 
         env:
           INDEX: ${{ secrets.INDEX }}
@@ -408,17 +418,14 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      - run: |
-          dart pub global activate melos 6.3.2
-          melos bootstrap
-      # Setup Ruby, Bundler, and Gemfile dependencies
+
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.0"
           bundler-cache: true
-          # cache-version: 1
           working-directory: apps/flipper/android
+
       - name: Configure Keystore
         run: |
           echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
@@ -426,14 +433,11 @@ jobs:
           echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode  > play_store_upload_key.txt
           cat play_store_upload_key.txt
           echo "storeFile=key.jks" >> key.properties
-          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
-          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
-          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
+          echo "keyAlias=${{ secrets.KEYSTORE_KEY_ALIAS }}" >> key.properties
+          echo "storePassword=${{ secrets.KEYSTORE_STORE_PASSWORD }}" >> key.properties
+          echo "keyPassword=${{ secrets.KEYSTORE_KEY_PASSWORD }}" >> key.properties
         env:
           PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
-          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
-          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
-          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
         working-directory: apps/flipper/android
 
@@ -449,18 +453,17 @@ jobs:
             ~/.android/adb*
           key: avd-${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.arch }}
 
-      - name: create AVD and generate snapshot for caching
+      - name: Create AVD and Generate Snapshot for Caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
-          target: ${{ matrix.target }}  # Use google_apis_playstore
-          arch: ${{ matrix.arch }}   # Pass architecture to emulator runner
+          target: ${{ matrix.target }}
+          arch: ${{ matrix.arch }}
           profile: Nexus 6
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
-          force-avd-creation: true # force avd creation when cache is not hit
-
+          force-avd-creation: true
           script: echo "Generated AVD snapshot for caching."
 
       - name: Wait for Emulator
@@ -469,60 +472,69 @@ jobs:
           adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
           echo "Emulator booted!"
 
-      - name: Run Tests on Android Emulator
+      - name: Run Integration Tests (Android Emulator)
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
-          arch: ${{ matrix.arch }}  # Pass architecture to emulator runner
+          arch: ${{ matrix.arch }}
           profile: Nexus 6
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
           script: |
             cd apps/flipper
             flutter test --dart-define=FLUTTER_TEST_ENV=true integration_test/smoke_android_test.dart
+
   fastlane-deploy:
     name: "Google Deploy"
-    needs: [unit-testing, integration-testing-windows]  # Requires Supabase to be initialized
-    # runs-on: ubuntu-22.04
+    needs: [unit-testing, integration-testing-windows]
     runs-on: macOS-14
+
     steps:
-      - run: git config --global core.autocrlf false
-      # Set up Flutter.
-      - name: Clone Flutter repository with stable channel
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0" #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
-      - run: flutter doctor -v
 
-      # Checkout flipper code
-      - name: Checkout flipper code
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
-      - uses: actions/setup-java@v4 #plugin for setting up the java
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
         with:
           distribution: "zulu"
-          java-version: "17" #defines the java version
+          java-version: ${{ env.JAVA_VERSION }}
+
       - name: Configure Git with PAT
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           git config --global user.email "info@yegobox.com"
           git config --global user.name "YEGOBOX"
           git config --global credential.helper store
-          echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
-      - name: submodule init
-        run: git submodule update --init
+          echo "https://github.com:${{ secrets.PAT_TOKEN }}@github.com" > ~/.git-credentials
+        shell: bash
+
+      - name: Install Melos and Bootstrap
+        run: |
+          dart pub global activate melos ${{ env.MELOS_VERSION }}
+          melos bootstrap
+        shell: bash
+
       - name: Configure Missing files
+        shell: bash
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-          git config --global core.autocrlf false
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+          git config --global core.autocrlf false
 
         env:
           INDEX: ${{ secrets.INDEX }}
@@ -531,17 +543,14 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      - run: |
-          dart pub global activate melos 6.3.2
-          melos bootstrap
-      # Setup Ruby, Bundler, and Gemfile dependencies
+
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.0"
           bundler-cache: true
-          # cache-version: 1
           working-directory: apps/flipper/android
+
       - name: Configure Keystore
         run: |
           echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
@@ -549,17 +558,16 @@ jobs:
           echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode  > play_store_upload_key.txt
           cat play_store_upload_key.txt
           echo "storeFile=key.jks" >> key.properties
-          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
-          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
-          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
+          echo "keyAlias=${{ secrets.KEYSTORE_KEY_ALIAS }}" >> key.properties
+          echo "storePassword=${{ secrets.KEYSTORE_STORE_PASSWORD }}" >> key.properties
+          echo "keyPassword=${{ secrets.KEYSTORE_KEY_PASSWORD }}" >> key.properties
         env:
           PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
-          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
-          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
-          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
         working-directory: apps/flipper/android
-      - run: |
+
+      - name: Deploy to Google Play
+        run: |
           bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:
           PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
@@ -572,7 +580,6 @@ jobs:
     needs: [fastlane-deploy, build-and-release-windows-debug, build-and-release-windows-prod]
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@v2
         env:
