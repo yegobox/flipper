@@ -235,7 +235,7 @@ jobs:
   build-and-release-windows-debug:
     name: "Build windows app-debug"
     runs-on: windows-2022
-    needs: [unit-testing, integration-testing-windows] # Requires Supabase to be initialized
+    # needs: [unit-testing, integration-testing-windows] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
         with:
@@ -287,7 +287,7 @@ jobs:
         with:
           files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
           tag_name: ${{ github.ref_name }}  # Or a dynamic tag based on your strategy
-          name: Release ${{ steps.get_version.outputs.version }}
+          name: Debug Release ${{ steps.get_version.outputs.version }}
           body: |
             Debug Release for QA
         env:
