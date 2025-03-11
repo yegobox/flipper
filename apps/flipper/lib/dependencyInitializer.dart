@@ -80,9 +80,13 @@ Future<void> initializeDependencies() async {
     final license = await rootBundle.loadString('google_fonts/OFL.txt');
     yield foundation.LicenseEntryWithLineBreaks(['google_fonts'], license);
   });
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    print(e);
+  }
 
   const isTest = bool.fromEnvironment('EMULATOR_ENABLED', defaultValue: false);
   // FirebaseFirestore.instance.settings =

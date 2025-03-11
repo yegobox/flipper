@@ -198,9 +198,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       children: [
         Center(child: _buildSegmentedButton(context, ref)),
         const SizedBox(height: 30),
-        // Container with fixed height for the content
-        Container(
-          height: 600, // You may need to adjust this height
+        // Flexible container that takes up remaining space
+        Expanded(
           child: _buildMainContentSection(context, model, variants,
               showProductList, startDate, endDate, ref),
         ),
