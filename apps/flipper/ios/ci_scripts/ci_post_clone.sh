@@ -4,17 +4,20 @@
 set -e
 
 # Adjust the base path to the correct root folder
-BASE_PATH="$(cd "$(dirname "$SRCROOT")" && pwd)"
+# Adjust the base path to the correct root folder
+BASE_PATH="$(cd "$(dirname "$SRCROOT")/../../../" && pwd)"
+echo "BASE_PATH is: $BASE_PATH"  # VERIFY THIS IN THE LOGS
 
 # Define the destination paths relative to BASE_PATH
-INDEX_PATH="$BASE_PATH/web/index.html"
-CONFIGDART_PATH="$BASE_PATH/../../packages/flipper_login/lib/config.dart"
-SECRETS_PATH="$BASE_PATH/../../packages/flipper_models/lib/secrets.dart"
-FIREBASE_OPTIONS1_PATH="$BASE_PATH/lib/firebase_options.dart"
-FIREBASE_OPTIONS2_PATH="$BASE_PATH/../../packages/flipper_models/lib/firebase_options.dart"
-AMPLIFY_CONFIG_PATH="$BASE_PATH/lib/amplifyconfiguration.dart"
-AMPLIFY_TEAM_PROVIDER_PATH="$BASE_PATH/amplify/team-provider-info.json"
-GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/ios/Runner/GoogleService-Info.plist"
+INDEX_PATH="$BASE_PATH/apps/flipper/ios/ci_scripts/web/index.html"
+CONFIGDART_PATH="$BASE_PATH/packages/flipper_login/lib/config.dart"
+SECRETS_PATH1="$BASE_PATH/apps/flipper/lib/secrets.dart" 
+SECRETS_PATH2="$BASE_PATH/packages/flipper_models/lib/secrets.dart"
+FIREBASE_OPTIONS1_PATH="$BASE_PATH/apps/flipper/lib/firebase_options.dart"
+FIREBASE_OPTIONS2_PATH="$BASE_PATH/packages/flipper_models/lib/firebase_options.dart"
+AMPLIFY_CONFIG_PATH="$BASE_PATH/apps/flipper/lib/amplifyconfiguration.dart"
+AMPLIFY_TEAM_PROVIDER_PATH="$BASE_PATH/apps/flipper/amplify/team-provider-info.json"
+GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/apps/flipper/ios/GoogleService-Info.plist"
 
 # Extract Firebase configuration values from GoogleService-Info.plist
 GOOGLE_APP_ID=$(plutil -extract GOOGLE_APP_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null || true)
@@ -56,16 +59,16 @@ write_to_file() {
 # Write environment variables to their respective files
 write_to_file "INDEX" "$INDEX_PATH"
 write_to_file "CONFIGDART" "$CONFIGDART_PATH"
-write_to_file "SECRETS" "$SECRETS_PATH"
+write_to_file "SECRETS" "$SECRETS_PATH1"  #SECRETS will be written to secrets1.dart
+write_to_file "SECRETS2" "$SECRETS_PATH2" #SECRETS2 will be written to secrets2.dart
 write_to_file "FIREBASEOPTIONS" "$FIREBASE_OPTIONS1_PATH"
-write_to_file "FIREBASEOPTIONS" "$FIREBASE_OPTIONS2_PATH"
+write_to_file "FIREBASEOPTIONS2" "$FIREBASE_OPTIONS2_PATH" #FIREBASEOPTIONS2 will be written to FIREBASE_OPTIONS2_PATH
 write_to_file "AMPLIFY_CONFIG" "$AMPLIFY_CONFIG_PATH"
 write_to_file "AMPLIFY_TEAM_PROVIDER" "$AMPLIFY_TEAM_PROVIDER_PATH"
 
 # Prevent Git from converting line endings
 git config --global core.autocrlf false
 
-# Ensure correct Ruby version (at least 3.2.2)
 # Ensure correct Ruby version (at least 3.2.2)
 REQUIRED_RUBY_VERSION="3.2.2"
 CURRENT_RUBY_VERSION=$(ruby -e 'puts RUBY_VERSION' 2>/dev/null || echo "0.0.0")
