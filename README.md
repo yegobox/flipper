@@ -51,7 +51,7 @@ Our target for the next funding round is to accelerate user acquisition, expand 
 ## Connect With Us
 
 <div align="center">
-  <img src=".github/assets/ente-ducky.png" width="200" alt="Flipper's Mascot, Ducky" />
+  <img src=".github/assets/flipper_logo.png" width="200" alt="Flipper's Mascot, Ducky" />
 </div>
 
 Join our thriving community at [yegobox.com/community](https://yegobox.com/community).
