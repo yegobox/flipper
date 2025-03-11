@@ -16,7 +16,7 @@ This monorepo contains our complete ecosystem:
 - Backend infrastructure powering our enterprise suite
 - Core encryption technology ensuring data protection
 
-**Experience the revolution at [flipper.rw](https://flipper.rw)**
+**Experience the revolution at [flipper.rw](https://flipper.rw) or [yegobox.com](https://yegobox.com)**
 
 ## Available Across All Platforms
 
