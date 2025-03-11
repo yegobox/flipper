@@ -45,8 +45,8 @@ git config --global core.autocrlf false
 # Log actions for debugging
 echo "✅ All environment variables have been written to their respective files."
 
-# Navigate to the repository root
-cd ../../../...
+# Navigate to the repository root (assumes script is in `ios/ci_scripts/`)
+cd "$BASE_PATH/../../.." || exit 1
 
 # Install Dart & Flutter dependencies
 flutter pub get
@@ -54,15 +54,15 @@ flutter pub get
 # Install Melos globally if not already installed
 if ! command -v melos &> /dev/null; then
   echo "🔄 Installing Melos..."
-  dart pub global activate melos 6.3.2
+  dart pub global activate melos
 fi
 
 # Run Melos bootstrap to link packages
 echo "🔗 Running Melos Bootstrap..."
 melos bootstrap
 
-# Navigate back to iOS project directory
-cd apps/flipper/ios
+# Navigate back to the iOS project directory
+cd "$BASE_PATH" || exit 1
 
 # Install CocoaPods dependencies
 pod install --repo-update
