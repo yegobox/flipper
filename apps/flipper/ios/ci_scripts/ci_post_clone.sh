@@ -46,8 +46,16 @@ git config --global core.autocrlf false
 echo "✅ All environment variables have been written to their respective files."
 
 # Ensure Ruby is available (Pre-installed in Xcode Cloud)
-echo "🔍 Checking Ruby version..."
-ruby -v
+echo "🔄 Upgrading Ruby..."
+
+# Install latest Ruby using Homebrew (if not installed)
+if ! command -v ruby &> /dev/null || [[ "$(ruby -e 'puts RUBY_VERSION')" < "3.1.0" ]]; then
+  brew install ruby
+  export PATH="$(brew --prefix ruby)/bin:$PATH"
+fi
+
+echo "✅ Ruby version: $(ruby -v)"
+
 
 # Ensure CocoaPods and FFI are installed correctly
 echo "🔄 Ensuring FFI and CocoaPods are installed..."
