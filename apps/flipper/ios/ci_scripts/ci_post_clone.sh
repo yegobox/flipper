@@ -65,25 +65,34 @@ write_to_file "AMPLIFY_TEAM_PROVIDER" "$AMPLIFY_TEAM_PROVIDER_PATH"
 # Prevent Git from converting line endings
 git config --global core.autocrlf false
 
-echo "✅ All environment variables have been written to their respective files."
+# Ensure correct Ruby version (at least 2.7.0)
+REQUIRED_RUBY_VERSION="2.7.0"
+CURRENT_RUBY_VERSION=$(ruby -e 'puts RUBY_VERSION' 2>/dev/null || echo "0.0.0")
 
-# Ensure Ruby is available
-if ! command -v ruby &> /dev/null; then
-  echo "🔄 Installing Ruby..."
-  brew install ruby
+if [[ "$(printf '%s\n' "$REQUIRED_RUBY_VERSION" "$CURRENT_RUBY_VERSION" | sort -V | head -n1)" != "$REQUIRED_RUBY_VERSION" ]]; then
+  echo "🔄 Upgrading Ruby..."
+  brew install rbenv
+  rbenv install 3.2.2  # Install latest stable Ruby version
+  rbenv global 3.2.2   # Set it as the default version
+  export PATH="$HOME/.rbenv/shims:$PATH"
+  echo "✅ Ruby upgraded to: $(ruby -v)"
+else
+  echo "✅ Ruby version is sufficient: $(ruby -v)"
 fi
 
-echo "✅ Ruby version: $(ruby -v)"
-
-# Ensure the correct version of securerandom is installed
-if ! gem list securerandom -i --version 0.3.2; then
-  echo "🔄 Installing securerandom 0.3.2..."
-  gem install securerandom -v 0.3.2 --user-install --no-document
-fi
-
-# Install dependencies
-gem install ffi cocoapods --user-install --no-document
+# Ensure correct gem paths
 export PATH="$HOME/.gem/ruby/$(ruby -e 'puts RUBY_VERSION')/bin:$PATH"
+
+# Install required Ruby gems
+echo "🔄 Installing required Ruby gems..."
+gem install ffi cocoapods drb --user-install --no-document
+echo "✅ Ruby gems installed."
+
+# Ensure CocoaPods is installed
+if ! command -v pod &> /dev/null; then
+  echo "🔄 Installing CocoaPods..."
+  gem install cocoapods --user-install --no-document
+fi
 echo "✅ CocoaPods version: $(pod --version)"
 
 # Install Flutter if missing
