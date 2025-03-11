@@ -26,7 +26,6 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
 
   @override
   void dispose() {
-    ref.read(bulkAddProductViewModelProvider).disposeControllers();
     super.dispose();
   }
 
@@ -375,7 +374,9 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
               ),
             ),
             onChanged: (String? newValue) {
-              model.updateItemClass(barCode, newValue);
+              if (mounted) {
+                model.updateItemClass(barCode, newValue);
+              }
             },
           ),
         );
