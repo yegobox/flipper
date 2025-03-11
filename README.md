@@ -1,16 +1,10 @@
 
-<div align="Flipper">
+<div align="center">
 
-<img src=".github/assets/flipper_logo.png" width="400"/>
+<img src=".github/assets/flipper_logo.png" width="20"/>
 
 A revolutionaly business software and more.
 
-
-<div align="center">
-  <img src=".github/assets/ente-ducky.png" width="400"/>
-  
-  **Transforming business operations with powerful, secure solutions.**
-</div>
 
 ## Our Vision
 
