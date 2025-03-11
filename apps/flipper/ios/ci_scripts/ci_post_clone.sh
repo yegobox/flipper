@@ -57,10 +57,10 @@ write_to_file() {
 }
 
 # Write environment variables to their respective files
-write_to_file "SECRETS" "$SECRETS_PATH1"
-write_to_file "SECRETS2" "$SECRETS_PATH2"
-write_to_file "FIREBASEOPTIONS" "$FIREBASE_OPTIONS1_PATH"
-write_to_file "FIREBASEOPTIONS2" "$FIREBASE_OPTIONS2_PATH"
+write_to_file "SECRETS_PATH1" "$SECRETS_PATH1"
+write_to_file "SECRETS_PATH2" "$SECRETS_PATH2"
+write_to_file "FIREBASE_OPTIONS1_PATH" "$FIREBASE_OPTIONS1_PATH"
+write_to_file "FIREBASE_OPTIONS2_PATH" "$FIREBASE_OPTIONS2_PATH"
 
 write_to_file "INDEX" "$INDEX_PATH"
 write_to_file "CONFIGDART" "$CONFIGDART_PATH"
