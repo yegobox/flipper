@@ -44,3 +44,9 @@ git config --global core.autocrlf false
 
 # Log actions for debugging
 echo "✅ All environment variables have been written to their respective files."
+
+cd ..
+# Install dependencies
+pod install --repo-update
+
+
