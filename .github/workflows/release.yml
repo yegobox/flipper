@@ -362,7 +362,7 @@ jobs:
       matrix:
         api-level: [21, 23, 29]
         target: [default, google_apis]
-        # arch: [x86_64, arm64-v8a]  # Add x86_64 and arm64 architectures.
+        arch: [x86_64, arm64-v8a]  # Add x86_64 and arm64 architectures.
       fail-fast: false
     steps:
       - run: git config --global core.autocrlf false
