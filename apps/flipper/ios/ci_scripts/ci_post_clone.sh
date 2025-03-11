@@ -7,7 +7,7 @@ set -e
 # Adjust the base path to the correct root folder
 BASE_PATH="$(cd "$(dirname "$SRCROOT")/../../../" && pwd)"
 echo "BASE_PATH is: $BASE_PATH"  # VERIFY THIS IN THE LOGS
-
+# 
 # Define the destination paths relative to BASE_PATH
 INDEX_PATH="$BASE_PATH/apps/flipper/ios/ci_scripts/web/index.html"
 CONFIGDART_PATH="$BASE_PATH/packages/flipper_login/lib/config.dart"
