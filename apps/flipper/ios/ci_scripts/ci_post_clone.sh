@@ -15,15 +15,18 @@ FIREBASE_OPTIONS2_PATH="$BASE_PATH/../../packages/flipper_models/lib/firebase_op
 AMPLIFY_CONFIG_PATH="$BASE_PATH/lib/amplifyconfiguration.dart"
 AMPLIFY_TEAM_PROVIDER_PATH="$BASE_PATH/amplify/team-provider-info.json"
 
-GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/GoogleService-Info.plist"
-
-# Set the path to your GoogleService-Info.plist
 GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/ios/Runner/GoogleService-Info.plist"
 
-# Extract the GOOGLE_APP_ID, FIREBASE_PROJECT_ID, and GCM_SENDER_ID
-GOOGLE_APP_ID=$(plutil -p "$GOOGLE_SERVICES_PLIST_PATH" | grep -A1 'GOOGLE_APP_ID' | tail -n1 | tr -d '[:space:]')
-FIREBASE_PROJECT_ID=$(plutil -p "$GOOGLE_SERVICES_PLIST_PATH" | grep -A1 'FIREBASE_PROJECT_ID' | tail -n1 | tr -d '[:space:]')
-GCM_SENDER_ID=$(plutil -p "$GOOGLE_SERVICES_PLIST_PATH" | grep -A1 'GCM_SENDER_ID' | tail -n1 | tr -d '[:space:]')
+# Extract the GOOGLE_APP_ID, FIREBASE_PROJECT_ID, and GCM_SENDER_ID from GoogleService-Info.plist
+GOOGLE_APP_ID=$(plutil -extract GOOGLE_APP_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null)
+FIREBASE_PROJECT_ID=$(plutil -extract PROJECT_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null)
+GCM_SENDER_ID=$(plutil -extract GCM_SENDER_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null)
+
+# Validate that variables are not empty
+if [[ -z "$GOOGLE_APP_ID" || -z "$FIREBASE_PROJECT_ID" || -z "$GCM_SENDER_ID" ]]; then
+  echo "❌ ERROR: Missing Firebase configuration values. Check GoogleService-Info.plist."
+  exit 1
+fi
 
 # Create the JSON content
 JSON_CONTENT=$(cat <<EOF
@@ -37,11 +40,10 @@ JSON_CONTENT=$(cat <<EOF
 EOF
 )
 
-# Save the JSON content to firebase_app_id_file
-echo "$JSON_CONTENT" > "$BASE_PATH/firebase_app_id_file"
+# Ensure the file is correctly named and placed in the right directory
+echo "$JSON_CONTENT" > "$BASE_PATH/firebase_app_id_file.json"
 
-echo "✅ firebase_app_id_file has been generated with the required content."
-
+echo "✅ firebase_app_id_file.json has been generated successfully."
 
 # Function to write environment variables to files
 write_to_file() {
@@ -83,7 +85,6 @@ if ! command -v ruby &> /dev/null || [[ "$(ruby -e 'puts RUBY_VERSION')" < "3.1.
 fi
 
 echo "✅ Ruby version: $(ruby -v)"
-
 
 # Ensure CocoaPods and FFI are installed correctly
 echo "🔄 Ensuring FFI and CocoaPods are installed..."
@@ -162,12 +163,7 @@ melos bootstrap
 cd "$BASE_PATH" || exit 1
 
 # Install CocoaPods dependencies
-
-
-rm -rf Pods
-
-rm -rf Podfile.lock
-
+rm -rf Pods Podfile.lock
 pod install 
 
 echo "✅ Post-clone setup completed successfully."
