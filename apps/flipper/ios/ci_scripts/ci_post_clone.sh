@@ -66,6 +66,7 @@ write_to_file "AMPLIFY_TEAM_PROVIDER" "$AMPLIFY_TEAM_PROVIDER_PATH"
 git config --global core.autocrlf false
 
 # Ensure correct Ruby version (at least 3.2.2)
+# Ensure correct Ruby version (at least 3.2.2)
 REQUIRED_RUBY_VERSION="3.2.2"
 CURRENT_RUBY_VERSION=$(ruby -e 'puts RUBY_VERSION' 2>/dev/null || echo "0.0.0")
 
@@ -85,8 +86,9 @@ export PATH="$HOME/.gem/ruby/$(ruby -e 'puts RUBY_VERSION')/bin:$PATH"
 
 # Install required Ruby gems
 echo "🔄 Installing required Ruby gems..."
-gem install ffi cocoapods drb --user-install --no-document
+# gem install ffi cocoapods drb --user-install --no-document
 echo "✅ Ruby gems installed."
+
 
 # Ensure CocoaPods is installed
 if ! command -v pod &> /dev/null; then
