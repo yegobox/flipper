@@ -283,9 +283,9 @@ class IsolateHandler with StockPatch {
     ReceivePort port = ReceivePort();
 
     sendPort.send(port.sendPort);
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    // await Firebase.initializeApp(
+    //   options: DefaultFirebaseOptions.currentPlatform,
+    // );
 
     port.listen((message) async {
       if (message is Map<String, dynamic>) {
