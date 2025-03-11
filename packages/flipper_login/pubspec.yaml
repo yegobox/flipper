@@ -12,7 +12,7 @@ environment:
 dependencies:
   firebase_ui_auth: ^1.16.1
   flutter_form_bloc: 0.31.0-dev
-  firebase_core: ^3.11.0
+  firebase_core: ^3.12.1
   flipper_services: any
   flipper_dashboard: any
   universal_platform: ^1.0.0+1
@@ -21,7 +21,7 @@ dependencies:
   flutter_settings_ui: ^3.0.1
   stacked: ^3.4.2
   google_fonts: ^6.1.0
-  firebase_auth: ^5.4.2
+  firebase_auth: ^5.5.1
   flipper_routing: ^1.0.0
   connectivity_plus: ^6.0.5
   firebase_ui_localizations: ^1.13.1
@@ -50,7 +50,7 @@ dependency_overrides:
   meta: ^1.11.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^2.7.2
+  sqlite3: ^2.7.5
   device_info_plus: ^11.2.2
   
   

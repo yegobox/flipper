@@ -15,9 +15,7 @@ dependencies:
 
   timeago: ^3.4.0
   mime: ^1.0.5
-  open_filex:
-    git:
-      url: https://github.com/mufassalhussain/open_filex
+  open_filex: ^4.7.0
   ant_icons: ^2.0.0-nullsafety.0
   pubnub: ^4.3.1
   feather_icons: ^1.1.0-nullsafety.0
@@ -42,7 +40,7 @@ dependencies:
   url_launcher: ^6.3.0
   google_fonts: ^6.1.0
   number_display: ^3.0.0
-  firebase_core: ^3.11.0
+  firebase_core: ^3.12.1
   cupertino_icons: ^1.0.4
   flipper_services: any
 
@@ -124,7 +122,7 @@ dependency_overrides:
   meta: ^1.12.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^2.7.2
+  sqlite3: ^2.7.5
   device_info_plus: ^11.2.2
   
 
