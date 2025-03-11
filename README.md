@@ -1,7 +1,7 @@
 
 <div align="center">
 
-<img src=".github/assets/flipper_logo.png" width="20"/>
+<img src=".github/assets/flipper_logo.png" width="200"/>
 
 A revolutionaly business software and more.
 
