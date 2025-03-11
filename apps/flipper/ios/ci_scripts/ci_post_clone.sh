@@ -127,9 +127,6 @@ if ! command -v melos &> /dev/null; then
   dart pub global activate melos 6.3.2
 fi
 
-flutter pub get
-
-
 melos bootstrap
 
 echo "✅ Melos setup completed successfully."

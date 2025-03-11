@@ -16,6 +16,8 @@ class BulkAddProduct extends StatefulHookConsumerWidget {
 }
 
 class BulkAddProductState extends ConsumerState<BulkAddProduct> {
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
@@ -63,12 +65,9 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
       Navigator.maybePop(context);
     } catch (e) {
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-        ),
-      );
+      setState(() {
+        _errorMessage = e.toString();
+      });
     }
   }
 
@@ -107,15 +106,33 @@ class BulkAddProductState extends ConsumerState<BulkAddProduct> {
                 textColor: Colors.white,
                 color: Colors.blue,
                 onPressed: () async {
-                  if (model.excelData != null) {
-                    await _showProgressDialog(model.saveAllWithProgress);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('No data to save')),
-                    );
+                  setState(() {
+                    _errorMessage = null;
+                  });
+                  try {
+                    if (model.excelData != null) {
+                      await _showProgressDialog(model.saveAllWithProgress);
+                    } else {
+                      setState(() {
+                        _errorMessage = 'No data to save';
+                      });
+                    }
+                  } catch (e) {
+                    setState(() {
+                      _errorMessage = e.toString();
+                    });
                   }
                 },
                 text: 'Save All',
+              ),
+            const SizedBox(height: 8.0),
+            if (_errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
               ),
             const SizedBox(height: 24.0),
             if (model.isLoading)
