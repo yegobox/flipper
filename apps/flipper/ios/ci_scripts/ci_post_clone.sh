@@ -67,6 +67,10 @@ write_to_file "CONFIGDART" "$CONFIGDART_PATH"
 write_to_file "AMPLIFY_CONFIG" "$AMPLIFY_CONFIG_PATH"
 write_to_file "AMPLIFY_TEAM_PROVIDER" "$AMPLIFY_TEAM_PROVIDER_PATH"
 
+
+# switch to apps/flipper
+cd "$BASE_PATH/apps/flipper" || exit 1
+
 # Prevent Git from converting line endings
 git config --global core.autocrlf false
 
@@ -84,6 +88,7 @@ if [[ "$(printf '%s\n' "$REQUIRED_RUBY_VERSION" "$CURRENT_RUBY_VERSION" | sort -
 else
   echo "✅ Ruby version is sufficient: $(ruby -v)"
 fi
+
 
 # Ensure correct gem paths
 export PATH="$HOME/.gem/ruby/$(ruby -e 'puts RUBY_VERSION')/bin:$PATH"
