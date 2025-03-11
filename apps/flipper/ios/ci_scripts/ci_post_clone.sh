@@ -112,6 +112,6 @@ melos bootstrap
 cd "$BASE_PATH" || exit 1
 
 # Install CocoaPods dependencies
-pod install --repo-update
+pod install 
 
 echo "✅ Post-clone setup completed successfully."
