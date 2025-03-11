@@ -24,7 +24,7 @@ This monorepo contains our complete ecosystem:
   <a href="https://apps.apple.com/app/id1542026904"><img height="42" src=".github/assets/flipper_logo.png" alt="App Store"></a>
   <a href="https://play.google.com/store/apps/details?id=io.Flipper.photos"><img height="42" src=".github/assets/play-store-badge.png" alt="Google Play"></a>
   <a href="https://f-droid.org/packages/io.Flipper.photos.fdroid/"><img height="42" src=".github/assets/f-droid-badge.png" alt="F-Droid"></a>
-  <a href="https://yegobox.com/download/desktop"><img height="42" src=".github/assets/desktop-badge.png" alt="Desktop"></a>
+  <a href="https://yegobox.com"><img height="42" src=".github/assets/desktop-badge.png" alt="Desktop"></a>
   <a href="https://web.yegobox.com"><img height="42" src=".github/assets/web-badge.svg" alt="Web"></a>
 </div>
 
