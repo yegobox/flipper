@@ -135,6 +135,11 @@ cd "$BASE_PATH" || exit 1
 
 # Install CocoaPods dependencies
 
+pod deintegrate
+
+rm -rf Pods
+
+rm -rf Podfile.lock
 
 pod install 
 
