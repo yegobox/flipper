@@ -45,6 +45,40 @@ git config --global core.autocrlf false
 # Log actions for debugging
 echo "✅ All environment variables have been written to their respective files."
 
+# ==========================
+#  Install Flutter if missing
+# ==========================
+FLUTTER_VERSION="3.29.0"
+FLUTTER_DIR="$HOME/flutter"
+
+if ! command -v flutter &> /dev/null; then
+  echo "🚀 Installing Flutter $FLUTTER_VERSION..."
+
+  # Remove existing Flutter directory if any
+  rm -rf "$FLUTTER_DIR"
+
+  # Clone Flutter repo
+  git clone --depth 1 --branch "stable" https://github.com/flutter/flutter.git "$FLUTTER_DIR"
+
+  # Set Flutter in PATH
+  export PATH="$FLUTTER_DIR/bin:$PATH"
+  
+  # Enable caching of Flutter binaries
+  flutter precache
+
+  # Check Flutter version
+  flutter --version
+else
+  echo "✅ Flutter is already installed."
+fi
+
+# Ensure Flutter is in the PATH
+export PATH="$FLUTTER_DIR/bin:$PATH"
+
+# ==========================
+# Install Dependencies
+# ==========================
+
 # Navigate to the repository root (assumes script is in `ios/ci_scripts/`)
 cd "$BASE_PATH/../../.." || exit 1
 
