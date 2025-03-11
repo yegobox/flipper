@@ -136,7 +136,7 @@ cd "$BASE_PATH/apps/flipper/ios" || exit 1
 
 echo "🔄 Navigated into apps/flipper/ios"
 
-rm -rf Pods Podfile.lock
+
 pod install
 
 echo "✅ Post-clone setup completed successfully."
