@@ -57,12 +57,13 @@ write_to_file() {
 }
 
 # Write environment variables to their respective files
+write_to_file "SECRETS" "$SECRETS_PATH1"
+write_to_file "SECRETS2" "$SECRETS_PATH2"
+write_to_file "FIREBASEOPTIONS" "$FIREBASE_OPTIONS1_PATH"
+write_to_file "FIREBASEOPTIONS2" "$FIREBASE_OPTIONS2_PATH"
+
 write_to_file "INDEX" "$INDEX_PATH"
 write_to_file "CONFIGDART" "$CONFIGDART_PATH"
-write_to_file "SECRETS" "$SECRETS_PATH1"  #SECRETS will be written to secrets1.dart
-write_to_file "SECRETS2" "$SECRETS_PATH2" #SECRETS2 will be written to secrets2.dart
-write_to_file "FIREBASEOPTIONS" "$FIREBASE_OPTIONS1_PATH"
-write_to_file "FIREBASEOPTIONS2" "$FIREBASE_OPTIONS2_PATH" #FIREBASEOPTIONS2 will be written to FIREBASE_OPTIONS2_PATH
 write_to_file "AMPLIFY_CONFIG" "$AMPLIFY_CONFIG_PATH"
 write_to_file "AMPLIFY_TEAM_PROVIDER" "$AMPLIFY_TEAM_PROVIDER_PATH"
 
