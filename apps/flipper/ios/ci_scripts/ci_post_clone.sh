@@ -38,25 +38,80 @@ echo "{
 
 echo "✅ firebase_app_id_file.json has been generated successfully."
 
-# Ensure the correct Ruby version is used in Xcode Cloud
-export PATH="$HOME/.rbenv/shims:$PATH"
+# Function to write environment variables to files
+write_to_file() {
+  local var_name="$1"
+  local file_path="$2"
+  local content="${!var_name}"  # Get the value of the variable
+
+  if [[ -n "$content" ]]; then
+    mkdir -p "$(dirname "$file_path")"  # Ensure directory exists
+    echo "$content" > "$file_path"
+    echo "✅ Successfully wrote $var_name to $file_path"
+  else
+    echo "⚠️ Warning: $var_name is empty, skipping $file_path" >&2
+  fi
+}
+
+# Write environment variables to their respective files
+write_to_file "INDEX" "$INDEX_PATH"
+write_to_file "CONFIGDART" "$CONFIGDART_PATH"
+write_to_file "SECRETS" "$SECRETS_PATH"
+write_to_file "FIREBASEOPTIONS" "$FIREBASE_OPTIONS1_PATH"
+write_to_file "FIREBASEOPTIONS" "$FIREBASE_OPTIONS2_PATH"
+write_to_file "AMPLIFY_CONFIG" "$AMPLIFY_CONFIG_PATH"
+write_to_file "AMPLIFY_TEAM_PROVIDER" "$AMPLIFY_TEAM_PROVIDER_PATH"
+
+# Prevent Git from converting line endings
+git config --global core.autocrlf false
+
+# Ensure correct Ruby version (at least 2.7.0)
+REQUIRED_RUBY_VERSION="2.7.0"
+CURRENT_RUBY_VERSION=$(ruby -e 'puts RUBY_VERSION' 2>/dev/null || echo "0.0.0")
+
+if [[ "$(printf '%s\n' "$REQUIRED_RUBY_VERSION" "$CURRENT_RUBY_VERSION" | sort -V | head -n1)" != "$REQUIRED_RUBY_VERSION" ]]; then
+  echo "🔄 Upgrading Ruby..."
+  brew install rbenv
+  rbenv install 3.2.2  # Install latest stable Ruby version
+  rbenv global 3.2.2   # Set it as the default version
+  export PATH="$HOME/.rbenv/shims:$PATH"
+  echo "✅ Ruby upgraded to: $(ruby -v)"
+else
+  echo "✅ Ruby version is sufficient: $(ruby -v)"
+fi
+
+# Ensure correct gem paths
 export PATH="$HOME/.gem/ruby/$(ruby -e 'puts RUBY_VERSION')/bin:$PATH"
 
-# Install necessary Ruby gems in CI/CD
+# Install required Ruby gems
 echo "🔄 Installing required Ruby gems..."
 gem install ffi cocoapods drb --user-install --no-document
 echo "✅ Ruby gems installed."
 
-# Ensure CocoaPods is up-to-date
-echo "🔄 Updating CocoaPods..."
-pod repo update
-echo "✅ CocoaPods repo updated."
+# Ensure CocoaPods is installed
+if ! command -v pod &> /dev/null; then
+  echo "🔄 Installing CocoaPods..."
+  gem install cocoapods --user-install --no-document
+fi
+echo "✅ CocoaPods version: $(pod --version)"
 
-# Ensure Flutter is installed
-export PATH="$HOME/flutter/bin:$PATH"
+# Install Flutter if missing
+FLUTTER_VERSION="3.29.0"
+FLUTTER_DIR="$HOME/flutter"
+
+if ! command -v flutter &> /dev/null; then
+  echo "🚀 Installing Flutter $FLUTTER_VERSION..."
+  rm -rf "$FLUTTER_DIR"
+  git clone --depth 1 --branch "stable" https://github.com/flutter/flutter.git "$FLUTTER_DIR"
+  export PATH="$FLUTTER_DIR/bin:$PATH"
+  flutter precache
+  flutter --version
+else
+  echo "✅ Flutter is already installed."
+fi
+export PATH="$FLUTTER_DIR/bin:$PATH"
 
 # Install Flutter dependencies
-echo "🔄 Running Flutter setup..."
 cd "$BASE_PATH/../../.." || exit 1
 flutter pub get
 
@@ -68,13 +123,9 @@ if ! command -v melos &> /dev/null; then
 fi
 melos bootstrap
 
-# Ensure sqlite3 version compatibility in CocoaPods
-echo "🔄 Updating Podfile dependencies..."
-cd "$BASE_PATH/ios" || exit 1
-echo "pod 'sqlite3', '~> 3.48.0'" >> Podfile
-
-# Reinstall CocoaPods dependencies
+# Install CocoaPods dependencies
+cd "$BASE_PATH" || exit 1
 rm -rf Pods Podfile.lock
-pod install --repo-update --verbose
+pod install
 
 echo "✅ Post-clone setup completed successfully."
