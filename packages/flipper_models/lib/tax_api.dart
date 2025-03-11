@@ -65,7 +65,7 @@ abstract class TaxApi {
 
   // Future<RwApiResponse> savePurchases(
   //     {required SaleList item, required String URI});
-  Future<List<Purchase>> selectTrnsPurchaseSales(
+  Future<RwApiResponse> selectTrnsPurchaseSales(
       {required int tin,
       required String bhfId,
       required String lastReqDt,

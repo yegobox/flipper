@@ -235,7 +235,7 @@ jobs:
   build-and-release-windows-debug:
     name: "Build windows app-debug"
     runs-on: windows-2022
-    needs: [unit-testing, integration-testing-windows] # Requires Supabase to be initialized
+    needs: [unit-testing] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
         with:
@@ -282,25 +282,20 @@ jobs:
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4  # Fixed this block
+      - name: Create Debug Releasse
+        uses: softprops/action-gh-release@v1
         with:
-          name: windows-build-debug
-          path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1  # Or equivalent release action
-        # if: startsWith(github.ref, 'refs/tags/')  # Only trigger on tag pushes (releases)
-        with:
-          files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix # Path to the artifact
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ steps.get_version.outputs.version }}  # Example release name
+          files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
+          tag_name: ${{ github.ref_name }}  # Or a dynamic tag based on your strategy
+          name: Debug Release ${{ steps.get_version.outputs.version }}
           body: |
-            Debug Release for Windows
-
+            Debug Release for QA
+        env:
+          GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
 
   build-and-release-windows-prod:
     name: "Build windows app-store"
+    if: github.event_name == 'merge' && github.ref == 'refs/heads/main'
     runs-on: windows-2022
     needs: [unit-testing, integration-testing-windows] # Requires Supabase to be initialized
     steps:
@@ -349,7 +344,7 @@ jobs:
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
-      - name: Create Release
+      - name: Create Production Release
         uses: softprops/action-gh-release@v1
         with:
           files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
@@ -362,11 +357,11 @@ jobs:
   integration-on-android:
     name: Integration on Android
     needs: [unit-testing]  # Requires Supabase to be initialized
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        api-level: [29, 33]
-        target: [google_apis_playstore]  # Use google_apis_playstore
+        api-level: [21, 23, 29]
+        target: [default, google_apis]
         arch: [x86_64, arm64-v8a]  # Add x86_64 and arm64 architectures.
       fail-fast: false
     steps:
@@ -443,9 +438,15 @@ jobs:
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
         working-directory: apps/flipper/android
 
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@v3
-
+        
       - name: AVD cache
         uses: actions/cache@v4
         id: avd-cache
@@ -453,35 +454,24 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.arch }}
+          key: avd-${{ matrix.api-level }}
 
       - name: create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
-          target: ${{ matrix.target }}  # Use google_apis_playstore
-          arch: ${{ matrix.arch }}   # Pass architecture to emulator runner
-          profile: Nexus 6
+          force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
-          force-avd-creation: true # force avd creation when cache is not hit
-
           script: echo "Generated AVD snapshot for caching."
-
-      - name: Wait for Emulator
-        run: |
-          echo "Waiting for emulator to boot..."
-          adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
-          echo "Emulator booted!"
-
+      
       - name: Run Tests on Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
+          # ndk: 26.3.11579264
           target: ${{ matrix.target }}
-          arch: ${{ matrix.arch }}  # Pass architecture to emulator runner
-          profile: Nexus 6
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
           script: |
