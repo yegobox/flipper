@@ -68,9 +68,6 @@ write_to_file "AMPLIFY_CONFIG" "$AMPLIFY_CONFIG_PATH"
 write_to_file "AMPLIFY_TEAM_PROVIDER" "$AMPLIFY_TEAM_PROVIDER_PATH"
 
 
-# switch to apps/flipper
-cd "$BASE_PATH/apps/flipper" || exit 1
-
 # Prevent Git from converting line endings
 git config --global core.autocrlf false
 
@@ -117,14 +114,11 @@ if ! command -v flutter &> /dev/null; then
   export PATH="$FLUTTER_DIR/bin:$PATH"
   flutter precache
   flutter --version
+  echo "✅ Flutter installed successfully."
 else
   echo "✅ Flutter is already installed."
 fi
 export PATH="$FLUTTER_DIR/bin:$PATH"
-
-# Install Flutter dependencies
-cd "$BASE_PATH/../../.." || exit 1
-flutter pub get
 
 # Install & configure Melos
 export PATH="$HOME/.pub-cache/bin:$PATH"
@@ -132,10 +126,19 @@ if ! command -v melos &> /dev/null; then
   echo "🔄 Installing Melos..."
   dart pub global activate melos 6.3.2
 fi
+
+flutter pub get
+
+
 melos bootstrap
 
-# Install CocoaPods dependencies
-cd "$BASE_PATH" || exit 1
+echo "✅ Melos setup completed successfully."
+
+# Install Flutter dependencies
+cd "$BASE_PATH/apps/flipper/ios" || exit 1
+
+echo "🔄 Navigated into apps/flipper/ios"
+
 rm -rf Pods Podfile.lock
 pod install
 
