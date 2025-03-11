@@ -85,10 +85,23 @@ cd "$BASE_PATH/../../.." || exit 1
 # Install Dart & Flutter dependencies
 flutter pub get
 
+# ==========================
+#  Install & Configure Melos
+# ==========================
+
+# Add Dart global bin directory to PATH
+export PATH="$HOME/.pub-cache/bin:$PATH"
+
 # Install Melos globally if not already installed
 if ! command -v melos &> /dev/null; then
   echo "🔄 Installing Melos..."
-  dart pub global activate melos
+  dart pub global activate melos 6.3.2
+fi
+
+# Verify Melos is available
+if ! command -v melos &> /dev/null; then
+  echo "❌ ERROR: Melos is still not found in PATH"
+  exit 1
 fi
 
 # Run Melos bootstrap to link packages
