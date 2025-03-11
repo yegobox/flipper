@@ -2510,7 +2510,8 @@ class CoreSync
         try {
           await repository.upsert<ImportPurchaseDates>(
               ImportPurchaseDates(
-                lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
+                // lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
+                lastRequestDate: response.resultDt,
                 branchId: activeBranch.id,
                 requestType: "IMPORT",
               ),
@@ -5676,6 +5677,7 @@ class CoreSync
     required String lastRequestdate,
   }) async {
     try {
+      RwApiResponse response;
       // Fetch active branch
       final activeBranch =
           await branch(serverId: ProxyService.box.getBranchId()!);
@@ -5712,18 +5714,17 @@ class CoreSync
 
       List<Variant> variantsList;
 
-      List<Purchase> saleList;
       int branchId = ProxyService.box.getBranchId()!;
 
       try {
-        saleList = await ProxyService.tax.selectTrnsPurchaseSales(
+        response = await ProxyService.tax.selectTrnsPurchaseSales(
           URI: url,
           tin: tin,
           bhfId: (await ProxyService.box.bhfId()) ?? "00",
           lastReqDt: lastRequestdate,
         );
 
-        if (saleList.isEmpty) {
+        if (response.data?.saleList?.isEmpty ?? false) {
           variantsList = await variants(
             branchId: branchId,
             excludeApprovedInWaitingOrCanceledItems: true,
@@ -5735,10 +5736,10 @@ class CoreSync
       }
 
       // Process purchases
-      if (saleList.isNotEmpty) {
+      if (response.data?.saleList?.isNotEmpty ?? false) {
         // Only process if there's data
         List<Future<void>> futures = []; // Explicitly typed for clarity
-        for (final purchase in saleList) {
+        for (final purchase in response.data?.saleList ?? []) {
           if (purchase.variants != null) {
             // Check if variants is null. Protect from null exception
             for (final variant in purchase.variants!) {
@@ -5803,8 +5804,8 @@ class CoreSync
           final newImportDate = ImportPurchaseDates(
             branchId: activeBranch.id,
             requestType: "PURCHASE",
-            lastRequestDate:
-                DateTime.now().toYYYYMMddHHmmss(), // Use actual time
+            lastRequestDate: response.resultDt,
+            // lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
           );
 
           await repository.upsert<ImportPurchaseDates>(

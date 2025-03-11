@@ -193,10 +193,19 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
 
       /// update the remaining stock of this item in rra
       variant.rsdQty = variant.stock?.currentStock;
-      if (variant.tin == null ||
-          variant.rsdQty == null ||
-          variant.itemCd == 'null' ||
-          variant.itemCd?.isEmpty == true) {
+      if (variant.tin == null) {
+        return RwApiResponse(resultCd: "000", resultMsg: "Missing TIN number");
+      }
+
+      if (variant.rsdQty == null) {
+        return RwApiResponse(
+            resultCd: "000", resultMsg: "Missing remaining stock quantity");
+      }
+
+      if (variant.itemCd == 'null' || variant.itemCd == null) {
+        return RwApiResponse(resultCd: "000", resultMsg: "Missing item code");
+      }
+      if (variant.itemCd!.isEmpty) {
         return RwApiResponse(
             resultCd: "000", resultMsg: "Invalid data while saving stock");
       }
@@ -947,7 +956,7 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
   }
 
   @override
-  Future<List<Purchase>> selectTrnsPurchaseSales(
+  Future<RwApiResponse> selectTrnsPurchaseSales(
       {required int tin,
       required String bhfId,
       required String URI,
@@ -971,7 +980,7 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
         if (respond.resultCd == "894") {
           throw Exception(respond.resultMsg);
         }
-        return respond.data?.saleList ?? [];
+        return respond;
       } else {
         throw Exception(
             'Failed to fetch import items. Status code: ${response.statusCode}');
