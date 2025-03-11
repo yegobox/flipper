@@ -75,6 +75,13 @@ fi
 
 echo "✅ Ruby version: $(ruby -v)"
 
+# Ensure the correct version of securerandom is installed
+if ! gem list securerandom -i --version 0.3.2; then
+  echo "🔄 Installing securerandom 0.3.2..."
+  gem install securerandom -v 0.3.2 --user-install --no-document
+fi
+
+# Install dependencies
 gem install ffi cocoapods --user-install --no-document
 export PATH="$HOME/.gem/ruby/$(ruby -e 'puts RUBY_VERSION')/bin:$PATH"
 echo "✅ CocoaPods version: $(pod --version)"
