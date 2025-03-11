@@ -357,12 +357,12 @@ jobs:
   integration-on-android:
     name: Integration on Android
     needs: [unit-testing]  # Requires Supabase to be initialized
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        api-level: [29, 35]
-        target: [google_apis_playstore]  # Use google_apis_playstore
-        arch: [x86_64, arm64-v8a]  # Add x86_64 and arm64 architectures.
+        api-level: [21, 23, 29]
+        target: [default, google_apis]
+        # arch: [x86_64, arm64-v8a]  # Add x86_64 and arm64 architectures.
       fail-fast: false
     steps:
       - run: git config --global core.autocrlf false
@@ -438,9 +438,15 @@ jobs:
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
         working-directory: apps/flipper/android
 
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@v3
-
+        
       - name: AVD cache
         uses: actions/cache@v4
         id: avd-cache
@@ -448,35 +454,24 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.arch }}
+          key: avd-${{ matrix.api-level }}
 
       - name: create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
-          target: ${{ matrix.target }}  # Use google_apis_playstore
-          arch: ${{ matrix.arch }}   # Pass architecture to emulator runner
-          profile: Nexus 6
+          force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
-          force-avd-creation: true # force avd creation when cache is not hit
-
           script: echo "Generated AVD snapshot for caching."
-
-      - name: Wait for Emulator
-        run: |
-          echo "Waiting for emulator to boot..."
-          adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
-          echo "Emulator booted!"
-
+      
       - name: Run Tests on Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
+          ndk: 26.3.11579264
           target: ${{ matrix.target }}
-          arch: ${{ matrix.arch }}  # Pass architecture to emulator runner
-          profile: Nexus 6
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
           script: |
