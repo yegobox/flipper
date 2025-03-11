@@ -1,4 +1,10 @@
-# Flipper: Revolutionary Business Software & Data Encryption Platform
+
+<div align="Flipper">
+
+<img src=".github/assets/flipper_logo.png" width="400"/>
+
+A revolutionaly business software and more.
+
 
 <div align="center">
   <img src=".github/assets/ente-ducky.png" width="400"/>
