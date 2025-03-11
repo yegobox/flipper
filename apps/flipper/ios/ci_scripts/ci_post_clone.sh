@@ -15,6 +15,34 @@ FIREBASE_OPTIONS2_PATH="$BASE_PATH/../../packages/flipper_models/lib/firebase_op
 AMPLIFY_CONFIG_PATH="$BASE_PATH/lib/amplifyconfiguration.dart"
 AMPLIFY_TEAM_PROVIDER_PATH="$BASE_PATH/amplify/team-provider-info.json"
 
+GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/GoogleService-Info.plist"
+
+# Set the path to your GoogleService-Info.plist
+GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/ios/Runner/GoogleService-Info.plist"
+
+# Extract the GOOGLE_APP_ID, FIREBASE_PROJECT_ID, and GCM_SENDER_ID
+GOOGLE_APP_ID=$(plutil -p "$GOOGLE_SERVICES_PLIST_PATH" | grep -A1 'GOOGLE_APP_ID' | tail -n1 | tr -d '[:space:]')
+FIREBASE_PROJECT_ID=$(plutil -p "$GOOGLE_SERVICES_PLIST_PATH" | grep -A1 'FIREBASE_PROJECT_ID' | tail -n1 | tr -d '[:space:]')
+GCM_SENDER_ID=$(plutil -p "$GOOGLE_SERVICES_PLIST_PATH" | grep -A1 'GCM_SENDER_ID' | tail -n1 | tr -d '[:space:]')
+
+# Create the JSON content
+JSON_CONTENT=$(cat <<EOF
+{
+  "file_generated_by": "FlutterFire CLI",
+  "purpose": "FirebaseAppID & ProjectID for this Firebase app in this directory",
+  "GOOGLE_APP_ID": "$GOOGLE_APP_ID",
+  "FIREBASE_PROJECT_ID": "$FIREBASE_PROJECT_ID",
+  "GCM_SENDER_ID": "$GCM_SENDER_ID"
+}
+EOF
+)
+
+# Save the JSON content to firebase_app_id_file
+echo "$JSON_CONTENT" > "$BASE_PATH/firebase_app_id_file"
+
+echo "✅ firebase_app_id_file has been generated with the required content."
+
+
 # Function to write environment variables to files
 write_to_file() {
   local var_name="$1"
