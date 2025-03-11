@@ -65,8 +65,8 @@ write_to_file "AMPLIFY_TEAM_PROVIDER" "$AMPLIFY_TEAM_PROVIDER_PATH"
 # Prevent Git from converting line endings
 git config --global core.autocrlf false
 
-# Ensure correct Ruby version (at least 2.7.0)
-REQUIRED_RUBY_VERSION="2.7.0"
+# Ensure correct Ruby version (at least 3.2.2)
+REQUIRED_RUBY_VERSION="3.2.2"
 CURRENT_RUBY_VERSION=$(ruby -e 'puts RUBY_VERSION' 2>/dev/null || echo "0.0.0")
 
 if [[ "$(printf '%s\n' "$REQUIRED_RUBY_VERSION" "$CURRENT_RUBY_VERSION" | sort -V | head -n1)" != "$REQUIRED_RUBY_VERSION" ]]; then
