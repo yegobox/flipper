@@ -45,6 +45,20 @@ git config --global core.autocrlf false
 # Log actions for debugging
 echo "✅ All environment variables have been written to their respective files."
 
+# Ensure Ruby is available (Pre-installed in Xcode Cloud)
+echo "🔍 Checking Ruby version..."
+ruby -v
+
+# Ensure CocoaPods and FFI are installed correctly
+echo "🔄 Ensuring FFI and CocoaPods are installed..."
+gem install ffi cocoapods --user-install --no-document
+
+# Ensure CocoaPods is accessible
+export PATH="$HOME/.gem/ruby/$(ruby -e 'puts RUBY_VERSION')/bin:$PATH"
+
+# Verify CocoaPods installation
+echo "✅ CocoaPods version: $(pod --version)"
+
 # ==========================
 #  Install Flutter if missing
 # ==========================
@@ -112,7 +126,8 @@ melos bootstrap
 cd "$BASE_PATH" || exit 1
 
 # Install CocoaPods dependencies
-pod update Firebase/Analytics
+
+
 pod install 
 
 echo "✅ Post-clone setup completed successfully."
