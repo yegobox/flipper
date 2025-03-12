@@ -5,7 +5,7 @@ set -e
 
 # Adjust the base path to the correct root folder
 # Adjust the base path to the correct root folder
-BASE_PATH="$(cd "$(dirname "$SRCROOT")/../../../" && pwd)"
+BASE_PATH="$(cd "$(dirname "$SRCROOT")/../../../../" && pwd)"
 echo "BASE_PATH is: $BASE_PATH"  # VERIFY THIS IN THE LOGS
 # 
 # Define the destination paths relative to BASE_PATH
@@ -132,11 +132,12 @@ melos bootstrap
 echo "✅ Melos setup completed successfully."
 
 # Install Flutter dependencies
-cd "$BASE_PATH/apps/flipper/ios" || exit 1
+cd "$BASE_PATH/apps/flipper" || exit 1
 
+echo "🔄 Navigated into apps/flipper"
+
+cd ios || exit 1
 echo "🔄 Navigated into apps/flipper/ios"
-
-
 pod install
 
 echo "✅ Post-clone setup completed successfully."
