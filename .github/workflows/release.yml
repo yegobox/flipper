@@ -422,15 +422,17 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install patrol_cli
+        run: |
+          dart pub global activate patrol_cli
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Gradle cache
-        uses: gradle/actions/setup-gradle@v3
-        
       - name: AVD cache
         uses: actions/cache@v4
         id: avd-cache
@@ -448,7 +450,7 @@ jobs:
           target: ${{ matrix.target }}
           arch: ${{ matrix.arch }}
           force-avd-creation: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
           disable-animations: true
           script: echo "Generated AVD snapshot for caching."
 
@@ -459,11 +461,13 @@ jobs:
           target: ${{ matrix.target }}
           arch: ${{ matrix.arch }}
           force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
           disable-animations: true
           script: |
             cd apps/flipper
-            flutter test --dart-define=FLUTTER_TEST_ENV=true integration_test/smoke_android_test.dart --verbose
+            flutter pub get
+            dart run patrol_cli:patrol_cli devices
+            dart run patrol_cli:patrol_cli test --target integration_test/smoke_android_test.dart --dart-define=FLUTTER_TEST_ENV=true --verbose
   fastlane-deploy:
     name: "Google Deploy"
     needs: [unit-testing, integration-testing-windows]  # Requires Supabase to be initialized
