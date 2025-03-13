@@ -441,12 +441,14 @@ jobs:
 
       - name: Setup patrol
         run: |
+          dart pub global activate melos 6.3.2
+          melos bootstrap
           cd apps/flipper
-          flutter pub get
           dart pub global activate patrol_cli
           echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
           export PATH="$PATH":"$HOME/.pub-cache/bin"
           patrol doctor
+          patrol build android --target=integration_test/test_bundle.dart
 
       - name: Enable KVM
         run: |
@@ -488,7 +490,13 @@ jobs:
             cd apps/flipper
             export PATH="$PATH":"$HOME/.pub-cache/bin"
             flutter pub get
-            patrol test integration_test/smoke_android_test.dart --dart-define=FLUTTER_TEST_ENV=true --verbose
+            flutter pub upgrade
+            flutter pub outdated || true
+            patrol drive \
+              --target=integration_test/test_bundle.dart \
+              --dart-define=FLUTTER_TEST_ENV=true \
+              --dart-define=FORCE_TEST=true \
+              --verbose
   fastlane-deploy:
     name: "Google Deploy"
     needs: [unit-testing, integration-testing-windows]  # Requires Supabase to be initialized
