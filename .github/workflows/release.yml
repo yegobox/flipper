@@ -391,11 +391,26 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Check virtualization support
+        run: |
+          grep -cw vmx /proc/cpuinfo
+          grep -cw svm /proc/cpuinfo
+      - name: Install KVM
+        run: |
+          sudo apt-get update
+          sudo apt-get install qemu-kvm -y
+          sudo adduser $USER kvm
+
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+
+      - name: Clean up SDK install
+        run: |
+          rm -rf $ANDROID_HOME
+          mkdir -p $ANDROID_HOME
 
       - name: Install Android SDK components
         run: |
@@ -406,15 +421,16 @@ jobs:
             "build-tools;33.0.2" \
             "system-images;android-33;google_apis;x86_64" \
             "emulator" \
-            "cmdline-tools;latest" > /dev/null # Add this line
+            "cmdline-tools;latest" > /dev/null
 
       - name: Create and start emulator
         run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n test -k "system-images;android-33;google_apis;x86_64" --force
+          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n test -k "system-images;android-33;google_apis;x86_64" --force
           echo "hw.cpu.ncore=2" >> ~/.android/avd/test.avd/config.ini
           echo "hw.ramSize=2048" >> ~/.android/avd/test.avd/config.ini
           nohup $ANDROID_HOME/emulator/emulator -avd test -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim &
           $ANDROID_HOME/platform-tools/adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+          sleep 10
 
       - name: Setup patrol
         run: |
