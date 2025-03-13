@@ -411,7 +411,8 @@ jobs:
             "platforms;android-33" \
             "build-tools;33.0.2" \
             "system-images;android-33;google_apis;x86_64" \
-            "emulator" > /dev/null
+            "emulator" \
+            "cmdline-tools;latest" > /dev/null # Add this line
 
       - name: Create and start emulator
         run: |
