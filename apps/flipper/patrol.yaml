@@ -1,0 +1,16 @@
+# Configuration for patrol CLI tool
+# See https://patrol.leancode.co/configuration/patrol-yaml
+
+# App's package name/bundle identifier
+android_package_name: rw.flipper
+ios_bundle_identifier: rw.flipper
+
+# Where to find the app's source code
+workspace:
+  android:
+    directory: android
+  ios:
+    directory: ios
+
+# Development artifacts
+tmp_dir: .tmp
