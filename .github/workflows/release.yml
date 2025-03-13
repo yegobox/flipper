@@ -24,46 +24,10 @@ env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-  SUPABASE_URL: http://localhost:54321
-  SUPABASE_ANON_KEY: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
   # SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} # Securely store this
   IS_TEST_ENV: true
 
 jobs:
-  # supabase-init:
-  #   name: Supabase Initialize
-  #   runs-on: ubuntu-latest
-
-  #   services:
-  #     postgres:
-  #       image: supabase/postgres:latest
-  #       ports:
-  #         - 5432:5432
-  #       env:
-  #         POSTGRES_USER: postgres
-  #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: postgres
-
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v3
-
-  #     - name: Install Supabase CLI
-  #       run: |
-  #         curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-  #         sudo apt-get install -y nodejs
-  #         npm install -g supabase
-  #         echo "::add-path::$(npm config get prefix)/bin" # Add npm global bin to PATH
-
-  #     - name: Start Supabase Locally
-  #       run: |
-  #         supabase start
-
-  #     - name: Stop Supabase
-  #       if: always()
-  #       run: |
-  #         supabase stop
-
   unit-testing:
     name: Unit Testing
     runs-on: windows-2022
@@ -84,24 +48,23 @@ jobs:
         with:
           flutter-version: "3.29.0"
           channel: "stable"
-
-      - name: Initialize submodules
-        run: git submodule update --init
-
-      - name: Setup melos
+      - run: |
+          git submodule update --init
+      - name: Load melos
         run: |
           dart pub global activate melos 6.3.2
           melos bootstrap
 
       - name: Configure Missing files
+        shell: bash
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-          git config --global core.autocrlf false
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          git config --global core.autocrlf false
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
         env:
           INDEX: ${{ secrets.INDEX }}
