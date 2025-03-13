@@ -11,20 +11,19 @@ import 'package:flipper_dashboard/SearchProduct.dart';
 import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/TableVariants.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
+import 'package:flipper_dashboard/create/browsePhotos.dart';
+import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:flipper_dashboard/create/browsePhotos.dart';
-import 'package:flipper_models/helperModels/hexColor.dart';
-import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
-
+import 'package:path_provider/path_provider.dart';
 import 'package:stacked/stacked.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
@@ -58,18 +57,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   final _formKey = GlobalKey<FormState>();
   final _fieldComposite = GlobalKey<FormState>();
 
-  @override
-  void dispose() {
-    _inputTimer?.cancel();
-    productNameController.dispose();
-    retailPriceController.dispose();
-    scannedInputController.dispose();
-    supplyPriceController.dispose();
-    scannedInputFocusNode.dispose();
-    super.dispose();
-  }
-
   // Helper function to get a valid color or a default color
+  Color getColorOrDefault(String? hexColor) {
+    if (hexColor == null || hexColor.isEmpty) {
+      return Colors.amber;
+    }
+    try {
+      return HexColor(hexColor);
+    } catch (e) {
+      return Colors.amber;
+    }
+  }
 
   // Helper function to check if a string is a valid hexadecimal color code
   void _showNoProductNameToast() {
@@ -117,27 +115,30 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           selectedProductType: selectedProductType,
           packagingUnit: selectedPackageUnitValue.split(":")[0],
           onCompleteCallback: (List<Variant> variants) async {
-              final pendingTransaction =
-                  await ProxyService.strategy.manageTransaction(
-                transactionType: TransactionType.adjustment,
-                isExpense: true,
-                branchId: ProxyService.box.getBranchId()!,
+            final pendingTransaction =
+                await ProxyService.strategy.manageTransaction(
+              transactionType: TransactionType.adjustment,
+              isExpense: true,
+              branchId: ProxyService.box.getBranchId()!,
+            );
+            Business? business = await ProxyService.strategy
+                .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+
+            for (Variant variant in variants) {
+              // Handle the transaction for stock adjustment
+              await assignTransaction(
+                variant: variant,
+                pendingTransaction: pendingTransaction!,
+                business: business!,
+                randomNumber: randomNumber(),
+                // 06 is incoming adjustment.
+                sarTyCd: "06",
               );
-              Business? business = await ProxyService.strategy
-                  .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-              for (Variant variant in variants) {
-                await assignTransaction(
-                  variant: variant,
-                  pendingTransaction: pendingTransaction!,
-                  business: business!,
-                  randomNumber: randomNumber(),
-                  // 06 is incoming adjustment.
-                  sarTyCd: "06",
-                );
-              }
-              if (pendingTransaction != null) {
-                await completeTransaction(pendingTransaction: pendingTransaction);
-              }
+            }
+
+            if (pendingTransaction != null) {
+              await completeTransaction(pendingTransaction: pendingTransaction);
+            }
           },
         );
       }
@@ -250,6 +251,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
   // Add a state variable to hold the selected product type
   String selectedProductType = "2";
+
+  @override
+  void dispose() {
+    _inputTimer?.cancel();
+    productNameController.dispose();
+    retailPriceController.dispose();
+    scannedInputController.dispose();
+    supplyPriceController.dispose();
+    scannedInputFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
