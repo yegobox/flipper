@@ -6,7 +6,7 @@ part of 'pay_button_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$payButtonStateHash() => r'4a3e45e03d8feef89f5dab7530b21e2bd132e1ec';
+String _$payButtonStateHash() => r'4c130f58e7c7a43c10766ef53aff85bc7c846f09';
 
 /// See also [PayButtonState].
 @ProviderFor(PayButtonState)

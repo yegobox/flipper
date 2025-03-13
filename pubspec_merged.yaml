@@ -277,14 +277,14 @@ dev_dependencies:
   # rules and activating additional ones.
   build_runner: ^2.0.0
   custom_lint: ^0.6.4
-  riverpod_generator: ^2.3.5
+  riverpod_generator: ^2.6.5
   # custom_lint:
-  # riverpod_generator: ^2.3.5
+  # riverpod_generator: ^2.6.5
   riverpod_lint: ^2.3.7
   # stacked_generator:
   mockito: ^5.4.4
   test: "^1.20.1"
-  dart_mappable_builder: ^4.2.1
+  dart_mappable_builder: ^4.4.0
   isar_generator: ^3.1.0+1
   patrol: ^3.14.0
   flutter_launcher_icons: ^0.13.1

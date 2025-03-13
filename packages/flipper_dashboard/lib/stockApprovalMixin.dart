@@ -137,9 +137,18 @@ mixin StockRequestApprovalLogic {
     required InventoryRequest request,
   }) async {
     try {
+      final Variant? variant = await ProxyService.strategy.getVariant(id: item.variantId!);
+      if (variant == null) {
+        throw Exception('Variant not found');
+      }
+      
+      final double availableStock = variant.stock?.currentStock ?? 0;
+      final int requestedQuantity = item.quantityRequested ?? 0;
+      final int approvedQuantity = availableStock >= requestedQuantity ? requestedQuantity : availableStock.toInt();
+      
       await _processPartialApprovalItem(
         item: item,
-        approvedQuantity: item.quantityRequested!,
+        approvedQuantity: approvedQuantity,
         request: request,
       );
     } catch (e, s) {
