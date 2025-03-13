@@ -158,27 +158,24 @@ class ProductListScreenState extends ConsumerState<OrderingView>
     );
   }
 
-  int count = 0;
-
   @override
   Widget build(BuildContext context) {
     final isOrdering = ProxyService.box.isOrdering()!;
     final theme = Theme.of(context);
-    final orderCount = ref
-        .watch(transactionItemsProvider(transactionId: widget.transaction.id))
-        .value
-        ?.length;
-    setState(() {
-      count = orderCount ?? 0;
-    });
+
+    // Watch the transaction items directly without intermediate state
+    final transactionItems = ref
+        .watch(transactionItemsProvider(transactionId: widget.transaction.id));
+    final orderCount = transactionItems.value?.length ?? 0;
+
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
         return Scaffold(
           appBar: _buildAppBar(theme: theme),
           body: _buildBody(ref, model: model),
-          floatingActionButton:
-              _buildFloatingActionButton(ref, isOrdering, orderCount: count),
+          floatingActionButton: _buildFloatingActionButton(ref, isOrdering,
+              orderCount: orderCount),
         );
       },
     );
@@ -302,8 +299,9 @@ class ProductListScreenState extends ConsumerState<OrderingView>
             ? "Preview Cart ($orderCount)"
             : "Preview Cart";
 
-    return SizedBox(
-      width: 200,
+    return Container(
+      width: 350,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: PreviewSaleButton(
         digitalPaymentEnabled: digitalPaymentEnabled,
         transactionId: transaction.id,
@@ -361,9 +359,6 @@ class ProductListScreenState extends ConsumerState<OrderingView>
               branchId: ProxyService.box.getBranchId()!);
 
       await refreshTransactionItems(transactionId: newTransaction!.id);
-      setState(() {
-        count = 0;
-      });
       // Hide loading modal and show success
       await _hideLoadingModal();
       await _showSuccessDialog();

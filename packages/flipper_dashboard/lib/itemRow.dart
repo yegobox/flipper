@@ -130,24 +130,17 @@ class _RowItemState extends ConsumerState<RowItem>
             child: InkWell(
               borderRadius: BorderRadius.circular(borderRadius),
               onTap: () async {
-                if (isSelected) {
-                  // Deselect the item
-                  ref.read(selectedItemIdProvider.notifier).state =
-                      NO_SELECTION;
-                } else {
-                  // Select and add to quick sell
-                  final flipperWatch? w = kDebugMode
-                      ? flipperWatch("onAddingItemToQuickSell")
-                      : null;
-                  w?.start();
-                  await onTapItem(model: model, isOrdering: widget.isOrdering);
-                  w?.log("Item Added to Quick Sell");
-                }
+                // For normal tap, just add to cart without selection
+                final flipperWatch? w =
+                    kDebugMode ? flipperWatch("onAddingItemToQuickSell") : null;
+                w?.start();
+                await onTapItem(model: model, isOrdering: widget.isOrdering);
+                w?.log("Item Added to Quick Sell");
               },
               onLongPress: () {
-                // Toggle selection on long press
+                // Only handle selection on long press for editing
                 final itemId = widget.variant?.id ?? widget.product?.id;
-                if (itemId != null) {
+                if (itemId != null && !widget.isOrdering) {
                   if (selectedItem == itemId) {
                     ref.read(selectedItemIdProvider.notifier).state =
                         NO_SELECTION;
@@ -463,33 +456,6 @@ class _RowItemState extends ConsumerState<RowItem>
   }
 
   // Rest of the methods remain unchanged
-  Future<String?> getImageFilePath({required String imageFileName}) async {
-    Directory appSupportDir = await getSupportDir();
-
-    final imageFilePath = path.join(appSupportDir.path, imageFileName);
-    final file = File(imageFilePath);
-
-    if (await file.exists()) {
-      return imageFilePath;
-    } else {
-      return null;
-    }
-  }
-
-  Future<String> preSignedUrl(
-      {required String imageInS3, required int branchId}) async {
-    final filePath = 'public/branch-$branchId/$imageInS3';
-    talker.warning("GettingPreSignedURL:$filePath");
-    final file = await Amplify.Storage.getUrl(
-        path: StoragePath.fromString(filePath),
-        options: StorageGetUrlOptions(
-            pluginOptions: S3GetUrlPluginOptions(
-          validateObjectExistence: true,
-          expiresIn: Duration(minutes: 30),
-        ))).result;
-    return file.url.toString();
-  }
-
   Future<void> onTapItem({
     required CoreViewModel model,
     required bool isOrdering,
@@ -505,7 +471,12 @@ class _RowItemState extends ConsumerState<RowItem>
 
       // Manage transaction
       final pendingTransaction =
-          ref.watch(pendingTransactionStreamProvider(isExpense: isOrdering));
+          ref.read(pendingTransactionStreamProvider(isExpense: isOrdering));
+
+      if (pendingTransaction.value == null) {
+        toast("Error: No active transaction");
+        return;
+      }
 
       // Fetch product details
       final product = await ProxyService.strategy.getProduct(
@@ -560,14 +531,45 @@ class _RowItemState extends ConsumerState<RowItem>
           partOfComposite: false,
         );
       }
+
+      // Immediately refresh the transaction items
+      await refreshTransactionItems(
+          transactionId: pendingTransaction.value!.id);
+
       w?.log("TapOnItemAndSaveTransaction");
-      // Ensure transaction items are refreshed immediately
-      refreshTransactionItems(transactionId: pendingTransaction.value!.id);
     } catch (e, s) {
       talker.warning("Error while clicking: $e");
       talker.error(s);
+      toast("Failed to add item to cart");
       rethrow;
     }
+  }
+
+  Future<String?> getImageFilePath({required String imageFileName}) async {
+    Directory appSupportDir = await getSupportDir();
+
+    final imageFilePath = path.join(appSupportDir.path, imageFileName);
+    final file = File(imageFilePath);
+
+    if (await file.exists()) {
+      return imageFilePath;
+    } else {
+      return null;
+    }
+  }
+
+  Future<String> preSignedUrl(
+      {required String imageInS3, required int branchId}) async {
+    final filePath = 'public/branch-$branchId/$imageInS3';
+    talker.warning("GettingPreSignedURL:$filePath");
+    final file = await Amplify.Storage.getUrl(
+        path: StoragePath.fromString(filePath),
+        options: StorageGetUrlOptions(
+            pluginOptions: S3GetUrlPluginOptions(
+          validateObjectExistence: true,
+          expiresIn: Duration(minutes: 30),
+        ))).result;
+    return file.url.toString();
   }
 
   Future<void> onRowClick(BuildContext context) async {
