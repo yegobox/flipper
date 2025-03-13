@@ -109,15 +109,13 @@ jobs:
           distribution: "zulu"
           java-version: "17"
 
-      - name: Initialize submodules
-        run: git submodule update --init
-
-      - name: Setup melos
+      - name: submodule init
         run: |
+          git submodule update --init
           dart pub global activate melos 6.3.2
           melos bootstrap
-
       - name: Configure Missing files
+        shell: bash
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
