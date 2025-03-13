@@ -309,32 +309,67 @@ class IncomingOrdersWidget extends HookConsumerWidget
               ),
             ),
             SizedBox(height: 12),
-            ...items.map((item) => Padding(
-              padding: EdgeInsets.only(bottom: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      item.name,
-                      style: TextStyle(fontSize: 14),
+            ...items.map((item) => Card(
+              margin: EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(color: Colors.grey[200]!),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            '${item.quantityApproved ?? 0} / ${item.quantityRequested ?? 0}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: _getQuantityColor(item),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Text(
-                    '${item.quantityApproved ?? 0} / ${item.quantityRequested ?? 0}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: _getQuantityColor(item),
-                    ),
-                  ),
-                ],
+                    if (request.status != RequestStatus.approved && (item.quantityApproved ?? 0) < (item.quantityRequested ?? 0))
+                      TextButton.icon(
+                        onPressed: () => _handleSingleItemApproval(context, ref, request, item),
+                        icon: Icon(Icons.check_circle_outline, size: 18),
+                        label: Text('Approve'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.green[600],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             )).toList(),
           ],
         );
       },
     );
+  }
+
+  void _handleSingleItemApproval(BuildContext context, WidgetRef ref, InventoryRequest request, TransactionItem item) {
+    try {
+      approveSingleItem(request: request, item: item, context: context);
+      final stringValue = ref.watch(stringProvider);
+      ref.refresh(stockRequestsProvider((filter: stringValue)));
+    } catch (e) {
+      showCustomSnackBar(context, 'Failed to approve item: ${e.toString()}',
+          backgroundColor: Colors.red[600]);
+    }
   }
 
   Color _getQuantityColor(TransactionItem item) {
