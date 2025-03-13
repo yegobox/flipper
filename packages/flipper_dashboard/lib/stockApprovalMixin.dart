@@ -90,6 +90,84 @@ mixin StockRequestApprovalLogic {
     }
   }
 
+  Future<void> approveSingleItem({
+    required InventoryRequest request,
+    required TransactionItem item,
+    required BuildContext context,
+  }) async {
+    try {
+      _showLoadingDialog(context);
+
+      final canApprove = await _canApproveItem(item: item);
+      if (!canApprove) {
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          _showSnackBar(
+            message: 'Insufficient stock for ${item.name}',
+            context: context,
+            isError: true,
+          );
+        }
+        return;
+      }
+
+      final Variant? variant = await ProxyService.strategy.getVariant(id: item.variantId!);
+      if (variant == null) {
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          _showSnackBar(
+            message: 'Variant not found for ${item.name}',
+            context: context,
+            isError: true,
+          );
+        }
+        return;
+      }
+
+      final double availableStock = variant.stock?.currentStock ?? 0;
+      final int requestedQuantity = item.quantityRequested ?? 0;
+      final int approvedQuantity = availableStock >= requestedQuantity ? requestedQuantity : availableStock.toInt();
+
+      await _processPartialApprovalItem(
+        item: item,
+        approvedQuantity: approvedQuantity,
+        request: request,
+      );
+
+      // Check if all items are now approved
+      final List<TransactionItem> allItems = await ProxyService.strategy.transactionItems(
+        requestId: request.id,
+      );
+      
+      final bool isFullyApproved = allItems.every((item) => 
+        (item.quantityApproved ?? 0) >= (item.quantityRequested ?? 0));
+
+      await _finalizeApproval(
+        request: request,
+        isFullyApproved: isFullyApproved,
+        context: context,
+      );
+
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        _showSnackBar(
+          message: '${item.name} has been approved',
+          context: context,
+        );
+      }
+    } catch (e, s) {
+      talker.error('Error in approveSingleItem', e, s);
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        _showSnackBar(
+          message: 'An error occurred while approving the item',
+          context: context,
+          isError: true,
+        );
+      }
+    }
+  }
+
   Future<bool> _canApproveItem({required TransactionItem item}) async {
     final Variant? variant = await ProxyService.strategy.getVariant(
       id: item.variantId!,

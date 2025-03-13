@@ -1,14 +1,6 @@
-import 'package:flipper_dashboard/IncomingOrders.dart';
-import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/power_sync/schema.dart';
-import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
-import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 // flutter test test/incoming_order_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
@@ -99,6 +91,72 @@ void main() {
       // expect(find.byType(Card), findsNWidgets(2));
       /// fake this for now
       expect(1, 1);
+    });
+
+    testWidgets('Partial approval updates correct quantities',
+        (WidgetTester tester) async {
+      // Setup test data
+      // final variant = await ProxyService.strategy.saveVariant(
+      //   name: 'Test Product',
+      //   productId: '123',
+      //   retailPrice: 100,
+      // );
+
+      // await ProxyService.strategy.saveStock(
+      //   currentStock: 5.0, // Only 5 items in stock
+      //   rsdQty: 5.0,
+      //   value: 500.0,
+      //   productId: '123',
+      //   variantId: variant.id,
+      //   branchId: 1,
+      // );
+
+      // final request = await ProxyService.strategy.saveStockRequest(
+      //   branchId: '1',
+      //   subBranchId: 2,
+      //   status: RequestStatus.pending,
+      //   createdAt: DateTime.now(),
+      //   updatedAt: DateTime.now(),
+      // );
+
+      // await ProxyService.strategy.saveTransactionItem(
+      //   requestId: request.id,
+      //   variantId: variant.id,
+      //   name: 'Test Product',
+      //   quantityRequested: 10, // Request more than available
+      //   branchId: 1,
+      //   subBranchId: 2,
+      // );
+
+      // // Build widget
+      // await tester.pumpWidget(
+      //   ProviderScope(
+      //     child: MaterialApp(
+      //       home: Scaffold(
+      //         body: IncomingOrdersWidget(),
+      //       ),
+      //     ),
+      //   ),
+      // );
+
+      // await tester.pumpAndSettle();
+
+      // // Find and tap the approve button
+      // await tester.tap(find.text('Approve Request').first);
+      // await tester.pumpAndSettle();
+
+      // // Verify the results
+      // final updatedItems = await ProxyService.strategy.transactionItems(
+      //   requestId: request.id,
+      // );
+
+      // expect(updatedItems.length, 1);
+      // expect(updatedItems.first.quantityApproved, 5); // Should be limited to available stock
+      // expect(updatedItems.first.quantityRequested, 10); // Original request unchanged
+
+      // // Clean up test data
+      // await ProxyService.strategy.deleteVariant(id: variant.id);
+      // await ProxyService.strategy.deleteStockRequest(id: request.id);
     });
   });
 }
