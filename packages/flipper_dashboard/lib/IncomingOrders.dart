@@ -23,8 +23,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stringValue = ref.watch(stringProvider);
-    final stockRequests =
-        ref.watch(stockRequestsProvider((filter: stringValue)));
+    final stockRequests = ref.watch(stockRequestsProvider((filter: stringValue)));
     final incomingBranchAsync = ref.watch(activeBranchProvider);
 
     return Container(
@@ -41,14 +40,13 @@ class IncomingOrdersWidget extends HookConsumerWidget
             }
 
             return incomingBranchAsync.when(
-              // Nested when!
               data: (incomingBranch) {
                 return ListView.builder(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
                   itemCount: requests.length,
                   itemBuilder: (context, index) => _buildRequestCard(
-                    incomingBranch: incomingBranch, // No more !
+                    incomingBranch: incomingBranch,
                     context,
                     ref,
                     requests[index],
@@ -278,103 +276,74 @@ class IncomingOrdersWidget extends HookConsumerWidget
   }
 
   Widget _buildItemsList(WidgetRef ref, {required InventoryRequest request}) {
-    final transactionItemsAsync = ref.watch(transactionItemsProvider(
-      requestId: request.id,
-      fetchRemote: true,
-      doneWithTransaction: true,
-    ));
+    // Convert the FutureOr to a Future explicitly
+    Future<List<TransactionItem>> fetchItems() async {
+      return await ProxyService.strategy.transactionItems(requestId: request.id);
+    }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: Text(
-              'Requested Items',
+    return FutureBuilder<List<TransactionItem>>(
+      future: fetchItems(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Text('Error loading items: ${snapshot.error}');
+        }
+
+        final items = snapshot.data ?? [];
+        
+        // Sort items by name for consistent display
+        items.sort((a, b) => (a.name).compareTo(b.name));
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Items',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.grey[800],
               ),
             ),
-          ),
-          Divider(height: 1),
-          transactionItemsAsync.when(
-            data: (items) => items.isNotEmpty
-                ? ListView.separated(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: items.length,
-                    separatorBuilder: (context, index) => Divider(height: 1),
-                    itemBuilder: (context, index) =>
-                        _buildItemRow(items[index]),
-                  )
-                : Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text('No items found.'),
+            SizedBox(height: 12),
+            ...items.map((item) => Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.name,
+                      style: TextStyle(fontSize: 14),
+                    ),
                   ),
-            loading: () => Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (err, stack) => Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Error: $err'),
-            ),
-          ),
-        ],
-      ),
+                  Text(
+                    '${item.quantityApproved ?? 0} / ${item.quantityRequested ?? 0}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: _getQuantityColor(item),
+                    ),
+                  ),
+                ],
+              ),
+            )).toList(),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildItemRow(TransactionItem item) {
-    return Padding(
-      padding: EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.blue[700],
-            ),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              item.name,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[800],
-              ),
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              'Qty: ${(item.qty - item.quantityApproved!)}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.blue[700],
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  Color _getQuantityColor(TransactionItem item) {
+    final approved = item.quantityApproved ?? 0;
+    final requested = item.quantityRequested ?? 0;
+    
+    if (approved == 0) return Colors.red;
+    if (approved < requested) return Colors.orange;
+    return Colors.green;
   }
 
   Widget _buildStatusAndDeliveryInfo(InventoryRequest request) {

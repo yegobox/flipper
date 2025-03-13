@@ -735,8 +735,14 @@ final stockRequestsProvider = StreamProvider.autoDispose
   if (branchId == null) {
     return Stream.empty();
   }
+  // Add distinct() to prevent unnecessary updates and ensure quantities are preserved
   return ProxyService.strategy
-      .requestsStream(branchId: branchId, filter: filter);
+      .requestsStream(branchId: branchId, filter: filter)
+      .map((requests) => requests.where((req) => 
+        // Filter out requests that are to the same branch
+        req.branchId != req.subBranchId
+      ).toList())
+      .distinct();
 });
 
 final variantsProvider = FutureProvider.autoDispose

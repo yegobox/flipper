@@ -514,16 +514,19 @@ class _RowItemState extends ConsumerState<RowItem>
         branchId: branchId,
       );
 
-      /// because item of tax type D are not supposed to have stock so it can be sold without stock.
-      if (widget.variant?.taxTyCd != "D" &&
-          widget.variant?.stock?.currentStock == null) {
-        toast("You do not have enough stock");
-        return;
-      }
-      if (widget.variant?.taxTyCd != "D" &&
-          (widget.variant?.stock?.currentStock ?? 0) <= 0) {
-        toast("You do not have enough stock");
-        return;
+      // Only check stock if we're not in ordering mode
+      if (!isOrdering) {
+        /// because item of tax type D are not supposed to have stock so it can be sold without stock.
+        if (widget.variant?.taxTyCd != "D" &&
+            widget.variant?.stock?.currentStock == null) {
+          toast("You do not have enough stock");
+          return;
+        }
+        if (widget.variant?.taxTyCd != "D" &&
+            (widget.variant?.stock?.currentStock ?? 0) <= 0) {
+          toast("You do not have enough stock");
+          return;
+        }
       }
 
       if (product != null && product.isComposite == true) {
