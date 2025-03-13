@@ -23,7 +23,8 @@ class IncomingOrdersWidget extends HookConsumerWidget
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stringValue = ref.watch(stringProvider);
-    final stockRequests = ref.watch(stockRequestsProvider((filter: stringValue)));
+    final stockRequests =
+        ref.watch(stockRequestsProvider((filter: stringValue)));
     final incomingBranchAsync = ref.watch(activeBranchProvider);
 
     return Container(
@@ -278,7 +279,8 @@ class IncomingOrdersWidget extends HookConsumerWidget
   Widget _buildItemsList(WidgetRef ref, {required InventoryRequest request}) {
     // Convert the FutureOr to a Future explicitly
     Future<List<TransactionItem>> fetchItems() async {
-      return await ProxyService.strategy.transactionItems(requestId: request.id);
+      return await ProxyService.strategy
+          .transactionItems(requestId: request.id);
     }
 
     return FutureBuilder<List<TransactionItem>>(
@@ -293,7 +295,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
         }
 
         final items = snapshot.data ?? [];
-        
+
         // Sort items by name for consistent display
         items.sort((a, b) => (a.name).compareTo(b.name));
 
@@ -309,59 +311,66 @@ class IncomingOrdersWidget extends HookConsumerWidget
               ),
             ),
             SizedBox(height: 12),
-            ...items.map((item) => Card(
-              margin: EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: BorderSide(color: Colors.grey[200]!),
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.name,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            '${item.quantityApproved ?? 0} / ${item.quantityRequested ?? 0}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: _getQuantityColor(item),
-                            ),
-                          ),
-                        ],
+            ...items
+                .map((item) => Card(
+                      margin: EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: Colors.grey[200]!),
                       ),
-                    ),
-                    if (request.status != RequestStatus.approved && (item.quantityApproved ?? 0) < (item.quantityRequested ?? 0))
-                      TextButton.icon(
-                        onPressed: () => _handleSingleItemApproval(context, ref, request, item),
-                        icon: Icon(Icons.check_circle_outline, size: 18),
-                        label: Text('Approve'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.green[600],
+                      child: Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.name,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '${item.quantityApproved ?? 0} / ${item.quantityRequested ?? 0}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: _getQuantityColor(item),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (request.status != RequestStatus.approved &&
+                                (item.quantityApproved ?? 0) <
+                                    (item.quantityRequested ?? 0))
+                              TextButton.icon(
+                                onPressed: () => _handleSingleItemApproval(
+                                    context, ref, request, item),
+                                icon:
+                                    Icon(Icons.check_circle_outline, size: 18),
+                                label: Text('Approve'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.green[600],
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-                  ],
-                ),
-              ),
-            )).toList(),
+                    ))
+                .toList(),
           ],
         );
       },
     );
   }
 
-  void _handleSingleItemApproval(BuildContext context, WidgetRef ref, InventoryRequest request, TransactionItem item) {
+  void _handleSingleItemApproval(BuildContext context, WidgetRef ref,
+      InventoryRequest request, TransactionItem item) {
     try {
       approveSingleItem(request: request, item: item, context: context);
       final stringValue = ref.watch(stringProvider);
@@ -375,7 +384,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
   Color _getQuantityColor(TransactionItem item) {
     final approved = item.quantityApproved ?? 0;
     final requested = item.quantityRequested ?? 0;
-    
+
     if (approved == 0) return Colors.red;
     if (approved < requested) return Colors.orange;
     return Colors.green;
@@ -527,27 +536,67 @@ class IncomingOrdersWidget extends HookConsumerWidget
 
   Widget _buildActionRow(
       BuildContext context, WidgetRef ref, InventoryRequest request) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        _buildActionButton(
-          onPressed: request.status == RequestStatus.approved
-              ? null
-              : () => _handleApproveRequest(context, ref, request),
-          icon: Icons.check_circle_outline,
-          label: 'Approve',
-          color: Colors.green[600]!,
-          isDisabled: request.status == RequestStatus.approved,
-        ),
-        SizedBox(width: 12),
-        _buildActionButton(
-          onPressed: () => _voidRequest(context, ref, request),
-          icon: Icons.cancel_outlined,
-          label: 'Void',
-          color: Colors.red[600]!,
-          isDisabled: false,
-        ),
-      ],
+    return FutureBuilder<List<TransactionItem>>(
+      future: Future.value(
+          ProxyService.strategy.transactionItems(requestId: request.id)),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              _buildActionButton(
+                onPressed: null,
+                icon: Icons.check_circle_outline,
+                label: 'Approve',
+                color: Colors.green[600]!,
+                isDisabled: true,
+              ),
+              SizedBox(width: 12),
+              _buildActionButton(
+                onPressed: null,
+                icon: Icons.cancel_outlined,
+                label: 'Void',
+                color: Colors.red[600]!,
+                isDisabled: true,
+              ),
+            ],
+          );
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return SizedBox(); // Hide buttons if there's an error
+        }
+
+        final items = snapshot.data!;
+        final bool hasApprovedItems =
+            items.any((item) => (item.quantityApproved ?? 0) > 0);
+        final bool isFullyApproved = request.status == RequestStatus.approved;
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            _buildActionButton(
+              onPressed: isFullyApproved
+                  ? null
+                  : () => _handleApproveRequest(context, ref, request),
+              icon: Icons.check_circle_outline,
+              label: 'Approve',
+              color: Colors.green[600]!,
+              isDisabled: isFullyApproved,
+            ),
+            SizedBox(width: 12),
+            _buildActionButton(
+              onPressed: hasApprovedItems
+                  ? null
+                  : () => _voidRequest(context, ref, request),
+              icon: Icons.cancel_outlined,
+              label: 'Void',
+              color: Colors.red[600]!,
+              isDisabled: hasApprovedItems,
+            ),
+          ],
+        );
+      },
     );
   }
 
