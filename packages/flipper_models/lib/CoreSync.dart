@@ -5152,6 +5152,7 @@ class CoreSync
           print('Updated variant bcd: ${variant.bcd}, name: ${variant.name}');
         } else {
           print('no variant found with modrId:${item.barCode}');
+          throw Exception('no variant found with modrId:${item.barCode}');
         }
       } else {
         final branchId = await ProxyService.box.getBranchId()!;

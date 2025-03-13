@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   amplify_db_common
+  desktop_drop
   desktop_webview_auth
   file_selector_linux
   flutter_localization
