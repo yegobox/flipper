@@ -139,9 +139,9 @@ generate: true
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  build_runner: ^2.4.14
+  build_runner: ^2.4.15
   custom_lint:
-  riverpod_generator: ^2.3.5
+  riverpod_generator: ^2.6.5
   riverpod_lint: ^2.3.7
   mockito: ^5.4.4
   test:
