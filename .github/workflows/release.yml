@@ -383,8 +383,9 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          distribution: "zulu"
-          java-version: "17"
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
 
       - name: Configure Git with PAT
         env:
@@ -420,19 +421,23 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: gradle/gradle-build-action@v2
         with:
-          cmdline-tools-version: '8.0'
+          gradle-version: 8.3
 
-      - name: Install Android SDK components
+      - name: Download Android SDK command-line tools
         run: |
-          yes | sdkmanager --licenses
-          sdkmanager --install "build-tools;33.0.2" \
-                               "platform-tools" \
-                               "platforms;android-33" \
-                               "system-images;android-33;google_apis;x86_64" \
-                               "emulator"
-          sdkmanager --update
+          mkdir -p ${ANDROID_HOME}/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip -q commandlinetools-linux-9477386_latest.zip
+          mv cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest
+          rm commandlinetools-linux-9477386_latest.zip
+
+      - name: Setup Android SDK
+        run: |
+          export PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${PATH}"
+          yes | sdkmanager --licenses > /dev/null 2>&1
+          sdkmanager --install "build-tools;33.0.2" "platform-tools" "platforms;android-33" "system-images;android-33;google_apis;x86_64" "emulator"
 
       - name: Setup patrol
         run: |
