@@ -36,7 +36,7 @@ if (keystorePropertiesFile.exists()) {
 android {
     ndkVersion = "26.3.11579264"
     namespace "rw.flipper"
-    compileSdkVersion 33
+    compileSdkVersion 35
     testOptions {
         execution "ANDROIDX_TEST_ORCHESTRATOR"
     }
