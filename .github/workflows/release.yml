@@ -198,6 +198,7 @@ jobs:
       - name: CocoaPods Install (macOS)
         run: |
           cd apps/flipper/macos
+          rm Podfile.lock
           pod install 
 
       - name: Run Integration Tests (macOS)
