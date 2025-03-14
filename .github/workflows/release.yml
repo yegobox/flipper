@@ -206,7 +206,7 @@ jobs:
           pwd   
           cd apps/flipper
           pwd   
-          flutter test --dart-define=FLUTTER_TEST_ENV=true --dart-define=FORCE_TEST=true -d macos --target-platform darwin-arm64  integration_test/smoke_windows_test.dart
+          flutter test --dart-define=FLUTTER_TEST_ENV=true --dart-define=FORCE_TEST=true -d macos integration_test/smoke_windows_test.dart
 
   build-and-release-windows-debug:
     name: "Build windows app-debug"
