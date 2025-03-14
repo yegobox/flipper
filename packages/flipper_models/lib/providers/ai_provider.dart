@@ -45,7 +45,7 @@ class GenerationConfig {
 class Content {
   final List<Part> parts;
   final String? role;
-  
+
   Content({required this.parts, this.role});
 
   Map<String, dynamic> toJson() => {
@@ -80,7 +80,8 @@ class GeminiResponse extends _$GeminiResponse {
       );
 
       if (response.statusCode == 200) {
-        final decodedResponse = jsonDecode(response.body) as Map<String, dynamic>;
+        final decodedResponse =
+            jsonDecode(response.body) as Map<String, dynamic>;
         final content = decodedResponse['candidates'][0]['content'];
         final parts = content['parts'] as List<dynamic>;
         final text = parts.map((e) => e['text'] as String).join('\n');
@@ -106,19 +107,50 @@ class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
         "Date,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count\n" +
             businessAnalyticsData.map((e) => e.toString()).join('\n');
 
+    // Enhanced prompt for accounting-focused formatting
+    final basePrompt = """
+Format the response following these accounting guidelines:
+1. Numbers should be formatted with 2 decimal places (e.g., 1234.56)
+2. Percentages should be clearly marked with % symbol
+3. Dates should be in DD/MM/YYYY format
+4. Currency values should be prefixed with currency symbol
+5. For calculations:
+   - Show subtotals clearly
+   - Separate line items with clear breaks
+   - Show formulas used if relevant
+6. Group related items together under headers
+7. If showing comparisons:
+   - Use clear "Previous vs Current" format
+   - Show percentage changes
+8. Round large numbers appropriately (e.g., "1.2M" for millions)
+
+$userPrompt
+""";
+
     final inputData = GeminiInput(
       contents: [
         Content(
           parts: [
             Part(text: csvData),
-            Part(text: userPrompt),
-            Part(text: "format data into normal sentence/paragraph, remove any explanation from answer"),
-            Part(text: "always be exact if it is a number required only give a number less texts"),
+            Part(text: basePrompt),
+            Part(text: """
+Please structure the response in this format:
+[SUMMARY]
+Brief overview of key figures
+
+[DETAILS]
+Detailed breakdown with proper formatting
+
+[CALCULATIONS]
+Any relevant calculations with formulas shown
+
+Note: Keep responses concise and numbers exact. Remove any explanatory text unless specifically requested.
+"""),
           ],
         ),
       ],
       generationConfig: GenerationConfig(
-        temperature: 0.7,
+        temperature: 0.3, // Lower temperature for more consistent formatting
         maxOutputTokens: 2048,
       ),
     );
