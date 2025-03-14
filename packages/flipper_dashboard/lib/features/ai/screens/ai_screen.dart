@@ -83,11 +83,26 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     ProxyService.strategy
         .conversationStream(conversationId: _currentConversationId)
         .listen((messages) {
+      if (!mounted) return;
       messages.sort((a, b) => (a.timestamp ?? DateTime.now())
           .compareTo(b.timestamp ?? DateTime.now()));
+
+      // Deduplicate messages based on timestamp and content
+      final uniqueMessages = <Message>[];
+      final seen = <String>{};
+
+      for (final msg in messages) {
+        final key =
+            '${msg.timestamp?.toIso8601String()}_${msg.text}_${msg.role}';
+        if (!seen.contains(key)) {
+          seen.add(key);
+          uniqueMessages.add(msg);
+        }
+      }
+
       setState(() {
-        _messages = messages;
-        _conversations[_currentConversationId] = messages;
+        _messages = uniqueMessages;
+        _conversations[_currentConversationId] = uniqueMessages;
       });
     });
   }
@@ -114,17 +129,22 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         conversationId: _currentConversationId,
         timestamp: DateTime.now(),
       );
-      await ProxyService.strategy.saveMessage(
-        text: userMessage.text,
-        phoneNumber: userMessage.phoneNumber,
-        branchId: userMessage.branchId,
-        role: userMessage.role ?? '',
-        conversationId: userMessage.conversationId ?? '',
-      );
 
-      setState(() {
-        _messages = [..._messages, userMessage];
-      });
+      // Check if message already exists
+      final messageExists = _messages.any((msg) =>
+          msg.text == userMessage.text &&
+          msg.role == userMessage.role &&
+          msg.conversationId == userMessage.conversationId);
+
+      if (!messageExists) {
+        await ProxyService.strategy.saveMessage(
+          text: userMessage.text,
+          phoneNumber: userMessage.phoneNumber,
+          branchId: userMessage.branchId,
+          role: userMessage.role ?? '',
+          conversationId: userMessage.conversationId ?? '',
+        );
+      }
 
       _controller.clear();
 
@@ -143,18 +163,24 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         aiContext: text,
         timestamp: DateTime.now(),
       );
-      await ProxyService.strategy.saveMessage(
-        text: aiMessage.text,
-        phoneNumber: aiMessage.phoneNumber,
-        branchId: aiMessage.branchId,
-        role: aiMessage.role ?? '',
-        conversationId: aiMessage.conversationId ?? '',
-        aiResponse: aiMessage.aiResponse ?? '',
-        aiContext: aiMessage.aiContext ?? '',
-      );
-      setState(() {
-        _messages = [..._messages, aiMessage];
-      });
+
+      // Check if AI response already exists
+      final aiMessageExists = _messages.any((msg) =>
+          msg.text == aiMessage.text &&
+          msg.role == aiMessage.role &&
+          msg.conversationId == aiMessage.conversationId);
+
+      if (!aiMessageExists) {
+        await ProxyService.strategy.saveMessage(
+          text: aiMessage.text,
+          phoneNumber: aiMessage.phoneNumber,
+          branchId: aiMessage.branchId,
+          role: aiMessage.role ?? '',
+          conversationId: aiMessage.conversationId ?? '',
+          aiResponse: aiMessage.aiResponse ?? '',
+          aiContext: aiMessage.aiContext ?? '',
+        );
+      }
 
       _scrollToBottom();
     } catch (e) {
