@@ -12,17 +12,12 @@ import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
 // import 'package:flipper_models/helperModels/iuser.dart';
-import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
-
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_services/database_provider.dart'
     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-import 'package:supabase_models/brick/repository.dart';
-// import 'package:cbl/src/database/collection.dart'
-//     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 enum ClearData { Business, Branch }
 
@@ -151,6 +146,29 @@ abstract class RealmInterface {
   Stream<Favorite?> getFavoriteByIndexStream({required String favIndex});
   Stream<Tenant?> getDefaultTenant({required int businessId});
   Future<int> deleteFavoriteByIndex({required String favIndex});
+
+  // AI Conversation History Methods
+  Future<List<Message>> getConversationHistory({
+    required String conversationId,
+    DateTime? startDate,
+    DateTime? endDate,
+    int? limit,
+    int? offset,
+  });
+
+  Future<Message> saveMessage({
+    required String text,
+    required String phoneNumber,
+    required int branchId,
+    required String role,
+    required String conversationId,
+    String? aiResponse,
+    String? aiContext,
+  });
+
+  Future<void> deleteConversation({required String conversationId});
+
+  Stream<List<Message>> conversationStream({required String conversationId});
 
   FutureOr<Product?> getProduct(
       {String? id,
