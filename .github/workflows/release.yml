@@ -157,9 +157,6 @@ jobs:
       - name: Check Xcode Version (Verify)
         run: xcodebuild -version
 
-      - name: Flutter Doctor
-        run: flutter doctor -v
-
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -334,6 +331,99 @@ jobs:
             Production Release for Windows App Store
         env:
           GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
+  # integration-test-testlab:
+  #   name: Run Integration Tests on Firebase Test Lab
+  #   needs: [unit-testing]
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout flipper code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #         token: ${{ secrets.ACCESS_TOKEN }}
+  #         persist-credentials: true
+
+  #     - name: Setup Flutter
+  #       uses: subosito/flutter-action@v2
+  #       with:
+  #         flutter-version: "3.29.0"
+  #         channel: stable
+
+  #     - name: Install Dependencies
+  #       run: flutter pub get
+
+  #     - name: Setup Java
+  #       uses: actions/setup-java@v4
+  #       with:
+  #         distribution: 'temurin'
+  #         java-version: '17'
+  #         cache: 'gradle'
+
+  #     - name: Configure Git with PAT
+  #       env:
+  #         PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+  #       run: |
+  #         git config --global user.email "info@yegobox.com"
+  #         git config --global user.name "YEGOBOX"
+  #         git config --global credential.helper store
+  #         echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
+
+  #     - name: Initialize submodules
+  #       run: git submodule update --init
+
+  #     - name: Setup melos
+  #       run: |
+  #         dart pub global activate melos 6.3.2
+  #         melos bootstrap
+
+  #     - name: Configure Missing files
+  #       run: |
+  #         echo "$INDEX" >> apps/flipper/web/index.html
+  #         echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+  #         echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+  #         echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+  #         echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+  #         echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+  #         echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+  #       env:
+  #         INDEX: ${{ secrets.INDEX }}
+  #         CONFIGDART: ${{ secrets.CONFIGDART }}
+  #         SECRETS: ${{ secrets.SECRETS }}
+  #         FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+  #         AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+  #         AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+
+  #     - name: Setup Firebase CLI
+  #       run: |
+  #         curl -sL https://firebase.tools | bash
+
+  #     - name: Authenticate with Firebase
+  #       run: |
+  #         echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}" > $HOME/gcloud-service-key.json
+  #         gcloud auth activate-service-account --key-file=$HOME/gcloud-service-key.json
+  #         gcloud --quiet config set project ${{ secrets.FIREBASE_PROJECT_ID }}
+
+  #     - name: Build APK for Testing
+  #       run: |
+  #         flutter build apk --debug
+
+  #     - name: Run Tests on Firebase Test Lab
+  #       run: |
+  #         gcloud firebase test android run \
+  #           --type instrumentation \
+  #           --app build/app/outputs/flutter-apk/app-debug.apk \
+  #           --test app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk \
+  #           --device model=Pixel4,version=30,locale=en,orientation=portrait \
+  #           --timeout 10m \
+  #           --results-bucket=${{ secrets.FIREBASE_RESULTS_BUCKET }}
+
+  #     - name: Upload Test Artifacts
+  #       if: always()
+  #       run: |
+  #         gsutil cp -r gs://${{ secrets.FIREBASE_RESULTS_BUCKET }} ./firebase_test_results
+  #         echo "Test artifacts stored in firebase_test_results"
+
   integration-on-android:
     name: Integration on Android
     needs: [unit-testing]
