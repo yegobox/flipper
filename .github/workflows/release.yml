@@ -136,26 +136,38 @@ jobs:
           flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test/smoke_windows_test.dart
   integration-testing-macos:
     name: "Integration Testing MacOS"
-    runs-on: macOS-latest
+    runs-on: macos-latest  # Still use macos-latest as a base
     needs: [unit-testing]
     steps:
-      - run: git config --global core.autocrlf false
+      - name: Disable Autocrlf
+        run: git config --global core.autocrlf false
 
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
 
-      - name: Clone Flutter repository with stable channel
+      - name: Select Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.0'  # Explicitly set Xcode 16.0 (or your desired version)
+
+      - name: Check Xcode Version (Verify)
+        run: xcodebuild -version
+
+      - name: Flutter Doctor
+        run: flutter doctor -v
+
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0"
+          flutter-version: "3.29.0"  # Or a version that works with your Xcode
           channel: stable
 
-      - run: flutter doctor -v
-
-      - uses: actions/setup-java@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "17"
@@ -169,7 +181,7 @@ jobs:
       - name: Install CocoaPods
         run: sudo gem install cocoapods
 
-      - name: Configure Missing files
+      - name: Configure Missing Files
         run: |
           printf "%s" "$INDEX" > apps/flipper/web/index.html
           printf "%s" "$CONFIGDART" > packages/flipper_login/lib/config.dart
@@ -186,10 +198,13 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
-      - run: |
+      - name: CocoaPods Install (macOS)
+        run: |
           cd apps/flipper/macos
-          pod install --repo-update
-          cd ..
+          pod install 
+
+      - name: Run Integration Tests (macOS)
+        run: |
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=true --dart-define=FORCE_TEST=true -d macos integration_test/smoke_windows_test.dart
 
