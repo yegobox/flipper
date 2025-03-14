@@ -194,6 +194,41 @@ class Capella with Booting implements RealmInterface {
   }
 
   String get scope => "_default";
+  
+  @override
+  Future<List<Message>> getConversationHistory({
+    required String conversationId,
+    DateTime? startDate,
+    DateTime? endDate,
+    int? limit,
+    int? offset,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Message> saveMessage({
+    required String text,
+    required String phoneNumber,
+    required int branchId,
+    required String role,
+    required String conversationId,
+    String? aiResponse,
+    String? aiContext,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteConversation({required String conversationId}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<Message>> conversationStream({required String conversationId}) {
+    throw UnimplementedError();
+  }
+
   @override
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {

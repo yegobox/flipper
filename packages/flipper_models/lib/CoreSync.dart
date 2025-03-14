@@ -6040,4 +6040,68 @@ class CoreSync
       return initialisable;
     }
   }
+
+  @override
+  Future<List<Message>> getConversationHistory({
+    required String conversationId,
+    DateTime? startDate,
+    DateTime? endDate,
+    int? limit,
+    int? offset,
+  }) async {
+    return repository.get<Message>(
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: Query(
+        where: [
+          Where('conversationId').isExactly(conversationId),
+          if (startDate != null)
+            Where('timestamp').isGreaterThanOrEqualTo(startDate),
+          if (endDate != null) Where('timestamp').isLessThanOrEqualTo(endDate),
+        ],
+        limit: limit,
+        offset: offset,
+        orderBy: [OrderBy('timestamp', ascending: false)],
+      ),
+    );
+  }
+
+  @override
+  Future<Message> saveMessage({
+    required String text,
+    required String phoneNumber,
+    required int branchId,
+    required String role,
+    required String conversationId,
+    String? aiResponse,
+    String? aiContext,
+  }) async {
+    final message = Message(
+      text: text,
+      phoneNumber: phoneNumber,
+      branchId: branchId,
+      delivered: true,
+      role: role,
+      conversationId: conversationId,
+      timestamp: DateTime.now(),
+      aiResponse: aiResponse,
+      aiContext: aiContext,
+    );
+    await repository.upsert<Message>(message);
+    return message;
+  }
+
+  Future<void> deleteConversation({required String conversationId}) async {
+    final messages =
+        await getConversationHistory(conversationId: conversationId);
+    await repository.delete<Message>(messages.first);
+  }
+
+  Stream<List<Message>> conversationStream({required String conversationId}) {
+    return repository.subscribe<Message>(
+      query: Query(
+        where: [Where('conversationId').isExactly(conversationId)],
+        orderBy: [OrderBy('timestamp', ascending: false)],
+      ),
+    );
+  }
 }

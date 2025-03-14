@@ -47,6 +47,7 @@ import '../brick/models/universalProduct.model.dart';
 import '../brick/models/conversation.model.dart';
 import '../brick/models/customer_payments.model.dart';
 import '../brick/models/transaction.model.dart';
+import '../brick/models/message.model.dart';
 import '../brick/models/financing.model.dart';
 import '../brick/models/configuration.model.dart';
 import '../brick/models/branch.model.dart';
@@ -95,6 +96,7 @@ part 'adapters/unversal_product_adapter.g.dart';
 part 'adapters/conversation_adapter.g.dart';
 part 'adapters/customer_payments_adapter.g.dart';
 part 'adapters/i_transaction_adapter.g.dart';
+part 'adapters/message_adapter.g.dart';
 part 'adapters/financing_adapter.g.dart';
 part 'adapters/configurations_adapter.g.dart';
 part 'adapters/branch_adapter.g.dart';
@@ -145,6 +147,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Conversation: ConversationAdapter(),
   CustomerPayments: CustomerPaymentsAdapter(),
   ITransaction: ITransactionAdapter(),
+  Message: MessageAdapter(),
   Financing: FinancingAdapter(),
   Configurations: ConfigurationsAdapter(),
   Branch: BranchAdapter(),
@@ -197,6 +200,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Conversation: ConversationAdapter(),
   CustomerPayments: CustomerPaymentsAdapter(),
   ITransaction: ITransactionAdapter(),
+  Message: MessageAdapter(),
   Financing: FinancingAdapter(),
   Configurations: ConfigurationsAdapter(),
   Branch: BranchAdapter(),
