@@ -649,6 +649,17 @@ jobs:
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         working-directory: apps/flipper/android
+      - name: Upload Android AAB
+        uses: softprops/action-gh-release@v1
+        with:
+          files: apps/flipper/build/app/outputs/bundle/release/*.aab
+          tag_name: ${{ github.ref_name }}
+          name: Debug Release ${{ steps.get_version.outputs.version }}
+          body: |
+            Debug Release for QA
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
   slackNotification:
     name: Slack Notification
