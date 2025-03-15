@@ -165,7 +165,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       }
 
       // Create user message
-      final userMessage = await ProxyService.strategy.saveMessage(
+      await ProxyService.strategy.saveMessage(
         text: text,
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
         branchId: branchId,
@@ -173,14 +173,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         conversationId: _currentConversationId,
       );
 
-      // Update local state immediately
-      setState(() {
-        _messages = [..._messages, userMessage];
-        _conversations[_currentConversationId] = [..._messages];
-      });
-      _scrollToBottom();
-
       _controller.clear();
+      _scrollToBottom();
 
       // Get AI response
       final aiResponseText = await ref.read(
@@ -188,7 +182,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       );
 
       // Save AI response
-      final aiMessage = await ProxyService.strategy.saveMessage(
+      await ProxyService.strategy.saveMessage(
         text: aiResponseText,
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
         branchId: branchId,
@@ -198,14 +192,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         aiContext: text,
       );
 
-      // Update local state with AI response
-      if (mounted) {
-        setState(() {
-          _messages = [..._messages, aiMessage];
-          _conversations[_currentConversationId] = [..._messages];
-        });
-        _scrollToBottom();
-      }
+      _scrollToBottom();
     } catch (e) {
       _showError('Error: ${e.toString()}');
     } finally {
