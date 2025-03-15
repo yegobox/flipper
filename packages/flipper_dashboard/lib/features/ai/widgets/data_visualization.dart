@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flipper_services/proxy.dart';
 
 // Created a new DataVisualization widget that:
 // Detects structured data in the message format **[SUMMARY]** followed by key-value pairs
@@ -21,16 +22,14 @@ class DataVisualization extends StatelessWidget {
 
   const DataVisualization({Key? key, required this.data}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    try {
-      if (data.contains('**[SUMMARY]**')) {
-        return _buildSummaryChart(data, context);
-      }
-      return const SizedBox.shrink();
-    } catch (e) {
-      return const SizedBox.shrink();
-    }
+  String _formatCurrency(double value) {
+    final currency = ProxyService.box.defaultCurrency();
+    final formattedValue = value >= 1000000
+        ? '${(value / 1000000).toStringAsFixed(2)}M'
+        : value >= 1000
+            ? '${(value / 1000).toStringAsFixed(2)}K'
+            : value.toStringAsFixed(2);
+    return '$currency $formattedValue'; // Add space between currency and value
   }
 
   String _generateSummaryText(Map<String, double> values) {
@@ -38,12 +37,7 @@ class DataVisualization extends StatelessWidget {
     var isFirst = true;
     for (var entry in values.entries) {
       if (!isFirst) summary.write(', ');
-      final value = entry.value >= 1000000
-          ? '${(entry.value / 1000000).toStringAsFixed(2)}M'
-          : entry.value >= 1000
-              ? '${(entry.value / 1000).toStringAsFixed(2)}K'
-              : entry.value.toStringAsFixed(2);
-      summary.write('${entry.key}: \$${value}');
+      summary.write('${entry.key}: ${_formatCurrency(entry.value)}');
       isFirst = false;
     }
     return summary.toString();
@@ -103,7 +97,7 @@ class DataVisualization extends StatelessWidget {
                       leftTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
-                          reservedSize: 60,
+                          reservedSize: 80, // Increased to accommodate RWF
                           getTitlesWidget: (value, meta) {
                             if (value == 0) return const SizedBox.shrink();
                             String text = value >= 1000000
@@ -114,7 +108,7 @@ class DataVisualization extends StatelessWidget {
                             return Padding(
                               padding: const EdgeInsets.only(right: 8.0),
                               child: Text(
-                                '\$$text',
+                                '${ProxyService.box.defaultCurrency()} $text',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
@@ -190,6 +184,18 @@ class DataVisualization extends StatelessWidget {
           ),
         ),
       );
+    } catch (e) {
+      return const SizedBox.shrink();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    try {
+      if (data.contains('**[SUMMARY]**')) {
+        return _buildSummaryChart(data, context);
+      }
+      return const SizedBox.shrink();
     } catch (e) {
       return const SizedBox.shrink();
     }
