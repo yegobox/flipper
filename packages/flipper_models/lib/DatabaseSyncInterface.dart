@@ -16,8 +16,8 @@ import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_models/brick/models/all_models.dart' as models;
-import 'package:flipper_services/database_provider.dart'
-    if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+// import 'package:flipper_services/database_provider.dart'
+//     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 enum ClearData { Business, Branch }
 
@@ -35,7 +35,7 @@ abstract class DataMigratorToLocal {
   List<String> activeRealmSubscriptions();
 }
 
-abstract class RealmInterface {
+abstract class DatabaseSyncInterface {
   // Repository get repository;
   // DatabaseProvider? capella;
   // AsyncCollection? branchCollection;
@@ -45,10 +45,10 @@ abstract class RealmInterface {
   Future<List<Product>> products({required int branchId});
   Future<void> startReplicator();
 
-  Future<RealmInterface> configureLocal(
+  Future<DatabaseSyncInterface> configureLocal(
       {required bool useInMemory, required LocalStorage box});
 
-  Future<RealmInterface> configureCapella(
+  Future<DatabaseSyncInterface> configureCapella(
       {required bool useInMemory, required LocalStorage box});
 
   Future<void> initCollections();
@@ -457,7 +457,7 @@ abstract class RealmInterface {
 
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName,
       {required String transactionId});
-  RealmInterface instance();
+  DatabaseSyncInterface instance();
   FutureOr<Tenant?> tenant({int? businessId, int? userId});
   Stream<List<Report>> reports({required int branchId});
   Report report({required int id});

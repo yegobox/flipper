@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'dart:typed_data';
-import 'package:flipper_models/RealmInterface.dart';
 // import 'package:flipper_models/power_sync/schema.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 // import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -33,7 +33,7 @@ import 'package:flipper_services/replicator_provider.dart'
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
-class Capella with Booting implements RealmInterface {
+class Capella with Booting implements DatabaseSyncInterface {
   @override
   // ignore: override_on_non_overriding_member
   bool offlineLogin = false;
@@ -194,7 +194,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   String get scope => "_default";
-  
+
   @override
   Future<List<Message>> getConversationHistory({
     required String conversationId,
@@ -1158,15 +1158,15 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<RealmInterface> configureCapella(
+  Future<DatabaseSyncInterface> configureCapella(
       {required bool useInMemory, required LocalStorage box}) async {
-    return this as RealmInterface;
+    return this as DatabaseSyncInterface;
   }
 
   @override
-  Future<RealmInterface> configureLocal(
+  Future<DatabaseSyncInterface> configureLocal(
       {required bool useInMemory, required LocalStorage box}) async {
-    return this as RealmInterface;
+    return this as DatabaseSyncInterface;
   }
 
   @override
@@ -1318,7 +1318,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  RealmInterface instance() {
+  DatabaseSyncInterface instance() {
     // TODO: implement instance
     throw UnimplementedError();
   }
