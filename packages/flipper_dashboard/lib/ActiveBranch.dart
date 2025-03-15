@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -45,12 +46,13 @@ class CircleAvatarWidget extends StatelessWidget {
   }
 }
 
-class TenantWidget extends ConsumerWidget {
-  const TenantWidget({Key? key}) : super(key: key);
+class ActiveBranch extends ConsumerWidget {
+  const ActiveBranch({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tenant = ref.watch(tenantProvider);
+    final branch = ref.watch(activeBranchProvider);
+
     final connectivityStatus = ref.watch(connectivityStreamProvider);
 
     // fake firebase login for now.
@@ -73,7 +75,7 @@ class TenantWidget extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(right: 12.0),
           child: CircleAvatarWidget(
-            text: tenant.value?.name ?? "N/A",
+            text: branch.value?.name ?? "N/A",
             size: 40,
           ),
         ),

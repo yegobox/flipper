@@ -186,7 +186,7 @@ class _GeminiResponseProviderElement
 }
 
 String _$geminiBusinessAnalyticsHash() =>
-    r'a172e7fb4fa377048a82e8aec9bcbb1d69fdd8da';
+    r'0003a3784c2bd4d111c9c44f309b88df9f6d8099';
 
 abstract class _$GeminiBusinessAnalytics
     extends BuildlessAutoDisposeAsyncNotifier<String> {

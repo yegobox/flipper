@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/TenantWidget.dart';
+import 'package:flipper_dashboard/ActiveBranch.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -45,7 +45,6 @@ class EnhancedSideMenu extends ConsumerWidget {
                 ref.read(selectedMenuItemProvider.notifier).state = 0;
               },
             ),
-           
             SideMenuItemDataTile(
               hasSelectedLine: true,
               highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
@@ -67,7 +66,6 @@ class EnhancedSideMenu extends ConsumerWidget {
                 ref.read(selectedMenuItemProvider.notifier).state = 1;
               },
             ),
-           
             SideMenuItemDataTile(
               hasSelectedLine: true,
               highlightSelectedColor: Colors.blue.withValues(alpha: .1),
@@ -92,7 +90,7 @@ class EnhancedSideMenu extends ConsumerWidget {
           ],
           footer: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            child: const TenantWidget(),
+            child: const ActiveBranch(),
           ),
         );
       },
