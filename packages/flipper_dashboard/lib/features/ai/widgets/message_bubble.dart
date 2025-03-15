@@ -1,3 +1,4 @@
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
@@ -94,8 +95,13 @@ class _MessageBubbleState extends State<MessageBubble> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (!widget.isUser && widget.message.text.contains('**[SUMMARY]**')) ...[
-                              DataVisualization(data: widget.message.text),
+                            if (!widget.isUser &&
+                                widget.message.text
+                                    .contains('**[SUMMARY]**')) ...[
+                              DataVisualization(
+                                data: widget.message.text,
+                                currency: ProxyService.box.defaultCurrency(),
+                              ),
                             ] else ...[
                               Text(
                                 widget.message.text,

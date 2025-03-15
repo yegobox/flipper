@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_dashboard/features/ai/widgets/data_visualization.dart';
+import 'package:flipper_dashboard/features/ai/providers/currency_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../services/mock_currency_service.dart';
 
 void main() {
   group('DataVisualization Widget Tests', () {
@@ -18,12 +21,31 @@ Additional details here...
 Some random text without proper summary format
 ''';
 
+    late ProviderContainer container;
+
+    setUp(() {
+      container = ProviderContainer(
+        overrides: [
+          currencyServiceProvider.overrideWithValue(
+            MockCurrencyService(defaultCurrencyCode: 'RWF'),
+          ),
+        ],
+      );
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
     testWidgets('renders chart when valid data is provided', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(primaryColor: Colors.blue),
-          home: Scaffold(
-            body: DataVisualization(data: testData),
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: ThemeData(primaryColor: Colors.blue),
+            home: const Scaffold(
+              body: DataVisualization(data: testData),
+            ),
           ),
         ),
       );
@@ -34,15 +56,18 @@ Some random text without proper summary format
       expect(find.byType(Card), findsOneWidget);
       
       // Verify summary text contains all values
-      final summaryText = 'Summary: Total Revenue: RWF 3.00M, Total Profit: RWF 576.78K, Total Units Sold: RWF 83.62K';
+      final summaryText = 'Summary: Total Revenue: RWF 3.00M, Total Profit: RWF 576.78K, Total Units Sold: 83621';
       expect(find.text(summaryText), findsOneWidget);
     });
 
     testWidgets('returns empty widget when invalid data is provided', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: DataVisualization(data: invalidData),
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: const Scaffold(
+              body: DataVisualization(data: invalidData),
+            ),
           ),
         ),
       );
@@ -61,9 +86,12 @@ Some details...
 ''';
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: DataVisualization(data: emptyData),
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: const Scaffold(
+              body: DataVisualization(data: emptyData),
+            ),
           ),
         ),
       );
@@ -76,28 +104,42 @@ Some details...
 
     testWidgets('formats currency values correctly with default currency', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(primaryColor: Colors.blue),
-          home: Scaffold(
-            body: DataVisualization(data: testData),
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: ThemeData(primaryColor: Colors.blue),
+            home: const Scaffold(
+              body: DataVisualization(data: testData),
+            ),
           ),
         ),
       );
       await tester.pump();
 
       // Verify summary text with default RWF currency
-      final summaryText = 'Summary: Total Revenue: RWF 3.00M, Total Profit: RWF 576.78K, Total Units Sold: RWF 83.62K';
+      final summaryText = 'Summary: Total Revenue: RWF 3.00M, Total Profit: RWF 576.78K, Total Units Sold: 83621';
       expect(find.text(summaryText), findsOneWidget);
     });
 
     testWidgets('formats currency values correctly with custom currency', (tester) async {
+      final customContainer = ProviderContainer(
+        overrides: [
+          currencyServiceProvider.overrideWithValue(
+            MockCurrencyService(defaultCurrencyCode: 'USD'),
+          ),
+        ],
+      );
+
       await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(primaryColor: Colors.blue),
-          home: Scaffold(
-            body: DataVisualization(
-              data: testData,
-              currency: 'USD',
+        UncontrolledProviderScope(
+          container: customContainer,
+          child: MaterialApp(
+            theme: ThemeData(primaryColor: Colors.blue),
+            home: const Scaffold(
+              body: DataVisualization(
+                data: testData,
+                currency: 'USD',
+              ),
             ),
           ),
         ),
@@ -105,16 +147,21 @@ Some details...
       await tester.pump();
 
       // Verify summary text with custom USD currency
-      final summaryText = 'Summary: Total Revenue: USD 3.00M, Total Profit: USD 576.78K, Total Units Sold: USD 83.62K';
+      final summaryText = 'Summary: Total Revenue: USD 3.00M, Total Profit: USD 576.78K, Total Units Sold: 83621';
       expect(find.text(summaryText), findsOneWidget);
+
+      customContainer.dispose();
     });
 
     testWidgets('parses numerical data correctly', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(primaryColor: Colors.blue),
-          home: Scaffold(
-            body: DataVisualization(data: testData),
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: ThemeData(primaryColor: Colors.blue),
+            home: const Scaffold(
+              body: DataVisualization(data: testData),
+            ),
           ),
         ),
       );
