@@ -11,10 +11,10 @@ class Message extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
-  String text;
-  String phoneNumber;
-  bool delivered;
-  int branchId;
+  final String text;
+  final String phoneNumber;
+  final bool delivered;
+  final int branchId;
 
   @Sqlite(nullable: true)
   final String? role; // 'user' or 'assistant'
@@ -22,8 +22,8 @@ class Message extends OfflineFirstWithSupabaseModel {
   @Sqlite(nullable: true)
   final DateTime? timestamp;
 
-  @Sqlite(nullable: true)
-  final String? conversationId;
+  @Sqlite(nullable: true, index: true)
+  final String? conversationId; // References AiConversation.id
 
   @Sqlite(nullable: true)
   final String? aiResponse;
@@ -43,4 +43,12 @@ class Message extends OfflineFirstWithSupabaseModel {
     this.aiResponse,
     this.aiContext,
   }) : id = id ?? const Uuid().v4();
+
+  // Helper method to get the first line or truncated text for conversation title
+  String getPreview() {
+    final firstLine = text.split('\n').first;
+    return firstLine.length > 50
+        ? '${firstLine.substring(0, 47)}...'
+        : firstLine;
+  }
 }

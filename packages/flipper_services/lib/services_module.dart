@@ -61,6 +61,8 @@ import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_services/DeviceIdService.dart' as dev;
 import 'package:mockito/mockito.dart';
+import 'package:flipper_services/ai_strategy.dart';
+import 'package:flipper_services/ai_strategy_impl.dart';
 
 class MockFirebaseCrashlytics extends Mock implements FirebaseCrashlytics {}
 
@@ -101,6 +103,11 @@ abstract class ServicesModule {
       capella: capella as Capella,
       cloudSync: coresync as CoreSync,
     );
+  }
+
+  @lazySingleton
+  AiStrategy provideAiStrategy() {
+    return AiStrategyImpl();
   }
 
   @preResolve

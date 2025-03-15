@@ -1,71 +1,75 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
 
-Future<BranchSmsConfig> _$BranchSmsConfigFromSupabase(
+Future<AiConversation> _$AiConversationFromSupabase(
   Map<String, dynamic> data, {
   required SupabaseProvider provider,
   OfflineFirstWithSupabaseRepository? repository,
 }) async {
-  return BranchSmsConfig(
+  return AiConversation(
     id: data['id'] as String?,
+    title: data['title'] as String,
     branchId: data['branch_id'] as int,
-    smsPhoneNumber:
-        data['sms_phone_number'] == null
+    createdAt:
+        data['created_at'] == null
             ? null
-            : data['sms_phone_number'] as String?,
-    enableOrderNotification: data['enable_order_notification'] as bool,
+            : DateTime.tryParse(data['created_at'] as String),
+    lastMessageAt:
+        data['last_message_at'] == null
+            ? null
+            : DateTime.tryParse(data['last_message_at'] as String),
   );
 }
 
-Future<Map<String, dynamic>> _$BranchSmsConfigToSupabase(
-  BranchSmsConfig instance, {
+Future<Map<String, dynamic>> _$AiConversationToSupabase(
+  AiConversation instance, {
   required SupabaseProvider provider,
   OfflineFirstWithSupabaseRepository? repository,
 }) async {
   return {
     'id': instance.id,
+    'title': instance.title,
     'branch_id': instance.branchId,
-    'sms_phone_number': instance.smsPhoneNumber,
-    'enable_order_notification': instance.enableOrderNotification,
+    'created_at': instance.createdAt.toIso8601String(),
+    'last_message_at': instance.lastMessageAt.toIso8601String(),
   };
 }
 
-Future<BranchSmsConfig> _$BranchSmsConfigFromSqlite(
+Future<AiConversation> _$AiConversationFromSqlite(
   Map<String, dynamic> data, {
   required SqliteProvider provider,
   OfflineFirstWithSupabaseRepository? repository,
 }) async {
-  return BranchSmsConfig(
+  return AiConversation(
     id: data['id'] as String,
+    title: data['title'] as String,
     branchId: data['branch_id'] as int,
-    smsPhoneNumber:
-        data['sms_phone_number'] == null
-            ? null
-            : data['sms_phone_number'] as String?,
-    enableOrderNotification: data['enable_order_notification'] == 1,
+    createdAt: DateTime.parse(data['created_at'] as String),
+    lastMessageAt: DateTime.parse(data['last_message_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
 }
 
-Future<Map<String, dynamic>> _$BranchSmsConfigToSqlite(
-  BranchSmsConfig instance, {
+Future<Map<String, dynamic>> _$AiConversationToSqlite(
+  AiConversation instance, {
   required SqliteProvider provider,
   OfflineFirstWithSupabaseRepository? repository,
 }) async {
   return {
     'id': instance.id,
+    'title': instance.title,
     'branch_id': instance.branchId,
-    'sms_phone_number': instance.smsPhoneNumber,
-    'enable_order_notification': instance.enableOrderNotification ? 1 : 0,
+    'created_at': instance.createdAt.toIso8601String(),
+    'last_message_at': instance.lastMessageAt.toIso8601String(),
   };
 }
 
-/// Construct a [BranchSmsConfig]
-class BranchSmsConfigAdapter
-    extends OfflineFirstWithSupabaseAdapter<BranchSmsConfig> {
-  BranchSmsConfigAdapter();
+/// Construct a [AiConversation]
+class AiConversationAdapter
+    extends OfflineFirstWithSupabaseAdapter<AiConversation> {
+  AiConversationAdapter();
 
   @override
-  final supabaseTableName = 'branch_sms_configs';
+  final supabaseTableName = 'ai_conversations';
   @override
   final defaultToNull = true;
   @override
@@ -74,17 +78,21 @@ class BranchSmsConfigAdapter
       association: false,
       columnName: 'id',
     ),
+    'title': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'title',
+    ),
     'branchId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'branch_id',
     ),
-    'smsPhoneNumber': const RuntimeSupabaseColumnDefinition(
+    'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
-      columnName: 'sms_phone_number',
+      columnName: 'created_at',
     ),
-    'enableOrderNotification': const RuntimeSupabaseColumnDefinition(
+    'lastMessageAt': const RuntimeSupabaseColumnDefinition(
       association: false,
-      columnName: 'enable_order_notification',
+      columnName: 'last_message_at',
     ),
   };
   @override
@@ -105,33 +113,39 @@ class BranchSmsConfigAdapter
       iterable: false,
       type: String,
     ),
+    'title': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'title',
+      iterable: false,
+      type: String,
+    ),
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'branch_id',
       iterable: false,
       type: int,
     ),
-    'smsPhoneNumber': const RuntimeSqliteColumnDefinition(
+    'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,
-      columnName: 'sms_phone_number',
+      columnName: 'created_at',
       iterable: false,
-      type: String,
+      type: DateTime,
     ),
-    'enableOrderNotification': const RuntimeSqliteColumnDefinition(
+    'lastMessageAt': const RuntimeSqliteColumnDefinition(
       association: false,
-      columnName: 'enable_order_notification',
+      columnName: 'last_message_at',
       iterable: false,
-      type: bool,
+      type: DateTime,
     ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
-    BranchSmsConfig instance,
+    AiConversation instance,
     DatabaseExecutor executor,
   ) async {
     final results = await executor.rawQuery(
       '''
-        SELECT * FROM `BranchSmsConfig` WHERE id = ? LIMIT 1''',
+        SELECT * FROM `AiConversation` WHERE id = ? LIMIT 1''',
       [instance.id],
     );
 
@@ -144,44 +158,44 @@ class BranchSmsConfigAdapter
   }
 
   @override
-  final String tableName = 'BranchSmsConfig';
+  final String tableName = 'AiConversation';
 
   @override
-  Future<BranchSmsConfig> fromSupabase(
+  Future<AiConversation> fromSupabase(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$BranchSmsConfigFromSupabase(
+  }) async => await _$AiConversationFromSupabase(
     input,
     provider: provider,
     repository: repository,
   );
   @override
   Future<Map<String, dynamic>> toSupabase(
-    BranchSmsConfig input, {
+    AiConversation input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$BranchSmsConfigToSupabase(
+  }) async => await _$AiConversationToSupabase(
     input,
     provider: provider,
     repository: repository,
   );
   @override
-  Future<BranchSmsConfig> fromSqlite(
+  Future<AiConversation> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$BranchSmsConfigFromSqlite(
+  }) async => await _$AiConversationFromSqlite(
     input,
     provider: provider,
     repository: repository,
   );
   @override
   Future<Map<String, dynamic>> toSqlite(
-    BranchSmsConfig input, {
+    AiConversation input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$BranchSmsConfigToSqlite(
+  }) async => await _$AiConversationToSqlite(
     input,
     provider: provider,
     repository: repository,

@@ -9,6 +9,7 @@ import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/abstractions/storage.dart';
+import 'package:flipper_services/ai_strategy.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
 // import 'package:flipper_models/helperModels/iuser.dart';
@@ -35,7 +36,7 @@ abstract class DataMigratorToLocal {
   List<String> activeRealmSubscriptions();
 }
 
-abstract class DatabaseSyncInterface {
+abstract class DatabaseSyncInterface extends AiStrategy {
   // Repository get repository;
   // DatabaseProvider? capella;
   // AsyncCollection? branchCollection;
@@ -165,8 +166,6 @@ abstract class DatabaseSyncInterface {
     String? aiResponse,
     String? aiContext,
   });
-
-  Future<void> deleteConversation({required String conversationId});
 
   Stream<List<Message>> conversationStream({required String conversationId});
 
