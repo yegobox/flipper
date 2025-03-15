@@ -4,6 +4,7 @@ import 'package:supabase_models/brick/models/message.model.dart';
 import 'package:intl/intl.dart';
 
 import '../theme/ai_theme.dart';
+import 'data_visualization.dart';
 
 /// Widget that displays a chat message bubble.
 class MessageBubble extends StatefulWidget {
@@ -90,14 +91,23 @@ class _MessageBubbleState extends State<MessageBubble> {
                             ),
                           ],
                         ),
-                        child: Text(
-                          widget.message.text,
-                          style: TextStyle(
-                            color: widget.isUser
-                                ? theme.colorScheme.onPrimary
-                                : theme.colorScheme.onSurface,
-                            fontSize: 16,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.message.text,
+                              style: TextStyle(
+                                color: widget.isUser
+                                    ? theme.colorScheme.onPrimary
+                                    : theme.colorScheme.onSurface,
+                                fontSize: 16,
+                              ),
+                            ),
+                            if (!widget.isUser) ...[
+                              const SizedBox(height: 8),
+                              DataVisualization(data: widget.message.text),
+                            ],
+                          ],
                         ),
                       ),
                       if (_isHovering)
