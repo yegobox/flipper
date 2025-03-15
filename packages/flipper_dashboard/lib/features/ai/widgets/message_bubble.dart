@@ -94,18 +94,18 @@ class _MessageBubbleState extends State<MessageBubble> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              widget.message.text,
-                              style: TextStyle(
-                                color: widget.isUser
-                                    ? theme.colorScheme.onPrimary
-                                    : theme.colorScheme.onSurface,
-                                fontSize: 16,
-                              ),
-                            ),
-                            if (!widget.isUser) ...[
-                              const SizedBox(height: 8),
+                            if (!widget.isUser && widget.message.text.contains('**[SUMMARY]**')) ...[
                               DataVisualization(data: widget.message.text),
+                            ] else ...[
+                              Text(
+                                widget.message.text,
+                                style: TextStyle(
+                                  color: widget.isUser
+                                      ? theme.colorScheme.onPrimary
+                                      : theme.colorScheme.onSurface,
+                                  fontSize: 16,
+                                ),
+                              ),
                             ],
                           ],
                         ),

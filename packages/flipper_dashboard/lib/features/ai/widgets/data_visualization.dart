@@ -33,6 +33,22 @@ class DataVisualization extends StatelessWidget {
     }
   }
 
+  String _generateSummaryText(Map<String, double> values) {
+    final summary = StringBuffer('Summary: ');
+    var isFirst = true;
+    for (var entry in values.entries) {
+      if (!isFirst) summary.write(', ');
+      final value = entry.value >= 1000000
+          ? '${(entry.value / 1000000).toStringAsFixed(2)}M'
+          : entry.value >= 1000
+              ? '${(entry.value / 1000).toStringAsFixed(2)}K'
+              : entry.value.toStringAsFixed(2);
+      summary.write('${entry.key}: \$${value}');
+      isFirst = false;
+    }
+    return summary.toString();
+  }
+
   Widget _buildSummaryChart(String data, BuildContext context) {
     try {
       // Extract summary data
@@ -69,11 +85,11 @@ class DataVisualization extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Summary Overview',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              Text(
+                _generateSummaryText(values),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
                 ),
               ),
               const SizedBox(height: 16),
@@ -88,6 +104,24 @@ class DataVisualization extends StatelessWidget {
                         sideTitles: SideTitles(
                           showTitles: true,
                           reservedSize: 60,
+                          getTitlesWidget: (value, meta) {
+                            if (value == 0) return const SizedBox.shrink();
+                            String text = value >= 1000000
+                                ? '${(value / 1000000).toStringAsFixed(1)}M'
+                                : value >= 1000
+                                    ? '${(value / 1000).toStringAsFixed(1)}K'
+                                    : value.toStringAsFixed(1);
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Text(
+                                '\$$text',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                       bottomTitles: AxisTitles(
@@ -101,7 +135,10 @@ class DataVisualization extends StatelessWidget {
                               padding: const EdgeInsets.only(top: 8.0),
                               child: Text(
                                 values.keys.elementAt(value.toInt()),
-                                style: const TextStyle(fontSize: 12),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                               ),
                             );
                           },
@@ -117,6 +154,16 @@ class DataVisualization extends StatelessWidget {
                     borderData: FlBorderData(
                       show: true,
                       border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      horizontalInterval:
+                          values.values.reduce((a, b) => a > b ? a : b) / 5,
+                      getDrawingHorizontalLine: (value) => FlLine(
+                        color: Colors.grey.shade200,
+                        strokeWidth: 1,
+                      ),
                     ),
                     barGroups: values.entries
                         .map(
