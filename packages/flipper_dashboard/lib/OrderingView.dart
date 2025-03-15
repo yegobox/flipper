@@ -8,11 +8,13 @@ import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/providers/digital_payment_provider.dart';
+import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/sms/sms_notification_service.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -345,6 +347,34 @@ class ProductListScreenState extends ConsumerState<OrderingView>
       // Place the order
       await placeFinalOrder(
           transaction: transaction, financeOption: financeOption);
+
+      // Send SMS notification
+      final items = await ProxyService.strategy
+          .transactionItems(transactionId: transaction.id);
+      final itemCount = items.length;
+      final totalAmount =
+          items.fold(0.0, (sum, item) => sum + (item.qty * item.price));
+
+      final orderDetails =
+          'New order with $itemCount items, total: \$${totalAmount.toStringAsFixed(2)}';
+
+      transaction.supplierId = ref.read(selectedSupplierProvider)!.serverId!;
+      ProxyService.strategy.updateTransaction(
+          transaction: transaction,
+          supplierId: ref.read(selectedSupplierProvider)!.serverId!);
+      final requesterBranchId = ProxyService.box.getBranchId()!;
+
+      // Get requester's phone number from their branch config
+      final requesterConfig =
+          await SmsNotificationService.getBranchSmsConfig(requesterBranchId);
+      final requesterPhone = requesterConfig?.smsPhoneNumber ?? '';
+
+      // Send SMS to both requester and receiver
+      await SmsNotificationService.sendOrderRequestNotification(
+        receiverBranchId: ref.read(selectedSupplierProvider)!.serverId!,
+        orderDetails: orderDetails,
+        requesterPhone: requesterPhone,
+      );
 
       // Refresh the transaction state
       // ignore: unused_result

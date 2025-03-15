@@ -3667,6 +3667,7 @@ class CoreSync
     DateTime? updatedAt,
     int? invoiceNumber,
     DateTime? lastTouched,
+    int? supplierId,
     int? receiptNumber,
     int? totalReceiptNumber,
     bool? isProformaMode,
@@ -3699,6 +3700,7 @@ class CoreSync
     transaction.receiptType = receiptType ?? transaction.receiptType;
     transaction.subTotal = subTotal ?? transaction.subTotal;
     transaction.note = note ?? transaction.note;
+    transaction.supplierId = supplierId ?? transaction.supplierId;
     transaction.status = status ?? transaction.status;
     transaction.ticketName = ticketName ?? transaction.ticketName;
     transaction.updatedAt = updatedAt ?? transaction.updatedAt;

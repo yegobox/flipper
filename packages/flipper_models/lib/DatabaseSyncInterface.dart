@@ -637,6 +637,7 @@ abstract class DatabaseSyncInterface {
       double? subTotal,
       String? note,
       String? status,
+      int? supplierId,
       String? customerId,
       bool? ebmSynced,
       String? sarTyCd,
