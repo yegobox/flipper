@@ -1,206 +1,129 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/currency_provider.dart';
 
-// Created a new DataVisualization widget that:
-// Detects structured data in the message format **[SUMMARY]** followed by key-value pairs
-// Automatically parses numerical data from the summary section
-// Renders a beautiful bar chart using fl_chart for easy data visualization
-// Updated the MessageBubble widget to:
-// Include data visualization support for AI responses (non-user messages)
-// Maintain the existing message styling and functionality
-// Automatically show charts when structured data is detected
-// The visualization will automatically appear when the AI response contains data in this format:
-// **[SUMMARY]**
-// Total Revenue: $3,002,663.24
-// Total Profit: $576,784.92
-// Total Units Sold: 83,621
-// **[DETAILS]**
-// ...
-class DataVisualization extends StatelessWidget {
+class DataVisualization extends ConsumerWidget {
   final String data;
-  final String currency;
+  final String? currency;
 
   const DataVisualization({
-    Key? key, 
+    super.key,
     required this.data,
-    this.currency = 'RWF',
-  }) : super(key: key);
-
-  String _formatCurrency(double value) {
-    final formattedValue = value >= 1000000
-        ? '${(value / 1000000).toStringAsFixed(2)}M'
-        : value >= 1000
-            ? '${(value / 1000).toStringAsFixed(2)}K'
-            : value.toStringAsFixed(2);
-    return '$currency $formattedValue'; // Add space between currency and value
-  }
-
-  String _generateSummaryText(Map<String, double> values) {
-    final summary = StringBuffer('Summary: ');
-    var isFirst = true;
-    for (var entry in values.entries) {
-      if (!isFirst) summary.write(', ');
-      summary.write('${entry.key}: ${_formatCurrency(entry.value)}');
-      isFirst = false;
-    }
-    return summary.toString();
-  }
-
-  Widget _buildSummaryChart(String data, BuildContext context) {
-    try {
-      // Extract summary data
-      final summaryMatch =
-          RegExp(r'\*\*\[SUMMARY\]\*\*(.*?)\*\*\[DETAILS\]\*\*', dotAll: true)
-              .firstMatch(data);
-
-      if (summaryMatch == null) return const SizedBox.shrink();
-
-      final summaryText = summaryMatch.group(1)?.trim() ?? '';
-      final lines = summaryText.split('\n');
-
-      // Parse values
-      final values = <String, double>{};
-      for (var line in lines) {
-        if (line.isEmpty) continue;
-        final parts = line.split(':');
-        if (parts.length != 2) continue;
-
-        final key = parts[0].trim();
-        final valueStr = parts[1].trim().replaceAll(RegExp(r'[^\d.]'), '');
-        final value = double.tryParse(valueStr);
-        if (value != null) {
-          values[key] = value;
-        }
-      }
-
-      if (values.isEmpty) return const SizedBox.shrink();
-
-      return Card(
-        margin: const EdgeInsets.all(8),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _generateSummaryText(values),
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 200,
-                child: BarChart(
-                  BarChartData(
-                    alignment: BarChartAlignment.spaceAround,
-                    maxY: values.values.reduce((a, b) => a > b ? a : b) * 1.2,
-                    titlesData: FlTitlesData(
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 80, // Increased to accommodate RWF
-                          getTitlesWidget: (value, meta) {
-                            if (value == 0) return const SizedBox.shrink();
-                            String text = value >= 1000000
-                                ? '${(value / 1000000).toStringAsFixed(1)}M'
-                                : value >= 1000
-                                    ? '${(value / 1000).toStringAsFixed(1)}K'
-                                    : value.toStringAsFixed(1);
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: Text(
-                                '$currency $text',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          getTitlesWidget: (value, meta) {
-                            if (value < 0 || value >= values.length) {
-                              return const SizedBox.shrink();
-                            }
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                values.keys.elementAt(value.toInt()),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      rightTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                      topTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                    ),
-                    borderData: FlBorderData(
-                      show: true,
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    gridData: FlGridData(
-                      show: true,
-                      drawVerticalLine: false,
-                      horizontalInterval:
-                          values.values.reduce((a, b) => a > b ? a : b) / 5,
-                      getDrawingHorizontalLine: (value) => FlLine(
-                        color: Colors.grey.shade200,
-                        strokeWidth: 1,
-                      ),
-                    ),
-                    barGroups: values.entries
-                        .map(
-                          (e) => BarChartGroupData(
-                            x: values.keys.toList().indexOf(e.key),
-                            barRods: [
-                              BarChartRodData(
-                                toY: e.value,
-                                color: Theme.of(context).primaryColor,
-                                width: 20,
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(4),
-                                  topRight: Radius.circular(4),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    } catch (e) {
-      return const SizedBox.shrink();
-    }
-  }
+    this.currency,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    try {
-      if (data.contains('**[SUMMARY]**')) {
-        return _buildSummaryChart(data, context);
-      }
-      return const SizedBox.shrink();
-    } catch (e) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currencyService = ref.watch(currencyServiceProvider);
+    final theme = Theme.of(context);
+
+    // Extract summary section
+    final summaryMatch = RegExp(r'\*\*\[SUMMARY\]\*\*(.*?)\*\*\[DETAILS\]\*\*', dotAll: true)
+        .firstMatch(data);
+    if (summaryMatch == null) return const SizedBox.shrink();
+
+    final summaryText = summaryMatch.group(1)?.trim() ?? '';
+    if (summaryText.isEmpty) return const SizedBox.shrink();
+
+    // Parse values from summary
+    final revenue = _extractValue(summaryText, 'Total Revenue');
+    final profit = _extractValue(summaryText, 'Total Profit');
+    final unitsSold = _extractValue(summaryText, 'Total Units Sold');
+
+    if (revenue == null || profit == null || unitsSold == null) {
       return const SizedBox.shrink();
     }
+
+    final formattedRevenue = currencyService.formatCurrencyValue(revenue, currency: currency);
+    final formattedProfit = currencyService.formatCurrencyValue(profit, currency: currency);
+    final formattedUnitsSold = unitsSold.toStringAsFixed(0);
+
+    final summaryDisplay = 'Summary: Total Revenue: $formattedRevenue, Total Profit: $formattedProfit, Total Units Sold: $formattedUnitsSold';
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              summaryDisplay,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.black.withOpacity(0.87),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 200,
+              child: BarChart(
+                BarChartData(
+                  alignment: BarChartAlignment.spaceAround,
+                  maxY: revenue * 1.2,
+                  barGroups: [
+                    _createBarGroup(0, revenue),
+                    _createBarGroup(1, profit),
+                    _createBarGroup(2, unitsSold),
+                  ],
+                  titlesData: FlTitlesData(
+                    show: true,
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          final titles = ['Total Revenue', 'Total Profit', 'Total Units Sold'];
+                          return Text(
+                            titles[value.toInt()],
+                            style: TextStyle(
+                              color: Colors.grey[400],
+                              fontSize: 12,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    leftTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                  ),
+                  gridData: const FlGridData(show: false),
+                  borderData: FlBorderData(show: false),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  double? _extractValue(String text, String label) {
+    final pattern = RegExp(r'^' + RegExp.escape(label) + r': \$?(\d+(?:,\d{3})*(?:\.\d+)?)', multiLine: true);
+    final match = pattern.firstMatch(text);
+    if (match == null) return null;
+    return double.tryParse(match.group(1)?.replaceAll(',', '') ?? '');
+  }
+
+  BarChartGroupData _createBarGroup(int x, double y) {
+    return BarChartGroupData(
+      x: x,
+      barRods: [
+        BarChartRodData(
+          toY: y,
+          width: 20,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(4),
+            topRight: Radius.circular(4),
+          ),
+          color: Colors.blue,
+        ),
+      ],
+    );
   }
 }
