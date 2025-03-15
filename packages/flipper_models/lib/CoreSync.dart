@@ -4,7 +4,7 @@ import 'dart:math';
 import 'dart:isolate';
 import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
-import 'package:flipper_models/RealmInterface.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SessionManager.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
@@ -58,7 +58,7 @@ import 'package:uuid/uuid.dart';
 
 class CoreSync
     with Booting, CoreMiscellaneous, TransactionMixin
-    implements RealmInterface {
+    implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
   bool offlineLogin = false;
@@ -3781,9 +3781,9 @@ class CoreSync
   }
 
   @override
-  Future<RealmInterface> configureCapella(
+  Future<DatabaseSyncInterface> configureCapella(
       {required bool useInMemory, required storage.LocalStorage box}) async {
-    return this as RealmInterface;
+    return this as DatabaseSyncInterface;
   }
 
   @override
@@ -4029,7 +4029,7 @@ class CoreSync
   }
 
   @override
-  RealmInterface instance() {
+  DatabaseSyncInterface instance() {
     return this;
   }
 
@@ -4816,7 +4816,7 @@ class CoreSync
   }
 
   @override
-  Future<RealmInterface> configureLocal(
+  Future<DatabaseSyncInterface> configureLocal(
       {required bool useInMemory, required storage.LocalStorage box}) async {
     try {
       // await loadSupabase();

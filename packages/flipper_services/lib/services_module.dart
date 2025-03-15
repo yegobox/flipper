@@ -1,11 +1,11 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flipper_models/CoreSync.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/MockHttpClient.dart';
-import 'package:flipper_models/RealmInterface.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
@@ -71,7 +71,7 @@ abstract class ServicesModule {
   @preResolve
   @LazySingleton()
   @Named('coresync')
-  Future<RealmInterface> provideSyncInterface(LocalStorage box) async {
+  Future<DatabaseSyncInterface> provideSyncInterface(LocalStorage box) async {
     return await CoreSync().configureLocal(
         useInMemory:
             bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false),
@@ -81,7 +81,7 @@ abstract class ServicesModule {
   @preResolve
   @Named('capella')
   @LazySingleton()
-  Future<RealmInterface> capella(
+  Future<DatabaseSyncInterface> capella(
     LocalStorage box,
   ) async {
     return await Capella().configureCapella(
@@ -94,8 +94,8 @@ abstract class ServicesModule {
   @lazySingleton
   @Named('strategy')
   SyncStrategy provideStrategy(
-    @Named('capella') RealmInterface capella,
-    @Named('coresync') RealmInterface coresync,
+    @Named('capella') DatabaseSyncInterface capella,
+    @Named('coresync') DatabaseSyncInterface coresync,
   ) {
     return SyncStrategy(
       capella: capella as Capella,
@@ -105,7 +105,7 @@ abstract class ServicesModule {
 
   @preResolve
   @LazySingleton()
-  Future<RealmInterface> localRealm(
+  Future<DatabaseSyncInterface> localRealm(
     LocalStorage box,
   ) async {
     if (!kIsWeb) {
