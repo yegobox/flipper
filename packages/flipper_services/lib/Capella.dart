@@ -1074,6 +1074,7 @@ class Capella with Booting implements DatabaseSyncInterface {
       String? status,
       String? customerId,
       bool? ebmSynced,
+       int? supplierId,
       String? sarTyCd,
       String? reference,
       String? customerTin,
