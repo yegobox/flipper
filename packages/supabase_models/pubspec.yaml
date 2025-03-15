@@ -30,5 +30,5 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   brick_sqlite_generators: ^4.0.0
   brick_offline_first_with_supabase_build: ^2.0.0
-  build_runner: ^2.4.14
+  build_runner: ^2.4.15
   

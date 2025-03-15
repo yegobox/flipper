@@ -14,7 +14,13 @@ class SaveProgressDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double progressPercentage = (currentItem / totalItems) * 100;
+    // Safely calculate the progress percentage
+    double progressPercentage = 0.0; // Default to 0 if totalItems is zero
+
+    if (totalItems > 0) {
+      progressPercentage = (currentItem / totalItems) * 100;
+    }
+
     final bool isComplete = currentItem == totalItems;
 
     return Dialog(
@@ -47,7 +53,9 @@ class SaveProgressDialog extends StatelessWidget {
                   height: 100,
                   width: 100,
                   child: CircularProgressIndicator(
-                    value: currentItem / totalItems,
+                    value: totalItems > 0
+                        ? currentItem / totalItems
+                        : 0.0, // Avoid division by zero here too
                     strokeWidth: 8,
                     backgroundColor: Colors.grey[200],
                     valueColor: AlwaysStoppedAnimation<Color>(
@@ -85,7 +93,9 @@ class SaveProgressDialog extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(6),
                     child: LinearProgressIndicator(
-                      value: currentItem / totalItems,
+                      value: totalItems > 0
+                          ? currentItem / totalItems
+                          : 0.0, // avoid division by zero
                       minHeight: 8,
                       backgroundColor: Colors.grey[200],
                       valueColor: AlwaysStoppedAnimation<Color>(
@@ -110,4 +120,3 @@ class SaveProgressDialog extends StatelessWidget {
     );
   }
 }
-

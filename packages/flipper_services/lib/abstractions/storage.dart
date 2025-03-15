@@ -73,4 +73,5 @@ abstract class LocalStorage {
   bool exportAsPdf();
   bool transactionInProgress();
   String stockInOutType();
+  String defaultCurrency();
 }

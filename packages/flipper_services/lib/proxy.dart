@@ -1,7 +1,7 @@
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_models/RealmInterface.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -82,7 +82,7 @@ abstract class ProxyService {
   static final SyncStrategy _strategy =
       getIt<SyncStrategy>(instanceName: 'strategy');
 
-  static RealmInterface get strategy => _strategy.current;
+  static DatabaseSyncInterface get strategy => _strategy.current;
   static void setStrategy(Strategy strategy) => _strategy.setStrategy(strategy);
 
   static Crash get crash => _crash;

@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/sms/sms_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -25,6 +26,66 @@ class _AdminControlState extends State<AdminControl> {
   bool forceUPSERT = false;
   bool stopTaxService = false;
   bool switchToCloudSync = false;
+  String? smsPhoneNumber;
+  bool enableSmsNotification = false;
+  late final TextEditingController phoneController;
+  String? phoneError;
+
+  bool _isValidPhoneNumber(String phone) {
+    // Remove any spaces or special characters
+    final cleanPhone = phone.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+
+    // Check if it starts with + and has 10-15 digits
+    if (cleanPhone.startsWith('+')) {
+      return RegExp(r'^\+\d{10,15}$').hasMatch(cleanPhone);
+    }
+
+    // If no +, check if it has a valid length for international numbers (including country code)
+    return RegExp(r'^\d{10,15}$').hasMatch(cleanPhone);
+  }
+
+  String _formatPhoneNumber(String phone) {
+    // Remove any spaces or special characters
+    final cleanPhone = phone.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+
+    // If it doesn't start with +, add it
+    if (!cleanPhone.startsWith('+')) {
+      return '+$cleanPhone';
+    }
+    return cleanPhone;
+  }
+
+  Future<void> _updateSmsConfig({String? phone, bool? enable}) async {
+    if (phone != null && phone.isNotEmpty) {
+      if (!_isValidPhoneNumber(phone)) {
+        setState(() {
+          phoneError =
+              'Please enter a valid phone number with country code (e.g., +250783054874)';
+        });
+        return;
+      }
+      phone = _formatPhoneNumber(phone);
+    }
+
+    try {
+      await SmsNotificationService.updateBranchSmsConfig(
+        branchId: ProxyService.box.getBranchId()!,
+        smsPhoneNumber: phone,
+        enableNotification: enable,
+      );
+
+      setState(() {
+        if (phone != null) smsPhoneNumber = phone;
+        if (enable != null) enableSmsNotification = enable;
+        phoneError = null;
+      });
+    } catch (e) {
+      print('Error updating SMS config: $e');
+      setState(() {
+        phoneError = 'Failed to update SMS configuration';
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -37,6 +98,31 @@ class _AdminControlState extends State<AdminControl> {
     forceUPSERT = ProxyService.box.forceUPSERT();
     stopTaxService = ProxyService.box.stopTaxService() ?? false;
     switchToCloudSync = ProxyService.box.switchToCloudSync() ?? false;
+    phoneController = TextEditingController();
+    _loadSmsConfig();
+  }
+
+  @override
+  void dispose() {
+    phoneController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadSmsConfig() async {
+    try {
+      final config = await SmsNotificationService.getBranchSmsConfig(
+        ProxyService.box.getBranchId()!,
+      );
+      if (config != null) {
+        setState(() {
+          smsPhoneNumber = config.smsPhoneNumber;
+          enableSmsNotification = config.enableOrderNotification;
+          phoneController.text = config.smsPhoneNumber ?? '';
+        });
+      }
+    } catch (e) {
+      print('Error loading SMS config: $e');
+    }
   }
 
   Future<void> toggleDownload(bool value) async {
@@ -113,7 +199,6 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -137,7 +222,7 @@ class _AdminControlState extends State<AdminControl> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
           child: Container(
-            color: Colors.white.withValues(alpha: 0.2),
+            color: Colors.white.withOpacity(0.2),
             height: 1.0,
           ),
         ),
@@ -148,7 +233,7 @@ class _AdminControlState extends State<AdminControl> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).primaryColor.withValues(alpha: 0.05),
+              Theme.of(context).primaryColor.withOpacity(0.05),
               Colors.white,
             ],
           ),
@@ -286,7 +371,108 @@ class _AdminControlState extends State<AdminControl> {
           ],
         ),
         const SizedBox(height: 32),
+        _buildSmsConfigSection(context),
+        const SizedBox(height: 32),
         _buildSystemSettings(context),
+      ],
+    );
+  }
+
+  Widget _buildSmsConfigSection(BuildContext context) {
+    return SettingsSection(
+      title: 'SMS Notifications',
+      children: [
+        Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: Colors.grey.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.phone,
+                        size: 24,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'SMS Phone Number',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Phone number with country code (e.g., +250783054874)',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Colors.grey[600],
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      width: 200,
+                      child: TextField(
+                        controller: phoneController,
+                        decoration: InputDecoration(
+                          hintText: 'Enter phone number',
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 12),
+                          errorText: phoneError,
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            smsPhoneNumber = value.isEmpty ? null : value;
+                            phoneError = null;
+                          });
+                        },
+                        onSubmitted: (value) {
+                          final phone = value.isEmpty ? null : value;
+                          _updateSmsConfig(phone: phone);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        SwitchSettingsCard(
+          title: 'Enable Order Notification',
+          subtitle: 'Receive SMS notifications for orders',
+          icon: Icons.notifications,
+          value: enableSmsNotification,
+          onChanged: (value) => _updateSmsConfig(enable: value),
+          color: Colors.green,
+        ),
       ],
     );
   }
@@ -327,7 +513,6 @@ class _AdminControlState extends State<AdminControl> {
               icon: Icons.cloud_sync,
               value: switchToCloudSync,
               onChanged: (bool value) {
-                // Removed 'async' keyword here
                 showReInitializeEbmDialog(context);
               },
               color: Colors.cyan,
@@ -370,7 +555,7 @@ class _AdminControlState extends State<AdminControl> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -430,6 +615,7 @@ class SettingsCard extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   final Color color;
+  final Widget? trailing;
 
   const SettingsCard({
     required this.title,
@@ -437,6 +623,7 @@ class SettingsCard extends StatelessWidget {
     required this.icon,
     required this.onTap,
     required this.color,
+    this.trailing,
     super.key,
   });
 
@@ -447,7 +634,7 @@ class SettingsCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: Colors.grey.withValues(alpha: 0.2),
+          color: Colors.grey.withOpacity(0.2),
           width: 1,
         ),
       ),
@@ -461,7 +648,7 @@ class SettingsCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
+                  color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -491,9 +678,10 @@ class SettingsCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (trailing != null) trailing!,
               Icon(
                 Icons.chevron_right,
-                color: color.withValues(alpha: 0.5),
+                color: color.withOpacity(0.5),
               ),
             ],
           ),
@@ -528,7 +716,7 @@ class SwitchSettingsCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: Colors.grey.withValues(alpha: 0.2),
+          color: Colors.grey.withOpacity(0.2),
           width: 1,
         ),
       ),
@@ -539,7 +727,7 @@ class SwitchSettingsCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(

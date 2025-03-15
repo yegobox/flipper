@@ -6,7 +6,7 @@ part of 'ai_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$geminiResponseHash() => r'5d948cd5850cbe14d9c1ed6aa1241e3e01d6c0e3';
+String _$geminiResponseHash() => r'1b640503005abdf2b11ffb60f3b620b663b47879';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,16 +29,33 @@ class _SystemHash {
   }
 }
 
-/// See also [geminiResponse].
-@ProviderFor(geminiResponse)
+abstract class _$GeminiResponse
+    extends BuildlessAutoDisposeAsyncNotifier<String> {
+  late final GeminiInput input;
+
+  FutureOr<String> build(
+    GeminiInput input,
+  );
+}
+
+/// Providers
+///
+/// Copied from [GeminiResponse].
+@ProviderFor(GeminiResponse)
 const geminiResponseProvider = GeminiResponseFamily();
 
-/// See also [geminiResponse].
+/// Providers
+///
+/// Copied from [GeminiResponse].
 class GeminiResponseFamily extends Family<AsyncValue<String>> {
-  /// See also [geminiResponse].
+  /// Providers
+  ///
+  /// Copied from [GeminiResponse].
   const GeminiResponseFamily();
 
-  /// See also [geminiResponse].
+  /// Providers
+  ///
+  /// Copied from [GeminiResponse].
   GeminiResponseProvider call(
     GeminiInput input,
   ) {
@@ -71,16 +88,18 @@ class GeminiResponseFamily extends Family<AsyncValue<String>> {
   String? get name => r'geminiResponseProvider';
 }
 
-/// See also [geminiResponse].
-class GeminiResponseProvider extends AutoDisposeFutureProvider<String> {
-  /// See also [geminiResponse].
+/// Providers
+///
+/// Copied from [GeminiResponse].
+class GeminiResponseProvider
+    extends AutoDisposeAsyncNotifierProviderImpl<GeminiResponse, String> {
+  /// Providers
+  ///
+  /// Copied from [GeminiResponse].
   GeminiResponseProvider(
     GeminiInput input,
   ) : this._internal(
-          (ref) => geminiResponse(
-            ref as GeminiResponseRef,
-            input,
-          ),
+          () => GeminiResponse()..input = input,
           from: geminiResponseProvider,
           name: r'geminiResponseProvider',
           debugGetCreateSourceHash:
@@ -106,13 +125,20 @@ class GeminiResponseProvider extends AutoDisposeFutureProvider<String> {
   final GeminiInput input;
 
   @override
-  Override overrideWith(
-    FutureOr<String> Function(GeminiResponseRef provider) create,
+  FutureOr<String> runNotifierBuild(
+    covariant GeminiResponse notifier,
   ) {
+    return notifier.build(
+      input,
+    );
+  }
+
+  @override
+  Override overrideWith(GeminiResponse Function() create) {
     return ProviderOverride(
       origin: this,
       override: GeminiResponseProvider._internal(
-        (ref) => create(ref as GeminiResponseRef),
+        () => create()..input = input,
         from: from,
         name: null,
         dependencies: null,
@@ -124,7 +150,8 @@ class GeminiResponseProvider extends AutoDisposeFutureProvider<String> {
   }
 
   @override
-  AutoDisposeFutureProviderElement<String> createElement() {
+  AutoDisposeAsyncNotifierProviderElement<GeminiResponse, String>
+      createElement() {
     return _GeminiResponseProviderElement(this);
   }
 
@@ -144,46 +171,57 @@ class GeminiResponseProvider extends AutoDisposeFutureProvider<String> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin GeminiResponseRef on AutoDisposeFutureProviderRef<String> {
+mixin GeminiResponseRef on AutoDisposeAsyncNotifierProviderRef<String> {
   /// The parameter `input` of this provider.
   GeminiInput get input;
 }
 
 class _GeminiResponseProviderElement
-    extends AutoDisposeFutureProviderElement<String> with GeminiResponseRef {
+    extends AutoDisposeAsyncNotifierProviderElement<GeminiResponse, String>
+    with GeminiResponseRef {
   _GeminiResponseProviderElement(super.provider);
 
   @override
   GeminiInput get input => (origin as GeminiResponseProvider).input;
 }
 
-String _$geminiBusinessAnalyticsResponseHash() =>
-    r'58820bd284bae9c2b1d7000cbe0f2d9aa10b3537';
+String _$geminiBusinessAnalyticsHash() =>
+    r'0003a3784c2bd4d111c9c44f309b88df9f6d8099';
 
-/// See also [geminiBusinessAnalyticsResponse].
-@ProviderFor(geminiBusinessAnalyticsResponse)
-const geminiBusinessAnalyticsResponseProvider =
-    GeminiBusinessAnalyticsResponseFamily();
+abstract class _$GeminiBusinessAnalytics
+    extends BuildlessAutoDisposeAsyncNotifier<String> {
+  late final int branchId;
+  late final String userPrompt;
 
-/// See also [geminiBusinessAnalyticsResponse].
-class GeminiBusinessAnalyticsResponseFamily extends Family<AsyncValue<String>> {
-  /// See also [geminiBusinessAnalyticsResponse].
-  const GeminiBusinessAnalyticsResponseFamily();
+  FutureOr<String> build(
+    int branchId,
+    String userPrompt,
+  );
+}
 
-  /// See also [geminiBusinessAnalyticsResponse].
-  GeminiBusinessAnalyticsResponseProvider call(
+/// See also [GeminiBusinessAnalytics].
+@ProviderFor(GeminiBusinessAnalytics)
+const geminiBusinessAnalyticsProvider = GeminiBusinessAnalyticsFamily();
+
+/// See also [GeminiBusinessAnalytics].
+class GeminiBusinessAnalyticsFamily extends Family<AsyncValue<String>> {
+  /// See also [GeminiBusinessAnalytics].
+  const GeminiBusinessAnalyticsFamily();
+
+  /// See also [GeminiBusinessAnalytics].
+  GeminiBusinessAnalyticsProvider call(
     int branchId,
     String userPrompt,
   ) {
-    return GeminiBusinessAnalyticsResponseProvider(
+    return GeminiBusinessAnalyticsProvider(
       branchId,
       userPrompt,
     );
   }
 
   @override
-  GeminiBusinessAnalyticsResponseProvider getProviderOverride(
-    covariant GeminiBusinessAnalyticsResponseProvider provider,
+  GeminiBusinessAnalyticsProvider getProviderOverride(
+    covariant GeminiBusinessAnalyticsProvider provider,
   ) {
     return call(
       provider.branchId,
@@ -203,36 +241,35 @@ class GeminiBusinessAnalyticsResponseFamily extends Family<AsyncValue<String>> {
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'geminiBusinessAnalyticsResponseProvider';
+  String? get name => r'geminiBusinessAnalyticsProvider';
 }
 
-/// See also [geminiBusinessAnalyticsResponse].
-class GeminiBusinessAnalyticsResponseProvider
-    extends AutoDisposeFutureProvider<String> {
-  /// See also [geminiBusinessAnalyticsResponse].
-  GeminiBusinessAnalyticsResponseProvider(
+/// See also [GeminiBusinessAnalytics].
+class GeminiBusinessAnalyticsProvider
+    extends AutoDisposeAsyncNotifierProviderImpl<GeminiBusinessAnalytics,
+        String> {
+  /// See also [GeminiBusinessAnalytics].
+  GeminiBusinessAnalyticsProvider(
     int branchId,
     String userPrompt,
   ) : this._internal(
-          (ref) => geminiBusinessAnalyticsResponse(
-            ref as GeminiBusinessAnalyticsResponseRef,
-            branchId,
-            userPrompt,
-          ),
-          from: geminiBusinessAnalyticsResponseProvider,
-          name: r'geminiBusinessAnalyticsResponseProvider',
+          () => GeminiBusinessAnalytics()
+            ..branchId = branchId
+            ..userPrompt = userPrompt,
+          from: geminiBusinessAnalyticsProvider,
+          name: r'geminiBusinessAnalyticsProvider',
           debugGetCreateSourceHash:
               const bool.fromEnvironment('dart.vm.product')
                   ? null
-                  : _$geminiBusinessAnalyticsResponseHash,
-          dependencies: GeminiBusinessAnalyticsResponseFamily._dependencies,
+                  : _$geminiBusinessAnalyticsHash,
+          dependencies: GeminiBusinessAnalyticsFamily._dependencies,
           allTransitiveDependencies:
-              GeminiBusinessAnalyticsResponseFamily._allTransitiveDependencies,
+              GeminiBusinessAnalyticsFamily._allTransitiveDependencies,
           branchId: branchId,
           userPrompt: userPrompt,
         );
 
-  GeminiBusinessAnalyticsResponseProvider._internal(
+  GeminiBusinessAnalyticsProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
@@ -247,14 +284,23 @@ class GeminiBusinessAnalyticsResponseProvider
   final String userPrompt;
 
   @override
-  Override overrideWith(
-    FutureOr<String> Function(GeminiBusinessAnalyticsResponseRef provider)
-        create,
+  FutureOr<String> runNotifierBuild(
+    covariant GeminiBusinessAnalytics notifier,
   ) {
+    return notifier.build(
+      branchId,
+      userPrompt,
+    );
+  }
+
+  @override
+  Override overrideWith(GeminiBusinessAnalytics Function() create) {
     return ProviderOverride(
       origin: this,
-      override: GeminiBusinessAnalyticsResponseProvider._internal(
-        (ref) => create(ref as GeminiBusinessAnalyticsResponseRef),
+      override: GeminiBusinessAnalyticsProvider._internal(
+        () => create()
+          ..branchId = branchId
+          ..userPrompt = userPrompt,
         from: from,
         name: null,
         dependencies: null,
@@ -267,13 +313,14 @@ class GeminiBusinessAnalyticsResponseProvider
   }
 
   @override
-  AutoDisposeFutureProviderElement<String> createElement() {
-    return _GeminiBusinessAnalyticsResponseProviderElement(this);
+  AutoDisposeAsyncNotifierProviderElement<GeminiBusinessAnalytics, String>
+      createElement() {
+    return _GeminiBusinessAnalyticsProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is GeminiBusinessAnalyticsResponseProvider &&
+    return other is GeminiBusinessAnalyticsProvider &&
         other.branchId == branchId &&
         other.userPrompt == userPrompt;
   }
@@ -290,8 +337,8 @@ class GeminiBusinessAnalyticsResponseProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin GeminiBusinessAnalyticsResponseRef
-    on AutoDisposeFutureProviderRef<String> {
+mixin GeminiBusinessAnalyticsRef
+    on AutoDisposeAsyncNotifierProviderRef<String> {
   /// The parameter `branchId` of this provider.
   int get branchId;
 
@@ -299,17 +346,16 @@ mixin GeminiBusinessAnalyticsResponseRef
   String get userPrompt;
 }
 
-class _GeminiBusinessAnalyticsResponseProviderElement
-    extends AutoDisposeFutureProviderElement<String>
-    with GeminiBusinessAnalyticsResponseRef {
-  _GeminiBusinessAnalyticsResponseProviderElement(super.provider);
+class _GeminiBusinessAnalyticsProviderElement
+    extends AutoDisposeAsyncNotifierProviderElement<GeminiBusinessAnalytics,
+        String> with GeminiBusinessAnalyticsRef {
+  _GeminiBusinessAnalyticsProviderElement(super.provider);
 
   @override
-  int get branchId =>
-      (origin as GeminiBusinessAnalyticsResponseProvider).branchId;
+  int get branchId => (origin as GeminiBusinessAnalyticsProvider).branchId;
   @override
   String get userPrompt =>
-      (origin as GeminiBusinessAnalyticsResponseProvider).userPrompt;
+      (origin as GeminiBusinessAnalyticsProvider).userPrompt;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

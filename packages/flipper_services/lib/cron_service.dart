@@ -64,7 +64,8 @@ class CronService {
       }
     });
     Timer.periodic(Duration(minutes: 1), (Timer t) async {
-      if (!ProxyService.box.transactionInProgress()) {
+      final isTaxServiceStoped = ProxyService.box.stopTaxService();
+      if (!ProxyService.box.transactionInProgress() && !isTaxServiceStoped!) {
         final URI = await ProxyService.box.getServerUrl();
         final tinNumber = ProxyService.box.tin();
         final bhfId = await ProxyService.box.bhfId();

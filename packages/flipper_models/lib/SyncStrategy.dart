@@ -1,5 +1,5 @@
 import 'package:flipper_models/CoreSync.dart';
-import 'package:flipper_models/RealmInterface.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_services/Capella.dart';
 
 enum Strategy { capella, cloudSync, bricks }
@@ -14,8 +14,8 @@ class SyncStrategy {
     required this.cloudSync,
   });
 
-  RealmInterface get current => _currentStrategy == Strategy.capella
-      ? capella as RealmInterface
+  DatabaseSyncInterface get current => _currentStrategy == Strategy.capella
+      ? capella as DatabaseSyncInterface
       : cloudSync;
 
   void setStrategy(Strategy strategy) {

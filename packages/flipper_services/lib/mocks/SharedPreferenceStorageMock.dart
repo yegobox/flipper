@@ -335,4 +335,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement stockInOutType
     throw UnimplementedError();
   }
+
+  @override
+  String defaultCurrency() {
+    // TODO: implement defaultCurrency
+    throw UnimplementedError();
+  }
 }

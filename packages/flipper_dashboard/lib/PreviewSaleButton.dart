@@ -14,12 +14,14 @@ class PreviewSaleButton extends ConsumerWidget {
     required this.mode,
     required this.digitalPaymentEnabled,
     required this.transactionId,
+    this.icon,
   });
 
   final CompleteTransaction? completeTransaction;
   final PreviewCart? previewCart;
   final String wording;
   final SellingMode mode;
+  final IconData? icon;
   final bool digitalPaymentEnabled;
   final String transactionId;
 
@@ -57,47 +59,77 @@ class PreviewSaleButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final payButtonLoading = ref.watch(payButtonStateProvider);
+    final showCompleteNow =
+        mode == SellingMode.forSelling && digitalPaymentEnabled;
 
     return SizedBox(
       height: 64,
-      width: digitalPaymentEnabled ? 320 : 160,
+      // Make button wider and adjust based on mode
+      width: showCompleteNow ? 400 : 300,
       child: Row(
         children: [
-          // Left Side: Main Button (Pay)
+          // Left Side: Main Button (Pay/Preview Cart)
           Expanded(
-            child: FlipperButton(
-              height: 64,
-              key: const Key("PaymentButton"),
-              color: Colors.blue.shade700,
-              text: wording,
-              onPressed: (payButtonLoading[ButtonType.pay] ?? false)
-                  ? null
-                  : () => _handleButtonPress(ref, buttonType: ButtonType.pay),
-              isLoading: payButtonLoading[ButtonType.pay] ?? false,
-            ),
-          ),
-          // Divider between buttons (if digital payment is enabled)
-          if (digitalPaymentEnabled)
+              child: icon == null
+                  ? FlipperButton(
+                      height: 64,
+                      key: const Key("PaymentButton"),
+                      color: Colors.blue.shade700,
+                      text: wording,
+                      onPressed: (payButtonLoading[ButtonType.pay] ?? false)
+                          ? null
+                          : () => _handleButtonPress(ref,
+                              buttonType: ButtonType.pay),
+                      isLoading: payButtonLoading[ButtonType.pay] ?? false,
+                    )
+                  : FlipperIconButton(
+                      height: 64,
+                      color: Colors.blue.shade700,
+                      key: const Key("PaymentButton"),
+                      icon: icon!,
+                      onPressed: (payButtonLoading[ButtonType.pay] ?? false)
+                          ? null
+                          : () => _handleButtonPress(ref,
+                              buttonType: ButtonType.pay),
+                      isLoading: payButtonLoading[ButtonType.pay] ?? false,
+                    )),
+          // Only show divider and Complete Now button when in selling mode
+          if (showCompleteNow) ...[
             Container(
               width: 1,
               color: Colors.grey.shade300,
             ),
-          // Right Side: "Complete Now" Button (if digital payment is enabled)
-          if (digitalPaymentEnabled)
             Expanded(
-              child: FlipperButton(
-                isLoading: payButtonLoading[ButtonType.completeNow] ?? false,
-                height: 64,
-                key: const Key("ImmediateCompletionButton"),
-                color: Colors.green,
-                text: 'Complete Now',
-                onPressed: () => _handleButtonPress(
-                  ref,
-                  immediateCompletion: true,
-                  buttonType: ButtonType.completeNow,
-                ),
-              ),
+              child: icon == null
+                  ? FlipperButton(
+                      isLoading:
+                          payButtonLoading[ButtonType.completeNow] ?? false,
+                      height: 64,
+                      key: const Key("ImmediateCompletionButton"),
+                      color: Colors.green,
+                      text: 'Complete Now',
+                      onPressed: () => _handleButtonPress(
+                        ref,
+                        immediateCompletion: true,
+                        buttonType: ButtonType.completeNow,
+                      ),
+                    )
+                  : FlipperIconButton(
+                      color: Colors.blue.shade700,
+                      isLoading:
+                          payButtonLoading[ButtonType.completeNow] ?? false,
+                      height: 64,
+                      key: const Key("ImmediateCompletionButton"),
+                      text: 'Complete Now',
+                      onPressed: () => _handleButtonPress(
+                        ref,
+                        immediateCompletion: true,
+                        buttonType: ButtonType.completeNow,
+                      ),
+                      icon: icon!,
+                    ),
             ),
+          ],
         ],
       ),
     );
