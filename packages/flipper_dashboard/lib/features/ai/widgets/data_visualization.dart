@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flipper_services/proxy.dart';
 
 // Created a new DataVisualization widget that:
 // Detects structured data in the message format **[SUMMARY]** followed by key-value pairs
@@ -19,11 +18,15 @@ import 'package:flipper_services/proxy.dart';
 // ...
 class DataVisualization extends StatelessWidget {
   final String data;
+  final String currency;
 
-  const DataVisualization({Key? key, required this.data}) : super(key: key);
+  const DataVisualization({
+    Key? key, 
+    required this.data,
+    this.currency = 'RWF',
+  }) : super(key: key);
 
   String _formatCurrency(double value) {
-    final currency = ProxyService.box.defaultCurrency();
     final formattedValue = value >= 1000000
         ? '${(value / 1000000).toStringAsFixed(2)}M'
         : value >= 1000
@@ -108,7 +111,7 @@ class DataVisualization extends StatelessWidget {
                             return Padding(
                               padding: const EdgeInsets.only(right: 8.0),
                               child: Text(
-                                '${ProxyService.box.defaultCurrency()} $text',
+                                '$currency $text',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
