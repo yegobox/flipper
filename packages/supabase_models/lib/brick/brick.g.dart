@@ -85,6 +85,7 @@ import '../brick/models/product.model.dart';
 import '../brick/models/asset.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/drawer.model.dart';
+import '../brick/models/branch_sms_config.model.dart';
 
 part 'adapters/item_code_adapter.g.dart';
 part 'adapters/import_purchase_dates_adapter.g.dart';
@@ -134,6 +135,7 @@ part 'adapters/product_adapter.g.dart';
 part 'adapters/assets_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 part 'adapters/drawers_adapter.g.dart';
+part 'adapters/branch_sms_config_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
@@ -184,7 +186,8 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter()
+  Drawers: DrawersAdapter(),
+  BranchSmsConfig: BranchSmsConfigAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -237,6 +240,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter()
+  Drawers: DrawersAdapter(),
+  BranchSmsConfig: BranchSmsConfigAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

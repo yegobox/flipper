@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/sms/sms_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -25,6 +26,9 @@ class _AdminControlState extends State<AdminControl> {
   bool forceUPSERT = false;
   bool stopTaxService = false;
   bool switchToCloudSync = false;
+  String? smsPhoneNumber;
+  bool enableSmsNotification = false;
+  late final TextEditingController phoneController;
 
   @override
   void initState() {
@@ -37,6 +41,47 @@ class _AdminControlState extends State<AdminControl> {
     forceUPSERT = ProxyService.box.forceUPSERT();
     stopTaxService = ProxyService.box.stopTaxService() ?? false;
     switchToCloudSync = ProxyService.box.switchToCloudSync() ?? false;
+    phoneController = TextEditingController();
+    _loadSmsConfig();
+  }
+
+  @override
+  void dispose() {
+    phoneController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadSmsConfig() async {
+    try {
+      final config = await SmsNotificationService.getBranchSmsConfig(
+        ProxyService.box.getBranchId()!,
+      );
+      if (config != null) {
+        setState(() {
+          smsPhoneNumber = config.smsPhoneNumber;
+          enableSmsNotification = config.enableOrderNotification;
+          phoneController.text = config.smsPhoneNumber ?? '';
+        });
+      }
+    } catch (e) {
+      print('Error loading SMS config: $e');
+    }
+  }
+
+  Future<void> _updateSmsConfig({String? phone, bool? enable}) async {
+    try {
+      await SmsNotificationService.updateBranchSmsConfig(
+        branchId: ProxyService.box.getBranchId()!,
+        smsPhoneNumber: phone ?? smsPhoneNumber,
+        enableNotification: enable ?? enableSmsNotification,
+      );
+      setState(() {
+        if (phone != null) smsPhoneNumber = phone;
+        if (enable != null) enableSmsNotification = enable;
+      });
+    } catch (e) {
+      print('Error updating SMS config: $e');
+    }
   }
 
   Future<void> toggleDownload(bool value) async {
@@ -112,7 +157,6 @@ class _AdminControlState extends State<AdminControl> {
     });
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -286,7 +330,95 @@ class _AdminControlState extends State<AdminControl> {
           ],
         ),
         const SizedBox(height: 32),
+        _buildSmsConfigSection(context),
+        const SizedBox(height: 32),
         _buildSystemSettings(context),
+      ],
+    );
+  }
+
+  Widget _buildSmsConfigSection(BuildContext context) {
+    return SettingsSection(
+      title: 'SMS Notifications',
+      children: [
+        Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: Colors.grey.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.phone,
+                    size: 24,
+                    color: Colors.blue,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'SMS Phone Number',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Phone number to receive order notifications',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 200,
+                  child: TextField(
+                    controller: phoneController,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter phone number',
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        smsPhoneNumber = value.isEmpty ? null : value;
+                      });
+                    },
+                    onSubmitted: (value) {
+                      final phone = value.isEmpty ? null : value;
+                      _updateSmsConfig(phone: phone);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SwitchSettingsCard(
+          title: 'Enable Order Notification',
+          subtitle: 'Receive SMS notifications for orders',
+          icon: Icons.notifications,
+          value: enableSmsNotification,
+          onChanged: (value) => _updateSmsConfig(enable: value),
+          color: Colors.green,
+        ),
       ],
     );
   }
@@ -327,7 +459,6 @@ class _AdminControlState extends State<AdminControl> {
               icon: Icons.cloud_sync,
               value: switchToCloudSync,
               onChanged: (bool value) {
-                // Removed 'async' keyword here
                 showReInitializeEbmDialog(context);
               },
               color: Colors.cyan,
@@ -430,6 +561,7 @@ class SettingsCard extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   final Color color;
+  final Widget? trailing;
 
   const SettingsCard({
     required this.title,
@@ -437,6 +569,7 @@ class SettingsCard extends StatelessWidget {
     required this.icon,
     required this.onTap,
     required this.color,
+    this.trailing,
     super.key,
   });
 
@@ -491,6 +624,7 @@ class SettingsCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (trailing != null) trailing!,
               Icon(
                 Icons.chevron_right,
                 color: color.withValues(alpha: 0.5),
