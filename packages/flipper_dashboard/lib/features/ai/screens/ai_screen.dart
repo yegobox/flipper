@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
-import 'package:uuid/uuid.dart';
 import 'package:flipper_models/providers/ai_provider.dart';
 import 'package:intl/intl.dart';
 
