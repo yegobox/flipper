@@ -117,6 +117,7 @@ dependencies:
   fl_chart: ^0.70.2
   flutter_typeahead: ^5.2.0
   desktop_drop: ^0.5.0
+  fl_chart: ^0.66.2  # Add this line for chart support
 
 dependency_overrides:
   http: ^1.2.2
