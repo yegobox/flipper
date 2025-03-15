@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
@@ -21,89 +23,131 @@ class AiScreen extends ConsumerStatefulWidget {
 
 class _AiScreenState extends ConsumerState<AiScreen> {
   final TextEditingController _controller = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
+  Map<String, List<Message>> _conversations = {};
+  String _currentConversationId = '';
   List<Message> _messages = [];
   bool _isLoading = false;
-  bool _showSidebar = true;
-  String _currentConversationId = const Uuid().v4();
-  Map<String, List<Message>> _conversations = {};
+  StreamSubscription<List<Message>>? _subscription;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _loadAllConversations();
-    _subscribeToCurrentConversation();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _subscription?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
 
   Future<void> _loadAllConversations() async {
     try {
-      final allMessages = await ProxyService.strategy
-          .getConversationHistory(conversationId: '', limit: 100);
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        throw Exception('Branch ID is required');
+      }
 
+      final conversations = await ProxyService.strategy.getConversations(
+        branchId: branchId,
+        limit: 100,
+      );
+
+      if (!mounted) return;
+
+      if (conversations.isEmpty) {
+        _startNewConversation();
+        return;
+      }
+
+      // Load messages for each conversation
       final groupedMessages = <String, List<Message>>{};
-      for (var msg in allMessages) {
-        if (msg.conversationId != null) {
-          if (!groupedMessages.containsKey(msg.conversationId)) {
-            groupedMessages[msg.conversationId!] = [];
-          }
-          groupedMessages[msg.conversationId]!.add(msg);
-        }
+      for (var conversation in conversations) {
+        final messages = await ProxyService.strategy.getMessagesForConversation(
+          conversationId: conversation.id,
+          limit: 100,
+        );
+        groupedMessages[conversation.id] = messages;
       }
 
-      for (var messages in groupedMessages.values) {
-        messages.sort((a, b) => (b.timestamp ?? DateTime.now())
-            .compareTo(a.timestamp ?? DateTime.now()));
+      if (mounted) {
+        setState(() {
+          _conversations = groupedMessages;
+          _currentConversationId = conversations.first.id;
+          _messages = _conversations[_currentConversationId] ?? [];
+          _subscribeToCurrentConversation();
+        });
       }
-
-      final sortedConversations =
-          Map.fromEntries(groupedMessages.entries.toList()
-            ..sort((a, b) {
-              final aTime = a.value.first.timestamp ?? DateTime.now();
-              final bTime = b.value.first.timestamp ?? DateTime.now();
-              return bTime.compareTo(aTime);
-            }));
-
-      setState(() {
-        _conversations = sortedConversations;
-        _updateMessagesForCurrentConversation();
-      });
     } catch (e) {
-      _showError('Error loading conversations: ${e.toString()}');
+      if (mounted) {
+        _showError('Error loading conversations: ${e.toString()}');
+      }
+    }
+  }
+
+  Future<void> _startNewConversation() async {
+    try {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        throw Exception('Branch ID is required');
+      }
+
+      final conversation = await ProxyService.strategy.createConversation(
+        title: 'New Conversation',
+        branchId: branchId,
+      );
+
+      if (mounted) {
+        setState(() {
+          _currentConversationId = conversation.id;
+          _conversations[conversation.id] = [];
+          _messages = [];
+          _subscribeToCurrentConversation();
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('Error creating conversation: ${e.toString()}');
+      }
+    }
+  }
+
+  Future<void> _deleteCurrentConversation(String conversationId) async {
+    try {
+      await ProxyService.strategy.deleteConversation(conversationId);
+
+      if (mounted) {
+        setState(() {
+          _conversations.remove(conversationId);
+          if (_conversations.isNotEmpty) {
+            _currentConversationId = _conversations.keys.first;
+            _messages = _conversations[_currentConversationId] ?? [];
+          } else {
+            _startNewConversation();
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('Error deleting conversation: ${e.toString()}');
+      }
     }
   }
 
   void _subscribeToCurrentConversation() {
-    ProxyService.strategy
-        .conversationStream(conversationId: _currentConversationId)
+    _subscription?.cancel();
+    _subscription = ProxyService.strategy
+        .subscribeToMessages(_currentConversationId)
         .listen((messages) {
-      if (!mounted) return;
-      messages.sort((a, b) => (a.timestamp ?? DateTime.now())
-          .compareTo(b.timestamp ?? DateTime.now()));
-
-      // Deduplicate messages based on timestamp and content
-      final uniqueMessages = <Message>[];
-      final seen = <String>{};
-
-      for (final msg in messages) {
-        final key =
-            '${msg.timestamp?.toIso8601String()}_${msg.text}_${msg.role}';
-        if (!seen.contains(key)) {
-          seen.add(key);
-          uniqueMessages.add(msg);
-        }
+      if (mounted) {
+        setState(() {
+          _messages = messages;
+          _conversations[_currentConversationId] = messages;
+        });
       }
-
-      setState(() {
-        _messages = uniqueMessages;
-        _conversations[_currentConversationId] = uniqueMessages;
-      });
     });
   }
 
@@ -117,43 +161,34 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     try {
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) {
-        throw Exception('Branch ID is required for AI responses');
+        throw Exception('Branch ID is required');
       }
 
-      final userMessage = Message(
+      // Create user message
+      final userMessage = await ProxyService.strategy.saveMessage(
         text: text,
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
         branchId: branchId,
         role: 'user',
-        delivered: false,
         conversationId: _currentConversationId,
-        timestamp: DateTime.now(),
       );
 
-      // Check if message already exists
-      final messageExists = _messages.any((msg) =>
-          msg.text == userMessage.text &&
-          msg.role == userMessage.role &&
-          msg.conversationId == userMessage.conversationId);
-
-      if (!messageExists) {
-        await ProxyService.strategy.saveMessage(
-          text: userMessage.text,
-          phoneNumber: userMessage.phoneNumber,
-          branchId: userMessage.branchId,
-          role: userMessage.role ?? '',
-          conversationId: userMessage.conversationId ?? '',
-        );
-      }
+      // Update local state immediately
+      setState(() {
+        _messages = [..._messages, userMessage];
+        _conversations[_currentConversationId] = [..._messages];
+      });
+      _scrollToBottom();
 
       _controller.clear();
 
+      // Get AI response
       final aiResponseText = await ref.read(
         geminiBusinessAnalyticsProvider(branchId, text).future,
       );
 
-      final aiMessage = Message(
-        delivered: false,
+      // Save AI response
+      final aiMessage = await ProxyService.strategy.saveMessage(
         text: aiResponseText,
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
         branchId: branchId,
@@ -161,89 +196,41 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         conversationId: _currentConversationId,
         aiResponse: aiResponseText,
         aiContext: text,
-        timestamp: DateTime.now(),
       );
 
-      // Check if AI response already exists
-      final aiMessageExists = _messages.any((msg) =>
-          msg.text == aiMessage.text &&
-          msg.role == aiMessage.role &&
-          msg.conversationId == aiMessage.conversationId);
-
-      if (!aiMessageExists) {
-        await ProxyService.strategy.saveMessage(
-          text: aiMessage.text,
-          phoneNumber: aiMessage.phoneNumber,
-          branchId: aiMessage.branchId,
-          role: aiMessage.role ?? '',
-          conversationId: aiMessage.conversationId ?? '',
-          aiResponse: aiMessage.aiResponse ?? '',
-          aiContext: aiMessage.aiContext ?? '',
-        );
+      // Update local state with AI response
+      if (mounted) {
+        setState(() {
+          _messages = [..._messages, aiMessage];
+          _conversations[_currentConversationId] = [..._messages];
+        });
+        _scrollToBottom();
       }
-
-      _scrollToBottom();
     } catch (e) {
       _showError('Error: ${e.toString()}');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
-    });
-  }
-
-  void _startNewConversation() {
-    final newConversationId = const Uuid().v4();
-    setState(() {
-      _currentConversationId = newConversationId;
-      _messages.clear();
-    });
-    _subscribeToCurrentConversation();
-  }
-
-  Future<void> _deleteConversation(String conversationId) async {
-    try {
-      await ProxyService.strategy
-          .deleteConversation(conversationId: conversationId);
-      setState(() {
-        _conversations.remove(conversationId);
-        if (conversationId == _currentConversationId) {
-          _startNewConversation();
-        } else {
-          _updateMessagesForCurrentConversation();
-        }
-      });
-    } catch (e) {
-      _showError('Error deleting conversation: ${e.toString()}');
     }
   }
 
   void _showError(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 
-  void _updateMessagesForCurrentConversation() {
-    setState(() {
-      _messages = _conversations[_currentConversationId] ?? [];
-      _messages.sort((a, b) => (a.timestamp ?? DateTime.now())
-          .compareTo(b.timestamp ?? DateTime.now()));
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     });
   }
 
@@ -256,7 +243,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           // Sidebar - Conversation List
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            width: _showSidebar ? 300 : 0, // Animate width
+            width: 300, // Animate width
             curve: Curves.easeInOut,
             child: ClipRect(
               // Prevents overflow when animating
@@ -264,29 +251,26 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                 decoration: BoxDecoration(
                   color: AiTheme.surfaceColor, // Or a custom color
                   boxShadow: [
-                    if (_showSidebar) // Only show shadow when visible
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(5, 0),
-                      ),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(5, 0),
+                    ),
                   ],
                 ),
-                child: _showSidebar
-                    ? ConversationList(
-                        conversations: _conversations,
-                        currentConversationId: _currentConversationId,
-                        onConversationSelected: (id) {
-                          setState(() {
-                            _currentConversationId = id;
-                            _updateMessagesForCurrentConversation();
-                          });
-                          _subscribeToCurrentConversation();
-                        },
-                        onDeleteConversation: _deleteConversation,
-                        onNewConversation: _startNewConversation,
-                      )
-                    : null, // Or an empty placeholder
+                child: ConversationList(
+                  conversations: _conversations,
+                  currentConversationId: _currentConversationId,
+                  onConversationSelected: (id) {
+                    setState(() {
+                      _currentConversationId = id;
+                      _messages = _conversations[id] ?? [];
+                    });
+                    _subscribeToCurrentConversation();
+                  },
+                  onDeleteConversation: (id) => _deleteCurrentConversation(id),
+                  onNewConversation: _startNewConversation,
+                ),
               ),
             ),
           ),
@@ -357,16 +341,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         children: [
           // Hamburger Icon
           IconButton(
-            icon: AnimatedIcon(
-              icon: AnimatedIcons.menu_close,
-              progress: AlwaysStoppedAnimation(_showSidebar ? 1 : 0),
-              color: AiTheme.secondaryColor,
-            ),
-            onPressed: () {
-              setState(() {
-                _showSidebar = !_showSidebar;
-              });
-            },
+            icon: const Icon(Icons.menu),
+            onPressed: () {},
           ),
           const SizedBox(width: 8),
           Text(

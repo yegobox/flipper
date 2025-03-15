@@ -22,7 +22,7 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:http/http.dart' as http;
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-
+import 'package:flipper_services/ai_strategy_impl.dart';
 // import 'package:flipper_services/database_provider.dart'
 //     if (dart.library.html) 'DatabaseProvider.dart';
 
@@ -33,7 +33,7 @@ import 'package:flipper_services/replicator_provider.dart'
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
-class Capella with Booting implements DatabaseSyncInterface {
+class Capella extends AiStrategyImpl with Booting implements DatabaseSyncInterface {
   @override
   // ignore: override_on_non_overriding_member
   bool offlineLogin = false;
@@ -216,11 +216,6 @@ class Capella with Booting implements DatabaseSyncInterface {
     String? aiResponse,
     String? aiContext,
   }) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> deleteConversation({required String conversationId}) {
     throw UnimplementedError();
   }
 

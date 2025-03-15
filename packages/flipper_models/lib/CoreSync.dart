@@ -47,7 +47,7 @@ import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:synchronized/synchronized.dart';
-
+import 'package:flipper_services/ai_strategy_impl.dart';
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
@@ -56,7 +56,7 @@ import 'package:uuid/uuid.dart';
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
 
-class CoreSync
+class CoreSync extends AiStrategyImpl
     with Booting, CoreMiscellaneous, TransactionMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
@@ -6090,12 +6090,6 @@ class CoreSync
     );
     await repository.upsert<Message>(message);
     return message;
-  }
-
-  Future<void> deleteConversation({required String conversationId}) async {
-    final messages =
-        await getConversationHistory(conversationId: conversationId);
-    await repository.delete<Message>(messages.first);
   }
 
   Stream<List<Message>> conversationStream({required String conversationId}) {
