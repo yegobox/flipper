@@ -20,6 +20,3 @@
 [submodule "open-sources/form_bloc"]
 	path = open-sources/form_bloc
 	url = https://github.com/yegobox/form_bloc.git
-[submodule "open-sources/generator"]
-	path = open-sources/generator
-	url = https://github.com/Stacked-Org/generator.git
