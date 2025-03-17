@@ -69,24 +69,19 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
               return buildApps(model);
             } else {
               return Scaffold(
-                body: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      buildSideMenu(),
-                      const SizedBox(width: 20),
-                      InventoryApp(
-                        searchController: searchController,
-                      ),
-                      // Expanded(
-                      //   child: AppIconsGrid(
-                      //     isBigScreen: true,
-                      //   ),
-                      // ),
-                    ],
-                  ),
+                body: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    buildSideMenu(),
+                    InventoryApp(
+                      searchController: searchController,
+                    ),
+                    // Expanded(
+                    //   child: AppIconsGrid(
+                    //     isBigScreen: true,
+                    //   ),
+                    // ),
+                  ],
                 ),
               );
             }
