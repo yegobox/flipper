@@ -33,7 +33,9 @@ import 'package:flipper_services/replicator_provider.dart'
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
-class Capella extends AiStrategyImpl with Booting implements DatabaseSyncInterface {
+class Capella extends AiStrategyImpl
+    with Booting
+    implements DatabaseSyncInterface {
   @override
   // ignore: override_on_non_overriding_member
   bool offlineLogin = false;
@@ -1960,15 +1962,16 @@ class Capella extends AiStrategyImpl with Booting implements DatabaseSyncInterfa
   }
 
   @override
-  Future<brick.VariantBranch?> variantBranch({required String variantId}) {
-    // TODO: implement variantBranch
+  Future<brick.BusinessInfo> initializeEbm(
+      {required String tin, required String bhfId, required String dvcSrlNo}) {
+    // TODO: implement initializeEbm
     throw UnimplementedError();
   }
 
   @override
-  Future<brick.BusinessInfo> initializeEbm(
-      {required String tin, required String bhfId, required String dvcSrlNo}) {
-    // TODO: implement initializeEbm
+  Future<brick.VariantBranch?> variantBranch(
+      {required String variantId, required String destinationBranchId}) {
+    // TODO: implement variantBranch
     throw UnimplementedError();
   }
 }
