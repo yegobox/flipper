@@ -926,7 +926,8 @@ abstract class DatabaseSyncInterface extends AiStrategy {
   Future<int> queueLength();
 
   Future<List<FinanceProvider>> financeProviders();
-  Future<VariantBranch?> variantBranch({required String variantId});
+  Future<VariantBranch?> variantBranch(
+      {required String variantId,  required String destinationBranchId});
 
   Future<BusinessInfo> initializeEbm(
       {required String tin, required String bhfId, required String dvcSrlNo});

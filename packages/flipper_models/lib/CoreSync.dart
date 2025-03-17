@@ -6009,10 +6009,12 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<models.VariantBranch?> variantBranch(
-      {required String variantId}) async {
+      {required String variantId, required String destinationBranchId}) async {
     return (await repository.get<VariantBranch>(
-      query:
-          brick.Query(where: [brick.Where('variantId').isExactly(variantId)]),
+      query: brick.Query(where: [
+        brick.Where('destinationBranchId').isExactly(destinationBranchId),
+        brick.Where('variantId').isExactly(variantId),
+      ]),
       policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
     ))
         .firstOrNull;
