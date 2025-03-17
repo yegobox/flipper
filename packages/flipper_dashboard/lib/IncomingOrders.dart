@@ -194,21 +194,66 @@ class IncomingOrdersWidget extends HookConsumerWidget
             ],
           ),
         ),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.green[50],
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.green[100]!),
-          ),
-          child: Text(
-            '${request.itemCounts} Item${request.itemCounts! > 1 ? 's' : ''}',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.green[700],
-            ),
-          ),
+        Consumer(
+          builder: (context, ref, child) {
+            final itemsAsync = ref.watch(transactionItemsProvider(request.id));
+            return itemsAsync.when(
+              loading: () => Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.green[100]!),
+                ),
+                child: Text(
+                  '0/${request.itemCounts} Item${request.itemCounts! > 1 ? 's' : ''}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green[700],
+                  ),
+                ),
+              ),
+              error: (error, stack) => Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.green[100]!),
+                ),
+                child: Text(
+                  '0/${request.itemCounts} Item${request.itemCounts! > 1 ? 's' : ''}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green[700],
+                  ),
+                ),
+              ),
+              data: (items) {
+                final totalApproved = items.fold<int>(
+                    0, (sum, item) => sum + (item.quantityApproved ?? 0));
+                final totalRequested = items.fold<int>(
+                    0, (sum, item) => sum + (item.quantityRequested ?? 0));
+                return Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.green[50],
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.green[100]!),
+                  ),
+                  child: Text(
+                    '$totalApproved/$totalRequested Item${totalRequested > 1 ? 's' : ''}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green[700],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ],
     );
@@ -339,14 +384,38 @@ class IncomingOrdersWidget extends HookConsumerWidget
                             ),
                           ),
                           SizedBox(height: 4),
-                          Text(
-                            '${item.quantityApproved ?? 0} / ${item.quantityRequested ?? 0}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: _getQuantityColor(item),
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                'Approved: ',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              Text(
+                                '${item.quantityApproved ?? 0}/${item.quantityRequested ?? 0}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: _getQuantityColor(item),
+                                ),
+                              ),
+                            ],
                           ),
+                          if ((item.quantityRequested ?? 0) >
+                              (item.quantityApproved ?? 0))
+                            Padding(
+                              padding: EdgeInsets.only(top: 2),
+                              child: Text(
+                                'Pending: ${(item.quantityRequested ?? 0) - (item.quantityApproved ?? 0)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.orange[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),

@@ -72,7 +72,8 @@ class SharedPreferenceStorage implements LocalStorage {
         'referralCode',
         'transactionInProgress',
         'stockInOutType',
-        'defaultCurrency'
+        'defaultCurrency',
+        'userName',
       },
     ));
     return this;
