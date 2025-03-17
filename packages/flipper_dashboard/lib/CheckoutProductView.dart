@@ -5,8 +5,8 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class MobileView extends StatefulHookConsumerWidget {
-  const MobileView({
+class CheckoutProductView extends StatefulHookConsumerWidget {
+  const CheckoutProductView({
     required this.widget,
     required this.tabController,
     required this.textEditController,
@@ -19,17 +19,15 @@ class MobileView extends StatefulHookConsumerWidget {
   final TextEditingController textEditController;
 
   @override
-  _MobileViewState createState() => _MobileViewState();
+  _CheckoutProductViewState createState() => _CheckoutProductViewState();
 }
 
-class _MobileViewState extends ConsumerState<MobileView> {
+class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
   final TextEditingController textEditController = TextEditingController();
   final TextEditingController searchController = TextEditingController();
   final TextEditingController discountController = TextEditingController();
-  final TextEditingController receivedAmountController =
-      TextEditingController();
-  final TextEditingController customerPhoneNumberController =
-      TextEditingController();
+  final TextEditingController receivedAmountController = TextEditingController();
+  final TextEditingController customerPhoneNumberController = TextEditingController();
   final TextEditingController paymentTypeController = TextEditingController();
 
   @override

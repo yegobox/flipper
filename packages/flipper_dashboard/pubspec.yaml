@@ -10,9 +10,8 @@ environment:
 dependencies:
   get: ^4.6.1
   flipper_models: any
-
   flipper_routing: ^1.0.0
-
+  shared_preferences: ^2.2.2
   timeago: ^3.4.0
   mime: ^1.0.5
   open_filex: ^4.7.0

@@ -3,11 +3,11 @@
 import 'dart:io';
 
 import 'package:flipper_dashboard/IncomingOrders.dart';
-import 'package:flipper_dashboard/MobileView.dart';
 import 'package:flipper_dashboard/OrderStatusSelector.dart';
 import 'package:flipper_dashboard/PaymentModeModal.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/bottomSheet.dart';
+import 'package:flipper_dashboard/CheckoutProductView.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_dashboard/refresh.dart';
@@ -306,7 +306,7 @@ class CheckOutState extends ConsumerState<CheckOut>
           child: !showCart
               ? Stack(
                   children: [
-                    MobileView(
+                    CheckoutProductView(
                       widget: widget,
                       tabController: tabController,
                       textEditController: textEditController,
