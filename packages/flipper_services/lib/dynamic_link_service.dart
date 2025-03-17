@@ -19,8 +19,7 @@ class DynamicLinkService implements DynamicLink {
   final _routerService = locator<RouterService>();
   @override
   Future handleDynamicLink(BuildContext context) async {
-    // if the app is opened with the link
-    throw UnimplementedError();
+   
   }
 
   @override
