@@ -1,16 +1,14 @@
+import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/EnhancedSideMenu.dart';
 import 'package:flipper_dashboard/inventory_app.dart';
 import 'package:flipper_dashboard/mobile_view.dart';
-import 'package:flipper_dashboard/widgets/app_icons_grid.dart';
+import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
-
-// State provider for the selected menu item
-final selectedMenuItemProvider = StateProvider<int>((ref) => 0);
 
 class AppLayoutDrawer extends StatefulHookConsumerWidget {
   const AppLayoutDrawer({
@@ -30,6 +28,15 @@ class AppLayoutDrawer extends StatefulHookConsumerWidget {
 
 class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
   final TextEditingController searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Set default selected menu item
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(selectedMenuItemProvider.notifier).state = 0;
+    });
+  }
 
   @override
   void dispose() {
@@ -55,6 +62,22 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
     );
   }
 
+  Widget _buildSelectedApp() {
+    final selectedIndex = ref.watch(selectedMenuItemProvider);
+    switch (selectedIndex) {
+      case 0:
+        return InventoryApp(
+          searchController: searchController,
+        );
+      case 1:
+        return const Ai();
+      default:
+        return InventoryApp(
+          searchController: searchController,
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.nonReactive(
@@ -73,14 +96,7 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     buildSideMenu(),
-                    InventoryApp(
-                      searchController: searchController,
-                    ),
-                    // Expanded(
-                    //   child: AppIconsGrid(
-                    //     isBigScreen: true,
-                    //   ),
-                    // ),
+                    Expanded(child: _buildSelectedApp()),
                   ],
                 ),
               );
