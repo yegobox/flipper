@@ -132,7 +132,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   }
 
   void _viewModelReadyLogic(CoreViewModel model) {
-    ProxyService.dynamicLink.handleDynamicLink(context);
+   // ProxyService.dynamicLink.handleDynamicLink(context);
 
     if ((isAndroid || isIos)) {
       _startNFCForModel(model);

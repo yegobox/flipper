@@ -35,5 +35,5 @@ dev_dependencies:
   flutter_lints: ^1.0.0
   build_runner: ^2.2.0
 
-  # stacked_generator: ^1.6.1
+  stacked_generator: ^2.0.0-pre.1
   mockito: ^5.4.4
