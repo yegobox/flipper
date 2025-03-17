@@ -33,7 +33,7 @@ dependencies:
   flutter_hooks: ^0.18.0
   riverpod: ^2.0.0
   hooks_riverpod: ^2.0.0
-  freezed_annotation: ^3.0.0
+  freezed_annotation: any
   isolated_worker: ^0.1.1
   dart_mappable: ^4.2.1
   dio: ^5.4.3+1

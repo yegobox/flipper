@@ -144,7 +144,7 @@ class App {}
 ///rm -rf open-sources/qr_code_scanner
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 ///rm -rf path/to/submodule
-///git submodule add https://github.com/yegobox/dart_pdf.git open-sources/dart_pdf
+///git submodule add https://github.com/Stacked-Org/generator.git open-sources/generator
 
 // / find ./ -name pubspec.lock -type f -delete
 // / find ./ -name pubspec_overrides.yaml -type f -delete

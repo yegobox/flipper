@@ -147,7 +147,7 @@ dependencies:
   flipper_dashboard: any
   stacked_services: ^1.6.0
   url_strategy: ^0.2.0
-  logger: ^1.1.0
+  logger: ^2.5.0
   flipper_actionable: 0.0.1
   responsive_builder: ^0.7.0
   flutter_animate: ^4.1.0
@@ -206,7 +206,7 @@ dependencies:
   built_collection: ^5.1.1
   stock: ^1.0.1
   html_unescape: ^2.0.0
-  freezed_annotation: ^3.0.0
+  freezed_annotation: any
   
   isolated_worker: ^0.1.1
   # adding realm to replace firestore on desktop in transporting data to cloud
