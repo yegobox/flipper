@@ -26,6 +26,11 @@ class AppIconsGrid extends ConsumerWidget {
           isBigScreen: isBigScreen,
         ));
         break;
+      case "Inventory":
+        await _routerService.navigateTo(CheckOutRoute(
+          isBigScreen: isBigScreen,
+        ));
+        break;
       case "Cashbook":
         await _routerService.navigateTo(CashbookRoute(
           isBigScreen: isBigScreen,
