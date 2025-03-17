@@ -9,7 +9,7 @@ export 'package:flipper_dashboard/checkout.dart';
 export 'package:flipper_dashboard/settings.dart';
 export 'package:flipper_dashboard/security.dart';
 export 'package:flipper_dashboard/transactions.dart';
-export 'package:flipper_dashboard/apps.dart';
+// export 'package:flipper_dashboard/apps.dart';
 export 'package:flipper_dashboard/no_net.dart';
 export 'package:flipper_dashboard/Comfirm.dart';
 export 'package:flipper_dashboard/payment_confirmation.dart';
@@ -57,7 +57,7 @@ export 'package:flipper_login/landing.dart';
 export 'package:flipper_login/AuthWithMultipleProviders.dart';
 export 'package:flipper_login/country_picking_page.dart';
 export 'package:flipper_login/phone_input_screen.dart';
-
+export 'package:flipper_dashboard/mobile_view.dart';
 export 'package:flipper_models/view_models/gate.dart';
 export 'package:flipper_socials/ui/views/home/home_view.dart';
 export 'package:flipper_socials/ui/views/chat_list/chat_list_view.dart';

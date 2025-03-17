@@ -496,7 +496,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       final args = routeData.argsAs<AppsArgs>();
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.Apps(
+        child: _i1.MobileView(
           key: args.key,
           controller: args.controller,
           isBigScreen: args.isBigScreen,

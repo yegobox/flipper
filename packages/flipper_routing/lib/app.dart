@@ -1,5 +1,6 @@
 library flipper_routing;
 
+
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -53,7 +54,7 @@ import 'all_routes.dart';
     CustomRoute(page: ConversationHistory),
     CustomRoute(page: TicketsList),
     CustomRoute(page: NewTicket),
-    CustomRoute(page: Apps),
+    CustomRoute(page: MobileView),
     CustomRoute(page: CheckOut),
     CustomRoute(page: Cashbook),
 
