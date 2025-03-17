@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/EnhancedSideMenu.dart';
-import 'package:flipper_dashboard/mobile_view.dart';
 import 'package:flipper_dashboard/inventory_app.dart';
+import 'package:flipper_dashboard/mobile_view.dart';
+import 'package:flipper_dashboard/widgets/app_icons_grid.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -79,6 +80,11 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
                       InventoryApp(
                         searchController: searchController,
                       ),
+                      // Expanded(
+                      //   child: AppIconsGrid(
+                      //     isBigScreen: true,
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
