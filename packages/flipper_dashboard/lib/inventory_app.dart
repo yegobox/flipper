@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/TransactionWidget.dart';
 import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
+import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
@@ -11,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 // Import the provider from layout.dart
-import 'layout.dart' show selectedMenuItemProvider;
 
 class InventoryApp extends HookConsumerWidget {
   final TextEditingController searchController;
