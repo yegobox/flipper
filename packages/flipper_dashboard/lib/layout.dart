@@ -1,9 +1,8 @@
 import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/EnhancedSideMenu.dart';
-import 'package:flipper_dashboard/SearchFieldWidget.dart';
 import 'package:flipper_dashboard/TransactionWidget.dart';
 import 'package:flipper_dashboard/mobile_view.dart';
-import 'package:flipper_dashboard/product_view.dart';
+import 'package:flipper_dashboard/inventory_app.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -58,7 +57,24 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
             if (constraints.maxWidth < 600) {
               return buildApps(model);
             } else {
-              return buildRow(isScanningMode);
+              return Scaffold(
+                body: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      buildSideMenu(),
+                      const SizedBox(width: 20),
+                      InventoryApp(
+                        searchController: searchController,
+                        buildMainContent: (isScanningMode) =>
+                            buildMainContent(isScanningMode),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }
           },
         );
@@ -123,39 +139,5 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
           ),
         );
     }
-  }
-
-  Widget buildProductSection() {
-    return Flexible(
-      child: Column(
-        children: [
-          // Search field stays fixed at the top
-          SearchFieldWidget(controller: searchController),
-          // ProductView takes remaining space and scrolls independently
-          Expanded(
-            child: ProductView.normalMode(),
-          ),
-        ],
-      ),
-    ).shouldSeeTheApp(ref, AppFeature.Sales);
-  }
-
-  Widget buildRow(bool isScanningMode) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            buildSideMenu(),
-            const SizedBox(width: 20),
-            buildMainContent(isScanningMode),
-            if (ref.read(selectedMenuItemProvider.notifier).state != 1)
-              buildProductSection(),
-          ],
-        ),
-      ),
-    );
   }
 }
