@@ -13,7 +13,13 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:intl/intl.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
-// import 'SnackBarMixin.dart';
+
+// Provider to cache transaction items for each request
+final transactionItemsProvider =
+    FutureProvider.family<List<TransactionItem>, String>(
+  (ref, requestId) =>
+      ProxyService.strategy.transactionItems(requestId: requestId),
+);
 
 class IncomingOrdersWidget extends HookConsumerWidget
     with StockRequestApprovalLogic, SnackBarMixin {
@@ -130,7 +136,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
                   _buildBranchInfo(request, ref,
                       incomingBranch: incomingBranch),
                   SizedBox(height: 16.0),
-                  _buildItemsList(ref, request: request),
+                  _buildItemsList(ref, request: request, context: context),
                   SizedBox(height: 16.0),
                   _buildStatusAndDeliveryInfo(request),
                   if (request.orderNote?.isNotEmpty ?? false) ...[
@@ -275,97 +281,92 @@ class IncomingOrdersWidget extends HookConsumerWidget
     );
   }
 
-  Widget _buildItemsList(WidgetRef ref, {required InventoryRequest request}) {
-    // Convert the FutureOr to a Future explicitly
-    Future<List<TransactionItem>> fetchItems() async {
-      return await ProxyService.strategy
-          .transactionItems(requestId: request.id);
-    }
+  Widget _buildItemsList(WidgetRef ref,
+      {required InventoryRequest request, required BuildContext context}) {
+    final itemsAsync = ref.watch(transactionItemsProvider(request.id));
 
-    return FutureBuilder<List<TransactionItem>>(
-      future: fetchItems(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Items',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[800],
+          ),
+        ),
+        SizedBox(height: 12),
+        itemsAsync.when(
+          loading: () => Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (error, stack) => Text('Error loading items: $error'),
+          data: (items) => Column(
+            children: _buildItemList(items, request, context, ref),
+          ),
+        ),
+      ],
+    );
+  }
 
-        if (snapshot.hasError) {
-          return Text('Error loading items: ${snapshot.error}');
-        }
+  List<Widget> _buildItemList(List<TransactionItem> items,
+      InventoryRequest request, BuildContext context, WidgetRef ref) {
+    // Sort items by name for consistent display
+    items.sort((a, b) => (a.name).compareTo(b.name));
 
-        final items = snapshot.data ?? [];
-
-        // Sort items by name for consistent display
-        items.sort((a, b) => (a.name).compareTo(b.name));
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Items',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[800],
+    return items
+        .map((item) => Card(
+              margin: EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(color: Colors.grey[200]!),
               ),
-            ),
-            SizedBox(height: 12),
-            ...items
-                .map((item) => Card(
-                      margin: EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(color: Colors.grey[200]!),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.name,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    '${item.quantityApproved ?? 0} / ${item.quantityRequested ?? 0}',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: _getQuantityColor(item),
-                                    ),
-                                  ),
-                                ],
-                              ),
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
                             ),
-                            if (request.status != RequestStatus.approved &&
-                                (item.quantityApproved ?? 0) <
-                                    (item.quantityRequested ?? 0))
-                              TextButton.icon(
-                                onPressed: () => _handleSingleItemApproval(
-                                    context, ref, request, item),
-                                icon:
-                                    Icon(Icons.check_circle_outline, size: 18),
-                                label: Text('Approve'),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.green[600],
-                                ),
-                              ),
-                          ],
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            '${item.quantityApproved ?? 0} / ${item.quantityRequested ?? 0}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: _getQuantityColor(item),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (request.status != RequestStatus.approved &&
+                        (item.quantityApproved ?? 0) <
+                            (item.quantityRequested ?? 0))
+                      TextButton.icon(
+                        onPressed: () => _handleSingleItemApproval(
+                            context, ref, request, item),
+                        icon: Icon(Icons.check_circle_outline, size: 18),
+                        label: Text('Approve'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.green[600],
                         ),
                       ),
-                    ))
-                .toList(),
-          ],
-        );
-      },
-    );
+                  ],
+                ),
+              ),
+            ))
+        .toList();
   }
 
   void _handleSingleItemApproval(BuildContext context, WidgetRef ref,
@@ -535,38 +536,31 @@ class IncomingOrdersWidget extends HookConsumerWidget
 
   Widget _buildActionRow(
       BuildContext context, WidgetRef ref, InventoryRequest request) {
-    return FutureBuilder<List<TransactionItem>>(
-      future: Future.value(
-          ProxyService.strategy.transactionItems(requestId: request.id)),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              _buildActionButton(
-                onPressed: null,
-                icon: Icons.check_circle_outline,
-                label: 'Approve',
-                color: Colors.green[600]!,
-                isDisabled: true,
-              ),
-              SizedBox(width: 12),
-              _buildActionButton(
-                onPressed: null,
-                icon: Icons.cancel_outlined,
-                label: 'Void',
-                color: Colors.red[600]!,
-                isDisabled: true,
-              ),
-            ],
-          );
-        }
+    final itemsAsync = ref.watch(transactionItemsProvider(request.id));
 
-        if (snapshot.hasError || !snapshot.hasData) {
-          return SizedBox(); // Hide buttons if there's an error
-        }
-
-        final items = snapshot.data!;
+    return itemsAsync.when(
+      loading: () => Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          _buildActionButton(
+            onPressed: null,
+            icon: Icons.check_circle_outline,
+            label: 'Approve',
+            color: Colors.green[600]!,
+            isDisabled: true,
+          ),
+          SizedBox(width: 12),
+          _buildActionButton(
+            onPressed: null,
+            icon: Icons.cancel_outlined,
+            label: 'Void',
+            color: Colors.red[600]!,
+            isDisabled: true,
+          ),
+        ],
+      ),
+      error: (error, stack) => SizedBox(), // Hide buttons if there's an error
+      data: (items) {
         final bool hasApprovedItems =
             items.any((item) => (item.quantityApproved ?? 0) > 0);
         final bool isFullyApproved = request.status == RequestStatus.approved;
