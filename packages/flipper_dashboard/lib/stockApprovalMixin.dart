@@ -640,6 +640,7 @@ mixin StockRequestApprovalLogic {
         throw Exception('Variant not found');
       }
 
+      // First handle the variant and stock creation/update
       await _handleVariantAndStockInternal(
         item: item,
         request: request,
@@ -647,14 +648,14 @@ mixin StockRequestApprovalLogic {
         approvedQuantity: approvedQuantity,
       );
 
-      // update main branch stock
+      // Then update the main branch stock
       await _updateMainBranchStock(
-        isDeducting: true,
-        approvedQuantity: approvedQuantity,
         variantId: requestedVariant.id,
+        approvedQuantity: approvedQuantity,
+        isDeducting: true,
       );
 
-      //lastly sync the transaction item to db.
+      // Finally update the transaction item
       await ProxyService.strategy.updateTransactionItem(
         transactionItemId: item.id,
         quantityApproved: approvedQuantity,
@@ -712,14 +713,6 @@ mixin StockRequestApprovalLogic {
           await ProxyService.strategy
               .updateVariant(updatables: [existingVariant]);
         }
-
-        // Update the main branch stock
-        await _updateMainBranchStock(
-          isDeducting: true,
-          approvedQuantity: approvedQuantity,
-          variantId: variant.id,
-        );
-
         return existingVariant;
       }
     }
@@ -767,40 +760,36 @@ mixin StockRequestApprovalLogic {
 
     await ProxyService.strategy.create<VariantBranch>(data: variantBranch);
 
-    // Update the main branch stock
-    await _updateMainBranchStock(
-      isDeducting: true,
-      approvedQuantity: approvedQuantity,
-      variantId: variant.id,
-    );
-
     return createdVariant;
   }
 
   Future<void> _updateMainBranchStock({
     required String variantId,
     required int approvedQuantity,
-    required isDeducting,
+    required bool isDeducting,
   }) async {
     try {
-      final Variant? variant = await ProxyService.strategy.getVariant(
-        id: variantId,
-      );
+      final Variant? variant =
+          await ProxyService.strategy.getVariant(id: variantId);
 
-      if (variant?.stock != null) {
-        final updatedStock = isDeducting
-            ? (variant!.stock!.currentStock! - approvedQuantity.toDouble())
-            : (variant!.stock!.currentStock! + approvedQuantity.toDouble());
-
-        await ProxyService.strategy.updateStock(
-          stockId: variant.stock!.id,
-          currentStock: updatedStock,
-          value: updatedStock * variant.retailPrice!,
-          rsdQty: updatedStock,
-          lastTouched: DateTime.now(),
-          ebmSynced: false,
-        );
+      if (variant?.stock == null) {
+        talker.error('Stock not found for variant: $variantId');
+        throw Exception('Stock not found');
       }
+
+      final double currentStock = variant!.stock!.currentStock!;
+      final double updatedStock = isDeducting
+          ? (currentStock - approvedQuantity.toDouble())
+          : (currentStock + approvedQuantity.toDouble());
+
+      await ProxyService.strategy.updateStock(
+        stockId: variant.stock!.id,
+        currentStock: updatedStock,
+        value: updatedStock * variant.retailPrice!,
+        rsdQty: updatedStock,
+        lastTouched: DateTime.now(),
+        ebmSynced: false,
+      );
     } catch (e, s) {
       talker.error('Error updating main branch stock', e, s);
       throw Exception('Failed to update main branch stock');
