@@ -392,7 +392,9 @@ class _RowItemState extends ConsumerState<RowItem>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.variantName.pascalCase,
+          widget.variantName.pascalCase.length > 24
+              ? '${widget.variantName.substring(0, 24)}...'
+              : widget.variantName.pascalCase,
           style: const TextStyle(
             color: Colors.black87,
             fontSize: 16.0,
@@ -409,7 +411,9 @@ class _RowItemState extends ConsumerState<RowItem>
           Padding(
             padding: const EdgeInsets.only(bottom: 4.0),
             child: Text(
-              widget.variantName,
+              widget.variantName.length > 8
+                  ? '${widget.variantName.substring(0, 8)}...'
+                  : widget.variantName,
               style: TextStyle(
                 color: Colors.grey[700],
                 fontSize: 14.0,
