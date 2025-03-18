@@ -219,7 +219,6 @@ msix_config:
   identity_name: yegobox.yegoboxflipper
 
   msix_version: 1.170.3622.0
-
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"
