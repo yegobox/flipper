@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'dart:io';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/view_models/upload_viewmodel.dart';
 import 'package:flipper_services/abstractions/upload.dart';
@@ -9,6 +10,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flipper_models/providers/upload_providers.dart';
 
 class Browsephotos extends StatefulHookConsumerWidget {
   final ValueChanged<Color> onColorSelected;
@@ -29,11 +32,25 @@ class Browsephotos extends StatefulHookConsumerWidget {
 class BrowsephotosState extends ConsumerState<Browsephotos> {
   final talker = TalkerFlutter.init();
   late Color selectedColor;
+  bool isUploading = false;
 
   @override
   void initState() {
     super.initState();
     selectedColor = widget.currentColor;
+  }
+
+  Future<String?> getImageFilePath({required String imageFileName}) async {
+    Directory appSupportDir = await getApplicationSupportDirectory();
+
+    final imageFilePath = '${appSupportDir.path}/$imageFileName';
+    final file = File(imageFilePath);
+
+    if (await file.exists()) {
+      return imageFilePath;
+    } else {
+      return null;
+    }
   }
 
   Future<void> _showColorPickerDialog(BuildContext context) async {
@@ -100,6 +117,8 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
 
   @override
   Widget build(BuildContext context) {
+    final uploadProgress = ref.watch(uploadProgressProvider);
+
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => UploadViewModel(),
       builder: (context, model, child) {
@@ -119,17 +138,33 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: widget.imageUrl != null
-                    ? Image.network(
-                        widget.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Center(
-                            child: Icon(
-                              Icons.image,
-                              size: 50,
-                              color: Colors.grey[500],
-                            ),
-                          );
+                    ? FutureBuilder<String?>(
+                        future: getImageFilePath(imageFileName: widget.imageUrl!),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData && snapshot.data != null) {
+                            return Image.file(
+                              File(snapshot.data!),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                talker.error("Image load error: $error");
+                                return Center(
+                                  child: Icon(
+                                    Icons.image,
+                                    size: 50,
+                                    color: Colors.grey[500],
+                                  ),
+                                );
+                              },
+                            );
+                          } else {
+                            return Center(
+                              child: Icon(
+                                Icons.image,
+                                size: 50,
+                                color: Colors.grey[500],
+                              ),
+                            );
+                          }
                         },
                       )
                     : Center(
@@ -159,28 +194,61 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
               width: 200,
               child: TextButton(
                 style: TextButton.styleFrom(
-                  backgroundColor: Colors.grey[200],
+                  backgroundColor: isUploading
+                      ? Color.lerp(Colors.blue, Colors.green, uploadProgress)
+                      : Colors.grey[200],
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-                onPressed: () async {
-                  model.browsePictureFromGallery(
-                    id: ref.watch(unsavedProductProvider)!.id,
-                    callBack: (product) {
-                      talker.warning("ImageToProduct:${product.imageUrl}");
-                      ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
-                    },
-                    urlType: URLTYPE.PRODUCT,
-                  );
-                },
+                onPressed: isUploading
+                    ? null
+                    : () async {
+                        setState(() {
+                          isUploading = true;
+                        });
+                        ref.read(uploadProgressProvider.notifier).state = 0.0;
+
+                        try {
+                          final product = await model.browsePictureFromGallery(
+                            id: ref.watch(unsavedProductProvider)!.id,
+                            urlType: URLTYPE.PRODUCT,
+                          );
+                          talker.warning("ImageToProduct:${product.imageUrl}");
+                          ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+                          setState(() {
+                            isUploading = false;
+                          });
+                          ref.read(uploadProgressProvider.notifier).state = 0.0;
+                        } catch (e) {
+                          setState(() {
+                            isUploading = false;
+                          });
+                          ref.read(uploadProgressProvider.notifier).state = 0.0;
+                          talker.error("Upload error: $e");
+                        }
+                      },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.upload, size: 20, color: Colors.grey[800]),
+                    if (isUploading)
+                      Container(
+                        width: 20,
+                        height: 20,
+                        margin: const EdgeInsets.only(right: 8),
+                        child: CircularProgressIndicator(
+                          value: uploadProgress,
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    else
+                      Icon(Icons.upload, size: 20, color: Colors.grey[800]),
                     const SizedBox(width: 8),
                     Text(
-                      'Upload Image',
+                      isUploading
+                          ? '${(uploadProgress * 100).toInt()}%'
+                          : 'Upload Image',
                       style: TextStyle(
-                        color: Colors.grey[800],
+                        color: isUploading ? Colors.white : Colors.grey[800],
                         fontSize: 14,
                       ),
                     ),

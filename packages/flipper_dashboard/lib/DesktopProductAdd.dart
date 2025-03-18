@@ -443,23 +443,21 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     );
   }
 
-  Future<String> getImageFilePath({required String imageFileName}) async {
-    try {
-      final appDir = await getApplicationDocumentsDirectory();
-      final filePath = '${appDir.path}/flipper_images/$imageFileName';
-      if (await File(filePath).exists()) {
-        return filePath;
-      } else {
-        throw Exception('Image file not found');
-      }
-    } catch (e) {
-      throw Exception('Failed to get image file path: $e');
+  Future<String?> getImageFilePath({required String imageFileName}) async {
+    Directory appSupportDir = await getApplicationSupportDirectory();
+
+    final imageFilePath = '${appSupportDir.path}/$imageFileName';
+    final file = File(imageFilePath);
+
+    if (await file.exists()) {
+      return imageFilePath;
+    } else {
+      return null;
     }
   }
 
   Widget topButtons(
       BuildContext context, ScannViewModel productModel, Product? productRef) {
-    final product = ref.watch(unsavedProductProvider);
     return ViewModelBuilder.nonReactive(
         viewModelBuilder: () => UploadViewModel(),
         builder: (context, model, child) {
@@ -515,14 +513,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                 ),
               ),
               if (ref.watch(unsavedProductProvider)?.imageUrl != null)
-                FutureBuilder<String>(
+                FutureBuilder<String?>(
                   future: ref.watch(unsavedProductProvider)?.imageUrl != null
                       ? getImageFilePath(
                           imageFileName:
                               ref.watch(unsavedProductProvider)!.imageUrl!)
-                      : Future.value(''),
+                      : Future.value(null),
                   builder: (context, snapshot) {
-                    if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                    if (snapshot.hasData && snapshot.data != null) {
                       return Container(
                         width: 200,
                         height: 200,
