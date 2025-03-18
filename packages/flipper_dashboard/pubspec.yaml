@@ -10,9 +10,8 @@ environment:
 dependencies:
   get: ^4.6.1
   flipper_models: any
-
   flipper_routing: ^1.0.0
-
+  shared_preferences: ^2.2.2
   timeago: ^3.4.0
   mime: ^1.0.5
   open_filex: ^4.7.0
@@ -116,6 +115,7 @@ dependencies:
   uuid: ^4.5.1
   fl_chart: ^0.70.2
   flutter_typeahead: ^5.2.0
+  desktop_drop: ^0.5.0
 
 dependency_overrides:
   http: ^1.2.2
@@ -138,9 +138,9 @@ generate: true
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  build_runner: ^2.4.14
+  build_runner: ^2.4.15
   custom_lint:
-  riverpod_generator: ^2.3.5
+  riverpod_generator: ^2.6.5
   riverpod_lint: ^2.3.7
   mockito: ^5.4.4
   test:

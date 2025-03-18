@@ -4,7 +4,7 @@ import 'dart:math';
 import 'dart:isolate';
 import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
-import 'package:flipper_models/RealmInterface.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SessionManager.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
@@ -47,7 +47,7 @@ import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:synchronized/synchronized.dart';
-
+import 'package:flipper_services/ai_strategy_impl.dart';
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
@@ -56,9 +56,9 @@ import 'package:uuid/uuid.dart';
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
 
-class CoreSync
+class CoreSync extends AiStrategyImpl
     with Booting, CoreMiscellaneous, TransactionMixin
-    implements RealmInterface {
+    implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
   bool offlineLogin = false;
@@ -3667,6 +3667,7 @@ class CoreSync
     DateTime? updatedAt,
     int? invoiceNumber,
     DateTime? lastTouched,
+    int? supplierId,
     int? receiptNumber,
     int? totalReceiptNumber,
     bool? isProformaMode,
@@ -3699,6 +3700,7 @@ class CoreSync
     transaction.receiptType = receiptType ?? transaction.receiptType;
     transaction.subTotal = subTotal ?? transaction.subTotal;
     transaction.note = note ?? transaction.note;
+    transaction.supplierId = supplierId ?? transaction.supplierId;
     transaction.status = status ?? transaction.status;
     transaction.ticketName = ticketName ?? transaction.ticketName;
     transaction.updatedAt = updatedAt ?? transaction.updatedAt;
@@ -3781,9 +3783,9 @@ class CoreSync
   }
 
   @override
-  Future<RealmInterface> configureCapella(
+  Future<DatabaseSyncInterface> configureCapella(
       {required bool useInMemory, required storage.LocalStorage box}) async {
-    return this as RealmInterface;
+    return this as DatabaseSyncInterface;
   }
 
   @override
@@ -4029,7 +4031,7 @@ class CoreSync
   }
 
   @override
-  RealmInterface instance() {
+  DatabaseSyncInterface instance() {
     return this;
   }
 
@@ -4816,7 +4818,7 @@ class CoreSync
   }
 
   @override
-  Future<RealmInterface> configureLocal(
+  Future<DatabaseSyncInterface> configureLocal(
       {required bool useInMemory, required storage.LocalStorage box}) async {
     try {
       // await loadSupabase();
@@ -5152,6 +5154,7 @@ class CoreSync
           print('Updated variant bcd: ${variant.bcd}, name: ${variant.name}');
         } else {
           print('no variant found with modrId:${item.barCode}');
+          throw Exception('no variant found with modrId:${item.barCode}');
         }
       } else {
         final branchId = await ProxyService.box.getBranchId()!;
@@ -6006,10 +6009,12 @@ class CoreSync
 
   @override
   Future<models.VariantBranch?> variantBranch(
-      {required String variantId}) async {
+      {required String variantId, required String destinationBranchId}) async {
     return (await repository.get<VariantBranch>(
-      query:
-          brick.Query(where: [brick.Where('variantId').isExactly(variantId)]),
+      query: brick.Query(where: [
+        brick.Where('destinationBranchId').isExactly(destinationBranchId),
+        brick.Where('variantId').isExactly(variantId),
+      ]),
       policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
     ))
         .firstOrNull;
@@ -6038,5 +6043,63 @@ class CoreSync
           .initApi(tinNumber: tin, bhfId: bhfId, dvcSrlNo: dvcSrlNo, URI: URI!);
       return initialisable;
     }
+  }
+
+  @override
+  Future<List<Message>> getConversationHistory({
+    required String conversationId,
+    DateTime? startDate,
+    DateTime? endDate,
+    int? limit,
+    int? offset,
+  }) async {
+    return repository.get<Message>(
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: Query(
+        where: [
+          Where('conversationId').isExactly(conversationId),
+          if (startDate != null)
+            Where('timestamp').isGreaterThanOrEqualTo(startDate),
+          if (endDate != null) Where('timestamp').isLessThanOrEqualTo(endDate),
+        ],
+        limit: limit,
+        offset: offset,
+        orderBy: [OrderBy('timestamp', ascending: false)],
+      ),
+    );
+  }
+
+  @override
+  Future<Message> saveMessage({
+    required String text,
+    required String phoneNumber,
+    required int branchId,
+    required String role,
+    required String conversationId,
+    String? aiResponse,
+    String? aiContext,
+  }) async {
+    final message = Message(
+      text: text,
+      phoneNumber: phoneNumber,
+      branchId: branchId,
+      delivered: true,
+      role: role,
+      conversationId: conversationId,
+      timestamp: DateTime.now(),
+      aiResponse: aiResponse,
+      aiContext: aiContext,
+    );
+    await repository.upsert<Message>(message);
+    return message;
+  }
+
+  Stream<List<Message>> conversationStream({required String conversationId}) {
+    return repository.subscribe<Message>(
+      query: Query(
+        where: [Where('conversationId').isExactly(conversationId)],
+        orderBy: [OrderBy('timestamp', ascending: false)],
+      ),
+    );
   }
 }

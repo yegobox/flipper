@@ -4,24 +4,26 @@
 set -e
 
 # Adjust the base path to the correct root folder
-BASE_PATH="$(cd "$(dirname "$SRCROOT")" && pwd)"
+BASE_PATH="$(cd "$(dirname "$SRCROOT")/../../../../" && pwd)"
+echo "BASE_PATH is: $BASE_PATH"  # VERIFY THIS IN THE LOGS
 
 # Define the destination paths relative to BASE_PATH
-INDEX_PATH="$BASE_PATH/web/index.html"
-CONFIGDART_PATH="$BASE_PATH/../../packages/flipper_login/lib/config.dart"
-SECRETS_PATH="$BASE_PATH/../../packages/flipper_models/lib/secrets.dart"
-FIREBASE_OPTIONS1_PATH="$BASE_PATH/lib/firebase_options.dart"
-FIREBASE_OPTIONS2_PATH="$BASE_PATH/../../packages/flipper_models/lib/firebase_options.dart"
-AMPLIFY_CONFIG_PATH="$BASE_PATH/lib/amplifyconfiguration.dart"
-AMPLIFY_TEAM_PROVIDER_PATH="$BASE_PATH/amplify/team-provider-info.json"
-GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/ios/Runner/GoogleService-Info.plist"
+INDEX_PATH="$BASE_PATH/apps/flipper/ios/ci_scripts/web/index.html"
+CONFIGDART_PATH="$BASE_PATH/packages/flipper_login/lib/config.dart"
+SECRETS_PATH1="$BASE_PATH/apps/flipper/lib/secrets.dart" 
+SECRETS_PATH2="$BASE_PATH/packages/flipper_models/lib/secrets.dart"
+FIREBASE_OPTIONS1_PATH="$BASE_PATH/apps/flipper/lib/firebase_options.dart"
+FIREBASE_OPTIONS2_PATH="$BASE_PATH/packages/flipper_models/lib/firebase_options.dart"
+AMPLIFY_CONFIG_PATH="$BASE_PATH/apps/flipper/lib/amplifyconfiguration.dart"
+AMPLIFY_TEAM_PROVIDER_PATH="$BASE_PATH/apps/flipper/amplify/team-provider-info.json"
+GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/apps/flipper/ios/GoogleService-Info.plist"
 
-# Extract Firebase configuration values from GoogleService-Info.plist
+# Extract Firebase configuration values
 GOOGLE_APP_ID=$(plutil -extract GOOGLE_APP_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null || true)
 FIREBASE_PROJECT_ID=$(plutil -extract PROJECT_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null || true)
 GCM_SENDER_ID=$(plutil -extract GCM_SENDER_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null || true)
 
-# Validate that variables are not empty
+# Validate Firebase configuration
 if [[ -z "$GOOGLE_APP_ID" || -z "$FIREBASE_PROJECT_ID" || -z "$GCM_SENDER_ID" ]]; then
   echo "❌ ERROR: Missing Firebase configuration values. Check GoogleService-Info.plist."
   exit 1
@@ -42,10 +44,10 @@ echo "✅ firebase_app_id_file.json has been generated successfully."
 write_to_file() {
   local var_name="$1"
   local file_path="$2"
-  local content="${!var_name}"  # Get the value of the variable
+  local content="${!var_name}"
 
   if [[ -n "$content" ]]; then
-    mkdir -p "$(dirname "$file_path")"  # Ensure directory exists
+    mkdir -p "$(dirname "$file_path")"
     echo "$content" > "$file_path"
     echo "✅ Successfully wrote $var_name to $file_path"
   else
@@ -53,28 +55,28 @@ write_to_file() {
   fi
 }
 
-# Write environment variables to their respective files
+# Write environment variables
+write_to_file "SECRETS_PATH1" "$SECRETS_PATH1"
+write_to_file "SECRETS_PATH2" "$SECRETS_PATH2"
+write_to_file "FIREBASE_OPTIONS1_PATH" "$FIREBASE_OPTIONS1_PATH"
+write_to_file "FIREBASE_OPTIONS2_PATH" "$FIREBASE_OPTIONS2_PATH"
 write_to_file "INDEX" "$INDEX_PATH"
 write_to_file "CONFIGDART" "$CONFIGDART_PATH"
-write_to_file "SECRETS" "$SECRETS_PATH"
-write_to_file "FIREBASEOPTIONS" "$FIREBASE_OPTIONS1_PATH"
-write_to_file "FIREBASEOPTIONS" "$FIREBASE_OPTIONS2_PATH"
 write_to_file "AMPLIFY_CONFIG" "$AMPLIFY_CONFIG_PATH"
 write_to_file "AMPLIFY_TEAM_PROVIDER" "$AMPLIFY_TEAM_PROVIDER_PATH"
 
 # Prevent Git from converting line endings
 git config --global core.autocrlf false
 
-# Ensure correct Ruby version (at least 3.2.2)
-# Ensure correct Ruby version (at least 3.2.2)
+# Ensure correct Ruby version
 REQUIRED_RUBY_VERSION="3.2.2"
 CURRENT_RUBY_VERSION=$(ruby -e 'puts RUBY_VERSION' 2>/dev/null || echo "0.0.0")
 
 if [[ "$(printf '%s\n' "$REQUIRED_RUBY_VERSION" "$CURRENT_RUBY_VERSION" | sort -V | head -n1)" != "$REQUIRED_RUBY_VERSION" ]]; then
   echo "🔄 Upgrading Ruby..."
   brew install rbenv
-  rbenv install 3.2.2  # Install latest stable Ruby version
-  rbenv global 3.2.2   # Set it as the default version
+  rbenv install 3.2.2
+  rbenv global 3.2.2
   export PATH="$HOME/.rbenv/shims:$PATH"
   echo "✅ Ruby upgraded to: $(ruby -v)"
 else
@@ -84,11 +86,17 @@ fi
 # Ensure correct gem paths
 export PATH="$HOME/.gem/ruby/$(ruby -e 'puts RUBY_VERSION')/bin:$PATH"
 
+# Fix `rexml` & `xcodeproj` issue
+echo "🔄 Fixing gem conflicts..."
+gem uninstall -aIx rexml xcodeproj
+gem install rexml -v 3.3.6 --user-install --no-document
+gem install xcodeproj --user-install --no-document
+echo "✅ Gems fixed."
+
 # Install required Ruby gems
 echo "🔄 Installing required Ruby gems..."
-# gem install ffi cocoapods drb --user-install --no-document
+gem install ffi cocoapods --user-install --no-document
 echo "✅ Ruby gems installed."
-
 
 # Ensure CocoaPods is installed
 if ! command -v pod &> /dev/null; then
@@ -108,14 +116,11 @@ if ! command -v flutter &> /dev/null; then
   export PATH="$FLUTTER_DIR/bin:$PATH"
   flutter precache
   flutter --version
+  echo "✅ Flutter installed successfully."
 else
   echo "✅ Flutter is already installed."
 fi
 export PATH="$FLUTTER_DIR/bin:$PATH"
-
-# Install Flutter dependencies
-cd "$BASE_PATH/../../.." || exit 1
-flutter pub get
 
 # Install & configure Melos
 export PATH="$HOME/.pub-cache/bin:$PATH"
@@ -123,11 +128,25 @@ if ! command -v melos &> /dev/null; then
   echo "🔄 Installing Melos..."
   dart pub global activate melos 6.3.2
 fi
+
 melos bootstrap
 
-# Install CocoaPods dependencies
-cd "$BASE_PATH" || exit 1
-rm -rf Pods Podfile.lock
-pod install
+echo "✅ Melos setup completed successfully."
+
+# Install Flutter dependencies
+cd "$BASE_PATH/apps/flipper" || exit 1
+echo "🔄 Navigated into apps/flipper"
+
+cd ios || exit 1
+echo "🔄 Navigated into apps/flipper/ios"
+
+# Use Bundler if a Gemfile exists
+if [[ -f "Gemfile" ]]; then
+  echo "🔄 Using Bundler for pod install..."
+  bundle install
+  bundle exec pod install
+else
+  pod install
+fi
 
 echo "✅ Post-clone setup completed successfully."

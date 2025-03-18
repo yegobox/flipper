@@ -11,6 +11,8 @@ import 'package:brick_supabase/brick_supabase.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:uuid/uuid.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
+
+// ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/finance_provider.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/inventory_request.model.dart';
@@ -27,13 +29,25 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/composite.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/plan_addon.model.dart';// GENERATED CODE DO NOT EDIT
+import 'package:supabase_models/brick/models/plan_addon.model.dart'; // GENERATED CODE DO NOT EDIT
 // ignore: unused_import
 import 'dart:convert';
-import 'package:brick_sqlite/brick_sqlite.dart' show SqliteModel, SqliteAdapter, SqliteModelDictionary, RuntimeSqliteColumnDefinition, SqliteProvider;
-import 'package:brick_supabase/brick_supabase.dart' show SupabaseProvider, SupabaseModel, SupabaseAdapter, SupabaseModelDictionary;
+import 'package:brick_sqlite/brick_sqlite.dart'
+    show
+        SqliteModel,
+        SqliteAdapter,
+        SqliteModelDictionary,
+        RuntimeSqliteColumnDefinition,
+        SqliteProvider;
+import 'package:brick_supabase/brick_supabase.dart'
+    show
+        SupabaseProvider,
+        SupabaseModel,
+        SupabaseAdapter,
+        SupabaseModelDictionary;
 // ignore: unused_import, unused_shown_name
-import 'package:brick_offline_first/brick_offline_first.dart' show RuntimeOfflineFirstDefinition;
+import 'package:brick_offline_first/brick_offline_first.dart'
+    show RuntimeOfflineFirstDefinition;
 // ignore: unused_import, unused_shown_name
 import 'package:sqflite_common/sqlite_api.dart' show DatabaseExecutor;
 
@@ -47,6 +61,7 @@ import '../brick/models/universalProduct.model.dart';
 import '../brick/models/conversation.model.dart';
 import '../brick/models/customer_payments.model.dart';
 import '../brick/models/transaction.model.dart';
+import '../brick/models/message.model.dart';
 import '../brick/models/financing.model.dart';
 import '../brick/models/configuration.model.dart';
 import '../brick/models/branch.model.dart';
@@ -84,6 +99,8 @@ import '../brick/models/product.model.dart';
 import '../brick/models/asset.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/drawer.model.dart';
+import '../brick/models/branch_sms_config.model.dart';
+import '../brick/models/ai_conversation.model.dart';
 
 part 'adapters/item_code_adapter.g.dart';
 part 'adapters/import_purchase_dates_adapter.g.dart';
@@ -95,6 +112,7 @@ part 'adapters/unversal_product_adapter.g.dart';
 part 'adapters/conversation_adapter.g.dart';
 part 'adapters/customer_payments_adapter.g.dart';
 part 'adapters/i_transaction_adapter.g.dart';
+part 'adapters/message_adapter.g.dart';
 part 'adapters/financing_adapter.g.dart';
 part 'adapters/configurations_adapter.g.dart';
 part 'adapters/branch_adapter.g.dart';
@@ -132,6 +150,8 @@ part 'adapters/product_adapter.g.dart';
 part 'adapters/assets_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 part 'adapters/drawers_adapter.g.dart';
+part 'adapters/branch_sms_config_adapter.g.dart';
+part 'adapters/ai_conversation_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
@@ -145,6 +165,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Conversation: ConversationAdapter(),
   CustomerPayments: CustomerPaymentsAdapter(),
   ITransaction: ITransactionAdapter(),
+  Message: MessageAdapter(),
   Financing: FinancingAdapter(),
   Configurations: ConfigurationsAdapter(),
   Branch: BranchAdapter(),
@@ -181,7 +202,9 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter()
+  Drawers: DrawersAdapter(),
+  BranchSmsConfig: BranchSmsConfigAdapter(),
+  AiConversation: AiConversationAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -197,6 +220,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Conversation: ConversationAdapter(),
   CustomerPayments: CustomerPaymentsAdapter(),
   ITransaction: ITransactionAdapter(),
+  Message: MessageAdapter(),
   Financing: FinancingAdapter(),
   Configurations: ConfigurationsAdapter(),
   Branch: BranchAdapter(),
@@ -233,6 +257,8 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter()
+  Drawers: DrawersAdapter(),
+  BranchSmsConfig: BranchSmsConfigAdapter(),
+  AiConversation: AiConversationAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

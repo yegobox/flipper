@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'dart:typed_data';
-import 'package:flipper_models/RealmInterface.dart';
 // import 'package:flipper_models/power_sync/schema.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 // import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -22,7 +22,7 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:http/http.dart' as http;
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
-
+import 'package:flipper_services/ai_strategy_impl.dart';
 // import 'package:flipper_services/database_provider.dart'
 //     if (dart.library.html) 'DatabaseProvider.dart';
 
@@ -33,7 +33,9 @@ import 'package:flipper_services/replicator_provider.dart'
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
-class Capella with Booting implements RealmInterface {
+class Capella extends AiStrategyImpl
+    with Booting
+    implements DatabaseSyncInterface {
   @override
   // ignore: override_on_non_overriding_member
   bool offlineLogin = false;
@@ -194,6 +196,36 @@ class Capella with Booting implements RealmInterface {
   }
 
   String get scope => "_default";
+
+  @override
+  Future<List<Message>> getConversationHistory({
+    required String conversationId,
+    DateTime? startDate,
+    DateTime? endDate,
+    int? limit,
+    int? offset,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Message> saveMessage({
+    required String text,
+    required String phoneNumber,
+    required int branchId,
+    required String role,
+    required String conversationId,
+    String? aiResponse,
+    String? aiContext,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<Message>> conversationStream({required String conversationId}) {
+    throw UnimplementedError();
+  }
+
   @override
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {
@@ -1039,6 +1071,7 @@ class Capella with Booting implements RealmInterface {
       String? status,
       String? customerId,
       bool? ebmSynced,
+      int? supplierId,
       String? sarTyCd,
       String? reference,
       String? customerTin,
@@ -1123,15 +1156,15 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<RealmInterface> configureCapella(
+  Future<DatabaseSyncInterface> configureCapella(
       {required bool useInMemory, required LocalStorage box}) async {
-    return this as RealmInterface;
+    return this as DatabaseSyncInterface;
   }
 
   @override
-  Future<RealmInterface> configureLocal(
+  Future<DatabaseSyncInterface> configureLocal(
       {required bool useInMemory, required LocalStorage box}) async {
-    return this as RealmInterface;
+    return this as DatabaseSyncInterface;
   }
 
   @override
@@ -1283,7 +1316,7 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  RealmInterface instance() {
+  DatabaseSyncInterface instance() {
     // TODO: implement instance
     throw UnimplementedError();
   }
@@ -1929,15 +1962,16 @@ class Capella with Booting implements RealmInterface {
   }
 
   @override
-  Future<brick.VariantBranch?> variantBranch({required String variantId}) {
-    // TODO: implement variantBranch
+  Future<brick.BusinessInfo> initializeEbm(
+      {required String tin, required String bhfId, required String dvcSrlNo}) {
+    // TODO: implement initializeEbm
     throw UnimplementedError();
   }
 
   @override
-  Future<brick.BusinessInfo> initializeEbm(
-      {required String tin, required String bhfId, required String dvcSrlNo}) {
-    // TODO: implement initializeEbm
+  Future<brick.VariantBranch?> variantBranch(
+      {required String variantId, required String destinationBranchId}) {
+    // TODO: implement variantBranch
     throw UnimplementedError();
   }
 }

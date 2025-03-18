@@ -75,14 +75,21 @@ Future<void> initializeDependencies() async {
   // Add any other initialization code here
   //FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await loadSupabase();
-  GoogleFonts.config.allowRuntimeFetching = false;
+  // FIXME: GoogleFonts.config.allowRuntimeFetching is false but font Inter-Regular was not found in the application assets. Ensure Inter-Regular.ttf exists in a folder that is included in your pubspec's assets.)
+// [sentry.platformError] #0      loadFontIfNecessary
+// setting GoogleFonts.config.allowRuntimeFetching = true for now.
+  GoogleFonts.config.allowRuntimeFetching = true;
   foundation.LicenseRegistry.addLicense(() async* {
     final license = await rootBundle.loadString('google_fonts/OFL.txt');
     yield foundation.LicenseEntryWithLineBreaks(['google_fonts'], license);
   });
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    print(e);
+  }
 
   const isTest = bool.fromEnvironment('EMULATOR_ENABLED', defaultValue: false);
   // FirebaseFirestore.instance.settings =

@@ -1,5 +1,6 @@
 library flipper_routing;
 
+
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -53,7 +54,7 @@ import 'all_routes.dart';
     CustomRoute(page: ConversationHistory),
     CustomRoute(page: TicketsList),
     CustomRoute(page: NewTicket),
-    CustomRoute(page: Apps),
+    CustomRoute(page: MobileView),
     CustomRoute(page: CheckOut),
     CustomRoute(page: Cashbook),
 
@@ -138,12 +139,12 @@ class App {}
 // flutterfire configure
 // git submodule deinit -f open-sources/flutter_datetime_picker
 // STEPS to remove submodule
-///git submodule deinit -f open-sources/flutter_datetime_picker
-///git rm -rf open-sources/flutter_datetime_picker
-///rm -rf open-sources/qr_code_scanner
+///git submodule deinit -f open-sources/generator
+///git rm -rf open-sources/generator
+///rm -rf open-sources/generator
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 ///rm -rf path/to/submodule
-///git submodule add https://github.com/yegobox/dart_pdf.git open-sources/dart_pdf
+///git submodule add https://github.com/Stacked-Org/generator.git open-sources/generator
 
 // / find ./ -name pubspec.lock -type f -delete
 // / find ./ -name pubspec_overrides.yaml -type f -delete

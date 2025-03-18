@@ -71,7 +71,9 @@ class SharedPreferenceStorage implements LocalStorage {
         'getBranchServerId',
         'referralCode',
         'transactionInProgress',
-        'stockInOutType'
+        'stockInOutType',
+        'defaultCurrency',
+        'userName',
       },
     ));
     return this;
@@ -419,5 +421,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String stockInOutType() {
     return prefs.getString('stockInOutType') ?? "11";
+  }
+
+  @override
+  String defaultCurrency() {
+    return prefs.getString('defaultCurrency') ?? "RWF";
   }
 }

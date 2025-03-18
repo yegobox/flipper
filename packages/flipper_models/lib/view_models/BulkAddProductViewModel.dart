@@ -52,16 +52,32 @@ class BulkAddProductViewModel extends ChangeNotifier {
     _quantityControllers.values.forEach((controller) => controller.dispose());
   }
 
-  Future<void> selectFile() async {
+  Future<void> selectFile({String? filePath}) async {
     _isLoading = true;
     notifyListeners();
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['xlsx', 'xls'],
-      );
-      if (result != null && result.files.isNotEmpty) {
-        _selectedFile = result.files.first;
+      FilePickerResult? result;
+
+      if (filePath != null) {
+        // File path is provided via drag and drop
+        final file = File(filePath);
+        _selectedFile = PlatformFile(
+          name: file.path.split('/').last,
+          path: file.path,
+          size: await file.length(),
+        );
+      } else {
+        result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['xlsx', 'xls'],
+        );
+
+        if (result != null && result.files.isNotEmpty) {
+          _selectedFile = result.files.first;
+        }
+      }
+
+      if (_selectedFile != null) {
         _excelData = null;
         _isLoading = false;
         notifyListeners();

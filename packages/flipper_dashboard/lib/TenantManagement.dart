@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/TenantManagementMixin.dart';
+import 'package:flipper_dashboard/features/tenant/mixins/tenant_management_mixin.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -39,7 +39,8 @@ class UserManagement extends ConsumerState<TenantManagement>
           body: LayoutBuilder(
             builder: (context, constraints) {
               return SingleChildScrollView(
-                child: Padding(
+                child: Container(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   padding: const EdgeInsets.all(20.0),
                   child: constraints.maxWidth > 600
                       ? buildWideLayout(model, context)

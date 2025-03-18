@@ -4,38 +4,38 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flipper_models/helperModels/random.dart';
-
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/app_service.dart';
 import 'package:path_provider/path_provider.dart';
-
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:flipper_models/providers/upload_providers.dart';
 
 class UploadViewModel extends ProductViewModel {
   final appService = loc.getIt<AppService>();
   File? selectedImage;
+  final _container = ProviderContainer();
 
-  void browsePictureFromGallery(
-      {required String id,
-      required Function(Product) callBack,
-      required URLTYPE urlType}) async {
-    await uploadImage(id: id, urlType: urlType, callBack: callBack);
-  }
-
-  void takePicture(
-      {required String productId,
-      required Function(Product) callBack,
-      required URLTYPE urlType}) async {
-    await uploadImage(id: productId, urlType: urlType, callBack: callBack);
-  }
-
-  Future<void> uploadImage({
+  Future<Product> browsePictureFromGallery({
     required String id,
     required URLTYPE urlType,
-    required Function(Product) callBack,
+  }) async {
+    return await uploadImage(id: id, urlType: urlType);
+  }
+
+  Future<Product> takePicture({
+    required String productId,
+    required URLTYPE urlType,
+  }) async {
+    return await uploadImage(id: productId, urlType: urlType);
+  }
+
+  Future<Product> uploadImage({
+    required String id,
+    required URLTYPE urlType,
   }) async {
     final talker = TalkerFlutter.init();
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -47,7 +47,7 @@ class UploadViewModel extends ProductViewModel {
 
     if (result == null) {
       safePrint('No file selected');
-      return;
+      throw Exception('No file selected');
     }
 
     int branchId = ProxyService.box.getBranchId()!;
@@ -56,35 +56,30 @@ class UploadViewModel extends ProductViewModel {
     final uniqueFileName = '$uuid.${platformFile.extension!}';
 
     try {
-      // Log step: Ensure user is authenticated with AWS Cognito
       talker.warning('Authenticating user with AWS Cognito...');
       await ProxyService.strategy
           .syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
 
       talker.warning('Saving picked file locally...');
 
-      // Log step: Preparing to upload to S3
       final filePath = 'public/branch-$branchId/$uniqueFileName';
       talker.warning('Uploading file to S3 at path: $filePath');
 
       await Amplify.Storage.uploadFile(
-        localFile:
-            AWSFile.fromPath(platformFile.path!), // Use the file path directly
+        localFile: AWSFile.fromPath(platformFile.path!),
         path: StoragePath.fromString(filePath),
         options: StorageUploadFileOptions(
           metadata: {
             "contentType": 'image/${platformFile.extension}'
-          }, // Set contentType dynamically based on file extension
+          },
           pluginOptions: S3UploadFilePluginOptions(getProperties: true),
         ),
         onProgress: (progress) {
           talker.warning('Fraction completed: ${progress.fractionCompleted}');
+          _container.read(uploadProgressProvider.notifier).state = progress.fractionCompleted;
         },
       ).result;
 
-      // Get the public URL of the uploaded file
-
-      // Log step: Save asset and update database
       talker.warning('Saving asset and updating database...');
 
       Product? product = await ProxyService.strategy.getProduct(
@@ -101,7 +96,7 @@ class UploadViewModel extends ProductViewModel {
         saveAsset(assetName: uniqueFileName, productId: id);
       }
       await ProxyService.strategy.downloadAssetSave(assetName: uniqueFileName);
-      await Future.delayed(Duration(seconds: 10));
+      await Future.delayed(Duration(seconds: 2));
 
       await ProxyService.strategy.updateProduct(
         productId: id,
@@ -110,23 +105,22 @@ class UploadViewModel extends ProductViewModel {
         businessId: ProxyService.box.getBusinessId()!,
       );
 
-      // Log success
       talker.warning('File uploaded and database updated successfully.');
 
-      /// we requery product again and pass it to callback as it has been updated.
-      callBack((await ProxyService.strategy.getProduct(
+      return (await ProxyService.strategy.getProduct(
           id: id,
           branchId: branchId,
-          businessId: ProxyService.box.getBusinessId()!))!);
+          businessId: ProxyService.box.getBusinessId()!))!;
     } on StorageException catch (e) {
       talker.warning('StorageException: ${e.message}');
+      rethrow;
     } catch (e, s) {
       talker.warning('General Exception: $e');
       talker.error(s);
+      rethrow;
     }
   }
 
-  // Helper function to save the picked file locally
   Future<void> savePickedFileLocally(
       PlatformFile platformFile, String fileName) async {
     final appDocDir = await getApplicationDocumentsDirectory();
