@@ -443,15 +443,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     );
   }
 
-  Future<String?> getImageFilePath({required String imageFileName}) async {
-    final appSupportDir = await getApplicationSupportDirectory();
-    final imageFilePath = '${appSupportDir.path}/${imageFileName}';
-    final file = File(imageFilePath);
-
-    if (await file.exists()) {
-      return imageFilePath;
-    } else {
-      return null;
+  Future<String> getImageFilePath({required String imageFileName}) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final filePath = '${appDir.path}/flipper_images/$imageFileName';
+      if (await File(filePath).exists()) {
+        return filePath;
+      } else {
+        throw Exception('Image file not found');
+      }
+    } catch (e) {
+      throw Exception('Failed to get image file path: $e');
     }
   }
 
@@ -512,63 +514,61 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                   ],
                 ),
               ),
-              if (product?.imageUrl != null)
-                FutureBuilder(
-                  future:
-                      getImageFilePath(imageFileName: product!.imageUrl ?? ""),
+              if (ref.watch(unsavedProductProvider)?.imageUrl != null)
+                FutureBuilder<String>(
+                  future: ref.watch(unsavedProductProvider)?.imageUrl != null
+                      ? getImageFilePath(
+                          imageFileName:
+                              ref.watch(unsavedProductProvider)!.imageUrl!)
+                      : Future.value(''),
                   builder: (context, snapshot) {
-                    if (snapshot.hasData && snapshot.data != null) {
-                      final imageFilePath = snapshot.data as String;
-                      return Container(
-                        width: 200, // Specify the width you need
-                        height: 200, // Specify the height you need
-                        child: Image.file(
-                          new File(imageFilePath),
-                          fit: BoxFit.cover,
-                        ),
-                      );
-                    } else {
+                    if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                       return Container(
                         width: 200,
                         height: 200,
-                        color: Colors.grey[300],
-                        child: Center(
-                          child: Icon(
-                            Icons.image,
-                            size: 50,
-                            color: Colors.grey[500],
-                          ),
+                        child: Image.file(
+                          File(snapshot.data!),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Browsephotos(
+                              imageUrl:
+                                  ref.watch(unsavedProductProvider)?.imageUrl,
+                              currentColor: pickerColor,
+                              onColorSelected: (Color color) {
+                                setState(() {
+                                  pickerColor = color;
+                                  isColorPicked = true;
+                                });
+                              },
+                            );
+                          },
                         ),
+                      );
+                    } else {
+                      return Browsephotos(
+                        imageUrl: ref.watch(unsavedProductProvider)?.imageUrl,
+                        currentColor: pickerColor,
+                        onColorSelected: (Color color) {
+                          setState(() {
+                            pickerColor = color;
+                            isColorPicked = true;
+                          });
+                        },
                       );
                     }
                   },
                 )
               else
-                Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: isColorPicked ? pickerColor : Colors.grey[300],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: isColorPicked
-                      ? null
-                      : Center(
-                          child: Icon(
-                            Icons.image,
-                            size: 50,
-                            color: Colors.grey[500],
-                          ),
-                        ),
+                Browsephotos(
+                  imageUrl: null,
+                  currentColor: pickerColor,
+                  onColorSelected: (Color color) {
+                    setState(() {
+                      pickerColor = color;
+                      isColorPicked = true;
+                    });
+                  },
                 ),
-              Browsephotos(
-                onColorSelected: (Color color) {
-                  setState(() {
-                    pickerColor = color;
-                    isColorPicked = true;
-                  });
-                },
-              )
             ],
           );
         });

@@ -11,9 +11,16 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
 class Browsephotos extends StatefulHookConsumerWidget {
-  final ValueChanged<Color> onColorSelected; // Callback for selected color
+  final ValueChanged<Color> onColorSelected;
+  final String? imageUrl;
+  final Color currentColor;
 
-  Browsephotos({super.key, required this.onColorSelected});
+  Browsephotos({
+    super.key,
+    required this.onColorSelected,
+    this.imageUrl,
+    this.currentColor = Colors.blue,
+  });
 
   @override
   BrowsephotosState createState() => BrowsephotosState();
@@ -21,9 +28,14 @@ class Browsephotos extends StatefulHookConsumerWidget {
 
 class BrowsephotosState extends ConsumerState<Browsephotos> {
   final talker = TalkerFlutter.init();
-  Color selectedColor = Colors.blue; // Default color
+  late Color selectedColor;
 
-  // Function to show the color picker in a modal dialog
+  @override
+  void initState() {
+    super.initState();
+    selectedColor = widget.currentColor;
+  }
+
   Future<void> _showColorPickerDialog(BuildContext context) async {
     final Color? newColor = await showDialog<Color>(
       context: context,
@@ -34,7 +46,6 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
             child: ColorPicker(
               color: selectedColor,
               onColorChanged: (Color color) {
-                // Update the selected color while the dialog is open
                 selectedColor = color;
               },
               pickersEnabled: const <ColorPickerType, bool>{
@@ -64,14 +75,13 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog without saving
+                Navigator.of(context).pop();
               },
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context)
-                    .pop(selectedColor); // Return the selected color
+                Navigator.of(context).pop(selectedColor);
               },
               child: const Text('OK'),
             ),
@@ -80,13 +90,10 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
       },
     );
 
-    // Update the selected color if the user pressed "OK"
     if (newColor != null) {
       setState(() {
         selectedColor = newColor;
       });
-
-      // Invoke the callback with the selected color
       widget.onColorSelected(newColor);
     }
   }
@@ -96,58 +103,63 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => UploadViewModel(),
       builder: (context, model, child) {
-        return Column(
-          children: [
-            // Button to open the color picker modal
-            SizedBox(
-              width: 180,
-              child: FlipperButton(
-                textColor: Colors.black,
-                borderRadius: BorderRadius.circular(1),
-                text: 'Pick a Color',
-                onPressed: () async {
-                  await _showColorPickerDialog(
-                      context); // Open the color picker modal
+        return InkWell(
+          onTap: () async {
+            if (widget.imageUrl == null) {
+              await _showColorPickerDialog(context);
+            } else {
+              model.browsePictureFromGallery(
+                id: ref.watch(unsavedProductProvider)!.id,
+                callBack: (product) {
+                  talker.warning("ImageToProduct:${product.imageUrl}");
+                  ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
                 },
-              ),
+                urlType: URLTYPE.PRODUCT,
+              );
+            }
+          },
+          child: Container(
+            width: 200,
+            height: 200,
+            decoration: BoxDecoration(
+              color: widget.imageUrl == null ? selectedColor : Colors.grey[300],
+              borderRadius: BorderRadius.circular(4),
             ),
-
-            // Choose a Photo Button
-            SizedBox(
-              width: 180,
-              child: TextButton(
-                child: const Text(
-                  'Choose a Photo',
-                ),
-                style: ButtonStyle(
-                  overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                    (Set<WidgetState> states) {
-                      if (states.contains(WidgetState.hovered)) {
-                        return Colors.grey.withOpacity(0.04);
-                      }
-                      if (states.contains(WidgetState.focused) ||
-                          states.contains(WidgetState.pressed)) {
-                        return Colors.grey.withOpacity(0.12);
-                      }
-                      return null;
+            child: widget.imageUrl != null
+                ? Image.network(
+                    widget.imageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Center(
+                        child: Icon(
+                          Icons.image,
+                          size: 50,
+                          color: Colors.grey[500],
+                        ),
+                      );
                     },
+                  )
+                : Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.color_lens,
+                          size: 50,
+                          color: Colors.white.withOpacity(0.8),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Click to pick color',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                onPressed: () async {
-                  model.browsePictureFromGallery(
-                    id: ref.watch(unsavedProductProvider)!.id,
-                    callBack: (product) {
-                      talker.warning("ImageToProduct:${product.imageUrl}");
-                      ref
-                          .read(unsavedProductProvider.notifier)
-                          .emitProduct(value: product);
-                    },
-                    urlType: URLTYPE.PRODUCT,
-                  );
-                },
-              ),
-            ),
-          ],
+          ),
         );
       },
     );
