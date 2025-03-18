@@ -131,6 +131,32 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
               onTap: () async {
                 if (widget.imageUrl == null) {
                   await _showColorPickerDialog(context);
+                } else {
+                  setState(() {
+                    isUploading = true;
+                  });
+                  ref.read(uploadProgressProvider.notifier).state = 0.0;
+
+                  try {
+                    final product = await model.browsePictureFromGallery(
+                      id: ref.watch(unsavedProductProvider)!.id,
+                      urlType: URLTYPE.PRODUCT,
+                    );
+                    talker.warning("ImageToProduct:${product.imageUrl}");
+                    ref
+                        .read(unsavedProductProvider.notifier)
+                        .emitProduct(value: product);
+                    setState(() {
+                      isUploading = false;
+                    });
+                    ref.read(uploadProgressProvider.notifier).state = 0.0;
+                  } catch (e) {
+                    setState(() {
+                      isUploading = false;
+                    });
+                    ref.read(uploadProgressProvider.notifier).state = 0.0;
+                    talker.error("Upload error: $e");
+                  }
                 }
               },
               child: Container(
@@ -142,8 +168,10 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                       : Colors.grey[300],
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: widget.imageUrl != null
-                    ? FutureBuilder<String?>(
+                child: Stack(
+                  children: [
+                    if (widget.imageUrl != null)
+                      FutureBuilder<String?>(
                         future:
                             getImageFilePath(imageFileName: widget.imageUrl!),
                         builder: (context, snapshot) {
@@ -173,7 +201,8 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                           }
                         },
                       )
-                    : Center(
+                    else
+                      Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -193,78 +222,145 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                           ],
                         ),
                       ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: 200,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: isUploading
-                      ? Color.lerp(Colors.blue, Colors.green, uploadProgress)
-                      : Colors.grey[200],
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                onPressed: isUploading
-                    ? null
-                    : () async {
-                        setState(() {
-                          isUploading = true;
-                        });
-                        ref.read(uploadProgressProvider.notifier).state = 0.0;
-
-                        try {
-                          final product = await model.browsePictureFromGallery(
-                            id: ref.watch(unsavedProductProvider)!.id,
-                            urlType: URLTYPE.PRODUCT,
-                          );
-                          talker.warning("ImageToProduct:${product.imageUrl}");
-                          ref
-                              .read(unsavedProductProvider.notifier)
-                              .emitProduct(value: product);
-                          setState(() {
-                            isUploading = false;
-                          });
-                          ref.read(uploadProgressProvider.notifier).state = 0.0;
-                        } catch (e) {
-                          setState(() {
-                            isUploading = false;
-                          });
-                          ref.read(uploadProgressProvider.notifier).state = 0.0;
-                          talker.error("Upload error: $e");
-                        }
-                      },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (isUploading)
-                      Container(
-                        width: 20,
-                        height: 20,
-                        margin: const EdgeInsets.only(right: 8),
-                        child: CircularProgressIndicator(
-                          value: uploadProgress,
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                    if (widget.imageUrl != null)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.camera_alt,
+                                  size: 40,
+                                  color: Colors.white.withOpacity(0.8),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Click to change image',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      )
-                    else
-                      Icon(Icons.upload, size: 20, color: Colors.grey[800]),
-                    const SizedBox(width: 8),
-                    Text(
-                      isUploading
-                          ? '${(uploadProgress * 100).toInt()}%'
-                          : 'Upload Image',
-                      style: TextStyle(
-                        color: isUploading ? Colors.white : Colors.grey[800],
-                        fontSize: 14,
                       ),
-                    ),
+                    if (isUploading)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(
+                                  value: uploadProgress,
+                                  valueColor:
+                                      const AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  '${(uploadProgress * 100).toInt()}%',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
             ),
+            const SizedBox(height: 8),
+            if (widget.imageUrl == null)
+              SizedBox(
+                width: 200,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: isUploading
+                        ? Color.lerp(Colors.blue, Colors.green, uploadProgress)
+                        : Colors.grey[200],
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onPressed: isUploading
+                      ? null
+                      : () async {
+                          setState(() {
+                            isUploading = true;
+                          });
+                          ref.read(uploadProgressProvider.notifier).state = 0.0;
+
+                          try {
+                            final product =
+                                await model.browsePictureFromGallery(
+                              id: ref.watch(unsavedProductProvider)!.id,
+                              urlType: URLTYPE.PRODUCT,
+                            );
+                            talker
+                                .warning("ImageToProduct:${product.imageUrl}");
+                            ref
+                                .read(unsavedProductProvider.notifier)
+                                .emitProduct(value: product);
+                            setState(() {
+                              isUploading = false;
+                            });
+                            ref.read(uploadProgressProvider.notifier).state =
+                                0.0;
+                          } catch (e) {
+                            setState(() {
+                              isUploading = false;
+                            });
+                            ref.read(uploadProgressProvider.notifier).state =
+                                0.0;
+                            talker.error("Upload error: $e");
+                          }
+                        },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (isUploading)
+                        Container(
+                          width: 20,
+                          height: 20,
+                          margin: const EdgeInsets.only(right: 8),
+                          child: CircularProgressIndicator(
+                            value: uploadProgress,
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      else
+                        Icon(Icons.upload, size: 20, color: Colors.grey[800]),
+                      const SizedBox(width: 8),
+                      Text(
+                        isUploading
+                            ? '${(uploadProgress * 100).toInt()}%'
+                            : 'Upload Image',
+                        style: TextStyle(
+                          color: isUploading ? Colors.white : Colors.grey[800],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         );
       },
