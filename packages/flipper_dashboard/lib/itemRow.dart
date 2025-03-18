@@ -106,149 +106,169 @@ class _RowItemState extends ConsumerState<RowItem>
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, c) {
-        return Container(
-          decoration: BoxDecoration(
-            color: isSelected
-                ? Colors.blue.withAlpha((0.05 * 255).toInt())
-                : Colors.white,
-            borderRadius: BorderRadius.circular(borderRadius),
-            border: isSelected
-                ? Border.all(color: Colors.blue, width: 2.0)
-                : Border.all(color: Colors.grey.withAlpha((0.1 * 255).toInt())),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha((0.05 * 255).toInt()),
-                blurRadius: 4.0,
-                spreadRadius: 0.5,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(borderRadius),
-            child: InkWell(
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTapDown: (_) {
+            // Clear selection if tapping on a different item
+            if (selectedItem != null && !isSelected && !widget.isOrdering) {
+              ref.read(selectedItemIdProvider.notifier).state = NO_SELECTION;
+            }
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Colors.blue.withAlpha((0.05 * 255).toInt())
+                  : Colors.white,
               borderRadius: BorderRadius.circular(borderRadius),
-              onTap: () async {
-                // For normal tap, just add to cart without selection
-                final flipperWatch? w =
-                    kDebugMode ? flipperWatch("onAddingItemToQuickSell") : null;
-                w?.start();
-                await onTapItem(model: model, isOrdering: widget.isOrdering);
-                w?.log("Item Added to Quick Sell");
-              },
-              onLongPress: () {
-                // Only handle selection on long press for editing
-                final itemId = widget.variant?.id ?? widget.product?.id;
-                if (itemId != null && !widget.isOrdering) {
-                  if (selectedItem == itemId) {
+              border: isSelected
+                  ? Border.all(color: Colors.blue, width: 2.0)
+                  : Border.all(
+                      color: Colors.grey.withAlpha((0.1 * 255).toInt())),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha((0.05 * 255).toInt()),
+                  blurRadius: 4.0,
+                  spreadRadius: 0.5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(borderRadius),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(borderRadius),
+                onTap: () async {
+                  // Clear selection if tapping the selected item
+                  if (isSelected && !widget.isOrdering) {
                     ref.read(selectedItemIdProvider.notifier).state =
                         NO_SELECTION;
-                  } else {
-                    ref.read(selectedItemIdProvider.notifier).state = itemId;
+                    return;
                   }
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(contentPadding),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Use a Stack to overlay the colored container and image
-                      Expanded(
-                        child: Hero(
-                          tag: widget.variant?.id ??
-                              widget.product?.id ??
-                              'product_image_${widget.product?.id}',
-                          child: ClipRRect(
-                            borderRadius:
-                                BorderRadius.circular(borderRadius - 4),
-                            child: AspectRatio(
-                              aspectRatio: 1.0,
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  // Colored Container (takes the whole space when no image)
-                                  if (widget.imageUrl == null ||
-                                      widget.imageUrl!.isEmpty)
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: HexColor(widget.color.isEmpty
-                                            ? "#FF0000"
-                                            : widget.color),
-                                      ),
-                                      child: Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(12.0),
-                                          child: Text(
-                                            widget.variantName.length > 3
-                                                ? widget.variantName.pascalCase
-                                                    .substring(0, 3)
-                                                : widget.variantName.pascalCase,
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16.0,
-                                              fontWeight: FontWeight.w500,
+                  // For normal tap, just add to cart without selection
+                  final flipperWatch? w = kDebugMode
+                      ? flipperWatch("onAddingItemToQuickSell")
+                      : null;
+                  w?.start();
+                  await onTapItem(model: model, isOrdering: widget.isOrdering);
+                  w?.log("Item Added to Quick Sell");
+                },
+                onLongPress: () {
+                  // Only handle selection on long press for editing
+                  final itemId = widget.variant?.id ?? widget.product?.id;
+                  if (itemId != null && !widget.isOrdering) {
+                    if (selectedItem == itemId) {
+                      ref.read(selectedItemIdProvider.notifier).state =
+                          NO_SELECTION;
+                    } else {
+                      ref.read(selectedItemIdProvider.notifier).state = itemId;
+                    }
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(contentPadding),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Use a Stack to overlay the colored container and image
+                        Expanded(
+                          child: Hero(
+                            tag: widget.variant?.id ??
+                                widget.product?.id ??
+                                'product_image_${widget.product?.id}',
+                            child: ClipRRect(
+                              borderRadius:
+                                  BorderRadius.circular(borderRadius - 4),
+                              child: AspectRatio(
+                                aspectRatio: 1.0,
+                                child: Stack(
+                                  fit: StackFit.expand,
+                                  children: [
+                                    // Colored Container (takes the whole space when no image)
+                                    if (widget.imageUrl == null ||
+                                        widget.imageUrl!.isEmpty)
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: HexColor(widget.color.isEmpty
+                                              ? "#FF0000"
+                                              : widget.color),
+                                        ),
+                                        child: Center(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(12.0),
+                                            child: Text(
+                                              widget.variantName.length > 3
+                                                  ? widget
+                                                      .variantName.pascalCase
+                                                      .substring(0, 3)
+                                                  : widget
+                                                      .variantName.pascalCase,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16.0,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              textAlign: TextAlign.left,
+                                              maxLines: 3,
+                                              // overflow: TextOverflow.ellipsis,
                                             ),
-                                            textAlign: TextAlign.left,
-                                            maxLines: 3,
-                                            // overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                       ),
-                                    ),
 
-                                  // Image (overlayed on top of the colored container when present)
-                                  if (widget.imageUrl?.isNotEmpty == true)
-                                    _buildImage(),
-                                ],
+                                    // Image (overlayed on top of the colored container when present)
+                                    if (widget.imageUrl?.isNotEmpty == true)
+                                      _buildImage(),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
 
-                      _buildProductDetails(
-                        isComposite: widget.isComposite,
-                      ),
-                      // Add row for actions when selected
-                      if (isSelected)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              _buildActionButton(
-                                icon: Icons.delete,
-                                color: Colors.red,
-                                onPressed: () {
-                                  if (widget.variant != null) {
-                                    widget.delete(
-                                        widget.variant?.productId, 'product');
-                                  } else if (widget.product != null) {
-                                    widget.delete(
-                                        widget.product?.id, 'product');
-                                  }
-                                },
-                              ),
-                              const SizedBox(width: 16.0),
-                              _buildActionButton(
-                                icon: Icons.edit,
-                                color: Colors.blue,
-                                onPressed: () {
-                                  if (widget.variant != null) {
-                                    widget.edit(
-                                        widget.variant?.productId, 'product');
-                                  } else if (widget.product != null) {
-                                    widget.edit(widget.product?.id, 'product');
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
+                        _buildProductDetails(
+                          isComposite: widget.isComposite,
                         ),
-                    ],
+                        // Add row for actions when selected
+                        if (isSelected)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                _buildActionButton(
+                                  icon: Icons.delete,
+                                  color: Colors.red,
+                                  onPressed: () {
+                                    if (widget.variant != null) {
+                                      widget.delete(
+                                          widget.variant?.productId, 'product');
+                                    } else if (widget.product != null) {
+                                      widget.delete(
+                                          widget.product?.id, 'product');
+                                    }
+                                  },
+                                ),
+                                const SizedBox(width: 16.0),
+                                _buildActionButton(
+                                  icon: Icons.edit,
+                                  color: Colors.blue,
+                                  onPressed: () {
+                                    if (widget.variant != null) {
+                                      widget.edit(
+                                          widget.variant?.productId, 'product');
+                                    } else if (widget.product != null) {
+                                      widget.edit(
+                                          widget.product?.id, 'product');
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
