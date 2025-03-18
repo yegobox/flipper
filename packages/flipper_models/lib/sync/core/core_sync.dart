@@ -1,3 +1,4 @@
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/sync/core/core_sync_base.dart';
 import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
@@ -26,6 +27,7 @@ import 'package:flipper_models/secrets.dart';
 import 'package:talker/src/talker.dart';
 import '../mixins/asset_mixin.dart';
 import '../mixins/collection_mixin.dart';
+import '../mixins/purchase_mixin.dart';
 
 class CoreSync extends CoreSyncBase
     with
@@ -51,7 +53,8 @@ class CoreSync extends CoreSyncBase
         DeleteMixin,
         DeleteOperationsMixin,
         EbmMixin,
-        GetterOperationsMixin {
+        GetterOperationsMixin,
+        PurchaseMixin {
   CoreSync() : super(AppSecrets.apihubProd);
 
   @override

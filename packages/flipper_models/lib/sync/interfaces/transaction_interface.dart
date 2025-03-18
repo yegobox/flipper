@@ -24,4 +24,20 @@ abstract class TransactionInterface {
   });
   
   FutureOr<Configurations?> getByTaxType({required String taxtype});
+
+  Future<ITransaction?> manageTransaction({
+    required String transactionType,
+    required bool isExpense,
+    required int branchId,
+    bool includeSubTotalCheck = false,
+  });
+
+  Stream<ITransaction> manageTransactionStream({
+    required String transactionType,
+    required bool isExpense,
+    required int branchId,
+    bool includeSubTotalCheck = false,
+  });
+
+  FutureOr<void> removeCustomerFromTransaction({required ITransaction transaction});
 }
