@@ -28,7 +28,8 @@ mixin BusinessMixin implements BusinessInterface {
           Where('isDefault').isExactly(true),
         ],
       ),
-    )).firstOrNull;
+    ))
+        .firstOrNull;
   }
 
   @override
@@ -40,14 +41,16 @@ mixin BusinessMixin implements BusinessInterface {
         Where('branchId').isExactly(branchId),
       ], limit: 1),
       policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    )).firstOrNull;
+    ))
+        .firstOrNull;
   }
 
   @override
   Future<Business?> getBusinessById({required int businessId}) async {
     return (await repository.get<Business>(
       query: Query(where: [Where('serverId').isExactly(businessId)]),
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    )).firstOrNull;
+      policy: OfflineFirstGetPolicy.localOnly,
+    ))
+        .firstOrNull;
   }
 }
