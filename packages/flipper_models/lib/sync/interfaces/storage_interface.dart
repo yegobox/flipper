@@ -12,9 +12,4 @@ abstract class StorageInterface {
     String? assetName,
     String? subPath = "branch",
   });
-
-  Future<void> configureLocal({
-    required bool useInMemory,
-    required LocalStorage box,
-  });
 }
