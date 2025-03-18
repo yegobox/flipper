@@ -17,7 +17,11 @@ import 'package:flipper_models/providers/upload_providers.dart';
 class UploadViewModel extends ProductViewModel {
   final appService = loc.getIt<AppService>();
   File? selectedImage;
-  final _container = ProviderContainer();
+  WidgetRef? ref;
+
+  void setRef(WidgetRef ref) {
+    this.ref = ref;
+  }
 
   Future<Product> browsePictureFromGallery({
     required String id,
@@ -76,7 +80,9 @@ class UploadViewModel extends ProductViewModel {
         ),
         onProgress: (progress) {
           talker.warning('Fraction completed: ${progress.fractionCompleted}');
-          _container.read(uploadProgressProvider.notifier).state = progress.fractionCompleted;
+          if (ref != null) {
+            ref!.read(uploadProgressProvider.notifier).state = progress.fractionCompleted;
+          }
         },
       ).result;
 

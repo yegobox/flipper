@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/view_models/upload_viewmodel.dart';
 import 'package:flipper_services/abstractions/upload.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -120,7 +119,11 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
     final uploadProgress = ref.watch(uploadProgressProvider);
 
     return ViewModelBuilder.nonReactive(
-      viewModelBuilder: () => UploadViewModel(),
+      viewModelBuilder: () {
+        final model = UploadViewModel();
+        model.setRef(ref);
+        return model;
+      },
       builder: (context, model, child) {
         return Column(
           children: [
@@ -134,12 +137,15 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                 width: 200,
                 height: 200,
                 decoration: BoxDecoration(
-                  color: widget.imageUrl == null ? selectedColor : Colors.grey[300],
+                  color: widget.imageUrl == null
+                      ? selectedColor
+                      : Colors.grey[300],
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: widget.imageUrl != null
                     ? FutureBuilder<String?>(
-                        future: getImageFilePath(imageFileName: widget.imageUrl!),
+                        future:
+                            getImageFilePath(imageFileName: widget.imageUrl!),
                         builder: (context, snapshot) {
                           if (snapshot.hasData && snapshot.data != null) {
                             return Image.file(
@@ -213,7 +219,9 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                             urlType: URLTYPE.PRODUCT,
                           );
                           talker.warning("ImageToProduct:${product.imageUrl}");
-                          ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+                          ref
+                              .read(unsavedProductProvider.notifier)
+                              .emitProduct(value: product);
                           setState(() {
                             isUploading = false;
                           });
@@ -237,7 +245,8 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                         child: CircularProgressIndicator(
                           value: uploadProgress,
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     else
