@@ -14,17 +14,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/foundation.dart' as foundation;
+import 'package:supabase_models/brick/repository.dart';
 
 mixin AuthMixin implements AuthInterface {
   String get apihub;
+  Repository get repository;
   bool get offlineLogin;
   set offlineLogin(bool value);
 
   // Required methods that should be provided by other mixins
   @override
   Future<List<Business>> businesses({required int userId});
-  @override
-  Future<List<Branch>> branches({required int businessId});
 
   @override
   Future<bool> firebaseLogin({String? token}) async {
@@ -103,7 +103,9 @@ mixin AuthMixin implements AuthInterface {
   Future<IUser> _authenticateUser(String phoneNumber, Pin pin,
       HttpClientInterface flipperHttpClient) async {
     List<Business> businessesE = await businesses(userId: pin.userId!);
-    List<Branch> branchesE = await branches(businessId: pin.businessId!);
+    List<Branch> branchesE = await repository.get<Branch>(
+      query: Query(where: [Where('businessId').isExactly(pin.businessId!)]),
+    );
 
     final bool shouldEnableOfflineLogin = businessesE.isNotEmpty &&
         branchesE.isNotEmpty &&
@@ -216,7 +218,8 @@ mixin AuthMixin implements AuthInterface {
             businesses: _convertBusinesses(businesses),
             businessId: 0,
             nfcEnabled: false,
-            userId: pin.userId!)
+            userId: pin.userId!,
+            isDefault: false)
       ],
     );
   }

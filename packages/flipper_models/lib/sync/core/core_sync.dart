@@ -1,4 +1,3 @@
-import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/sync/core/core_sync_base.dart';
 import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
@@ -56,6 +55,11 @@ class CoreSync extends CoreSyncBase
         GetterOperationsMixin,
         PurchaseMixin {
   CoreSync() : super(AppSecrets.apihubProd);
+
+  final Talker _talker = Talker();
+
+  @override
+  Talker get talker => _talker;
 
   @override
   Future<void> initialize() async {
@@ -120,8 +124,4 @@ class CoreSync extends CoreSyncBase
     // TODO: implement configureCapella
     throw UnimplementedError();
   }
-
-  @override
-  // TODO: implement talker
-  Talker get talker => throw UnimplementedError();
 }
