@@ -12,7 +12,8 @@ mixin CapellaStorageMixin implements StorageInterface {
     required String assetName,
     required String subPath,
   }) async {
-    throw UnimplementedError('downloadAsset needs to be implemented for Capella');
+    throw UnimplementedError(
+        'downloadAsset needs to be implemented for Capella');
   }
 
   @override
@@ -20,6 +21,7 @@ mixin CapellaStorageMixin implements StorageInterface {
     String? assetName,
     String? subPath = "branch",
   }) async {
-    throw UnimplementedError('downloadAssetSave needs to be implemented for Capella');
+    throw UnimplementedError(
+        'downloadAssetSave needs to be implemented for Capella');
   }
 }

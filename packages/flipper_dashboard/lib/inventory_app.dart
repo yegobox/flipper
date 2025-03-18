@@ -11,8 +11,6 @@ import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-// Import the provider from layout.dart
-
 class InventoryApp extends HookConsumerWidget {
   final TextEditingController searchController;
 
@@ -25,9 +23,7 @@ class InventoryApp extends HookConsumerWidget {
     return Flexible(
       child: Column(
         children: [
-          // Search field stays fixed at the top
           SearchFieldWidget(controller: searchController),
-          // ProductView takes remaining space and scrolls independently
           Expanded(
             child: ProductView.normalMode(),
           ),
@@ -41,25 +37,20 @@ class InventoryApp extends HookConsumerWidget {
 
     switch (selectedMenuItem) {
       case 0: // Sales
-        return Expanded(
-          child: isScanningMode
-              ? buildReceiptUI().shouldSeeTheApp(ref, AppFeature.Sales)
-              : CheckOut(isBigScreen: true)
-                  .shouldSeeTheApp(ref, AppFeature.Sales),
-        ).shouldSeeTheApp(ref, AppFeature.Inventory);
+        return isScanningMode
+            ? buildReceiptUI().shouldSeeTheApp(ref, AppFeature.Sales)
+            : CheckOut(isBigScreen: true)
+                .shouldSeeTheApp(ref, AppFeature.Sales)
+                .shouldSeeTheApp(ref, AppFeature.Inventory);
       case 1: // Inventory
-        return Expanded(
-          child: Center(
-            child: Ai(),
-          ),
+        return Center(
+          child: Ai(),
         );
       case 2: // Tickets
         return const TransactionWidget();
       default:
-        return Expanded(
-          child: Center(
-            child: Text('Default Content'),
-          ),
+        return Center(
+          child: Text('Default Content'),
         );
     }
   }
@@ -76,23 +67,19 @@ class InventoryApp extends HookConsumerWidget {
     );
   }
 
-  Widget buildRow(bool isScanningMode, WidgetRef ref, BuildContext context) {
-    return Expanded(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          buildMainContent(isScanningMode, ref),
-          if (ref.read(selectedMenuItemProvider.notifier).state != 1)
-            buildProductSection(ref),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isScanningMode = ref.watch(scanningModeProvider);
-    return buildRow(isScanningMode, ref, context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: buildMainContent(isScanningMode, ref),
+        ),
+        if (ref.read(selectedMenuItemProvider.notifier).state != 1)
+          buildProductSection(ref),
+      ],
+    );
   }
 }
