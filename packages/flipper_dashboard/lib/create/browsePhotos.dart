@@ -114,6 +114,33 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
     }
   }
 
+  // Helper function to handle image upload
+  Future<void> _handleImageUpload(UploadViewModel model) async {
+    setState(() {
+      isUploading = true;
+    });
+    ref.read(uploadProgressProvider.notifier).state = 0.0;
+
+    try {
+      final product = await model.browsePictureFromGallery(
+        id: ref.watch(unsavedProductProvider)!.id,
+        urlType: URLTYPE.PRODUCT,
+      );
+      talker.warning("ImageToProduct:${product.imageUrl}");
+      ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+      setState(() {
+        isUploading = false;
+      });
+      ref.read(uploadProgressProvider.notifier).state = 0.0;
+    } catch (e) {
+      setState(() {
+        isUploading = false;
+      });
+      ref.read(uploadProgressProvider.notifier).state = 0.0;
+      talker.error("Upload error: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final uploadProgress = ref.watch(uploadProgressProvider);
@@ -132,31 +159,7 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                 if (widget.imageUrl == null) {
                   await _showColorPickerDialog(context);
                 } else {
-                  setState(() {
-                    isUploading = true;
-                  });
-                  ref.read(uploadProgressProvider.notifier).state = 0.0;
-
-                  try {
-                    final product = await model.browsePictureFromGallery(
-                      id: ref.watch(unsavedProductProvider)!.id,
-                      urlType: URLTYPE.PRODUCT,
-                    );
-                    talker.warning("ImageToProduct:${product.imageUrl}");
-                    ref
-                        .read(unsavedProductProvider.notifier)
-                        .emitProduct(value: product);
-                    setState(() {
-                      isUploading = false;
-                    });
-                    ref.read(uploadProgressProvider.notifier).state = 0.0;
-                  } catch (e) {
-                    setState(() {
-                      isUploading = false;
-                    });
-                    ref.read(uploadProgressProvider.notifier).state = 0.0;
-                    talker.error("Upload error: $e");
-                  }
+                  await _handleImageUpload(model);
                 }
               },
               child: Container(
@@ -303,35 +306,7 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                   onPressed: isUploading
                       ? null
                       : () async {
-                          setState(() {
-                            isUploading = true;
-                          });
-                          ref.read(uploadProgressProvider.notifier).state = 0.0;
-
-                          try {
-                            final product =
-                                await model.browsePictureFromGallery(
-                              id: ref.watch(unsavedProductProvider)!.id,
-                              urlType: URLTYPE.PRODUCT,
-                            );
-                            talker
-                                .warning("ImageToProduct:${product.imageUrl}");
-                            ref
-                                .read(unsavedProductProvider.notifier)
-                                .emitProduct(value: product);
-                            setState(() {
-                              isUploading = false;
-                            });
-                            ref.read(uploadProgressProvider.notifier).state =
-                                0.0;
-                          } catch (e) {
-                            setState(() {
-                              isUploading = false;
-                            });
-                            ref.read(uploadProgressProvider.notifier).state =
-                                0.0;
-                            talker.error("Upload error: $e");
-                          }
+                          await _handleImageUpload(model);
                         },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
