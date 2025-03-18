@@ -13,6 +13,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:intl/intl.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
+import 'package:flipper_services/sms/sms_notification_service.dart';
 
 // Provider to cache transaction items for each request
 final transactionItemsProvider =
@@ -765,11 +766,30 @@ class IncomingOrdersWidget extends HookConsumerWidget
                     id: request.id,
                     endPoint: 'stockRequest',
                   );
+
+                  // Send SMS notification to requester
+                  try {
+                    // Get requester's branch SMS config
+                    final requesterConfig =
+                        await SmsNotificationService.getBranchSmsConfig(
+                            request.branch!.serverId!);
+                    if (requesterConfig?.smsPhoneNumber != null) {
+                      await SmsNotificationService.sendOrderRequestNotification(
+                        receiverBranchId: request.branch!.serverId!,
+                        orderDetails:
+                            'Your stock request #${request.id.substring(0, 5)} has been declined.',
+                        requesterPhone: requesterConfig!.smsPhoneNumber!,
+                      );
+                    }
+                  } catch (smsError) {
+                    talker.error('Failed to send SMS notification: $smsError');
+                    // Don't show error to user as the main operation succeeded
+                  }
+
                   final stringValue = ref.watch(stringProvider);
                   ref.refresh(stockRequestsProvider((filter: stringValue)));
                   Navigator.of(context).pop();
                   // Show success snackbar
-
                   showCustomSnackBar(context, 'Request voided successfully');
                 } catch (e, s) {
                   talker.error(s);
