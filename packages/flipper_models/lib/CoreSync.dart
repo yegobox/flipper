@@ -2510,7 +2510,6 @@ class CoreSync extends AiStrategyImpl
         try {
           await repository.upsert<ImportPurchaseDates>(
               ImportPurchaseDates(
-                // lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
                 lastRequestDate: response.resultDt,
                 branchId: activeBranch.id,
                 requestType: "IMPORT",
