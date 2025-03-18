@@ -18,6 +18,7 @@ class SimpleLogPrinter extends LogPrinter {
   final bool printCallStack;
   final List<String> exludeLogsFromClasses;
   final String? showOnlyClass;
+  final PrettyPrinter _prettyPrinter = PrettyPrinter(); // Create an instance!
 
   SimpleLogPrinter(
     this.className, {
@@ -29,8 +30,9 @@ class SimpleLogPrinter extends LogPrinter {
 
   @override
   List<String> log(LogEvent event) {
-    var color = PrettyPrinter.levelColors[event.level];
-    var emoji = PrettyPrinter.levelEmojis[event.level];
+    // Now use the instance to access the properties:
+    var color = _prettyPrinter.levelColors?[event.level];
+    var emoji = _prettyPrinter.levelEmojis?[event.level];
     var methodName = _getMethodName();
 
     var methodNameSection =

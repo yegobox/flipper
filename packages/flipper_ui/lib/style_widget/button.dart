@@ -163,6 +163,7 @@ class FlipperIconButton extends StatelessWidget {
   final double? iconSize;
   final double? width;
   final double? height;
+  final Color? color;
   final bool busy;
   final bool isLoading;
 
@@ -174,6 +175,7 @@ class FlipperIconButton extends StatelessWidget {
     this.text,
     this.width = 200,
     this.height = 50,
+    this.color,
     this.onPressed,
     this.iconSize = 24.0, // Default icon size
     this.busy = false,
@@ -189,6 +191,12 @@ class FlipperIconButton extends StatelessWidget {
       width: width,
       child: TextButton(
         style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith<Color>(
+            (Set<WidgetState> states) {
+              return color ??
+                  const Color(0xffF2F2F2); // Use provided color or default
+            },
+          ),
           shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
             (states) => RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10.0),

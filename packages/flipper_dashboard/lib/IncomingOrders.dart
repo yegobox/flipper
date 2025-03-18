@@ -2,7 +2,6 @@
 
 import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -14,7 +13,13 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:intl/intl.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
-// import 'SnackBarMixin.dart';
+
+// Provider to cache transaction items for each request
+final transactionItemsProvider =
+    FutureProvider.family<List<TransactionItem>, String>(
+  (ref, requestId) =>
+      ProxyService.strategy.transactionItems(requestId: requestId),
+);
 
 class IncomingOrdersWidget extends HookConsumerWidget
     with StockRequestApprovalLogic, SnackBarMixin {
@@ -41,14 +46,13 @@ class IncomingOrdersWidget extends HookConsumerWidget
             }
 
             return incomingBranchAsync.when(
-              // Nested when!
               data: (incomingBranch) {
                 return ListView.builder(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
                   itemCount: requests.length,
                   itemBuilder: (context, index) => _buildRequestCard(
-                    incomingBranch: incomingBranch, // No more !
+                    incomingBranch: incomingBranch,
                     context,
                     ref,
                     requests[index],
@@ -132,7 +136,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
                   _buildBranchInfo(request, ref,
                       incomingBranch: incomingBranch),
                   SizedBox(height: 16.0),
-                  _buildItemsList(ref, request: request),
+                  _buildItemsList(ref, request: request, context: context),
                   SizedBox(height: 16.0),
                   _buildStatusAndDeliveryInfo(request),
                   if (request.orderNote?.isNotEmpty ?? false) ...[
@@ -190,21 +194,66 @@ class IncomingOrdersWidget extends HookConsumerWidget
             ],
           ),
         ),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.green[50],
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.green[100]!),
-          ),
-          child: Text(
-            '${request.itemCounts} Item${request.itemCounts! > 1 ? 's' : ''}',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.green[700],
-            ),
-          ),
+        Consumer(
+          builder: (context, ref, child) {
+            final itemsAsync = ref.watch(transactionItemsProvider(request.id));
+            return itemsAsync.when(
+              loading: () => Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.green[100]!),
+                ),
+                child: Text(
+                  '0/${request.itemCounts} Item${request.itemCounts! > 1 ? 's' : ''}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green[700],
+                  ),
+                ),
+              ),
+              error: (error, stack) => Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.green[100]!),
+                ),
+                child: Text(
+                  '0/${request.itemCounts} Item${request.itemCounts! > 1 ? 's' : ''}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green[700],
+                  ),
+                ),
+              ),
+              data: (items) {
+                final totalApproved = items.fold<int>(
+                    0, (sum, item) => sum + (item.quantityApproved ?? 0));
+                final totalRequested = items.fold<int>(
+                    0, (sum, item) => sum + (item.quantityRequested ?? 0));
+                return Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.green[50],
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.green[100]!),
+                  ),
+                  child: Text(
+                    '$totalApproved/$totalRequested Item${totalRequested > 1 ? 's' : ''}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green[700],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ],
     );
@@ -277,104 +326,137 @@ class IncomingOrdersWidget extends HookConsumerWidget
     );
   }
 
-  Widget _buildItemsList(WidgetRef ref, {required InventoryRequest request}) {
-    final transactionItemsAsync = ref.watch(transactionItemsProvider(
-      requestId: request.id,
-      fetchRemote: true,
-      doneWithTransaction: true,
-    ));
+  Widget _buildItemsList(WidgetRef ref,
+      {required InventoryRequest request, required BuildContext context}) {
+    final itemsAsync = ref.watch(transactionItemsProvider(request.id));
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: Text(
-              'Requested Items',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[800],
-              ),
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Items',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[800],
           ),
-          Divider(height: 1),
-          transactionItemsAsync.when(
-            data: (items) => items.isNotEmpty
-                ? ListView.separated(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: items.length,
-                    separatorBuilder: (context, index) => Divider(height: 1),
-                    itemBuilder: (context, index) =>
-                        _buildItemRow(items[index]),
-                  )
-                : Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text('No items found.'),
-                  ),
-            loading: () => Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (err, stack) => Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Error: $err'),
-            ),
+        ),
+        SizedBox(height: 12),
+        itemsAsync.when(
+          loading: () => Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(child: CircularProgressIndicator()),
           ),
-        ],
-      ),
+          error: (error, stack) => Text('Error loading items: $error'),
+          data: (items) => Column(
+            children: _buildItemList(items, request, context, ref),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildItemRow(TransactionItem item) {
-    return Padding(
-      padding: EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.blue[700],
-            ),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              item.name,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[800],
+  List<Widget> _buildItemList(List<TransactionItem> items,
+      InventoryRequest request, BuildContext context, WidgetRef ref) {
+    // Sort items by name for consistent display
+    items.sort((a, b) => (a.name).compareTo(b.name));
+
+    return items
+        .map((item) => Card(
+              margin: EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(color: Colors.grey[200]!),
               ),
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              'Qty: ${(item.qty - item.quantityApproved!)}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.blue[700],
-                fontWeight: FontWeight.w600,
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Text(
+                                'Approved: ',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              Text(
+                                '${item.quantityApproved ?? 0}/${item.quantityRequested ?? 0}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: _getQuantityColor(item),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if ((item.quantityRequested ?? 0) >
+                              (item.quantityApproved ?? 0))
+                            Padding(
+                              padding: EdgeInsets.only(top: 2),
+                              child: Text(
+                                'Pending: ${(item.quantityRequested ?? 0) - (item.quantityApproved ?? 0)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.orange[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (request.status != RequestStatus.approved &&
+                        (item.quantityApproved ?? 0) <
+                            (item.quantityRequested ?? 0))
+                      TextButton.icon(
+                        onPressed: () => _handleSingleItemApproval(
+                            context, ref, request, item),
+                        icon: Icon(Icons.check_circle_outline, size: 18),
+                        label: Text('Approve'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.green[600],
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
+            ))
+        .toList();
+  }
+
+  void _handleSingleItemApproval(BuildContext context, WidgetRef ref,
+      InventoryRequest request, TransactionItem item) {
+    try {
+      approveSingleItem(request: request, item: item, context: context);
+      final stringValue = ref.watch(stringProvider);
+      ref.refresh(stockRequestsProvider((filter: stringValue)));
+    } catch (e) {
+      showCustomSnackBar(context, 'Failed to approve item: ${e.toString()}',
+          backgroundColor: Colors.red[600]);
+    }
+  }
+
+  Color _getQuantityColor(TransactionItem item) {
+    final approved = item.quantityApproved ?? 0;
+    final requested = item.quantityRequested ?? 0;
+
+    if (approved == 0) return Colors.red;
+    if (approved < requested) return Colors.orange;
+    return Colors.green;
   }
 
   Widget _buildStatusAndDeliveryInfo(InventoryRequest request) {
@@ -523,27 +605,60 @@ class IncomingOrdersWidget extends HookConsumerWidget
 
   Widget _buildActionRow(
       BuildContext context, WidgetRef ref, InventoryRequest request) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        _buildActionButton(
-          onPressed: request.status == RequestStatus.approved
-              ? null
-              : () => _handleApproveRequest(context, ref, request),
-          icon: Icons.check_circle_outline,
-          label: 'Approve',
-          color: Colors.green[600]!,
-          isDisabled: request.status == RequestStatus.approved,
-        ),
-        SizedBox(width: 12),
-        _buildActionButton(
-          onPressed: () => _voidRequest(context, ref, request),
-          icon: Icons.cancel_outlined,
-          label: 'Void',
-          color: Colors.red[600]!,
-          isDisabled: false,
-        ),
-      ],
+    final itemsAsync = ref.watch(transactionItemsProvider(request.id));
+
+    return itemsAsync.when(
+      loading: () => Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          _buildActionButton(
+            onPressed: null,
+            icon: Icons.check_circle_outline,
+            label: 'Approve',
+            color: Colors.green[600]!,
+            isDisabled: true,
+          ),
+          SizedBox(width: 12),
+          _buildActionButton(
+            onPressed: null,
+            icon: Icons.cancel_outlined,
+            label: 'Void',
+            color: Colors.red[600]!,
+            isDisabled: true,
+          ),
+        ],
+      ),
+      error: (error, stack) => SizedBox(), // Hide buttons if there's an error
+      data: (items) {
+        final bool hasApprovedItems =
+            items.any((item) => (item.quantityApproved ?? 0) > 0);
+        final bool isFullyApproved = request.status == RequestStatus.approved;
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            _buildActionButton(
+              onPressed: isFullyApproved
+                  ? null
+                  : () => _handleApproveRequest(context, ref, request),
+              icon: Icons.check_circle_outline,
+              label: 'Approve',
+              color: Colors.green[600]!,
+              isDisabled: isFullyApproved,
+            ),
+            SizedBox(width: 12),
+            _buildActionButton(
+              onPressed: hasApprovedItems
+                  ? null
+                  : () => _voidRequest(context, ref, request),
+              icon: Icons.cancel_outlined,
+              label: 'Void',
+              color: Colors.red[600]!,
+              isDisabled: hasApprovedItems,
+            ),
+          ],
+        );
+      },
     );
   }
 

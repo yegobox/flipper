@@ -1,22 +1,14 @@
 import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/EnhancedSideMenu.dart';
-import 'package:flipper_dashboard/SearchFieldWidget.dart';
-import 'package:flipper_dashboard/TransactionWidget.dart';
-import 'package:flipper_dashboard/product_view.dart';
-import 'package:flipper_models/providers/scan_mode_provider.dart';
-import 'package:flipper_services/constants.dart';
+import 'package:flipper_dashboard/inventory_app.dart';
+import 'package:flipper_dashboard/mobile_view.dart';
+import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
-import 'package:flipper_dashboard/apps.dart';
-import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
-
-// State provider for the selected menu item
-final selectedMenuItemProvider = StateProvider<int>((ref) => 0);
 
 class AppLayoutDrawer extends StatefulHookConsumerWidget {
   const AppLayoutDrawer({
@@ -38,51 +30,25 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
   final TextEditingController searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // Set default selected menu item
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(selectedMenuItemProvider.notifier).state = 0;
+    });
+  }
+
+  @override
   void dispose() {
     searchController.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final isScanningMode = ref.watch(scanningModeProvider);
-
-    return ViewModelBuilder<CoreViewModel>.nonReactive(
-      viewModelBuilder: () => CoreViewModel(),
-      onViewModelReady: (model) {
-        ref.read(previewingCart.notifier).state = false;
-      },
-      builder: (context, model, child) {
-        return LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            if (constraints.maxWidth < 600) {
-              return buildApps(model);
-            } else {
-              return buildRow(isScanningMode);
-            }
-          },
-        );
-      },
-    );
-  }
-
   Widget buildApps(CoreViewModel model) {
-    return Apps(
+    return MobileView(
       isBigScreen: false,
       controller: widget.controller,
       model: model,
-    );
-  }
-
-  Widget buildReceiptUI() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: SizedBox(
-        width: 400,
-        child: PreviewSaleBottomSheet(
-          reverse: false,
-        ),
-      ),
     );
   }
 
@@ -96,66 +62,48 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
     );
   }
 
-  Widget buildMainContent(bool isScanningMode) {
-    final selectedMenuItem = ref.watch(selectedMenuItemProvider);
-
-    switch (selectedMenuItem) {
-      case 0: // Sales
-        return Expanded(
-          child: isScanningMode
-              ? buildReceiptUI().shouldSeeTheApp(ref, AppFeature.Sales)
-              : CheckOut(isBigScreen: true)
-                  .shouldSeeTheApp(ref, AppFeature.Sales),
-        ).shouldSeeTheApp(ref, AppFeature.Inventory);
-      case 1: // Inventory
-        return Expanded(
-          child: Center(
-            child: Ai(),
-          ),
+  Widget _buildSelectedApp() {
+    final selectedIndex = ref.watch(selectedMenuItemProvider);
+    switch (selectedIndex) {
+      case 0:
+        return InventoryApp(
+          searchController: searchController,
         );
-      case 2: // Tickets
-        return const TransactionWidget();
-
+      case 1:
+        return const Ai();
       default:
-        return Expanded(
-          child: Center(
-            child: Text('Default Content'),
-          ),
+        return InventoryApp(
+          searchController: searchController,
         );
     }
   }
 
-  Widget buildProductSection() {
-    return Flexible(
-      child: Column(
-        children: [
-          // Search field stays fixed at the top
-          SearchFieldWidget(controller: searchController),
-          // ProductView takes remaining space and scrolls independently
-          Expanded(
-            child: ProductView.normalMode(),
-          ),
-        ],
-      ),
-    ).shouldSeeTheApp(ref, AppFeature.Sales);
-  }
-
-  Widget buildRow(bool isScanningMode) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            buildSideMenu(),
-            const SizedBox(width: 20),
-            buildMainContent(isScanningMode),
-            if (ref.read(selectedMenuItemProvider.notifier).state != 1)
-              buildProductSection(),
-          ],
-        ),
-      ),
+  @override
+  Widget build(BuildContext context) {
+    return ViewModelBuilder<CoreViewModel>.nonReactive(
+      viewModelBuilder: () => CoreViewModel(),
+      onViewModelReady: (model) {
+        ref.read(previewingCart.notifier).state = false;
+      },
+      builder: (context, model, child) {
+        return LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            if (constraints.maxWidth < 600) {
+              return buildApps(model);
+            } else {
+              return Scaffold(
+                body: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    buildSideMenu(),
+                    Expanded(child: _buildSelectedApp()),
+                  ],
+                ),
+              );
+            }
+          },
+        );
+      },
     );
   }
 }

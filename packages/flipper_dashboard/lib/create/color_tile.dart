@@ -171,7 +171,6 @@ class ColorTileState extends ConsumerState<ColorTile> {
                           model.takePicture(
                             urlType: URLTYPE.PRODUCT,
                             productId: model.product!.id,
-                            callBack: (e) {},
                           );
                         },
                       ),

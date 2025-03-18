@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'dart:io';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/view_models/upload_viewmodel.dart';
 import 'package:flipper_services/abstractions/upload.dart';
@@ -9,11 +10,20 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flipper_models/providers/upload_providers.dart';
 
 class Browsephotos extends StatefulHookConsumerWidget {
-  final ValueChanged<Color> onColorSelected; // Callback for selected color
+  final ValueChanged<Color> onColorSelected;
+  final String? imageUrl;
+  final Color currentColor;
 
-  Browsephotos({super.key, required this.onColorSelected});
+  Browsephotos({
+    super.key,
+    required this.onColorSelected,
+    this.imageUrl,
+    this.currentColor = Colors.blue,
+  });
 
   @override
   BrowsephotosState createState() => BrowsephotosState();
@@ -21,9 +31,28 @@ class Browsephotos extends StatefulHookConsumerWidget {
 
 class BrowsephotosState extends ConsumerState<Browsephotos> {
   final talker = TalkerFlutter.init();
-  Color selectedColor = Colors.blue; // Default color
+  late Color selectedColor;
+  bool isUploading = false;
 
-  // Function to show the color picker in a modal dialog
+  @override
+  void initState() {
+    super.initState();
+    selectedColor = widget.currentColor;
+  }
+
+  Future<String?> getImageFilePath({required String imageFileName}) async {
+    Directory appSupportDir = await getApplicationSupportDirectory();
+
+    final imageFilePath = '${appSupportDir.path}/$imageFileName';
+    final file = File(imageFilePath);
+
+    if (await file.exists()) {
+      return imageFilePath;
+    } else {
+      return null;
+    }
+  }
+
   Future<void> _showColorPickerDialog(BuildContext context) async {
     final Color? newColor = await showDialog<Color>(
       context: context,
@@ -34,7 +63,6 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
             child: ColorPicker(
               color: selectedColor,
               onColorChanged: (Color color) {
-                // Update the selected color while the dialog is open
                 selectedColor = color;
               },
               pickersEnabled: const <ColorPickerType, bool>{
@@ -64,14 +92,13 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog without saving
+                Navigator.of(context).pop();
               },
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context)
-                    .pop(selectedColor); // Return the selected color
+                Navigator.of(context).pop(selectedColor);
               },
               child: const Text('OK'),
             ),
@@ -80,71 +107,153 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
       },
     );
 
-    // Update the selected color if the user pressed "OK"
     if (newColor != null) {
       setState(() {
         selectedColor = newColor;
       });
-
-      // Invoke the callback with the selected color
       widget.onColorSelected(newColor);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final uploadProgress = ref.watch(uploadProgressProvider);
+
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => UploadViewModel(),
       builder: (context, model, child) {
         return Column(
           children: [
-            // Button to open the color picker modal
-            SizedBox(
-              width: 180,
-              child: FlipperButton(
-                textColor: Colors.black,
-                borderRadius: BorderRadius.circular(1),
-                text: 'Pick a Color',
-                onPressed: () async {
-                  await _showColorPickerDialog(
-                      context); // Open the color picker modal
-                },
+            InkWell(
+              onTap: () async {
+                if (widget.imageUrl == null) {
+                  await _showColorPickerDialog(context);
+                }
+              },
+              child: Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  color: widget.imageUrl == null ? selectedColor : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: widget.imageUrl != null
+                    ? FutureBuilder<String?>(
+                        future: getImageFilePath(imageFileName: widget.imageUrl!),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData && snapshot.data != null) {
+                            return Image.file(
+                              File(snapshot.data!),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                talker.error("Image load error: $error");
+                                return Center(
+                                  child: Icon(
+                                    Icons.image,
+                                    size: 50,
+                                    color: Colors.grey[500],
+                                  ),
+                                );
+                              },
+                            );
+                          } else {
+                            return Center(
+                              child: Icon(
+                                Icons.image,
+                                size: 50,
+                                color: Colors.grey[500],
+                              ),
+                            );
+                          }
+                        },
+                      )
+                    : Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.color_lens,
+                              size: 50,
+                              color: Colors.white.withOpacity(0.8),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Click to pick color',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
               ),
             ),
-
-            // Choose a Photo Button
+            const SizedBox(height: 8),
             SizedBox(
-              width: 180,
+              width: 200,
               child: TextButton(
-                child: const Text(
-                  'Choose a Photo',
+                style: TextButton.styleFrom(
+                  backgroundColor: isUploading
+                      ? Color.lerp(Colors.blue, Colors.green, uploadProgress)
+                      : Colors.grey[200],
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-                style: ButtonStyle(
-                  overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                    (Set<WidgetState> states) {
-                      if (states.contains(WidgetState.hovered)) {
-                        return Colors.grey.withOpacity(0.04);
-                      }
-                      if (states.contains(WidgetState.focused) ||
-                          states.contains(WidgetState.pressed)) {
-                        return Colors.grey.withOpacity(0.12);
-                      }
-                      return null;
-                    },
-                  ),
+                onPressed: isUploading
+                    ? null
+                    : () async {
+                        setState(() {
+                          isUploading = true;
+                        });
+                        ref.read(uploadProgressProvider.notifier).state = 0.0;
+
+                        try {
+                          final product = await model.browsePictureFromGallery(
+                            id: ref.watch(unsavedProductProvider)!.id,
+                            urlType: URLTYPE.PRODUCT,
+                          );
+                          talker.warning("ImageToProduct:${product.imageUrl}");
+                          ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+                          setState(() {
+                            isUploading = false;
+                          });
+                          ref.read(uploadProgressProvider.notifier).state = 0.0;
+                        } catch (e) {
+                          setState(() {
+                            isUploading = false;
+                          });
+                          ref.read(uploadProgressProvider.notifier).state = 0.0;
+                          talker.error("Upload error: $e");
+                        }
+                      },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (isUploading)
+                      Container(
+                        width: 20,
+                        height: 20,
+                        margin: const EdgeInsets.only(right: 8),
+                        child: CircularProgressIndicator(
+                          value: uploadProgress,
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    else
+                      Icon(Icons.upload, size: 20, color: Colors.grey[800]),
+                    const SizedBox(width: 8),
+                    Text(
+                      isUploading
+                          ? '${(uploadProgress * 100).toInt()}%'
+                          : 'Upload Image',
+                      style: TextStyle(
+                        color: isUploading ? Colors.white : Colors.grey[800],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
-                onPressed: () async {
-                  model.browsePictureFromGallery(
-                    id: ref.watch(unsavedProductProvider)!.id,
-                    callBack: (product) {
-                      talker.warning("ImageToProduct:${product.imageUrl}");
-                      ref
-                          .read(unsavedProductProvider.notifier)
-                          .emitProduct(value: product);
-                    },
-                    urlType: URLTYPE.PRODUCT,
-                  );
-                },
               ),
             ),
           ],

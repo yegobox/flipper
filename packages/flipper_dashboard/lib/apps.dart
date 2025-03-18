@@ -12,6 +12,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_services/proxy.dart';
 import 'drawerB.dart';
 import 'customappbar.dart';
+import 'widgets/app_icons_grid.dart';
+import 'providers/navigation_providers.dart';
 
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -22,12 +24,14 @@ class Apps extends StatefulHookConsumerWidget {
   final TextEditingController controller;
   final bool isBigScreen;
   final CoreViewModel model;
+  final Function(String appId)? onAppLongPress;
 
   const Apps({
     Key? key,
     required this.controller,
     required this.isBigScreen,
     required this.model,
+    this.onAppLongPress,
   }) : super(key: key);
 
   @override
@@ -48,6 +52,20 @@ class _AppsState extends ConsumerState<Apps> {
 
   String profitType = "Net Profit";
   final List<String> profitTypeOptions = ["Net Profit", "Gross Profit"];
+
+  void _handleAppTap(String appId) {
+    switch (appId) {
+      case 'sales':
+        ref.read(selectedMenuItemProvider.notifier).state = 0;
+        break;
+      case 'inventory':
+        ref.read(selectedMenuItemProvider.notifier).state = 1;
+        break;
+      case 'tickets':
+        ref.read(selectedMenuItemProvider.notifier).state = 2;
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,8 +88,6 @@ class _AppsState extends ConsumerState<Apps> {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
-                  // Refresh data
-                  // ignore: unused_result
                   await ref.refresh(transactionsStreamProvider);
                 },
                 child: SingleChildScrollView(
@@ -79,7 +95,9 @@ class _AppsState extends ConsumerState<Apps> {
                   child: Column(
                     children: [
                       _buildGauge(context, ref),
-                      _buildAppIconsGrid(),
+                      AppIconsGrid(
+                        isBigScreen: widget.isBigScreen,
+                      ),
                       const SizedBox(height: 24),
                       _buildFooter(),
                       const SizedBox(height: 16),
@@ -186,102 +204,6 @@ class _AppsState extends ConsumerState<Apps> {
     );
   }
 
-  Widget _buildAppIconsGrid() {
-    final List<Map<String, dynamic>> apps = [
-      {
-        'icon': FluentIcons.calculator_24_regular,
-        'color': const Color(0xff006AFE),
-        'page': "POS",
-        'label': "Point of Sale"
-      },
-      {
-        'icon': FluentIcons.book_48_regular,
-        'color': const Color(0xFF66AAFF),
-        'page': "Cashbook",
-        'label': "Cash Book"
-      },
-      {
-        'icon': FluentIcons.arrow_swap_20_regular,
-        'color': const Color(0xFFFF0331),
-        'page': "Transactions",
-        'label': "Transactions"
-      },
-      {
-        'icon': FluentIcons.people_32_regular,
-        'color': Colors.cyan,
-        'page': "Contacts",
-        'label': "Contacts"
-      },
-      {
-        'icon': Icons.store_rounded,
-        'color': Colors.green,
-        'page': "Orders",
-        'label': "Orders"
-      },
-      {
-        'icon': Icons.call,
-        'color': Colors.lightBlue,
-        'page': "Support",
-        'label': "Support"
-      }
-    ];
-
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: apps.length,
-      itemBuilder: (context, index) {
-        final app = apps[index];
-        return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: () async {
-              HapticFeedback.lightImpact();
-              await _navigateToPage(app['page']);
-            },
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: app['color'].withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    app['icon'],
-                    color: app['color'],
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  app['label'],
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildFooter() {
     return Column(
       children: [
@@ -339,7 +261,6 @@ class _AppsState extends ConsumerState<Apps> {
     );
   }
 
-  // Keep existing helper methods unchanged
   List<ITransaction> _filterTransactionsByPeriod(
       List<ITransaction> transactions, String period) {
     log(transactions.length.toString(), name: 'render transactions on gauge');
