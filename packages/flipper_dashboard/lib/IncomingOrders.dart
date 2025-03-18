@@ -762,6 +762,11 @@ class IncomingOrdersWidget extends HookConsumerWidget
             ElevatedButton(
               onPressed: () async {
                 try {
+                  // First update the request status to voided
+                  await ProxyService.strategy.updateStockRequest(
+                      stockRequestId: request.id, status: RequestStatus.voided);
+
+                  // Then delete the request
                   await ProxyService.strategy.delete(
                     id: request.id,
                     endPoint: 'stockRequest',
@@ -794,7 +799,7 @@ class IncomingOrdersWidget extends HookConsumerWidget
                 } catch (e, s) {
                   talker.error(s);
                   showCustomSnackBar(
-                      context, 'Failed to approve request: ${e.toString()}',
+                      context, 'Failed to void request: ${e.toString()}',
                       backgroundColor: Colors.red[600]);
                 }
               },
