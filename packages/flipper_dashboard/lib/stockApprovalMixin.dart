@@ -46,7 +46,7 @@ mixin StockRequestApprovalLogic {
         }
       }
 
-      Navigator.of(context).pop(); // Dismiss loading
+      Navigator.of(context).pop(true); // Dismiss loading
 
       if (!isFullyApproved) {
         final bool partialApprovalResult = await _handlePartialApproval(
@@ -322,14 +322,12 @@ mixin StockRequestApprovalLogic {
         // Don't show error to user as the main operation succeeded
       }
 
-      if (context.mounted) {
-        Navigator.of(context).pop(); // Dismiss loading dialog
-        _showSnackBar(
-          message:
-              'Request ${isFullyApproved ? 'approved' : 'partially approved'} successfully',
-          context: context,
-        );
-      }
+      Navigator.of(context).pop(true); // Dismiss loading dialog
+      _showSnackBar(
+        message:
+            'Request ${isFullyApproved ? 'approved' : 'partially approved'} successfully',
+        context: context,
+      );
     } catch (e, s) {
       talker.error('Error in finalizeApproval', e, s);
       if (context.mounted) {
@@ -642,7 +640,6 @@ mixin StockRequestApprovalLogic {
       }
 
       if (context.mounted) {
-        Navigator.of(context).pop(); // Dismiss loading dialog
         Navigator.of(context).pop(true); // Close approval dialog with success
       }
     } catch (e, s) {
