@@ -103,63 +103,92 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => UploadViewModel(),
       builder: (context, model, child) {
-        return InkWell(
-          onTap: () async {
-            if (widget.imageUrl == null) {
-              await _showColorPickerDialog(context);
-            } else {
-              model.browsePictureFromGallery(
-                id: ref.watch(unsavedProductProvider)!.id,
-                callBack: (product) {
-                  talker.warning("ImageToProduct:${product.imageUrl}");
-                  ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
-                },
-                urlType: URLTYPE.PRODUCT,
-              );
-            }
-          },
-          child: Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              color: widget.imageUrl == null ? selectedColor : Colors.grey[300],
-              borderRadius: BorderRadius.circular(4),
+        return Column(
+          children: [
+            InkWell(
+              onTap: () async {
+                if (widget.imageUrl == null) {
+                  await _showColorPickerDialog(context);
+                }
+              },
+              child: Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  color: widget.imageUrl == null ? selectedColor : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: widget.imageUrl != null
+                    ? Image.network(
+                        widget.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Icon(
+                              Icons.image,
+                              size: 50,
+                              color: Colors.grey[500],
+                            ),
+                          );
+                        },
+                      )
+                    : Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.color_lens,
+                              size: 50,
+                              color: Colors.white.withOpacity(0.8),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Click to pick color',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
             ),
-            child: widget.imageUrl != null
-                ? Image.network(
-                    widget.imageUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Center(
-                        child: Icon(
-                          Icons.image,
-                          size: 50,
-                          color: Colors.grey[500],
-                        ),
-                      );
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 200,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.grey[200],
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                onPressed: () async {
+                  model.browsePictureFromGallery(
+                    id: ref.watch(unsavedProductProvider)!.id,
+                    callBack: (product) {
+                      talker.warning("ImageToProduct:${product.imageUrl}");
+                      ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
                     },
-                  )
-                : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.color_lens,
-                          size: 50,
-                          color: Colors.white.withOpacity(0.8),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Click to pick color',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
+                    urlType: URLTYPE.PRODUCT,
+                  );
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.upload, size: 20, color: Colors.grey[800]),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Upload Image',
+                      style: TextStyle(
+                        color: Colors.grey[800],
+                        fontSize: 14,
+                      ),
                     ),
-                  ),
-          ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
