@@ -264,15 +264,18 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                               children: [
                                 CircularProgressIndicator(
                                   value: uploadProgress,
-                                  valueColor:
-                                      const AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Color.lerp(Colors.blue, Colors.green,
+                                              uploadProgress) ??
+                                          Colors.blue),
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
                                   '${(uploadProgress * 100).toInt()}%',
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: Color.lerp(Colors.blue, Colors.green,
+                                            uploadProgress) ??
+                                        Colors.blue,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
