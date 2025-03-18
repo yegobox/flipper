@@ -1,7 +1,7 @@
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_services/sms/sms_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -303,16 +303,43 @@ mixin StockRequestApprovalLogic {
             : RequestStatus.partiallyApproved,
       );
 
+      // Send SMS notification to requester
+      try {
+        // Get requester's branch SMS config
+        final requesterConfig = await SmsNotificationService.getBranchSmsConfig(
+          request.branch!.serverId!,
+        );
+        if (requesterConfig?.smsPhoneNumber != null) {
+          await SmsNotificationService.sendOrderRequestNotification(
+            receiverBranchId: request.branch!.serverId!,
+            orderDetails:
+                'Your stock request #${request.id.substring(0, 5)} has been ${isFullyApproved ? 'approved' : 'partially approved'}.',
+            requesterPhone: requesterConfig!.smsPhoneNumber!,
+          );
+        }
+      } catch (smsError) {
+        talker.error('Failed to send SMS notification: $smsError');
+        // Don't show error to user as the main operation succeeded
+      }
+
       if (context.mounted) {
+        Navigator.of(context).pop(); // Dismiss loading dialog
         _showSnackBar(
           message:
-              'Request #${request.id} has been ${isFullyApproved ? "fully" : "partially"} approved',
+              'Request ${isFullyApproved ? 'approved' : 'partially approved'} successfully',
           context: context,
         );
       }
     } catch (e, s) {
-      talker.error('Error finalizing approval', e, s);
-      throw Exception('Failed to finalize approval');
+      talker.error('Error in finalizeApproval', e, s);
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Dismiss loading dialog
+        _showSnackBar(
+          message: 'Failed to finalize approval',
+          context: context,
+          isError: true,
+        );
+      }
     }
   }
 
@@ -455,6 +482,14 @@ mixin StockRequestApprovalLogic {
     required Variant variant,
     required int index,
   }) {
+    // Initialize the quantity when building the card
+    if (approvedQuantities[index] == null) {
+      approvedQuantities[index] = _calculateInitialValueAsInt(
+        requested: item.quantityRequested ?? 0,
+        available: variant.stock!.currentStock!,
+      );
+    }
+
     return Card(
       elevation: 2,
       margin: EdgeInsets.symmetric(vertical: 8),
@@ -482,10 +517,7 @@ mixin StockRequestApprovalLogic {
             ),
             SizedBox(height: 16),
             TextFormField(
-              initialValue: _calculateInitialValue(
-                requested: item.quantityRequested ?? 0,
-                available: variant.stock!.currentStock!,
-              ),
+              initialValue: approvedQuantities[index].toString(),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
@@ -559,11 +591,11 @@ mixin StockRequestApprovalLogic {
     );
   }
 
-  String _calculateInitialValue({
+  int _calculateInitialValueAsInt({
     required num requested,
     required double available,
   }) {
-    return (available < requested ? available : requested).toString();
+    return (available < requested ? available.toInt() : requested.toInt());
   }
 
   void _updateApprovedQuantity({
