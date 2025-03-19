@@ -7,8 +7,6 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker_flutter/talker_flutter.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 import '../interfaces/purchase_interface.dart';
 import '../interfaces/branch_interface.dart';
@@ -347,5 +345,14 @@ mixin PurchaseMixin
 
   String randomizeColor() {
     return '#${(Random().nextInt(0x1000000) | 0x800000).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+  }
+
+  @override
+  Future<List<Purchase>> purchases() async {
+    // return purchases that has item that have not been approved
+    final purchases = await repository.get<Purchase>(
+        query: brick.Query(
+            where: [brick.Where('hasUnApprovedVariant').isExactly(true)]));
+    return purchases;
   }
 }

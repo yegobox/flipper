@@ -36,7 +36,7 @@ abstract class GetterOperationsInterface {
       required HttpClientInterface flipperHttpClient});
 
   // Required methods that should be provided by other mixins
-  Future<Business?> getBusinessById({required int businessId});
+  FutureOr<Business?> getBusinessById({required int businessId});
   FutureOr<Branch?> branch({required int serverId});
   FutureOr<List<ITransaction>> transactions({
     DateTime? startDate,

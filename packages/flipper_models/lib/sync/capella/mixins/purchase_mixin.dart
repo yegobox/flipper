@@ -36,4 +36,9 @@ mixin CapellaPurchaseMixin implements PurchaseInterface {
   ) async {
     throw UnimplementedError('saveVariant needs to be implemented for Capella');
   }
+
+  @override
+  Future<List<Purchase>> purchases() {
+    throw UnimplementedError('purchases needs to be implemented for Capella');
+  }
 }

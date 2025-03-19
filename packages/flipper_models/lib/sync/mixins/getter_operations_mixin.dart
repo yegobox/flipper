@@ -18,7 +18,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
   String get apihub;
 
   @override
-  Future<Business?> getBusinessById({required int businessId});
+  FutureOr<Business?> getBusinessById({required int businessId});
   @override
   FutureOr<Branch?> branch({required int serverId});
   @override

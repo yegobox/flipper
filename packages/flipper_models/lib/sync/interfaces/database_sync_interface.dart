@@ -9,7 +9,8 @@ import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/sync/interfaces/storage_interface.dart';
 
 abstract class DatabaseSyncInterface extends BaseSyncInterface
-    implements ProductInterface,
+    implements
+        ProductInterface,
         TransactionInterface,
         VariantInterface,
         FavoriteInterface,

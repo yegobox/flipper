@@ -13,14 +13,14 @@ class Purchases extends StatefulHookConsumerWidget {
   final TextEditingController supplyPriceController;
   final TextEditingController retailPriceController;
   final void Function() saveItemName;
-  final void Function(
-      {required List<Variant> variants,
-      required String pchsSttsCd}) acceptPurchases;
+  final void Function({required List<Variant> variants, required String pchsSttsCd})
+      acceptPurchases;
   final void Function(
     Variant? itemToAssign,
     Variant? itemFromPurchase,
   ) selectSale;
   final List<Variant> finalSalesList;
+  final List<Purchase> purchases;
 
   Purchases({
     required this.formKey,
@@ -31,6 +31,7 @@ class Purchases extends StatefulHookConsumerWidget {
     required this.acceptPurchases,
     required this.selectSale,
     required this.finalSalesList,
+    required this.purchases,
   });
 
   @override
@@ -38,6 +39,8 @@ class Purchases extends StatefulHookConsumerWidget {
 }
 
 class _PurchasesState extends ConsumerState<Purchases> {
+  final Map<String, bool> _expandedPurchases = {};
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -69,27 +72,13 @@ class _PurchasesState extends ConsumerState<Purchases> {
             const SizedBox(height: 16),
             Expanded(
               child: PurchaseTable(
+                purchases: widget.purchases,
                 nameController: widget.nameController,
                 supplyPriceController: widget.supplyPriceController,
                 retailPriceController: widget.retailPriceController,
                 saveItemName: widget.saveItemName,
-                acceptPurchases: (List<Variant> variants, pchsSttsCd) async {
-                  widget.acceptPurchases(
-                      variants: variants, pchsSttsCd: pchsSttsCd);
-                  // Refresh the product list
-                  // Refresh the product list
-                  ref
-                      .read(searchStringProvider.notifier)
-                      .emitString(value: "search");
-                  ref.read(searchStringProvider.notifier).emitString(value: "");
-
-                  await ref
-                      .read(productsProvider(ProxyService.box.getBranchId()!)
-                          .notifier)
-                      .loadProducts(searchString: "", scanMode: true);
-                },
-                selectSale: (itemToAssign, itemFromPurchase) =>
-                    widget.selectSale(itemToAssign, itemFromPurchase),
+                acceptPurchases: widget.acceptPurchases,
+                selectSale: widget.selectSale,
                 finalSalesList: widget.finalSalesList,
               ),
             ),

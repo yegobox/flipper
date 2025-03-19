@@ -1,30 +1,34 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250315100347.migration.dart';
+part '20250319191328.migration.dart';
+part '20250314135245.migration.dart';
 part '20250308132353.migration.dart';
+part '20250315100347.migration.dart';
+part '20250315043528.migration.dart';
 part '20250308114254.migration.dart';
+part '20250315044419.migration.dart';
 part '20250301162356.migration.dart';
 part '20250308112114.migration.dart';
-part '20250314135245.migration.dart';
-part '20250315043528.migration.dart';
-part '20250315044419.migration.dart';
+part '20250319183234.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250315100347(),
+  const Migration20250319191328(),
+  const Migration20250314135245(),
   const Migration20250308132353(),
+  const Migration20250315100347(),
+  const Migration20250315043528(),
   const Migration20250308114254(),
+  const Migration20250315044419(),
   const Migration20250301162356(),
   const Migration20250308112114(),
-  const Migration20250314135245(),
-  const Migration20250315043528(),
-  const Migration20250315044419(),
+  const Migration20250319183234(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250315044419,
+  20250319183234,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -437,6 +441,25 @@ final schema = Schema(
       },
     ),
     SchemaTable(
+      'BranchSmsConfig',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('branch_id', Column.integer),
+        SchemaColumn('sms_phone_number', Column.varchar),
+        SchemaColumn('enable_order_notification', Column.boolean),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
       'Country',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -733,6 +756,10 @@ final schema = Schema(
         SchemaColumn('tot_amt', Column.num),
         SchemaColumn('branch_id', Column.integer),
         SchemaColumn('remark', Column.varchar),
+        SchemaColumn('has_un_approved_variant', Column.boolean),
+        SchemaColumn('approved', Column.integer),
+        SchemaColumn('rejected', Column.integer),
+        SchemaColumn('pending', Column.integer),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -1462,6 +1489,26 @@ final schema = Schema(
       },
     ),
     SchemaTable(
+      'AiConversation',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('title', Column.varchar),
+        SchemaColumn('branch_id', Column.integer),
+        SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('last_message_at', Column.datetime),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
       '_brick_Plan_addons',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -1553,45 +1600,6 @@ final schema = Schema(
         SchemaColumn('deleted_at', Column.datetime),
         SchemaColumn('business_id', Column.integer),
         SchemaColumn('branch_id', Column.integer),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(columns: ['id'], unique: true),
-      },
-    ),
-    SchemaTable(
-      'BranchSmsConfig',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('branch_id', Column.integer),
-        SchemaColumn('sms_phone_number', Column.varchar),
-        SchemaColumn('enable_order_notification', Column.boolean),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(columns: ['id'], unique: true),
-      },
-    ),
-    SchemaTable(
-      'AiConversation',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('title', Column.varchar),
-        SchemaColumn('branch_id', Column.integer),
-        SchemaColumn('created_at', Column.datetime),
-        SchemaColumn('last_message_at', Column.datetime),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

@@ -342,12 +342,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Category? activeCategory({required int branchId}) {
-    // TODO: implement activeCategory
-    throw UnimplementedError();
-  }
-
-  @override
   Future<int> addFavorite({required Favorite data}) {
     // TODO: implement addFavorite
     throw UnimplementedError();
@@ -1978,6 +1972,25 @@ class Capella extends AiStrategyImpl
   @override
   Future<bool> logOut() {
     // TODO: implement logOut
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Purchase>> purchases() {
+    // TODO: implement purchases
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> saveVariant(
+      brick.Variant item, brick.Business business, int branchId) {
+    // TODO: implement saveVariant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Category?> activeCategory({required int branchId}) {
+    // TODO: implement activeCategory
     throw UnimplementedError();
   }
 }

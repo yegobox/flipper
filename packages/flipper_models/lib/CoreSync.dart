@@ -18,6 +18,9 @@ import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/sync/mixins/branch_mixin.dart';
+import 'package:flipper_models/sync/mixins/business_mixin.dart';
+import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
+import 'package:flipper_models/sync/mixins/variant_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
@@ -58,7 +61,14 @@ import 'package:uuid/uuid.dart';
 /// anotherone to acheive sync for flipper app
 
 class CoreSync extends AiStrategyImpl
-    with Booting, CoreMiscellaneous, TransactionMixin, BranchMixin
+    with
+        Booting,
+        CoreMiscellaneous,
+        TransactionMixin,
+        BranchMixin,
+        PurchaseMixin,
+        BusinessMixin,
+        VariantMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
@@ -181,18 +191,6 @@ class CoreSync extends AiStrategyImpl
         ],
       ),
     ))
-        .firstOrNull;
-  }
-
-  @override
-  Future<models.Category?> activeCategory({required int branchId}) async {
-    return (await repository.get<Category>(
-            query: brick.Query(where: [
-              brick.Where('focused').isExactly(true),
-              brick.Where('active').isExactly(true),
-              brick.Where('branchId').isExactly(branchId),
-            ], limit: 1),
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))
         .firstOrNull;
   }
 
@@ -1225,16 +1223,6 @@ class CoreSync extends AiStrategyImpl
             : [brick.Where('isDefault').isExactly(true)]);
     final result = await repository.get<models.Business>(
         query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
-    return result.firstOrNull;
-  }
-
-  @override
-  FutureOr<Business?> getBusinessById({required int businessId}) async {
-    final repository = Repository();
-    final query =
-        brick.Query(where: [brick.Where('serverId').isExactly(businessId)]);
-    final result = await repository.get<models.Business>(
-        query: query, policy: OfflineFirstGetPolicy.localOnly);
     return result.firstOrNull;
   }
 
@@ -3855,88 +3843,6 @@ class CoreSync extends AiStrategyImpl
         policy: OfflineFirstGetPolicy.localOnly,
         query:
             brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
-  }
-
-  @override
-  Future<List<Variant>> variants({
-    required int branchId,
-    String? productId,
-    int? page,
-    String? variantId,
-    String? name,
-    String? bcd,
-    String? purchaseId,
-    int? itemsPerPage,
-    String? imptItemsttsCd,
-    bool excludeApprovedInWaitingOrCanceledItems = false,
-    bool fetchRemote = false,
-  }) async {
-    try {
-      final query = brick.Query(where: [
-        if (variantId != null)
-          brick.Where('id').isExactly(variantId)
-        else if (name != null) ...[
-          brick.Where('name').contains(name),
-          brick.Where('branchId').isExactly(branchId),
-        ] else if (bcd != null) ...[
-          brick.Where('bcd').isExactly(bcd),
-          brick.Where('branchId').isExactly(branchId),
-        ] else if (imptItemsttsCd != null) ...[
-          brick.Where('imptItemSttsCd').isExactly(imptItemsttsCd),
-          brick.Where('branchId').isExactly(branchId)
-        ] else if (productId != null) ...[
-          brick.Where('productId').isExactly(productId),
-          brick.Where('branchId').isExactly(branchId)
-        ] else ...[
-          brick.Where('branchId').isExactly(branchId),
-
-          brick.Where('name').isNot(TEMP_PRODUCT),
-          brick.Where('productName').isNot(CUSTOM_PRODUCT),
-          // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
-          if (!excludeApprovedInWaitingOrCanceledItems) ...[
-            brick.Where('imptItemSttsCd').isNot("2"),
-            brick.Where('imptItemSttsCd').isNot("4"),
-            //TODO: there is a bug in brick where comparing to 01 is not working
-            // brick.Where('pchsSttsCd').isNot("01"),
-            // brick.Where('pchsSttsCd').isNot("04"),
-          ],
-
-          /// 01 is waiting for approval.
-          if (excludeApprovedInWaitingOrCanceledItems)
-            brick.Where('pchsSttsCd').isExactly("01"),
-
-          if (purchaseId != null)
-            brick.Where('purchaseId').isExactly(purchaseId),
-          // Apply the purchaseId filter only if includePurchases is true
-          if (excludeApprovedInWaitingOrCanceledItems)
-            brick.Where('purchaseId').isNot(null),
-        ]
-      ]);
-      List<Variant> variants = await repository.get<Variant>(
-        policy: fetchRemote
-            ? OfflineFirstGetPolicy.alwaysHydrate
-            : OfflineFirstGetPolicy.localOnly,
-        query: query,
-      );
-
-      // Pagination logic (if needed)
-      if (page != null && itemsPerPage != null) {
-        final offset = page * itemsPerPage;
-        return variants
-            .where((variant) =>
-                variant.pchsSttsCd != "01" &&
-                variant.pchsSttsCd != "04" &&
-                variant.pchsSttsCd != "1")
-            .skip(offset)
-            .take(itemsPerPage)
-            .toList();
-      }
-
-      return variants;
-    } catch (e, s) {
-      talker.error(s);
-      rethrow;
-    }
   }
 
   @override

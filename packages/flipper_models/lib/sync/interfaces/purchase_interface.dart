@@ -7,6 +7,8 @@ abstract class PurchaseInterface {
     required String lastRequestdate,
   });
 
+  Future<List<Purchase>> purchases();
+
   Future<List<Variant>> selectPurchases({
     required String bhfId,
     required int tin,

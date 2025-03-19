@@ -22,9 +22,9 @@ class ImportPurchasePage extends StatefulHookConsumerWidget {
 class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     with Refresh {
   DateTime _selectedDate = DateTime.now();
-  Future<List<model.Variant>>? _futureImportResponse;
-  Future<List<model.Variant>>?
-      _futurePurchaseResponse; // Added for purchase data
+  late Future<List<model.Variant>> _futureImportResponse;
+  late Future<List<model.Variant>> _futurePurchaseResponse;
+  late Future<List<model.Purchase>> _futurePurchases;
   model.Variant? _selectedItem;
   model.Variant? _selectedPurchaseItem;
   final TextEditingController _nameController = TextEditingController();
@@ -41,6 +41,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   @override
   void initState() {
     super.initState();
+    _futurePurchaseResponse = _fetchDataPurchase(selectedDate: _selectedDate);
+    _futurePurchases = ProxyService.strategy.purchases();
     _fetchData();
   }
 
@@ -51,9 +53,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
         _futureImportResponse = _fetchDataImport(selectedDate: _selectedDate);
         await _futureImportResponse;
       } else {
-        _futurePurchaseResponse =
-            _fetchDataPurchase(selectedDate: _selectedDate);
         await _futurePurchaseResponse;
+        await _futurePurchases;
       }
     } catch (e) {
       // Handle any errors that occur during the fetch
@@ -242,48 +243,66 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                             await coreViewModel.rejectImportItem(item);
                           },
                         )
-                      : FutureBuilder<List<model.Variant>>(
-                          future: _futurePurchaseResponse,
-                          builder: (context, snapshot) {
-                            if (snapshot.hasError) {
+                      : FutureBuilder<List<model.Purchase>>(
+                          future: _futurePurchases,
+                          builder: (context, purchaseSnapshot) {
+                            if (purchaseSnapshot.hasError) {
                               return Center(
-                                  child: Text('Error: ${snapshot.error}'));
-                            } else if (!snapshot.hasData ||
-                                snapshot.data!.isEmpty) {
-                              return Center(child: Text('No data available'));
-                            } else {
-                              salesList = snapshot.data!;
-                              return Purchases(
-                                formKey: _importFormKey,
-                                nameController: _nameController,
-                                supplyPriceController: _supplyPriceController,
-                                retailPriceController: _retailPriceController,
-                                saveItemName: _saveChangeMadeOnItem,
-                                acceptPurchases: (
-                                    {required List<model.Variant> variants,
-                                    required String pchsSttsCd}) async {
-                                  final pendingTransaction = await ProxyService
-                                      .strategy
-                                      .manageTransaction(
-                                    transactionType: TransactionType.adjustment,
-                                    isExpense: true,
-                                    branchId: ProxyService.box.getBranchId()!,
-                                  );
-                                  await coreViewModel.acceptPurchase(
-                                    variants: variants,
-                                    itemMapper: itemMapper,
-                                    pendingTransaction: pendingTransaction!,
-                                    pchsSttsCd: pchsSttsCd,
-                                  );
-                                },
-                                selectSale: (model.Variant? itemToAssign,
-                                        model.Variant? itemFromPurchase) =>
-                                    _asignPurchaseItem(
-                                        itemToAssign: itemToAssign!,
-                                        itemFromPurchase: itemFromPurchase!),
-                                finalSalesList: salesList,
-                              );
+                                  child:
+                                      Text('Error: ${purchaseSnapshot.error}'));
                             }
+                            return FutureBuilder<List<model.Variant>>(
+                              future: _futurePurchaseResponse,
+                              builder: (context, variantSnapshot) {
+                                if (variantSnapshot.hasError) {
+                                  return Center(
+                                      child: Text(
+                                          'Error: ${variantSnapshot.error}'));
+                                } else if (!variantSnapshot.hasData ||
+                                    variantSnapshot.data!.isEmpty) {
+                                  return Center(
+                                      child: Text('No data available'));
+                                } else {
+                                  salesList = variantSnapshot.data!;
+                                  return Purchases(
+                                    purchases: purchaseSnapshot.data ?? [],
+                                    formKey: _importFormKey,
+                                    nameController: _nameController,
+                                    supplyPriceController:
+                                        _supplyPriceController,
+                                    retailPriceController:
+                                        _retailPriceController,
+                                    saveItemName: _saveChangeMadeOnItem,
+                                    acceptPurchases: (
+                                        {required List<model.Variant> variants,
+                                        required String pchsSttsCd}) async {
+                                      final pendingTransaction =
+                                          await ProxyService.strategy
+                                              .manageTransaction(
+                                        transactionType:
+                                            TransactionType.adjustment,
+                                        isExpense: true,
+                                        branchId:
+                                            ProxyService.box.getBranchId()!,
+                                      );
+                                      await coreViewModel.acceptPurchase(
+                                        variants: variants,
+                                        itemMapper: itemMapper,
+                                        pendingTransaction: pendingTransaction!,
+                                        pchsSttsCd: pchsSttsCd,
+                                      );
+                                    },
+                                    selectSale: (model.Variant? itemToAssign,
+                                            model.Variant? itemFromPurchase) =>
+                                        _asignPurchaseItem(
+                                            itemToAssign: itemToAssign!,
+                                            itemFromPurchase:
+                                                itemFromPurchase!),
+                                    finalSalesList: salesList,
+                                  );
+                                }
+                              },
+                            );
                           },
                         ),
                 ],

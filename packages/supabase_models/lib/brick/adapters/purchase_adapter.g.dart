@@ -8,6 +8,22 @@ Future<Purchase> _$PurchaseFromSupabase(
 }) async {
   return Purchase(
     id: data['id'] as String?,
+    variants:
+        data['variants'] == null
+            ? null
+            : await Future.wait<Variant>(
+              data['variants']
+                      ?.map(
+                        (d) => VariantAdapter().fromSupabase(
+                          d,
+                          provider: provider,
+                          repository: repository,
+                        ),
+                      )
+                      .toList()
+                      .cast<Future<Variant>>() ??
+                  [],
+            ),
     spplrTin: data['spplr_tin'] as String,
     spplrNm: data['spplr_nm'] as String,
     spplrBhfId: data['spplr_bhf_id'] as String,
@@ -36,6 +52,13 @@ Future<Purchase> _$PurchaseFromSupabase(
     totAmt: data['tot_amt'] as num,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     remark: data['remark'] == null ? null : data['remark'] as String?,
+    hasUnApprovedVariant:
+        data['has_un_approved_variant'] == null
+            ? null
+            : data['has_un_approved_variant'] as bool?,
+    approved: data['approved'] == null ? null : data['approved'] as int?,
+    rejected: data['rejected'] == null ? null : data['rejected'] as int?,
+    pending: data['pending'] == null ? null : data['pending'] as int?,
   );
 }
 
@@ -46,6 +69,18 @@ Future<Map<String, dynamic>> _$PurchaseToSupabase(
 }) async {
   return {
     'id': instance.id,
+    'variants': await Future.wait<Map<String, dynamic>>(
+      instance.variants
+              ?.map(
+                (s) => VariantAdapter().toSupabase(
+                  s,
+                  provider: provider,
+                  repository: repository,
+                ),
+              )
+              .toList() ??
+          [],
+    ),
     'spplr_tin': instance.spplrTin,
     'spplr_nm': instance.spplrNm,
     'spplr_bhf_id': instance.spplrBhfId,
@@ -73,6 +108,10 @@ Future<Map<String, dynamic>> _$PurchaseToSupabase(
     'tot_amt': instance.totAmt,
     'branch_id': instance.branchId,
     'remark': instance.remark,
+    'has_un_approved_variant': instance.hasUnApprovedVariant,
+    'approved': instance.approved,
+    'rejected': instance.rejected,
+    'pending': instance.pending,
   };
 }
 
@@ -129,6 +168,13 @@ Future<Purchase> _$PurchaseFromSqlite(
     totAmt: data['tot_amt'] as num,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     remark: data['remark'] == null ? null : data['remark'] as String?,
+    hasUnApprovedVariant:
+        data['has_un_approved_variant'] == null
+            ? null
+            : data['has_un_approved_variant'] == 1,
+    approved: data['approved'] == null ? null : data['approved'] as int?,
+    rejected: data['rejected'] == null ? null : data['rejected'] as int?,
+    pending: data['pending'] == null ? null : data['pending'] as int?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -168,6 +214,13 @@ Future<Map<String, dynamic>> _$PurchaseToSqlite(
     'tot_amt': instance.totAmt,
     'branch_id': instance.branchId,
     'remark': instance.remark,
+    'has_un_approved_variant':
+        instance.hasUnApprovedVariant == null
+            ? null
+            : (instance.hasUnApprovedVariant! ? 1 : 0),
+    'approved': instance.approved,
+    'rejected': instance.rejected,
+    'pending': instance.pending,
   };
 }
 
@@ -298,6 +351,22 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
     'remark': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'remark',
+    ),
+    'hasUnApprovedVariant': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'has_un_approved_variant',
+    ),
+    'approved': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'approved',
+    ),
+    'rejected': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'rejected',
+    ),
+    'pending': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'pending',
     ),
   };
   @override
@@ -485,6 +554,30 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
       columnName: 'remark',
       iterable: false,
       type: String,
+    ),
+    'hasUnApprovedVariant': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'has_un_approved_variant',
+      iterable: false,
+      type: bool,
+    ),
+    'approved': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'approved',
+      iterable: false,
+      type: int,
+    ),
+    'rejected': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'rejected',
+      iterable: false,
+      type: int,
+    ),
+    'pending': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'pending',
+      iterable: false,
+      type: int,
     ),
   };
   @override

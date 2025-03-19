@@ -4,14 +4,14 @@ abstract class VariantInterface {
   Future<List<Variant>> variants({
     required int branchId,
     String? productId,
-    String? variantId,
     int? page,
-    String? purchaseId,
-    bool excludeApprovedInWaitingOrCanceledItems = false,
-    int? itemsPerPage,
+    String? variantId,
     String? name,
     String? bcd,
+    String? purchaseId,
+    int? itemsPerPage,
     String? imptItemsttsCd,
+    bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
   });
   Future<Variant?> getVariant({required String id});
