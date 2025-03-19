@@ -139,7 +139,8 @@ class AppIconsGrid extends ConsumerWidget {
         itemBuilder: (context, index) {
           final app = rippleApps[index];
           talker.warning(app);
-          return _buildAppCard(app, isBigScreen: false, ref: ref);
+          return _buildAppCard(app, isBigScreen: false, ref: ref)
+              .shouldSeeTheApp(ref, featureName: app['feature']);
         },
       );
     }
