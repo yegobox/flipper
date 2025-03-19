@@ -23,13 +23,13 @@ bool featureAccess(Ref ref,
 
     if (accesses.isEmpty) return false; // Deny access if no accesses exist
 
-    final hasElevatedPermission = accesses.any((access) =>
+    final isRestrictedToTickets = accesses.any((access) =>
         access.featureName == AppFeature.Tickets &&
         access.status == 'active' &&
         (access.expiresAt == null || access.expiresAt!.isAfter(now)));
 
-    if (hasElevatedPermission && featureName != AppFeature.Tickets) {
-      return false; // Deny access to everything except Tickets
+    if (isRestrictedToTickets && featureName != AppFeature.Tickets) {
+      return false; // Users with Tickets permission can only access Tickets
     }
 
     return accesses.any((access) =>
@@ -45,10 +45,16 @@ bool featureAccess(Ref ref,
 @riverpod
 bool featureAccessLevel(Ref ref,
     {required int userId, required String accessLevel}) {
-  final accesses = ref.watch(userAccessesProvider(userId)).value ?? [];
-  final now = DateTime.now();
+  try {
+    final accesses = ref.watch(userAccessesProvider(userId)).value ?? [];
+    final now = DateTime.now();
 
-  return accesses.any((access) =>
-      access.accessLevel == accessLevel &&
-      (access.expiresAt == null || access.expiresAt!.isAfter(now)));
+    return accesses.any((access) =>
+        access.accessLevel == accessLevel &&
+        access.status == 'active' &&
+        (access.expiresAt == null || access.expiresAt!.isAfter(now)));
+  } catch (e, s) {
+    talker.error(e, s);
+    return false; // Ensure fail-safe denial
+  }
 }
