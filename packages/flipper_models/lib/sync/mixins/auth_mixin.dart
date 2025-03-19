@@ -8,7 +8,6 @@ import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
@@ -21,6 +20,9 @@ mixin AuthMixin implements AuthInterface {
   Repository get repository;
   bool get offlineLogin;
   set offlineLogin(bool value);
+
+  @override
+  Future<bool> logOut();
 
   // Required methods that should be provided by other mixins
   @override

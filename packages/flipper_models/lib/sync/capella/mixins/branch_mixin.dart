@@ -39,4 +39,10 @@ mixin CapellaBranchMixin implements BranchInterface {
     throw UnimplementedError(
         'categoryStream needs to be implemented for Capella');
   }
+
+  @override
+  Future<Branch> activeBranch() async {
+    throw UnimplementedError(
+        'activeBranch needs to be implemented for Capella');
+  }
 }

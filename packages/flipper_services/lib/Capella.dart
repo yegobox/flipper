@@ -1974,4 +1974,10 @@ class Capella extends AiStrategyImpl
     // TODO: implement variantBranch
     throw UnimplementedError();
   }
+
+  @override
+  Future<bool> logOut() {
+    // TODO: implement logOut
+    throw UnimplementedError();
+  }
 }

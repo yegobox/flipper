@@ -18,6 +18,7 @@ import 'package:flipper_models/sync/interfaces/system_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 import 'package:supabase_models/brick/repository.dart';
 
@@ -40,6 +41,7 @@ abstract class CoreSyncBase extends AiStrategyImpl
         ReceiptInterface,
         StockInterface,
         SystemInterface,
+        CoreMiscellaneousInterface,
         TransactionInterface,
         TransactionItemInterface,
         VariantInterface {

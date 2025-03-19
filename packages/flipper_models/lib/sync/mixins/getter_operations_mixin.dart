@@ -20,7 +20,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
   @override
   Future<Business?> getBusinessById({required int businessId});
   @override
-  Future<Branch?> branch({required int serverId});
+  FutureOr<Branch?> branch({required int serverId});
   @override
   FutureOr<List<ITransaction>> transactions({
     DateTime? startDate,

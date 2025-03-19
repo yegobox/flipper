@@ -21,6 +21,7 @@ import 'package:flipper_models/sync/mixins/delete_mixin.dart';
 import 'package:flipper_models/sync/mixins/delete_operations_mixin.dart';
 import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/mixins/getter_operations_mixin.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:talker/src/talker.dart';
@@ -42,6 +43,7 @@ class CoreSync extends CoreSyncBase
         TenantMixin,
         ProductMixin,
         TransactionMixin,
+        CoreMiscellaneous,
         FavoriteMixin,
         ConversationMixin,
         TransactionItemMixin,

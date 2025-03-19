@@ -29,7 +29,7 @@ class InventoryApp extends HookConsumerWidget {
           ),
         ],
       ),
-    ).shouldSeeTheApp(ref, AppFeature.Sales);
+    ).shouldSeeTheApp(ref, featureName: AppFeature.Sales);
   }
 
   Widget buildMainContent(bool isScanningMode, WidgetRef ref) {
@@ -38,10 +38,11 @@ class InventoryApp extends HookConsumerWidget {
     switch (selectedMenuItem) {
       case 0: // Sales
         return isScanningMode
-            ? buildReceiptUI().shouldSeeTheApp(ref, AppFeature.Sales)
+            ? buildReceiptUI()
+                .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
             : CheckOut(isBigScreen: true)
-                .shouldSeeTheApp(ref, AppFeature.Sales)
-                .shouldSeeTheApp(ref, AppFeature.Inventory);
+                .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
+                .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
       case 1: // Inventory
         return Center(
           child: Ai(),

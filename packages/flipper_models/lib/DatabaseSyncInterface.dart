@@ -8,6 +8,7 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/ai_strategy.dart';
 import 'package:flipper_services/constants.dart';
@@ -36,7 +37,8 @@ abstract class DataMigratorToLocal {
   List<String> activeRealmSubscriptions();
 }
 
-abstract class DatabaseSyncInterface extends AiStrategy {
+abstract class DatabaseSyncInterface extends AiStrategy
+    implements BranchInterface {
   // Repository get repository;
   // DatabaseProvider? capella;
   // AsyncCollection? branchCollection;
@@ -533,7 +535,6 @@ abstract class DatabaseSyncInterface extends AiStrategy {
   FutureOr<Business?> getBusinessById({required int businessId});
   Future<Business?> defaultBusiness();
   FutureOr<Branch?> defaultBranch();
-  Future<Branch> activeBranch();
 
   Future<List<ITenant>> tenantsFromOnline(
       {required int businessId,
@@ -927,7 +928,7 @@ abstract class DatabaseSyncInterface extends AiStrategy {
 
   Future<List<FinanceProvider>> financeProviders();
   Future<VariantBranch?> variantBranch(
-      {required String variantId,  required String destinationBranchId});
+      {required String variantId, required String destinationBranchId});
 
   Future<BusinessInfo> initializeEbm(
       {required String tin, required String bhfId, required String dvcSrlNo});

@@ -135,7 +135,8 @@ class SearchFieldState extends ConsumerState<SearchField>
                       deviceType != 'Phablet')
                     incomingButton(),
                   if (widget.showAddButton)
-                    addButton().shouldSeeTheApp(ref, AppFeature.Sales),
+                    addButton()
+                        .shouldSeeTheApp(ref, featureName: AppFeature.Sales),
                   if (widget.showDatePicker) datePicker(),
                 ],
               ),

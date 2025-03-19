@@ -188,7 +188,7 @@ class CheckOutState extends ConsumerState<CheckOut>
           const SizedBox(height: 20),
           Flexible(
             child: SingleChildScrollView(
-              child: const IncomingOrdersWidget(),
+              child: const IncomingOrders(),
             ),
           ),
         ],

@@ -514,46 +514,20 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               ),
               if (ref.watch(unsavedProductProvider)?.imageUrl != null)
                 FutureBuilder<String?>(
-                  future: ref.watch(unsavedProductProvider)?.imageUrl != null
-                      ? getImageFilePath(
-                          imageFileName:
-                              ref.watch(unsavedProductProvider)!.imageUrl!)
-                      : Future.value(null),
+                  future: getImageFilePath(
+                      imageFileName:
+                          ref.watch(unsavedProductProvider)!.imageUrl!),
                   builder: (context, snapshot) {
-                    if (snapshot.hasData && snapshot.data != null) {
-                      return Container(
-                        width: 200,
-                        height: 200,
-                        child: Image.file(
-                          File(snapshot.data!),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Browsephotos(
-                              imageUrl:
-                                  ref.watch(unsavedProductProvider)?.imageUrl,
-                              currentColor: pickerColor,
-                              onColorSelected: (Color color) {
-                                setState(() {
-                                  pickerColor = color;
-                                  isColorPicked = true;
-                                });
-                              },
-                            );
-                          },
-                        ),
-                      );
-                    } else {
-                      return Browsephotos(
-                        imageUrl: ref.watch(unsavedProductProvider)?.imageUrl,
-                        currentColor: pickerColor,
-                        onColorSelected: (Color color) {
-                          setState(() {
-                            pickerColor = color;
-                            isColorPicked = true;
-                          });
-                        },
-                      );
-                    }
+                    return Browsephotos(
+                      imageUrl: ref.watch(unsavedProductProvider)?.imageUrl,
+                      currentColor: pickerColor,
+                      onColorSelected: (Color color) {
+                        setState(() {
+                          pickerColor = color;
+                          isColorPicked = true;
+                        });
+                      },
+                    );
                   },
                 )
               else

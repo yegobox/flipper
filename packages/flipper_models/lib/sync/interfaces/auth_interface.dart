@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 
 abstract class AuthInterface {
   Future<bool> firebaseLogin({String? token});
-  
+  Future<bool> logOut();
   Future<IUser> login({
     required String userPhone,
     required bool skipDefaultAppSetup,
@@ -14,9 +14,10 @@ abstract class AuthInterface {
     required Pin pin,
     required HttpClientInterface flipperHttpClient,
   });
-  
-  Future<void> configureSystem(String userPhone, IUser user, {required bool offlineLogin});
-  
+
+  Future<void> configureSystem(String userPhone, IUser user,
+      {required bool offlineLogin});
+
   Future<SocialToken?> loginOnSocial({
     String? phoneNumberOrEmail,
     String? password,

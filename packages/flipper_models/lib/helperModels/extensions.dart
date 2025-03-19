@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'dart:io';
 import 'package:flipper_services/DeviceType.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+
+import 'package:flipper_models/providers/all_providers.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -273,7 +275,8 @@ extension AccessInnerController on Widget {
     return Consumer(
       builder: (context, ref, child) {
         for (final level in accessLevels) {
-          final hasAccess = ref.watch(featureAccessLevelProvider(level));
+          final hasAccess = ref.watch(featureAccessLevelProvider(
+              accessLevel: level, userId: ProxyService.box.getUserId()!));
           if (hasAccess) return this;
         }
         return const SizedBox.shrink();
@@ -283,10 +286,11 @@ extension AccessInnerController on Widget {
 }
 
 extension AccessControlWidget on Widget {
-  Widget shouldSeeTheApp(WidgetRef ref, String featureName) {
+  Widget shouldSeeTheApp(WidgetRef ref, {required String featureName}) {
     return Consumer(
       builder: (context, ref, child) {
-        final hasAccess = ref.watch(featureAccessProvider(featureName));
+        final hasAccess = ref.watch(featureAccessProvider(
+            featureName: featureName, userId: ProxyService.box.getUserId()!));
         return hasAccess ? this : SizedBox.shrink();
       },
     );

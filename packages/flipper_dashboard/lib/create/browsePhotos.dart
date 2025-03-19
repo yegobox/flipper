@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/view_models/upload_viewmodel.dart';
 import 'package:flipper_services/abstractions/upload.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -115,12 +114,43 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
     }
   }
 
+  // Helper function to handle image upload
+  Future<void> _handleImageUpload(UploadViewModel model) async {
+    setState(() {
+      isUploading = true;
+    });
+    ref.read(uploadProgressProvider.notifier).state = 0.0;
+
+    try {
+      final product = await model.browsePictureFromGallery(
+        id: ref.watch(unsavedProductProvider)!.id,
+        urlType: URLTYPE.PRODUCT,
+      );
+      talker.warning("ImageToProduct:${product.imageUrl}");
+      ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+      setState(() {
+        isUploading = false;
+      });
+      ref.read(uploadProgressProvider.notifier).state = 0.0;
+    } catch (e) {
+      setState(() {
+        isUploading = false;
+      });
+      ref.read(uploadProgressProvider.notifier).state = 0.0;
+      talker.error("Upload error: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final uploadProgress = ref.watch(uploadProgressProvider);
 
     return ViewModelBuilder.nonReactive(
-      viewModelBuilder: () => UploadViewModel(),
+      viewModelBuilder: () {
+        final model = UploadViewModel();
+        model.setRef(ref);
+        return model;
+      },
       builder: (context, model, child) {
         return Column(
           children: [
@@ -128,18 +158,25 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
               onTap: () async {
                 if (widget.imageUrl == null) {
                   await _showColorPickerDialog(context);
+                } else {
+                  await _handleImageUpload(model);
                 }
               },
               child: Container(
                 width: 200,
                 height: 200,
                 decoration: BoxDecoration(
-                  color: widget.imageUrl == null ? selectedColor : Colors.grey[300],
+                  color: widget.imageUrl == null
+                      ? selectedColor
+                      : Colors.grey[300],
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: widget.imageUrl != null
-                    ? FutureBuilder<String?>(
-                        future: getImageFilePath(imageFileName: widget.imageUrl!),
+                child: Stack(
+                  children: [
+                    if (widget.imageUrl != null)
+                      FutureBuilder<String?>(
+                        future:
+                            getImageFilePath(imageFileName: widget.imageUrl!),
                         builder: (context, snapshot) {
                           if (snapshot.hasData && snapshot.data != null) {
                             return Image.file(
@@ -167,7 +204,8 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                           }
                         },
                       )
-                    : Center(
+                    else
+                      Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -187,75 +225,120 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                           ],
                         ),
                       ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: 200,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: isUploading
-                      ? Color.lerp(Colors.blue, Colors.green, uploadProgress)
-                      : Colors.grey[200],
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                onPressed: isUploading
-                    ? null
-                    : () async {
-                        setState(() {
-                          isUploading = true;
-                        });
-                        ref.read(uploadProgressProvider.notifier).state = 0.0;
-
-                        try {
-                          final product = await model.browsePictureFromGallery(
-                            id: ref.watch(unsavedProductProvider)!.id,
-                            urlType: URLTYPE.PRODUCT,
-                          );
-                          talker.warning("ImageToProduct:${product.imageUrl}");
-                          ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
-                          setState(() {
-                            isUploading = false;
-                          });
-                          ref.read(uploadProgressProvider.notifier).state = 0.0;
-                        } catch (e) {
-                          setState(() {
-                            isUploading = false;
-                          });
-                          ref.read(uploadProgressProvider.notifier).state = 0.0;
-                          talker.error("Upload error: $e");
-                        }
-                      },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (isUploading)
-                      Container(
-                        width: 20,
-                        height: 20,
-                        margin: const EdgeInsets.only(right: 8),
-                        child: CircularProgressIndicator(
-                          value: uploadProgress,
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    if (widget.imageUrl != null)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.camera_alt,
+                                  size: 40,
+                                  color: Colors.white.withOpacity(0.8),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Click to change image',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      )
-                    else
-                      Icon(Icons.upload, size: 20, color: Colors.grey[800]),
-                    const SizedBox(width: 8),
-                    Text(
-                      isUploading
-                          ? '${(uploadProgress * 100).toInt()}%'
-                          : 'Upload Image',
-                      style: TextStyle(
-                        color: isUploading ? Colors.white : Colors.grey[800],
-                        fontSize: 14,
                       ),
-                    ),
+                    if (isUploading)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(
+                                  value: uploadProgress,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Color.lerp(Colors.blue, Colors.green,
+                                              uploadProgress) ??
+                                          Colors.blue),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  '${(uploadProgress * 100).toInt()}%',
+                                  style: TextStyle(
+                                    color: Color.lerp(Colors.blue, Colors.green,
+                                            uploadProgress) ??
+                                        Colors.blue,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
             ),
+            const SizedBox(height: 8),
+            if (widget.imageUrl == null)
+              SizedBox(
+                width: 200,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: isUploading
+                        ? Color.lerp(Colors.blue, Colors.green, uploadProgress)
+                        : Colors.grey[200],
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onPressed: isUploading
+                      ? null
+                      : () async {
+                          await _handleImageUpload(model);
+                        },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (isUploading)
+                        Container(
+                          width: 20,
+                          height: 20,
+                          margin: const EdgeInsets.only(right: 8),
+                          child: CircularProgressIndicator(
+                            value: uploadProgress,
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      else
+                        Icon(Icons.upload, size: 20, color: Colors.grey[800]),
+                      const SizedBox(width: 8),
+                      Text(
+                        isUploading
+                            ? '${(uploadProgress * 100).toInt()}%'
+                            : 'Upload Image',
+                        style: TextStyle(
+                          color: isUploading ? Colors.white : Colors.grey[800],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         );
       },
