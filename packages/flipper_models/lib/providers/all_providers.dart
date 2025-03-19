@@ -16,3 +16,4 @@ export 'total_sale_provider.dart';
 export 'transaction_items_provider.dart';
 export 'transactions_provider.dart';
 export 'variants_provider.dart';
+export 'access_provider.dart';

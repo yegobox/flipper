@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +9,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_models/helperModels/extensions.dart';
 
 class AppIconsGrid extends ConsumerWidget {
   final bool isBigScreen;
@@ -19,12 +21,13 @@ class AppIconsGrid extends ConsumerWidget {
     this.onAppSelected,
   }) : super(key: key);
 
-  Future<void> _navigateToPage(String page) async {
+  Future<void> _navigateToPage(
+      String page, WidgetRef ref, String feature) async {
     if (onAppSelected != null) {
       onAppSelected!(page);
       return;
     }
-    
+
     final _routerService = locator<RouterService>();
     switch (page) {
       case "POS":
@@ -81,47 +84,44 @@ class AppIconsGrid extends ConsumerWidget {
         'icon': FluentIcons.calculator_24_regular,
         'color': const Color(0xff006AFE),
         'page': "POS",
-        'label': "Point of Sale"
+        'label': "Point of Sale",
+        'feature': 'Sales'
       },
       {
         'icon': FluentIcons.book_48_regular,
         'color': const Color(0xFF66AAFF),
         'page': "Cashbook",
-        'label': "Cash Book"
+        'label': "Cash Book",
+        'feature': 'Cashbook'
       },
       {
         'icon': FluentIcons.arrow_swap_20_regular,
         'color': const Color(0xFFFF0331),
         'page': "Transactions",
-        'label': "Transactions"
+        'label': "Transactions",
+        'feature': 'Transactions'
       },
       {
         'icon': FluentIcons.people_32_regular,
         'color': Colors.cyan,
         'page': "Contacts",
-        'label': "Contacts"
+        'label': "Contacts",
+        'feature': 'Contacts'
       },
       {
         'icon': Icons.store_rounded,
         'color': Colors.green,
         'page': "Orders",
-        'label': "Orders"
+        'label': "Orders",
+        'feature': 'Orders'
       },
       {
         'icon': Icons.call,
         'color': Colors.lightBlue,
         'page': "Support",
-        'label': "Support"
+        'label': "Support",
+        'feature': 'Support'
       }
-    ];
-
-    final List<Map<String, dynamic>> thirdPartyApps = [
-      {
-        'icon': Icons.extension,
-        'color': Colors.purple,
-        'page': "Connecta",
-        'label': "Connecta"
-      },
     ];
 
     if (!isBigScreen) {
@@ -138,7 +138,8 @@ class AppIconsGrid extends ConsumerWidget {
         itemCount: rippleApps.length,
         itemBuilder: (context, index) {
           final app = rippleApps[index];
-          return _buildAppCard(app, isBigScreen: false);
+          talker.warning(app);
+          return _buildAppCard(app, isBigScreen: false, ref: ref);
         },
       );
     }
@@ -235,44 +236,17 @@ class AppIconsGrid extends ConsumerWidget {
             itemCount: rippleApps.length,
             itemBuilder: (context, index) {
               final app = rippleApps[index];
-              return _buildAppCard(app, isBigScreen: true);
+              talker.warning(app);
+              return _buildAppCard(app, isBigScreen: true, ref: ref);
             },
           ),
-          if (thirdPartyApps.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 32, 24, 12),
-              child: Text(
-                'Third-party apps',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[800],
-                ),
-              ),
-            ),
-            GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 6,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 1.1,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: thirdPartyApps.length,
-              itemBuilder: (context, index) {
-                final app = thirdPartyApps[index];
-                return _buildAppCard(app, isBigScreen: true);
-              },
-            ),
-          ],
         ],
       ),
     );
   }
 
-  Widget _buildAppCard(Map<String, dynamic> app, {required bool isBigScreen}) {
+  Widget _buildAppCard(Map<String, dynamic> app,
+      {required bool isBigScreen, required WidgetRef ref}) {
     return Card(
       elevation: 1,
       shadowColor: Colors.black26,
@@ -283,44 +257,48 @@ class AppIconsGrid extends ConsumerWidget {
           width: 1,
         ),
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: () async {
-          HapticFeedback.lightImpact();
-          await _navigateToPage(app['page']);
-        },
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(isBigScreen ? 6 : 12),
-              decoration: BoxDecoration(
-                color: app['color'].withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                app['icon'],
-                color: app['color'],
-                size: isBigScreen ? 18 : 28,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                app['label'],
-                style: GoogleFonts.poppins(
-                  fontSize: isBigScreen ? 11 : 12,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[800],
+      child: Builder(
+        builder: (context) {
+          return InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () async {
+              HapticFeedback.lightImpact();
+              await _navigateToPage(app['page'], ref, app['feature']);
+            },
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(isBigScreen ? 6 : 12),
+                  decoration: BoxDecoration(
+                    color: app['color'].withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    app['icon'],
+                    color: app['color'],
+                    size: isBigScreen ? 18 : 28,
+                  ),
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+                const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    app['label'],
+                    style: GoogleFonts.poppins(
+                      fontSize: isBigScreen ? 11 : 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[800],
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ).shouldSeeTheApp(ref, featureName: app['feature']);
+        },
       ),
     );
   }

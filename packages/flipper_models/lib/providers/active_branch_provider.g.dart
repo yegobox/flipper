@@ -6,7 +6,7 @@ part of 'active_branch_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$activeBranchHash() => r'4c83e02f1fc2a9178085c501d49079815c44dff5';
+String _$activeBranchHash() => r'33090c56e4fbd1fe42891ce94e6abd0f7afcfc4a';
 
 /// See also [activeBranch].
 @ProviderFor(activeBranch)

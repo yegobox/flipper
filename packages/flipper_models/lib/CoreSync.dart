@@ -4339,6 +4339,7 @@ class CoreSync extends AiStrategyImpl
   FutureOr<List<Access>> access(
       {required int userId, String? featureName}) async {
     return await repository.get<Access>(
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
       query: brick.Query(
         where: [
           brick.Where('userId').isExactly(userId),
