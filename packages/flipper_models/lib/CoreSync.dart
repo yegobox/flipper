@@ -17,6 +17,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_models/sync/mixins/branch_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
@@ -57,7 +58,7 @@ import 'package:uuid/uuid.dart';
 /// anotherone to acheive sync for flipper app
 
 class CoreSync extends AiStrategyImpl
-    with Booting, CoreMiscellaneous, TransactionMixin
+    with Booting, CoreMiscellaneous, TransactionMixin, BranchMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
@@ -168,19 +169,6 @@ class CoreSync extends AiStrategyImpl
 
   @override
   SendPort? sendPort;
-
-  //TODO: add a filter of a businessId when looking for a branch to avoid query unreleated branches
-  @override
-  Future<Branch> activeBranch() async {
-    final branches = await repository.get<Branch>(
-      policy: OfflineFirstGetPolicy.localOnly,
-    );
-
-    return branches.firstWhere(
-      (branch) => branch.isDefault == true || branch.isDefault == 1,
-      orElse: () => throw Exception("No default branch found"),
-    );
-  }
 
   @override
   Future<Business?> activeBusiness({int? userId}) async {
@@ -1200,16 +1188,6 @@ class CoreSync extends AiStrategyImpl
     final query = brick.Query(
         where: [brick.Where('bindedToTenantId').isExactly(tenantId)]);
     final result = await repository.get<models.Product>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-    return result.firstOrNull;
-  }
-
-  @override
-  FutureOr<Branch?> branch({required int serverId}) async {
-    final repository = Repository();
-    final query =
-        brick.Query(where: [brick.Where('serverId').isExactly(serverId)]);
-    final result = await repository.get<models.Branch>(
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     return result.firstOrNull;
   }

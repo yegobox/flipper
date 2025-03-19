@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
@@ -10,11 +12,17 @@ mixin BranchMixin implements BranchInterface {
   Repository get repository;
 
   @override
-  Future<Branch?> branch({required int serverId}) async {
-    return (await repository.get<Branch>(
-      query: Query(where: [Where('serverId').isExactly(serverId)]),
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    )).firstOrNull;
+  Future<bool> logOut();
+
+  @override
+  FutureOr<Branch?> branch({required int serverId}) async {
+    final repository = Repository();
+    final query = Query(where: [Where('serverId').isExactly(serverId)]);
+    final result = await repository.get<Branch>(
+        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    final branch = result.firstOrNull;
+
+    return branch;
   }
 
   @override
@@ -91,5 +99,22 @@ mixin BranchMixin implements BranchInterface {
     return repository.subscribe<Category>(
       query: Query(where: [Where('branchId').isExactly(branchId)]),
     );
+  }
+
+  @override
+  Future<Branch> activeBranch() async {
+    final branches = await repository.get<Branch>(
+      policy: OfflineFirstGetPolicy.localOnly,
+    );
+
+    try {
+      return branches.firstWhere(
+        (branch) => branch.isDefault == true || branch.isDefault == 1,
+        orElse: () => throw Exception("No default branch found"),
+      );
+    } catch (e) {
+      await logOut();
+      rethrow;
+    }
   }
 }
