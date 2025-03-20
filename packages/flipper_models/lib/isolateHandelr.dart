@@ -61,8 +61,10 @@ mixin VariantPatch {
 
         final response = await RWTax().saveItem(variation: variant, URI: URI);
 
-        if (response.resultCd == "000" && sendPort != null) {
-          sendPort(response.resultMsg);
+        if (response.resultCd == "000") {
+          if (sendPort != null) {
+            sendPort(response.resultMsg);
+          }
           if (identifier != null) {
             await StockPatch.patchStock(
               identifier: variant.stock?.id,
@@ -78,12 +80,31 @@ mixin VariantPatch {
                 ProxyService.notification.sendLocalNotification(body: message);
               },
             );
+            final tinNumber = ProxyService.box.tin();
+            final bhfId = await ProxyService.box.bhfId();
+            await PatchTransactionItem.patchTransactionItem(
+              URI: URI,
+              sendPort: (message) {
+                ProxyService.notification.sendLocalNotification(body: message);
+              },
+              tinNumber: tinNumber,
+              bhfId: bhfId!,
+            );
+            CustomerPatch.patchCustomer(
+              URI: URI,
+              tinNumber: tinNumber,
+              bhfId: bhfId,
+              branchId: branchId!,
+              sendPort: (message) {
+                ProxyService.notification.sendLocalNotification(body: message);
+              },
+            );
           }
 
           // we set ebmSynced when stock is done updating on rra side.
           /// we should not update variant here rather we update it in rw_tax @saveStockItems
           // variant.ebmSynced = true;
-          repository.upsert(variant);
+          // repository.upsert(variant);
         } else if (sendPort != null) {
           sendPort(response.resultMsg);
           throw Exception(response.resultMsg);

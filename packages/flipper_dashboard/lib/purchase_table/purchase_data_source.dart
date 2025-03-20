@@ -33,6 +33,10 @@ class PurchaseDataSource extends DataGridSource {
       return DataGridRow(
         cells: [
           DataGridCell<String>(columnName: 'Name', value: variant.name ?? ''),
+          DataGridCell<String>(
+            columnName: 'Qty',
+            value: variant.stock?.currentStock?.toString() ?? '0',
+          ),
           DataGridCell<double>(
             columnName: 'Supply Price',
             value:
@@ -72,7 +76,12 @@ class PurchaseDataSource extends DataGridSource {
     // Update the variant's status
     acceptPurchases(variants: [variant], pchsSttsCd: status);
 
+    // Remove the variant from the list and rebuild rows
+    variants.removeWhere((v) => v.id == id);
+    _buildDataGridRows();
+    
     talker.log('Status updated for variant ${variant.name} to $status');
+    notifyListeners(); // Notify the grid to rebuild
     updateCallback();
   }
 
@@ -91,6 +100,16 @@ class PurchaseDataSource extends DataGridSource {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               alignment: Alignment.center,
               child: value as Widget,
+            );
+
+          case 'Qty':
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              alignment: Alignment.centerRight,
+              child: Text(
+                value.toString(),
+                style: const TextStyle(fontSize: 13),
+              ),
             );
 
           case 'Supply Price':

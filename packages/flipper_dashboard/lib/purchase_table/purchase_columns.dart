@@ -22,6 +22,19 @@ List<GridColumn> buildPurchaseColumns() {
       ),
     ),
     GridColumn(
+      columnName: 'Qty',
+      width: 120,
+      label: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        alignment: Alignment.centerRight,
+        child: const Text(
+          'Qty',
+          style: headerStyle,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    ),
+    GridColumn(
       columnName: 'Supply Price',
       width: 150,
       label: Container(

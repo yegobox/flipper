@@ -137,6 +137,7 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
       /// TODO: handle discount later.
       itemsList.forEach((item) {
         item['totDcAmt'] = "0";
+        // item['rsdQty'] = 12;
       });
       final json = {
         "totItemCnt": items.length,
@@ -156,8 +157,8 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
         "regrNm": mod,
         "modrId": sar,
         "modrNm": mod,
-        "sarNo": "1",
-        "orgSarNo": "1",
+        "sarNo": "2",
+        "orgSarNo": "2",
         "itemList": itemsList
       };
       // if custTin is invalid remove it from the json
@@ -169,17 +170,7 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
       final data = RwApiResponse.fromJson(
         response.data,
       );
-      if (data.resultCd == "000") {
-        // find variant involved and set it to synced.
-        for (TransactionItem item in items) {
-          Variant? variant =
-              await ProxyService.strategy.getVariant(id: item.variantId);
-          if (variant != null) {
-            variant.ebmSynced = true;
-            repository.upsert(variant);
-          }
-        }
-      }
+
       return data;
     } catch (e) {
       rethrow;

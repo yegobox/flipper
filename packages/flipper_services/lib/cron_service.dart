@@ -67,37 +67,15 @@ class CronService {
       final isTaxServiceStoped = ProxyService.box.stopTaxService();
       if (!ProxyService.box.transactionInProgress() && !isTaxServiceStoped!) {
         final URI = await ProxyService.box.getServerUrl();
-        final tinNumber = ProxyService.box.tin();
-        final bhfId = await ProxyService.box.bhfId();
-        final branchId = ProxyService.box.getBranchId()!;
 
-        CustomerPatch.patchCustomer(
-          URI: URI!,
-          tinNumber: tinNumber,
-          bhfId: bhfId!,
-          branchId: branchId,
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
-          },
-        );
-        PatchTransactionItem.patchTransactionItem(
-          URI: URI,
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
-          },
-          tinNumber: tinNumber,
-          bhfId: bhfId,
-        );
         VariantPatch.patchVariant(
-          URI: URI,
+          URI: URI!,
           sendPort: (message) {
             ProxyService.notification.sendLocalNotification(body: message);
           },
         );
 
-        await PatchTransactionItem.patchTransactionItem(
-          tinNumber: tinNumber,
-          bhfId: bhfId,
+        await VariantPatch.patchVariant(
           URI: (await ProxyService.box.getServerUrl())!,
           sendPort: (message) {
             ProxyService.notification.sendLocalNotification(body: message);

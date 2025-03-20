@@ -70,6 +70,7 @@ mixin PurchaseMixin
     );
   }
 
+  @override
   Future<List<Variant>> selectImportItems({
     required int tin,
     required String bhfId,
@@ -179,6 +180,7 @@ mixin PurchaseMixin
     }
   }
 
+  @override
   Future<List<Variant>> selectPurchases({
     required String bhfId,
     required int tin,
@@ -298,6 +300,8 @@ mixin PurchaseMixin
                       "Error processing variant: $variantError\n$variantStackTrace");
                   talker.error("Error processing variant", variantError,
                       variantStackTrace);
+                  // Handle the error.  Perhaps log it or increment an error counter.
+                  //Critically:  Do NOT rethrow here. You want to continue processing other variants.
                 }
               }());
             }
@@ -312,6 +316,7 @@ mixin PurchaseMixin
             branchId: activeBranch.id,
             requestType: "PURCHASE",
             lastRequestDate: response.resultDt,
+            // lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
           );
 
           await repository.upsert<ImportPurchaseDates>(
@@ -322,7 +327,7 @@ mixin PurchaseMixin
                 brick.Where('requestType').isExactly("PURCHASE"),
               ],
             ),
-          );
+          ); // Upsert ensures either creates or updates
         } catch (saveError, saveStackTrace) {
           print(
               "Error saving ImportPurchaseDates: $saveError\n$saveStackTrace");

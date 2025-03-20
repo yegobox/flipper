@@ -22,9 +22,9 @@ class ImportPurchasePage extends StatefulHookConsumerWidget {
 class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     with Refresh {
   DateTime _selectedDate = DateTime.now();
-  late Future<List<model.Variant>> _futureImportResponse;
-  late Future<List<model.Variant>> _futurePurchaseResponse;
-  late Future<List<model.Purchase>> _futurePurchases;
+  Future<List<model.Variant>> _futureImportResponse = Future.value([]);
+  Future<List<model.Variant>> _futurePurchaseResponse = Future.value([]);
+  Future<List<model.Purchase>> _futurePurchases = Future.value([]);
   model.Variant? _selectedItem;
   model.Variant? _selectedPurchaseItem;
   final TextEditingController _nameController = TextEditingController();
@@ -41,26 +41,60 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   @override
   void initState() {
     super.initState();
-    _futurePurchaseResponse = _fetchDataPurchase(selectedDate: _selectedDate);
-    _futurePurchases = ProxyService.strategy.purchases();
-    _fetchData();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    setState(() => isLoading = true);
+    try {
+      final purchaseResponseFuture =
+          _fetchDataPurchase(selectedDate: _selectedDate);
+      final purchasesFuture = ProxyService.strategy.purchases();
+
+      _futurePurchaseResponse = purchaseResponseFuture;
+      _futurePurchases = purchasesFuture;
+
+      // Wait for both futures to complete
+      await Future.wait([purchaseResponseFuture, purchasesFuture]);
+
+      if (mounted) {
+        setState(() {
+          // State is updated after both futures complete
+        });
+      }
+    } catch (e) {
+      talker.warning(e);
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
   }
 
   Future<void> _fetchData() async {
     setState(() => isLoading = true);
     try {
       if (isImport) {
-        _futureImportResponse = _fetchDataImport(selectedDate: _selectedDate);
-        await _futureImportResponse;
+        final importResponse = _fetchDataImport(selectedDate: _selectedDate);
+        _futureImportResponse = importResponse;
+        await importResponse;
       } else {
-        await _futurePurchaseResponse;
-        await _futurePurchases;
+        final purchaseResponseFuture =
+            _fetchDataPurchase(selectedDate: _selectedDate);
+        final purchasesFuture = ProxyService.strategy.purchases();
+
+        _futurePurchaseResponse = purchaseResponseFuture;
+        _futurePurchases = purchasesFuture;
+
+        // Wait for both futures to complete
+        await Future.wait([purchaseResponseFuture, purchasesFuture]);
       }
     } catch (e) {
-      // Handle any errors that occur during the fetch
       talker.warning(e);
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:supabase_models/brick/models/all_models.dart'; // Ensure this import is correct
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:supabase_models/brick/models/all_models.dart';
+
+// Add provider for selected variant state
+final selectedVariantProvider =
+    StateProvider.family<Variant?, String>((ref, variantId) => null);
 
 Future<void> showVariantEditDialog(
   BuildContext context,
@@ -27,22 +32,29 @@ Future<void> showVariantEditDialog(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Using the working approach from your example
-              DropdownSearch<Variant>(
-                selectedItem: item,
-                // This is the key fix - providing items as a function that returns the list
-                items: (a, b) => variants,
-                compareFn: (Variant i, Variant s) => i.id == s.id,
-                itemAsString: (Variant v) => v.name,
-                // Updated to decoratorProps instead of dropdownDecoratorProps
-                decoratorProps: const DropDownDecoratorProps(
-                  baseStyle: TextStyle(fontSize: 13),
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                onChanged: (Variant? selectedVariant) {
-                  selectSale(selectedVariant, item);
+              Consumer(
+                builder: (context, ref, _) {
+                  final selectedVariant =
+                      ref.watch(selectedVariantProvider(item.id));
+                  final setSelectedVariant = ref.read(
+                      selectedVariantProvider(item.id).notifier);
+
+                  return DropdownSearch<Variant>(
+                    selectedItem: selectedVariant,
+                    items: (a, b) => variants,
+                    compareFn: (Variant i, Variant s) => i.id == s.id,
+                    itemAsString: (Variant v) => v.name,
+                    decoratorProps: const DropDownDecoratorProps(
+                      baseStyle: TextStyle(fontSize: 13),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    onChanged: (Variant? itemToAssign) {
+                      setSelectedVariant.state = itemToAssign;
+                      selectSale(itemToAssign, item);
+                    },
+                  );
                 },
               ),
               const SizedBox(height: 16),
