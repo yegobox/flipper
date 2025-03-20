@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:flipper_models/firebase_options.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/UniversalProduct.dart';
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart' show Uuid;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
@@ -103,17 +102,15 @@ mixin VariantPatch {
 
           // we set ebmSynced when stock is done updating on rra side.
           /// we should not update variant here rather we update it in rw_tax @saveStockItems
-          // variant.ebmSynced = true;
-          // repository.upsert(variant);
+          variant.ebmSynced = true;
+          repository.upsert(variant);
         } else if (sendPort != null) {
           sendPort(response.resultMsg);
           throw Exception(response.resultMsg);
         }
-        talker.info(response.resultMsg);
-        //throw Exception(response.resultMsg);
-      } catch (e, s) {
-        talker.error(e, s);
-        rethrow;
+      } catch (e) {
+        /// in case of errror be the wrong data we are passing to rra, ignore and continue.
+        continue;
       }
     }
   }
