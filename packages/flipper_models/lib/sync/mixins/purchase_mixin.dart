@@ -368,7 +368,7 @@ mixin PurchaseMixin
       bool hasUnapprovedVariants = variants.any((variant) =>
           variant.pchsSttsCd != '02' && variant.pchsSttsCd != '04');
 
-      // Update purchase if needed
+      // Always update purchase to reflect current variant status
       if (purchase.hasUnApprovedVariant != hasUnapprovedVariants) {
         purchase.hasUnApprovedVariant = hasUnapprovedVariants;
         await repository.upsert<Purchase>(purchase);

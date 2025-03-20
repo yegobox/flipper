@@ -182,9 +182,14 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                           value: isImport,
                           onChanged: (value) {
                             setState(() {
+                              _selectItem(null);
+                              _selectedPurchaseItem = null;
+                              finalItemList = [];
+                              salesList = [];
+                              _variantMap.clear();
                               isImport = value;
-                              _fetchData();
                             });
+                            _fetchData();
                           },
                         ),
                         Text(isImport ? "Import" : "Purchase"),
