@@ -169,6 +169,17 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
       final data = RwApiResponse.fromJson(
         response.data,
       );
+      if (data.resultCd == "000") {
+        // find variant involved and set it to synced.
+        for (TransactionItem item in items) {
+          Variant? variant =
+              await ProxyService.strategy.getVariant(id: item.variantId);
+          if (variant != null) {
+            variant.ebmSynced = true;
+            repository.upsert(variant);
+          }
+        }
+      }
       return data;
     } catch (e) {
       rethrow;

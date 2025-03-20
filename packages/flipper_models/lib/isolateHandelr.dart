@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flipper_models/firebase_options.dart';
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:flipper_models/firebase_options.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/UniversalProduct.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -81,7 +81,8 @@ mixin VariantPatch {
           }
 
           // we set ebmSynced when stock is done updating on rra side.
-          variant.ebmSynced = true;
+          /// we should not update variant here rather we update it in rw_tax @saveStockItems
+          // variant.ebmSynced = true;
           repository.upsert(variant);
         } else if (sendPort != null) {
           sendPort(response.resultMsg);
