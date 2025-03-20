@@ -251,11 +251,11 @@ dependencies:
     path: "../"
   
   bloc: ^8.0.1
-  amplify_core: ^2.6.0
-  amplify_api: ^2.6.0
-  amplify_flutter: ^2.6.0
-  amplify_auth_cognito: ^2.6.0
-  amplify_storage_s3: ^2.6.0
+  amplify_core: ^2.6.1
+  amplify_api: ^2.6.1
+  amplify_flutter: ^2.6.1
+  amplify_auth_cognito: ^2.6.1
+  amplify_storage_s3: ^2.6.1
   
   
 

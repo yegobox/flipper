@@ -1,6 +1,4 @@
 import 'package:flipper_dashboard/PurchaseTable.dart';
-import 'package:flipper_models/providers/scan_mode_provider.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,8 +10,9 @@ class Purchases extends StatefulHookConsumerWidget {
   final TextEditingController supplyPriceController;
   final TextEditingController retailPriceController;
   final void Function() saveItemName;
-  final void Function({required List<Variant> variants, required String pchsSttsCd})
-      acceptPurchases;
+  final void Function(
+      {required List<Variant> variants,
+      required String pchsSttsCd}) acceptPurchases;
   final void Function(
     Variant? itemToAssign,
     Variant? itemFromPurchase,
@@ -38,8 +37,6 @@ class Purchases extends StatefulHookConsumerWidget {
 }
 
 class _PurchasesState extends ConsumerState<Purchases> {
-  final Map<String, bool> _expandedPurchases = {};
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -61,6 +58,7 @@ class _PurchasesState extends ConsumerState<Purchases> {
                             widget.acceptPurchases(
                                 variants: widget.finalSalesList,
                                 pchsSttsCd: '02');
+                            showToast(context, "You Accepted all purchaes");
                           },
                           text: 'Accept All Purchases',
                           textColor: Colors.black,

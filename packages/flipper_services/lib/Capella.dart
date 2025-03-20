@@ -48,8 +48,8 @@ class Capella extends AiStrategyImpl
   @override
   SendPort? sendPort;
 
-  late String apihub;
-  late String commApi;
+  // late String apihub;
+  // late String commApi;
 
   // TODO: implement countersCollection
   // Future<AsyncCollection> getCountersCollection() async {
@@ -69,13 +69,13 @@ class Capella extends AiStrategyImpl
   // }
 
   void _setApiEndpoints() {
-    if (foundation.kDebugMode) {
-      apihub = AppSecrets.coreApi;
-      commApi = AppSecrets.commApi;
-    } else {
-      apihub = AppSecrets.apihubProd;
-      commApi = AppSecrets.commApi;
-    }
+    // if (foundation.kDebugMode) {
+    //   apihub = AppSecrets.coreApi;
+    //   commApi = AppSecrets.commApi;
+    // } else {
+    //   apihub = AppSecrets.apihubProd;
+    //   commApi = AppSecrets.commApi;
+    // }
   }
 
   @override

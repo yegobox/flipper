@@ -67,14 +67,16 @@ class MyHttpOverrides extends HttpOverrides {
 Future<void> initializeDependencies() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (Platform.isWindows) {
+  if (!kIsWeb && Platform.isWindows) {
     // Use the ffi on windows
     sqfliteFfiInit();
     databaseFactoryOrNull = databaseFactoryFfi;
   }
   // Add any other initialization code here
   //FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  await loadSupabase();
+  if (!kIsWeb) {
+    await loadSupabase();
+  }
   // FIXME: GoogleFonts.config.allowRuntimeFetching is false but font Inter-Regular was not found in the application assets. Ensure Inter-Regular.ttf exists in a folder that is included in your pubspec's assets.)
 // [sentry.platformError] #0      loadFontIfNecessary
 // setting GoogleFonts.config.allowRuntimeFetching = true for now.
