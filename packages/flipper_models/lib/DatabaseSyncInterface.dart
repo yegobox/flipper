@@ -99,7 +99,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<PColor?> getColor({required String id});
 
   FutureOr<Configurations?> getByTaxType({required String taxtype});
-  FutureOr<Purchase?> getPurchase({required String purchaseId});
 
   FutureOr<void> addAccess({
     required int userId,

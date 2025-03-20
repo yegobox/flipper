@@ -5867,14 +5867,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<models.Purchase?> getPurchase({required String purchaseId}) async {
-    return (await repository.get<Purchase>(
-      query: brick.Query(where: [brick.Where('id').isExactly(purchaseId)]),
-    ))
-        .firstOrNull;
-  }
-
-  @override
   Future<void> deleteFailedQueue() async {
     await repository.deleteUnprocessedRequests();
   }

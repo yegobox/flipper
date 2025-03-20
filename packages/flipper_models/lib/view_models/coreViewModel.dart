@@ -916,8 +916,8 @@ class CoreViewModel extends FlipperBaseModel
         final business = (await ProxyService.strategy
             .getBusiness(businessId: ProxyService.box.getBusinessId()));
 
-        Purchase? purchase = await ProxyService.strategy
-            .getPurchase(purchaseId: variant.purchaseId!);
+        Purchase? purchase =
+            await ProxyService.strategy.getPurchase(id: variant.purchaseId!);
         await ProxyService.tax.savePurchases(
           item: purchase!,
           business: business!,

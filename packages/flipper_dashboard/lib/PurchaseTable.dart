@@ -1,6 +1,5 @@
 import 'package:flipper_models/providers/variants_provider.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -68,48 +67,120 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
         ref.watch(variantProvider(branchId: ProxyService.box.getBranchId()!));
 
     return variantsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text('Error: $err')),
+      loading: () => const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.indigo),
+        ),
+      ),
+      error: (err, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.red[400]),
+            SizedBox(height: 16),
+            Text(
+              'Error: $err',
+              style: TextStyle(color: Colors.grey[700]),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
       data: (variants) => Container(
         width: double.infinity,
+        color: Colors.grey[50],
         child: widget.purchases.isEmpty
-            ? const Center(
+            ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.hourglass_empty, size: 48, color: Colors.grey),
+                    Icon(
+                      Icons.shopping_bag_outlined,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
                     SizedBox(height: 16),
                     Text(
                       'No Purchases Found',
-                      style: TextStyle(color: Colors.grey, fontSize: 18),
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
               )
             : ListView.builder(
+                padding: EdgeInsets.all(12),
                 itemCount: widget.purchases.length,
                 itemBuilder: (context, index) {
                   final purchase = widget.purchases[index];
                   final isExpanded = _expandedPurchases[purchase.id] ?? false;
 
                   return Card(
-                    margin: EdgeInsets.all(8),
+                    elevation: 2,
+                    margin: EdgeInsets.only(bottom: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Column(
                       children: [
                         ListTile(
-                          title: Text('Supplier: ${purchase.spplrNm}'),
-                          subtitle: Text('Invoice: ${purchase.spplrInvcNo}'),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          title: Text(
+                            'Supplier: ${purchase.spplrNm}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: EdgeInsets.only(top: 4),
+                            child: Text(
+                              'Invoice: ${purchase.spplrInvcNo}',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text('Total: ${purchase.totAmt}'),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.indigo.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Text(
+                                  'Total: ${purchase.totAmt}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.indigo[700],
+                                  ),
+                                ),
+                              ),
                               IconButton(
-                                icon: Icon(isExpanded
-                                    ? Icons.expand_less
-                                    : Icons.expand_more),
+                                icon: AnimatedSwitcher(
+                                  duration: Duration(milliseconds: 300),
+                                  child: Icon(
+                                    isExpanded
+                                        ? Icons.expand_less
+                                        : Icons.expand_more,
+                                    key: ValueKey<bool>(isExpanded),
+                                    color: Colors.indigo,
+                                    size: 28,
+                                  ),
+                                ),
                                 onPressed: () {
                                   setState(() {
-                                    _expandedPurchases[purchase.id] = !isExpanded;
+                                    _expandedPurchases[purchase.id] =
+                                        !isExpanded;
                                   });
                                 },
                               ),
@@ -126,12 +197,18 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                 loading: () => Container(
                                   height: 100,
                                   child: Center(
-                                    child: CircularProgressIndicator(),
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.indigo),
+                                    ),
                                   ),
                                 ),
                                 error: (err, stack) => Container(
                                   padding: EdgeInsets.all(16),
-                                  child: Text('Error: $err'),
+                                  child: Text(
+                                    'Error: $err',
+                                    style: TextStyle(color: Colors.red[400]),
+                                  ),
                                 ),
                                 data: (purchaseVariants) {
                                   final unapprovedVariants = purchaseVariants
@@ -141,34 +218,74 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                   if (unapprovedVariants.isEmpty) {
                                     return Container(
                                       padding: EdgeInsets.all(16),
-                                      child: Text('No unapproved variants found'),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.check_circle_outline,
+                                            color: Colors.green[400],
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            'No unapproved variants found',
+                                            style: TextStyle(
+                                              color: Colors.grey[700],
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     );
                                   }
 
                                   return Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 16),
-                                    child: SfDataGrid(
-                                      source: PurchaseDataSource(
-                                        unapprovedVariants,
-                                        _editedRetailPrices,
-                                        _editedSupplyPrices,
-                                        talker,
-                                        () => setState(() {}),
-                                        widget.acceptPurchases,
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    child: Theme(
+                                      data: Theme.of(context).copyWith(
+                                        dataTableTheme: DataTableThemeData(
+                                          headingTextStyle: TextStyle(
+                                            color: Colors.indigo[700],
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       ),
-                                      columns: buildPurchaseColumns(),
-                                      columnWidthMode: ColumnWidthMode.fill,
-                                      headerRowHeight: 56.0,
-                                      rowHeight: 48.0,
-                                      selectionMode: SelectionMode.single,
-                                      onCellTap: (details) {
-                                        if (details.rowColumnIndex.rowIndex > 0) {
-                                          final item = unapprovedVariants[
-                                              details.rowColumnIndex.rowIndex - 1];
-                                          _showEditDialog(context, item,
-                                              variants: variants);
-                                        }
-                                      },
+                                      child: SfDataGrid(
+                                        source: PurchaseDataSource(
+                                          unapprovedVariants,
+                                          _editedRetailPrices,
+                                          _editedSupplyPrices,
+                                          talker,
+                                          () => setState(() {}),
+                                          widget.acceptPurchases,
+                                        ),
+                                        columns: buildPurchaseColumns(),
+                                        columnWidthMode: ColumnWidthMode.fill,
+                                        headerRowHeight: 56.0,
+                                        rowHeight: 50.0,
+                                        gridLinesVisibility:
+                                            GridLinesVisibility.horizontal,
+                                        headerGridLinesVisibility:
+                                            GridLinesVisibility.both,
+                                        selectionMode: SelectionMode.single,
+                                        onCellTap: (details) async {
+                                          if (details.rowColumnIndex.rowIndex >
+                                              0) {
+                                            final item = unapprovedVariants[
+                                                details.rowColumnIndex
+                                                        .rowIndex -
+                                                    1];
+                                            final variants = await ProxyService
+                                                .strategy
+                                                .variants(
+                                                    branchId: ProxyService.box
+                                                        .getBranchId()!);
+                                            _showEditDialog(context, item,
+                                                variants: variants);
+                                          }
+                                        },
+                                      ),
                                     ),
                                   );
                                 },

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:supabase_models/brick/models/all_models.dart'; // Ensure this import is correct
 
 Future<void> showVariantEditDialog(
   BuildContext context,
@@ -22,24 +22,27 @@ Future<void> showVariantEditDialog(
     builder: (BuildContext context) {
       return AlertDialog(
         title: const Text('Edit Item'),
-        content: Container(
+        content: SizedBox(
           width: 400,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Using the working approach from your example
               DropdownSearch<Variant>(
-                popupProps: PopupProps.menu(
-                  showSelectedItems: true,
-                  searchFieldProps: TextFieldProps(
-                    decoration: InputDecoration(hintText: 'Search Item'),
+                selectedItem: item,
+                // This is the key fix - providing items as a function that returns the list
+                items: (a, b) => variants,
+                compareFn: (Variant i, Variant s) => i.id == s.id,
+                itemAsString: (Variant v) => v.name,
+                // Updated to decoratorProps instead of dropdownDecoratorProps
+                decoratorProps: const DropDownDecoratorProps(
+                  baseStyle: TextStyle(fontSize: 13),
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
                   ),
                 ),
-                itemAsString: (Variant? v) => v?.name ?? '',
-                onChanged: (value) {
-                  selectSale(value, item);
-                },
-                dropdownBuilder: (context, selectedItem) {
-                  return Text(selectedItem?.name ?? 'Select Item');
+                onChanged: (Variant? selectedVariant) {
+                  selectSale(selectedVariant, item);
                 },
               ),
               const SizedBox(height: 16),

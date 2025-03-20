@@ -1,5 +1,4 @@
 import 'package:flipper_dashboard/PurchaseTable.dart';
-import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';

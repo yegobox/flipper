@@ -2,37 +2,48 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:flutter/material.dart';
 
 List<GridColumn> buildPurchaseColumns() {
+  const headerStyle = TextStyle(
+    fontWeight: FontWeight.bold,
+    fontSize: 14,
+  );
+
   return [
     GridColumn(
       columnName: 'Name',
+      width: double.nan, // Take remaining space
       label: Container(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         alignment: Alignment.centerLeft,
         child: const Text(
           'Name',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: headerStyle,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     ),
     GridColumn(
       columnName: 'Supply Price',
+      width: 150,
       label: Container(
-        padding: const EdgeInsets.all(8.0),
-        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        alignment: Alignment.centerRight,
         child: const Text(
           'Supply Price',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: headerStyle,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     ),
     GridColumn(
       columnName: 'Retail Price',
+      width: 150,
       label: Container(
-        padding: const EdgeInsets.all(8.0),
-        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        alignment: Alignment.centerRight,
         child: const Text(
           'Retail Price',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: headerStyle,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     ),
@@ -40,11 +51,12 @@ List<GridColumn> buildPurchaseColumns() {
       columnName: 'Actions',
       width: 120,
       label: Container(
-        padding: const EdgeInsets.all(8.0),
-        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        alignment: Alignment.center,
         child: const Text(
           'Actions',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: headerStyle,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     ),

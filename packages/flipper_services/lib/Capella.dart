@@ -1904,7 +1904,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<brick.Purchase?> getPurchase({required String purchaseId}) {
+  FutureOr<brick.Purchase?> getPurchase({required String id}) {
     // TODO: implement getPurchase
     throw UnimplementedError();
   }

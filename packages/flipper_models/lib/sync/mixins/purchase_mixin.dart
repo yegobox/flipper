@@ -349,10 +349,49 @@ mixin PurchaseMixin
 
   @override
   Future<List<Purchase>> purchases() async {
-    // return purchases that has item that have not been approved
+    // Get all purchases with unapproved variants
     final purchases = await repository.get<Purchase>(
+      query: brick.Query(
+          where: [brick.Where('hasUnApprovedVariant').isExactly(true)]),
+    );
+
+    // For each purchase, check its variants' status
+    List<Purchase> updatedPurchases = [];
+    for (final purchase in purchases) {
+      final variants = await repository.get<Variant>(
         query: brick.Query(
-            where: [brick.Where('hasUnApprovedVariant').isExactly(true)]));
-    return purchases;
+          where: [brick.Where('purchaseId').isExactly(purchase.id)],
+        ),
+      );
+
+      // Check if any variants have unapproved status (not 02 or 04)
+      bool hasUnapprovedVariants = variants.any((variant) =>
+          variant.pchsSttsCd != '02' && variant.pchsSttsCd != '04');
+
+      // Update purchase if needed
+      if (purchase.hasUnApprovedVariant != hasUnapprovedVariants) {
+        purchase.hasUnApprovedVariant = hasUnapprovedVariants;
+        await repository.upsert<Purchase>(purchase);
+      }
+
+      // Only include purchases that actually have unapproved variants
+      if (hasUnapprovedVariants) {
+        updatedPurchases.add(purchase);
+      }
+    }
+
+    return updatedPurchases;
+  }
+
+  @override
+  FutureOr<Purchase?> getPurchase({
+    required String id,
+  }) async {
+    final purchase = await repository.get<Purchase>(
+      query: brick.Query(
+        where: [brick.Where('id').isExactly(id)],
+      ),
+    );
+    return purchase.firstOrNull;
   }
 }

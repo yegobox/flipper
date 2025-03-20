@@ -1,3 +1,4 @@
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -31,7 +32,7 @@ class PurchaseDataSource extends DataGridSource {
     _dataGridRows = variants.map<DataGridRow>((variant) {
       return DataGridRow(
         cells: [
-          DataGridCell<String>(columnName: 'Name', value: variant.name),
+          DataGridCell<String>(columnName: 'Name', value: variant.name ?? ''),
           DataGridCell<double>(
             columnName: 'Supply Price',
             value:
@@ -44,22 +45,19 @@ class PurchaseDataSource extends DataGridSource {
           ),
           DataGridCell<Widget>(
             columnName: 'Actions',
-            value: Container(
-              alignment: Alignment.centerRight,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.check, color: Colors.green),
-                    onPressed: () => _onStatusChange(variant.id, "02"),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.red),
-                    onPressed: () => _onStatusChange(variant.id, "04"),
-                  ),
-                ],
-              ),
+            value: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.check, color: Colors.green),
+                  onPressed: () => _onStatusChange(variant.id, "02"),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.red),
+                  onPressed: () => _onStatusChange(variant.id, "04"),
+                ),
+              ],
             ),
           ),
         ],
@@ -67,10 +65,13 @@ class PurchaseDataSource extends DataGridSource {
     }).toList();
   }
 
-  void _onStatusChange(String id, String status) {
+  Future<void> _onStatusChange(String id, String status) async {
     final variant = variants.firstWhere((v) => v.id == id);
     variant.pchsSttsCd = status;
+
+    // Update the variant's status
     acceptPurchases(variants: [variant], pchsSttsCd: status);
+
     talker.log('Status updated for variant ${variant.name} to $status');
     updateCallback();
   }
@@ -82,29 +83,38 @@ class PurchaseDataSource extends DataGridSource {
   DataGridRowAdapter? buildRow(DataGridRow row) {
     return DataGridRowAdapter(
       cells: row.getCells().map<Widget>((dataGridCell) {
-        if (dataGridCell.columnName == 'Actions') {
-          return Container(
-            padding: const EdgeInsets.all(8.0),
-            alignment: Alignment.centerRight,
-            child: dataGridCell.value,
-          );
-        }
-
         final value = dataGridCell.value;
-        final formattedValue = dataGridCell.columnName.contains('Price')
-            ? '\RWF ${value.toStringAsFixed(2)}'
-            : value.toString();
 
-        return Container(
-          padding: const EdgeInsets.all(8.0),
-          alignment: dataGridCell.columnName.contains('Price')
-              ? Alignment.centerRight
-              : Alignment.centerLeft,
-          child: Text(
-            formattedValue,
-            style: const TextStyle(fontSize: 14),
-          ),
-        );
+        switch (dataGridCell.columnName) {
+          case 'Actions':
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              alignment: Alignment.center,
+              child: value as Widget,
+            );
+
+          case 'Supply Price':
+          case 'Retail Price':
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              alignment: Alignment.centerRight,
+              child: Text(
+                '\RWF ${(value as double).toStringAsFixed(2)}',
+                style: const TextStyle(fontSize: 14),
+              ),
+            );
+
+          default: // Name
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value.toString(),
+                style: const TextStyle(fontSize: 14),
+                overflow: TextOverflow.ellipsis,
+              ),
+            );
+        }
       }).toList(),
     );
   }
