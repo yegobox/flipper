@@ -11,6 +11,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/sync/interfaces/purchase_interface.dart';
+import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/ai_strategy.dart';
@@ -45,7 +46,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
         BranchInterface,
         PurchaseInterface,
         BusinessInterface,
-        VariantInterface {
+        VariantInterface,
+        TransactionItemInterface {
   // Repository get repository;
   // DatabaseProvider? capella;
   // AsyncCollection? branchCollection;
@@ -278,20 +280,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount});
 
-  Future<void> addTransactionItem({
-    ITransaction? transaction,
-    required bool partOfComposite,
-    required DateTime lastTouched,
-    required double discount,
-    double? compositePrice,
-    required double quantity,
-    required double currentStock,
-    Variant? variation,
-    required double amountTotal, // Added to match old implementation
-    required String name,
-    TransactionItem? item, // Added to match old implementation
-  });
-
   Future<int> userNameAvailable(
       {required String name, required HttpClientInterface flipperHttpClient});
 
@@ -318,6 +306,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     bool? doneWithTransaction,
     int? branchId,
     String? id,
+    String? variantId,
     bool? active,
     bool fetchRemote = false,
     String? requestId,

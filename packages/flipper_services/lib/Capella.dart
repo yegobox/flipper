@@ -1372,6 +1372,7 @@ class Capella extends AiStrategyImpl
     bool? doneWithTransaction,
     int? branchId,
     String? id,
+    String? variantId,
     bool? active,
     bool fetchRemote = false,
     String? requestId,

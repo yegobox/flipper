@@ -933,7 +933,7 @@ class CoreViewModel extends FlipperBaseModel
         if (itemMapper == null) {
           variant.ebmSynced = false;
           await ProxyService.strategy.updateVariant(updatables: [variant]);
-          await _processTransaction(variant, pendingTransaction, business,
+          await _processStockInTransaction(variant, pendingTransaction, business,
               //02 is Incoming purchase
               sarTyCd: "02");
         }
@@ -959,7 +959,7 @@ class CoreViewModel extends FlipperBaseModel
             await ProxyService.strategy
                 .updateVariant(updatables: [variantFromPurchase]);
 
-            await _processTransaction(
+            await _processStockInTransaction(
                 variantFromPurchase, pendingTransaction, business,
                 //02 is Incoming purchase
                 sarTyCd: "02");
@@ -1047,7 +1047,7 @@ class CoreViewModel extends FlipperBaseModel
       await _updateVariant(variantToProcess);
     }
 
-    await _processTransaction(variantToProcess!, pendingTransaction!, business,
+    await _processStockInTransaction(variantToProcess!, pendingTransaction!, business,
         sarTyCd: "01");
 
     await ProxyService.tax.updateImportItems(item: item, URI: URI);
@@ -1084,7 +1084,7 @@ class CoreViewModel extends FlipperBaseModel
       await _updateVariant(variantToProcess);
     }
 
-    await _processTransaction(variantToProcess!, pendingTransaction!, business,
+    await _processStockInTransaction(variantToProcess!, pendingTransaction!, business,
         sarTyCd: "01");
 
     await ProxyService.tax.updateImportItems(item: item, URI: URI);
@@ -1101,7 +1101,7 @@ class CoreViewModel extends FlipperBaseModel
         value: item.stock!.currentStock! * item.retailPrice!);
   }
 
-  Future<void> _processTransaction(
+  Future<void> _processStockInTransaction(
       Variant variant, ITransaction pendingTransaction, Business business,
       {required String sarTyCd}) async {
     await assignTransaction(
