@@ -3151,16 +3151,29 @@ class CoreSync extends AiStrategyImpl
     try {
       final variant = await getVariant(id: item.variantId!);
 
-      final finalStock = ((variant!.stock?.currentStock ?? 0) - item.qty);
+      if (variant != null && variant.stock != null) {
+        final currentStock = variant.stock?.currentStock ?? 0;
+        final finalStock = currentStock - item.qty;
+        final stockValue = finalStock * (variant.retailPrice ?? 0);
 
-      final stockValue = finalStock * (variant.retailPrice ?? 0);
+        // Update all stock-related fields
+        variant.stock!.rsdQty = finalStock;
+        variant.stock!.currentStock = finalStock;
 
-      variant.stock!.rsdQty = finalStock;
-      variant.stock!.currentStock = finalStock;
-      variant.stock!.value = stockValue;
-      variant.stock!.ebmSynced = false;
+        variant.stock!.value = stockValue;
+        variant.stock!.ebmSynced = false;
 
-      repository.upsert<Stock>(variant.stock!);
+        // Update stock in repository
+        await repository.upsert<Stock>(variant.stock!);
+
+        // Update transaction item flags
+        item.active = true;
+        item.doneWithTransaction = true;
+        item.remainingStock = finalStock;
+        item.updatedAt = DateTime.now().toUtc().toLocal();
+        item.lastTouched = DateTime.now().toUtc().toLocal();
+        repository.upsert<TransactionItem>(item);
+      }
     } catch (e, s) {
       talker.error(s);
       talker.warning(e);
