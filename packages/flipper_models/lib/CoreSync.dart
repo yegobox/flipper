@@ -3132,6 +3132,7 @@ class CoreSync extends AiStrategyImpl
     required TransactionItem item,
     required String serverUrl,
   }) async {
+    ProxyService.box.writeBool(key: 'lockPatching', value: true);
     variant.ebmSynced = false;
     await ProxyService.strategy.updateVariant(updatables: [variant]);
 

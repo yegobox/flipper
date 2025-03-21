@@ -68,19 +68,15 @@ class CronService {
       if (!ProxyService.box.transactionInProgress() && !isTaxServiceStoped!) {
         final URI = await ProxyService.box.getServerUrl();
 
-        VariantPatch.patchVariant(
-          URI: URI!,
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
-          },
-        );
-
-        await VariantPatch.patchVariant(
-          URI: (await ProxyService.box.getServerUrl())!,
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
-          },
-        );
+        //// first check if there is no other transaction in progress before we start the patching
+        if (!ProxyService.box.lockPatching()) {
+          await VariantPatch.patchVariant(
+            URI: URI!,
+            sendPort: (message) {
+              ProxyService.notification.sendLocalNotification(body: message);
+            },
+          );
+        }
       }
     });
 

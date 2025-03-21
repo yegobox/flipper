@@ -74,4 +74,5 @@ abstract class LocalStorage {
   bool transactionInProgress();
   String stockInOutType();
   String defaultCurrency();
+  bool lockPatching();
 }

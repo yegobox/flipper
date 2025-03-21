@@ -488,10 +488,6 @@ mixin TransactionMixin {
         .isTaxEnabled(businessId: business!.serverId);
     if (isEbmEnabled) {
       try {
-        VariantPatch.patchVariant(
-          URI: (await ProxyService.box.getServerUrl())!,
-        );
-
         await ProxyService.strategy.updateTransaction(
             isUnclassfied: true,
             transaction: pendingTransaction,
