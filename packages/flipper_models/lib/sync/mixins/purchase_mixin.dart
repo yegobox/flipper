@@ -354,32 +354,34 @@ mixin PurchaseMixin
 
   @override
   Future<List<Purchase>> purchases() async {
-    // Get all purchases with unapproved variants
+    // Fetch all purchases that may have unapproved variants
     final purchases = await repository.get<Purchase>(
       query: brick.Query(
-          where: [brick.Where('hasUnApprovedVariant').isExactly(true)]),
+        where: [brick.Where('hasUnApprovedVariant').isExactly(true)],
+      ),
     );
 
-    // For each purchase, check its variants' status
+    if (purchases.isEmpty) return [];
+
     List<Purchase> updatedPurchases = [];
+
     for (final purchase in purchases) {
+      // Fetch variants for the current purchase
       final variants = await repository.get<Variant>(
         query: brick.Query(
           where: [brick.Where('purchaseId').isExactly(purchase.id)],
         ),
       );
 
-      // Check if any variants have unapproved status (not 02 or 04)
-      bool hasUnapprovedVariants = variants.any((variant) =>
-          variant.pchsSttsCd != '02' && variant.pchsSttsCd != '04');
+      bool hasUnapprovedVariants =
+          variants.any((variant) => variant.pchsSttsCd == '01');
 
-      // Always update purchase to reflect current variant status
+      // Only update if the status has changed
       if (purchase.hasUnApprovedVariant != hasUnapprovedVariants) {
         purchase.hasUnApprovedVariant = hasUnapprovedVariants;
-        await repository.upsert<Purchase>(purchase);
+        await repository.upsert<Purchase>(purchase); // Update only if necessary
       }
 
-      // Only include purchases that actually have unapproved variants
       if (hasUnapprovedVariants) {
         updatedPurchases.add(purchase);
       }
