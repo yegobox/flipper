@@ -264,7 +264,8 @@ mixin TransactionMixin {
           variation: variation,
           amountTotal: amountTotal,
         );
-        await updatePendingTransactionTotals(pendingTransaction);
+        await updatePendingTransactionTotals(pendingTransaction,
+            sarTyCd: sarTyCd ?? "11");
         return;
       }
 
@@ -295,7 +296,8 @@ mixin TransactionMixin {
       // Reactivate inactive items if necessary
       await _reactivateInactiveItems(pendingTransaction);
 
-      await updatePendingTransactionTotals(pendingTransaction);
+      await updatePendingTransactionTotals(pendingTransaction,
+          sarTyCd: sarTyCd ?? "11");
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);
@@ -378,8 +380,8 @@ mixin TransactionMixin {
     }
   }
 
-  Future<void> updatePendingTransactionTotals(
-      ITransaction pendingTransaction) async {
+  Future<void> updatePendingTransactionTotals(ITransaction pendingTransaction,
+      {required String sarTyCd}) async {
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
       branchId: ProxyService.box.getBranchId()!,
       transactionId: pendingTransaction.id,
@@ -400,6 +402,7 @@ mixin TransactionMixin {
       lastTouched: newLastTouched,
       receiptType: "NS",
       isProformaMode: false,
+      sarTyCd: sarTyCd,
       isTrainingMode: false,
     );
   }

@@ -930,12 +930,13 @@ class CoreViewModel extends FlipperBaseModel
 
         /// if itemMapper then means we are entirely approving and creating this item in our app
         /// hence should have _processTransaction to have its double update for incoming purchase.
-        if (itemMapper == null) {
+        if (itemMapper?.isEmpty == true) {
           variant.ebmSynced = false;
           await ProxyService.strategy.updateVariant(updatables: [variant]);
-          await _processStockInTransaction(variant, pendingTransaction, business,
+          await _processStockInTransaction(
+              variant, pendingTransaction, business,
               //02 is Incoming purchase
-              sarTyCd: "02");
+              sarTyCd: pchsSttsCd);
         }
 
         itemMapper?.forEach(
@@ -961,8 +962,8 @@ class CoreViewModel extends FlipperBaseModel
 
             await _processStockInTransaction(
                 variantFromPurchase, pendingTransaction, business,
-                //02 is Incoming purchase
-                sarTyCd: "02");
+                //02 is Incoming purchase for both direct and assigned purchases
+                sarTyCd: pchsSttsCd);
           } else {
             talker.warning("We should not be in this condition");
           }
@@ -1047,7 +1048,8 @@ class CoreViewModel extends FlipperBaseModel
       await _updateVariant(variantToProcess);
     }
 
-    await _processStockInTransaction(variantToProcess!, pendingTransaction!, business,
+    await _processStockInTransaction(
+        variantToProcess!, pendingTransaction!, business,
         sarTyCd: "01");
 
     await ProxyService.tax.updateImportItems(item: item, URI: URI);
@@ -1084,7 +1086,8 @@ class CoreViewModel extends FlipperBaseModel
       await _updateVariant(variantToProcess);
     }
 
-    await _processStockInTransaction(variantToProcess!, pendingTransaction!, business,
+    await _processStockInTransaction(
+        variantToProcess!, pendingTransaction!, business,
         sarTyCd: "01");
 
     await ProxyService.tax.updateImportItems(item: item, URI: URI);

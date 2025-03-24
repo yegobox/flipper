@@ -137,7 +137,6 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
       /// TODO: handle discount later.
       itemsList.forEach((item) {
         item['totDcAmt'] = "0";
-        // item['rsdQty'] = 12;
       });
       final json = {
         "totItemCnt": items.length,
