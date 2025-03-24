@@ -314,6 +314,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 );
               } else if (snapshot.hasError || !snapshot.hasData) {
                 return _buildImageErrorPlaceholder();
+                // return SizedBox.shrink();
               } else {
                 return Image.network(
                   snapshot.data!,
@@ -365,23 +366,17 @@ class _RowItemState extends ConsumerState<RowItem>
       height: double.infinity,
       color: Colors.grey[200],
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.image_not_supported_outlined,
-              size: 32,
-              color: Colors.grey[500],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Image not available',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 12,
+        child: IntrinsicHeight(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.image_not_supported_outlined,
+                size: 32,
+                color: Colors.grey[500],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -390,6 +385,7 @@ class _RowItemState extends ConsumerState<RowItem>
   Widget _buildProductDetails({required bool isComposite}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min, // Important: Allow column to shrink
       children: [
         Text(
           widget.variantName.pascalCase.length > 24
@@ -404,30 +400,24 @@ class _RowItemState extends ConsumerState<RowItem>
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 4.0),
-
-        // Variant name if different from product name
         if (widget.variantName != widget.productName &&
             widget.variantName.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 4.0),
-            child: Text(
-              widget.variantName.length > 8
-                  ? '${widget.variantName.substring(0, 8)}...'
-                  : widget.variantName,
-              style: TextStyle(
-                color: Colors.grey[700],
-                fontSize: 14.0,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          Text(
+            widget.variantName.length > 8
+                ? '${widget.variantName.substring(0, 8)}...'
+                : widget.variantName,
+            style: TextStyle(
+              color: Colors.grey[700],
+              fontSize: 14.0,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-
-        // Stock information
         if (!isComposite && widget.stock != 0)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 2.0),
             child: Row(
+              mainAxisSize: MainAxisSize.min, // Important: Allow Row to shrink
               children: [
                 Text(
                   "Stock: ",
@@ -445,12 +435,13 @@ class _RowItemState extends ConsumerState<RowItem>
                     fontWeight:
                         widget.stock < 10 ? FontWeight.w600 : FontWeight.normal,
                   ),
+                  maxLines: 1, //Added maxLines to prevent overflow
+                  overflow: TextOverflow
+                      .ellipsis, //Added overflow to prevent overflow
                 ),
               ],
             ),
           ),
-
-        // Price information
         if (widget.variant?.retailPrice != null &&
             widget.variant?.retailPrice != 0)
           Padding(
