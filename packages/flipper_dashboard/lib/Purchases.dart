@@ -10,7 +10,7 @@ class Purchases extends StatefulHookConsumerWidget {
   final TextEditingController supplyPriceController;
   final TextEditingController retailPriceController;
   final void Function() saveItemName;
-  final void Function(
+  final Future<void> Function(
       {required List<Variant> variants,
       required String pchsSttsCd}) acceptPurchases;
   final void Function(
@@ -54,8 +54,8 @@ class _PurchasesState extends ConsumerState<Purchases> {
                   widget.finalSalesList.isEmpty
                       ? const SizedBox.shrink()
                       : FlipperButton(
-                          onPressed: () {
-                            widget.acceptPurchases(
+                          onPressed: () async {
+                            await widget.acceptPurchases(
                                 variants: widget.finalSalesList,
                                 pchsSttsCd: '02');
                             showToast(context, "You Accepted all purchaes");

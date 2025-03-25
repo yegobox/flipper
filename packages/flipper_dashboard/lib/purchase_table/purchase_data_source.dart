@@ -1,4 +1,3 @@
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -10,12 +9,14 @@ class PurchaseDataSource extends DataGridSource {
   final Map<String, double> _editedSupplyPrices;
   final Talker talker;
   final VoidCallback updateCallback;
-  final void Function({
+  final Future<void> Function({
     required List<Variant> variants,
     required String pchsSttsCd,
   }) acceptPurchases;
 
   List<DataGridRow> _dataGridRows = [];
+  // Track loading state for each variant
+  final Map<String, bool> _loadingStates = {};
 
   PurchaseDataSource(
     this.variants,
@@ -30,9 +31,10 @@ class PurchaseDataSource extends DataGridSource {
 
   void _buildDataGridRows() {
     _dataGridRows = variants.map<DataGridRow>((variant) {
+      final isLoading = _loadingStates[variant.id] ?? false;
       return DataGridRow(
         cells: [
-          DataGridCell<String>(columnName: 'Name', value: variant.name ?? ''),
+          DataGridCell<String>(columnName: 'Name', value: variant.name),
           DataGridCell<String>(
             columnName: 'Qty',
             value: variant.stock?.currentStock?.toString() ?? '0',
@@ -47,21 +49,13 @@ class PurchaseDataSource extends DataGridSource {
             value:
                 _editedRetailPrices[variant.id] ?? variant.retailPrice ?? 0.0,
           ),
-          DataGridCell<Widget>(
+          DataGridCell<_ActionButtons>(
             columnName: 'Actions',
-            value: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.check, color: Colors.green),
-                  onPressed: () => _onStatusChange(variant.id, "02"),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.red),
-                  onPressed: () => _onStatusChange(variant.id, "04"),
-                ),
-              ],
+            value: _ActionButtons(
+              variantId: variant.id,
+              isLoading: isLoading,
+              onApprove: () => _onStatusChange(variant.id, "02"),
+              onDecline: () => _onStatusChange(variant.id, "04"),
             ),
           ),
         ],
@@ -70,19 +64,34 @@ class PurchaseDataSource extends DataGridSource {
   }
 
   Future<void> _onStatusChange(String id, String status) async {
-    final variant = variants.firstWhere((v) => v.id == id);
-    variant.pchsSttsCd = status;
+    try {
+      // Set loading state
+      _setLoading(id, true);
 
-    // Update the variant's status
-    acceptPurchases(variants: [variant], pchsSttsCd: status);
+      final variant = variants.firstWhere((v) => v.id == id);
+      variant.pchsSttsCd = status;
 
-    // Remove the variant from the list and rebuild rows
-    variants.removeWhere((v) => v.id == id);
+      // Update the variant's status
+      await acceptPurchases(variants: [variant], pchsSttsCd: status);
+
+      // Remove the variant from the list and rebuild rows
+      variants.removeWhere((v) => v.id == id);
+      _setLoading(id, false); // Clean up loading state
+      _buildDataGridRows();
+
+      talker.log('Status updated for variant ${variant.name} to $status');
+      updateCallback();
+    } catch (e) {
+      // Reset loading state on error
+      _setLoading(id, false);
+      talker.error('Error updating status: $e');
+    }
+  }
+
+  void _setLoading(String id, bool isLoading) {
+    _loadingStates[id] = isLoading;
     _buildDataGridRows();
-    
-    talker.log('Status updated for variant ${variant.name} to $status');
-    notifyListeners(); // Notify the grid to rebuild
-    updateCallback();
+    notifyListeners();
   }
 
   @override
@@ -99,42 +108,78 @@ class PurchaseDataSource extends DataGridSource {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               alignment: Alignment.center,
-              child: value as Widget,
+              child: value as _ActionButtons,
             );
-
-          case 'Qty':
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              alignment: Alignment.centerRight,
-              child: Text(
-                value.toString(),
-                style: const TextStyle(fontSize: 13),
-              ),
-            );
-
-          case 'Supply Price':
-          case 'Retail Price':
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              alignment: Alignment.centerRight,
-              child: Text(
-                '\RWF ${(value as double).toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 14),
-              ),
-            );
-
-          default: // Name
+          case 'Name':
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               alignment: Alignment.centerLeft,
-              child: Text(
-                value.toString(),
-                style: const TextStyle(fontSize: 14),
-                overflow: TextOverflow.ellipsis,
-              ),
+              child: Text(value.toString()),
+            );
+          case 'Qty':
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              alignment: Alignment.center,
+              child: Text(value.toString()),
+            );
+          default:
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              alignment: Alignment.centerRight,
+              child: Text('${value.toString()}'),
             );
         }
       }).toList(),
+    );
+  }
+}
+
+class _ActionButtons extends StatelessWidget {
+  final String variantId;
+  final bool isLoading;
+  final VoidCallback onApprove;
+  final VoidCallback onDecline;
+
+  const _ActionButtons({
+    required this.variantId,
+    required this.isLoading,
+    required this.onApprove,
+    required this.onDecline,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                  ),
+                )
+              : const Icon(Icons.check, color: Colors.green),
+          onPressed: isLoading ? null : onApprove,
+        ),
+        IconButton(
+          icon: isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                  ),
+                )
+              : const Icon(Icons.close, color: Colors.red),
+          onPressed: isLoading ? null : onDecline,
+        ),
+      ],
     );
   }
 }

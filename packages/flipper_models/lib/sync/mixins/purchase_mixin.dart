@@ -142,7 +142,8 @@ mixin PurchaseMixin
         try {
           await repository.upsert<ImportPurchaseDates>(
               ImportPurchaseDates(
-                lastRequestDate: response.resultDt,
+                lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
+                // lastRequestDate: response.resultDt,
                 branchId: activeBranch.id,
                 requestType: "IMPORT",
               ),
@@ -315,8 +316,8 @@ mixin PurchaseMixin
           final newImportDate = ImportPurchaseDates(
             branchId: activeBranch.id,
             requestType: "PURCHASE",
-            lastRequestDate: response.resultDt,
-            // lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
+            // lastRequestDate: response.resultDt,
+            lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
           );
 
           await repository.upsert<ImportPurchaseDates>(

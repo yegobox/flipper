@@ -103,28 +103,49 @@ class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
     final businessAnalyticsData =
         await ProxyService.strategy.analytics(branchId: branchId);
 
+    // Get current time for temporal context
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    // Format CSV with all available fields
     String csvData =
-        "Date,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count\n" +
+        "ID,Date,Value,Branch ID,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count\n" +
             businessAnalyticsData.map((e) => e.toString()).join('\n');
 
-    // Enhanced prompt for accounting-focused formatting
+    // Enhanced prompt with temporal context
     final basePrompt = """
-Format the response following these accounting guidelines:
-1. Numbers should be formatted with 2 decimal places (e.g., 1234.56)
-2. Percentages should be clearly marked with % symbol
-3. Dates should be in DD/MM/YYYY format
-4. Currency values should be prefixed with currency symbol
-5. For calculations:
-   - Show subtotals clearly
-   - Separate line items with clear breaks
-   - Show formulas used if relevant
-6. Group related items together under headers
-7. If showing comparisons:
-   - Use clear "Previous vs Current" format
-   - Show percentage changes
-8. Round large numbers appropriately (e.g., "1.2M" for millions)
+Current Time Context:
+- Current Date: ${today.toString().split(' ')[0]}
+- Today refers to: ${today.toString().split(' ')[0]}
+- This week refers to: dates from ${today.subtract(Duration(days: today.weekday - 1)).toString().split(' ')[0]} to ${today.toString().split(' ')[0]}
+- This month refers to: dates in ${today.month}/${today.year}
 
-$userPrompt
+Analyze the provided business data following these guidelines:
+1. Time-Based Analysis:
+   - When user mentions "today", analyze data for ${today.toString().split(' ')[0]}
+   - For "this week", analyze data from this week's Monday to today
+   - For "this month", analyze all data from current month
+   - For "yesterday", analyze data from ${today.subtract(const Duration(days: 1)).toString().split(' ')[0]}
+   - Default to all-time analysis if no time period is specified
+
+2. Financial Formatting:
+   - Currency: Format with 2 decimals and RWF symbol (e.g., RWF 1,234.56)
+   - Percentages: Include % symbol (e.g., 18%)
+   - Dates: Use DD/MM/YYYY format
+   - Large numbers: Use comma separators (e.g., 1,234)
+
+3. Analysis Requirements:
+   - Sales Analysis: Total revenue, average price, total profit
+   - Product Performance: Best/worst selling items by units and revenue
+   - Tax Impact: Calculate total tax amount (value × tax_rate)
+   - Traffic Analysis: Average sales per customer (units_sold/traffic_count)
+
+4. Data Grouping:
+   - Group items by product category when possible
+   - Show time-based trends if multiple dates exist
+   - Compare performance metrics across products
+
+User Query: $userPrompt
 """;
 
     final inputData = GeminiInput(
@@ -134,23 +155,30 @@ $userPrompt
             Part(text: csvData),
             Part(text: basePrompt),
             Part(text: """
-Please structure the response in this format:
-[SUMMARY]
-Brief overview of key figures
+**[SUMMARY]**
+Total Revenue: RWF XXX
+Total Profit: RWF XXX
+Total Units Sold: XXX
+Average Transaction: RWF XXX
 
-[DETAILS]
-Detailed breakdown with proper formatting
+**[DETAILS]**
+[PRODUCT ANALYSIS]
+• Top Products by Revenue
+• Top Products by Units
+• Product Categories Overview
 
-[CALCULATIONS]
-Any relevant calculations with formulas shown
+[OPERATIONAL INSIGHTS]
+• Customer Traffic Analysis
+• Tax Summary
+• Efficiency Metrics
 
-Note: Keep responses concise and numbers exact. Remove any explanatory text unless specifically requested.
+Note: All calculations are based on exact values. Percentages and averages are rounded to 2 decimal places.
 """),
           ],
         ),
       ],
       generationConfig: GenerationConfig(
-        temperature: 0.3, // Lower temperature for more consistent formatting
+        temperature: 0.2, // Lower temperature for more precise numerical analysis
         maxOutputTokens: 2048,
       ),
     );

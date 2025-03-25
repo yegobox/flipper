@@ -46,7 +46,7 @@ class PurchaseTable extends StatefulHookConsumerWidget {
   final List<Variant> finalSalesList;
   final List<Purchase> purchases;
   final VoidCallback saveItemName;
-  final void Function({
+  final Future<void> Function({
     required List<Variant> variants,
     required String pchsSttsCd,
   }) acceptPurchases;
