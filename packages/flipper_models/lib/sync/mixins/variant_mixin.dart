@@ -57,9 +57,8 @@ mixin VariantMixin implements VariantInterface {
           if (!excludeApprovedInWaitingOrCanceledItems) ...[
             Where('imptItemSttsCd').isNot("2"),
             Where('imptItemSttsCd').isNot("4"),
-            //TODO: there is a bug in brick where comparing to 01 is not working
-            //Where('pchsSttsCd').isNot("01"),
-            //Where('pchsSttsCd').isNot("04"),
+            Where('pchsSttsCd').isNot("04"),
+            Where('pchsSttsCd').isNot("01"),
           ],
 
           /// 01 is waiting for approval.

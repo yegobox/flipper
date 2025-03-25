@@ -279,6 +279,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                             final variants = await ProxyService
                                                 .strategy
                                                 .variants(
+                                                    fetchRemote: false,
                                                     branchId: ProxyService.box
                                                         .getBranchId()!);
                                             _showEditDialog(context, item,

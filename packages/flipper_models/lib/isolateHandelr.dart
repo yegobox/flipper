@@ -121,12 +121,12 @@ mixin VariantPatch {
           URI: serverUrl!,
           sendPort: notificationSender,
         );
+      } else {
+        await StockPatch.patchStock(
+          URI: serverUrl!,
+          sendPort: notificationSender,
+        );
       }
-
-      await StockPatch.patchStock(
-        URI: serverUrl!,
-        sendPort: notificationSender,
-      );
     } else {
       await StockPatch.patchStock(
         URI: serverUrl!,
