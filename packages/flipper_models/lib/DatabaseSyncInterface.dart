@@ -11,6 +11,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
+
 import 'package:flipper_models/sync/interfaces/purchase_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
@@ -50,6 +51,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         VariantInterface,
         TransactionItemInterface,
         CategoryInterface {
+
   // Repository get repository;
   // DatabaseProvider? capella;
   // AsyncCollection? branchCollection;
@@ -91,7 +93,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Stream<List<Product>> productStreams({String? prodIndex});
 
   Future<List<PColor>> colors({required int branchId});
-
   Future<List<IUnit>> units({required int branchId});
   FutureOr<T?> create<T>({required T data});
   Stream<double> wholeStockValue({required int branchId});

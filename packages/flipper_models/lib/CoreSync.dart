@@ -19,7 +19,9 @@ import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/sync/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/mixins/business_mixin.dart';
+
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
+
 import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
@@ -73,6 +75,7 @@ class CoreSync extends AiStrategyImpl
         TransactionItemMixin,
         VariantMixin,
         CategoryMixin
+
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
