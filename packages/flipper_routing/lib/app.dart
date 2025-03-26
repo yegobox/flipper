@@ -1,6 +1,5 @@
 library flipper_routing;
 
-
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -807,5 +806,7 @@ class App {}
 // supabase secrets set --env-file .env
 // supabase functions deploy urlRedirect --no-verify-jwt=true
 // web: dart run sqflite_common_ffi_web:setup advice from: @https://github.com/GetDutchie/brick/issues/552
+// git reset --hard origin/main
+
 
 
